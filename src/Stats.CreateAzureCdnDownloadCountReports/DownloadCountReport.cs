@@ -20,17 +20,13 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         private const int _defaultCommandTimeout = 1800; // 30 minutes max
         internal const string ReportName = "downloads.v1.json";
 
-        public DownloadCountReport(CloudStorageAccount cloudStorageAccount, string statisticsContainerName, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
-            : base(cloudStorageAccount, statisticsContainerName, statisticsDatabase, galleryDatabase)
+        public DownloadCountReport(IEnumerable<StorageContainerTarget> targets, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
+            : base(targets, statisticsDatabase, galleryDatabase)
         {
         }
 
         public async Task Run()
         {
-            var targetBlobContainer = await GetBlobContainer();
-
-            Trace.TraceInformation("Generating Download Count Report from {0}/{1} to {2}/{3}.", StatisticsDatabase.DataSource, StatisticsDatabase.InitialCatalog, CloudStorageAccount.Credentials.AccountName, StatisticsContainerName);
-
             // Gather download count data from statistics warehouse
             IReadOnlyCollection<DownloadCountData> downloadData;
             Trace.TraceInformation("Gathering Download Counts from {0}/{1}...", StatisticsDatabase.DataSource, StatisticsDatabase.InitialCatalog);
@@ -60,11 +56,17 @@ namespace Stats.CreateAzureCdnDownloadCountReports
                     registrations.Add(details);
                 }
 
-                var blob = targetBlobContainer.GetBlockBlobReference(ReportName);
-                Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
-                blob.Properties.ContentType = "application/json";
-                await blob.UploadTextAsync(registrations.ToString(Formatting.None));
-                Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
+                var reportText = registrations.ToString(Formatting.None);
+
+                foreach (var storageContainerTarget in Targets)
+                {
+                    var targetBlobContainer = await GetBlobContainer(storageContainerTarget);
+                    var blob = targetBlobContainer.GetBlockBlobReference(ReportName);
+                    Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
+                    blob.Properties.ContentType = "application/json";
+                    await blob.UploadTextAsync(reportText);
+                    Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
+                }
             }
         }
     }

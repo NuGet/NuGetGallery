@@ -16,9 +16,11 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         : JobBase
     {
         private CloudStorageAccount _cloudStorageAccount;
+        private CloudStorageAccount _dataStorageAccount;
         private SqlConnectionStringBuilder _statisticsDatabase;
         private SqlConnectionStringBuilder _galleryDatabase;
         private string _statisticsContainerName;
+        private string _dataContainerName;
 
         public Job()
             : base(JobEventSource.Log)
@@ -39,8 +41,12 @@ namespace Stats.CreateAzureCdnDownloadCountReports
                 _galleryDatabase = new SqlConnectionStringBuilder(galleryDatabaseConnectionString);
 
                 var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-                _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString);
-                _statisticsContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
+                _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString, JobArgumentNames.AzureCdnCloudStorageAccount);
+                _statisticsContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName), JobArgumentNames.AzureCdnCloudStorageContainerName);
+
+                var dataStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
+                _dataStorageAccount = ValidateAzureCloudStorageAccount(dataStorageAccountConnectionString, JobArgumentNames.DataStorageAccount);
+                _dataContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataContainerName), JobArgumentNames.DataContainerName);
 
                 return true;
             }
@@ -59,13 +65,16 @@ namespace Stats.CreateAzureCdnDownloadCountReports
                 var stopwatch = Stopwatch.StartNew();
 
                 // build downloads.v1.json
-                var downloadCountReport = new DownloadCountReport(_cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
+                var downloadCountReport = new DownloadCountReport(new [] {
+                    new StorageContainerTarget(_cloudStorageAccount, _statisticsContainerName),
+                    new StorageContainerTarget(_dataStorageAccount, _dataContainerName) }, _statisticsDatabase, _galleryDatabase);
                 await downloadCountReport.Run();
 
                 stopwatch.Stop();
                 ApplicationInsights.TrackMetric(DownloadCountReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
                 ApplicationInsights.TrackReportProcessed(DownloadCountReport.ReportName);
                 stopwatch.Restart();
+
 
                 // build stats-totals.json
                 var galleryTotalsReport = new GalleryTotalsReport(_cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
@@ -95,11 +104,11 @@ namespace Stats.CreateAzureCdnDownloadCountReports
             }
         }
 
-        private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
+        private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount, string parameterName)
         {
             if (string.IsNullOrEmpty(cloudStorageAccount))
             {
-                throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is not defined.");
+                throw new ArgumentException(string.Format("Job parameter {0} is not defined.", parameterName));
             }
 
             CloudStorageAccount account;
@@ -107,14 +116,14 @@ namespace Stats.CreateAzureCdnDownloadCountReports
             {
                 return account;
             }
-            throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
+            throw new ArgumentException(string.Format("Job parameter {0} is invalid.", parameterName));
         }
 
-        private static string ValidateAzureContainerName(string containerName)
+        private static string ValidateAzureContainerName(string containerName, string parameterName)
         {
             if (string.IsNullOrWhiteSpace(containerName))
             {
-                throw new ArgumentException("Job parameter for Azure Storage Container Name is not defined.");
+                throw new ArgumentException(string.Format("Job parameter {0} is not defined.", parameterName));
             }
             return containerName;
         }
