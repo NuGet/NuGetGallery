@@ -23,16 +23,12 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         internal const string ReportName = "stats-totals.json";
 
         public GalleryTotalsReport(CloudStorageAccount cloudStorageAccount, string statisticsContainerName, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
-            : base(cloudStorageAccount, statisticsContainerName, statisticsDatabase, galleryDatabase)
+            : base(new [] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) }, statisticsDatabase, galleryDatabase)
         {
         }
 
         public async Task Run()
         {
-            var targetBlobContainer = await GetBlobContainer();
-
-            Trace.TraceInformation("Generating Gallery Totals Report from {0}/{1} to {2}/{3}.", StatisticsDatabase.DataSource, StatisticsDatabase.InitialCatalog, CloudStorageAccount.Credentials.AccountName, StatisticsContainerName);
-
             // gather package numbers from gallery database
             GalleryTotalsData totalsData;
             Trace.TraceInformation("Gathering Gallery Totals from {0}/{1}...", GalleryDatabase.DataSource, GalleryDatabase.InitialCatalog);
@@ -57,11 +53,18 @@ namespace Stats.CreateAzureCdnDownloadCountReports
 
             // write to blob
             totalsData.LastUpdateDateUtc = DateTime.UtcNow;
-            var blob = targetBlobContainer.GetBlockBlobReference(ReportName);
-            Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
-            blob.Properties.ContentType = "application/json";
-            await blob.UploadTextAsync(JsonConvert.SerializeObject(totalsData));
-            Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
+
+            var reportText = JsonConvert.SerializeObject(totalsData);
+
+            foreach (var storageContainerTarget in Targets)
+            {
+                var targetBlobContainer = await GetBlobContainer(storageContainerTarget);
+                var blob = targetBlobContainer.GetBlockBlobReference(ReportName);
+                Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
+                blob.Properties.ContentType = "application/json";
+                await blob.UploadTextAsync(reportText);
+                Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
+            }
         }
     }
 }
