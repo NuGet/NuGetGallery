@@ -598,11 +598,11 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
-                nugetPackage.Setup(x => x.Metadata.Id).Returns("theId".PadRight(129, '_'));
+                nugetPackage.Setup(x => x.Metadata.Id).Returns("theId".PadRight(101, '_'));
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", "128"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", "100"), ex.Message);
             }
 
             [Fact]
