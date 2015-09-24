@@ -10,5 +10,6 @@ BEGIN
 	ON			UA.[Id] = F.[Fact_UserAgent_Id]
 
 	WHERE	F.[Dimension_Client_Id] = 1 -- the (unknown) client
+		AND	UA.[UserAgent] IS NOT NULL
 		AND ISNULL(UA.[UserAgent], '') <> ''
 END
