@@ -58,12 +58,21 @@ namespace Stats.CreateAzureCdnDownloadCountReports
 
             foreach (var storageContainerTarget in Targets)
             {
-                var targetBlobContainer = await GetBlobContainer(storageContainerTarget);
-                var blob = targetBlobContainer.GetBlockBlobReference(ReportName);
-                Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
-                blob.Properties.ContentType = "application/json";
-                await blob.UploadTextAsync(reportText);
-                Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
+                try
+                {
+                    var targetBlobContainer = await GetBlobContainer(storageContainerTarget);
+                    var blob = targetBlobContainer.GetBlockBlobReference(ReportName);
+                    Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
+                    blob.Properties.ContentType = "application/json";
+                    await blob.UploadTextAsync(reportText);
+                    Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError("Error writing report to storage account {0}, container {1}. {2} {3}",
+                        storageContainerTarget.StorageAccount.Credentials.AccountName,
+                        storageContainerTarget.ContainerName, ex.Message, ex.StackTrace);
+                }
             }
         }
     }
