@@ -113,11 +113,9 @@ var drawDownloadsByVersionBarChart = function () {
 
     //  draw graph
 
-    var reportTableWidth = $('#report-Version').width();
+    var reportGraphWidth = $('#report-Version').width();
 
-    var reportGraphWidth = 960 - reportTableWidth;
-
-    reportGraphWidth = Math.min(reportGraphWidth, 590);
+    reportGraphWidth = Math.min(reportGraphWidth, 960);
 
     var margin = { top: 20, right: 30, bottom: 160, left: 80 },
         width = reportGraphWidth - margin.left - margin.right,
@@ -162,8 +160,15 @@ var drawDownloadsByVersionBarChart = function () {
         //.attr("dx", "-.8em")
         .attr("dy", ".15em")
         .attr("transform", function (d) {
-            return "rotate(-65),translate(-10,0)"
+            return "rotate(-65),translate(-10,0)";
         });
+
+    svg.append("text")
+        .style("text-anchor", "middle")
+        .attr("x", (width - margin.right) / 2.0)
+        .attr("y", height + (margin.bottom / 2.0))
+        .attr("font-weight", "bold")
+        .text("Downloads by Package Version (Last 6 weeks)");
 
     svg.append("g")
         .attr("class", "y axis")
@@ -197,27 +202,32 @@ var drawDownloadsByClientNameBarChart = function () {
             clientName: d3.select(this).select(':nth-child(1)').text().replace(/(^\s*)|(\s*$)/g, ''),
             downloads: +(d3.select(this).select(':nth-child(2)').text().replace(/[^0-9]+/g, ''))
         };
-        data[data.length] = item;
+        
+        //  filter out unknown
+        if (item.clientName !== '(unknown)') {
+            data[data.length] = item;
+        }
     });
 
     data.reverse();
 
     //  draw graph
 
-    var margin = { top: 20, right: 30, bottom: 220, left: 100 },
-        width = 420 - margin.left - margin.right,
-        height = 550 - margin.top - margin.bottom;
+    var reportGraphWidth = $('#report-ClientName').width();
+    reportGraphWidth = Math.min(reportGraphWidth, 960);
 
-    var xScale = d3.scale.ordinal()
-        .rangeRoundBands([0, width], .1);
+    var margin = { top: 20, right: 30, bottom: 100, left: 250 },
+        width = reportGraphWidth - margin.left - margin.right,
+        height = Math.max(550, data.length * 25) - margin.top - margin.bottom;
 
-    var yScale = d3.scale.linear()
-        .range([height, 0]);
+    var xScale = d3.scale.linear()
+        .range([0, width - 50]);
+    var yScale = d3.scale.ordinal()
+        .rangeRoundBands([height, 20], .1);
 
     var xAxis = d3.svg.axis()
         .scale(xScale)
         .orient('bottom');
-
     var yAxis = d3.svg.axis()
         .scale(yScale)
         .orient('left');
@@ -231,9 +241,9 @@ var drawDownloadsByClientNameBarChart = function () {
     svg.append('desc').text('This is a graph showing the number of downloads of this Package broken out by client.');
 
     svg = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-    xScale.domain(data.map(function (d) { return d.clientName; }));
-    yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
+    
+    xScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
+    yScale.domain(data.map(function (d) { return d.clientName; }));
 
     //  the use of dx attribute on the text element is correct, however, the negative shift doesn't appear to work on Firefox
     //  the workaround employed here is to add a translation to the rotation transform
@@ -241,34 +251,46 @@ var drawDownloadsByClientNameBarChart = function () {
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
-        .call(xAxis)
-        .selectAll("text")
-        .style("text-anchor", "end")
-        //.attr("dx", "-.8em")
-        .attr("dy", ".15em")
-        .attr("transform", function (d) {
-            return "rotate(-65),translate(-10,0)"
-        });
+        .call(xAxis);
+
+    svg.append("text")
+        .style("text-anchor", "middle")
+        .attr("x", (width - margin.right) / 2.0)
+        .attr("y", height + (margin.bottom / 2.0))
+        .attr("font-weight", "bold")
+        .text("Downloads by Client (Last 6 weeks)");
 
     svg.append("g")
         .attr("class", "y axis")
-        .call(yAxis)
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text("Downloads");
+        .call(yAxis);
 
     svg.selectAll(".bar")
         .data(data)
         .enter()
         .append("rect")
             .attr("class", "bar")
-            .attr("x", function (d) { return xScale(d.clientName); })
-            .attr("width", xScale.rangeBand())
-            .attr("y", function (d) { return yScale(d.downloads); })
-            .attr("height", function (d) { return height - yScale(d.downloads); });
+            .attr("x", 0)
+            .attr("width", function (d) { return xScale(d.downloads); })
+            .attr("y", function (d) { return yScale(d.clientName); })
+            .attr("height", yScale.rangeBand());
+
+    svg.selectAll(".bartext")
+        .data(data)
+        .enter()
+        .append("text")
+            .attr("class", "bartext")
+            .attr("text-anchor", "end")
+            .attr("fill", "black")
+            .attr("font-size", "11px")
+            .attr("x", function (d, i) {
+                return xScale(d.downloads) + 40;
+            })
+            .attr("y", function (d, i) {
+                return yScale(d.clientName) + yScale.rangeBand() - 4;
+            })
+            .text(function (d) {
+                return d.downloads.toLocaleString();
+            });
 }
 
 var drawDownloadsByOperation = function () {
@@ -279,8 +301,8 @@ var drawDownloadsByOperation = function () {
 
     d3.selectAll('#report-Operation .statistics-data tbody tr').each(function () {
         var item = {
-            operation: d3.select(this).select(':nth-child(1)').text().replace(/(^\s*)|(\s*$)/g, ''),
-            downloads: +(d3.select(this).select(':nth-child(2)').text().replace(/[^0-9]+/g, ''))
+            downloads: +(d3.select(this).select(':nth-child(2)').text().replace(/[^0-9]+/g, '')),
+            operation: d3.select(this).select(':nth-child(1)').text().replace(/(^\s*)|(\s*$)/g, '')
         };
 
         //  filter out unknown so we just compare Install, Restore etc.
@@ -293,21 +315,22 @@ var drawDownloadsByOperation = function () {
     data.reverse();
 
     //  draw graph
+    var reportGraphWidth = $('#report-Operation').width();
 
-    var margin = { top: 20, right: 30, bottom: 220, left: 100 },
-        width = 420 - margin.left - margin.right,
-        height = 550 - margin.top - margin.bottom;
+    reportGraphWidth = Math.min(reportGraphWidth, 960);
 
-    var xScale = d3.scale.ordinal()
-        .rangeRoundBands([0, width], .1);
+    var margin = { top: 20, right: 30, bottom: 100, left: 250 },
+        width = reportGraphWidth - margin.left - margin.right,
+        height = Math.max(550, data.length * 25) - margin.top - margin.bottom;
 
-    var yScale = d3.scale.linear()
-        .range([height, 0]);
+    var xScale = d3.scale.linear()
+        .range([0, width-50]);
+    var yScale = d3.scale.ordinal()
+        .rangeRoundBands([height, 20], .1);
 
     var xAxis = d3.svg.axis()
         .scale(xScale)
         .orient('bottom');
-
     var yAxis = d3.svg.axis()
         .scale(yScale)
         .orient('left');
@@ -322,8 +345,8 @@ var drawDownloadsByOperation = function () {
 
     svg = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-    xScale.domain(data.map(function (d) { return d.operation; }));
-    yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
+    xScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
+    yScale.domain(data.map(function (d) { return d.operation; }));
 
     //  the use of dx attribute on the text element is correct, however, the negative shift doesn't appear to work on Firefox
     //  the workaround employed here is to add a translation to the rotation transform
@@ -331,32 +354,44 @@ var drawDownloadsByOperation = function () {
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
-        .call(xAxis)
-        .selectAll("text")
-        .style("text-anchor", "end")
-        //.attr("dx", "-.8em")
-        .attr("dy", ".15em")
-        .attr("transform", function (d) {
-            return "rotate(-65),translate(-10,0)"
-        });
+        .call(xAxis);
+
+    svg.append("text")
+        .style("text-anchor", "middle")
+        .attr("x", (width - margin.right) / 2.0)
+        .attr("y", height + (margin.bottom / 2.0))
+        .attr("font-weight", "bold")
+        .text("Downloads by Operation (Last 6 weeks)");
 
     svg.append("g")
         .attr("class", "y axis")
-        .call(yAxis)
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text("Downloads");
+        .call(yAxis);
 
     svg.selectAll(".bar")
         .data(data)
         .enter()
         .append("rect")
-            .attr("class", "bar")
-            .attr("x", function (d) { return xScale(d.operation); })
-            .attr("width", xScale.rangeBand())
-            .attr("y", function (d) { return yScale(d.downloads); })
-            .attr("height", function (d) { return height - yScale(d.downloads); });
+        .attr("class", "bar")
+        .attr("x", 0)
+        .attr("width", function(d) { return xScale(d.downloads); })
+        .attr("y", function(d) { return yScale(d.operation); })
+        .attr("height", yScale.rangeBand());
+
+    svg.selectAll(".bartext")
+        .data(data)
+        .enter()
+        .append("text")
+            .attr("class", "bartext")
+            .attr("text-anchor", "end")
+            .attr("fill", "black")
+            .attr("font-size", "11px")
+            .attr("x", function (d, i) {
+                return xScale(d.downloads) + 40;
+            })
+            .attr("y", function (d, i) {
+                return yScale(d.operation) + 25;
+            })
+            .text(function (d) {
+                return d.downloads.toLocaleString();
+            });
 }
