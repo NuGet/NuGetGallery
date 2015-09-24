@@ -124,11 +124,8 @@ namespace Stats.RefreshClientDimension
 
                 var clientDimension = ClientDimension.FromUserAgent(useragent);
 
-                //if (clientDimension != ClientDimension.Unknown)
-                //{
-                    clientDimension.Id = clientDimensionId;
-                    results.Add(item.Key, new Tuple<int, ClientDimension>(userAgentId, clientDimension));
-                //}
+                clientDimension.Id = clientDimensionId;
+                results.Add(item.Key, new Tuple<int, ClientDimension>(userAgentId, clientDimension));
             }
             return results;
         }
@@ -140,8 +137,8 @@ namespace Stats.RefreshClientDimension
                 var databaseConnectionString = JobConfigurationManager.GetArgument(argsDictionary, JobArgumentNames.StatisticsDatabase);
                 _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
 
-                _targetClientName = JobConfigurationManager.GetArgument(argsDictionary, "TargetClientName");
-                _userAgentFilter = JobConfigurationManager.GetArgument(argsDictionary, "UserAgentFilter");
+                _targetClientName = JobConfigurationManager.TryGetArgument(argsDictionary, "TargetClientName");
+                _userAgentFilter = JobConfigurationManager.TryGetArgument(argsDictionary, "UserAgentFilter");
 
                 return true;
             }
