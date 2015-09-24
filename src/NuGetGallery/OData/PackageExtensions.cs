@@ -5,7 +5,6 @@ using System;
 using System.Data.Entity;
 using System.Linq;
 using NuGetGallery.OData.QueryInterceptors;
-using OData.Linq;
 using QueryInterceptor;
 
 namespace NuGetGallery.OData
