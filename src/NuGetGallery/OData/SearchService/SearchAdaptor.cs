@@ -2,15 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data.Services.Providers;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Routing;
 using NuGet.Services.Search.Models;
@@ -278,7 +275,7 @@ namespace NuGetGallery.OData
             return true;
         }
         
-        public static Uri GetNextLink(Uri currentRequestUri, long? totalResultCount, object queryParameters, ODataQueryOptions options, ODataQuerySettings settings, bool generateSkipToken)
+        public static Uri GetNextLink(Uri currentRequestUri, long? totalResultCount, object queryParameters, ODataQueryOptions options, ODataQuerySettings settings)
         {
             if (!totalResultCount.HasValue || totalResultCount.Value <= MaxPageSize || totalResultCount.Value == 0)
             {

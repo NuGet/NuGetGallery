@@ -188,7 +188,7 @@ namespace NuGetGallery.Controllers
                     .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s, false));
+                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s));
             }
 
             // If not, just let OData handle things

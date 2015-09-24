@@ -171,7 +171,7 @@ namespace NuGetGallery.Controllers
                     .ToV1FeedPackageQuery(GetSiteRoot());
 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework }, o, s, false));
+                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework }, o, s));
             }
 
             // If not, just let OData handle things
