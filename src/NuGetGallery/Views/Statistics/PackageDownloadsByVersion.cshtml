@@ -4,14 +4,11 @@
     ViewBag.Tab = "Statistics";
 }
 
-<h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (Over the Last 6 Weeks)</h1>
+<h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (@Model.Report.Total over the Last 6 Weeks)</h1>
 @if (Model.IsReportAvailable)
 {
-    @Html.Partial("_PivotTable", Model.Report)
-
-    <div class="statistics-graph" id="statistics-graph-id">
-    </div>
     @Html.Partial("_LastUpdated", Model)
+    @Html.Partial("_PivotTable", Model.Report)
 }
 else
 {
