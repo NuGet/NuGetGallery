@@ -18,6 +18,8 @@ BEGIN
 				THEN	'Browsers'
 				WHEN	C.ClientCategory = 'Mobile'
 				THEN	'Browsers (Mobile)'
+				WHEN	C.ClientName = 'NuGet'
+				THEN	'NuGet.Core-based Downloads'
 				ELSE	C.ClientName
 			END AS ClientName,
 			CASE
@@ -63,6 +65,8 @@ BEGIN
 					THEN	'Browsers'
 					WHEN	C.ClientCategory = 'Mobile'
 					THEN	'Browsers (Mobile)'
+					WHEN	C.ClientName = 'NuGet'
+					THEN	'NuGet.Core-based Downloads'
 					ELSE	C.ClientName
 				END,
 				C.ClientCategory,
