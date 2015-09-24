@@ -120,6 +120,8 @@
   # DNX
   - regex: '(Microsoft_.NET_Development_Utility)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'DNX Utility'
+  - regex: '(NuGet Shim)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'NuGet Shim'
 
   # PowerShell
   - regex: '(WindowsPowerShell)/(\d+)\.(\d+)\.?(\d+)?'

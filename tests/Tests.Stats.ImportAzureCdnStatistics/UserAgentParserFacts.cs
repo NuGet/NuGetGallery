@@ -46,6 +46,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             [InlineData("NuGet Core/2.8.50926.663 (Microsoft Windows NT 6.3.9600.0)", "NuGet", "2", "8", "50926")]
             [InlineData("NuGet/3.0.0 (Microsoft Windows NT 6.3.9600.0)", "NuGet", "3", "0", "0")]
             [InlineData("Microsoft_.NET_Development_Utility/1.2.3-t150812191208 (Windows 6.2.9200.0)", "DNX Utility", "1", "2", "3")]
+            [InlineData("NuGet Shim/3.0.51103.210 (Microsoft Windows NT 6.2.9200.0)", "NuGet Shim", "3", "0", "51103")]
             [InlineData("NuGet Client V3/3.0.0.0 (Microsoft Windows NT 10.0.10240.0, VS Enterprise/14.0)", "NuGet Client V3", "3", "0", "0")]
             [InlineData("NuGet Client V3/3.1.0.0 (Microsoft Windows NT 10.0.10240.0, VS Enterprise/14.0)", "NuGet Client V3", "3", "1", "0")]
             [InlineData("SharpDevelop/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "SharpDevelop", "1", "2", "3")]
