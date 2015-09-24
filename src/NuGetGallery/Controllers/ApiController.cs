@@ -244,7 +244,7 @@ namespace NuGetGallery
         [HttpGet]
         [RequireSsl]
         [ApiAuthorize]
-        [ActionName("VerifyPackageKey")]
+        [ActionName("VerifyPackageKeyApi")]
         public virtual ActionResult VerifyPackageKey(string id, string version)
         {
             if (!String.IsNullOrEmpty(id))
