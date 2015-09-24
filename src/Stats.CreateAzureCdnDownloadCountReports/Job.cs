@@ -20,7 +20,7 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         private SqlConnectionStringBuilder _statisticsDatabase;
         private SqlConnectionStringBuilder _galleryDatabase;
         private string _statisticsContainerName;
-        private string _dataContainerName;
+        private string[] _dataContainerNames;
 
         public Job()
             : base(JobEventSource.Log)
@@ -46,7 +46,14 @@ namespace Stats.CreateAzureCdnDownloadCountReports
 
                 var dataStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
                 _dataStorageAccount = ValidateAzureCloudStorageAccount(dataStorageAccountConnectionString, JobArgumentNames.DataStorageAccount);
-                _dataContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataContainerName), JobArgumentNames.DataContainerName);
+
+                var containerNames = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataContainerName)
+                        .Split(new [] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var containerName in containerNames)
+                {
+                    ValidateAzureContainerName(containerName, JobArgumentNames.DataContainerName);
+                }
+                _dataContainerNames = containerNames;
 
                 return true;
             }
@@ -65,9 +72,13 @@ namespace Stats.CreateAzureCdnDownloadCountReports
                 var stopwatch = Stopwatch.StartNew();
 
                 // build downloads.v1.json
-                var downloadCountReport = new DownloadCountReport(new [] {
-                    new StorageContainerTarget(_cloudStorageAccount, _statisticsContainerName),
-                    new StorageContainerTarget(_dataStorageAccount, _dataContainerName) }, _statisticsDatabase, _galleryDatabase);
+                var targets = new List<StorageContainerTarget>();
+                targets.Add(new StorageContainerTarget(_cloudStorageAccount, _statisticsContainerName));
+                foreach (var dataContainerName in _dataContainerNames)
+                {
+                    targets.Add(new StorageContainerTarget(_dataStorageAccount, dataContainerName));
+                }
+                var downloadCountReport = new DownloadCountReport(targets, _statisticsDatabase, _galleryDatabase);
                 await downloadCountReport.Run();
 
                 stopwatch.Stop();
