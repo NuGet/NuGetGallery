@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[GetLinkedUserAgents]
 	@TargetClientName VARCHAR (128) NULL,
-	@UserAgentFilter VARCHAR(128) NULL
+	@UserAgentFilter VARCHAR(128) = NULL
 AS
 BEGIN
 	
@@ -21,7 +21,7 @@ BEGIN
 	WHERE	C.[ClientName] IS NOT NULL 
 			AND ISNULL(C.[ClientName], '') = @TargetClientName
 
-	SELECT	DISTINCT UA.[UserAgent]
+	SELECT	DISTINCT UA.[UserAgent], UA.[Id], C.[Id]
 	FROM	[dbo].[Fact_UserAgent] AS UA (NOLOCK)
 
 	INNER JOIN	[dbo].[Fact_Download] (NOLOCK) AS F
