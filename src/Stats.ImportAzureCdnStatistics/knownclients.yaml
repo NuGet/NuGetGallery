@@ -35,10 +35,6 @@
   - regex: '(NuGet Command Line)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet Command Line'
 
-  # NuGet
-  - regex: '(NuGet)/?(\d+)\.(\d+)\.?(\d+)?'
-    family_replacement: 'NuGet'
-
   # NuGet Core
   - regex: '(NuGet Core)/?(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet'
@@ -56,6 +52,34 @@
   # JetBrains TeamCity - uses a space to separate the client from the version instead of slash
   - regex: '(JetBrains TeamCity) (\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'JetBrains TeamCity'
+
+  # JetBrains ReSharper Platform for VS10
+  - regex: '(ReSharperPlatformVs10)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Platform VS2010'
+
+  # JetBrains ReSharper Platform for VS11
+  - regex: '(ReSharperPlatformVs11)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Platform VS2012'
+
+  # JetBrains ReSharper Platform for VS12
+  - regex: '(ReSharperPlatformVs12)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Platform VS2013'
+
+  # JetBrains ReSharper Platform for VS14
+  - regex: '(ReSharperPlatformVs14)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Platform VS2015'
+
+  # JetBrains ReSharper
+  - regex: '(ReSharper)/(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper'
+
+  # JetBrains dotPeek
+  - regex: '(dotPeek)/(\d+)\.(\d+)\.(\d+)\.?(\d+)?\)'
+    family_replacement: 'JetBrains dotPeek'
+
+  # JetBrains ReSharper Extension Manager
+  - regex: '(ReSharper Extension Manager)/(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Extension Manager'
 
   # Sonatype Nexus (www.sonatype.com)
   - regex: '(Nexus)/(\d+)\.(\d+)\.?(\d+)?'
@@ -112,3 +136,7 @@
   # Java
   - regex: '(Java)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'Java'
+
+  # NuGet - Keep this one at the bottom of this file as a catch-all resolver
+  - regex: '(NuGet)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet'
