@@ -63,12 +63,17 @@ namespace Stats.RefreshClientDimension
                         // 0. Get a distinct collection of all useragents linked to TargetClientName
                         linkedUserAgents = await Warehouse.GetLinkedUserAgents(connection, _targetClientName, _userAgentFilter);
 
-                        if (linkedUserAgents.Any())
+                        if (!linkedUserAgents.Any())
                         {
-                            // 1.   Parse them and detect the ones that are recognized by the parser
-                            //      These user agents are linked to newly parsed client dimensions.
-                            currentUserAgentInfo = ParseUserAgentsAndLinkToClientDimension(linkedUserAgents);
+                            // The client dimension does not exist yet?
+                            // Look for the unknowns then...
+                            // 0.   Get a distinct collection of all useragents linked to (unknown) client
+                            linkedUserAgents = await Warehouse.GetUnknownUserAgents(connection);
                         }
+
+                        // 1.   Parse them and detect the ones that are recognized by the parser
+                        //      These user agents are linked to newly parsed client dimensions.
+                        currentUserAgentInfo = ParseUserAgentsAndLinkToClientDimension(linkedUserAgents);
                     }
 
                     if (currentUserAgentInfo != null && currentUserAgentInfo.Any())
