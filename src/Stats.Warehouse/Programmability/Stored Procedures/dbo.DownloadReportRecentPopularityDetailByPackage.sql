@@ -16,15 +16,14 @@ BEGIN
 				WHEN	C.ClientCategory = 'Browser' THEN 'Browsers'
 				WHEN	C.ClientCategory = 'Mobile' THEN 'Browsers (Mobile)'
 				WHEN	C.ClientName = 'NuGet' THEN 'NuGet.Core-based Downloads'
-				WHEN	C.ClientName = 'NuGet Shim' THEN 'DNX Utility'
 				ELSE	C.ClientName
 			END AS ClientName,
 			CASE
-				WHEN	(C.ClientCategory IN ('Script', 'Browser', 'Mobile') OR C.ClientName = 'NuGet Shim') THEN '0'
+				WHEN	C.ClientCategory IN ('Script', 'Browser', 'Mobile') THEN '0'
 				ELSE	C.Major
 			END AS Major,
 			CASE
-				WHEN	(C.ClientCategory IN ('Script', 'Browser', 'Mobile') OR C.ClientName = 'NuGet Shim') THEN '0'
+				WHEN	C.ClientCategory IN ('Script', 'Browser', 'Mobile') THEN '0'
 				ELSE	C.Minor
 			END AS Minor,
 			O.Operation,
@@ -59,15 +58,14 @@ BEGIN
 					WHEN	C.ClientCategory = 'Browser' THEN 'Browsers'
 					WHEN	C.ClientCategory = 'Mobile' THEN 'Browsers (Mobile)'
 					WHEN	C.ClientName = 'NuGet' THEN 'NuGet.Core-based Downloads'
-					WHEN	C.ClientName = 'NuGet Shim' THEN 'DNX Utility'
 					ELSE	C.ClientName
 				END,
 				CASE
-					WHEN	(C.ClientCategory IN ('Script', 'Browser', 'Mobile') OR C.ClientName = 'NuGet Shim') THEN '0'
+					WHEN	C.ClientCategory IN ('Script', 'Browser', 'Mobile') THEN '0'
 					ELSE	C.Major
 				END,
 				CASE
-					WHEN	(C.ClientCategory IN ('Script', 'Browser', 'Mobile') OR C.ClientName = 'NuGet Shim') THEN '0'
+					WHEN	C.ClientCategory IN ('Script', 'Browser', 'Mobile') THEN '0'
 					ELSE	C.Minor
 				END,
 				O.Operation
