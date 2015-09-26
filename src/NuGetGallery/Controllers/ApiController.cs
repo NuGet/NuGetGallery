@@ -292,9 +292,9 @@ namespace NuGetGallery
 
             using (var packageToPush = ReadPackageFromRequest())
             {
-                if (packageToPush.Metadata.MinClientVersion > new Version("3.0.0.0"))
+                if (packageToPush.Metadata.MinClientVersion > Constants.MaxSupportedMinClientVersion)
                 {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, String.Format(
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.UploadPackage_MinClientVersionOutOfRange,
                         packageToPush.Metadata.MinClientVersion));

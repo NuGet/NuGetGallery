@@ -274,7 +274,7 @@ button.undo-button {
             display: block;
             font-size: 2em;
             line-height: 2em;
-            margin-top: 25px;
+            margin-top: 30px;
             text-align: center;
             width: 95%;
         }
@@ -288,6 +288,16 @@ button.undo-button {
                 border-color: #4585aa;
                 text-decoration: none;
             }
+            
+        .featured div div.downloads {
+            margin-top: 5px;
+            text-align: center;
+            width: 95%;
+        }
+
+        .featured img {
+            margin-bottom: 15px;
+        }
 
 /* Aggregate Stats (Home Page) */
 

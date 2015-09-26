@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace NuGetGallery
 {
     public class DownloadCountObjectMaterializedInterceptor
@@ -26,8 +28,12 @@ namespace NuGetGallery
                 return;
             }
 
+            var packageNormalizedVersion = String.IsNullOrEmpty(package.NormalizedVersion)
+                ? SemanticVersionExtensions.Normalize(package.Version)
+                : package.NormalizedVersion;
+
             int downloadCount;
-            if (_downloadCountService.TryGetDownloadCountForPackage(package.PackageRegistration.Id, package.Version, out downloadCount))
+            if (_downloadCountService.TryGetDownloadCountForPackage(package.PackageRegistration.Id, packageNormalizedVersion, out downloadCount))
             {
                 package.DownloadCount = downloadCount;
             }
