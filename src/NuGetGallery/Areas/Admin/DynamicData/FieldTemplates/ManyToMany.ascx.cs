@@ -1,28 +1,20 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.ComponentModel;
-using System.Web.DynamicData;
+using System.Data.Entity.Core.Objects.DataClasses;
 using System.Web.UI;
 
-namespace NuGetGallery.Areas.Admin.DynamicData
+namespace NuGetGallery
 {
-    public partial class ManyToManyField : FieldTemplateUserControl
+    public partial class ManyToManyField : System.Web.DynamicData.FieldTemplateUserControl
     {
-        public override Control DataControl
-        {
-            get { return Repeater1; }
-        }
-
         protected override void OnDataBinding(EventArgs e)
         {
             base.OnDataBinding(e);
 
             object entity;
-            var rowDescriptor = Row as ICustomTypeDescriptor;
+            ICustomTypeDescriptor rowDescriptor = Row as ICustomTypeDescriptor;
             if (rowDescriptor != null)
             {
-                // Get the real entity from the wrapper
                 entity = rowDescriptor.GetPropertyOwner(null);
             }
             else
@@ -30,12 +22,24 @@ namespace NuGetGallery.Areas.Admin.DynamicData
                 entity = Row;
             }
 
-            // Get the collection
             var entityCollection = Column.EntityTypeProperty.GetValue(entity, null);
+            var realEntityCollection = entityCollection as RelatedEnd;
+            if (realEntityCollection != null && !realEntityCollection.IsLoaded)
+            {
+                realEntityCollection.Load();
+            }
 
-            // Bind the repeater to the list of children entities
             Repeater1.DataSource = entityCollection;
             Repeater1.DataBind();
         }
+
+        public override Control DataControl
+        {
+            get
+            {
+                return Repeater1;
+            }
+        }
+
     }
 }

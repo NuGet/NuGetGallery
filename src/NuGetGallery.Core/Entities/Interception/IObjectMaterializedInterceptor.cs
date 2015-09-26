@@ -3,7 +3,7 @@
 
 namespace NuGetGallery
 {
-    public interface IEntityInterceptor
+    public interface IObjectMaterializedInterceptor
     {
         void InterceptObjectMaterialized(object entity);
     }

@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
 using System.Web.DynamicData;
 using System.Web.Routing;
-using DynamicData.EFCodeFirstProvider;
+using Microsoft.AspNet.DynamicData.ModelProviders;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.DynamicData
@@ -36,7 +36,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             try
             {
                 DefaultModel.RegisterContext(
-                    new EFCodeFirstDataModelProvider(
+                    new EFDataModelProvider(
                         () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
                         configuration: new ContextConfiguration { ScaffoldAllTables = true });
             }

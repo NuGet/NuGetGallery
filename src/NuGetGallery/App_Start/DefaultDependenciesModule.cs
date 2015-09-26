@@ -365,7 +365,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDownloadCountService>()
                 .SingleInstance();
-            EntityInterception.AddInterceptor(new DownloadCountEntityInterceptor(downloadCountService));
+            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService));
 
             builder.RegisterType<JsonStatisticsService>()
                 .AsSelf()

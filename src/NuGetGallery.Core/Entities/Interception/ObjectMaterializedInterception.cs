@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public static class EntityInterception
+    public static class ObjectMaterializedInterception
     {
-        private static readonly List<IEntityInterceptor> Interceptors = new List<IEntityInterceptor>();
+        private static readonly List<IObjectMaterializedInterceptor> Interceptors = new List<IObjectMaterializedInterceptor>();
 
-        public static void AddInterceptor(IEntityInterceptor interceptor)
+        public static void AddInterceptor(IObjectMaterializedInterceptor interceptor)
         {
             Interceptors.Add(interceptor);
         }

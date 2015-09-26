@@ -92,7 +92,7 @@ ORDER BY MAX(pr.DownloadCount) DESC";
 
             if (String.IsNullOrWhiteSpace(partialId))
             {
-                return Task.FromResult(dbContext.Database.SqlQuery<string>(NoPartialIdSql));
+                return Task.FromResult(dbContext.Database.SqlQuery<string>(NoPartialIdSql).AsEnumerable());
             }
 
             var prereleaseFilter = String.Empty;
@@ -101,7 +101,7 @@ ORDER BY MAX(pr.DownloadCount) DESC";
                 prereleaseFilter = "AND p.IsPrerelease = {1}";
             }
             return Task.FromResult(dbContext.Database.SqlQuery<string>(
-                String.Format(CultureInfo.InvariantCulture, PartialIdSqlFormat, prereleaseFilter), partialId + "%", includePrerelease ?? false));
+                String.Format(CultureInfo.InvariantCulture, PartialIdSqlFormat, prereleaseFilter), partialId + "%", includePrerelease ?? false).AsEnumerable());
         }
     }
 }

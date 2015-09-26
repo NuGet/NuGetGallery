@@ -1,15 +1,18 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using System;
+using System.Collections.Specialized;
+using System.ComponentModel.DataAnnotations;
 using System.Web.DynamicData;
+using System.Web;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 
-namespace NuGetGallery.Areas.Admin.DynamicData
-{
-    public partial class DateTimeField : FieldTemplateUserControl
-    {
-        public override Control DataControl
-        {
-            get { return Literal1; }
+namespace NuGetGallery {
+    public partial class DateTimeField : System.Web.DynamicData.FieldTemplateUserControl {
+        public override Control DataControl {
+            get {
+                return Literal1;
+            }
         }
+    
     }
 }

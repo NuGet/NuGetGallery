@@ -93,7 +93,7 @@ WHERE pr.ID = {{0}}
                 prereleaseFilter = "AND p.IsPrerelease = 0";
             }
             return Task.FromResult(dbContext.Database.SqlQuery<string>(
-                String.Format(CultureInfo.InvariantCulture, SqlFormat, prereleaseFilter), id));
+                String.Format(CultureInfo.InvariantCulture, SqlFormat, prereleaseFilter), id).AsEnumerable());
         }
     }
 }
