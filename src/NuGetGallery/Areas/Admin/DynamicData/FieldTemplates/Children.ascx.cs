@@ -1,48 +1,56 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
+using System.Collections.Specialized;
+using System.ComponentModel.DataAnnotations;
 using System.Web.DynamicData;
+using System.Web;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 
-namespace NuGetGallery.Areas.Admin.DynamicData
-{
-    public partial class ChildrenField : FieldTemplateUserControl
-    {
+namespace NuGetGallery {
+    public partial class ChildrenField : System.Web.DynamicData.FieldTemplateUserControl {
         private bool _allowNavigation = true;
-
-        public string NavigateUrl { get; set; }
-
-        public bool AllowNavigation
-        {
-            get { return _allowNavigation; }
-            set { _allowNavigation = value; }
+        private string _navigateUrl;
+    
+        public string NavigateUrl {
+            get {
+                return _navigateUrl;
+            }
+            set {
+                _navigateUrl = value;
+            }
         }
-
-        public override Control DataControl
-        {
-            get { return HyperLink1; }
+    
+        public bool AllowNavigation {
+            get {
+                return _allowNavigation;
+            }
+            set {
+                _allowNavigation = value;
+            }
         }
-
-        protected void Page_Load(object sender, EventArgs e)
-        {
+        
+        protected void Page_Load(object sender, EventArgs e) {
             HyperLink1.Text = "View " + ChildrenColumn.ChildTable.DisplayName;
         }
-
-        protected string GetChildrenPath()
-        {
-            if (!AllowNavigation)
-            {
+    
+        protected string GetChildrenPath() {
+            if (!AllowNavigation) {
                 return null;
             }
-
-            if (String.IsNullOrEmpty(NavigateUrl))
-            {
+    
+            if (String.IsNullOrEmpty(NavigateUrl)) {
                 return ChildrenPath;
             }
-            else
-            {
+            else {
                 return BuildChildrenPath(NavigateUrl);
             }
         }
+    
+        public override Control DataControl {
+            get {
+                return HyperLink1;
+            }
+        }
+    
     }
 }

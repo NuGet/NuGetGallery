@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" CodeBehind="Url.ascx.cs" Inherits="NuGetGallery.Areas.Admin.DynamicData.UrlField" %>
+<%@ Control Language="C#" CodeBehind="Url.ascx.cs" Inherits="NuGetGallery.UrlField" %>
 
-<asp:HyperLink ID="HyperLinkUrl" runat="server" Text="<%#FieldValueString %>" Target="_blank" />
+<asp:HyperLink ID="HyperLinkUrl" runat="server" Text="<%# FieldValueString %>" Target="_blank" />
 

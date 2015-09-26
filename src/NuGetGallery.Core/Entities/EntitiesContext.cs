@@ -5,8 +5,9 @@ using System.Data.Entity;
 
 namespace NuGetGallery
 {
+    [DbConfigurationType(typeof(EntitiesConfiguration))]
     public class EntitiesContext
-        : EntityInterceptorDbContext, IEntitiesContext
+        : ObjectMaterializedInterceptingDbContext, IEntitiesContext
     {
         static EntitiesContext()
         {

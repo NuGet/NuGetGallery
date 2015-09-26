@@ -2,16 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Data.Entity;
+using System.Data.Entity.Core.Objects;
 using System.Data.Entity.Infrastructure;
-using System.Data.Objects;
 
 namespace NuGetGallery
 {
-    public class EntityInterceptorDbContext
+    public class ObjectMaterializedInterceptingDbContext
         : DbContext
     {
-        
-        public EntityInterceptorDbContext(string connectionString)
+        public ObjectMaterializedInterceptingDbContext(string connectionString)
             : base(connectionString)
         {
             ObjectContext.ObjectMaterialized += ObjectContextOnObjectMaterialized;
@@ -19,7 +18,7 @@ namespace NuGetGallery
 
         private void ObjectContextOnObjectMaterialized(object sender, ObjectMaterializedEventArgs objectMaterializedEventArgs)
         {
-            EntityInterception.InterceptObjectMaterialized(objectMaterializedEventArgs.Entity);
+            ObjectMaterializedInterception.InterceptObjectMaterialized(objectMaterializedEventArgs.Entity);
         }
 
         protected ObjectContext ObjectContext

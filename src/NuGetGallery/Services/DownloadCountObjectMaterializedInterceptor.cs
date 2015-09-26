@@ -5,12 +5,12 @@ using System;
 
 namespace NuGetGallery
 {
-    public class DownloadCountEntityInterceptor
-        : IEntityInterceptor
+    public class DownloadCountObjectMaterializedInterceptor
+        : IObjectMaterializedInterceptor
     {
         private readonly IDownloadCountService _downloadCountService;
 
-        public DownloadCountEntityInterceptor(IDownloadCountService downloadCountService)
+        public DownloadCountObjectMaterializedInterceptor(IDownloadCountService downloadCountService)
         {
             _downloadCountService = downloadCountService;
         }
