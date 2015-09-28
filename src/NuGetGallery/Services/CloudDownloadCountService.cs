@@ -25,7 +25,7 @@ namespace NuGetGallery
         private readonly object _refreshLock = new object();
         private bool _isRefreshing;
 
-        private readonly IDictionary<string, IDictionary<string, int>> _downloadCounts = new Dictionary<string, IDictionary<string, int>>();
+        private readonly IDictionary<string, IDictionary<string, int>> _downloadCounts = new Dictionary<string, IDictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
         
         public DateTime LastRefresh { get; protected set; }
 
@@ -137,7 +137,7 @@ namespace NuGetGallery
 
                                     if (!_downloadCounts.ContainsKey(id))
                                     {
-                                        _downloadCounts.Add(id, new Dictionary<string, int>());
+                                        _downloadCounts.Add(id, new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase));
                                     }
                                     var versions = _downloadCounts[id];
 
