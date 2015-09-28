@@ -16,7 +16,6 @@ BEGIN
 		OR	CHARINDEX('Jasmine', @ClientName) > 0
 		OR	CHARINDEX('Java', @ClientName) > 0
 		OR	CHARINDEX('AppleMail', @ClientName) > 0
-		OR	CHARINDEX('NuGet Shim', @ClientName) > 0
 		)
 		RETURN 1
 
