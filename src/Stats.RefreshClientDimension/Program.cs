@@ -15,6 +15,8 @@ namespace Stats.RefreshClientDimension
     class Program
     {
         private static SqlConnectionStringBuilder _targetDatabase;
+        private static string _targetClientName;
+        private static string _userAgentFilter;
 
         static void Main(string[] args)
         {
@@ -34,18 +36,60 @@ namespace Stats.RefreshClientDimension
             {
                 using (var connection = await _targetDatabase.ConnectTo())
                 {
-                    // 0. get a distinct list of all useragents linked to (unknown) client dimension
-                    var unknownUserAgents = (await Warehouse.GetUnknownUserAgents(connection)).ToList();
+                    IDictionary<string, Tuple<int, int>> linkedUserAgents;
 
-                    // 1. parse them and detect the ones that are recognized by the parser
-                    var recognizedUserAgents = TryParseUnknownUserAgents(unknownUserAgents);
+                    // This dictionary uses the user agent string as the key.
+                    // The first item of the Tuple-value contains the user agent ID.
+                    // The seconds item in the Tuple will contain the ClientDimension as parsed from the user agent using knownclients.yaml.
+                    IDictionary<string, Tuple<int, ClientDimension>> currentUserAgentInfo = null;
 
-                    // 2. enumerate recognized user agents and ensure dimensions exists
-                    var recognizedUserAgentsWithClientDimensionId = await Warehouse.EnsureClientDimensionsExist(connection, recognizedUserAgents);
-                    var recognizedUserAgentsWithUserAgentId = await Warehouse.EnsureUserAgentFactsExist(connection, unknownUserAgents);
+                    if (string.IsNullOrWhiteSpace(_targetClientName))
+                    {
+                        // Patch only unknown clients
 
-                    // 3. link the new client dimension to the facts
-                    await Warehouse.PatchClientDimension(connection, recognizedUserAgents, recognizedUserAgentsWithClientDimensionId, recognizedUserAgentsWithUserAgentId);
+                        // 0.   Get a distinct collection of all useragents linked to (unknown) client
+                        linkedUserAgents = await Warehouse.GetUnknownUserAgents(connection);
+
+                        if (linkedUserAgents.Any())
+                        {
+                            // 1. Parse them and detect the ones that are recognized by the parser
+                            currentUserAgentInfo = ParseUserAgentsAndLinkToClientDimension(linkedUserAgents);
+                        }
+                    }
+                    else
+                    {
+                        // Patch only clients already linked to the TargetClientName
+
+                        // 0. Get a distinct collection of all useragents linked to TargetClientName
+                        linkedUserAgents = await Warehouse.GetLinkedUserAgents(connection, _targetClientName, _userAgentFilter);
+
+                        if (!linkedUserAgents.Any())
+                        {
+                            // The client dimension does not exist yet?
+                            // Look for the unknowns then...
+                            // 0.   Get a distinct collection of all useragents linked to (unknown) client
+                            linkedUserAgents = await Warehouse.GetUnknownUserAgents(connection);
+                        }
+
+                        // 1.   Parse them and detect the ones that are recognized by the parser
+                        //      These user agents are linked to newly parsed client dimensions.
+                        currentUserAgentInfo = ParseUserAgentsAndLinkToClientDimension(linkedUserAgents);
+                    }
+
+                    if (currentUserAgentInfo != null && currentUserAgentInfo.Any())
+                    {
+                        // 2.   Enumerate recognized user agents and ensure dimensions exists
+                        //      This resultset may contain updated links between user agent and client dimension id.
+                        var updatedUserAgentInfo = await Warehouse.EnsureClientDimensionsExist(connection, currentUserAgentInfo);
+
+                        // 3.   Determine the updated links between user agent and client dimension ID
+                        //      by comparing the resultset of step 2 with the original links found in step 0.
+
+                        var changedLinks = FindChangedLinksBetweenUserAgentAndClientDimensionId(currentUserAgentInfo, updatedUserAgentInfo);
+
+                        // 4. Link the new client dimension to the facts
+                        await Warehouse.PatchClientDimension(connection, changedLinks);
+                    }
                 }
             }
             catch (Exception exception)
@@ -54,17 +98,39 @@ namespace Stats.RefreshClientDimension
             }
         }
 
-        private static IDictionary<string, ClientDimension> TryParseUnknownUserAgents(IEnumerable<string> unknownUserAgents)
+        private static IReadOnlyCollection<UserAgentToClientDimensionLink> FindChangedLinksBetweenUserAgentAndClientDimensionId(IDictionary<string, Tuple<int, ClientDimension>> currentUserAgentInfo, IDictionary<string, int> updatedUserAgentInfo)
         {
-            var results = new Dictionary<string, ClientDimension>();
-            foreach (var unknownUserAgent in unknownUserAgents)
+            var resultSet = new List<UserAgentToClientDimensionLink>();
+            foreach (var currentInfo in currentUserAgentInfo)
             {
-                var clientDimension = ClientDimension.FromUserAgent(unknownUserAgent);
+                var userAgent = currentInfo.Key;
+                var currentClientDimensionId = currentInfo.Value.Item2.Id;
 
-                if (clientDimension != ClientDimension.Unknown)
+                // 0.   Find the matching element in the updated info.
+                var updatedClientDimensionId = updatedUserAgentInfo[userAgent];
+                if (currentClientDimensionId != updatedClientDimensionId)
                 {
-                    results.Add(unknownUserAgent, clientDimension);
+                    var userAgentId = currentInfo.Value.Item1;
+                    var result = new UserAgentToClientDimensionLink(userAgent, userAgentId, currentClientDimensionId, updatedClientDimensionId);
+                    resultSet.Add(result);
                 }
+            }
+            return resultSet;
+        }
+
+        private static IDictionary<string, Tuple<int, ClientDimension>> ParseUserAgentsAndLinkToClientDimension(IDictionary<string, Tuple<int, int>> userAgentInfo)
+        {
+            var results = new Dictionary<string, Tuple<int, ClientDimension>>();
+            foreach (var item in userAgentInfo)
+            {
+                var useragent = item.Key;
+                var userAgentId = item.Value.Item1;
+                var clientDimensionId = item.Value.Item2;
+
+                var clientDimension = ClientDimension.FromUserAgent(useragent);
+
+                clientDimension.Id = clientDimensionId;
+                results.Add(item.Key, new Tuple<int, ClientDimension>(userAgentId, clientDimension));
             }
             return results;
         }
@@ -75,6 +141,9 @@ namespace Stats.RefreshClientDimension
             {
                 var databaseConnectionString = JobConfigurationManager.GetArgument(argsDictionary, JobArgumentNames.StatisticsDatabase);
                 _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
+
+                _targetClientName = JobConfigurationManager.TryGetArgument(argsDictionary, "TargetClientName");
+                _userAgentFilter = JobConfigurationManager.TryGetArgument(argsDictionary, "UserAgentFilter");
 
                 return true;
             }

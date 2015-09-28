@@ -41,3 +41,7 @@ CREATE NONCLUSTERED INDEX [Fact_Download_NCI_EdgeServer_IpAddress]
     ON [dbo].[Fact_Download] ([Fact_EdgeServer_IpAddress_Id])
 	INCLUDE ([DownloadCount]) WITH (ONLINE = ON)
 GO
+CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Client]
+    ON [dbo].[Fact_Download] ([Dimension_Client_Id])
+	INCLUDE ([Fact_UserAgent_Id]) WITH (ONLINE = ON)
+GO

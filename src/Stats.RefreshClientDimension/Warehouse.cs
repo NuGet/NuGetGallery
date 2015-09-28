@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -15,9 +16,9 @@ namespace Stats.RefreshClientDimension
     {
         private const int _defaultCommandTimeout = 1800; // 30 minutes max
 
-        public static async Task<IEnumerable<string>> GetUnknownUserAgents(SqlConnection connection)
+        internal static async Task<IDictionary<string, Tuple<int, int>>> GetUnknownUserAgents(SqlConnection connection)
         {
-            var results = new List<string>();
+            var results = new Dictionary<string, Tuple<int, int>>();
             var command = connection.CreateCommand();
             command.CommandText = "[dbo].[GetUnknownUserAgents]";
             command.CommandType = CommandType.StoredProcedure;
@@ -28,14 +29,49 @@ namespace Stats.RefreshClientDimension
                 while (await dataReader.ReadAsync())
                 {
                     var userAgent = dataReader.GetString(0);
-                    results.Add(userAgent);
+                    var userAgentId = dataReader.GetInt32(1);
+                    results.Add(userAgent, new Tuple<int, int>(userAgentId, ClientDimension.Unknown.Id));
                 }
             }
 
             return results;
         }
 
-        public static async Task<IDictionary<string, int>> EnsureClientDimensionsExist(SqlConnection connection, IDictionary<string, ClientDimension> recognizedUserAgents)
+        internal static async Task<IDictionary<string, Tuple<int, int>>> GetLinkedUserAgents(SqlConnection connection, string targetClientName, string userAgentFilter)
+        {
+            if (string.IsNullOrWhiteSpace(targetClientName))
+            {
+                return new Dictionary<string, Tuple<int, int>>();
+            }
+
+            var results = new Dictionary<string, Tuple<int, int>>();
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[GetLinkedUserAgents]";
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandTimeout = _defaultCommandTimeout;
+
+            command.Parameters.AddWithValue("TargetClientName", targetClientName);
+
+            if (!string.IsNullOrWhiteSpace(userAgentFilter))
+            {
+                command.Parameters.AddWithValue("UserAgentFilter", userAgentFilter);
+            }
+
+            using (var dataReader = await command.ExecuteReaderAsync())
+            {
+                while (await dataReader.ReadAsync())
+                {
+                    var userAgent = dataReader.GetString(0);
+                    var userAgentId = dataReader.GetInt32(1);
+                    var clientDimensionId = dataReader.GetInt32(2);
+                    results.Add(userAgent, new Tuple<int, int>(userAgentId, clientDimensionId));
+                }
+            }
+
+            return results;
+        }
+
+        public static async Task<IDictionary<string, int>> EnsureClientDimensionsExist(SqlConnection connection, IDictionary<string, Tuple<int, ClientDimension>> recognizedUserAgents)
         {
             var results = new Dictionary<string, int>();
 
@@ -44,7 +80,7 @@ namespace Stats.RefreshClientDimension
             command.CommandType = CommandType.StoredProcedure;
             command.CommandTimeout = _defaultCommandTimeout;
 
-            var parameterValue = ClientDimensionTableType.CreateDataTable(recognizedUserAgents);
+            var parameterValue = ClientDimensionTableType.CreateDataTable(recognizedUserAgents.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Item2));
 
             var parameter = command.Parameters.AddWithValue("clients", parameterValue);
             parameter.SqlDbType = SqlDbType.Structured;
@@ -94,32 +130,25 @@ namespace Stats.RefreshClientDimension
             return results;
         }
 
-        public static async Task PatchClientDimension(SqlConnection connection, IDictionary<string, ClientDimension> recognizedUserAgents, IDictionary<string, int> recognizedUserAgentsWithClientDimensionId, IDictionary<string, int> recognizedUserAgentsWithUserAgentId)
+        public static async Task PatchClientDimension(SqlConnection connection, IReadOnlyCollection<UserAgentToClientDimensionLink> links)
         {
-            var count = recognizedUserAgentsWithClientDimensionId.Count;
+            var count = links.Count;
             var i = 0;
 
-            foreach (var kvp in recognizedUserAgentsWithClientDimensionId)
+            foreach (var link in links)
             {
                 i++;
-
-                var userAgent = kvp.Key;
-                var clientDimensionId = kvp.Value;
-                var userAgentId = DimensionId.Unknown;
-                if (recognizedUserAgentsWithUserAgentId.Any() && recognizedUserAgentsWithUserAgentId.ContainsKey(userAgent))
-                {
-                    userAgentId = recognizedUserAgentsWithUserAgentId[userAgent];
-                }
-
+                
                 var command = connection.CreateCommand();
                 command.CommandText = "[dbo].[PatchClientDimensionForUserAgent]";
                 command.CommandType = CommandType.StoredProcedure;
                 command.CommandTimeout = _defaultCommandTimeout;
 
-                command.Parameters.AddWithValue("NewClientDimensionId", clientDimensionId);
-                command.Parameters.AddWithValue("UserAgentId", userAgentId);
+                command.Parameters.AddWithValue("CurrentClientDimensionId", link.CurrentClientDimensionId);
+                command.Parameters.AddWithValue("NewClientDimensionId", link.NewClientDimensionId);
+                command.Parameters.AddWithValue("UserAgentId", link.UserAgentId);
 
-                Trace.WriteLine(string.Format("[{0}/{1}]: Client Id '{2}', User Agent '{3}', User Agent Id '{4}'", i, count, clientDimensionId, userAgent, userAgentId));
+                Trace.WriteLine(string.Format("[{0}/{1}]: User Agent '{2}', User Agent Id '{3}', Old Client Id '{4}', New Client Id '{5}'", i, count, link.UserAgent, link.UserAgentId, link.CurrentClientDimensionId, link.NewClientDimensionId));
 
                 await command.ExecuteNonQueryAsync();
             }
