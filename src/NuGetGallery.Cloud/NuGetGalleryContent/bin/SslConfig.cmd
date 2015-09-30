@@ -1,2 +1,2 @@
-﻿powershell -NoProfile -ExecutionPolicy Unrestricted -File "%~sslconfig.ps1" >> startup.log 2>> startup.err
+﻿powershell -NoProfile -ExecutionPolicy Unrestricted -File "%~dp0SslConfig.ps1" >> startup.log 2>> startup.err
 exit /b 0
