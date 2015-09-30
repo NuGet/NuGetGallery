@@ -21,7 +21,7 @@ namespace NuGetGallery
             INupkg nugetPackage,
             bool commitChanges)
         {
-            var curatedFeed = CuratedFeedService.GetFeedByName("webmatrix", includePackages: true);
+            var curatedFeed = CuratedFeedService.GetFeedByName("webmatrix", includePackages: false);
             if (curatedFeed == null)
             {
                 return;
@@ -54,16 +54,16 @@ namespace NuGetGallery
                 // Must support net40
                 SupportsNet40(galleryPackage) &&
 
-                // Dependencies on the gallery must be curated
-                DependenciesAreCurated(galleryPackage, curatedFeed) &&
-
                 (
                     // Must have AspNetWebPages tag
                     ContainsAspNetWebPagesTag(galleryPackage) ||
 
                     // OR: Must not contain powershell or T4
                     DoesNotContainUnsupportedFiles(nugetPackage)
-                );
+                ) &&
+
+                // Dependencies on the gallery must be curated
+                DependenciesAreCurated(galleryPackage, curatedFeed);
         }
 
         private static bool ContainsAspNetWebPagesTag(Package galleryPackage)

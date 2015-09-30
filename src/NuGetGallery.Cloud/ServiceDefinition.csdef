@@ -45,6 +45,7 @@
     </Sites>
     <Startup>
       <Task commandLine="InstallDotNet452.cmd" executionContext="elevated" taskType="simple" />
+      <Task commandLine="SslConfig.cmd" executionContext="elevated" taskType="simple" />
       <Task commandLine="Startup.cmd" executionContext="elevated" taskType="simple" />
     </Startup>
     <Endpoints>

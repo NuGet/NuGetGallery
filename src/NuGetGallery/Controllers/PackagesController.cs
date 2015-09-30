@@ -226,7 +226,7 @@ namespace NuGetGallery
                 }
 
                 // Check min client version
-                if (nuGetPackage.Metadata.MinClientVersion > new Version("3.0.0.0"))
+                if (nuGetPackage.Metadata.MinClientVersion > Constants.MaxSupportedMinClientVersion)
                 {
                     ModelState.AddModelError(
                         string.Empty,
