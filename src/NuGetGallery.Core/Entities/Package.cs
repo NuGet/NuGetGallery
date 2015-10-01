@@ -171,6 +171,8 @@ namespace NuGetGallery
         /// </summary>
         public virtual ICollection<PackageHistory> PackageHistories { get; set; }
 
+        public bool Deleted { get; set; }
+
         public void ApplyEdit(PackageEdit edit, string hashAlgorithm, string hash, long packageFileSize)
         {
             // before we modify this package, record its state in history

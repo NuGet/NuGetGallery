@@ -102,6 +102,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageStatistics>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<PackageDelete>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageDelete>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<Credential>>()
                 .AsSelf()
                 .As<IEntityRepository<Credential>>()
@@ -125,6 +130,11 @@ namespace NuGetGallery
             builder.RegisterType<PackageService>()
                 .AsSelf()
                 .As<IPackageService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageDeleteService>()
+                .AsSelf()
+                .As<IPackageDeleteService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<EditPackageService>()

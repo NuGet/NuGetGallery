@@ -42,6 +42,7 @@ namespace NuGetGallery
                 {
                     Packages = PackageRepository
                         .GetAll()
+                        .Where(p => !p.Deleted)
                         .UseSearchService(SearchService, null, Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
                         .WithoutVersionSort()
                         .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
@@ -143,7 +144,7 @@ namespace NuGetGallery
             var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Where(p => p.Listed);
+                .Where(p => !p.Deleted && p.Listed);
 
             var query = SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null)
                 // TODO: Async this when I can figure out OData async stuff...
@@ -239,7 +240,7 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.SupportedFrameworks)
                 .Where(p =>
-                    p.Listed && (includePrerelease || !p.IsPrerelease) &&
+                    !p.Deleted && p.Listed && (includePrerelease || !p.IsPrerelease) &&
                     idValues.Contains(p.PackageRegistration.Id.ToLower()))
                 .OrderBy(p => p.PackageRegistration.Id);
 

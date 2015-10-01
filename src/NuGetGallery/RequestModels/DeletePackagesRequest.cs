@@ -1,0 +1,34 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using NuGetGallery.Infrastructure;
+
+namespace NuGetGallery
+{
+    public class DeletePackagesRequest
+    {
+        public DeletePackagesRequest()
+        {
+            Packages = new Dictionary<string, string>();
+            SoftDelete = true;
+        }
+
+        public Dictionary<string, string> Packages { get; set; }
+
+        [NotEqual(ReportPackageReason.HasABugOrFailedToInstall, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. Please contact owner(s) for assistance.")]
+        [Required(ErrorMessage = "You must select a reason for deleting the package")]
+        [Display(Name = "Reason")]
+        public ReportPackageReason? Reason { get; set; }
+
+        [Required(ErrorMessage = "Please sign using your name.")]
+        [StringLength(1000)]
+        [Display(Name = "Signature")]
+        public string Signature { get; set; }
+
+        public bool SoftDelete { get; set; }
+
+        public IEnumerable<ReportPackageReason> ReasonChoices { get; set; }
+    }
+}

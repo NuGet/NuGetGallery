@@ -205,6 +205,13 @@
         </p>
     }
 
+    @if (Model.Deleted)
+    {
+        <p class="message error">
+            This package has been deleted. TODO update view.
+        </p>
+    }
+
     <div class="package-page-heading">
         <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
         <h2>@Model.Version</h2>
