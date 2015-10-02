@@ -492,6 +492,9 @@
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\PerfEvent.cs" />
     <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
+    <Compile Include="Extensions\NumberExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Extensions\RequestExtensions.cs" />
     <Compile Include="GlimpseSecurityPolicy.cs" />
     <Compile Include="Helpers\HostMachine.cs" />

@@ -41,14 +41,13 @@ namespace NuGetGallery
         {
             var stats = await _aggregateStatsService.GetAggregateStats();
 
-            // if we fail to detect client locale from the Languages header, fall back to server locale
-            CultureInfo clientCulture = Request.DetermineClientLocale() ?? CultureInfo.CurrentCulture;
+       
             return Json(
                 new
                 {
-                    Downloads = stats.Downloads.ToString("n0", clientCulture),
-                    UniquePackages = stats.UniquePackages.ToString("n0", clientCulture),
-                    TotalPackages = stats.TotalPackages.ToString("n0", clientCulture),
+                    Downloads = stats.Downloads.ToNuGetNumberString(),
+                    UniquePackages = stats.UniquePackages.ToNuGetNumberString(),
+                    TotalPackages = stats.TotalPackages.ToNuGetNumberString(),
                     LastUpdatedDateUtc = stats.LastUpdateDateUtc
                 },
                 JsonRequestBehavior.AllowGet);
