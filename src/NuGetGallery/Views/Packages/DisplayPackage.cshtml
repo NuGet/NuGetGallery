@@ -50,11 +50,11 @@
     <img class="logo" src="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon.png")';" />
     <div id="stats">
         <div class="stat">
-            <p class="stat-number">@Model.TotalDownloadCount.ToString("n0")</p>
+            <p class="stat-number">@Model.TotalDownloadCount.ToNuGetNumberString()</p>
             <p class="stat-label">@(Model.TotalDownloadCount == 1 ? "Download" : "Downloads")</p>
         </div>
         <div class="stat">
-            <p class="stat-number">@Model.DownloadCount.ToString("n0")</p>
+            <p class="stat-number">@Model.DownloadCount.ToNuGetNumberString()</p>
             <p class="stat-label">@(Model.DownloadCount == 1 ? "Download" : "Downloads") of v @Model.Version</p>
         </div>
         <div class="stat">
