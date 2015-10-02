@@ -1,7 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -102,7 +105,7 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult) await controller.Index()).Model;
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.Index()).Model;
 
             int sum = 0;
 
@@ -212,7 +215,7 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult) await controller.Index()).Model;
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.Index()).Model;
 
             if (model.IsDownloadPackageAvailable)
             {
@@ -276,7 +279,7 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult) await controller.Packages()).Model;
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.Packages()).Model;
 
             int sum = 0;
 
@@ -322,7 +325,7 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult) await controller.PackageVersions()).Model;
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageVersions()).Model;
 
             int sum = 0;
 
@@ -403,7 +406,7 @@ namespace NuGetGallery
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult) await controller.PackageDownloadsByVersion(PackageId, new string[] { "Version" })).Model;
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsByVersion(PackageId, new string[] { "Version" })).Model;
 
             int sum = 0;
 
@@ -560,7 +563,8 @@ namespace NuGetGallery
                 var controller = CreateController(aggregateStatsService, request);
 
                 // Act
-                var result = await controller.Totals() as JsonResult;
+
+                var result = await InvokeAction(() => (controller.Totals()), controller) as JsonResult;
 
                 // Asssert
                 Assert.NotNull(result);
@@ -570,7 +574,45 @@ namespace NuGetGallery
                 Assert.Equal("500", (string)data.UniquePackages);
                 Assert.Equal("1.000", (string)data.TotalPackages);
             }
+
+            /// <summary>
+            /// When testing MVC controllers, OnActionExecuted and OnActionExecuting functions are not get called. 
+            /// Code from: http://www.codeproject.com/Articles/623793/OnActionExecuting-and-OnActionExecuted-in-MVC-unit (The Code Project Open License (CPOL))
+            /// </summary>
+            private async static Task<T> InvokeAction<T>(Expression<Func<Task<T>>> actionCall, Controller controller) where T : ActionResult
+            {
+                var methodCall = (MethodCallExpression)actionCall.Body;
+                var method = methodCall.Method;
+           
+                ControllerDescriptor controllerDescriptor = new ReflectedControllerDescriptor(controller.GetType());
+                ActionDescriptor actionDescriptor =
+                  new ReflectedActionDescriptor(method, method.Name, controllerDescriptor);
+
+                // OnActionExecuting
+
+                var actionExecutingContext = new ActionExecutingContext(controller.ControllerContext,
+                  actionDescriptor, new Dictionary<string, object>());
+                MethodInfo onActionExecuting = controller.GetType().GetMethod(
+                  "OnActionExecuting", BindingFlags.Instance | BindingFlags.NonPublic);
+                onActionExecuting.Invoke(controller, new object[] { actionExecutingContext });
+
+                // call controller method
+
+                T result = await actionCall.Compile()();
+
+                // OnActionExecuted
+
+                var actionExecutedContext = new ActionExecutedContext(controller.ControllerContext,
+                  actionDescriptor, false, null) { Result = result };
+                MethodInfo onActionExecuted = controller.GetType().GetMethod(
+                  "OnActionExecuted", BindingFlags.Instance | BindingFlags.NonPublic);
+                onActionExecuted.Invoke(controller, new object[] { actionExecutedContext });
+
+                return (T)actionExecutedContext.Result;
+            }
         }
+
+
 
         public static StatisticsController CreateController(Mock<IAggregateStatsService> aggregateStatsService, Mock<HttpRequestBase> request = null)
         {
