@@ -1,0 +1,7 @@
+version: 1.0.{build}
+configuration: release
+before_build:
+  - nuget restore -DisableParallelProcessing
+build:
+  project: NuGetGallery.sln
+  verbosity: minimal
