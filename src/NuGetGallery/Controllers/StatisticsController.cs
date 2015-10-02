@@ -42,7 +42,7 @@ namespace NuGetGallery
             var stats = await _aggregateStatsService.GetAggregateStats();
 
             // if we fail to detect client locale from the Languages header, fall back to server locale
-            CultureInfo clientCulture = DetermineClientLocale() ?? CultureInfo.CurrentCulture;
+            CultureInfo clientCulture = Request.DetermineClientLocale() ?? CultureInfo.CurrentCulture;
             return Json(
                 new
                 {
@@ -54,49 +54,7 @@ namespace NuGetGallery
                 JsonRequestBehavior.AllowGet);
         }
 
-        private CultureInfo DetermineClientLocale()
-        {
-            if (Request == null)
-            {
-                return null;
-            }
-
-            string[] languages = Request.UserLanguages;
-            if (languages == null)
-            {
-                return null;
-            }
-
-            foreach (string language in languages)
-            {
-                string lang = language.ToLowerInvariant().Trim();
-                try
-                {
-                    return CultureInfo.GetCultureInfo(lang);
-                }
-                catch (CultureNotFoundException)
-                {
-                }
-            }
-
-            foreach (string language in languages)
-            {
-                string lang = language.ToLowerInvariant().Trim();
-                if (lang.Length > 2)
-                {
-                    string lang2 = lang.Substring(0, 2);
-                    try
-                    {
-                        return CultureInfo.GetCultureInfo(lang2);
-                    }
-                    catch (CultureNotFoundException)
-                    {
-                    }
-                }
-            }
-
-            return null;
-        }
+      
 
         //
         // GET: /stats
@@ -131,7 +89,7 @@ namespace NuGetGallery
                     .FirstOrDefault()
             };
 
-            model.ClientCulture = DetermineClientLocale();
+            model.ClientCulture = Request.DetermineClientLocale();
 
             model.Update();
 
@@ -156,7 +114,7 @@ namespace NuGetGallery
             {
                 IsDownloadPackageAvailable = result.Loaded,
                 DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
-                ClientCulture = DetermineClientLocale(),
+                ClientCulture = Request.DetermineClientLocale(),
                 LastUpdatedUtc = result.LastUpdatedUtc
             };
 
@@ -179,7 +137,7 @@ namespace NuGetGallery
             {
                 IsDownloadPackageDetailAvailable = result.Loaded,
                 DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
-                ClientCulture = DetermineClientLocale(),
+                ClientCulture = Request.DetermineClientLocale(),
                 LastUpdatedUtc = result.LastUpdatedUtc
             };
 
@@ -198,7 +156,7 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
 
-            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id, DetermineClientLocale());
+            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id, Request.DetermineClientLocale());
 
             if (report != null)
             {
@@ -226,7 +184,7 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
-            ProcessReport(report, groupby, new[] { "ClientName", "ClientVersion", "Operation" }, null, DetermineClientLocale());
+            ProcessReport(report, groupby, new[] { "ClientName", "ClientVersion", "Operation" }, null, Request.DetermineClientLocale());
 
             if (report != null)
             {

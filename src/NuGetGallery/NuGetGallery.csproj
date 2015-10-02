@@ -492,6 +492,7 @@
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\PerfEvent.cs" />
     <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
+    <Compile Include="Extensions\RequestExtensions.cs" />
     <Compile Include="GlimpseSecurityPolicy.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
     <Compile Include="Helpers\AppInsightsHealthIndicatorLogger.cs" />
@@ -1560,7 +1561,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://nuget.localtest.me</IISUrl>
+          <IISUrl>https://nuget.localtest.me</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
