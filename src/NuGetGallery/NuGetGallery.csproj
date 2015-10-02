@@ -495,7 +495,7 @@
     <Compile Include="Extensions\NumberExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Extensions\RequestExtensions.cs" />
+    <Compile Include="Extensions\HttpRequestExtensions.cs" />
     <Compile Include="GlimpseSecurityPolicy.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
     <Compile Include="Helpers\AppInsightsHealthIndicatorLogger.cs" />

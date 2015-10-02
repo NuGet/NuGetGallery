@@ -9,7 +9,7 @@ namespace NuGetGallery
     /// <summary>
     /// Extensions on <see cref="HttpRequest"/> and <see cref="HttpRequestBase"/>
     /// </summary>
-    public static class RequestExtensions
+    public static class HttpRequestExtensions
     {
         /// <summary>
         /// Retrieve culture of client. 
