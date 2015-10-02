@@ -6,13 +6,26 @@ using System.Web;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// Extensions on <see cref="HttpRequest"/> and <see cref="HttpRequestBase"/>
+    /// </summary>
     public static class RequestExtensions
     {
+        /// <summary>
+        /// Retrieve culture of client. 
+        /// </summary>
+        /// <param name="request">Current request.</param>
+        /// <returns><c>null</c> if not to be determined.</returns>
         public static CultureInfo DetermineClientLocale(this HttpRequest request)
         {
             return DetermineClientLocale(new HttpRequestWrapper(request));
         }
-
+        
+        /// <summary>
+        /// Retrieve culture of client. 
+        /// </summary>
+        /// <param name="request">Current request.</param>
+        /// <returns><c>null</c> if not to be determined.</returns>
         public static CultureInfo DetermineClientLocale(this HttpRequestBase request)
         {
             if (request == null)
@@ -26,6 +39,7 @@ namespace NuGetGallery
                 return null;
             }
 
+            //first try parse of full langcodes. Stop with first success.
             foreach (string language in languages)
             {
                 string lang = language.ToLowerInvariant().Trim();
@@ -38,6 +52,7 @@ namespace NuGetGallery
                 }
             }
 
+            //try parse again with first 2 chars.  Stop with first success.
             foreach (string language in languages)
             {
                 string lang = language.ToLowerInvariant().Trim();
