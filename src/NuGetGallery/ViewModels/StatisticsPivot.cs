@@ -37,7 +37,7 @@ namespace NuGetGallery
 
             PopulateTable(level, table, clientCulture);
 
-            return new Tuple<TableEntry[][], string>(table, level.Total.ToString("n0", clientCulture));
+            return new Tuple<TableEntry[][], string>(table, level.Total.ToNuGetNumberString());
         }
 
         private static void AddOrderedNext(Level level)
@@ -62,7 +62,7 @@ namespace NuGetGallery
                 if (item.Value.Next == null)
                 {
                     table[row][col] = new TableEntry { Data = item.Key };
-                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToString("n0", clientCulture), IsNumeric = true };
+                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToNuGetNumberString(), IsNumeric = true };
                     row++;
                 }
                 else

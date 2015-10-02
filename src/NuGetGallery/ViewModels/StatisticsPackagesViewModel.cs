@@ -72,7 +72,7 @@ namespace NuGetGallery
 
         public string DisplayDownloads(int downloads)
         {
-            return downloads.ToString("n0", ClientCulture);
+            return downloads.ToNuGetNumberString();
         }
 
         public void Update()

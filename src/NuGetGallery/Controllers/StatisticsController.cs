@@ -261,7 +261,7 @@ namespace NuGetGallery
                 }
 
                 report.Table = null;
-                report.Total = report.Facts.Sum(fact => fact.Amount).ToString("n0", clientCulture);
+                report.Total = report.Facts.Sum(fact => fact.Amount).ToNuGetNumberString();
             }
         }
 

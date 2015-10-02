@@ -38,7 +38,7 @@
 
         <footer>
             <p class="downloads">
-                @Model.TotalDownloadCount.ToString("n0") total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
             </p>
 
             @if (@Model.Tags.AnySafe())
