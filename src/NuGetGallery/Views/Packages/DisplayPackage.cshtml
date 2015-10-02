@@ -85,7 +85,7 @@
                     </a>
                 </li>
             }
-            else
+            else if (!Model.Deleted)
             {
                 <li>
                     <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
@@ -94,10 +94,13 @@
                 </li>
             }
 
-            <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
-            <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a></li>
+            @if (!Model.Deleted)
+            {
+                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
+                <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a></li>
+            }
 
-            @if (Model.IsOwner(User))
+            @if (!Model.Deleted && Model.IsOwner(User))
             {
                 <li><a href="@Url.EditPackage(Model.Id, Model.Version)">Edit Package</a></li>
                 <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
@@ -208,7 +211,7 @@
     @if (Model.Deleted)
     {
         <p class="message error">
-            This package has been deleted. TODO update view.
+            <strong>This package has been deleted from the gallery.</strong> It is no longer available for install/restore.
         </p>
     }
 
@@ -239,36 +242,40 @@
             </p>
         }
     }
-    <p>
-        To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
-            Package Manager Console
-        </a>
-    </p>
-    <div class="nuget-badge">
-        <p>
-            <code>
-                PM&gt; Install-Package @Model.Id
-                @if (!Model.LatestVersion || !Model.Listed)
-                {
-                    <text> -Version @Model.Version</text>
-                }
-                @if (Model.Prerelease)
-                {
-                    <text> -Pre </text>
-                }
-            </code>
-        </p>
-    </div>
-    @if (!String.IsNullOrEmpty(Model.MinClientVersion))
+
+    @if (!Model.Deleted)
     {
-        <p>Requires NuGet @Model.MinClientVersion or higher.</p>
-    }
-    <div id="socialbuttons" style="height: 60px; display: block;">
-        <div>
-            <a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a>
+        <p>
+            To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
+                Package Manager Console
+            </a>
+        </p>
+        <div class="nuget-badge">
+            <p>
+                <code>
+                    PM&gt; Install-Package @Model.Id
+                    @if (!Model.LatestVersion || !Model.Listed)
+                    {
+                        <text> -Version @Model.Version</text>
+                    }
+                    @if (Model.Prerelease)
+                    {
+                        <text> -Pre </text>
+                    }
+                </code>
+            </p>
         </div>
-        <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
-    </div>
+        if (!String.IsNullOrEmpty(Model.MinClientVersion))
+        {
+            <p>Requires NuGet @Model.MinClientVersion or higher.</p>
+        }
+        <div id="socialbuttons" style="height: 60px; display: block;">
+            <div>
+                <a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a>
+            </div>
+            <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+        </div>
+    }
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {
@@ -345,7 +352,7 @@
             {
                 var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
                 var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
-                if (packageVersion.Listed || Model.IsOwner(User))
+                if (!packageVersion.Deleted && (packageVersion.Listed || Model.IsOwner(User)))
                 {
                     <tr class="versionTableRow @rowClass">
                         <td class="version" title="@cellTitle">
@@ -381,7 +388,22 @@
                         }
                     </tr>
                 }
-            }
+                else if (packageVersion.Deleted)
+                {
+                    <tr class="versionTableRow deleted">
+                        <td class="version">
+                            @packageVersion.Title.Abbreviate(20) @packageVersion.Version (deleted)
+                        </td>
+                        <td>
+                            @packageVersion.DownloadCount
+                        </td>
+                        <td>
+                            @packageVersion.LastUpdated.ToNuGetLongDateString()
+                        </td>
+                        <td></td>
+                    </tr>
+    }
+}
         </tbody>
     </table>
 </div>
