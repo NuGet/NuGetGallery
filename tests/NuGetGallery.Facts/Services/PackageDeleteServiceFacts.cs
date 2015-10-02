@@ -76,6 +76,7 @@ namespace NuGetGallery
             Mock<IEntityRepository<PackageDelete>> packageDeletesRepository = null,
             Mock<IPackageService> packageService = null,
             Mock<IIndexingService> indexingService = null,
+            Mock<IPackageFileService> packageFileService = null,
             Action<Mock<PackageDeleteService>> setup = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
@@ -83,13 +84,15 @@ namespace NuGetGallery
             packageDeletesRepository = packageDeletesRepository ?? new Mock<IEntityRepository<PackageDelete>>();
             packageService = packageService ?? new Mock<IPackageService>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
+            packageFileService = packageFileService ?? new Mock<IPackageFileService>();
 
             var packageDeleteService = new Mock<PackageDeleteService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageDeletesRepository.Object,
                 packageService.Object,
-                indexingService.Object);
+                indexingService.Object,
+                packageFileService.Object);
 
             packageDeleteService.CallBase = true;
 
@@ -103,13 +106,15 @@ namespace NuGetGallery
 
         public class TheDeletePackagesAsyncMethod
         {
+            private string packageHashForTests = "NzMzMS1QNENLNEczSDQ1SA==";
+
             [Fact]
             public async Task WillInsertNewRecordIntoThePackageDeletesRepository()
             {
                 var packageDeletesRepo = new Mock<IEntityRepository<PackageDelete>>();
                 var service = CreateService(packageDeletesRepository: packageDeletesRepo);
                 var packageRegistration = new PackageRegistration();
-                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = packageHashForTests };
                 packageRegistration.Packages.Add(package);
                 var user = new User("test");
                 var reason = "Unit testing";
@@ -128,7 +133,7 @@ namespace NuGetGallery
                 var packageDeleteRepository = new Mock<IEntityRepository<PackageDelete>>();
                 var service = CreateService(packageRepository: packageRepository, packageDeletesRepository: packageDeleteRepository);
                 var packageRegistration = new PackageRegistration();
-                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = packageHashForTests };
                 packageRegistration.Packages.Add(package);
                 var user = new User("test");
 
@@ -146,7 +151,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var service = CreateService(packageService: packageService);
                 var packageRegistration = new PackageRegistration();
-                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = packageHashForTests };
                 packageRegistration.Packages.Add(package);
                 var user = new User("test");
 
@@ -161,20 +166,32 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
                 var service = CreateService(indexingService: indexingService);
                 var packageRegistration = new PackageRegistration();
-                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = packageHashForTests };
                 packageRegistration.Packages.Add(package);
                 var user = new User("test");
 
                 await service.DeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
-                
+
                 indexingService.Verify(x => x.UpdateIndex(true));
             }
 
             [Fact]
-            public void MovesPackageBinaryToBackupLocation()
+            public async Task WillBackupAndDeleteThePackageFile()
             {
-                // to be implemented
-                Assert.False(true);
+                var packageFileService = new Mock<IPackageFileService>();
+                packageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(new MemoryStream());
+
+                var service = CreateService(packageFileService: packageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.DeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                packageFileService.Verify(x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()));
+                packageFileService.Verify(x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version));
             }
         }
     }
