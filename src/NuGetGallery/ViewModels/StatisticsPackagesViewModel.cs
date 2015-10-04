@@ -29,8 +29,6 @@ namespace NuGetGallery
 
         public IEnumerable<StatisticsMonthlyUsageItem> Last6Months { get; set; }
 
-        public CultureInfo ClientCulture { get; set; }
-
         public StatisticsPackagesReport Report { get; private set; }
 
         public bool IsDownloadPackageAvailable { get; set; }
@@ -89,12 +87,12 @@ namespace NuGetGallery
             {
                 return string.Empty;
             }
-            return string.Format(ClientCulture, "{0} {1}", year, _months[monthOfYear]);
+            return string.Format(CultureInfo.CurrentCulture, "{0} {1}", year, _months[monthOfYear]);
         }
 
         public string DisplayPercentage(float amount, float total)
         {
-            return (amount / total).ToString("P0", ClientCulture);
+            return (amount / total).ToString("P0", CultureInfo.CurrentCulture);
         }
     }
 }

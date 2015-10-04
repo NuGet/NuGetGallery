@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -88,8 +87,6 @@ namespace NuGetGallery
                     .FirstOrDefault()
             };
 
-            model.ClientCulture = Request.DetermineClientLocale();
-
             model.Update();
 
             model.UseD3 = UseD3();
@@ -113,7 +110,6 @@ namespace NuGetGallery
             {
                 IsDownloadPackageAvailable = result.Loaded,
                 DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
-                ClientCulture = Request.DetermineClientLocale(),
                 LastUpdatedUtc = result.LastUpdatedUtc
             };
 
@@ -136,7 +132,6 @@ namespace NuGetGallery
             {
                 IsDownloadPackageDetailAvailable = result.Loaded,
                 DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
-                ClientCulture = Request.DetermineClientLocale(),
                 LastUpdatedUtc = result.LastUpdatedUtc
             };
 
@@ -155,7 +150,7 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
 
-            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id, Request.DetermineClientLocale());
+            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
 
             if (report != null)
             {
@@ -183,7 +178,7 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
-            ProcessReport(report, groupby, new[] { "ClientName", "ClientVersion", "Operation" }, null, Request.DetermineClientLocale());
+            ProcessReport(report, groupby, new[] { "ClientName", "ClientVersion", "Operation" }, null);
 
             if (report != null)
             {
@@ -199,7 +194,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id, CultureInfo clientCulture)
+        private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id)
         {
             if (report == null)
             {
@@ -228,7 +223,7 @@ namespace NuGetGallery
                     Array.Resize(ref pivot, dim);
                 }
 
-                Tuple<StatisticsPivot.TableEntry[][], string> result = StatisticsPivot.GroupBy(report.Facts, pivot, clientCulture);
+                Tuple<StatisticsPivot.TableEntry[][], string> result = StatisticsPivot.GroupBy(report.Facts, pivot);
 
                 if (id != null)
                 {
