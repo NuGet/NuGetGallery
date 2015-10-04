@@ -33,11 +33,7 @@ namespace NuGetGallery
         /// <remarks>Analogous name and signature as <see cref="DateTimeExtensions"/></remarks>
         public static string ToNuGetNumberString(this long self)
         {
-            var httpContext = HttpContext.Current;
-            // if we fail to detect client locale from the Languages header, fall back to server locale
-            
-            CultureInfo clientCulture = (httpContext == null ? null : httpContext.Request.DetermineClientLocale()) ?? CultureInfo.CurrentCulture;
-            return self.ToString("n0", clientCulture);
+            return self.ToString("n0", CultureInfo.CurrentCulture);
         }
 
     }
