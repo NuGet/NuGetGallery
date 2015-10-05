@@ -696,9 +696,18 @@ namespace NuGetGallery
                 }
 
                 // Perform delete
-                await _packageDeleteService.DeletePackagesAsync(
-                    packages, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
-                    deletePackagesRequest.Signature);
+                if (deletePackagesRequest.SoftDelete)
+                {
+                    await _packageDeleteService.SoftDeletePackagesAsync(
+                        packages, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
+                        deletePackagesRequest.Signature);
+                }
+                else
+                {
+                    await _packageDeleteService.HardDeletePackagesAsync(
+                        packages, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
+                        deletePackagesRequest.Signature);
+                }
 
                 // Redirect out
                 TempData["Message"] = 

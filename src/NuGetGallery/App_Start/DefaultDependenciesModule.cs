@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -65,6 +66,7 @@ namespace NuGetGallery
             builder.Register(c => new EntitiesContext(configuration.Current.SqlConnectionString, readOnly: configuration.Current.ReadOnlyMode))
                 .AsSelf()
                 .As<IEntitiesContext>()
+                .As<DbContext>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<EntityRepository<User>>()
