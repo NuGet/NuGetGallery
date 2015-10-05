@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
 using Moq;
+using NuGetGallery.Auditing;
 using Xunit;
 
 namespace NuGetGallery
@@ -23,6 +24,7 @@ namespace NuGetGallery
             Mock<IPackageService> packageService = null,
             Mock<IIndexingService> indexingService = null,
             Mock<IPackageFileService> packageFileService = null,
+            Mock<AuditingService> auditingService = null,
             Action<Mock<TestPackageDeleteService>> setup = null)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
@@ -33,13 +35,16 @@ namespace NuGetGallery
             indexingService = indexingService ?? new Mock<IIndexingService>();
             packageFileService = packageFileService ?? new Mock<IPackageFileService>();
 
+            auditingService = auditingService ?? new Mock<AuditingService>();
+
             var packageDeleteService = new Mock<TestPackageDeleteService>(
                 packageRepository.Object,
                 packageDeletesRepository.Object,
                 dbContext.Object,
                 packageService.Object,
                 indexingService.Object,
-                packageFileService.Object);
+                packageFileService.Object,
+                auditingService.Object);
 
             packageDeleteService.CallBase = true;
 
@@ -54,8 +59,10 @@ namespace NuGetGallery
         public class TestPackageDeleteService
             : PackageDeleteService
         {
-            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, DbContext dbContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService) 
-                : base(packageRepository, packageDeletesRepository, dbContext, packageService, indexingService, packageFileService)
+            public PackageAuditRecord LastAuditRecord { get; set; }
+
+            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, DbContext dbContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, AuditingService auditingService) 
+                : base(packageRepository, packageDeletesRepository, dbContext, packageService, indexingService, packageFileService, auditingService)
             {
             }
 
@@ -68,6 +75,12 @@ namespace NuGetGallery
             {
                 // do nothing - this method solely exists to make verifying SQL queries possible
                 return Task.FromResult(0);
+            }
+
+            protected override PackageAuditRecord CreateAuditRecord(Package package, PackageRegistration packageRegistration, PackageAuditAction action, string reason)
+            {
+                LastAuditRecord = base.CreateAuditRecord(package, packageRegistration, action, reason);
+                return LastAuditRecord;
             }
         }
 
@@ -158,6 +171,26 @@ namespace NuGetGallery
                 packageFileService.Verify(x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()));
                 packageFileService.Verify(x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version));
             }
+
+            [Fact]
+            public async Task WillCreateAuditRecordUsingAuditService()
+            {
+                var auditingService = new Mock<AuditingService>();
+                var service = CreateService(auditingService: auditingService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+                var reason = "Unit testing";
+                var signature = "The Terminator";
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, reason, signature);
+
+                var testService = service as TestPackageDeleteService;
+                Assert.Equal(package.PackageRegistration.Id, testService.LastAuditRecord.Id);
+                Assert.Equal(package.Version, testService.LastAuditRecord.Version);
+                auditingService.Verify(x => x.SaveAuditRecord(testService.LastAuditRecord));
+            }
         }
 
         public class TheHardDeletePackagesAsyncMethod
@@ -233,6 +266,26 @@ namespace NuGetGallery
 
                 packageFileService.Verify(x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()));
                 packageFileService.Verify(x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version));
+            }
+
+            [Fact]
+            public async Task WillCreateAuditRecordUsingAuditService()
+            {
+                var auditingService = new Mock<AuditingService>();
+                var service = CreateService(auditingService: auditingService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+                var reason = "Unit testing";
+                var signature = "The Terminator";
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, reason, signature);
+
+                var testService = service as TestPackageDeleteService;
+                Assert.Equal(package.PackageRegistration.Id, testService.LastAuditRecord.Id);
+                Assert.Equal(package.Version, testService.LastAuditRecord.Version);
+                auditingService.Verify(x => x.SaveAuditRecord(testService.LastAuditRecord));
             }
         }
     }

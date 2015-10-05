@@ -3,11 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -20,6 +23,7 @@ namespace NuGetGallery
         private readonly IPackageService _packageService;
         private readonly IIndexingService _indexingService;
         private readonly IPackageFileService _packageFileService;
+        private readonly AuditingService _auditingService;
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
@@ -27,7 +31,8 @@ namespace NuGetGallery
             DbContext dbContext,
             IPackageService packageService,
             IIndexingService indexingService,
-            IPackageFileService packageFileService)
+            IPackageFileService packageFileService,
+            AuditingService auditingService)
         {
             _packageRepository = packageRepository;
             _packageDeletesRepository = packageDeletesRepository;
@@ -35,12 +40,11 @@ namespace NuGetGallery
             _packageService = packageService;
             _indexingService = indexingService;
             _packageFileService = packageFileService;
+            _auditingService = auditingService;
         }
 
         public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
         {
-            // todo: audit in storage
-
             EntitiesConfiguration.SuspendExecutionStrategy = true;
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
@@ -63,6 +67,8 @@ namespace NuGetGallery
                 {
                     package.Deleted = true;
                     packageDelete.Packages.Add(package);
+
+                    await _auditingService.SaveAuditRecord(CreateAuditRecord(package, package.PackageRegistration, PackageAuditAction.SoftDeleted, reason));
                 }
 
                 _packageDeletesRepository.InsertOnCommit(packageDelete);
@@ -84,8 +90,6 @@ namespace NuGetGallery
 
         public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
         {
-            // todo: audit in storage
-
             EntitiesConfiguration.SuspendExecutionStrategy = true;
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
@@ -111,6 +115,7 @@ namespace NuGetGallery
                         "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
 
+                    await _auditingService.SaveAuditRecord(CreateAuditRecord(package, package.PackageRegistration, PackageAuditAction.Deleted, reason));
                     _packageRepository.DeleteOnCommit(package);
                 }
                 
@@ -161,6 +166,42 @@ namespace NuGetGallery
         {
             // Force refresh the index
             _indexingService.UpdateIndex(true);
+        }
+
+        protected virtual PackageAuditRecord CreateAuditRecord(Package package, PackageRegistration packageRegistration, PackageAuditAction action, string reason)
+        {
+            return new PackageAuditRecord(package, ConvertToDataTable(package), ConvertToDataTable(packageRegistration), action, reason);
+        }
+
+        public static DataTable ConvertToDataTable<T>(T instance)
+        {
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(typeof(T));
+            DataTable table = new DataTable();
+
+            List<object> values = new List<object>();
+            for (int i = 0; i < properties.Count; i++)
+            {
+                var propertyDescriptor = properties[i];
+                var propertyType = Nullable.GetUnderlyingType(propertyDescriptor.PropertyType) ?? propertyDescriptor.PropertyType;
+                if (!IsComplexType(propertyType))
+                {
+                    table.Columns.Add(propertyDescriptor.Name, propertyType);
+                    values.Add(propertyDescriptor.GetValue(instance) ?? DBNull.Value);
+                }
+            }
+
+            table.Rows.Add(values.ToArray());
+
+            return table;
+        }
+
+        public static bool IsComplexType(Type type)
+        {
+            if (type.IsSubclassOf(typeof (ValueType)) || type == typeof (string))
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
