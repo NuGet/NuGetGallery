@@ -166,7 +166,7 @@ var drawDownloadsByVersionBarChart = function () {
     svg.append("text")
         .style("text-anchor", "middle")
         .attr("x", (width - margin.right) / 2.0)
-        .attr("y", height + (margin.bottom / 2.0))
+        .attr("y", -10)
         .attr("font-weight", "bold")
         .text("Downloads by Package Version (Last 6 weeks)");
 
@@ -256,7 +256,7 @@ var drawDownloadsByClientNameBarChart = function () {
     svg.append("text")
         .style("text-anchor", "middle")
         .attr("x", (width - margin.right) / 2.0)
-        .attr("y", height + (margin.bottom / 2.0))
+        .attr("y", -10)
         .attr("font-weight", "bold")
         .text("Downloads by Client (Last 6 weeks)");
 
@@ -359,7 +359,7 @@ var drawDownloadsByOperation = function () {
     svg.append("text")
         .style("text-anchor", "middle")
         .attr("x", (width - margin.right) / 2.0)
-        .attr("y", height + (margin.bottom / 2.0))
+        .attr("y", -10)
         .attr("font-weight", "bold")
         .text("Downloads by Operation (Last 6 weeks)");
 
