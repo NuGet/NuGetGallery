@@ -154,6 +154,7 @@ namespace NuGetGallery
             var hashBytes = Convert.FromBase64String(hash);
 
             return string.Format(
+                CultureInfo.InvariantCulture,
                 Constants.PackageFileBackupSavePathTemplate,
                 id,
                 version,

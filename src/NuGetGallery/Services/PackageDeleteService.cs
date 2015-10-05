@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet;
@@ -176,7 +177,7 @@ namespace NuGetGallery
         public static DataTable ConvertToDataTable<T>(T instance)
         {
             PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(typeof(T));
-            DataTable table = new DataTable();
+            DataTable table = new DataTable() { Locale = CultureInfo.CurrentCulture };
 
             List<object> values = new List<object>();
             for (int i = 0; i < properties.Count; i++)
