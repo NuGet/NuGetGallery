@@ -29,8 +29,6 @@ namespace NuGetGallery
 
         public IEnumerable<StatisticsMonthlyUsageItem> Last6Months { get; set; }
 
-        public CultureInfo ClientCulture { get; set; }
-
         public StatisticsPackagesReport Report { get; private set; }
 
         public bool IsDownloadPackageAvailable { get; set; }
@@ -70,9 +68,10 @@ namespace NuGetGallery
             Report = report;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]
         public string DisplayDownloads(int downloads)
         {
-            return downloads.ToString("n0", ClientCulture);
+            return downloads.ToNuGetNumberString();
         }
 
         public void Update()
@@ -83,18 +82,20 @@ namespace NuGetGallery
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]
         public string DisplayMonth(int year, int monthOfYear)
         {
             if (monthOfYear < 1 || monthOfYear > 12)
             {
                 return string.Empty;
             }
-            return string.Format(ClientCulture, "{0} {1}", year, _months[monthOfYear]);
+            return string.Format(CultureInfo.CurrentCulture, "{0} {1}", year, _months[monthOfYear]);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]
         public string DisplayPercentage(float amount, float total)
         {
-            return (amount / total).ToString("P0", ClientCulture);
+            return (amount / total).ToString("P0", CultureInfo.CurrentCulture);
         }
     }
 }

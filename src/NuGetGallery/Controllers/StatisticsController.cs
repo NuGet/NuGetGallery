@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -41,62 +40,19 @@ namespace NuGetGallery
         {
             var stats = await _aggregateStatsService.GetAggregateStats();
 
-            // if we fail to detect client locale from the Languages header, fall back to server locale
-            CultureInfo clientCulture = DetermineClientLocale() ?? CultureInfo.CurrentCulture;
+       
             return Json(
                 new
                 {
-                    Downloads = stats.Downloads.ToString("n0", clientCulture),
-                    UniquePackages = stats.UniquePackages.ToString("n0", clientCulture),
-                    TotalPackages = stats.TotalPackages.ToString("n0", clientCulture),
+                    Downloads = stats.Downloads.ToNuGetNumberString(),
+                    UniquePackages = stats.UniquePackages.ToNuGetNumberString(),
+                    TotalPackages = stats.TotalPackages.ToNuGetNumberString(),
                     LastUpdatedDateUtc = stats.LastUpdateDateUtc
                 },
                 JsonRequestBehavior.AllowGet);
         }
 
-        private CultureInfo DetermineClientLocale()
-        {
-            if (Request == null)
-            {
-                return null;
-            }
-
-            string[] languages = Request.UserLanguages;
-            if (languages == null)
-            {
-                return null;
-            }
-
-            foreach (string language in languages)
-            {
-                string lang = language.ToLowerInvariant().Trim();
-                try
-                {
-                    return CultureInfo.GetCultureInfo(lang);
-                }
-                catch (CultureNotFoundException)
-                {
-                }
-            }
-
-            foreach (string language in languages)
-            {
-                string lang = language.ToLowerInvariant().Trim();
-                if (lang.Length > 2)
-                {
-                    string lang2 = lang.Substring(0, 2);
-                    try
-                    {
-                        return CultureInfo.GetCultureInfo(lang2);
-                    }
-                    catch (CultureNotFoundException)
-                    {
-                    }
-                }
-            }
-
-            return null;
-        }
+      
 
         //
         // GET: /stats
@@ -131,8 +87,6 @@ namespace NuGetGallery
                     .FirstOrDefault()
             };
 
-            model.ClientCulture = DetermineClientLocale();
-
             model.Update();
 
             model.UseD3 = UseD3();
@@ -156,7 +110,6 @@ namespace NuGetGallery
             {
                 IsDownloadPackageAvailable = result.Loaded,
                 DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
-                ClientCulture = DetermineClientLocale(),
                 LastUpdatedUtc = result.LastUpdatedUtc
             };
 
@@ -179,7 +132,6 @@ namespace NuGetGallery
             {
                 IsDownloadPackageDetailAvailable = result.Loaded,
                 DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
-                ClientCulture = DetermineClientLocale(),
                 LastUpdatedUtc = result.LastUpdatedUtc
             };
 
@@ -198,7 +150,7 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
 
-            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id, DetermineClientLocale());
+            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
 
             if (report != null)
             {
@@ -226,7 +178,7 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
-            ProcessReport(report, groupby, new[] { "ClientName", "ClientVersion", "Operation" }, null, DetermineClientLocale());
+            ProcessReport(report, groupby, new[] { "ClientName", "ClientVersion", "Operation" }, null);
 
             if (report != null)
             {
@@ -242,7 +194,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id, CultureInfo clientCulture)
+        private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id)
         {
             if (report == null)
             {
@@ -271,7 +223,7 @@ namespace NuGetGallery
                     Array.Resize(ref pivot, dim);
                 }
 
-                Tuple<StatisticsPivot.TableEntry[][], string> result = StatisticsPivot.GroupBy(report.Facts, pivot, clientCulture);
+                Tuple<StatisticsPivot.TableEntry[][], string> result = StatisticsPivot.GroupBy(report.Facts, pivot);
 
                 if (id != null)
                 {
@@ -304,7 +256,7 @@ namespace NuGetGallery
                 }
 
                 report.Table = null;
-                report.Total = report.Facts.Sum(fact => fact.Amount).ToString("n0", clientCulture);
+                report.Total = report.Facts.Sum(fact => fact.Amount).ToNuGetNumberString();
             }
         }
 
