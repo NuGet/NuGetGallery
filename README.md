@@ -1,5 +1,8 @@
 [NuGet Gallery](http://nuget.org/) — Where packages are found 
 =======================================================================
+
+[![Build status](https://ci.appveyor.com/api/projects/status/6ob8lbutfecvi5n3/branch/master?svg=true)](https://ci.appveyor.com/project/NuGetteam/nugetgallery/branch/master)
+
 This is an implementation of the NuGet Gallery and API. This serves as the back-end and community 
 website for the NuGet client. For information about the NuGet clients, visit http://nuget.codeplex.com/
 
