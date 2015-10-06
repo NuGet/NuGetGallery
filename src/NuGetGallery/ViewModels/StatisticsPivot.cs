@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 //  The implementation here is generic with respect to the specific properties in the data
 //  if can produce any pivot from any data. The result of the pivot is a 2-d array because
@@ -15,7 +14,7 @@ namespace NuGetGallery
 {
     public class StatisticsPivot
     {
-        public static Tuple<TableEntry[][], string> GroupBy(IList<StatisticsFact> facts, string[] pivot, CultureInfo clientCulture)
+        public static Tuple<TableEntry[][], string> GroupBy(IList<StatisticsFact> facts, string[] pivot)
         {
             // Firstly take the facts and the pivot vector and produce a tree structure
 
@@ -35,9 +34,9 @@ namespace NuGetGallery
                 table[i] = new TableEntry[pivot.Length + 1];
             }
 
-            PopulateTable(level, table, clientCulture);
+            PopulateTable(level, table);
 
-            return new Tuple<TableEntry[][], string>(table, level.Total.ToString("n0", clientCulture));
+            return new Tuple<TableEntry[][], string>(table, level.Total.ToNuGetNumberString());
         }
 
         private static void AddOrderedNext(Level level)
@@ -55,28 +54,28 @@ namespace NuGetGallery
             }
         }
 
-        private static void InnerPopulateTable(Level level, TableEntry[][] table, ref int row, int col, CultureInfo clientCulture)
+        private static void InnerPopulateTable(Level level, TableEntry[][] table, ref int row, int col)
         {
             foreach (KeyValuePair<string, Level> item in level.OrderedNext)
             {
                 if (item.Value.Next == null)
                 {
                     table[row][col] = new TableEntry { Data = item.Key };
-                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToString("n0", clientCulture), IsNumeric = true };
+                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToNuGetNumberString(), IsNumeric = true };
                     row++;
                 }
                 else
                 {
                     table[row][col] = new TableEntry { Data = item.Key, Rowspan = item.Value.Count };
-                    InnerPopulateTable(item.Value, table, ref row, col + 1, clientCulture);
+                    InnerPopulateTable(item.Value, table, ref row, col + 1);
                 }
             }
         }
 
-        private static void PopulateTable(Level level, TableEntry[][] table, CultureInfo clientCulture)
+        private static void PopulateTable(Level level, TableEntry[][] table)
         {
             int row = 0;
-            InnerPopulateTable(level, table, ref row, 0, clientCulture);
+            InnerPopulateTable(level, table, ref row, 0);
         }
 
         private static Level InnerGroupBy(IList<StatisticsFact> facts, string[] groupBy)
