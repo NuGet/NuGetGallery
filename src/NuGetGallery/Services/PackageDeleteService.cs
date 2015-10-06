@@ -154,7 +154,10 @@ namespace NuGetGallery
             {
                 using (var packageStream = await _packageFileService.DownloadPackageFileAsync(package))
                 {
-                    await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
+                    if (packageStream != null)
+                    {
+                        await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
+                    }
                 }
                 await _packageFileService.DeletePackageFileAsync(package.PackageRegistration.Id,
                         string.IsNullOrEmpty(package.NormalizedVersion)

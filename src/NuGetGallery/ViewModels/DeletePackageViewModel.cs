@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace NuGetGallery
 {
@@ -12,7 +13,7 @@ namespace NuGetGallery
         {
             DeletePackagesRequest = new DeletePackagesRequest
             {
-                Packages = new Dictionary<string, string> { { package.PackageRegistration.Id, package.Version } },
+                Packages = new List<string> { string.Format(CultureInfo.InvariantCulture, "{0}|{1}", package.PackageRegistration.Id, package.Version) },
                 ReasonChoices = reportOtherPackageReasons
             };
         }

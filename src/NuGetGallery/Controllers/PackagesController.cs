@@ -682,16 +682,21 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Delete(DeletePackagesRequest deletePackagesRequest)
         {
+            var packagesToDelete = new List<Package>();
+
             if (ModelState.IsValid)
             {
                 // Get the packages to delete
-                var packages = new List<Package>();
-                foreach (var kvp in deletePackagesRequest.Packages)
+                foreach (var package in deletePackagesRequest.Packages)
                 {
-                    var package = _packageService.FindPackageByIdAndVersion(kvp.Key, kvp.Value, allowPrerelease: true);
-                    if (package != null)
+                    var split = package.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                    if (split.Length == 2)
                     {
-                        packages.Add(package);
+                        var packageToDelete = _packageService.FindPackageByIdAndVersion(split[0], split[1], allowPrerelease: true);
+                        if (packageToDelete != null)
+                        {
+                            packagesToDelete.Add(packageToDelete);
+                        }
                     }
                 }
 
@@ -699,13 +704,13 @@ namespace NuGetGallery
                 if (deletePackagesRequest.SoftDelete)
                 {
                     await _packageDeleteService.SoftDeletePackagesAsync(
-                        packages, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
+                        packagesToDelete, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
                         deletePackagesRequest.Signature);
                 }
                 else
                 {
                     await _packageDeleteService.HardDeletePackagesAsync(
-                        packages, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
+                        packagesToDelete, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
                         deletePackagesRequest.Signature);
                 }
 
@@ -721,8 +726,8 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var firstPackage = deletePackagesRequest.Packages.First();
-            return Delete(firstPackage.Key, firstPackage.Value);
+            var firstPackage = packagesToDelete.First();
+            return Delete(firstPackage.PackageRegistration.Id, firstPackage.Version);
         }
 
         [Authorize]

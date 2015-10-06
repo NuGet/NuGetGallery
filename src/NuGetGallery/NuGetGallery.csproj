@@ -446,6 +446,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\AutofacConfig.cs" />
+    <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
@@ -1072,6 +1074,7 @@
     <Content Include="Areas\Admin\DynamicData\Content\Images\web.config">
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="Areas\Admin\Views\Delete\Index.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Content\Logos\dnf.png" />
     <Content Include="Scripts\jquery-1.11.0.js" />

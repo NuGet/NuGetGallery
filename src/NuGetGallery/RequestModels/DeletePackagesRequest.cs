@@ -11,11 +11,11 @@ namespace NuGetGallery
     {
         public DeletePackagesRequest()
         {
-            Packages = new Dictionary<string, string>();
+            Packages = new List<string>();
             SoftDelete = true;
         }
 
-        public Dictionary<string, string> Packages { get; set; }
+        public List<string> Packages { get; set; }
 
         [NotEqual(ReportPackageReason.HasABugOrFailedToInstall, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. Please contact owner(s) for assistance.")]
         [Required(ErrorMessage = "You must select a reason for deleting the package")]

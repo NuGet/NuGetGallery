@@ -79,9 +79,9 @@ else
         @using (Html.BeginForm("Delete", "Packages", FormMethod.Post, new { id = "delete-form" }))
         {
             @Html.AntiForgeryToken()    
-            foreach (var kvp in Model.DeletePackagesRequest.Packages)
+            foreach (var p in Model.DeletePackagesRequest.Packages)
             {
-                <input type="hidden" name="DeletePackagesRequest.Packages[@kvp.Key]" value="@kvp.Value" />
+                <input type="hidden" name="DeletePackagesRequest.Packages[]" value="@p" />
             }
 
             <fieldset id="unlist-form" class="form">
