@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ServiceConfiguration serviceName="NuGet.Services.Publish.CloudService" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2014-06.2.4">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="NuGet.Services.Publish.CloudService" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2015-04.2.6">
   <Role name="NuGet.Services.Publish">
     <Instances count="1" />
     <ConfigurationSettings>
@@ -14,6 +14,7 @@
       <Setting name="Storage.Container.Ownership" value="" />
       <Setting name="Storage.BlobContainerPublicAccessType" value="" />
       <Setting name="graphapi.Thumbprint" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="NuGetOrg" thumbprint="C5385DB24F7AAE13FE38AD014A6504E5B2F6955B" thumbprintAlgorithm="sha1" />
