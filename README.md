@@ -38,9 +38,9 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     ```
     Update-Database -StartUpProjectName NuGetGallery
     ```
-If this fails, you are likely to get more useful output by passing -Debug than -Verbose.
+If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
 
-6. Change the value of `Gallery.ConfirmEmailAddresses` to false in `src\NuGetGallery\Web.Config`, this is required to upload the packages after registration.
+6. Change the value of `Gallery.ConfirmEmailAddresses` to `false` in `src\NuGetGallery\Web.Config`, this is required to upload the packages after registration.
 
 7. Ensure the 'NuGetGallery' project (under the Frontend folder) is set to the Startup Project
   
@@ -86,7 +86,7 @@ This is the Git workflow we're currently using:
 
 ### Setting up
 
-1. Clone and checkout the following branches (to make sure local copies are made): 'master', 'iter-start'
+1. Clone and checkout the following branches (to make sure local copies are made): 'master'.
 
 ### When starting a new feature/unit of work.
     
