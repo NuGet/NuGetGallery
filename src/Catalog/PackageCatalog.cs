@@ -14,7 +14,7 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public static class PackageCatalog
     {
-        public static IGraph CreateCommitMetadata(Uri indexUri, DateTime? lastCreated, DateTime? lastEdited)
+        public static IGraph CreateCommitMetadata(Uri indexUri, DateTime? lastCreated, DateTime? lastEdited, DateTime? lastDeleted)
         {
             IGraph graph = new Graph();
 
@@ -26,14 +26,19 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 graph.Assert(graph.CreateUriNode(indexUri), graph.CreateUriNode(Schema.Predicates.LastEdited), graph.CreateLiteralNode(lastEdited.Value.ToString("O"), Schema.DataTypes.DateTime));
             }
+            if (lastDeleted != null)
+            {
+                graph.Assert(graph.CreateUriNode(indexUri), graph.CreateUriNode(Schema.Predicates.LastDeleted), graph.CreateLiteralNode(lastDeleted.Value.ToString("O"), Schema.DataTypes.DateTime));
+            }
 
             return graph;
         }
 
-        public static async Task<Tuple<DateTime?, DateTime?>> ReadCommitMetadata(CatalogWriterBase writer, CancellationToken cancellationToken)
+        public static async Task<Tuple<DateTime?, DateTime?, DateTime?>> ReadCommitMetadata(CatalogWriterBase writer, CancellationToken cancellationToken)
         {
             DateTime? lastCreated = null;
             DateTime? lastEdited = null;
+            DateTime? lastDeleted = null;
 
             string json = await writer.Storage.LoadString(writer.RootUri, cancellationToken);
 
@@ -58,9 +63,15 @@ namespace NuGet.Services.Metadata.Catalog
                 {
                     lastEdited = DateTime.Parse(t2.ToString(), null, DateTimeStyles.RoundtripKind);
                 }
+
+                JToken t3;
+                if (obj.TryGetValue("nuget:lastDeleted", out t3))
+                {
+                    lastDeleted = DateTime.Parse(t3.ToString(), null, DateTimeStyles.RoundtripKind);
+                }
             }
 
-            return Tuple.Create(lastCreated, lastEdited);
+            return Tuple.Create(lastCreated, lastEdited, lastDeleted);
         }
     }
 }

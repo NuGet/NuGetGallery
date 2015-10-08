@@ -86,6 +86,16 @@ namespace Ng
             return GetPackages(client, MakeLastEditedUri(source, since, top), "LastEdited");
         }
 
+        public static Task<SortedList<DateTime, IList<Tuple<string, string>>>> GetDeletedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        {
+            // TODO: implement this
+            SortedList<DateTime, IList<Tuple<string, string>>> result = new SortedList<DateTime, IList<Tuple<string, string>>>();
+
+            result.Add(DateTime.UtcNow, new List<Tuple<string, string>> { new Tuple<string, string>("DotNetZip", "1.9.1.8") });
+
+            return Task.FromResult(result);
+        }
+
         private static DateTime ForceUTC(DateTime date)
         {
             if (date.Kind == DateTimeKind.Unspecified)
@@ -132,7 +142,6 @@ namespace Ng
                 DateTime keyDate = String.IsNullOrEmpty(keyEntryValue) ? createdDate : DateTime.Parse(keyEntryValue);
 
                 // License details
-
                 XElement licenseNamesElement = propertiesElement.Element(dataservices + LicenseNamesProperty);
                 string licenseNames = licenseNamesElement != null ? licenseNamesElement.Value : null;
 
@@ -168,7 +177,7 @@ namespace Ng
             return result;
         }
 
-        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, bool? createdPackages, CancellationToken cancellationToken)
+        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
         {
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
@@ -229,10 +238,54 @@ namespace Ng
             {
                 lastCreated = createdPackages.Value ? lastDate : lastCreated;
                 lastEdited = !createdPackages.Value ? lastDate : lastEdited;
+                lastDeleted = !createdPackages.Value ? lastDate : lastDeleted;
             }
 
-            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, lastEdited);
+            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, lastEdited, lastDeleted);
             
+            await writer.Commit(commitMetadata, cancellationToken);
+
+            Trace.TraceInformation("COMMIT");
+
+            return lastDate;
+        }
+
+        static async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<Tuple<string, string>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
+        {
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
+
+            DateTime lastDate = createdPackages.HasValue ? (createdPackages.Value ? lastCreated : lastEdited) : DateTime.MinValue;
+
+            if (packages == null || packages.Count == 0)
+            {
+                return lastDate;
+            }
+
+            foreach (KeyValuePair<DateTime, IList<Tuple<string, string>>> entry in packages)
+            {
+                foreach (Tuple<string, string> packageItem in entry.Value)
+                {
+                    string id = packageItem.Item1;
+                    string version = packageItem.Item2;
+
+                    var catalogItem = new DeleteCatalogItem(id, version, entry.Key);
+                    writer.Add(catalogItem);
+
+                    Trace.TraceInformation("Delete: {0} {1}", id, version);
+                }
+
+                lastDate = entry.Key;
+            }
+
+            if (createdPackages.HasValue)
+            {
+                lastCreated = createdPackages.Value ? lastDate : lastCreated;
+                lastEdited = !createdPackages.Value ? lastDate : lastEdited;
+                lastDeleted = !createdPackages.Value ? lastDate : lastDeleted;
+            }
+
+            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, lastEdited, lastDeleted);
+
             await writer.Commit(commitMetadata, cancellationToken);
 
             Trace.TraceInformation("COMMIT");
@@ -264,6 +317,7 @@ namespace Ng
 
             const string LastCreated = "nuget:lastCreated";
             const string LastEdited = "nuget:lastEdited";
+            const string LastDeleted = "nuget:lastDeleted";
 
             int top = 20;
             int timeout = 300;
@@ -281,6 +335,7 @@ namespace Ng
                     //  fetch and add all newly CREATED packages - in order
                     DateTime lastCreated = await GetCatalogProperty(storage, LastCreated, cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
                     DateTime lastEdited = await GetCatalogProperty(storage, LastEdited, cancellationToken) ?? lastCreated;
+                    DateTime lastDeleted = await GetCatalogProperty(storage, LastDeleted, cancellationToken) ?? lastCreated;
 
                     SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> createdPackages;
                     DateTime previousLastCreated = DateTime.MinValue;
@@ -291,7 +346,7 @@ namespace Ng
                         createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
                         Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
 
-                        lastCreated = await DownloadMetadata2Catalog(client, createdPackages, storage, lastCreated, lastEdited, true, cancellationToken);
+                        lastCreated = await DownloadMetadata2Catalog(client, createdPackages, storage, lastCreated, lastEdited, lastDeleted, true, cancellationToken);
                         if (previousLastCreated == lastCreated)
                         {
                             break;
@@ -301,7 +356,6 @@ namespace Ng
                     while (createdPackages.Count > 0);
 
                     //  THEN fetch and add all EDITED packages - in order
-
                     SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> editedPackages;
                     DateTime previousLastEdited = DateTime.MinValue;
                     do
@@ -312,7 +366,7 @@ namespace Ng
 
                         Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
 
-                        lastEdited = await DownloadMetadata2Catalog(client, editedPackages, storage, lastCreated, lastEdited, false, cancellationToken);
+                        lastEdited = await DownloadMetadata2Catalog(client, editedPackages, storage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
                         if (previousLastEdited == lastEdited)
                         {
                             break;
@@ -320,6 +374,26 @@ namespace Ng
                         previousLastEdited = lastEdited;
                     }
                     while (editedPackages.Count > 0);
+
+                    // THEN fetch and add all DELETED packages
+                    SortedList<DateTime, IList<Tuple<string, string>>> deletedPackages;
+                    DateTime previousLastDeleted = DateTime.MinValue;
+                    do
+                    {
+                        Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
+
+                        deletedPackages = await GetDeletedPackages(client, gallery, lastEdited, top);
+
+                        Trace.TraceInformation("FEED DeletedPackages: {0}", deletedPackages.Count);
+
+                        lastDeleted = await Deletes2Catalog(deletedPackages, storage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
+                        if (previousLastDeleted == lastEdited)
+                        {
+                            break;
+                        }
+                        previousLastDeleted = lastDeleted;
+                    }
+                    while (deletedPackages.Count > 0);
                 }
 
                 Thread.Sleep(interval * 1000);
@@ -377,7 +451,7 @@ namespace Ng
 
         static void PackagePrintUsage()
         {
-            Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> [-versione <version>]");
+            Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> [-version <version>]");
         }
 
         public static void Package(string[] args, CancellationToken cancellationToken)
@@ -435,7 +509,7 @@ namespace Ng
             {
                 client.Timeout = TimeSpan.FromSeconds(timeout);
 
-                //  if teh version is specified a single package is processed otherwise all the packages corresponding to that id are processed
+                //  if the version is specified a single package is processed otherwise all the packages corresponding to that id are processed
 
                 Uri uri = (version == null) ? MakePackageUri(gallery, id) : MakePackageUri(gallery, id, version);
 
@@ -449,11 +523,13 @@ namespace Ng
 
                 const string LastCreated = "nuget:lastCreated";
                 const string LastEdited = "nuget:lastEdited";
+                const string LastDeleted = "nuget:lastDeleted";
 
                 DateTime lastCreated = await GetCatalogProperty(storage, LastCreated, cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
                 DateTime lastEdited = await GetCatalogProperty(storage, LastEdited, cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
+                DateTime lastDeleted = await GetCatalogProperty(storage, LastDeleted, cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
 
-                DateTime d = await DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited, null, cancellationToken);
+                DateTime d = await DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited, lastDeleted, null, cancellationToken);
             }
         }
     }

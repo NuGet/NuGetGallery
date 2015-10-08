@@ -114,6 +114,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri LastCreated = new Uri(Prefixes.NuGet + "lastCreated");
             public static readonly Uri LastEdited = new Uri(Prefixes.NuGet + "lastEdited");
+            public static readonly Uri LastDeleted = new Uri(Prefixes.NuGet + "lastDeleted");
             public static readonly Uri Listed = new Uri(Prefixes.NuGet + "listed");
 
             public static readonly Uri Language = new Uri(Prefixes.NuGet + "language");

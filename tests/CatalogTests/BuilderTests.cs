@@ -291,7 +291,7 @@ namespace CatalogTests
                     writer.Add(item);
                 }
 
-                commitTask = Task.Run(async () => await writer.Commit(commitTime, PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null), CancellationToken.None));
+                commitTask = Task.Run(async () => await writer.Commit(commitTime, PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null, null), CancellationToken.None));
 
                 // stats
                 double perPackage = runtime.Elapsed.TotalSeconds / (double)completed;
