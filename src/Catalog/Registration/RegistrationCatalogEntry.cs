@@ -33,7 +33,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         static bool IsDelete(INode subject, IGraph graph)
         {
-            return graph.ContainsTriple(new Triple(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.CatalogDelete)));
+            return graph.ContainsTriple(new Triple(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.CatalogDelete)))
+                || graph.ContainsTriple(new Triple(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.PackageDelete)));
         }
 
         static bool IsListed(INode subject, IGraph graph)
