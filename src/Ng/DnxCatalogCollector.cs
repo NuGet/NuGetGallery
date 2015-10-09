@@ -71,12 +71,27 @@ namespace Ng
 
         async Task UpdateMetadata(Storage storage, Action<HashSet<NuGetVersion>> updateAction, CancellationToken cancellationToken)
         {
-            Uri resourceUri = new Uri(storage.BaseAddress, "index.json");
+            string relativeAddress = "index.json";
+
+            Uri resourceUri = new Uri(storage.BaseAddress, relativeAddress);
             HashSet<NuGetVersion> versions = GetVersions(await storage.LoadString(resourceUri, cancellationToken));
             updateAction(versions);
             List<NuGetVersion> result = new List<NuGetVersion>(versions);
-            result.Sort();
-            await storage.Save(resourceUri, CreateContent(result.Select((v) => v.ToString())), cancellationToken);
+
+            if (result.Any())
+            {
+                // Store versions (sorted)
+                result.Sort();
+                await storage.Save(resourceUri, CreateContent(result.Select((v) => v.ToString())), cancellationToken);
+            }
+            else
+            {
+                // Remove versions file if no versions are present
+                if (storage.Exists(relativeAddress))
+                {
+                    await storage.Delete(resourceUri, cancellationToken);
+                }
+            }
         }
 
         async Task<string> LoadNuspec(string id, string version, CancellationToken cancellationToken)
