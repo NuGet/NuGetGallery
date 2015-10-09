@@ -58,5 +58,10 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             return _innerStorage.ResolveUri(relativeUri);
         }
+
+        public Task<IEnumerable<Uri>> List(bool recursive, CancellationToken cancellationToken)
+        {
+            return _innerStorage.List(recursive, cancellationToken);
+        }
     }
 }

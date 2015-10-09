@@ -3,8 +3,10 @@
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -76,6 +78,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return false;
         }
 
+        public override async Task<IEnumerable<Uri>> List(bool recursive, CancellationToken cancellationToken)
+        {
+            var files = await _directory.ListBlobsAsync(useFlatBlobListing: recursive, cancellationToken: cancellationToken);
+
+            return files.Select(file => file.Uri).AsEnumerable();
+        }
+
         //  save
 
         protected override async Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
@@ -96,7 +105,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected override async Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
-            string name = GetName(resourceUri);
+            string name = GetName(resourceUri).TrimStart('/');
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
 

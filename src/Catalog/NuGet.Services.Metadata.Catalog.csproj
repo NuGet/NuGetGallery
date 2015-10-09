@@ -110,6 +110,7 @@
     <Compile Include="BatchCollector.cs" />
     <Compile Include="CatalogIndexEntry.cs" />
     <Compile Include="CatalogIndexReader.cs" />
+    <Compile Include="CloudBlobStorageExtensions.cs" />
     <Compile Include="CommitCollector.cs" />
     <Compile Include="DeleteCatalogItem.cs" />
     <Compile Include="Helpers\GraphHelpers.cs" />

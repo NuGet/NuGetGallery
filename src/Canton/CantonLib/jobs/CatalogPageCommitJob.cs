@@ -329,7 +329,7 @@ namespace NuGet.Canton
                 Stopwatch timer = new Stopwatch();
                 timer.Start();
 
-                IGraph commitData = PackageCatalog.CreateCommitMetadata(writer.RootUri, latestPublished, latestPublished);
+                IGraph commitData = PackageCatalog.CreateCommitMetadata(writer.RootUri, latestPublished, latestPublished, latestPublished);
 
                 // commit
                 await writer.Commit(DateTime.UtcNow, commitData, CancellationToken.None);

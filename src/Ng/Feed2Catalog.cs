@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Newtonsoft.Json;
 using VDS.RDF;
 
 namespace Ng
@@ -86,14 +87,104 @@ namespace Ng
             return GetPackages(client, MakeLastEditedUri(source, since, top), "LastEdited");
         }
 
-        public static Task<SortedList<DateTime, IList<Tuple<string, string>>>> GetDeletedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        public static async Task<SortedList<DateTime, IList<Tuple<string, string>>>> GetDeletedPackages(Storage auditingStorage, HttpClient client, string source, DateTime since, int top = 100)
         {
-            // TODO: implement this
             SortedList<DateTime, IList<Tuple<string, string>>> result = new SortedList<DateTime, IList<Tuple<string, string>>>();
 
-            result.Add(DateTime.UtcNow, new List<Tuple<string, string>> { new Tuple<string, string>("DotNetZip", "1.9.1.8") });
+            // Get all audit blobs (based on their filename which startswith a date that can be parsed)
+            var auditRecordUris = (await auditingStorage.List(true, CancellationToken.None))
+                .Where(recordUri => FilterDeletedPackage(since, recordUri));
+            
+            foreach (var auditRecordUri in auditRecordUris)
+            {
+                var contents = await auditingStorage.LoadString(auditRecordUri, CancellationToken.None);
+                if (!string.IsNullOrEmpty(contents))
+                {
+                    string packageId;
+                    string packageVersion;
+                    DateTime? deletedOn;
+                    try
+                    {
+                        var auditRecord = JObject.Parse(contents);
 
-            return Task.FromResult(result);
+                        var recordPart = (JObject)auditRecord.GetValue("Record", StringComparison.OrdinalIgnoreCase);
+                        packageId = recordPart.GetValue("Id", StringComparison.OrdinalIgnoreCase).ToString();
+                        packageVersion = recordPart.GetValue("Version", StringComparison.OrdinalIgnoreCase).ToString();
+
+                        var actorPart = (JObject)auditRecord.GetValue("Actor", StringComparison.OrdinalIgnoreCase);
+                        deletedOn = actorPart.GetValue("TimestampUtc", StringComparison.OrdinalIgnoreCase).Value<DateTime>();
+                    }
+                    catch (JsonReaderException)
+                    {
+                        Trace.TraceWarning(string.Format("Audit record at {0} contains invalid JSON.", auditRecordUri));
+                        continue;
+                    }
+                    catch (NullReferenceException)
+                    {
+                        Trace.TraceWarning(string.Format("Audit record at {0} does not contain required JSON properties to perform a package delete.", auditRecordUri));
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(packageId) && !string.IsNullOrEmpty(packageVersion)  
+                        && deletedOn.HasValue && deletedOn >= since)
+                    {
+                        // Check if the package exists in the feed. This prevents out-of-order processing
+                        // from deleting the package if it's already uploaded again.
+                        if (!(await PackageExists(client, source, packageId, packageVersion)))
+                        {
+                            // Mark the package "deleted"
+                            IList<Tuple<string, string>> packages;
+                            if (!result.TryGetValue(deletedOn.Value, out packages))
+                            {
+                                packages = new List<Tuple<string, string>>();
+                                result.Add(deletedOn.Value, packages);
+                            }
+
+                            packages.Add(new Tuple<string, string>(packageId, packageVersion));
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static bool FilterDeletedPackage(DateTime since, Uri recordUri)
+        {
+            string fileName = GetFileName(recordUri);
+
+            if (fileName.EndsWith("-Deleted.audit.v1.json") || fileName.EndsWith("-deleted.audit.v1.json") || fileName.EndsWith("-softdeleted.audit.v1.json"))
+            {
+                var deletedDateTimeString = fileName
+                    .Replace("-Deleted.audit.v1.json", string.Empty)
+                    .Replace("-deleted.audit.v1.json", string.Empty)
+                    .Replace("-softdeleted.audit.v1.json", string.Empty)
+                    .Replace("_", ":");
+
+                DateTime recordTime;
+                if (DateTime.TryParse(deletedDateTimeString, out recordTime))
+                {
+                    return recordTime >= since;
+                }
+                else
+                {
+                    Trace.TraceWarning(string.Format("Could not parse date from filename in FilterDeletedPackage. Uri: {0}", recordUri));
+                }
+            }
+
+            return false;
+        }
+
+        private static string GetFileName(Uri uri)
+        {
+            string[] parts = uri.PathAndQuery.Split('/');
+
+            if (parts.Length > 0)
+            {
+                return parts[parts.Length - 1];
+            }
+
+            return null;
         }
 
         private static DateTime ForceUTC(DateTime date)
@@ -175,6 +266,19 @@ namespace Ng
             }
 
             return result;
+        }
+
+        public static async Task<bool> PackageExists(HttpClient client, string source, string id, string version)
+        {
+            XElement feed;
+            using (Stream stream = await client.GetStreamAsync(MakePackageUri(source, id, version)))
+            {
+                feed = XElement.Load(stream);
+            }
+
+            XNamespace atom = "http://www.w3.org/2005/Atom";
+
+            return feed.Elements(atom + "entry").Any();
         }
 
         static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
@@ -311,9 +415,10 @@ namespace Ng
             return null;
         }
 
-        static async Task Loop(string gallery, StorageFactory storageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
+        static async Task Loop(string gallery, StorageFactory catalogStorageFactory, StorageFactory auditingStorageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
         {
-            Storage storage = storageFactory.Create();
+            Storage catalogStorage = catalogStorageFactory.Create();
+            Storage auditingStorage = auditingStorageFactory.Create();
 
             const string LastCreated = "nuget:lastCreated";
             const string LastEdited = "nuget:lastEdited";
@@ -333,9 +438,13 @@ namespace Ng
                     client.Timeout = TimeSpan.FromSeconds(timeout);
 
                     //  fetch and add all newly CREATED packages - in order
-                    DateTime lastCreated = await GetCatalogProperty(storage, LastCreated, cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
-                    DateTime lastEdited = await GetCatalogProperty(storage, LastEdited, cancellationToken) ?? lastCreated;
-                    DateTime lastDeleted = await GetCatalogProperty(storage, LastDeleted, cancellationToken) ?? lastCreated;
+                    DateTime lastCreated = await GetCatalogProperty(catalogStorage, LastCreated, cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
+                    DateTime lastEdited = await GetCatalogProperty(catalogStorage, LastEdited, cancellationToken) ?? lastCreated;
+                    DateTime lastDeleted = await GetCatalogProperty(catalogStorage, LastDeleted, cancellationToken) ?? lastCreated;
+                    if (lastDeleted == DateTime.MinValue.ToUniversalTime())
+                    {
+                        lastDeleted = lastCreated;
+                    }
 
                     SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> createdPackages;
                     DateTime previousLastCreated = DateTime.MinValue;
@@ -346,7 +455,7 @@ namespace Ng
                         createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
                         Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
 
-                        lastCreated = await DownloadMetadata2Catalog(client, createdPackages, storage, lastCreated, lastEdited, lastDeleted, true, cancellationToken);
+                        lastCreated = await DownloadMetadata2Catalog(client, createdPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, true, cancellationToken);
                         if (previousLastCreated == lastCreated)
                         {
                             break;
@@ -366,7 +475,7 @@ namespace Ng
 
                         Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
 
-                        lastEdited = await DownloadMetadata2Catalog(client, editedPackages, storage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
+                        lastEdited = await DownloadMetadata2Catalog(client, editedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
                         if (previousLastEdited == lastEdited)
                         {
                             break;
@@ -375,25 +484,28 @@ namespace Ng
                     }
                     while (editedPackages.Count > 0);
 
-                    // THEN fetch and add all DELETED packages
-                    SortedList<DateTime, IList<Tuple<string, string>>> deletedPackages;
-                    DateTime previousLastDeleted = DateTime.MinValue;
-                    do
+                    // THEN fetch and add all DELETED packages - the GetDeletedPackages verifies if the delete is to be processed
+                    if (lastDeleted > DateTime.MinValue.ToUniversalTime())
                     {
-                        Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
-
-                        deletedPackages = await GetDeletedPackages(client, gallery, lastEdited, top);
-
-                        Trace.TraceInformation("FEED DeletedPackages: {0}", deletedPackages.Count);
-
-                        lastDeleted = await Deletes2Catalog(deletedPackages, storage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
-                        if (previousLastDeleted == lastEdited)
+                        SortedList<DateTime, IList<Tuple<string, string>>> deletedPackages;
+                        DateTime previousLastDeleted = DateTime.MinValue;
+                        do
                         {
-                            break;
+                            Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
+
+                            deletedPackages = await GetDeletedPackages(auditingStorage, client, gallery, lastDeleted, top);
+
+                            Trace.TraceInformation("FEED DeletedPackages: {0}", deletedPackages.Count);
+
+                            lastDeleted = await Deletes2Catalog(deletedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
+                            if (previousLastDeleted == lastDeleted)
+                            {
+                                break;
+                            }
+                            previousLastDeleted = lastDeleted;
                         }
-                        previousLastDeleted = lastDeleted;
+                        while (deletedPackages.Count > 0);
                     }
-                    while (deletedPackages.Count > 0);
                 }
 
                 Thread.Sleep(interval * 1000);
@@ -402,7 +514,7 @@ namespace Ng
 
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng feed2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] [-interval <seconds>] [-startDate <DateTime>]");
+            Console.WriteLine("Usage: ng feed2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] -storageTypeAuditing file|azure [-storagePathAuditing <path>]|[-storageAccountNameAuditing <azure-acc> -storageKeyValueAuditing <azure-key> -storageContainerAuditing <azure-container> -storagePathAuditing <path>]  [-verbose true|false] [-interval <seconds>] [-startDate <DateTime>]");
         }
 
         public static void Run(string[] args, CancellationToken cancellationToken)
@@ -427,8 +539,9 @@ namespace Ng
 
             DateTime startDate = CommandHelpers.GetStartDate(arguments);
 
-            StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-            if (storageFactory == null)
+            StorageFactory catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
+            StorageFactory auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
+            if (catalogStorageFactory == null || auditingStorageFactory == null)
             {
                 PrintUsage();
                 return;
@@ -440,13 +553,13 @@ namespace Ng
                 Trace.AutoFlush = true;
             }
 
-            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2}", gallery, storageFactory, interval);
+            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2}", gallery, catalogStorageFactory, interval);
             DateTime? nullableStartDate = null;
             if (startDate != DateTime.MinValue)
             {
                 nullableStartDate = startDate;
             }
-            Loop(gallery, storageFactory, verbose, interval, nullableStartDate, cancellationToken).Wait();
+            Loop(gallery, catalogStorageFactory, auditingStorageFactory, verbose, interval, nullableStartDate, cancellationToken).Wait();
         }
 
         static void PackagePrintUsage()
