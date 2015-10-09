@@ -53,6 +53,7 @@ namespace NuGetGallery
                 var packageRegistrations = packages.GroupBy(p => p.PackageRegistration).Select(g => g.First().PackageRegistration).ToList();
 
                 // Backup the package binaries and remove from main storage
+                // We're doing this early in the process as we need the metadata to still exist in the DB.
                 await BackupPackageBinaries(packages);
 
                 // Store the soft delete in the database
@@ -96,8 +97,9 @@ namespace NuGetGallery
             {
                 // Keep package registrations
                 var packageRegistrations = packages.GroupBy(p => p.PackageRegistration).Select(g => g.First().PackageRegistration).ToList();
-                
+
                 // Backup the package binaries and remove from main storage
+                // We're doing this early in the process as we need the metadata to still exist in the DB.
                 await BackupPackageBinaries(packages);
 
                 // Remove the package and related entities from the database
