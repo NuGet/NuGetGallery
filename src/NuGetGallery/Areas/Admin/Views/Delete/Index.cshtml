@@ -14,7 +14,7 @@
             <input type="button" value="Search" data-bind="click: search"/>
         </form>
 
-        @using (Html.BeginForm("Delete", "Packages", new { area = "", id = "Dummy", version = "1.0.0" }, FormMethod.Post, new {id = "delete-form"}))
+        @using (Html.BeginForm("Delete", "Packages", new { area = "", id = Guid.NewGuid().ToString(), version = "99.99.99" }, FormMethod.Post, new {id = "delete-form"}))
         {
             <table id="searchResults" class="sexy-table" style="display: none;" data-bind="visible: searchResults().length > 0">
                 <thead>

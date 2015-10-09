@@ -52,6 +52,9 @@ namespace NuGetGallery
                 // Keep package registrations
                 var packageRegistrations = packages.GroupBy(p => p.PackageRegistration).Select(g => g.First().PackageRegistration).ToList();
 
+                // Backup the package binaries and remove from main storage
+                await BackupPackageBinaries(packages);
+
                 // Store the soft delete in the database
                 var packageDelete = new PackageDelete
                 {
@@ -78,9 +81,6 @@ namespace NuGetGallery
                 _packageRepository.CommitChanges();
                 _packageDeletesRepository.CommitChanges();
                 transaction.Commit();
-
-                // Backup the package binaries and remove from main storage
-                await BackupPackageBinaries(packages);
             }
             EntitiesConfiguration.SuspendExecutionStrategy = false;
 
