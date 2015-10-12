@@ -78,9 +78,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return false;
         }
 
-        public override async Task<IEnumerable<Uri>> List(bool recursive, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<Uri>> List(CancellationToken cancellationToken)
         {
-            var files = await _directory.ListBlobsAsync(useFlatBlobListing: recursive, cancellationToken: cancellationToken);
+            var files = await _directory.ListBlobsAsync(cancellationToken);
 
             return files.Select(file => file.Uri).AsEnumerable();
         }
@@ -105,6 +105,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected override async Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
+            // the Azure SDK will treat a starting / as an absolute URL,
+            // while we may be working in a subdirectory of a storage container
+            // trim the starting slash to treat it as a relative path
             string name = GetName(resourceUri).TrimStart('/');
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);

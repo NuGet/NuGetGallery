@@ -34,10 +34,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return System.IO.File.Exists(fileName);
         }
 
-        public override Task<IEnumerable<Uri>> List(bool recursive, CancellationToken cancellationToken)
+        public override Task<IEnumerable<Uri>> List(CancellationToken cancellationToken)
         {
             DirectoryInfo directoryInfo = new DirectoryInfo(Path);
-            var files = directoryInfo.GetFiles("*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+            var files = directoryInfo.GetFiles("*", SearchOption.AllDirectories)
                 .Select(file => GetUri(file.FullName.Replace(Path, string.Empty)));
 
             return Task.FromResult(files.AsEnumerable());

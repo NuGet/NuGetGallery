@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Globalization;
 using System.IO;
@@ -14,31 +14,38 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public static class PackageCatalog
     {
-        public static IGraph CreateCommitMetadata(Uri indexUri, DateTime? lastCreated, DateTime? lastEdited, DateTime? lastDeleted)
+        public static IGraph CreateCommitMetadata(Uri indexUri, CommitMetadata commitMetadata)
         {
             IGraph graph = new Graph();
 
-            if (lastCreated != null)
+            if (commitMetadata.LastCreated != null)
             {
-                graph.Assert(graph.CreateUriNode(indexUri), graph.CreateUriNode(Schema.Predicates.LastCreated), graph.CreateLiteralNode(lastCreated.Value.ToString("O"), Schema.DataTypes.DateTime));
+                graph.Assert(
+                    graph.CreateUriNode(indexUri), 
+                    graph.CreateUriNode(Schema.Predicates.LastCreated), 
+                    graph.CreateLiteralNode(commitMetadata.LastCreated.Value.ToString("O"), Schema.DataTypes.DateTime));
             }
-            if (lastEdited != null)
+            if (commitMetadata.LastEdited != null)
             {
-                graph.Assert(graph.CreateUriNode(indexUri), graph.CreateUriNode(Schema.Predicates.LastEdited), graph.CreateLiteralNode(lastEdited.Value.ToString("O"), Schema.DataTypes.DateTime));
+                graph.Assert(
+                    graph.CreateUriNode(indexUri),
+                    graph.CreateUriNode(Schema.Predicates.LastEdited),
+                    graph.CreateLiteralNode(commitMetadata.LastEdited.Value.ToString("O"), Schema.DataTypes.DateTime));
             }
-            if (lastDeleted != null)
+            if (commitMetadata.LastDeleted != null)
             {
-                graph.Assert(graph.CreateUriNode(indexUri), graph.CreateUriNode(Schema.Predicates.LastDeleted), graph.CreateLiteralNode(lastDeleted.Value.ToString("O"), Schema.DataTypes.DateTime));
+                graph.Assert(
+                    graph.CreateUriNode(indexUri), 
+                    graph.CreateUriNode(Schema.Predicates.LastDeleted), 
+                    graph.CreateLiteralNode(commitMetadata.LastDeleted.Value.ToString("O"), Schema.DataTypes.DateTime));
             }
 
             return graph;
         }
 
-        public static async Task<Tuple<DateTime?, DateTime?, DateTime?>> ReadCommitMetadata(CatalogWriterBase writer, CancellationToken cancellationToken)
+        public static async Task<CommitMetadata> ReadCommitMetadata(CatalogWriterBase writer, CancellationToken cancellationToken)
         {
-            DateTime? lastCreated = null;
-            DateTime? lastEdited = null;
-            DateTime? lastDeleted = null;
+            CommitMetadata commitMetadata = new CommitMetadata();
 
             string json = await writer.Storage.LoadString(writer.RootUri, cancellationToken);
 
@@ -52,26 +59,22 @@ namespace NuGet.Services.Metadata.Catalog
                     obj = JObject.Load(jsonReader);
                 }
 
-                JToken t1;
-                if (obj.TryGetValue("nuget:lastCreated", out t1))
-                {
-                    lastCreated = DateTime.Parse(t1.ToString(), null, DateTimeStyles.RoundtripKind);
-                }
-
-                JToken t2;
-                if (obj.TryGetValue("nuget:lastEdited", out t2))
-                {
-                    lastEdited = DateTime.Parse(t2.ToString(), null, DateTimeStyles.RoundtripKind);
-                }
-
-                JToken t3;
-                if (obj.TryGetValue("nuget:lastDeleted", out t3))
-                {
-                    lastDeleted = DateTime.Parse(t3.ToString(), null, DateTimeStyles.RoundtripKind);
-                }
+                commitMetadata.LastCreated = TryGetDateTimeFromJObject(obj, "nuget:lastCreated");
+                commitMetadata.LastEdited = TryGetDateTimeFromJObject(obj, "nuget:lastEdited");
+                commitMetadata.LastDeleted = TryGetDateTimeFromJObject(obj, "nuget:lastDeleted");
             }
 
-            return Tuple.Create(lastCreated, lastEdited, lastDeleted);
+            return commitMetadata;
+        }
+
+        private static DateTime? TryGetDateTimeFromJObject(JObject target, string propertyName)
+        {
+            JToken token;
+            if (target.TryGetValue(propertyName, out token))
+            {
+                return DateTime.Parse(token.ToString(), null, DateTimeStyles.RoundtripKind);
+            }
+            return null;
         }
     }
 }

@@ -1,19 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json;
-using VDS.RDF;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Ng
 {
@@ -29,8 +28,21 @@ namespace Ng
         private const string LicenseReportUrlProperty = "LicenseReportUrl";
         #endregion
 
-        public class FeedDetails
+        public class PackageIdentity
         {
+            public PackageIdentity(string id, string version)
+            {
+                Id = id;
+                Version = version;
+            }
+
+            public string Id { get; set; }
+            public string Version { get; set; }
+        }
+
+        public class PackageDetails
+        {
+            public Uri ContentUri { get; set; }
             public DateTime CreatedDate { get; set; }
             public DateTime LastEditedDate { get; set; }
             public DateTime PublishedDate { get; set; }
@@ -38,9 +50,9 @@ namespace Ng
             public string LicenseReportUrl { get; set; }
         }
 
-        static Uri MakePackageUri(string source, string id, string version)
+        private static Uri MakePackageUri(string source, string id, string version)
         {
-            string address = string.Format("{0}/Packages?$filter=Id%20eq%20'{1}'%20and%20Version%20eq%20'{2}'&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
+            var address = string.Format("{0}/Packages?$filter=Id%20eq%20'{1}'%20and%20Version%20eq%20'{2}'&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
                 source.Trim('/'),
                 id,
                 version);
@@ -48,18 +60,18 @@ namespace Ng
             return new Uri(address);
         }
 
-        static Uri MakePackageUri(string source, string id)
+        private static Uri MakePackageUri(string source, string id)
         {
-            string address = string.Format("{0}/Packages?$filter=Id%20eq%20'{1}'&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
+            var address = string.Format("{0}/Packages?$filter=Id%20eq%20'{1}'&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
                 source.Trim('/'),
                 id);
 
             return new Uri(address);
         }
 
-        static Uri MakeCreatedUri(string source, DateTime since, int top = 100)
+        private static Uri MakeCreatedUri(string source, DateTime since, int top = 100)
         {
-            string address = string.Format("{0}/Packages?$filter=Created gt DateTime'{1}'&$top={2}&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
+            var address = string.Format("{0}/Packages?$filter=Created gt DateTime'{1}'&$top={2}&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
                 source.Trim('/'),
                 since.ToString("o"),
                 top);
@@ -67,9 +79,9 @@ namespace Ng
             return new Uri(address);
         }
 
-        static Uri MakeLastEditedUri(string source, DateTime since, int top = 100)
+        private static Uri MakeLastEditedUri(string source, DateTime since, int top = 100)
         {
-            string address = string.Format("{0}/Packages?$filter=LastEdited gt DateTime'{1}'&$top={2}&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
+            var address = string.Format("{0}/Packages?$filter=LastEdited gt DateTime'{1}'&$top={2}&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
                 source.Trim('/'),
                 since.ToString("o"),
                 top);
@@ -77,23 +89,25 @@ namespace Ng
             return new Uri(address);
         }
 
-        public static Task<SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        public static Task<SortedList<DateTime, IList<PackageDetails>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top = 100)
         {
             return GetPackages(client, MakeCreatedUri(source, since, top), "Created");
         }
 
-        public static Task<SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        public static Task<SortedList<DateTime, IList<PackageDetails>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top = 100)
         {
             return GetPackages(client, MakeLastEditedUri(source, since, top), "LastEdited");
         }
 
-        public static async Task<SortedList<DateTime, IList<Tuple<string, string>>>> GetDeletedPackages(Storage auditingStorage, HttpClient client, string source, DateTime since, int top = 100)
+        public static async Task<SortedList<DateTime, IList<PackageIdentity>>> GetDeletedPackages(Storage auditingStorage, HttpClient client, string source, DateTime since, int top = 100)
         {
-            SortedList<DateTime, IList<Tuple<string, string>>> result = new SortedList<DateTime, IList<Tuple<string, string>>>();
+            var result = new SortedList<DateTime, IList<PackageIdentity>>();
 
-            // Get all audit blobs (based on their filename which startswith a date that can be parsed)
-            var auditRecordUris = (await auditingStorage.List(true, CancellationToken.None))
-                .Where(recordUri => FilterDeletedPackage(since, recordUri));
+            // Get all audit blobs (based on their filename which starts with a date that can be parsed)
+            // NOTE we're getting more files than needed (to account for a time difference between servers)
+            var minimumFileTime = since.AddMinutes(-15);
+            var auditRecordUris = (await auditingStorage.List(CancellationToken.None))
+                .Where(recordUri => FilterDeletedPackage(minimumFileTime, recordUri));
             
             foreach (var auditRecordUri in auditRecordUris)
             {
@@ -116,31 +130,30 @@ namespace Ng
                     }
                     catch (JsonReaderException)
                     {
-                        Trace.TraceWarning(string.Format("Audit record at {0} contains invalid JSON.", auditRecordUri));
+                        Trace.TraceWarning("Audit record at {0} contains invalid JSON.", auditRecordUri);
                         continue;
                     }
                     catch (NullReferenceException)
                     {
-                        Trace.TraceWarning(string.Format("Audit record at {0} does not contain required JSON properties to perform a package delete.", auditRecordUri));
+                        Trace.TraceWarning("Audit record at {0} does not contain required JSON properties to perform a package delete.", auditRecordUri);
                         continue;
                     }
 
-                    if (!string.IsNullOrEmpty(packageId) && !string.IsNullOrEmpty(packageVersion)  
-                        && deletedOn.HasValue && deletedOn >= since)
+                    if (!string.IsNullOrEmpty(packageId) && !string.IsNullOrEmpty(packageVersion) && deletedOn >= since)
                     {
                         // Check if the package exists in the feed. This prevents out-of-order processing
                         // from deleting the package if it's already uploaded again.
                         if (!(await PackageExists(client, source, packageId, packageVersion)))
                         {
                             // Mark the package "deleted"
-                            IList<Tuple<string, string>> packages;
+                            IList<PackageIdentity> packages;
                             if (!result.TryGetValue(deletedOn.Value, out packages))
                             {
-                                packages = new List<Tuple<string, string>>();
+                                packages = new List<PackageIdentity>();
                                 result.Add(deletedOn.Value, packages);
                             }
 
-                            packages.Add(new Tuple<string, string>(packageId, packageVersion));
+                            packages.Add(new PackageIdentity(packageId, packageVersion));
                         }
                     }
                 }
@@ -149,10 +162,11 @@ namespace Ng
             return result;
         }
 
-        private static bool FilterDeletedPackage(DateTime since, Uri recordUri)
+        private static bool FilterDeletedPackage(DateTime minimumFileTime, Uri recordUri)
         {
-            string fileName = GetFileName(recordUri);
+            var fileName = GetFileName(recordUri);
 
+            // over time, we have had three "deleted" file names. Try working with them all.
             if (fileName.EndsWith("-Deleted.audit.v1.json") || fileName.EndsWith("-deleted.audit.v1.json") || fileName.EndsWith("-softdeleted.audit.v1.json"))
             {
                 var deletedDateTimeString = fileName
@@ -164,11 +178,11 @@ namespace Ng
                 DateTime recordTime;
                 if (DateTime.TryParse(deletedDateTimeString, out recordTime))
                 {
-                    return recordTime >= since;
+                    return recordTime >= minimumFileTime;
                 }
                 else
                 {
-                    Trace.TraceWarning(string.Format("Could not parse date from filename in FilterDeletedPackage. Uri: {0}", recordUri));
+                    Trace.TraceWarning("Could not parse date from filename in FilterDeletedPackage. Uri: {0}", recordUri);
                 }
             }
 
@@ -177,7 +191,7 @@ namespace Ng
 
         private static string GetFileName(Uri uri)
         {
-            string[] parts = uri.PathAndQuery.Split('/');
+            var parts = uri.PathAndQuery.Split('/');
 
             if (parts.Length > 0)
             {
@@ -187,7 +201,7 @@ namespace Ng
             return null;
         }
 
-        private static DateTime ForceUTC(DateTime date)
+        private static DateTime ForceUtc(DateTime date)
         {
             if (date.Kind == DateTimeKind.Unspecified)
             {
@@ -196,12 +210,12 @@ namespace Ng
             return date;
         }
 
-        public static async Task<SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>>> GetPackages(HttpClient client, Uri uri, string keyDateProperty)
+        public static async Task<SortedList<DateTime, IList<PackageDetails>>> GetPackages(HttpClient client, Uri uri, string keyDateProperty)
         {
-            SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> result = new SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>>();
+            var result = new SortedList<DateTime, IList<PackageDetails>>();
 
             XElement feed;
-            using (Stream stream = await client.GetStreamAsync(uri))
+            using (var stream = await client.GetStreamAsync(uri))
             {
                 feed = XElement.Load(stream);
             }
@@ -210,59 +224,55 @@ namespace Ng
             XNamespace dataservices = "http://schemas.microsoft.com/ado/2007/08/dataservices";
             XNamespace metadata = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
 
-            foreach (XElement entry in feed.Elements(atom + "entry"))
+            foreach (var entry in feed.Elements(atom + "entry"))
             {
-                Uri content = new Uri(entry.Element(atom + "content").Attribute("src").Value);
+                var content = new Uri(entry.Element(atom + "content").Attribute("src").Value);
 
-                XElement propertiesElement = entry.Element(metadata + "properties");
+                var propertiesElement = entry.Element(metadata + "properties");
 
-                XElement createdElement = propertiesElement.Element(dataservices + CreatedDateProperty);
-                string createdValue = createdElement != null ? createdElement.Value : null;
-                DateTime createdDate = String.IsNullOrEmpty(createdValue) ? DateTime.MinValue : DateTime.Parse(createdValue);
+                var createdElement = propertiesElement.Element(dataservices + CreatedDateProperty);
+                var createdValue = createdElement != null ? createdElement.Value : null;
+                var createdDate = string.IsNullOrEmpty(createdValue) ? DateTime.MinValue : DateTime.Parse(createdValue);
 
-                XElement lastEditedElement = propertiesElement.Element(dataservices + LastEditedDateProperty);
-                string lastEditedValue = propertiesElement.Element(dataservices + LastEditedDateProperty).Value;
-                DateTime lastEditedDate = String.IsNullOrEmpty(lastEditedValue) ? DateTime.MinValue : DateTime.Parse(lastEditedValue);
+                var lastEditedValue = propertiesElement.Element(dataservices + LastEditedDateProperty).Value;
+                var lastEditedDate = string.IsNullOrEmpty(lastEditedValue) ? DateTime.MinValue : DateTime.Parse(lastEditedValue);
 
-                XElement publishedElement = propertiesElement.Element(dataservices + PublishedDateProperty);
-                string publishedValue = propertiesElement.Element(dataservices + PublishedDateProperty).Value;
-                DateTime publishedDate = String.IsNullOrEmpty(publishedValue) ? createdDate : DateTime.Parse(publishedValue);
+                var publishedValue = propertiesElement.Element(dataservices + PublishedDateProperty).Value;
+                var publishedDate = string.IsNullOrEmpty(publishedValue) ? createdDate : DateTime.Parse(publishedValue);
 
-                XElement keyElement = propertiesElement.Element(dataservices + keyDateProperty);
-                string keyEntryValue = propertiesElement.Element(dataservices + keyDateProperty).Value;
-                DateTime keyDate = String.IsNullOrEmpty(keyEntryValue) ? createdDate : DateTime.Parse(keyEntryValue);
+                var keyEntryValue = propertiesElement.Element(dataservices + keyDateProperty).Value;
+                var keyDate = String.IsNullOrEmpty(keyEntryValue) ? createdDate : DateTime.Parse(keyEntryValue);
 
                 // License details
-                XElement licenseNamesElement = propertiesElement.Element(dataservices + LicenseNamesProperty);
-                string licenseNames = licenseNamesElement != null ? licenseNamesElement.Value : null;
+                var licenseNamesElement = propertiesElement.Element(dataservices + LicenseNamesProperty);
+                var licenseNames = licenseNamesElement != null ? licenseNamesElement.Value : null;
 
-                XElement licenseReportUrlElement = propertiesElement.Element(dataservices + LicenseReportUrlProperty);
-                string licenseReportUrl = licenseReportUrlElement != null ? licenseReportUrlElement.Value : null;
+                var licenseReportUrlElement = propertiesElement.Element(dataservices + LicenseReportUrlProperty);
+                var licenseReportUrl = licenseReportUrlElement != null ? licenseReportUrlElement.Value : null;
 
                 // NOTE that DateTime returned by the v2 feed does not have Z at the end even though it is in UTC. So, the DateTime kind is unspecified
                 // So, forcibly convert it to UTC here
-                createdDate = ForceUTC(createdDate);
-                lastEditedDate = ForceUTC(lastEditedDate);
-                publishedDate = ForceUTC(publishedDate);
-                keyDate = ForceUTC(keyDate);
+                createdDate = ForceUtc(createdDate);
+                lastEditedDate = ForceUtc(lastEditedDate);
+                publishedDate = ForceUtc(publishedDate);
+                keyDate = ForceUtc(keyDate);
 
-                IList<Tuple<Uri, FeedDetails>> contentUris;
-                if (!result.TryGetValue(keyDate, out contentUris))
+                IList<PackageDetails> packages;
+                if (!result.TryGetValue(keyDate, out packages))
                 {
-                    contentUris = new List<Tuple<Uri, FeedDetails>>();
-                    result.Add(keyDate, contentUris);
+                    packages = new List<PackageDetails>();
+                    result.Add(keyDate, packages);
                 }
-
-                FeedDetails details = new FeedDetails
+                
+                packages.Add(new PackageDetails
                 {
+                    ContentUri = content,
                     CreatedDate = createdDate,
                     LastEditedDate = lastEditedDate,
                     PublishedDate = publishedDate,
                     LicenseNames = licenseNames,
                     LicenseReportUrl = licenseReportUrl
-                };
-
-                contentUris.Add(new Tuple<Uri, FeedDetails>(content, details));
+                });
             }
 
             return result;
@@ -271,7 +281,7 @@ namespace Ng
         public static async Task<bool> PackageExists(HttpClient client, string source, string id, string version)
         {
             XElement feed;
-            using (Stream stream = await client.GetStreamAsync(MakePackageUri(source, id, version)))
+            using (var stream = await client.GetStreamAsync(MakePackageUri(source, id, version)))
             {
                 feed = XElement.Load(stream);
             }
@@ -281,41 +291,38 @@ namespace Ng
             return feed.Elements(atom + "entry").Any();
         }
 
-        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
+        private static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<PackageDetails>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
         {
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
+            var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 
-            DateTime lastDate = createdPackages.HasValue ? (createdPackages.Value ? lastCreated : lastEdited) : DateTime.MinValue;
+            var lastDate = DetermineLastDate(lastCreated, lastEdited, createdPackages);
 
             if (packages == null || packages.Count == 0)
             {
                 return lastDate;
             }
 
-            foreach (KeyValuePair<DateTime, IList<Tuple<Uri, FeedDetails>>> entry in packages)
+            foreach (var entry in packages)
             {
-                foreach (Tuple<Uri, FeedDetails> packageItem in entry.Value)
+                foreach (var packageItem in entry.Value)
                 {
-                    Uri uri = packageItem.Item1;
-                    FeedDetails details = packageItem.Item2;
-
-                    HttpResponseMessage response = await client.GetAsync(uri,cancellationToken);
+                    var response = await client.GetAsync(packageItem.ContentUri, cancellationToken);
 
                     if (response.IsSuccessStatusCode)
                     {
-                        using (Stream stream = await response.Content.ReadAsStreamAsync())
+                        using (var stream = await response.Content.ReadAsStreamAsync())
                         {
-                            CatalogItem item = Utils.CreateCatalogItem(stream, entry.Key, null, uri.ToString(), details.CreatedDate, details.LastEditedDate, details.PublishedDate, details.LicenseNames, details.LicenseReportUrl);
+                            var item = Utils.CreateCatalogItem(stream, entry.Key, null, packageItem.ContentUri.ToString(), packageItem.CreatedDate, packageItem.LastEditedDate, packageItem.PublishedDate, packageItem.LicenseNames, packageItem.LicenseReportUrl);
 
                             if (item != null)
                             {
                                 writer.Add(item);
 
-                                Trace.TraceInformation("Add: {0}", uri);
+                                Trace.TraceInformation("Add: {0}", packageItem.ContentUri);
                             }
                             else
                             {
-                                Trace.TraceWarning("Unable to extract metadata from: {0}", uri);
+                                Trace.TraceWarning("Unable to extract metadata from: {0}", packageItem.ContentUri);
                             }
                         }
                     }
@@ -324,13 +331,13 @@ namespace Ng
                         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                         {
                             //  the feed is out of sync with the actual package storage - if we don't have the package there is nothing to be done we might as well move onto the next package
-                            Trace.TraceWarning(string.Format("Unable to download: {0} http status: {1}", uri, response.StatusCode));
+                            Trace.TraceWarning("Unable to download: {0} http status: {1}", packageItem.ContentUri, response.StatusCode);
                         }
                         else
                         {
-                            //  this should trigger a restart - of this program - and not more the cursor forward
-                            Trace.TraceError(string.Format("Unable to download: {0} http status: {1}", uri, response.StatusCode));
-                            throw new Exception(string.Format("Unable to download: {0} http status: {1}", uri, response.StatusCode));
+                            //  this should trigger a restart - of this program - and not move the cursor forward
+                            Trace.TraceError(string.Format("Unable to download: {0} http status: {1}", packageItem.ContentUri, response.StatusCode));
+                            throw new Exception(string.Format("Unable to download: {0} http status: {1}", packageItem.ContentUri, response.StatusCode));
                         }
                     }
                 }
@@ -345,7 +352,7 @@ namespace Ng
                 lastDeleted = !createdPackages.Value ? lastDate : lastDeleted;
             }
 
-            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, lastEdited, lastDeleted);
+            var commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(lastCreated, lastEdited, lastDeleted));
             
             await writer.Commit(commitMetadata, cancellationToken);
 
@@ -354,28 +361,25 @@ namespace Ng
             return lastDate;
         }
 
-        static async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<Tuple<string, string>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
+        private static async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<PackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
         {
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
+            var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 
-            DateTime lastDate = createdPackages.HasValue ? (createdPackages.Value ? lastCreated : lastEdited) : DateTime.MinValue;
+            var lastDate = DetermineLastDate(lastCreated, lastEdited, createdPackages);
 
             if (packages == null || packages.Count == 0)
             {
                 return lastDate;
             }
 
-            foreach (KeyValuePair<DateTime, IList<Tuple<string, string>>> entry in packages)
+            foreach (var entry in packages)
             {
-                foreach (Tuple<string, string> packageItem in entry.Value)
+                foreach (var packageIdentity in entry.Value)
                 {
-                    string id = packageItem.Item1;
-                    string version = packageItem.Item2;
-
-                    var catalogItem = new DeleteCatalogItem(id, version, entry.Key);
+                    var catalogItem = new DeleteCatalogItem(packageIdentity.Id, packageIdentity.Version, entry.Key);
                     writer.Add(catalogItem);
 
-                    Trace.TraceInformation("Delete: {0} {1}", id, version);
+                    Trace.TraceInformation("Delete: {0} {1}", packageIdentity.Id, packageIdentity.Version);
                 }
 
                 lastDate = entry.Key;
@@ -388,7 +392,7 @@ namespace Ng
                 lastDeleted = !createdPackages.Value ? lastDate : lastDeleted;
             }
 
-            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, lastEdited, lastDeleted);
+            var commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(lastCreated, lastEdited, lastDeleted));
 
             await writer.Commit(commitMetadata, cancellationToken);
 
@@ -397,13 +401,30 @@ namespace Ng
             return lastDate;
         }
 
-        static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName, CancellationToken cancellationToken)
+        private static DateTime DetermineLastDate(DateTime lastCreated, DateTime lastEdited, bool? createdPackages)
         {
-            string json = await storage.LoadString(storage.ResolveUri("index.json"), cancellationToken);
+            if (createdPackages.HasValue)
+            {
+                if (createdPackages.Value)
+                {
+                    return lastCreated;
+                }
+                else
+                {
+                    return lastEdited;
+                }
+            }
+
+            return DateTime.MinValue;
+        }
+
+        private static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName, CancellationToken cancellationToken)
+        {
+            var json = await storage.LoadString(storage.ResolveUri("index.json"), cancellationToken);
 
             if (json != null)
             {
-                JObject obj = JObject.Parse(json);
+                var obj = JObject.Parse(json);
 
                 JToken token;
                 if (obj.TryGetValue(propertyName, out token))
@@ -415,39 +436,35 @@ namespace Ng
             return null;
         }
 
-        static async Task Loop(string gallery, StorageFactory catalogStorageFactory, StorageFactory auditingStorageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
+        private static async Task Loop(string gallery, StorageFactory catalogStorageFactory, StorageFactory auditingStorageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
         {
-            Storage catalogStorage = catalogStorageFactory.Create();
-            Storage auditingStorage = auditingStorageFactory.Create();
+            var catalogStorage = catalogStorageFactory.Create();
+            var auditingStorage = auditingStorageFactory.Create();
 
-            const string LastCreated = "nuget:lastCreated";
-            const string LastEdited = "nuget:lastEdited";
-            const string LastDeleted = "nuget:lastDeleted";
-
-            int top = 20;
-            int timeout = 300;
+            var top = 20;
+            var timeout = TimeSpan.FromSeconds(300);
 
             while (true)
             {
-                Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
+                var handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
 
-                HttpMessageHandler handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
+                var handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
 
-                using (HttpClient client = new HttpClient(handler))
+                using (var client = new HttpClient(handler))
                 {
-                    client.Timeout = TimeSpan.FromSeconds(timeout);
+                    client.Timeout = timeout;
 
                     //  fetch and add all newly CREATED packages - in order
-                    DateTime lastCreated = await GetCatalogProperty(catalogStorage, LastCreated, cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
-                    DateTime lastEdited = await GetCatalogProperty(catalogStorage, LastEdited, cancellationToken) ?? lastCreated;
-                    DateTime lastDeleted = await GetCatalogProperty(catalogStorage, LastDeleted, cancellationToken) ?? lastCreated;
+                    var lastCreated = await GetCatalogProperty(catalogStorage, "nuget:lastCreated", cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
+                    var lastEdited = await GetCatalogProperty(catalogStorage, "nuget:lastEdited", cancellationToken) ?? lastCreated;
+                    var lastDeleted = await GetCatalogProperty(catalogStorage, "nuget:lastDeleted", cancellationToken) ?? lastCreated;
                     if (lastDeleted == DateTime.MinValue.ToUniversalTime())
                     {
                         lastDeleted = lastCreated;
                     }
 
-                    SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> createdPackages;
-                    DateTime previousLastCreated = DateTime.MinValue;
+                    SortedList<DateTime, IList<PackageDetails>> createdPackages;
+                    var previousLastCreated = DateTime.MinValue;
                     do
                     {
                         Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
@@ -465,8 +482,8 @@ namespace Ng
                     while (createdPackages.Count > 0);
 
                     //  THEN fetch and add all EDITED packages - in order
-                    SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> editedPackages;
-                    DateTime previousLastEdited = DateTime.MinValue;
+                    SortedList<DateTime, IList<PackageDetails>> editedPackages;
+                    var previousLastEdited = DateTime.MinValue;
                     do
                     {
                         Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));
@@ -487,8 +504,8 @@ namespace Ng
                     // THEN fetch and add all DELETED packages - the GetDeletedPackages verifies if the delete is to be processed
                     if (lastDeleted > DateTime.MinValue.ToUniversalTime())
                     {
-                        SortedList<DateTime, IList<Tuple<string, string>>> deletedPackages;
-                        DateTime previousLastDeleted = DateTime.MinValue;
+                        SortedList<DateTime, IList<PackageIdentity>> deletedPackages;
+                        var previousLastDeleted = DateTime.MinValue;
                         do
                         {
                             Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
@@ -512,35 +529,35 @@ namespace Ng
             }
         }
 
-        static void PrintUsage()
+        private static void PrintUsage()
         {
             Console.WriteLine("Usage: ng feed2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] -storageTypeAuditing file|azure [-storagePathAuditing <path>]|[-storageAccountNameAuditing <azure-acc> -storageKeyValueAuditing <azure-key> -storageContainerAuditing <azure-container> -storagePathAuditing <path>]  [-verbose true|false] [-interval <seconds>] [-startDate <DateTime>]");
         }
 
         public static void Run(string[] args, CancellationToken cancellationToken)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
+            var arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)
             {
                 PrintUsage();
                 return;
             }
 
-            string gallery = CommandHelpers.GetGallery(arguments);
+            var gallery = CommandHelpers.GetGallery(arguments);
             if (gallery == null)
             {
                 PrintUsage();
                 return;
             }
 
-            bool verbose = CommandHelpers.GetVerbose(arguments);
+            var verbose = CommandHelpers.GetVerbose(arguments);
 
-            int interval = CommandHelpers.GetInterval(arguments);
+            var interval = CommandHelpers.GetInterval(arguments);
 
-            DateTime startDate = CommandHelpers.GetStartDate(arguments);
+            var startDate = CommandHelpers.GetStartDate(arguments);
 
-            StorageFactory catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-            StorageFactory auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
+            var catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
+            var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
             if (catalogStorageFactory == null || auditingStorageFactory == null)
             {
                 PrintUsage();
@@ -562,39 +579,39 @@ namespace Ng
             Loop(gallery, catalogStorageFactory, auditingStorageFactory, verbose, interval, nullableStartDate, cancellationToken).Wait();
         }
 
-        static void PackagePrintUsage()
+        private static void PackagePrintUsage()
         {
             Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> [-version <version>]");
         }
 
         public static void Package(string[] args, CancellationToken cancellationToken)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
+            var arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)
             {
                 PackagePrintUsage();
                 return;
             }
 
-            string gallery = CommandHelpers.GetGallery(arguments);
+            var gallery = CommandHelpers.GetGallery(arguments);
             if (gallery == null)
             {
                 PackagePrintUsage();
                 return;
             }
 
-            bool verbose = CommandHelpers.GetVerbose(arguments);
+            var verbose = CommandHelpers.GetVerbose(arguments);
 
-            string id = CommandHelpers.GetId(arguments);
+            var id = CommandHelpers.GetId(arguments);
             if (id == null)
             {
                 PackagePrintUsage();
                 return;
             }
 
-            string version = CommandHelpers.GetVersion(arguments);
+            var version = CommandHelpers.GetVersion(arguments);
 
-            StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
+            var storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             if (storageFactory == null)
             {
                 PrintUsage();
@@ -610,39 +627,34 @@ namespace Ng
             ProcessPackages(gallery, storageFactory, id, version, verbose, cancellationToken).Wait();
         }
 
-        static async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose, CancellationToken cancellationToken)
+        private static async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose, CancellationToken cancellationToken)
         {
-            int timeout = 300;
+            var timeout = 300;
 
-            Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
+            var handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
 
-            HttpMessageHandler handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
+            var handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
 
-            using (HttpClient client = new HttpClient(handler))
+            using (var client = new HttpClient(handler))
             {
                 client.Timeout = TimeSpan.FromSeconds(timeout);
 
                 //  if the version is specified a single package is processed otherwise all the packages corresponding to that id are processed
 
-                Uri uri = (version == null) ? MakePackageUri(gallery, id) : MakePackageUri(gallery, id, version);
+                var uri = (version == null) ? MakePackageUri(gallery, id) : MakePackageUri(gallery, id, version);
 
-                SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> packages = await GetPackages(client, uri, "Created");
+                var packages = await GetPackages(client, uri, "Created");
 
                 Trace.TraceInformation("downloading {0} packages", packages.Select(t => t.Value.Count).Sum());
 
-                Storage storage = storageFactory.Create();
+                var storage = storageFactory.Create();
 
-                //  the idea here is to leave the lastCreated and lastEdited values exactly as they were
+                //  the idea here is to leave the lastCreated, lastEdited and lastDeleted values exactly as they were
+                var lastCreated = await GetCatalogProperty(storage, "nuget:lastCreated", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
+                var lastEdited = await GetCatalogProperty(storage, "nuget:lastEdited", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
+                var lastDeleted = await GetCatalogProperty(storage, "nuget:lastDeleted", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
 
-                const string LastCreated = "nuget:lastCreated";
-                const string LastEdited = "nuget:lastEdited";
-                const string LastDeleted = "nuget:lastDeleted";
-
-                DateTime lastCreated = await GetCatalogProperty(storage, LastCreated, cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
-                DateTime lastEdited = await GetCatalogProperty(storage, LastEdited, cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
-                DateTime lastDeleted = await GetCatalogProperty(storage, LastDeleted, cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
-
-                DateTime d = await DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited, lastDeleted, null, cancellationToken);
+                await DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited, lastDeleted, null, cancellationToken);
             }
         }
     }

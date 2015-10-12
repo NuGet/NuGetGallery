@@ -14,19 +14,19 @@ namespace NuGet.Services.Metadata.Catalog
     {
         private string _id;
         private string _version;
-        private DateTime _published;
-        private Guid _catalogItemId;
+        private readonly DateTime _published;
+        private readonly string _catalogItemId;
 
         public DeleteCatalogItem(string id, string version, DateTime published)
         {
             _id = id;
-            _version = ParseVersion(version);
+            _version = TryNormalize(version);
             _published = published;
 
-            _catalogItemId = Guid.NewGuid();
+            _catalogItemId = Guid.NewGuid().ToString().ToLowerInvariant();
         }
 
-        private string ParseVersion(string version)
+        private string TryNormalize(string version)
         {
             SemanticVersion semVer;
             if (SemanticVersion.TryParse(version, out semVer))
@@ -43,32 +43,32 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected override string GetItemIdentity()
         {
-            return _catalogItemId.ToString().ToLowerInvariant();
+            return _catalogItemId;
         }
 
         public override StorageContent CreateContent(CatalogContext context)
         {
-            using (IGraph catalogEntry = new Graph())
+            using (IGraph graph = new Graph())
             {
-                INode catalogEntrySubject = catalogEntry.CreateUriNode(GetItemAddress());
+                INode entry = graph.CreateUriNode(GetItemAddress());
 
                 //  catalog infrastructure fields
-                catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Type), catalogEntry.CreateUriNode(GetItemType()));
-                catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Type), catalogEntry.CreateUriNode(Schema.DataTypes.Permalink));
-                catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogTimeStamp), catalogEntry.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
-                catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogCommitId), catalogEntry.CreateLiteralNode(CommitId.ToString()));
+                graph.Assert(entry, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(GetItemType()));
+                graph.Assert(entry, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Permalink));
+                graph.Assert(entry, graph.CreateUriNode(Schema.Predicates.CatalogTimeStamp), graph.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
+                graph.Assert(entry, graph.CreateUriNode(Schema.Predicates.CatalogCommitId), graph.CreateLiteralNode(CommitId.ToString()));
 
-                catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Published), catalogEntry.CreateLiteralNode(_published.ToString("O"), Schema.DataTypes.DateTime));
+                graph.Assert(entry, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(_published.ToString("O"), Schema.DataTypes.DateTime));
 
-                catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Id), catalogEntry.CreateLiteralNode(_id));
-                catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.OriginalId), catalogEntry.CreateLiteralNode(_id));
-                catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Version), catalogEntry.CreateLiteralNode(_version));
+                graph.Assert(entry, graph.CreateUriNode(Schema.Predicates.Id), graph.CreateLiteralNode(_id));
+                graph.Assert(entry, graph.CreateUriNode(Schema.Predicates.OriginalId), graph.CreateLiteralNode(_id));
+                graph.Assert(entry, graph.CreateUriNode(Schema.Predicates.Version), graph.CreateLiteralNode(_version));
 
-                SetIdVersionFromGraph(catalogEntry);
+                SetIdVersionFromGraph(graph);
 
                 //  create JSON content
                 JObject frame = context.GetJsonLdContext("context.Catalog.json", GetItemType());
-                StorageContent content = new StringStorageContent(Utils.CreateArrangedJson(catalogEntry, frame), "application/json", "no-store");
+                StorageContent content = new StringStorageContent(Utils.CreateArrangedJson(graph, frame), "application/json", "no-store");
                
                 return content;
             }
@@ -76,14 +76,14 @@ namespace NuGet.Services.Metadata.Catalog
 
         public override IGraph CreatePageContent(CatalogContext context)
         {
-            Uri resourceUri = new Uri(GetBaseAddress() + GetRelativeAddress());
+            var resourceUri = new Uri(GetBaseAddress() + GetRelativeAddress());
 
-            Graph graph = new Graph();
+            var graph = new Graph();
 
-            INode subject = graph.CreateUriNode(resourceUri);
+            var subject = graph.CreateUriNode(resourceUri);
 
-            INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
-            INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
+            var idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
+            var versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
 
             if (_id != null)
             {
@@ -98,20 +98,20 @@ namespace NuGet.Services.Metadata.Catalog
             return graph;
         }
 
-        void SetIdVersionFromGraph(IGraph graph)
+        private void SetIdVersionFromGraph(IGraph graph)
         {
-            INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
-            INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
+            var resource = graph.GetTriplesWithPredicateObject(
+                graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(GetItemType())).First();
 
-            INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
-            Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
-            Triple id = graph.GetTriplesWithSubjectPredicate(resource.Subject, idPredicate).FirstOrDefault();
+            var id = graph.GetTriplesWithSubjectPredicate(
+                resource.Subject, graph.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault();
             if (id != null)
             {
                 _id = ((ILiteralNode)id.Object).Value;
             }
 
-            Triple version = graph.GetTriplesWithSubjectPredicate(resource.Subject, versionPredicate).FirstOrDefault();
+            var version = graph.GetTriplesWithSubjectPredicate(
+                resource.Subject, graph.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault();
             if (version != null)
             {
                 _version = ((ILiteralNode)version.Object).Value;

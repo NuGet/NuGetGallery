@@ -10,42 +10,27 @@ namespace NuGet.Services.Metadata.Catalog
 {
     internal static class CloudBlobStorageExtensions
     {
-        public static async Task<IEnumerable<IListBlobItem>> ListBlobsAsync(this CloudBlobContainer container, CancellationToken cancellationToken, string prefix = null, bool useFlatBlobListing = false, BlobListingDetails blobListingDetails = BlobListingDetails.None, long? maxResults = null)
+        public static async Task<IEnumerable<IListBlobItem>> ListBlobsAsync(
+            this CloudBlobDirectory directory, CancellationToken cancellationToken)
         {
-            List<IListBlobItem> items = new List<IListBlobItem>();
-            BlobContinuationToken token = null;
+            var items = new List<IListBlobItem>();
+            BlobContinuationToken continuationToken = null;
             do
             {
-                var seg = await container.ListBlobsSegmentedAsync(prefix, useFlatBlobListing, blobListingDetails, null, token, null, null);
-                token = seg.ContinuationToken;
-                items.AddRange(seg.Results);
+                var segment = await directory.ListBlobsSegmentedAsync(
+                    useFlatBlobListing: true, 
+                    blobListingDetails: BlobListingDetails.None,  
+                    maxResults: null, 
+                    currentToken:  continuationToken,
+                    options: null, 
+                    operationContext: null, 
+                    cancellationToken: cancellationToken);
 
-                if (maxResults.HasValue && items.Count > maxResults.Value)
-                {
-                    break;
-                }
+                continuationToken = segment.ContinuationToken;
+                items.AddRange(segment.Results);
             }
-            while (token != null && !cancellationToken.IsCancellationRequested);
-            return items;
-        }
+            while (continuationToken != null && !cancellationToken.IsCancellationRequested);
 
-
-        public static async Task<IEnumerable<IListBlobItem>> ListBlobsAsync(this CloudBlobDirectory directory, CancellationToken cancellationToken, bool useFlatBlobListing = false, BlobListingDetails blobListingDetails = BlobListingDetails.None, long? maxResults = null)
-        {
-            List<IListBlobItem> items = new List<IListBlobItem>();
-            BlobContinuationToken token = null;
-            do
-            {
-                var seg = await directory.ListBlobsSegmentedAsync(useFlatBlobListing, blobListingDetails, null, token, null, null);
-                token = seg.ContinuationToken;
-                items.AddRange(seg.Results);
-
-                if (maxResults.HasValue && items.Count > maxResults.Value)
-                {
-                    break;
-                }
-            }
-            while (token != null && !cancellationToken.IsCancellationRequested);
             return items;
         }
     }
