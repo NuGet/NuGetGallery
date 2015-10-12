@@ -1,0 +1,474 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="DeleteAuditRecordForOtherPackage100" xml:space="preserve">
+    <value>{
+  "record": {
+    "id": "OtherPackage",
+    "version": "1.0.0",
+    "hash": "Cj01MWn4xDwYEcApDHqrR3hCzHv0eDWiOO9TQUA46055TdDBac2FVgITPgtoEERoP5Y1jYSPtfoV/lvpmd4G1Q==",
+    "packageRecord": [
+      {
+        "key": 1,
+        "packageRegistrationKey": 1,
+        "created": "2015-01-01T01:01:01.827Z",
+        "description": "Package",
+        "downloadCount": 1464,
+        "hashAlgorithm": "SHA512",
+        "hash": "Cj01MWn4xDwYEcApDHqrR3hCzHv0eDWiOO9TQUA46055TdDBac2FVgITPgtoEERoP5Y1jYSPtfoV/lvpmd4G1Q==",
+        "isLatest": false,
+        "lastUpdated": "2015-01-01T01:01:01.957Z",
+        "licenseUrl": "https://www.nuget.org",
+        "published": "2015-01-01T01:01:01.827Z",
+        "packageFileSize": 7838,
+        "projectUrl": "https://www.nuget.org",
+        "requiresLicenseAcceptance": false,
+        "tags": "nuget package",
+        "version": "1.0.0",
+        "flattenedAuthors": "NuGet",
+        "flattenedDependencies": ":",
+        "isLatestStable": false,
+        "listed": true,
+        "isPrerelease": false,
+        "language": "en-US",
+        "userKey": 47364,
+        "hideLicenseReport": false,
+        "licenseNames": "Apache2",
+        "licenseReportUrl": "",
+        "normalizedVersion": "1.0.0"
+      }
+    ],
+    "registrationRecord": [
+      {
+        "key": 1,
+        "id": "OtherPackage",
+        "downloadCount": 1636
+      }
+    ],
+    "reason": "Bulk Delete",
+    "action": "Deleted"
+  },
+  "actor": {
+    "machineName": "MACHINE",
+    "userName": "REDMOND\\user",
+    "authenticationType": "MachineUser",
+    "timestampUtc": "2015-01-01T01:01:01.0748028Z"
+  }
+}</value>
+  </data>
+  <data name="TestCatalogStorageWithThreePackagesIndex" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/index.json",
+  "@type": [
+    "CatalogRoot",
+    "AppendOnlyCatalog",
+    "Permalink"
+  ],
+  "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+  "commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+  "count": 1,
+  "items": [
+    {
+      "@id": "http://tempuri.org/page0.json",
+      "@type": "CatalogPage",
+      "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+      "commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+      "count": 3
+    }
+  ],
+  "nuget:lastCreated": "2015-01-01T00:00:00Z",
+  "nuget:lastDeleted": "2015-01-01T00:00:00Z",
+  "nuget:lastEdited": "2015-01-01T00:00:00Z",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/catalog#",
+    "nuget": "http://schema.nuget.org/schema#",
+    "items": {
+      "@id": "item",
+      "@container": "@set"
+    },
+    "parent": {
+      "@type": "@id"
+    },
+    "commitTimeStamp": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastCreated": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastEdited": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastDeleted": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogStorageWithThreePackagesListedPackage100" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/data/2015.10.12.10.08.54/listedpackage.1.0.0.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "NuGet",
+  "catalog:commitId": "9a37734f-1960-4c07-8934-c8bc797e35c1",
+  "catalog:commitTimeStamp": "2015-10-12T10:08:54.1506742Z",
+  "created": "2015-01-01T00:00:00Z",
+  "description": "Package description.",
+  "id": "ListedPackage",
+  "isPrerelease": false,
+  "lastEdited": "2015-01-01T00:00:00Z",
+  "licenseNames": "",
+  "licenseReportUrl": "",
+  "listed": true,
+  "packageHash": "EpTkeONwnhX59JBzl5QfuFNNgZADaAbwYxNGn0KEkJ4ylukUQFcS15vISqFUnrWy/+yylox6L6QT3MD/+Us+vg==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 2529,
+  "published": "2015-01-01T00:00:00Z",
+  "requireLicenseAcceptance": false,
+  "verbatimVersion": "1.0.0",
+  "version": "1.0.0",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogStorageWithThreePackagesListedPackage101" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/data/2015.10.12.10.08.55/listedpackage.1.0.1.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "NuGet",
+  "catalog:commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+  "catalog:commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+  "created": "2015-01-01T00:00:00Z",
+  "description": "Package description.",
+  "id": "ListedPackage",
+  "isPrerelease": false,
+  "lastEdited": "2015-01-01T00:00:00Z",
+  "licenseNames": "",
+  "licenseReportUrl": "",
+  "listed": true,
+  "packageHash": "GU/C5uGF1GQtHQpjI1e3dsnpelbRcBE+EGDUrrtWvRvucI31XXZQltvd/CY/rK9Fm9lTwMxGMVrUgRLz248FmQ==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 2529,
+  "published": "2015-01-01T00:00:00Z",
+  "requireLicenseAcceptance": false,
+  "verbatimVersion": "1.0.1",
+  "version": "1.0.1",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogStorageWithThreePackagesPage" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/page0.json",
+  "@type": "CatalogPage",
+  "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+  "commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+  "count": 3,
+  "items": [
+    {
+      "@id": "http://tempuri.org/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "9a37734f-1960-4c07-8934-c8bc797e35c1",
+      "commitTimeStamp": "2015-10-12T10:08:54.1506742Z",
+      "nuget:id": "UnlistedPackage",
+      "nuget:version": "1.0.0"
+    },
+    {
+      "@id": "http://tempuri.org/data/2015.10.12.10.08.54/listedpackage.1.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "9a37734f-1960-4c07-8934-c8bc797e35c1",
+      "commitTimeStamp": "2015-10-12T10:08:54.1506742Z",
+      "nuget:id": "ListedPackage",
+      "nuget:version": "1.0.0"
+    },
+    {
+      "@id": "http://tempuri.org/data/2015.10.12.10.08.55/listedpackage.1.0.1.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+      "commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+      "nuget:id": "ListedPackage",
+      "nuget:version": "1.0.1"
+    }
+  ],
+  "parent": "http://tempuri.org/index.json",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/catalog#",
+    "nuget": "http://schema.nuget.org/schema#",
+    "items": {
+      "@id": "item",
+      "@container": "@set"
+    },
+    "parent": {
+      "@type": "@id"
+    },
+    "commitTimeStamp": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastCreated": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastEdited": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastDeleted": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogStorageWithThreePackagesUnlistedPackage100" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "NuGet",
+  "catalog:commitId": "9a37734f-1960-4c07-8934-c8bc797e35c1",
+  "catalog:commitTimeStamp": "2015-10-12T10:08:54.1506742Z",
+  "created": "2015-01-01T00:00:00Z",
+  "description": "Package description.",
+  "id": "UnlistedPackage",
+  "isPrerelease": false,
+  "lastEdited": "2015-01-01T00:00:00Z",
+  "licenseNames": "",
+  "licenseReportUrl": "",
+  "listed": true,
+  "packageHash": "0LUKl3HqBsrLxjTaA+J6vaa+XB5zWb5hTJb1Ht74oIzPsBJmZalApZAIdueMgzbsUxG74jjfnDZWoxUrs2A3dg==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 2540,
+  "published": "1900-01-01T01:00:00+01:00",
+  "requireLicenseAcceptance": false,
+  "verbatimVersion": "1.0.0",
+  "version": "1.0.0",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    }
+  }
+}</value>
+  </data>
+</root>

@@ -18,7 +18,7 @@ namespace Ng
 {
     //BUG:  we really want to order-by the LastEdited (in the SortedDictionary) but include the Created in the data (as it is the published date)
 
-    public static class Feed2Catalog
+    public class Feed2Catalog
     {
         #region private_strings
         private const string CreatedDateProperty = "Created";
@@ -48,6 +48,15 @@ namespace Ng
             public DateTime PublishedDate { get; set; }
             public string LicenseNames { get; set; }
             public string LicenseReportUrl { get; set; }
+        }
+
+        protected virtual HttpClient CreateHttpClient(bool verbose)
+        {
+            var handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
+
+            var handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
+
+            return new HttpClient(handler);
         }
 
         private static Uri MakePackageUri(string source, string id, string version)
@@ -436,7 +445,7 @@ namespace Ng
             return null;
         }
 
-        private static async Task Loop(string gallery, StorageFactory catalogStorageFactory, StorageFactory auditingStorageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
+        private async Task Loop(string gallery, StorageFactory catalogStorageFactory, StorageFactory auditingStorageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
         {
             var catalogStorage = catalogStorageFactory.Create();
             var auditingStorage = auditingStorageFactory.Create();
@@ -446,86 +455,90 @@ namespace Ng
 
             while (true)
             {
-                var handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
-
-                var handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
-
-                using (var client = new HttpClient(handler))
-                {
-                    client.Timeout = timeout;
-
-                    //  fetch and add all newly CREATED packages - in order
-                    var lastCreated = await GetCatalogProperty(catalogStorage, "nuget:lastCreated", cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
-                    var lastEdited = await GetCatalogProperty(catalogStorage, "nuget:lastEdited", cancellationToken) ?? lastCreated;
-                    var lastDeleted = await GetCatalogProperty(catalogStorage, "nuget:lastDeleted", cancellationToken) ?? lastCreated;
-                    if (lastDeleted == DateTime.MinValue.ToUniversalTime())
-                    {
-                        lastDeleted = lastCreated;
-                    }
-
-                    SortedList<DateTime, IList<PackageDetails>> createdPackages;
-                    var previousLastCreated = DateTime.MinValue;
-                    do
-                    {
-                        Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
-
-                        createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
-                        Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
-
-                        lastCreated = await DownloadMetadata2Catalog(client, createdPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, true, cancellationToken);
-                        if (previousLastCreated == lastCreated)
-                        {
-                            break;
-                        }
-                        previousLastCreated = lastCreated;
-                    }
-                    while (createdPackages.Count > 0);
-
-                    //  THEN fetch and add all EDITED packages - in order
-                    SortedList<DateTime, IList<PackageDetails>> editedPackages;
-                    var previousLastEdited = DateTime.MinValue;
-                    do
-                    {
-                        Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));
-
-                        editedPackages = await GetEditedPackages(client, gallery, lastEdited, top);
-
-                        Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
-
-                        lastEdited = await DownloadMetadata2Catalog(client, editedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
-                        if (previousLastEdited == lastEdited)
-                        {
-                            break;
-                        }
-                        previousLastEdited = lastEdited;
-                    }
-                    while (editedPackages.Count > 0);
-
-                    // THEN fetch and add all DELETED packages - the GetDeletedPackages verifies if the delete is to be processed
-                    if (lastDeleted > DateTime.MinValue.ToUniversalTime())
-                    {
-                        SortedList<DateTime, IList<PackageIdentity>> deletedPackages;
-                        var previousLastDeleted = DateTime.MinValue;
-                        do
-                        {
-                            Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
-
-                            deletedPackages = await GetDeletedPackages(auditingStorage, client, gallery, lastDeleted, top);
-
-                            Trace.TraceInformation("FEED DeletedPackages: {0}", deletedPackages.Count);
-
-                            lastDeleted = await Deletes2Catalog(deletedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
-                            if (previousLastDeleted == lastDeleted)
-                            {
-                                break;
-                            }
-                            previousLastDeleted = lastDeleted;
-                        }
-                        while (deletedPackages.Count > 0);
-                    }
-                }
+                await ProcessFeed(gallery, catalogStorage, auditingStorage, startDate, timeout, top, verbose, cancellationToken);
 
                 Thread.Sleep(interval * 1000);
+            }
+        }
+
+        protected async Task ProcessFeed(string gallery, Storage catalogStorage, Storage auditingStorage, DateTime? startDate, TimeSpan timeout, int top, bool verbose, CancellationToken cancellationToken)
+        {
+            using (var client = CreateHttpClient(verbose))
+            {
+                client.Timeout = timeout;
+
+                //  fetch and add all newly CREATED packages - in order
+                var lastCreated = await GetCatalogProperty(catalogStorage, "nuget:lastCreated", cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
+                var lastEdited = await GetCatalogProperty(catalogStorage, "nuget:lastEdited", cancellationToken) ?? lastCreated;
+                var lastDeleted = await GetCatalogProperty(catalogStorage, "nuget:lastDeleted", cancellationToken) ?? lastCreated;
+                if (lastDeleted == DateTime.MinValue.ToUniversalTime())
+                {
+                    lastDeleted = lastCreated;
+                }
+
+                SortedList<DateTime, IList<PackageDetails>> createdPackages;
+                var previousLastCreated = DateTime.MinValue;
+                do
+                {
+                    Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
+
+                    createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
+                    Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
+
+                    lastCreated = await DownloadMetadata2Catalog(
+                        client, createdPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, true, cancellationToken);
+                    if (previousLastCreated == lastCreated)
+                    {
+                        break;
+                    }
+                    previousLastCreated = lastCreated;
+                }
+                while (createdPackages.Count > 0);
+
+                //  THEN fetch and add all EDITED packages - in order
+                SortedList<DateTime, IList<PackageDetails>> editedPackages;
+                var previousLastEdited = DateTime.MinValue;
+                do
+                {
+                    Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));
+
+                    editedPackages = await GetEditedPackages(client, gallery, lastEdited, top);
+
+                    Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
+
+                    lastEdited = await DownloadMetadata2Catalog(
+                        client, editedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
+                    if (previousLastEdited == lastEdited)
+                    {
+                        break;
+                    }
+                    previousLastEdited = lastEdited;
+                }
+                while (editedPackages.Count > 0);
+
+                // THEN fetch and add all DELETED packages - the GetDeletedPackages verifies if the delete is to be processed
+                if (lastDeleted > DateTime.MinValue.ToUniversalTime())
+                {
+                    SortedList<DateTime, IList<PackageIdentity>> deletedPackages;
+                    var previousLastDeleted = DateTime.MinValue;
+                    do
+                    {
+                        Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
+
+                        deletedPackages = await GetDeletedPackages(auditingStorage, client, gallery, lastDeleted, top);
+
+                        Trace.TraceInformation("FEED DeletedPackages: {0}", deletedPackages.Count);
+
+                        lastDeleted = await Deletes2Catalog(
+                            deletedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
+                        if (previousLastDeleted == lastDeleted)
+                        {
+                            break;
+                        }
+                        previousLastDeleted = lastDeleted;
+                    }
+                    while (deletedPackages.Count > 0);
+                }
             }
         }
 
@@ -534,7 +547,7 @@ namespace Ng
             Console.WriteLine("Usage: ng feed2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] -storageTypeAuditing file|azure [-storagePathAuditing <path>]|[-storageAccountNameAuditing <azure-acc> -storageKeyValueAuditing <azure-key> -storageContainerAuditing <azure-container> -storagePathAuditing <path>]  [-verbose true|false] [-interval <seconds>] [-startDate <DateTime>]");
         }
 
-        public static void Run(string[] args, CancellationToken cancellationToken)
+        public void Run(string[] args, CancellationToken cancellationToken)
         {
             var arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)
@@ -584,7 +597,7 @@ namespace Ng
             Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> [-version <version>]");
         }
 
-        public static void Package(string[] args, CancellationToken cancellationToken)
+        public void Package(string[] args, CancellationToken cancellationToken)
         {
             var arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)
@@ -627,17 +640,13 @@ namespace Ng
             ProcessPackages(gallery, storageFactory, id, version, verbose, cancellationToken).Wait();
         }
 
-        private static async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose, CancellationToken cancellationToken)
+        private async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose, CancellationToken cancellationToken)
         {
-            var timeout = 300;
-
-            var handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
-
-            var handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
-
-            using (var client = new HttpClient(handler))
+            var timeout = TimeSpan.FromSeconds(300);
+            
+            using (var client = CreateHttpClient(verbose))
             {
-                client.Timeout = TimeSpan.FromSeconds(timeout);
+                client.Timeout = timeout;
 
                 //  if the version is specified a single package is processed otherwise all the packages corresponding to that id are processed
 

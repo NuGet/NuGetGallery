@@ -36,15 +36,17 @@ namespace Ng
                 switch (args[0])
                 {
                     case "package2catalog":
-                        Feed2Catalog.Package(args, cancellationTokenSource.Token);
+                        var packageToCatalog = new Feed2Catalog();
+                        packageToCatalog.Package(args, cancellationTokenSource.Token);
                         break;
-                    case "feed2catalog" :
-                        Feed2Catalog.Run(args, cancellationTokenSource.Token);
+                    case "feed2catalog":
+                        var feedToCatalog = new Feed2Catalog();
+                        feedToCatalog.Run(args, cancellationTokenSource.Token);
                         break;
-                    case "catalog2registration" :
+                    case "catalog2registration":
                         Catalog2Registration.Run(args, cancellationTokenSource.Token);
                         break;
-                    case "catalog2lucene" :
+                    case "catalog2lucene":
                         Catalog2Lucene.Run(args, cancellationTokenSource.Token);
                         break;
                     case "catalog2dnx":

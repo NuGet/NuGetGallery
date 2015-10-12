@@ -15,15 +15,12 @@ namespace NuGet.Services.Metadata.Catalog
         private string _id;
         private string _version;
         private readonly DateTime _published;
-        private readonly string _catalogItemId;
 
         public DeleteCatalogItem(string id, string version, DateTime published)
         {
             _id = id;
             _version = TryNormalize(version);
             _published = published;
-
-            _catalogItemId = Guid.NewGuid().ToString().ToLowerInvariant();
         }
 
         private string TryNormalize(string version)
@@ -43,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected override string GetItemIdentity()
         {
-            return _catalogItemId;
+            return (_id + "." + _version).ToLowerInvariant();
         }
 
         public override StorageContent CreateContent(CatalogContext context)
