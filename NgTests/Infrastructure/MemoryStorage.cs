@@ -26,6 +26,17 @@ namespace NgTests.Infrastructure
             Content = new Dictionary<Uri, StorageContent>();
         }
 
+        private MemoryStorage(Uri baseAddress, Dictionary<Uri, StorageContent> content)
+          : base(baseAddress)
+        {
+            Content = content;
+        }
+
+        public Storage WithName(string name)
+        {
+            return new MemoryStorage(new Uri(BaseAddress + name), Content);
+        }
+
         protected override Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             Content[resourceUri] = content;

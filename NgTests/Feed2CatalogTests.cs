@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
@@ -129,7 +130,7 @@ namespace NgTests
 
             // Ensure catalog has index.json
             var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
-            Assert.NotNull(catalogIndex);
+            Assert.NotNull(catalogIndex.Key);
             Assert.Contains("\"nuget:lastCreated\": \"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastDeleted\": \"2015-01-01T01:01:01", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastEdited\": \"2015-01-01T01:01:01", catalogIndex.Value.GetContentString());

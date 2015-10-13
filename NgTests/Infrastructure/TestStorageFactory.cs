@@ -9,21 +9,23 @@ namespace NgTests.Infrastructure
     public class TestStorageFactory 
         : StorageFactory
     {
-        private readonly Func<Storage> _createStorage;
+        private readonly Func<string, Storage> _createStorage;
 
         public TestStorageFactory()
-            : this(() => new MemoryStorage())
+            : this(name => new MemoryStorage())
         {
         }
 
-        public TestStorageFactory(Func<Storage> createStorage)
+        public TestStorageFactory(Func<string, Storage> createStorage)
         {
             _createStorage = createStorage;
+
+            BaseAddress = _createStorage(null).BaseAddress;
         }
 
         public override Storage Create(string name = null)
         {
-            return _createStorage();
+            return _createStorage(name);
         }
     }
 }

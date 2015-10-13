@@ -60,21 +60,24 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DnxCatalogCollectorTests.cs" />
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="Infrastructure\MemoryStorage.cs" />
+    <Compile Include="Infrastructure\MockServerHttpClientHandlerExtensions.cs" />
     <Compile Include="Infrastructure\StorageContentExtensions.cs" />
     <Compile Include="Infrastructure\TestStorageFactory.cs" />
     <Compile Include="Infrastructure\MockServerHttpClientHandler.cs" />
     <Compile Include="Infrastructure\ODataFeedHelper.cs" />
     <Compile Include="Infrastructure\ODataPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegistrationCollectorTests.cs" />
     <Compile Include="TestableFeed2Catalog.cs" />
-    <Compile Include="TestCatalogEntries.Designer.cs">
+    <Compile Include="Data\TestCatalogEntries.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>TestCatalogEntries.resx</DependentUpon>
     </Compile>
-    <Compile Include="Catalogs.cs" />
+    <Compile Include="Data\Catalogs.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -103,10 +106,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TestCatalogEntries.resx">
+    <EmbeddedResource Include="Data\TestCatalogEntries.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TestCatalogEntries.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

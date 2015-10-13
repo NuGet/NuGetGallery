@@ -44,13 +44,15 @@ namespace Ng
                         feedToCatalog.Run(args, cancellationTokenSource.Token);
                         break;
                     case "catalog2registration":
-                        Catalog2Registration.Run(args, cancellationTokenSource.Token);
+                        var catalog2Registration = new Catalog2Registration();
+                        catalog2Registration.Run(args, cancellationTokenSource.Token);
                         break;
                     case "catalog2lucene":
                         Catalog2Lucene.Run(args, cancellationTokenSource.Token);
                         break;
                     case "catalog2dnx":
-                        Catalog2Dnx.Run(args, cancellationTokenSource.Token);
+                        var catalogToDnx = new Catalog2Dnx();
+                        catalogToDnx.Run(args, cancellationTokenSource.Token);
                         break;
                     case "frameworkcompatibility":
                         FrameworkCompatibility.Run(args);
