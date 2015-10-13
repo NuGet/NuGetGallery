@@ -23,7 +23,7 @@ namespace NuGetGallery
 
         protected void InterceptPackageMaterialized(Package package)
         {
-            if (package == null)
+            if (package == null || package.PackageRegistration == null)
             {
                 return;
             }
