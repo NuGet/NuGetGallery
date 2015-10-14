@@ -150,20 +150,15 @@ namespace Ng
 
                     if (!string.IsNullOrEmpty(packageId) && !string.IsNullOrEmpty(packageVersion) && deletedOn >= since)
                     {
-                        // Check if the package exists in the feed. This prevents out-of-order processing
-                        // from deleting the package if it's already uploaded again.
-                        if (!(await PackageExists(client, source, packageId, packageVersion)))
+                        // Mark the package "deleted"
+                        IList<PackageIdentity> packages;
+                        if (!result.TryGetValue(deletedOn.Value, out packages))
                         {
-                            // Mark the package "deleted"
-                            IList<PackageIdentity> packages;
-                            if (!result.TryGetValue(deletedOn.Value, out packages))
-                            {
-                                packages = new List<PackageIdentity>();
-                                result.Add(deletedOn.Value, packages);
-                            }
-
-                            packages.Add(new PackageIdentity(packageId, packageVersion));
+                            packages = new List<PackageIdentity>();
+                            result.Add(deletedOn.Value, packages);
                         }
+
+                        packages.Add(new PackageIdentity(packageId, packageVersion));
                     }
                 }
             }
@@ -286,20 +281,7 @@ namespace Ng
 
             return result;
         }
-
-        public static async Task<bool> PackageExists(HttpClient client, string source, string id, string version)
-        {
-            XElement feed;
-            using (var stream = await client.GetStreamAsync(MakePackageUri(source, id, version)))
-            {
-                feed = XElement.Load(stream);
-            }
-
-            XNamespace atom = "http://www.w3.org/2005/Atom";
-
-            return feed.Elements(atom + "entry").Any();
-        }
-
+        
         private static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<PackageDetails>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
         {
             var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
@@ -370,15 +352,13 @@ namespace Ng
             return lastDate;
         }
 
-        private static async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<PackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
+        private static async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<PackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, CancellationToken cancellationToken)
         {
             var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 
-            var lastDate = DetermineLastDate(lastCreated, lastEdited, createdPackages);
-
             if (packages == null || packages.Count == 0)
             {
-                return lastDate;
+                return lastDeleted;
             }
 
             foreach (var entry in packages)
@@ -391,23 +371,16 @@ namespace Ng
                     Trace.TraceInformation("Delete: {0} {1}", packageIdentity.Id, packageIdentity.Version);
                 }
 
-                lastDate = entry.Key;
+                lastDeleted = entry.Key;
             }
-
-            if (createdPackages.HasValue)
-            {
-                lastCreated = createdPackages.Value ? lastDate : lastCreated;
-                lastEdited = !createdPackages.Value ? lastDate : lastEdited;
-                lastDeleted = !createdPackages.Value ? lastDate : lastDeleted;
-            }
-
+            
             var commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(lastCreated, lastEdited, lastDeleted));
 
             await writer.Commit(commitMetadata, cancellationToken);
 
             Trace.TraceInformation("COMMIT");
 
-            return lastDate;
+            return lastDeleted;
         }
 
         private static DateTime DetermineLastDate(DateTime lastCreated, DateTime lastEdited, bool? createdPackages)
@@ -467,7 +440,7 @@ namespace Ng
             {
                 client.Timeout = timeout;
 
-                //  fetch and add all newly CREATED packages - in order
+                // baseline timestamps
                 var lastCreated = await GetCatalogProperty(catalogStorage, "nuget:lastCreated", cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
                 var lastEdited = await GetCatalogProperty(catalogStorage, "nuget:lastEdited", cancellationToken) ?? lastCreated;
                 var lastDeleted = await GetCatalogProperty(catalogStorage, "nuget:lastDeleted", cancellationToken) ?? lastCreated;
@@ -476,6 +449,36 @@ namespace Ng
                     lastDeleted = lastCreated;
                 }
 
+                // fetch and add all DELETED packages
+                if (lastDeleted > DateTime.MinValue.ToUniversalTime())
+                {
+                    SortedList<DateTime, IList<PackageIdentity>> deletedPackages;
+                    var previousLastDeleted = DateTime.MinValue;
+                    do
+                    {
+                        Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
+
+                        deletedPackages = await GetDeletedPackages(auditingStorage, client, gallery, lastDeleted, top);
+
+                        Trace.TraceInformation("FEED DeletedPackages: {0}", deletedPackages.Count);
+
+                        lastDeleted = await Deletes2Catalog(
+                            deletedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, cancellationToken);
+                        if (previousLastDeleted == lastDeleted)
+                        {
+                            break;
+                        }
+                        previousLastDeleted = lastDeleted;
+                    }
+                    while (deletedPackages.Count > 0);
+
+                    // Commits are granular per second. That means if processing the delete takes < 1 second, there is
+                    // a chance the upcoming insert/edit will generate the same timestamp.
+                    // Adding an explicit 1 second sleep ensures no catalog commit timestamps overlap.
+                    Thread.Sleep(TimeSpan.FromSeconds(1));
+                }
+
+                //  THEN fetch and add all newly CREATED packages - in order
                 SortedList<DateTime, IList<PackageDetails>> createdPackages;
                 var previousLastCreated = DateTime.MinValue;
                 do
@@ -515,30 +518,6 @@ namespace Ng
                     previousLastEdited = lastEdited;
                 }
                 while (editedPackages.Count > 0);
-
-                // THEN fetch and add all DELETED packages - the GetDeletedPackages verifies if the delete is to be processed
-                if (lastDeleted > DateTime.MinValue.ToUniversalTime())
-                {
-                    SortedList<DateTime, IList<PackageIdentity>> deletedPackages;
-                    var previousLastDeleted = DateTime.MinValue;
-                    do
-                    {
-                        Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
-
-                        deletedPackages = await GetDeletedPackages(auditingStorage, client, gallery, lastDeleted, top);
-
-                        Trace.TraceInformation("FEED DeletedPackages: {0}", deletedPackages.Count);
-
-                        lastDeleted = await Deletes2Catalog(
-                            deletedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
-                        if (previousLastDeleted == lastDeleted)
-                        {
-                            break;
-                        }
-                        previousLastDeleted = lastDeleted;
-                    }
-                    while (deletedPackages.Count > 0);
-                }
             }
         }
 
