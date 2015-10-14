@@ -1,6 +1,7 @@
 ﻿@model ConfirmationViewModel
 @{
     ViewBag.Title = "Confirm Your Account";
+    var alreadyConfirmed = Model.UnconfirmedEmailAddress == null || Model.AlreadyConfirmed;
 }
 
 @if (Model.SentEmail)
@@ -13,25 +14,37 @@ else
     {
         <p class="message">@((string)TempData["ConfirmationRequiredMessage"])</p>
     }
-    
-    <h2>Confirm Your Account</h2>    
-    
 
-    using (Html.BeginForm())
+    if (alreadyConfirmed)
     {
-        <fieldset class="form">
-            <legend>Verify Email Address</legend>
-            @Html.AntiForgeryToken()
 
-            <p>
-            Click the button to send confirmation email.
-            </p>
-            <p>
-            <input type="submit" value="Send Confirmation Email" title="Send Confirmation Email" style="width: auto; margin: 5px;" />
-            to @(Model.UnconfirmedEmailAddress) @Html.ActionLink("(change)", "Account", "Users")
-            </p>
+        <p class="message">
+            Your email address has already been confirmed.
+        </p>
 
-        </fieldset>
+    }
+    else
+    {
+
+        <h2>Confirm Your Account</h2>
+
+
+        using (Html.BeginForm())
+        {
+            <fieldset class="form">
+                <legend>Verify Email Address</legend>
+                @Html.AntiForgeryToken()
+
+                <p>
+                    Click the button to send confirmation email.
+                </p>
+                <p>
+                    <input type="submit" value="Send Confirmation Email" title="Send Confirmation Email" style="width: auto; margin: 5px;"/>
+                    to @(Model.UnconfirmedEmailAddress) @Html.ActionLink("(change)", "Account", "Users")
+                </p>
+
+            </fieldset>
+        }
     }
 }
 
