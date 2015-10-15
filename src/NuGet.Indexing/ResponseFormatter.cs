@@ -72,11 +72,7 @@ namespace NuGet.Indexing
             {
                 ScoreDoc scoreDoc = topDocs.ScoreDocs[i];
 
-<<<<<<< HEAD
                 Document document = searcher.Doc(scoreDoc.Doc);               
-=======
-                Document document = searcher.Doc(scoreDoc.Doc);
->>>>>>> add owners index and filters for curated feeds and prerealease
 
                 jsonWriter.WriteStartObject();
 
@@ -100,8 +96,8 @@ namespace NuGet.Indexing
                 WriteDocumentValue(jsonWriter, "licenseUrl", document, "LicenseUrl");
                 WriteDocumentValue(jsonWriter, "projectUrl", document, "ProjectUrl");
                 WriteDocumentValueAsArray(jsonWriter, "tags", document, "Tags");
-                WriteDocumentValueAsArray(jsonWriter, "authors", document, "Authors", true);
-                WriteProperty(jsonWriter, "totalDownloads", searcher.Versions[scoreDoc.Doc].VersionDetails.Select(item => item.Downloads).Sum());
+                WriteDocumentValueAsArray(jsonWriter, "authors", document, "Authors");
+                WriteProperty(jsonWriter, "totalDownloads", searcher.Versions[scoreDoc.Doc].VersionDetails.Select(item => item.Downloads).Sum().ToString());
                 WriteVersions(jsonWriter, id, includePrerelease, searcher.Versions[scoreDoc.Doc]);
 
                 if (includeExplanation)
