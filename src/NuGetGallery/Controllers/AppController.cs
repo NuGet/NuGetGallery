@@ -58,7 +58,11 @@ namespace NuGetGallery
             {
                 //no need to do the hassle for a child action
                 //set the culture from the request headers
-                Thread.CurrentThread.CurrentCulture = Request.DetermineClientLocale();
+                var clientLocale = Request.DetermineClientLocale();
+                if (clientLocale != null)
+                {
+                    Thread.CurrentThread.CurrentCulture = clientLocale;
+                }
             }
 
             base.OnActionExecuting(filterContext);
