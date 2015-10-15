@@ -6,6 +6,7 @@ using Lucene.Net.Search;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace NuGet.Indexing
 {
@@ -71,7 +72,7 @@ namespace NuGet.Indexing
             {
                 ScoreDoc scoreDoc = topDocs.ScoreDocs[i];
 
-                Document document = searcher.Doc(scoreDoc.Doc);
+                Document document = searcher.Doc(scoreDoc.Doc);               
 
                 jsonWriter.WriteStartObject();
 
@@ -96,7 +97,7 @@ namespace NuGet.Indexing
                 WriteDocumentValue(jsonWriter, "projectUrl", document, "ProjectUrl");
                 WriteDocumentValueAsArray(jsonWriter, "tags", document, "Tags");
                 WriteDocumentValueAsArray(jsonWriter, "authors", document, "Authors");
-
+                WriteProperty(jsonWriter, "totalDownloads", searcher.Versions[scoreDoc.Doc].VersionDetails.Select(item => item.Downloads).Sum().ToString());
                 WriteVersions(jsonWriter, id, includePrerelease, searcher.Versions[scoreDoc.Doc]);
 
                 if (includeExplanation)
