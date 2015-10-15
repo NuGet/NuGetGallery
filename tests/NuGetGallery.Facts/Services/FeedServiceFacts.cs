@@ -7,15 +7,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
 using Moq;
-using NuGetGallery;
 using NuGetGallery.Configuration;
-using NuGetGallery.Controllers;
-using NuGetGallery.Helpers;
 using NuGetGallery.OData;
 using NuGetGallery.TestUtils.Infrastructure;
 using NuGetGallery.WebApi;
@@ -501,6 +497,37 @@ namespace NuGetGallery
 
                     Assert.Equal("Foo", result.Last().Id);
                     Assert.Equal("1.0.1-a", result.Last().Version);
+                }
+
+                [Fact]
+                public async Task V2FeedFindPackagesByIdReturnsEmptyCollectionWhenNoPackages()
+                {
+                    // Arrange
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    repo.Setup(r => r.GetAll()).Returns(() => Enumerable.Empty<Package>().AsQueryable());
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
+
+                    // Act
+                    var result = (await v2Service.FindPackagesById(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        "Foo"))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
+
+                    // Assert
+                    Assert.Equal(0, result.Count());
                 }
             }
 

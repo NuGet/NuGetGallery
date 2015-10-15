@@ -558,6 +558,7 @@
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\GlimpseServiceLocator.cs" />
     <Compile Include="Configuration\StorageType.cs" />
+    <Content Include="bin\NuGetGallery.dll.config" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
     <Compile Include="Areas\Admin\Controllers\HomeController.cs" />
@@ -1107,10 +1108,6 @@
     <Compile Include="WebApi\QueryResultExtensions.cs" />
     <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <Content Include="ApplicationInsights.config" />
-    <Content Include="NuGetGallery.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="Areas\Admin\DynamicData\Content\Images\web.config">
       <SubType>Designer</SubType>
     </Content>

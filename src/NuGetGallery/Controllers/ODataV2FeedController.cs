@@ -71,7 +71,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options, string id, string version)
         {
-            var result = await GetCore(options, id, version);
+            var result = await GetCore(options, id, version, return404NotFoundWhenNoResults: true);
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
@@ -81,10 +81,10 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V2FeedPackage> options, [FromODataUri]string id)
         {
-            return await GetCore(options, id, null);
+            return await GetCore(options, id, version: null, return404NotFoundWhenNoResults: false);
         }
 
-        private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V2FeedPackage> options, string id, string version)
+        private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V2FeedPackage> options, string id, string version, bool return404NotFoundWhenNoResults)
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
@@ -108,7 +108,7 @@ namespace NuGetGallery.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
-            if (!packages.Any())
+            if (return404NotFoundWhenNoResults && !packages.Any())
             {
                 return NotFound();
             }

@@ -72,7 +72,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string id, string version)
         {
-            var result = await GetCore(options, curatedFeedName, id, version);
+            var result = await GetCore(options, curatedFeedName, id, version, return404NotFoundWhenNoResults: true);
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
@@ -82,10 +82,10 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, [FromODataUri]string id)
         {
-            return await GetCore(options, curatedFeedName, id, null);
+            return await GetCore(options, curatedFeedName, id, version: null, return404NotFoundWhenNoResults: false);
         }
 
-        private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string id, string version)
+        private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string id, string version, bool return404NotFoundWhenNoResults)
         {
             var curatedFeed = _entities.CuratedFeeds.FirstOrDefault(cf => cf.Name == curatedFeedName);
             if (curatedFeed == null)
@@ -114,7 +114,7 @@ namespace NuGetGallery.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
-            if (!packages.Any())
+            if (return404NotFoundWhenNoResults && !packages.Any())
             {
                 return NotFound();
             }
