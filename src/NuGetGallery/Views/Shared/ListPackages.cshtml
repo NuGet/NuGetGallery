@@ -21,17 +21,17 @@
     {
         <h1>@if (Model.TotalCount == 1)
             {
-                <text>There is @Model.TotalCount package</text>
+                <text>There is 1 package</text>
             }
             else
             {
-                <text>There are @Model.TotalCount packages</text>
+                <text>There are @Model.TotalCount.ToNuGetNumberString() packages</text>
             }</h1>
     }
     <span class="sorted-by">Sorted by @ViewBag.SortText</span>
     @if (Model.LastResultIndex > 0)
     {
-        <h2>Displaying results @Model.FirstResultIndex - @Model.LastResultIndex.</h2>
+        <h2>Displaying results @Model.FirstResultIndex.ToNuGetNumberString() - @Model.LastResultIndex.ToNuGetNumberString().</h2>
     }
     @if(Model.IndexTimestampUtc.HasValue)
     {

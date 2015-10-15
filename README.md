@@ -6,11 +6,10 @@ website for the NuGet client. For information about the NuGet clients, visit htt
 ## Build and Run the Gallery in (arbitrary number) easy steps
 
 1. Prerequisites. Install these if you don't already have them:
- 1. Visual Studio 2013
+ 1. Visual Studio 2015
  2. PowerShell 2.0 (comes with Windows 7+)
  3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
  4. [Windows Azure SDK](http://www.microsoft.com/windowsazure/sdk/) - Note that you may have to manually upgrade the ".Cloud" projects in the solution if a different SDK version is used.
- 5. (Optional, for unit tests) [xUnit for Visual Studio 2012 and 2013](http://visualstudiogallery.msdn.microsoft.com/463c5987-f82b-46c8-a97e-b1cde42b9099)
 2. Clone it!
     
     ```git clone git@github.com:NuGet/NuGetGallery.git```
@@ -27,7 +26,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
  4. When running the application using the Azure Compute emulator, you may have to edit the `.\src\NuGetGallery.Cloud\ServiceConfiguration.Local.cscfg` file and set the certificate thumbprint for the setting `SSLCertificate` to the certificate thumbprint of the generated `nuget.localtest.me` certificate from step 2. You can get a list of certificates and their thumbprints using PowerShell, running `Get-ChildItem -path cert:\LocalMachine\My`.
 
 5. Create the Database!
- 1. Open Visual Studio 2013
+ 1. Open Visual Studio 2015
  2. Open the Package Manager Console window
  3. Ensure that the Default Project is set to `NuGetGallery`
  4. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
@@ -38,7 +37,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     ```
 If this fails, you are likely to get more useful output by passing -Debug than -Verbose.
 
-6. Change the value of Gallery.ConfirmEmailAddresses to false in Web.Config file under src\NuGetGallery, this is required to upload the packages after registration.
+6. Change the value of `Gallery.ConfirmEmailAddresses` to false in `src\NuGetGallery\Web.Config`, this is required to upload the packages after registration.
 
 7. Ensure the 'NuGetGallery' project (under the Frontend folder) is set to the Startup Project
   
@@ -93,16 +92,16 @@ This is the Git workflow we're currently using:
     This assumes you have no local commits that haven't yet been pushed (i.e., that you were 
     previously up-to-date with origin).
     
-        git checkout iter-start
-        git pull iter-start
+        git checkout master
+        git pull master
     
 2.  __Create a topic branch to do your work.__
     You must work in topic branches, in order to help us keep our features isolated and easily moved between branches.
-    Our policy is to start all topic branches off of the 'iter-start' branch. 
+    Our policy is to start all topic branches off of the 'master' branch. 
     Branch names should use the following format '[user]-[bugnumber]-[shortdescription]'. If there is no bug yet, 
     create one and assign it to yourself!
 
-        git checkout iter-start
+        git checkout master
         git checkout -b anurse-123-makesuckless
     
 3.  __Do your work.__
@@ -138,5 +137,3 @@ This is the Git workflow we're currently using:
     
 6.  __Be ready to guide your change through QA, Staging and Prod__
     Your change will make its way through the QA, Staging and finally Prod branches as it's deployed to the various environments. Be prepared to fix additional bugs!
-
-**NOTE: DO NOT DELETE THE TOPIC BRANCH!!**

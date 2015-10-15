@@ -668,6 +668,10 @@ ul.pager {
             padding: 2px 5px;
         }
 
+        .sexy-table tbody td.package-version-downloads {
+           text-align: right
+        }
+
     /* footer */
 
     .sexy-table tfoot {

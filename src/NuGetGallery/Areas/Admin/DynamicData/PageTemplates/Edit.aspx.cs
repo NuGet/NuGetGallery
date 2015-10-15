@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Data.Entity.Core.Objects;
 using System.Web.DynamicData;
 using System.Web.Routing;
 using System.Web.UI;
@@ -18,6 +19,11 @@ namespace NuGetGallery
             table = DynamicDataRouteHandler.GetRequestMetaTable(Context);
             FormView1.SetMetaTable(table);
             DetailsDataSource.EntityTypeFilter = table.EntityType.Name;
+
+            DetailsDataSource.ContextCreating += (o, args) =>
+            {
+                args.Context = (ObjectContext)table.CreateContext();
+            };
         }
 
         protected void Page_Load(object sender, EventArgs e)

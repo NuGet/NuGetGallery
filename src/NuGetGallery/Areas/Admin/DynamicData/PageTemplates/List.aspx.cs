@@ -1,11 +1,14 @@
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Data.Entity.Core.Objects;
+using System.Linq;
 using System.Web.DynamicData;
 using System.Web.Routing;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Web.UI.WebControls.Expressions;
+using NuGetGallery.Areas.Admin.DynamicData;
 
 namespace NuGetGallery
 {
@@ -19,6 +22,20 @@ namespace NuGetGallery
             GridView1.SetMetaTable(table, table.GetColumnValuesFromRoute(Context));
             GridDataSource.EntityTypeFilter = table.EntityType.Name;
 
+            GridDataSource.ContextCreating += (o, args) =>
+            {
+                args.Context = (ObjectContext)table.CreateContext();
+            };
+
+            // Set the search data fields to all the string columns 
+            var searchExpression = (SearchExpression)GridQueryExtender.Expressions[1];
+            searchExpression.DataFields = String.Join(",", table.Columns.Where(c => c.IsString).Select(c => c.Name));
+            if (string.IsNullOrEmpty(searchExpression.DataFields))
+            {
+                // No string fields, remove the search elements 
+                SearchPanel.Visible = false;
+                GridQueryExtender.Expressions.Remove(searchExpression);
+            }
         }
 
         protected void Page_Load(object sender, EventArgs e)

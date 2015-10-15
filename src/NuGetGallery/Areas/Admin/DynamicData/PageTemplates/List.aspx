@@ -21,6 +21,10 @@
                     HeaderText="List of validation errors" CssClass="DDValidator" />
                 <asp:DynamicValidator runat="server" ID="GridViewValidator" ControlToValidate="GridView1" Display="None" CssClass="DDValidator" />
 
+                <asp:Panel runat="server" ID="SearchPanel">
+                    <asp:TextBox runat="server" ID="search" /><asp:Button Text="Search" runat="server" /><br />
+                </asp:Panel>
+
                 <asp:QueryableFilterRepeater runat="server" ID="FilterRepeater">
                     <ItemTemplate>
                         <asp:Label runat="server" Text='<%# Eval("DisplayName") %>' OnPreRender="Label_PreRender" />
@@ -57,8 +61,11 @@
             
             <asp:QueryExtender TargetControlID="GridDataSource" ID="GridQueryExtender" runat="server">
                 <asp:DynamicFilterExpression ControlID="FilterRepeater" />
+                <asp:SearchExpression SearchType="Contains"> 
+                    <asp:ControlParameter ControlID="search" /> 
+                </asp:SearchExpression>
             </asp:QueryExtender>
-
+            
             <br />
 
             <div class="DDBottomHyperLink">
