@@ -364,7 +364,7 @@
                             @packageVersion.DownloadCount.ToNuGetNumberString()
                         </td>
                         <td>
-                            @packageVersion.LastUpdated.ToNuGetLongDateString()
+                            <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
                         </td>
                         @if (Model.IsOwner(User))
                         {
