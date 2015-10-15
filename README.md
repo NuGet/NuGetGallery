@@ -40,7 +40,9 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     ```
 If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
 
-6. Change the value of `Gallery.ConfirmEmailAddresses` to `false` in `src\NuGetGallery\Web.Config`, this is required to upload the packages after registration.
+6. When working with the gallery, e-mail messages are saved to the file system (under `~/App_Data`).
+    * To change this to use an SMTP server, edit `src\NuGetGallery\Web.Config` and add a `Gallery.SmtpUri` setting. Its value should be an SMTP connection string, for example `smtp://user:password@smtpservername:25`.
+    * To turn off e-mail confirmations, edit `src\NuGetGallery\Web.Config` and change the value of `Gallery.ConfirmEmailAddresses` to `false`.
 
 7. Ensure the 'NuGetGallery' project (under the Frontend folder) is set to the Startup Project
   
