@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -8,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AnglicanGeek.DbExecutor;
-using NuGet;
+using NuGet.Packaging;
 
 namespace NuGetGallery.Operations.CuratedFeeds
 {
@@ -46,29 +47,37 @@ namespace NuGetGallery.Operations.CuratedFeeds
                 try
                 {
                     var downloadPath = DownloadPackage(package);
-                    var nugetPackage = new ZipPackage(downloadPath);
 
-                    var shouldBeIncluded = nugetPackage.Tags != null && nugetPackage.Tags.ToLowerInvariant().Contains("aspnetwebpages");
-
-                    if (!shouldBeIncluded)
+                    bool shouldBeIncluded;
+                    using (var nugetPackage = new PackageReader(File.OpenRead(downloadPath)))
                     {
-                        shouldBeIncluded = true;
-                        foreach (var file in nugetPackage.GetFiles())
+                        var nuspecReader = nugetPackage.GetNuspecReader();
+                        var metadata = nuspecReader.GetMetadata()
+                            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.OrdinalIgnoreCase);
+
+                        string tags;
+                        shouldBeIncluded = metadata.TryGetValue("tags", out tags) && tags.ToLowerInvariant().Contains("aspnetwebpages");
+
+                        if (!shouldBeIncluded)
                         {
-                            var fi = new FileInfo(file.Path);
-                            if (fi.Extension == ".ps1" || fi.Extension == ".t4")
+                            shouldBeIncluded = true;
+                            foreach (var file in nugetPackage.GetFiles())
                             {
-                                shouldBeIncluded = false;
-                                break;
+                                var fi = new FileInfo(file);
+                                if (fi.Extension == ".ps1" || fi.Extension == ".t4")
+                                {
+                                    shouldBeIncluded = false;
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    if (shouldBeIncluded)
-                    {
-                        AddPackageToCuratedFeed(package);
+                        if (shouldBeIncluded)
+                        {
+                            AddPackageToCuratedFeed(package);
+                        }
                     }
-
+                    
                     File.Delete(downloadPath);
 
                     Interlocked.Increment(ref processedCount);

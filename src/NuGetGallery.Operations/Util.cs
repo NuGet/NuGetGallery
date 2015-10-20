@@ -277,7 +277,7 @@ namespace NuGetGallery.Operations
             return user;
         }
 
-        public static string GenerateHash(byte[] input)
+        public static string GenerateHash(Stream input)
         {
             byte[] hashBytes;
 

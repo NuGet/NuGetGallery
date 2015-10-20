@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NuGet;
-using NuGet.Resources;
+using NuGet.Packaging;
 
 namespace NuGetGallery.Packaging
 {
@@ -16,103 +15,83 @@ namespace NuGetGallery.Packaging
     {
         // Copy-pasta from NuGet: src/Core/Utility/PackageIdValidator.cs because that constant is internal :(
         public static readonly int MaxPackageIdLength = 100;
-
-        public static IEnumerable<ValidationResult> Validate(Manifest manifest)
+        
+        public static IEnumerable<ValidationResult> Validate(Stream nuspecStream, out NuspecReader nuspecReader)
         {
-            return Validate(manifest.Metadata);
-        }
-
-        public static IEnumerable<ValidationResult> Validate(INupkg nupkg)
-        {
-            var metadata = nupkg.Metadata as ManifestMetadata;
-            if (metadata != null)
+            try
             {
-                return Validate(metadata);
+                nuspecReader = new NuspecReader(nuspecStream);
+                var rawMetadata = nuspecReader.GetMetadata();
+                if (rawMetadata != null && rawMetadata.Any())
+                {
+                    return ValidateCore(PackageMetadata.FromNuspecReader(nuspecReader));
+                }
             }
+            catch (Exception ex)
+            {
+                nuspecReader = null;
+                return new [] { new ValidationResult(ex.Message) };
+            }
+
             return Enumerable.Empty<ValidationResult>();
         }
 
-        public static IEnumerable<ValidationResult> Validate(ManifestMetadata metadata)
+        private static IEnumerable<ValidationResult> ValidateCore(PackageMetadata packageMetadata)
         {
             // Validate the ID
-            if (String.IsNullOrEmpty(metadata.Id))
+            if (string.IsNullOrEmpty(packageMetadata.Id))
             {
                 yield return new ValidationResult(Strings.Manifest_MissingId);
             }
             else
             {
-                if (metadata.Id.Length > MaxPackageIdLength)
+                if (packageMetadata.Id.Length > MaxPackageIdLength)
                 {
                     yield return new ValidationResult(Strings.Manifest_IdTooLong);
                 }
-                else if (!PackageIdValidator.IsValidPackageId(metadata.Id))
+                else if (!PackageIdValidator.IsValidPackageId(packageMetadata.Id))
                 {
                     yield return new ValidationResult(String.Format(
                         CultureInfo.CurrentCulture,
                         Strings.Manifest_InvalidId,
-                        metadata.Id));
+                        packageMetadata.Id));
                 }
             }
 
-            foreach (var result in CheckUrls(metadata.IconUrl, metadata.ProjectUrl, metadata.LicenseUrl))
+            // Check URL properties
+            foreach (var result in CheckUrls(
+                packageMetadata.GetValueFromMetadata("IconUrl"),
+                packageMetadata.GetValueFromMetadata("ProjectUrl"), 
+                packageMetadata.GetValueFromMetadata("LicenseUrl")))
             {
                 yield return result;
             }
 
-            SemanticVersion __;
-            if (!SemanticVersion.TryParse(metadata.Version, out __))
+            // Check version
+            if (packageMetadata.Version == null)
             {
+                var version = packageMetadata.GetValueFromMetadata("version");
+
                 yield return new ValidationResult(String.Format(
                     CultureInfo.CurrentCulture,
                     Strings.Manifest_InvalidVersion,
-                    metadata.Version));
+                    version));
             }
 
-            if (metadata.DependencySets != null)
+            // Check dependency groups
+            var dependencyGroups = packageMetadata.GetDependencyGroups();
+            if (dependencyGroups != null)
             {
-                foreach (var dependency in metadata.DependencySets.SelectMany(set => set.Dependencies))
+                foreach (var dependency in dependencyGroups.SelectMany(set => set.Packages))
                 {
-                    IVersionSpec ___;
-                    if (!PackageIdValidator.IsValidPackageId(dependency.Id) || ( !string.IsNullOrEmpty(dependency.Version) && !VersionUtility.TryParseVersionSpec(dependency.Version, out ___)))
+                    if (!PackageIdValidator.IsValidPackageId(dependency.Id))
                     {
                         yield return new ValidationResult(String.Format(
                             CultureInfo.CurrentCulture,
                             Strings.Manifest_InvalidDependency,
                             dependency.Id,
-                            dependency.Version));
+                            dependency.VersionRange));
                     }
-                }
-            }
-
-            var fxes = Enumerable.Concat(
-                metadata.FrameworkAssemblies == null ? 
-                    Enumerable.Empty<string>() : 
-                    (metadata.FrameworkAssemblies.Select(a => a.TargetFramework)),
-                metadata.DependencySets == null ?
-                    Enumerable.Empty<string>() :
-                    (metadata.DependencySets.Select(s => s.TargetFramework)));
-            foreach (var fx in fxes)
-            {
-                //if target framework is not specified, then continue. Validate only for wrong specification.
-                if (string.IsNullOrEmpty(fx))
-                    continue;
-                ValidationResult result = null;
-                try
-                {
-                    VersionUtility.ParseFrameworkName(fx);
-                }
-                catch (ArgumentException)
-                {
-                    // Can't yield in the body of a catch...
-                    result = new ValidationResult(String.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.Manifest_InvalidTargetFramework,
-                        fx));
-                }
-
-                if (result != null)
-                {
-                    yield return result;
                 }
             }
         }

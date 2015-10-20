@@ -1,11 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.Versioning;
-using NuGet;
-using NuGetGallery.Packaging;
+using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -18,7 +19,7 @@ namespace NuGetGallery
 
         public override void Curate(
             Package galleryPackage,
-            INupkg nugetPackage,
+            PackageReader nugetPackage,
             bool commitChanges)
         {
             var curatedFeed = CuratedFeedService.GetFeedByName("webmatrix", includePackages: false);
@@ -42,11 +43,13 @@ namespace NuGetGallery
         internal static bool ShouldCuratePackage(
             CuratedFeed curatedFeed, 
             Package galleryPackage,
-            INupkg nugetPackage)
+            PackageReader nugetPackage)
         {
+            var nuspec = nugetPackage.GetNuspecReader();
+
             return 
                 // Must have min client version of null or <= 2.2
-                (nugetPackage.Metadata.MinClientVersion == null || nugetPackage.Metadata.MinClientVersion <= new Version(2, 2)) &&
+                (nuspec.GetMinClientVersion() == null || nuspec.GetMinClientVersion() <= new NuGetVersion(2, 2, 0)) &&
 
                 // Must be latest stable
                 galleryPackage.IsLatestStable &&
@@ -74,16 +77,16 @@ namespace NuGetGallery
 
         private static bool SupportsNet40(Package galleryPackage)
         {
-            var net40fx = new FrameworkName(".NETFramework", new Version(4, 0));
+            var net40Fx = new NuGetFramework(".NETFramework", new Version(4, 0));
             return (galleryPackage.SupportedFrameworks.Count == 0) ||
                 (from fx in galleryPackage.SupportedFrameworks
-                 let fxName = VersionUtility.ParseFrameworkName(fx.TargetFramework)
-                 where fxName == net40fx
+                 let fxName = NuGetFramework.Parse(fx.TargetFramework)
+                 where fxName == net40Fx
                  select fx)
                 .Any();
         }
 
-        private static bool DoesNotContainUnsupportedFiles(INupkg nugetPackage)
+        private static bool DoesNotContainUnsupportedFiles(PackageReader nugetPackage)
         {
             foreach (var filePath in nugetPackage.GetFiles())
             {

@@ -15,7 +15,7 @@ namespace NuGetGallery
         {
             _package = package;
             Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
-                SemanticVersionExtensions.Normalize(package.Version) :
+                NuGetVersionNormalizer.Normalize(package.Version) :
                 package.NormalizedVersion;
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;

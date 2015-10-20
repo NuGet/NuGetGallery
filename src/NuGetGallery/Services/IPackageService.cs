@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet;
+using NuGet.Packaging;
 using NuGetGallery;
 using NuGetGallery.Packaging;
 
@@ -24,10 +25,11 @@ namespace NuGetGallery
         /// This method doesn't upload the package binary to the blob storage. The caller must do it after this call.
         /// </remarks>
         /// <param name="nugetPackage">The package to be created.</param>
-        /// <param name="currentUser">The owner of the package</param>
+        /// <param name="packageStreamMetadata">The package stream's metadata.</param>
+        /// <param name="user">The owner of the package</param>
         /// <param name="commitChanges">Specifies whether to commit the changes to database.</param>
         /// <returns>The created package entity.</returns>
-        Package CreatePackage(INupkg nugetPackage, User user, bool commitChanges = true);
+        Package CreatePackage(PackageReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true);
 
         /// <summary>
         /// Delete all related data from database for the specified package id and version.

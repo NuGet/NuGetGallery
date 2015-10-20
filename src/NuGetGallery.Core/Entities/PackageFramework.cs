@@ -4,8 +4,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.Versioning;
-using NuGet;
+using NuGet.Frameworks;
 
 namespace NuGetGallery
 {
@@ -23,12 +22,12 @@ namespace NuGetGallery
             set
             {
                 _targetFramework = value;
-                FrameworkName = VersionUtility.ParseFrameworkName(_targetFramework);
+                FrameworkName = NuGetFramework.Parse(_targetFramework);
             }
         }
 
         [NotMapped]
-        public FrameworkName FrameworkName { get; private set; }
+        public NuGetFramework FrameworkName { get; private set; }
 
         public int Key { get; set; }
 

@@ -3,7 +3,7 @@
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
-using NuGet;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -32,8 +32,9 @@ namespace NuGetGallery
             {
                 return true;
             }
-            SemanticVersion ignored;
-            return SemanticVersion.TryParse(versionText, out ignored);
+            
+            NuGetVersion ignored;
+            return NuGetVersion.TryParse(versionText, out ignored);
         }
     }
 }

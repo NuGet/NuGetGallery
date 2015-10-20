@@ -3,8 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using NuGet;
-using NuGetGallery.Packaging;
+using NuGet.Packaging;
 
 namespace NuGetGallery
 {
@@ -12,7 +11,7 @@ namespace NuGetGallery
     {
         void Execute(
             Package galleryPackage,
-            INupkg nugetPackage,
+            PackageReader nugetPackage,
             bool commitChanges);
     }
 
@@ -26,7 +25,7 @@ namespace NuGetGallery
             _curators = curators.ToList();
         }
 
-        public void Execute(Package galleryPackage, INupkg nugetPackage, bool commitChanges)
+        public void Execute(Package galleryPackage, PackageReader nugetPackage, bool commitChanges)
         {
             foreach (var curator in _curators)
             {

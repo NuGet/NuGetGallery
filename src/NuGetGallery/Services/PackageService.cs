@@ -1,13 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Runtime.Versioning;
-using NuGet;
+using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Versioning;
 using NuGetGallery.Packaging;
-using Crypto = NuGetGallery.CryptographyService;
 
 namespace NuGetGallery
 {
@@ -33,13 +34,15 @@ namespace NuGetGallery
             _indexingService = indexingService;
         }
 
-        public Package CreatePackage(INupkg nugetPackage, User user, bool commitChanges = true)
+        public Package CreatePackage(PackageReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
         {
-            ValidateNuGetPackageMetadata(nugetPackage.Metadata);
+            var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
-            var packageRegistration = CreateOrGetPackageRegistration(user, nugetPackage.Metadata);
+            ValidateNuGetPackageMetadata(packageMetadata);
 
-            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, user);
+            var packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata);
+
+            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
             packageRegistration.Packages.Add(package);
             UpdateIsLatest(packageRegistration);
 
@@ -139,7 +142,7 @@ namespace NuGetGallery
                 package = packageVersions.SingleOrDefault(
                     p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
                          (
-                            String.Equals(p.NormalizedVersion, SemanticVersionExtensions.Normalize(version), StringComparison.OrdinalIgnoreCase)
+                            String.Equals(p.NormalizedVersion, NuGetVersionNormalizer.Normalize(version), StringComparison.OrdinalIgnoreCase)
                          ));
             }
             return package;
@@ -206,9 +209,9 @@ namespace NuGetGallery
                                        where d.Id == package.PackageRegistration.Id
                                        select d).Include(pk => pk.Package.PackageRegistration).ToList();
             // Now filter by version range.
-            var packageVersion = new SemanticVersion(package.Version);
+            var packageVersion = new NuGetVersion(package.Version);
             var dependents = from d in candidateDependents
-                             where VersionUtility.ParseVersionSpec(d.VersionSpec).Satisfies(packageVersion)
+                             where VersionRange.Parse(d.VersionSpec).Satisfies(packageVersion)
                              select d;
 
             return dependents.Select(d => d.Package);
@@ -353,7 +356,7 @@ namespace NuGetGallery
                     PackageRegistrationKey = package.Key,
                     RequestingOwnerKey = currentOwner.Key,
                     NewOwnerKey = newOwner.Key,
-                    ConfirmationCode = Crypto.GenerateToken(),
+                    ConfirmationCode = CryptographyService.GenerateToken(),
                     RequestDate = DateTime.UtcNow
                 };
 
@@ -394,21 +397,21 @@ namespace NuGetGallery
             return ConfirmOwnershipResult.Failure;
         }
 
-        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackageMetadata nugetPackage)
+        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, PackageMetadata packageMetadata)
         {
-            var packageRegistration = FindPackageRegistrationById(nugetPackage.Id);
+            var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
             if (packageRegistration != null && !packageRegistration.Owners.Contains(currentUser))
             {
-                throw new EntityException(Strings.PackageIdNotAvailable, nugetPackage.Id);
+                throw new EntityException(Strings.PackageIdNotAvailable, packageMetadata.Id);
             }
 
             if (packageRegistration == null)
             {
                 packageRegistration = new PackageRegistration
-                    {
-                        Id = nugetPackage.Id
-                    };
+                {
+                    Id = packageMetadata.Id
+                };
 
                 packageRegistration.Owners.Add(currentUser);
 
@@ -418,9 +421,9 @@ namespace NuGetGallery
             return packageRegistration;
         }
 
-        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage, User user)
+        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, PackageReader nugetPackage, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user)
         {
-            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Metadata.Version.ToString());
+            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == packageMetadata.Version.ToString());
 
             if (package != null)
             {
@@ -429,43 +432,42 @@ namespace NuGetGallery
             }
 
             var now = DateTime.UtcNow;
-            var packageFileStream = nugetPackage.GetStream();
 
             package = new Package
             {
                 // Version must always be the exact string from the nuspec, which ToString will return to us. 
                 // However, we do also store a normalized copy for looking up later.
-                Version = nugetPackage.Metadata.Version.ToString(),
-                NormalizedVersion = nugetPackage.Metadata.Version.ToNormalizedString(),
+                Version = packageMetadata.Version.ToString(),
+                NormalizedVersion = packageMetadata.Version.ToNormalizedString(),
 
-                Description = nugetPackage.Metadata.Description,
-                ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
-                HashAlgorithm = Constants.Sha512HashAlgorithmId,
-                Hash = Crypto.GenerateHash(packageFileStream.ReadAllBytes()),
-                PackageFileSize = packageFileStream.Length,
+                Description = packageMetadata.Description,
+                ReleaseNotes = packageMetadata.ReleaseNotes,
+                HashAlgorithm = packageStreamMetadata.HashAlgorithm,
+                Hash = packageStreamMetadata.Hash,
+                PackageFileSize = packageStreamMetadata.Size,
                 Created = now,
-                Language = nugetPackage.Metadata.Language,
+                Language = packageMetadata.Language,
                 LastUpdated = now,
                 Published = now,
-                Copyright = nugetPackage.Metadata.Copyright,
-                FlattenedAuthors = nugetPackage.Metadata.Authors.Flatten(),
-                IsPrerelease = !nugetPackage.Metadata.IsReleaseVersion(),
+                Copyright = packageMetadata.Copyright,
+                FlattenedAuthors = packageMetadata.Authors.Flatten(),
+                IsPrerelease = packageMetadata.Version.IsPrerelease,
                 Listed = true,
                 PackageRegistration = packageRegistration,
-                RequiresLicenseAcceptance = nugetPackage.Metadata.RequireLicenseAcceptance,
-                Summary = nugetPackage.Metadata.Summary,
-                Tags = PackageHelper.ParseTags(nugetPackage.Metadata.Tags),
-                Title = nugetPackage.Metadata.Title,
+                RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
+                Summary = packageMetadata.Summary,
+                Tags = PackageHelper.ParseTags(packageMetadata.Tags),
+                Title = packageMetadata.Title,
                 User = user,
             };
 
-            package.IconUrl = nugetPackage.Metadata.IconUrl.ToEncodedUrlStringOrNull();
-            package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToEncodedUrlStringOrNull();
-            package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToEncodedUrlStringOrNull();
-            package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
+            package.IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull();
+            package.LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
+            package.ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull();
+            package.MinClientVersion = packageMetadata.MinClientVersion.ToStringOrNull();
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
-            foreach (var author in nugetPackage.Metadata.Authors)
+            foreach (var author in packageMetadata.Authors)
             {
                 package.Authors.Add(new PackageAuthor { Name = author });
             }
@@ -480,27 +482,27 @@ namespace NuGetGallery
                 }
             }
 
-            foreach (var dependencySet in nugetPackage.Metadata.DependencySets)
+            foreach (var dependencyGroup in packageMetadata.GetDependencyGroups())
             {
-                if (dependencySet.Dependencies.Count == 0)
+                if (!dependencyGroup.Packages.Any())
                 {
                     package.Dependencies.Add(
                         new PackageDependency
                             {
                                 Id = null,
                                 VersionSpec = null,
-                                TargetFramework = dependencySet.TargetFramework.ToShortNameOrNull()
+                                TargetFramework = dependencyGroup.TargetFramework.ToShortNameOrNull()
                             });
                 }
                 else
                 {
-                    foreach (var dependency in dependencySet.Dependencies.Select(d => new { d.Id, d.VersionSpec, dependencySet.TargetFramework }))
+                    foreach (var dependency in dependencyGroup.Packages.Select(d => new { d.Id, d.VersionRange, dependencyGroup.TargetFramework }))
                     {
                         package.Dependencies.Add(
                             new PackageDependency
                                 {
                                     Id = dependency.Id,
-                                    VersionSpec = dependency.VersionSpec == null ? null : dependency.VersionSpec.ToString(),
+                                    VersionSpec = dependency.VersionRange == null ? null : dependency.VersionRange.ToString(),
                                     TargetFramework = dependency.TargetFramework.ToShortNameOrNull()
                                 });
                     }
@@ -512,82 +514,91 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual IEnumerable<FrameworkName> GetSupportedFrameworks(INupkg package)
+        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageReader package)
         {
             return package.GetSupportedFrameworks();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        private static void ValidateNuGetPackageMetadata(IPackageMetadata nugetPackage)
+        private static void ValidateNuGetPackageMetadata(PackageMetadata packageMetadata)
         {
             // TODO: Change this to use DataAnnotations
-            if (nugetPackage.Id.Length > 100)
+            if (packageMetadata.Id.Length > 100)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "100");
             }
-            if (nugetPackage.Authors != null && nugetPackage.Authors.Flatten().Length > 4000)
+            if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
             }
-            if (nugetPackage.Copyright != null && nugetPackage.Copyright.Length > 4000)
+            if (packageMetadata.Copyright != null && packageMetadata.Copyright.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000");
             }
-            if (nugetPackage.Description != null && nugetPackage.Description.Length > 4000)
+            if (packageMetadata.Description != null && packageMetadata.Description.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Description", "4000");
             }
-            if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.AbsoluteUri.Length > 4000)
+            if (packageMetadata.IconUrl != null && packageMetadata.IconUrl.AbsoluteUri.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000");
             }
-            if (nugetPackage.LicenseUrl != null && nugetPackage.LicenseUrl.AbsoluteUri.Length > 4000)
+            if (packageMetadata.LicenseUrl != null && packageMetadata.LicenseUrl.AbsoluteUri.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000");
             }
-            if (nugetPackage.ProjectUrl != null && nugetPackage.ProjectUrl.AbsoluteUri.Length > 4000)
+            if (packageMetadata.ProjectUrl != null && packageMetadata.ProjectUrl.AbsoluteUri.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000");
             }
-            if (nugetPackage.Summary != null && nugetPackage.Summary.Length > 4000)
+            if (packageMetadata.Summary != null && packageMetadata.Summary.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Summary", "4000");
             }
-            if (nugetPackage.Tags != null && nugetPackage.Tags.Length > 4000)
+            if (packageMetadata.Tags != null && packageMetadata.Tags.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Tags", "4000");
             }
-            if (nugetPackage.Title != null && nugetPackage.Title.Length > 256)
+            if (packageMetadata.Title != null && packageMetadata.Title.Length > 256)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "256");
             }
 
-            if (nugetPackage.Version != null && nugetPackage.Version.ToString().Length > 64)
+            if (packageMetadata.Version != null && packageMetadata.Version.ToString().Length > 64)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Version", "64");
             }
 
-            if (nugetPackage.Language != null && nugetPackage.Language.Length > 20)
+            if (packageMetadata.Language != null && packageMetadata.Language.Length > 20)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Language", "20");
             }
 
-            foreach (var dependency in nugetPackage.DependencySets.SelectMany(s => s.Dependencies))
+            // Validate dependencies
+            if (packageMetadata.GetDependencyGroups() != null)
             {
-                if (dependency.Id != null && dependency.Id.Length > 128)
+                var packageDependencies = packageMetadata.GetDependencyGroups().ToList();
+    
+                foreach (var dependency in packageDependencies.SelectMany(s => s.Packages))
                 {
-                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", "128");
+                    // NuGet.Core compatibility - dependency package id can not be > 128 characters
+                    if (dependency.Id != null && dependency.Id.Length > CoreConstants.MaxPackageIdLength)
+                    {
+                        throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength);
+                    }
+
+                    // NuGet.Core compatibility - dependency versionspec can not be > 256 characters
+                    if (dependency.VersionRange != null && dependency.VersionRange.ToString().Length > 256)
+                    {
+                        throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", "256");
+                    }
                 }
 
-                if (dependency.VersionSpec != null && dependency.VersionSpec.ToString().Length > 256)
+                // NuGet.Core compatibility - flattened dependencies should be < Int16.MaxValue
+                if (packageDependencies.Flatten().Length > Int16.MaxValue)
                 {
-                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", "256");
+                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
                 }
-            }
-
-            if (nugetPackage.DependencySets != null && nugetPackage.DependencySets.Flatten().Length > Int16.MaxValue)
-            {
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
             }
         }
 
@@ -640,7 +651,7 @@ namespace NuGetGallery
             {
                 packages = packages.Where(predicate);
             }
-            SemanticVersion version = packages.Max(p => new SemanticVersion(p.Version));
+            NuGetVersion version = packages.Max(p => new NuGetVersion(p.Version));
 
             if (version == null)
             {

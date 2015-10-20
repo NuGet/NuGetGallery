@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -13,7 +13,7 @@ namespace NuGetGallery
         public const string DefaultPackageListSortOrder = "package-download-count";
         public const int DefaultPasswordResetTokenExpirationHours = 24;
         public const int MaxEmailSubjectLength = 255;
-        internal static readonly Version MaxSupportedMinClientVersion = new Version("3.2.0.0");
+        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("3.4.0.0");
         public const string PackageContentType = "application/zip";
         public const string OctetStreamContentType = "application/octet-stream";
         public const string NuGetPackageFileExtension = ".nupkg";

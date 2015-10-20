@@ -34,7 +34,7 @@ namespace NuGetGallery.ViewModels
                 var actual = vm.DependencySets["Portable Class Library (.NETFramework 4.0, Silverlight 4.0, Windows 8.0, WindowsPhone 7.1)"].ToArray();
                 Assert.Equal(1, actual.Length);
                 Assert.Equal("Microsoft.Net.Http", actual[0].Id);
-                Assert.Equal("(≥ 2.1 && < 3.0)", actual[0].VersionSpec);
+                Assert.Equal("(≥ 2.1.0 && < 3.0.0)", actual[0].VersionSpec);
             }
         }
     }

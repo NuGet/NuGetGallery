@@ -8,6 +8,9 @@ using System.Linq;
 using System.Runtime.Versioning;
 using Moq;
 using NuGet;
+using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Versioning;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
@@ -16,61 +19,69 @@ namespace NuGetGallery
 {
     public class PackageServiceFacts
     {
-        private static Mock<INupkg> CreateNuGetPackage(Action<Mock<IPackageMetadata>> setupMetadata = null)
+        private static Mock<TestPackageReader> CreateNuGetPackage(
+            string id = "theId",
+            string version = "01.0.42.0",
+            string title = "theTitle",
+            string summary = "theSummary",
+            string authors = "theFirstAuthor, theSecondAuthor",
+            string owners = "Package owners",
+            string description = "theDescription",
+            string tags = "theTags",
+            string language = null,
+            string copyright = "theCopyright",
+            string releaseNotes = "theReleaseNotes",
+            string minClientVersion = null,
+            Uri licenseUrl = null,
+            Uri projectUrl = null,
+            Uri iconUrl = null,
+            bool requireLicenseAcceptance = true,
+            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null)
         {
-            var nugetPackage = new Mock<INupkg>();
-            var metadata = new Mock<IPackageMetadata>();
-            nugetPackage.Setup(x => x.Metadata).Returns(metadata.Object);
+            licenseUrl = licenseUrl ?? new Uri("http://thelicenseurl/");
+            projectUrl = projectUrl ?? new Uri("http://theprojecturl/");
+            iconUrl = iconUrl ?? new Uri("http://theiconurl/");
 
-            metadata.Setup(x => x.Id).Returns("theId");
-            metadata.Setup(x => x.Version).Returns(new SemanticVersion("01.0.42.0"));
-
-            metadata.Setup(x => x.Authors).Returns(new[] { "theFirstAuthor", "theSecondAuthor" });
-            metadata.Setup(x => x.DependencySets).Returns(
-                new[]
-                    {
-                        new PackageDependencySet(
-                            VersionUtility.DefaultTargetFramework,
-                            new[]
-                                {
-                                    new NuGet.PackageDependency(
-                                        "theFirstDependency",
-                                        new VersionSpec
-                                            {
-                                                MinVersion = new SemanticVersion("1.0"),
-                                                MaxVersion = new SemanticVersion("2.0"),
-                                                IsMinInclusive = true,
-                                                IsMaxInclusive = false
-                                            }),
-                                    new NuGet.PackageDependency("theSecondDependency", new VersionSpec(new SemanticVersion("1.0"))),
-                                    new NuGet.PackageDependency("theThirdDependency")
-                                }),
-                        new PackageDependencySet(
-                            VersionUtility.ParseFrameworkName("net35"),
-                            new[]
-                                {
-                                    new NuGet.PackageDependency("theFourthDependency", new VersionSpec(new SemanticVersion("1.0")))
-                                })
-                    });
-            metadata.Setup(x => x.Description).Returns("theDescription");
-            metadata.Setup(x => x.ReleaseNotes).Returns("theReleaseNotes");
-            metadata.Setup(x => x.IconUrl).Returns(new Uri("http://theiconurl/"));
-            metadata.Setup(x => x.LicenseUrl).Returns(new Uri("http://thelicenseurl/"));
-            metadata.Setup(x => x.ProjectUrl).Returns(new Uri("http://theprojecturl/"));
-            metadata.Setup(x => x.RequireLicenseAcceptance).Returns(true);
-            metadata.Setup(x => x.Summary).Returns("theSummary");
-            metadata.Setup(x => x.Tags).Returns("theTags");
-            metadata.Setup(x => x.Title).Returns("theTitle");
-            metadata.Setup(x => x.Copyright).Returns("theCopyright");
-
-            nugetPackage.Setup(x => x.GetStream()).Returns(new MemoryStream(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }));
-
-            if (setupMetadata != null)
+            if (packageDependencyGroups == null)
             {
-                setupMetadata(metadata);
+                packageDependencyGroups = new[]
+                {
+                    new PackageDependencyGroup(
+                        new NuGetFramework("net40"),
+                        new[]
+                        {
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "theFirstDependency",
+                                VersionRange.Parse("[1.0.0, 2.0.0)")),
+
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "theSecondDependency",
+                                VersionRange.Parse("[1.0]")),
+
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "theThirdDependency")
+                        }),
+
+                    new PackageDependencyGroup(
+                        new NuGetFramework("net35"),
+                        new[]
+                        {
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "theFourthDependency",
+                                VersionRange.Parse("[1.0]"))
+                        })
+                };
             }
 
-            return nugetPackage;
+            var testPackage = TestPackage.CreateTestPackageStream(
+                id, version, title, summary, authors, owners,
+                description, tags, language, copyright, releaseNotes, 
+                minClientVersion, licenseUrl, projectUrl, iconUrl,
+                requireLicenseAcceptance, packageDependencyGroups);
+            
+            var mock = new Mock<TestPackageReader>(testPackage);
+            mock.CallBase = true;
+            return mock;
         }
 
         private static IPackageService CreateService(
@@ -314,7 +325,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                service.CreatePackage(nugetPackage.Object, currentUser);
+                service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Id == "theId")));
                 packageRegistrationRepository.Verify(x => x.CommitChanges());
@@ -329,7 +340,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                service.CreatePackage(nugetPackage.Object, currentUser);
+                service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Owners.Contains(currentUser))));
             }
@@ -343,7 +354,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 // Yes, I know this is a lot of asserts. Yes, I know I broke the golden, one assert per test rule.
                 // That said, it's still asserting one "thing": that the package data was read.
@@ -352,9 +363,9 @@ namespace NuGetGallery
                 Assert.Equal("01.0.42.0", package.Version);
                 Assert.Equal("1.0.42", package.NormalizedVersion);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
-                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionSpec);
+                Assert.Equal("[1.0.0, 2.0.0)", package.Dependencies.ElementAt(0).VersionSpec);
                 Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);
-                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionSpec);
+                Assert.Equal("[1.0.0, 1.0.0]", package.Dependencies.ElementAt(1).VersionSpec);
                 Assert.Equal("theDescription", package.Description);
                 Assert.Equal("theReleaseNotes", package.ReleaseNotes);
                 Assert.Equal("http://theiconurl/", package.IconUrl);
@@ -370,7 +381,7 @@ namespace NuGetGallery
 
                 Assert.Equal("theFirstAuthor, theSecondAuthor", package.FlattenedAuthors);
                 Assert.Equal(
-                    "theFirstDependency:[1.0, 2.0):net4000|theSecondDependency:[1.0]:net4000|theThirdDependency::net4000|theFourthDependency:[1.0]:net35",
+                    "theFirstDependency:[1.0.0, 2.0.0):net40|theSecondDependency:[1.0.0, 1.0.0]:net40|theThirdDependency:(, ):net40|theFourthDependency:[1.0.0, 1.0.0]:net35",
                     package.FlattenedDependencies);
             }
 
@@ -380,10 +391,10 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(s => s.Language).Returns("fr"));
+                var nugetPackage = CreateNuGetPackage(language: "fr");
                 var currentUser = new User();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 // Assert
                 Assert.Equal("fr", package.Language);
@@ -398,11 +409,11 @@ namespace NuGetGallery
                 packageRegistrationRepository.Setup(r => r.CommitChanges()).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
+                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 // Assert
                 Assert.True(package.IsPrerelease);
@@ -417,11 +428,11 @@ namespace NuGetGallery
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
+                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
-                var package = service.CreatePackage(nugetPackage.Object, currentUser, commitChanges: false);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser, commitChanges: false);
 
                 // Assert
                 packageRegistrationRepository.Verify();
@@ -437,11 +448,11 @@ namespace NuGetGallery
                 var service = CreateService(indexingService: indexingService, packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
 
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
+                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
-                var package = service.CreatePackage(nugetPackage.Object, currentUser, commitChanges: false);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser, commitChanges: false);
             }
 
             [Fact]
@@ -455,11 +466,11 @@ namespace NuGetGallery
                 indexingService.Setup(s => s.UpdateIndex()).Verifiable();
                 var service = CreateService(indexingService: indexingService, packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
+                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
-                var package = service.CreatePackage(nugetPackage.Object, currentUser, commitChanges: true);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser, commitChanges: true);
 
                 // Assert
                 indexingService.Verify();
@@ -474,27 +485,34 @@ namespace NuGetGallery
                 packageRegistrationRepository.Setup(r => r.CommitChanges()).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
+                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
-                var package = service.CreatePackage(nugetPackage.Object, currentUser, commitChanges: true);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser, commitChanges: true);
 
                 // Assert
                 packageRegistrationRepository.Verify();
             }
 
             [Fact]
-            public void WillGenerateAHashForTheCreatedPackage()
+            public void WillStoreTheHashForTheCreatedPackage()
             {
                 var service = CreateService(setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var packageStream = nugetPackage.Object.GetStream().AsSeekableStream();
+                var expectedHash = CryptographyService.GenerateHash(packageStream, Constants.Sha512HashAlgorithmId);
+                var packageStreamMetadata = new PackageStreamMetadata
+                {
+                    Hash = expectedHash,
+                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                    Size = packageStream.Length
+                };
+                var package = service.CreatePackage(nugetPackage.Object, packageStreamMetadata, currentUser);
 
-                var expectedHash = CryptographyService.GenerateHash(CreateNuGetPackage().Object.GetStream().ReadAllBytes(), Constants.Sha512HashAlgorithmId);
                 Assert.Equal(expectedHash, package.Hash);
                 Assert.Equal(Constants.Sha512HashAlgorithmId, package.HashAlgorithm);
             }
@@ -507,7 +525,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 Assert.NotNull(package.Published);
             }
@@ -520,7 +538,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 Assert.NotEqual(DateTime.MinValue, package.Created);
                 Assert.NotEqual(DateTime.MinValue, package.LastUpdated);
@@ -534,9 +552,17 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
-
-                Assert.Equal(8, package.PackageFileSize);
+                var packageStream = nugetPackage.Object.GetStream().AsSeekableStream();
+                var packageHash = CryptographyService.GenerateHash(packageStream, Constants.Sha512HashAlgorithmId);
+                var packageStreamMetadata = new PackageStreamMetadata
+                {
+                    Hash = packageHash,
+                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                    Size = 618
+                };
+                var package = service.CreatePackage(nugetPackage.Object, packageStreamMetadata, currentUser);
+                
+                Assert.Equal(618, package.PackageFileSize);
             }
 
             [Fact]
@@ -548,7 +574,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Packages.ElementAt(0) == package)));
                 packageRegistrationRepository.Verify(x => x.CommitChanges());
@@ -568,7 +594,7 @@ namespace NuGetGallery
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
                 var nugetPackage = CreateNuGetPackage();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 Assert.Same(packageRegistration.Packages.ElementAt(0), package);
                 packageRegistrationRepository.Verify(x => x.CommitChanges());
@@ -588,19 +614,18 @@ namespace NuGetGallery
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
                 var nugetPackage = CreateNuGetPackage();
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, currentUser, true));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
 
                 Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), ex.Message);
             }
 
             [Fact]
-            private void WillThrowIfTheNuGetPackageIdIsLongerThan128()
+            private void WillThrowIfTheNuGetPackageIdIsLongerThanMaxPackageIdLength()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage();
-                nugetPackage.Setup(x => x.Metadata.Id).Returns("theId".PadRight(101, '_'));
+                var nugetPackage = CreateNuGetPackage(id: "theId".PadRight(101, '_'));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", "100"), ex.Message);
             }
@@ -609,15 +634,9 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageAuthorsIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage =
-                    CreateNuGetPackage(m => m.Setup(x => x.Authors)
-                                             .Returns(new[]
-                                             {
-                                                 "theFirstAuthor".PadRight(2001, '_'),
-                                                 "theSecondAuthor".PadRight(2001, '_')
-                                             }));
+                var nugetPackage = CreateNuGetPackage(authors: "theFirstAuthor".PadRight(2001, '_') + ", " + "theSecondAuthor".PadRight(2001, '_'));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Authors", "4000"), ex.Message);
             }
@@ -626,10 +645,9 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageCopyrightIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage =
-                    CreateNuGetPackage(m => m.Setup(x => x.Copyright).Returns("theCopyright".PadRight(4001, '_')));
+                var nugetPackage = CreateNuGetPackage(copyright:  "theCopyright".PadRight(4001, '_'));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000"), ex.Message);
             }
@@ -639,10 +657,9 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var versionString = "1.0.0-".PadRight(65, 'a');
-                var nugetPackage =
-                    CreateNuGetPackage(m => m.Setup(x => x.Version).Returns(SemanticVersion.Parse(versionString)));
+                var nugetPackage = CreateNuGetPackage(version: versionString);
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Version", "64"), ex.Message);
             }
@@ -651,76 +668,60 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageDependenciesIsLongerThanInt16MaxValue()
             {
                 var service = CreateService();
-                var versionSpec = VersionUtility.ParseVersionSpec("[1.0]");
-                var dependencySets = new[]
+                var versionSpec = VersionRange.Parse("[1.0]");
+                var nugetPackage = CreateNuGetPackage(packageDependencyGroups: new[]
                 {
-                    new PackageDependencySet(
-                        VersionUtility.DefaultTargetFramework,
+                    new PackageDependencyGroup(
+                        new NuGetFramework("net40"),
                         Enumerable.Repeat(
-                            new NuGet.PackageDependency("theFirstDependency", versionSpec),
-                            5000))
-                };
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.DependencySets).Returns(dependencySets));
+                            new NuGet.Packaging.Core.PackageDependency("theFirstDependency", versionSpec), 5000)),
+                });
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue), ex.Message);
             }
 
             [Fact]
-            private void WillThrowIfThPackageDependencyIdIsLongerThan128()
+            private void WillThrowIfThePackageDependencyIdIsLongerThanMaxPackageIdLength()
             {
                 var service = CreateService();
-                var dependencySets = new[]
-                {
-                    new PackageDependencySet(VersionUtility.DefaultTargetFramework, new NuGet.PackageDependency[0]),
-                    new PackageDependencySet(
-                        new FrameworkName(".NetFramework", new Version(4, 0)),
-                        new[]
-                        {
-                            new NuGet.PackageDependency(
-                            "theFirstDependency".PadRight(129, '_'),
-                            new VersionSpec
-                            {
-                                MinVersion = new SemanticVersion("1.0"),
-                                MaxVersion = new SemanticVersion("2.0"),
-                                IsMinInclusive = true,
-                                IsMaxInclusive = false
-                            })
-                        })
-                };
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.DependencySets).Returns(dependencySets));
+                var nugetPackage = CreateNuGetPackage(packageDependencyGroups: new[]
+                    {
+                        new PackageDependencyGroup(
+                            new NuGetFramework("net40"),
+                            new[]
+                                {
+                                     new NuGet.Packaging.Core.PackageDependency(
+                                        "theFirstDependency".PadRight(129, '_'),
+                                        new VersionRange(
+                                            minVersion: new NuGetVersion("1.0")))
+                                })
+                    });
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", 128), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
-            private void WillThrowIfThPackageDependencyVersionSpecIsLongerThan256()
+            private void WillThrowIfThePackageDependencyVersionSpecIsLongerThan256()
             {
                 var service = CreateService();
-                var dependencySets = new[]
-                {
-                    new PackageDependencySet(VersionUtility.DefaultTargetFramework, new NuGet.PackageDependency[0]),
-                    new PackageDependencySet(
-                        new FrameworkName(".NetFramework", new Version(4, 0)),
-                        new[]
-                        {
-                            new NuGet.PackageDependency(
-                            "theFirstDependency",
-                            new VersionSpec
-                            {
-                                MinVersion = new SemanticVersion("1.0-".PadRight(257, 'a')),
-                                MaxVersion = new SemanticVersion("2.0"),
-                                IsMinInclusive = true,
-                                IsMaxInclusive = false
-                            })
-                        })
-                };
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.DependencySets).Returns(dependencySets));
+                var nugetPackage = CreateNuGetPackage(packageDependencyGroups: new[]
+                    {
+                        new PackageDependencyGroup(
+                            new NuGetFramework("net40"),
+                            new[]
+                                {
+                                     new NuGet.Packaging.Core.PackageDependency(
+                                        "theFirstDependency",
+                                        new VersionRange(
+                                            minVersion: new NuGetVersion("1.0-".PadRight(257, 'a'))))
+                                })
+                    });
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", 256), ex.Message);
             }
@@ -729,9 +730,9 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageDescriptionIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Description).Returns("theDescription".PadRight(4001, '_')));
+                var nugetPackage = CreateNuGetPackage(description:  "theDescription".PadRight(4001, '_'));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Description", "4000"), ex.Message);
             }
@@ -740,9 +741,9 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageIconUrlIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.IconUrl).Returns(new Uri("http://theIconUrl/".PadRight(4001, '-'), UriKind.Absolute)));
+                var nugetPackage = CreateNuGetPackage(iconUrl: new Uri("http://theIconUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000"), ex.Message);
             }
@@ -751,9 +752,9 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageLicenseUrlIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.LicenseUrl).Returns(new Uri("http://theLicenseUrl/".PadRight(4001, '-'), UriKind.Absolute)));
+                var nugetPackage = CreateNuGetPackage(licenseUrl: new Uri("http://theLicenseUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000"), ex.Message);
             }
@@ -762,9 +763,9 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageProjectUrlIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.ProjectUrl).Returns(new Uri("http://theProjectUrl/".PadRight(4001, '-'), UriKind.Absolute)));
+                var nugetPackage = CreateNuGetPackage(projectUrl: new Uri("http://theProjectUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000"), ex.Message);
             }
@@ -773,9 +774,9 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageSummaryIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Summary).Returns("theSummary".PadRight(4001, '_')));
+                var nugetPackage = CreateNuGetPackage(summary: "theSummary".PadRight(4001, '_'));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Summary", "4000"), ex.Message);
             }
@@ -784,9 +785,9 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageTagsIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Tags).Returns("theTags".PadRight(4001, '_')));
+                var nugetPackage = CreateNuGetPackage(tags:  "theTags".PadRight(4001, '_'));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Tags", "4000"), ex.Message);
             }
@@ -795,9 +796,9 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageTitleIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Title).Returns("theTitle".PadRight(4001, '_')));
+                var nugetPackage = CreateNuGetPackage(title: "theTitle".PadRight(4001, '_'));
 
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Title", "256"), ex.Message);
             }
@@ -807,10 +808,10 @@ namespace NuGetGallery
             {
                 // Arrange
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Language).Returns(new string('a', 21)));
+                var nugetPackage = CreateNuGetPackage(language: new string('a', 21));
 
                 // Act
-                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 // Assert
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Language", "20"), ex.Message);
@@ -822,18 +823,18 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
                                {
-                                   mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                                   mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<INupkg>())).Returns(
+                                   mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                                   mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageReader>())).Returns(
                                        new[]
-                                           {
-                                               VersionUtility.ParseFrameworkName("net40"),
-                                               VersionUtility.ParseFrameworkName("net35")
-                                           });
+                                       {
+                                           NuGetFramework.Parse("net40"),
+                                           NuGetFramework.Parse("net35")
+                                       });
                                });
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 Assert.Equal("net40", package.SupportedFrameworks.First().TargetFramework);
                 Assert.Equal("net35", package.SupportedFrameworks.ElementAt(1).TargetFramework);
@@ -845,18 +846,18 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
                                {
-                                   mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                                   mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<INupkg>())).Returns(
+                                   mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                                   mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageReader>())).Returns(
                                        new[]
-                                           {
-                                               null,
-                                               VersionUtility.ParseFrameworkName("net35")
-                                           });
+                                       {
+                                           null,
+                                           NuGetFramework.Parse("net35")
+                                       });
                                });
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 Assert.Empty(package.SupportedFrameworks);
             }

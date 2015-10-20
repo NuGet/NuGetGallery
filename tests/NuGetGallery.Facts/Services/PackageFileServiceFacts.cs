@@ -306,7 +306,7 @@ namespace NuGetGallery
             return string.Format(
                 Constants.PackageFileSavePathTemplate, 
                 id.ToLowerInvariant(), 
-                SemanticVersionExtensions.Normalize(version).ToLowerInvariant(), // No matter what ends up getting passed in, the version should be normalized
+                NuGetVersionNormalizer.Normalize(version).ToLowerInvariant(), // No matter what ends up getting passed in, the version should be normalized
                 Constants.NuGetPackageFileExtension);
         }
 

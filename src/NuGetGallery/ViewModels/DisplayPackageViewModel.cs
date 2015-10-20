@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -22,7 +23,7 @@ namespace NuGetGallery
             {
                 Dependencies = new DependencySetsViewModel(package.Dependencies);
                 PackageVersions = from p in package.PackageRegistration.Packages.ToList()
-                                  orderby new SemanticVersion(p.Version) descending
+                                  orderby new NuGetVersion(p.Version) descending
                                   select new DisplayPackageViewModel(p, isVersionHistory: true);
             }
             DownloadCount = package.DownloadCount;

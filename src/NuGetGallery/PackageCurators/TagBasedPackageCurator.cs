@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NuGetGallery.Packaging;
+using NuGet.Packaging;
 
 namespace NuGetGallery
 {
@@ -25,7 +25,7 @@ namespace NuGetGallery
         /// </summary>
         protected abstract string CuratedFeedName { get; }
 
-        public override void Curate(Package galleryPackage, INupkg nugetPackage, bool commitChanges)
+        public override void Curate(Package galleryPackage, PackageReader nugetPackage, bool commitChanges)
         {
             // Make sure the target feed exists
             CuratedFeed feed = CuratedFeedService.GetFeedByName(CuratedFeedName, includePackages: false);
