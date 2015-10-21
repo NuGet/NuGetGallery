@@ -148,7 +148,7 @@ namespace Ng
                         continue;
                     }
 
-                    if (!string.IsNullOrEmpty(packageId) && !string.IsNullOrEmpty(packageVersion) && deletedOn >= since)
+                    if (!string.IsNullOrEmpty(packageId) && !string.IsNullOrEmpty(packageVersion) && deletedOn > since)
                     {
                         // Mark the package "deleted"
                         IList<PackageIdentity> packages;
@@ -340,7 +340,6 @@ namespace Ng
             {
                 lastCreated = createdPackages.Value ? lastDate : lastCreated;
                 lastEdited = !createdPackages.Value ? lastDate : lastEdited;
-                lastDeleted = !createdPackages.Value ? lastDate : lastDeleted;
             }
 
             var commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(lastCreated, lastEdited, lastDeleted));
@@ -456,14 +455,25 @@ namespace Ng
                     var previousLastDeleted = DateTime.MinValue;
                     do
                     {
+                        // Get deleted packages
                         Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
 
                         deletedPackages = await GetDeletedPackages(auditingStorage, client, gallery, lastDeleted, top);
 
                         Trace.TraceInformation("FEED DeletedPackages: {0}", deletedPackages.Count);
 
-                        lastDeleted = await Deletes2Catalog(
-                            deletedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, cancellationToken);
+                        // We want to ensure a commit only contains each package once at most.
+                        // Therefore we segment by package id + version.
+                        var deletedPackagesSegments = SegmentPackageDeletes(deletedPackages);
+                        foreach (var deletedPackagesSegment in deletedPackagesSegments)
+                        {
+                            lastDeleted = await Deletes2Catalog(
+                                deletedPackagesSegment, catalogStorage, lastCreated, lastEdited, lastDeleted, cancellationToken);
+
+                            // Wait for one second to ensure the next catalog commit gets a new timestamp
+                            Thread.Sleep(TimeSpan.FromSeconds(1));
+                        }
+                        
                         if (previousLastDeleted == lastDeleted)
                         {
                             break;
@@ -471,11 +481,6 @@ namespace Ng
                         previousLastDeleted = lastDeleted;
                     }
                     while (deletedPackages.Count > 0);
-
-                    // Commits are granular per second. That means if processing the delete takes < 1 second, there is
-                    // a chance the upcoming insert/edit will generate the same timestamp.
-                    // Adding an explicit 1 second sleep ensures no catalog commit timestamps overlap.
-                    Thread.Sleep(TimeSpan.FromSeconds(1));
                 }
 
                 //  THEN fetch and add all newly CREATED packages - in order
@@ -520,6 +525,47 @@ namespace Ng
                 while (editedPackages.Count > 0);
             }
         }
+
+        private static IEnumerable<SortedList<DateTime, IList<PackageIdentity>>> SegmentPackageDeletes(SortedList<DateTime, IList<PackageIdentity>> packageDeletes)
+        {
+            var packageIdentityTracker = new HashSet<string>();
+            var currentSegment = new SortedList<DateTime, IList<PackageIdentity>>();
+            foreach (var entry in packageDeletes)
+            {
+                if (!currentSegment.ContainsKey(entry.Key))
+                {
+                    currentSegment.Add(entry.Key, new List<PackageIdentity>());
+                }
+
+                var curentSegmentPackages = currentSegment[entry.Key];
+                foreach (var packageIdentity in entry.Value)
+                {
+                    var key = packageIdentity.Id + "|" + packageIdentity.Version;
+                    if (packageIdentityTracker.Contains(key))
+                    {
+                        // Duplicate, return segment
+                        yield return currentSegment;
+
+                        // Clear current segment
+                        currentSegment.Clear();
+                        currentSegment.Add(entry.Key, new List<PackageIdentity>());
+                        curentSegmentPackages = currentSegment[entry.Key];
+                        packageIdentityTracker.Clear();
+                    }
+
+                    // Add to segment
+                    curentSegmentPackages.Add(packageIdentity);
+                    packageIdentityTracker.Add(key);
+                }
+            }
+
+            if (currentSegment.Any())
+            {
+                yield return currentSegment;
+            }
+        }
+
+
 
         private static void PrintUsage()
         {

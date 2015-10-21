@@ -52,7 +52,7 @@ namespace NgTests
             var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
             Assert.NotNull(catalogIndex.Key);
             Assert.Contains("\"nuget:lastCreated\": \"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
-            Assert.Contains("\"nuget:lastDeleted\": \"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastDeleted\": \"0001-01-01", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastEdited\": \"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
 
             // Ensure catalog has page0.json
