@@ -1,4 +1,4 @@
-[NuGet Gallery](http://nuget.org/) — Where packages are found 
+[NuGet Gallery for Namely](http://nuget.org/) — Where packages are found 
 =======================================================================
 
 
