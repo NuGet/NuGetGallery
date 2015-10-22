@@ -310,9 +310,6 @@ namespace NuGet.Indexing
             // TODO: can we find this value?
             // WriteProperty(jsonWriter, "timeTakenInMs", 0);
             WriteProperty(jsonWriter, "index", searcher.Manager.IndexName);
-
-            // CommittimeStamp format: 2015-10-12T18:39:39.6830871Z
-            // Time format in V2: 10/22/2015 4:53:25 PM
             WriteProperty(jsonWriter, "indexTimestamp", timestamp);
         }
 
@@ -324,6 +321,7 @@ namespace NuGet.Indexing
             WriteDocumentValue(jsonWriter, "Id", document, "Id");
             WriteProperty(jsonWriter, "DownloadCount", downloadCount);
 
+            // TODO: missing owner in lucene
             jsonWriter.WritePropertyName("Owners");
             jsonWriter.WriteStartArray();
             foreach (string owner in document.GetValues("Owner"))
