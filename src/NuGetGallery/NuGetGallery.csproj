@@ -15,13 +15,12 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NuGetGallery</RootNamespace>
     <AssemblyName>NuGetGallery</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <CodeAnalysisRuleSet>..\CodeAnalysis.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
     <CodeAnalysisAdditionalOptions>/assemblyCompareMode:StrongNameIgnoringVersion</CodeAnalysisAdditionalOptions>
-    <RunCodeAnalysis Condition=" '$(CodeAnalysis)' == 'true' ">true</RunCodeAnalysis>
     <OldToolsVersion>12.0</OldToolsVersion>
     <TargetFrameworkProfile />
     <IISExpressSSLPort>443</IISExpressSSLPort>

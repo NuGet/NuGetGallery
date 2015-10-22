@@ -1,10 +1,12 @@
-[NuGet Gallery](http://nuget.org/) — Where packages are found 
+[NuGet Gallery for Namely](http://nuget.org/) — Where packages are found 
 =======================================================================
 
-[![Build status](https://ci.appveyor.com/api/projects/status/6ob8lbutfecvi5n3/branch/master?svg=true)](https://ci.appveyor.com/project/NuGetteam/nugetgallery/branch/master)
 
 This is an implementation of the NuGet Gallery and API. This serves as the back-end and community 
 website for the NuGet client. For information about the NuGet clients, visit http://nuget.codeplex.com/
+
+Furthermore, this is a custom fork of NuGet that tells it to compile against .NET 4.6 instead of .NET 4.5.1 and turns off CodeAnalysis. Contact
+carlos@namely.com for more information!
 
 ## Build and Run the Gallery in (arbitrary number) easy steps
 
