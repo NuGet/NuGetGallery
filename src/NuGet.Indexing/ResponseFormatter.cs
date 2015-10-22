@@ -296,12 +296,21 @@ namespace NuGet.Indexing
             WriteProperty(jsonWriter, "totalHits", topDocs.TotalHits);
 
             string timestamp;
-            if (!searcher.CommitUserData.TryGetValue("commitTimeStamp", out timestamp))
+            DateTime dt;
+            if (searcher.CommitUserData.TryGetValue("commitTimeStamp", out timestamp) &&
+                DateTime.TryParse(timestamp, out dt))
             {
-                timestamp = DateTime.MinValue.ToString();
+                timestamp = dt.ToUniversalTime().ToString("G");
+            }
+            else
+            {
+                timestamp = DateTime.MinValue.ToUniversalTime().ToString("G");
             }
 
-            WriteProperty(jsonWriter, "IndexTimestampUtc", timestamp);
+            // TODO: can we find this value?
+            // WriteProperty(jsonWriter, "timeTakenInMs", 0);
+            WriteProperty(jsonWriter, "index", searcher.Manager.IndexName);
+            WriteProperty(jsonWriter, "indexTimestamp", timestamp);
         }
 
         static void WriteRegistrationV2(JsonTextWriter jsonWriter, Document document, int downloadCount)
@@ -312,6 +321,7 @@ namespace NuGet.Indexing
             WriteDocumentValue(jsonWriter, "Id", document, "Id");
             WriteProperty(jsonWriter, "DownloadCount", downloadCount);
 
+            // TODO: missing owner in lucene
             jsonWriter.WritePropertyName("Owners");
             jsonWriter.WriteStartArray();
             foreach (string owner in document.GetValues("Owner"))
