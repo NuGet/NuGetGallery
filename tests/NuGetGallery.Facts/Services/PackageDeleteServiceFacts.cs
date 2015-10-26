@@ -87,6 +87,24 @@ namespace NuGetGallery
         public class TheSoftDeletePackagesAsyncMethod
         {
             [Fact]
+            public async Task WillUpdateThePackage()
+            {
+                var packageDeletesRepo = new Mock<IEntityRepository<PackageDelete>>();
+                var service = CreateService(packageDeletesRepository: packageDeletesRepo);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+                var reason = "Unit testing";
+                var signature = "The Terminator";
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, reason, signature);
+
+                Assert.False(package.Listed);
+                Assert.True(package.Deleted);
+            }
+
+            [Fact]
             public async Task WillInsertNewRecordIntoThePackageDeletesRepository()
             {
                 var packageDeletesRepo = new Mock<IEntityRepository<PackageDelete>>();

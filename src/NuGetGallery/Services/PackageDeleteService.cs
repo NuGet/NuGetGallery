@@ -67,6 +67,7 @@ namespace NuGetGallery
 
                 foreach (var package in packages)
                 {
+                    package.Listed = false;
                     package.Deleted = true;
                     packageDelete.Packages.Add(package);
 

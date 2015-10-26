@@ -22,7 +22,7 @@
     <meta property="og:image" content="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
 }
 @section Meta {
-    @if (!Model.Listed)
+    @if (!Model.Listed || Model.Deleted)
     {
         <meta name="robots" content="noindex">
     }
@@ -224,7 +224,7 @@
         <p>@line</p>
     }
 
-    @if (!Model.Listed)
+    @if (!Model.Listed && !Model.Deleted)
     {
         if (Model.IsOwner(User))
         {
