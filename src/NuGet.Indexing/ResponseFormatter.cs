@@ -96,8 +96,8 @@ namespace NuGet.Indexing
                 WriteDocumentValue(jsonWriter, "licenseUrl", document, "LicenseUrl");
                 WriteDocumentValue(jsonWriter, "projectUrl", document, "ProjectUrl");
                 WriteDocumentValueAsArray(jsonWriter, "tags", document, "Tags");
-                WriteDocumentValueAsArray(jsonWriter, "authors", document, "Authors");
-                WriteProperty(jsonWriter, "totalDownloads", searcher.Versions[scoreDoc.Doc].VersionDetails.Select(item => item.Downloads).Sum().ToString());
+                WriteDocumentValue(jsonWriter, "authors", document, "Authors");
+                WriteProperty(jsonWriter, "totalDownloads", searcher.Versions[scoreDoc.Doc].VersionDetails.Select(item => item.Downloads).Sum());
                 WriteVersions(jsonWriter, id, includePrerelease, searcher.Versions[scoreDoc.Doc]);
 
                 if (includeExplanation)
@@ -310,6 +310,9 @@ namespace NuGet.Indexing
             // TODO: can we find this value?
             // WriteProperty(jsonWriter, "timeTakenInMs", 0);
             WriteProperty(jsonWriter, "index", searcher.Manager.IndexName);
+
+            // CommittimeStamp format: 2015-10-12T18:39:39.6830871Z
+            // Time format in V2: 10/22/2015 4:53:25 PM
             WriteProperty(jsonWriter, "indexTimestamp", timestamp);
         }
 
