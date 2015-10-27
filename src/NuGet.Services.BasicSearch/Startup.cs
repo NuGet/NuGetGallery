@@ -6,6 +6,7 @@ using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.StaticFiles.Infrastructure;
 using NuGet.Indexing;
+using NuGet.Services.Metadata;
 using Owin;
 using System;
 using System.Net;
@@ -92,25 +93,51 @@ namespace NuGet.Services.BasicSearch
         {
             try
             {
-                string luceneDirectory = System.Configuration.ConfigurationManager.AppSettings.Get("Local.Lucene.Directory");
-                if (!string.IsNullOrEmpty(luceneDirectory))
+                if (SafeRoleEnvironment.IsAvailable)
                 {
-                    string dataDirectory = System.Configuration.ConfigurationManager.AppSettings.Get("Local.Data.Directory");
-                    _searcherManager = NuGetSearcherManager.CreateLocal(luceneDirectory, dataDirectory);
+                    var _configurationService = new ConfigurationService();
+                    string luceneDirectory = _configurationService.Get("Local.Lucene.Directory");
+                    if (!string.IsNullOrEmpty(luceneDirectory))
+                    {
+                        string dataDirectory = _configurationService.Get("Local.Data.Directory");
+                        _searcherManager = NuGetSearcherManager.CreateLocal(luceneDirectory, dataDirectory);
+                    }
+                    else
+                    {
+                        string storagePrimary = _configurationService.Get("Storage.Primary");
+                        string searchIndexContainer = _configurationService.Get("Search.IndexContainer");
+                        string searchDataContainer = _configurationService.Get("Search.DataContainer");
+
+                        _searcherManager = NuGetSearcherManager.CreateAzure(storagePrimary, searchIndexContainer, searchDataContainer);
+                    }
+
+                    string registrationBaseAddress = _configurationService.Get("Search.RegistrationBaseAddress");
+
+                    _searcherManager.RegistrationBaseAddress["http"] = MakeRegistrationBaseAddress("http", registrationBaseAddress);
+                    _searcherManager.RegistrationBaseAddress["https"] = MakeRegistrationBaseAddress("https", registrationBaseAddress);
                 }
                 else
                 {
-                    string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
-                    string searchIndexContainer = System.Configuration.ConfigurationManager.AppSettings.Get("Search.IndexContainer");
-                    string searchDataContainer = System.Configuration.ConfigurationManager.AppSettings.Get("Search.DataContainer");
+                    string luceneDirectory = System.Configuration.ConfigurationManager.AppSettings.Get("Local.Lucene.Directory");
+                    if (!string.IsNullOrEmpty(luceneDirectory))
+                    {
+                        string dataDirectory = System.Configuration.ConfigurationManager.AppSettings.Get("Local.Data.Directory");
+                        _searcherManager = NuGetSearcherManager.CreateLocal(luceneDirectory, dataDirectory);
+                    }
+                    else
+                    {
+                        string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
+                        string searchIndexContainer = System.Configuration.ConfigurationManager.AppSettings.Get("Search.IndexContainer");
+                        string searchDataContainer = System.Configuration.ConfigurationManager.AppSettings.Get("Search.DataContainer");
 
-                    _searcherManager = NuGetSearcherManager.CreateAzure(storagePrimary, searchIndexContainer, searchDataContainer);
+                        _searcherManager = NuGetSearcherManager.CreateAzure(storagePrimary, searchIndexContainer, searchDataContainer);
+                    }
+
+                    string registrationBaseAddress = System.Configuration.ConfigurationManager.AppSettings.Get("Search.RegistrationBaseAddress");
+
+                    _searcherManager.RegistrationBaseAddress["http"] = MakeRegistrationBaseAddress("http", registrationBaseAddress);
+                    _searcherManager.RegistrationBaseAddress["https"] = MakeRegistrationBaseAddress("https", registrationBaseAddress);
                 }
-
-                string registrationBaseAddress = System.Configuration.ConfigurationManager.AppSettings.Get("Search.RegistrationBaseAddress");
-
-                _searcherManager.RegistrationBaseAddress["http"] = MakeRegistrationBaseAddress("http", registrationBaseAddress);
-                _searcherManager.RegistrationBaseAddress["https"] = MakeRegistrationBaseAddress("https", registrationBaseAddress);
 
                 _searcherManager.Open();
                 return true;
