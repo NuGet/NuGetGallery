@@ -52,10 +52,22 @@ namespace NuGet.Indexing
             //string supportedFramework = context.Request.Query["supportedFramework"];
 
             string q = context.Request.Query["q"] ?? string.Empty;
+            ValidateQuery(q);
 
             string scheme = context.Request.Uri.Scheme;
 
             return QuerySearch(searcherManager, scheme, q, countOnly, includePrerelease, skip, take, feed, includeExplanation);
+        }
+
+        public static void ValidateQuery(string query)
+        {
+            string details = string.Empty;
+
+            // " need to be shown as pair
+            if ( query.Split('\"').Length % 2 == 0 )
+            {
+                throw new ClientException(HttpStatusCode.BadRequest, "Invalid query format: " + query + " ");
+            }
         }
 
         public static string QuerySearch(NuGetSearcherManager searcherManager, string scheme, string q, bool countOnly, bool includePrerelease, int skip, int take, string feed, bool includeExplanation)
