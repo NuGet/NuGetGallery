@@ -38,7 +38,7 @@ WHERE
     ?catalogEntry nuget:version ?version ;
                   nuget:id ?id ;
 	              nuget:published ?published ;
-				  nuget:packageContent ?packageContent .
+	              OPTIONAL { ?catalogEntry nuget:packageContent ?packageContent . }
     
 	OPTIONAL { ?catalogEntry nuget:listed ?listed . }
     OPTIONAL { ?catalogEntry nuget:description ?description . }
