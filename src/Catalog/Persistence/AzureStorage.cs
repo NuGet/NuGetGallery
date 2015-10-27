@@ -3,8 +3,10 @@
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -76,6 +78,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return false;
         }
 
+        public override async Task<IEnumerable<Uri>> List(CancellationToken cancellationToken)
+        {
+            var files = await _directory.ListBlobsAsync(cancellationToken);
+
+            return files.Select(file => file.Uri).AsEnumerable();
+        }
+
         //  save
 
         protected override async Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
@@ -96,7 +105,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected override async Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
-            string name = GetName(resourceUri);
+            // the Azure SDK will treat a starting / as an absolute URL,
+            // while we may be working in a subdirectory of a storage container
+            // trim the starting slash to treat it as a relative path
+            string name = GetName(resourceUri).TrimStart('/');
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
 

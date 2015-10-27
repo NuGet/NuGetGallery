@@ -1,19 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Queue;
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.Queue;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using VDS.RDF;
 
 namespace NuGet.Canton
@@ -88,7 +87,6 @@ namespace NuGet.Canton
 
         public override async Task RunCore(CancellationToken cancellationToken)
         {
-            TimeSpan hold = TimeSpan.FromMinutes(90);
             int cantonCommitId = 0;
 
             JToken cantonCommitIdToken = null;
@@ -98,8 +96,6 @@ namespace NuGet.Canton
             }
 
             Queue<JObject> orderedMessages = new Queue<JObject>();
-
-            var blobClient = Account.CreateCloudBlobClient();
 
             Stopwatch giveup = new Stopwatch();
             giveup.Start();
@@ -329,7 +325,8 @@ namespace NuGet.Canton
                 Stopwatch timer = new Stopwatch();
                 timer.Start();
 
-                IGraph commitData = PackageCatalog.CreateCommitMetadata(writer.RootUri, latestPublished, latestPublished);
+                IGraph commitData = PackageCatalog.CreateCommitMetadata(
+                    writer.RootUri, new CommitMetadata(latestPublished, latestPublished, latestPublished));
 
                 // commit
                 await writer.Commit(DateTime.UtcNow, commitData, CancellationToken.None);

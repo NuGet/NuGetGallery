@@ -110,7 +110,10 @@
     <Compile Include="BatchCollector.cs" />
     <Compile Include="CatalogIndexEntry.cs" />
     <Compile Include="CatalogIndexReader.cs" />
+    <Compile Include="CloudBlobStorageExtensions.cs" />
     <Compile Include="CommitCollector.cs" />
+    <Compile Include="CommitMetadata.cs" />
+    <Compile Include="DeleteCatalogItem.cs" />
     <Compile Include="Helpers\GraphHelpers.cs" />
     <Compile Include="Ownership\AgreementRecord.cs" />
     <Compile Include="Ownership\IRegistration.cs" />
@@ -228,7 +231,9 @@
     <Content Include="content\Promise.js" />
     <EmbeddedResource Include="html\view.html" />
     <EmbeddedResource Include="xslt\normalizeNuspecNamespace.xslt" />
-    <EmbeddedResource Include="xslt\nuspec.xslt" />
+    <EmbeddedResource Include="xslt\nuspec.xslt">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="xslt\view.xslt" />
   </ItemGroup>
   <ItemGroup>
@@ -239,6 +244,7 @@
     <EmbeddedResource Include="context\Registration.json" />
     <EmbeddedResource Include="context\PackageDetails.json" />
     <EmbeddedResource Include="context\Ownership.json" />
+    <EmbeddedResource Include="context\Catalog.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />

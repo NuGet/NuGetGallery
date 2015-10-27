@@ -259,6 +259,83 @@ namespace Ng
             }
         }
 
+        public static StorageFactory CreateSuffixedStorageFactory(string suffix, IDictionary<string, string> arguments, bool verbose)
+        {
+            if (string.IsNullOrEmpty(suffix))
+            {
+                throw new ArgumentNullException("suffix");
+            }
+
+            Uri storageBaseAddress = null;
+            string storageBaseAddressStr;
+            if (arguments.TryGetValue("-storageBaseAddress" + suffix, out storageBaseAddressStr))
+            {
+                storageBaseAddressStr = storageBaseAddressStr.TrimEnd('/') + "/";
+
+                storageBaseAddress = new Uri(storageBaseAddressStr);
+            }
+
+            string storageType;
+            if (!arguments.TryGetValue("-storageType" + suffix, out storageType))
+            {
+                TraceRequiredArgument("-storageType" + suffix);
+                return null;
+            }
+
+            if (storageType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
+            {
+                string storagePath;
+                if (!arguments.TryGetValue("-storagePath" + suffix, out storagePath))
+                {
+                    TraceRequiredArgument("-storagePath" + suffix);
+                    return null;
+                }
+
+                if (storageBaseAddress == null)
+                {
+                    TraceRequiredArgument("-storageBaseAddress" + suffix);
+                    return null;
+                }
+
+                return new FileStorageFactory(storageBaseAddress, storagePath) { Verbose = verbose };
+            }
+            else if (storageType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
+            {
+                string storageAccountName;
+                if (!arguments.TryGetValue("-storageAccountName" + suffix, out storageAccountName))
+                {
+                    TraceRequiredArgument("-storageAccountName" + suffix);
+                    return null;
+                }
+
+                string storageKeyValue;
+                if (!arguments.TryGetValue("-storageKeyValue" + suffix, out storageKeyValue))
+                {
+                    TraceRequiredArgument("-storageKeyValue" + suffix);
+                    return null;
+                }
+
+                string storageContainer;
+                if (!arguments.TryGetValue("-storageContainer" + suffix, out storageContainer))
+                {
+                    TraceRequiredArgument("-storageContainer" + suffix);
+                    return null;
+                }
+
+                string storagePath = null;
+                arguments.TryGetValue("-storagePath" + suffix, out storagePath);
+
+                StorageCredentials credentials = new StorageCredentials(storageAccountName, storageKeyValue);
+                CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+                return new AzureStorageFactory(account, storageContainer, storagePath, storageBaseAddress) { Verbose = verbose };
+            }
+            else
+            {
+                Trace.TraceError("Unrecognized storageType \"{0}\"", storageType);
+                return null;
+            }
+        }
+
         public static bool GetLuceneReset(IDictionary<string, string> arguments)
         {
             string luceneResetStr = "false";

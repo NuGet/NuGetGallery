@@ -1,10 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
@@ -71,6 +75,22 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 await OnDelete(resourceUri, cancellationToken);
             }
+            catch (StorageException e)
+            {
+                WebException webException = e.InnerException as WebException;
+                if (webException != null)
+                {
+                    HttpStatusCode statusCode = ((HttpWebResponse)webException.Response).StatusCode;
+                    if (statusCode != HttpStatusCode.NotFound) 
+                    {
+                        throw;
+                    }
+                }
+                else
+                {
+                    throw;
+                }
+            }
             catch (Exception e)
             {
                 string message = String.Format("DELETE EXCEPTION: {0} {1}", resourceUri, e.Message);
@@ -98,6 +118,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public Uri BaseAddress { get; private set; }
         public abstract bool Exists(string fileName);
+        public abstract Task<IEnumerable<Uri>> List(CancellationToken cancellationToken);
 
         public bool Verbose
         {
@@ -148,6 +169,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             string name = s.Substring(baseAddressLength);
             return name;
+        }
+
+        protected Uri GetUri(string name)
+        {
+            string address = BaseAddress.ToString();
+            if (!address.EndsWith("/"))
+            {
+                address += "/";
+            }
+            address += name.Replace("\\", "/").TrimStart('/');
+
+            return new Uri(address);
         }
 
         protected void TraceMethod(string method, Uri resourceUri)

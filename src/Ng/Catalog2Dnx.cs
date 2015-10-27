@@ -5,14 +5,15 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ng
 {
-    public static class Catalog2Dnx
+    public class Catalog2Dnx
     {
-        static async Task Loop(string source, StorageFactory storageFactory, string contentBaseAddress, bool verbose, int interval, CancellationToken cancellationToken)
+        public async Task Loop(string source, StorageFactory storageFactory, string contentBaseAddress, bool verbose, int interval, CancellationToken cancellationToken)
         {
             CommitCollector collector = new DnxCatalogCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
             {
@@ -37,12 +38,12 @@ namespace Ng
             }
         }
 
-        static void PrintUsage()
+        private static void PrintUsage()
         {
             Console.WriteLine("Usage: ng catalog2dnx -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] [-interval <seconds>]");
         }
 
-        public static void Run(string[] args, CancellationToken cancellationToken)
+        public void Run(string[] args, CancellationToken cancellationToken)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)

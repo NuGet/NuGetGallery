@@ -232,7 +232,7 @@ namespace CatalogTests
 
             IDictionary<string, DateTime> packageCreated = LoadPackageCreatedLookup();
 
-            DateTime lastCreated = (await PackageCatalog.ReadCommitMetadata(writer, CancellationToken.None)).Item1 ?? DateTime.MinValue;
+            DateTime lastCreated = (await PackageCatalog.ReadCommitMetadata(writer, CancellationToken.None)).LastCreated ?? DateTime.MinValue;
 
             ParallelOptions options = new ParallelOptions();
             options.MaxDegreeOfParallelism = 8;
@@ -291,7 +291,8 @@ namespace CatalogTests
                     writer.Add(item);
                 }
 
-                commitTask = Task.Run(async () => await writer.Commit(commitTime, PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null), CancellationToken.None));
+                commitTask = Task.Run(async () =>
+                    await writer.Commit(commitTime, PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(lastCreated, null, null)), CancellationToken.None));
 
                 // stats
                 double perPackage = runtime.Elapsed.TotalSeconds / (double)completed;
