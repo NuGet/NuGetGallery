@@ -5,6 +5,7 @@ CONSTRUCT
 {
     ?package a nuget:Package ;
 	         nuget:registration ?registration ;
+	         nuget:packageContent ?packageContent ;
 	         nuget:catalogEntry ?catalogEntry .
 
     ?catalogEntry a nuget:PackageDetails ;
