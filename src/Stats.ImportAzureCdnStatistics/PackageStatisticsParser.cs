@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Newtonsoft.Json.Linq;
+using NuGet;
 using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
@@ -20,7 +22,7 @@ namespace Stats.ImportAzureCdnStatistics
             var statistic = new PackageStatistics();
             statistic.EdgeServerTimeDelivered = cdnLogEntry.EdgeServerTimeDelivered;
             statistic.PackageId = packageDefinition.PackageId;
-            statistic.PackageVersion = packageDefinition.PackageVersion;
+            statistic.PackageVersion = NormalizeSemanticVersion(packageDefinition.PackageVersion);
 
             var customFieldDictionary = CdnLogCustomFieldParser.Parse(cdnLogEntry.CustomField);
             statistic.Operation = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetOperation);
@@ -35,6 +37,19 @@ namespace Stats.ImportAzureCdnStatistics
                 return statistic;
             }
             return null;
+        }
+
+        private static string NormalizeSemanticVersion(string packageVersion)
+        {
+            // Normalize package version
+            SemanticVersion semanticVersion;
+            if (!string.IsNullOrEmpty(packageVersion)
+                && SemanticVersion.TryParse(packageVersion, out semanticVersion))
+            {
+                packageVersion = semanticVersion.ToNormalizedString();
+            }
+
+            return packageVersion;
         }
     }
 }

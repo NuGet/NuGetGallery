@@ -88,7 +88,10 @@ namespace Stats.RefreshClientDimension
                         var changedLinks = FindChangedLinksBetweenUserAgentAndClientDimensionId(currentUserAgentInfo, updatedUserAgentInfo);
 
                         // 4. Link the new client dimension to the facts
-                        await Warehouse.PatchClientDimension(connection, changedLinks);
+                        if (changedLinks.Any())
+                        {
+                            await Warehouse.PatchClientDimension(connection, changedLinks);
+                        }
                     }
                 }
             }
