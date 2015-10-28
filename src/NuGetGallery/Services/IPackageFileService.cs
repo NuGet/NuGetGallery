@@ -30,6 +30,11 @@ namespace NuGetGallery
         Task SavePackageFileAsync(Package package, Stream packageFile);
 
         /// <summary>
+        ///     Copies the contents of the package represented by the stream into the file storage backup location.
+        /// </summary>
+        Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);
+
+        /// <summary>
         ///     Downloads the package from the file storage and reads it into a Stream asynchronously.
         /// </summary>
         Task<Stream> DownloadPackageFileAsync(Package packge);

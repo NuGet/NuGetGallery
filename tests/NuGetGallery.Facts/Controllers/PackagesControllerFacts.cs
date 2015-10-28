@@ -38,7 +38,8 @@ namespace NuGetGallery
             Mock<IPackageFileService> packageFileService = null,
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<IIndexingService> indexingService = null,
-            Mock<ICacheService> cacheService = null)
+            Mock<ICacheService> cacheService = null,
+            Mock<IPackageDeleteService> packageDeleteService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -67,6 +68,8 @@ namespace NuGetGallery
 
             editPackageService = editPackageService ?? new Mock<EditPackageService>();
 
+            packageDeleteService = packageDeleteService ?? new Mock<IPackageDeleteService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -78,7 +81,8 @@ namespace NuGetGallery
                 config.Object,
                 indexingService.Object,
                 cacheService.Object,
-                editPackageService.Object);
+                editPackageService.Object,
+                packageDeleteService.Object);
             controller.CallBase = true;
             controller.Object.OwinContext = Fakes.CreateOwinContext();
 

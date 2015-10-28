@@ -446,6 +446,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\AutofacConfig.cs" />
+    <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
@@ -1043,6 +1045,14 @@
     <Compile Include="Migrations\201508031046581_IndexPackagesLastUpdatedWithIsListed.Designer.cs">
       <DependentUpon>201508031046581_IndexPackagesLastUpdatedWithIsListed.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201510010732458_EntityFramework6.cs" />
+    <Compile Include="Migrations\201510010732458_EntityFramework6.Designer.cs">
+      <DependentUpon>201510010732458_EntityFramework6.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201510011319560_PackageDelete.cs" />
+    <Compile Include="Migrations\201510011319560_PackageDelete.Designer.cs">
+      <DependentUpon>201510011319560_PackageDelete.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1054,6 +1064,7 @@
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="RequestModels\EditPackageRequest.cs" />
+    <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
@@ -1067,6 +1078,7 @@
     <Content Include="Areas\Admin\DynamicData\Content\Images\web.config">
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="Areas\Admin\Views\Delete\Index.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Content\Logos\dnf.png" />
     <Content Include="Scripts\jquery-1.11.0.js" />
@@ -1082,6 +1094,7 @@
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IDownloadCountService.cs" />
     <Compile Include="Services\IFileReference.cs" />
+    <Compile Include="Services\IPackageDeleteService.cs" />
     <Compile Include="Services\IStatusService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
@@ -1107,6 +1120,7 @@
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\NullReportService.cs" />
     <Compile Include="Services\NullStatisticsService.cs" />
+    <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="Filters\RequireSslAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
@@ -1122,6 +1136,7 @@
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="Services\EditPackageService.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
+    <Compile Include="ViewModels\DeletePackageViewModel.cs" />
     <Compile Include="ViewModels\LogOnViewModel.cs" />
     <Compile Include="ViewModels\ReportPackageReason.cs" />
     <Compile Include="ViewModels\StatisticsMonthlyUsageItem.cs" />
@@ -1497,6 +1512,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201508031046581_IndexPackagesLastUpdatedWithIsListed.resx">
       <DependentUpon>201508031046581_IndexPackagesLastUpdatedWithIsListed.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201510010732458_EntityFramework6.resx">
+      <DependentUpon>201510010732458_EntityFramework6.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201510011319560_PackageDelete.resx">
+      <DependentUpon>201510011319560_PackageDelete.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

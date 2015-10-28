@@ -36,7 +36,7 @@ namespace NuGetGallery
             return new V1FeedContext
                 {
                     Packages = PackageRepository.GetAll()
-                        .Where(p => !p.IsPrerelease)
+                        .Where(p => !p.Deleted && !p.IsPrerelease)
                         .WithoutVersionSort()
                         .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
                 };
@@ -68,7 +68,7 @@ namespace NuGetGallery
             var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Where(p => p.Listed && !p.IsPrerelease);
+                .Where(p => !p.Deleted && p.Listed && !p.IsPrerelease);
 
             // For v1 feed, only allow stable package versions.
             packages = SearchAdaptor.SearchCore(

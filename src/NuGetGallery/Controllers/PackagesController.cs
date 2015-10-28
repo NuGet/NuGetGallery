@@ -42,6 +42,7 @@ namespace NuGetGallery
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
         private readonly EditPackageService _editPackageService;
+        private readonly IPackageDeleteService _packageDeleteService;
 
         public PackagesController(
             IPackageService packageService,
@@ -54,7 +55,8 @@ namespace NuGetGallery
             IAppConfiguration config,
             IIndexingService indexingService,
             ICacheService cacheService,
-            EditPackageService editPackageService)
+            EditPackageService editPackageService,
+            IPackageDeleteService packageDeleteService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -67,6 +69,7 @@ namespace NuGetGallery
             _indexingService = indexingService;
             _cacheService = cacheService;
             _editPackageService = editPackageService;
+            _packageDeleteService = packageDeleteService;
         }
 
         [Authorize]
@@ -656,17 +659,82 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        [RequiresAccountConfirmation("unlist a package")]
+        [RequiresAccountConfirmation("delete a package")]
         public virtual ActionResult Delete(string id, string version)
         {
-            return GetPackageOwnerActionFormResult(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+            if (!package.IsOwner(User))
+            {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            var model = new DeletePackageViewModel(package, ReportMyPackageReasons);
+            return View(model);
+        }
+
+        [Authorize(Roles = "Admins")]
+        [HttpPost]
+        [RequiresAccountConfirmation("delete a package")]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> Delete(DeletePackagesRequest deletePackagesRequest)
+        {
+            var packagesToDelete = new List<Package>();
+
+            if (ModelState.IsValid)
+            {
+                // Get the packages to delete
+                foreach (var package in deletePackagesRequest.Packages)
+                {
+                    var split = package.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                    if (split.Length == 2)
+                    {
+                        var packageToDelete = _packageService.FindPackageByIdAndVersion(split[0], split[1], allowPrerelease: true);
+                        if (packageToDelete != null)
+                        {
+                            packagesToDelete.Add(packageToDelete);
+                        }
+                    }
+                }
+
+                // Perform delete
+                if (deletePackagesRequest.SoftDelete)
+                {
+                    await _packageDeleteService.SoftDeletePackagesAsync(
+                        packagesToDelete, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
+                        deletePackagesRequest.Signature);
+                }
+                else
+                {
+                    await _packageDeleteService.HardDeletePackagesAsync(
+                        packagesToDelete, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
+                        deletePackagesRequest.Signature);
+                }
+
+                // Redirect out
+                TempData["Message"] = 
+                    "We're performing the package delete right now. It may take a while for this change to propagate through our system.";
+                
+                return Redirect("/");
+            }
+
+            if (!deletePackagesRequest.Packages.Any())
+            {
+                return HttpNotFound();
+            }
+
+            var firstPackage = packagesToDelete.First();
+            return Delete(firstPackage.PackageRegistration.Id, firstPackage.Version);
         }
 
         [Authorize]
         [HttpPost]
         [RequiresAccountConfirmation("unlist a package")]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Delete(string id, string version, bool? listed)
+        public virtual ActionResult UpdateListed(string id, string version, bool? listed)
         {
             // Edit does exactly the same thing that Delete used to do... REUSE ALL THE CODE!
             return Edit(id, version, listed, Url.Package);
@@ -814,23 +882,7 @@ namespace NuGetGallery
             _indexingService.UpdatePackage(package);
             return Redirect(urlFactory(package));
         }
-
-        private ActionResult GetPackageOwnerActionFormResult(string id, string version)
-        {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-            if (!package.IsOwner(User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
-
-            var model = new DisplayPackageViewModel(package);
-            return View(model);
-        }
-
+        
         [Authorize]
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> VerifyPackage()
