@@ -77,7 +77,7 @@
                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
             }
             <li><a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact Owners</a></li>
-            @if (Model.IsOwner(User))
+            @if ((Model.IsOwner(User) || User.IsAdministrator()))
             {
                 <li>
                     <a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
@@ -100,7 +100,7 @@
                 <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a></li>
             }
 
-            @if (!Model.Deleted && Model.IsOwner(User))
+            @if (!Model.Deleted && (Model.IsOwner(User) || User.IsAdministrator()))
             {
                 <li><a href="@Url.EditPackage(Model.Id, Model.Version)">Edit Package</a></li>
                 <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
@@ -117,7 +117,7 @@
     @if (Config.Features.FriendlyLicenses || User.IsAdministrator())
     {
         @* Package with license report enabled and at least one license field  OR  Owned by user *@
-        if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || Model.IsOwner(User))
+        if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || (Model.IsOwner(User) || User.IsAdministrator()))
         {
             <div class="block">
                 <h3 class="block-title">License details</h3>
@@ -144,7 +144,7 @@
                 {
                     <p><a class="@(Model.HideLicenseReport ? "block-fadedLink": "block-link")" href="@Model.LicenseReportUrl" title="Find out more details about the licenses in this package">View report</a></p>
                 }
-                @if (Model.IsOwner(User))
+                @if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     if (!Model.LicenseNames.AnySafe() && String.IsNullOrEmpty(Model.LicenseReportUrl))
                     {
@@ -226,7 +226,7 @@
 
     @if (!Model.Listed && !Model.Deleted)
     {
-        if (Model.IsOwner(User))
+        if ((Model.IsOwner(User) || User.IsAdministrator()))
         {
             <p class="message warning">
                 This package is unlisted and hidden from package listings.
@@ -310,7 +310,7 @@
     }
     @if (Model.Dependencies.DependencySets == null)
     {
-        if (Model.IsOwner(User))
+        if ((Model.IsOwner(User) || User.IsAdministrator()))
         {
             <h3>Dependencies</h3>
             <p>
@@ -338,10 +338,10 @@
                 <th>
                     Downloads
                 </th>
-                <th class="@(Model.IsOwner(User) ? "" : "last")">
+                <th class="@((Model.IsOwner(User) || User.IsAdministrator()) ? "" : "last")">
                     Last updated
                 </th>
-                @if (Model.IsOwner(User))
+                @if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     <th class="last">Listed</th>
                 }
@@ -352,7 +352,7 @@
             {
                 var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
                 var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
-                if (!packageVersion.Deleted && (packageVersion.Listed || Model.IsOwner(User)))
+                if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                 {
                     <tr class="versionTableRow @rowClass">
                         <td class="version" title="@cellTitle">
@@ -380,7 +380,7 @@
                         <td>
                             <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
                         </td>
-                        @if (Model.IsOwner(User))
+                        @if ((Model.IsOwner(User) || User.IsAdministrator()))
                         {
                             <td>
                                 <a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
