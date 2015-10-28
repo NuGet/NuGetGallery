@@ -22,6 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         Uri _registrationBaseAddress;
         Uri _registrationAddress;
         DateTime _publishedDate;
+        Boolean _listed;
 
         public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, Uri packageContentBaseAddress = null)
         {
@@ -40,11 +41,12 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Package));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Permalink));
-            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.CatalogEntry), catalogEntry);
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.CatalogEntry), graph.CreateUriNode(_catalogUri));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Registration), graph.CreateUriNode(GetRegistrationAddress()));
 
-            graph.Assert(catalogEntry, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(GetPublishedDate().ToString("O"), Schema.DataTypes.DateTime));
-            graph.Assert(catalogEntry, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(GetPackageContentAddress()));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(GetPackageContentAddress()));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(GetPublishedDate().ToString("O"), Schema.DataTypes.DateTime));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Listed), graph.CreateLiteralNode(_listed.ToString(), Schema.DataTypes.Boolean));
 
             JObject frame = context.GetJsonLdContext("context.Package.json", Schema.DataTypes.Package);
             return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
@@ -82,7 +84,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 
         DateTime GetPublishedDate()
         {
-
             if (_publishedDate == DateTime.MinValue)
             {
                 INode subject = _catalogItem.CreateUriNode(_catalogUri);
@@ -99,6 +100,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 }
             }
 
+            _listed = (_publishedDate.Year == 1900) ? false : true;
             return _publishedDate;
 
         }
