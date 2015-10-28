@@ -14,11 +14,11 @@
     }
     <div id="stats">
         <div class="stat">
-            <p class="stat-number">@Model.AllPackages.Count.ToString("n0")</p>
+            <p class="stat-number">@Model.AllPackages.Count.ToNuGetNumberString()</p>
             <p class="stat-label">@(Model.AllPackages.Count == 1 ? "Package" : "Packages")</p>
         </div>
         <div class="stat">
-            <p class="stat-number">@Model.TotalPackageDownloadCount.ToString("n0")</p>
+            <p class="stat-number">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</p>
             <p class="stat-label">@(Model.TotalPackageDownloadCount == 1 ? "Download" : "Downloads") of @Model.Username's packages</p>
         </div>
     </div>
@@ -72,7 +72,7 @@ else if (Model.ShowAllPackages)
 
                     <footer>
                         <p class="downloads">
-                            @package.TotalDownloadCount.ToString("n0") @(package.TotalDownloadCount == 1 ? "download" : "downloads")
+                            @package.TotalDownloadCount.ToNuGetNumberString() @(package.TotalDownloadCount == 1 ? "download" : "downloads")
                         </p>
                     </footer>
                 </div>
