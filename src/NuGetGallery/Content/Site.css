@@ -1350,3 +1350,30 @@ img.contributors-contributor-avatar {
     width: 64px;
     height: 64px;
 }
+
+/* Danger zone */
+.danger-zone h1, .danger-zone h2, .danger-zone h3 {
+    color: #c13a3f;
+}
+
+.danger-zone label {
+    color: black;
+}
+
+.danger-zone input[data-val-required], .danger-zone  textarea[data-val-required] {
+    border-left: solid 5px #c13a3f;
+}
+
+.danger-zone button, .danger-zone input[type="submit"], .danger-zone .btn {
+    background-image: none;
+    background-color: #c13a3f;
+    color: white;
+    border: solid 1px #c13a3f;
+}
+
+    .danger-zone button:hover, .danger-zone input[type="submit"]:hover, .danger-zone .btn:hover {
+        background-image: none;
+        background-color: #7F0000;
+        color: white;
+        border: solid 1px #7F0000;
+    }
