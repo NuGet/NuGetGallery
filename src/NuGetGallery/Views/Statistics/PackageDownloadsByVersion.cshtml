@@ -4,14 +4,15 @@
     ViewBag.Tab = "Statistics";
 }
 
-<h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (@Model.Report.Total over the Last 6 Weeks)</h1>
 @if (Model.IsReportAvailable)
 {
+    <h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (@Model.Report.Total over the Last 6 Weeks)</h1>
     @Html.Partial("_LastUpdated", Model)
     @Html.Partial("_PivotTable", Model.Report)
 }
 else
 {
+    <h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a></h1>
     <p>
         Download statistics are not currently available for this package, please check back later. 
     </p>
@@ -30,9 +31,15 @@ else
             groupbyNavigation();
             packageDisplayGraphs();
 
-            if ($('.dimension-checkbox:checked').length === 0 && location.search.indexOf('groupby') >= 0) {
+        @if (Model.IsReportAvailable)
+        {
+            <text>
+            if ($('.dimension-checkbox:checked').length == = 0 && location.search.indexOf('groupby') >= 0)
+            {
                 location.reload();
             }
+            </text>
+        }
         });
     </script>
 }
