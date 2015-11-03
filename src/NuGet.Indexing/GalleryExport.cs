@@ -16,7 +16,7 @@ namespace NuGet.Indexing
         
         public static int ChunkSize = 4000;
 
-        public static List<Package> GetPublishedPackagesSince(string sqlConnectionString, int highestPackageKey, TextWriter log = null, bool verbose = false)
+        public static List<Package> GetPublishedPackagesSince(string sqlConnectionString, int highestPackageKey, TextWriter log = null, bool verbose = false, bool includeUnlisted = true)
         {
             log = log ?? DefaultTraceWriter;
 
@@ -38,6 +38,11 @@ namespace NuGet.Indexing
             {
                 set = set.Where(p => p.Key >= range.Item1 && p.Key <= range.Item2);
                 set = set.OrderBy(p => p.Key);
+            }
+
+            if (!includeUnlisted)
+            {
+                set = set.Where(p => p.Listed);
             }
 
             set = set

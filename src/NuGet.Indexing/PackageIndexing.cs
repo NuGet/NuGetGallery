@@ -37,7 +37,7 @@ namespace NuGet.Indexing
         //  this function will incrementally build an index from the gallery using a high water mark stored in the commit metadata
         //  this function is useful for building a fresh index as in that case it is more efficient than diff-ing approach
 
-        public static void RebuildIndex(string sqlConnectionString, Lucene.Net.Store.Directory directory,TextWriter log = null, PerfEventTracker perfTracker = null)
+        public static void RebuildIndex(string sqlConnectionString, Lucene.Net.Store.Directory directory,TextWriter log = null, PerfEventTracker perfTracker = null, bool includeUnlisted = true)
         {
             perfTracker = perfTracker ?? new PerfEventTracker();
             log = log ?? DefaultTraceWriter;
@@ -61,7 +61,7 @@ namespace NuGet.Indexing
                     IDictionary<int, int> checksums = GalleryExport.FetchGalleryChecksums(sqlConnectionString, highestPackageKey);
 
                     log.WriteLine("get packages from gallery where the Package.Key > {0}", highestPackageKey);
-                    List<Package> packages = GalleryExport.GetPublishedPackagesSince(sqlConnectionString, highestPackageKey, log, verbose: false);
+                    List<Package> packages = GalleryExport.GetPublishedPackagesSince(sqlConnectionString, highestPackageKey, log, includeUnlisted: includeUnlisted, verbose: false);
 
                     if (packages.Count == 0)
                     {

@@ -13,12 +13,12 @@ namespace Db2Luene
     {
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: db2lucene.exe <sql db connection string> <target local folder>");
+            Console.WriteLine("Usage: db2lucene.exe <sql db connection string> <target local folder> [<true|false>]");
         }
 
         static void Main(string[] args)
         {
-            if (args.Length != 2)
+            if (args.Length < 2)
             {
                 PrintUsage();
                 return;
@@ -26,14 +26,15 @@ namespace Db2Luene
 
             var sqlConn = args[0];
             var localPath = args[1];
-
+            var includeUnlisted = (args.Length > 2 ? bool.Parse(args[3]) : false);
+            
             if (!System.IO.Directory.Exists(localPath))
             {
                 System.IO.Directory.CreateDirectory(localPath);
             }
 
             var directory = new SimpleFSDirectory(new DirectoryInfo(localPath));
-            PackageIndexing.RebuildIndex(sqlConn, directory, Console.Out, null);
+            PackageIndexing.RebuildIndex(sqlConn, directory, Console.Out, null, includeUnlisted: includeUnlisted);
         }
     }
 }
