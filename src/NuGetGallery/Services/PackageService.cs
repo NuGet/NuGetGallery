@@ -148,8 +148,17 @@ namespace NuGetGallery
             var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
             foreach (var package in latestPackageVersions.Where(p => p != null))
             {
-                mergedResults.Add(package.PackageRegistration.Id, package);
+                if (mergedResults.ContainsKey(package.PackageRegistration.Id)
+                    && mergedResults[package.PackageRegistration.Id].Created < package.Created)
+                {
+                    mergedResults[package.PackageRegistration.Id] = package;
+                }
+                else
+                {
+                    mergedResults.Add(package.PackageRegistration.Id, package);
+                }
             }
+
             foreach (var package in latestStablePackageVersions.Where(p => p != null))
             {
                 mergedResults[package.PackageRegistration.Id] = package;
