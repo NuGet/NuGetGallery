@@ -44,7 +44,7 @@ namespace NuGetGallery.Controllers
         public IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options)
         {
             var queryable = _packagesRepository.GetAll()
-                .Where(p => !p.IsPrerelease)
+                .Where(p => !p.IsPrerelease && !p.Deleted)
                 .WithoutVersionSort()
                 .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
 
@@ -81,7 +81,7 @@ namespace NuGetGallery.Controllers
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && !p.IsPrerelease);
+                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && !p.IsPrerelease && !p.Deleted);
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -153,7 +153,7 @@ namespace NuGetGallery.Controllers
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Where(p => p.Listed && !p.IsPrerelease)
+                .Where(p => p.Listed && !p.IsPrerelease && !p.Deleted)
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version)
                 .AsNoTracking();
 

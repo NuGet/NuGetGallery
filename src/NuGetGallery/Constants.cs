@@ -19,8 +19,10 @@ namespace NuGetGallery
         public const string NuGetPackageFileExtension = ".nupkg";
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
+        public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
 
         public const string PackagesFolderName = "packages";
+        public const string PackageBackupsFolderName = "package-backups";
         public const string DownloadsFolderName = "downloads";
         public const string ContentFolderName = "content";
 

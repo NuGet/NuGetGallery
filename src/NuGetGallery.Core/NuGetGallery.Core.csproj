@@ -109,6 +109,7 @@
     <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
+    <Compile Include="Entities\PackageDelete.cs" />
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />
     <Compile Include="Entities\EntitiesContext.cs" />

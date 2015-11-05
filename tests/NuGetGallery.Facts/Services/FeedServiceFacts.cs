@@ -231,8 +231,8 @@ namespace NuGetGallery
 
                     // Act
                     var result = (await v1Service.Search(
-                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request), 
-                        null, 
+                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request),
+                        null,
                         null))
                         .ExpectQueryResult<V1FeedPackage>()
                         .GetInnerResult()
@@ -243,6 +243,59 @@ namespace NuGetGallery
                     Assert.Equal("Foo", result.First().Id);
                     Assert.Equal("1.0.0", result.First().Version);
                     Assert.Equal("https://localhost:8081/packages/Foo/1.0.0", result.First().GalleryDetailsUrl);
+                }
+
+
+                [Fact]
+                public async Task V1FeedSearchDoesNotReturnDeletedPackages()
+                {
+                    // Arrange
+                    var packageRegistration = new PackageRegistration { Id = "Foo" };
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    repo.Setup(r => r.GetAll()).Returns(new[]
+                    {
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                Deleted = true,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.1.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                Deleted = false,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                    }.AsQueryable());
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+                    var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
+                    v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
+
+                    // Act
+                    var result = (await v1Service.Search(
+                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request),
+                        null,
+                        null))
+                        .ExpectQueryResult<V1FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V1FeedPackage>>();
+
+                    // Assert
+                    Assert.Equal(1, result.Count());
+                    Assert.Equal("Foo", result.First().Id);
+                    Assert.Equal("1.1.0", result.First().Version);
+                    Assert.Equal("https://localhost:8081/packages/Foo/1.1.0", result.First().GalleryDetailsUrl);
                 }
             }
 
@@ -282,7 +335,7 @@ namespace NuGetGallery
 
                     // Act
                     var result = (await v1Service.FindPackagesById(
-                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request), 
+                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request),
                         "Foo"))
                         .ExpectQueryResult<V1FeedPackage>()
                         .GetInnerResult()
@@ -293,6 +346,51 @@ namespace NuGetGallery
                     Assert.Equal("Foo", result.First().Id);
                     Assert.Equal("1.0.0", result.First().Version);
                     Assert.Equal("https://localhost:8081/packages/Foo/1.0.0", result.First().GalleryDetailsUrl);
+                }
+                
+                [Fact]
+                public async Task V1FeedFindPackagesByIdDoesNotReturnDeletedPackages()
+                {
+                    // Arrange
+                    var packageRegistration = new PackageRegistration { Id = "Foo" };
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    repo.Setup(r => r.GetAll()).Returns(new[]
+                    {
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.0",
+                                IsPrerelease = false,
+                                Listed = false,
+                                Deleted = true,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.1",
+                                IsPrerelease = false,
+                                Listed = true,
+                                Deleted = true,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                    }.AsQueryable());
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+
+                    var v1Service = new TestableV1Feed(repo.Object, configuration.Object, null);
+                    v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
+
+                    // Act
+                    var result = (await v1Service.FindPackagesById(
+                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request),
+                        "Foo"))
+                        .ExpectQueryResult<V1FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V1FeedPackage>>();
+
+                    // Assert
+                    Assert.Equal(0, result.Count());
                 }
             }
         }
@@ -375,6 +473,12 @@ namespace NuGetGallery
                     Assert.Equal(expectedNumberOfPackages.ToString(), result.Content);
                 }
 
+                [Fact]
+                public void V2FeedPackagesCountReturnsCorrectCountForDeletedPackages()
+                {
+                    V2FeedPackagesCountReturnsCorrectCount("Id eq 'Baz'", 100, 0);
+                }
+
                 [Theory]
                 [InlineData("Foo", "1.0.0")]
                 [InlineData("Foo", "1.0.1-a")]
@@ -433,6 +537,42 @@ namespace NuGetGallery
                     // Act
                     (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), expectedId, expectedVersion))
                         .ExpectResult<NotFoundResult>();
+                }
+
+                [Fact]
+                public async Task V2FeedPackagesByIdAndVersionReturnsNotFoundWhenPackageIsDeleted()
+                {
+                    await V2FeedPackagesByIdAndVersionReturnsNotFoundWhenPackageNotFound("Baz", "1.0.0");
+                }
+
+                [Theory]
+                [InlineData("Id eq 'Baz'")]
+                public void V2FeedPackagesCollectionDoesNotContainDeletedPackages(string filter)
+                {
+                    // Arrange
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages?$filter=" + filter);
+
+                    // Act
+                    var result = v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
+
+                    // Assert
+                    Assert.False(result.Any(p => p.Id == "Baz"));
                 }
             }
 
@@ -516,6 +656,52 @@ namespace NuGetGallery
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
+
+                    // Act
+                    var result = (await v2Service.FindPackagesById(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        "Foo"))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
+
+                    // Assert
+                    Assert.Equal(0, result.Count());
+                }
+
+                [Fact]
+                public async Task V2FeedFindPackagesByIdDoesNotReturnDeletedPackages()
+                {
+                    // Arrange
+                    var packageRegistration = new PackageRegistration { Id = "Foo" };
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    repo.Setup(r => r.GetAll()).Returns(new[]
+                    {
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.0",
+                                IsPrerelease = false,
+                                Listed = false,
+                                Deleted = true,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.1",
+                                IsPrerelease = false,
+                                Listed = true,
+                                Deleted = true,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                    }.AsQueryable());
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
@@ -613,6 +799,12 @@ namespace NuGetGallery
 
                     // Assert
                     Assert.Equal(expectedNumberOfPackages.ToString(), result.Content);
+                }
+                
+                [Fact]
+                public async Task V2FeedSearchCountDoesNotCountDeletedPackages()
+                {
+                    await V2FeedSearchCountFiltersPackagesBySearchTermAndPrereleaseFlag("Baz", true, 0);
                 }
             }
 
@@ -1071,6 +1263,42 @@ namespace NuGetGallery
                     AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[0]);
                     AssertPackage(new { Id = "Foo", Version = "1.2.0-alpha" }, result[1]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[2]);
+                }
+
+                [Fact]
+                public void V2FeedGetUpdatesDoesNotReturnDeletedPackages()
+                {
+                    // Arrange
+                    var packageRegistrationA = new PackageRegistration { Id = "Foo" };
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    repo.Setup(r => r.GetAll()).Returns(
+                        new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Deleted = true }
+                    }.AsQueryable());
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
+
+                    // Act
+                    var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        "Foo",
+                        "1.0.0",
+                        includePrerelease: true,
+                        includeAllVersions: true,
+                        targetFrameworks: null,
+                        versionConstraints: null)
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
+
+                    // Assert
+                    Assert.Equal(0, result.Length);
                 }
 
                 [Fact]

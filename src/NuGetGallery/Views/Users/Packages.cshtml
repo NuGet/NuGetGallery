@@ -13,17 +13,28 @@
         <h1>Packages</h1>
         <p>These packages are currently published for the world to see.</p>
 
-        @PrintPublishedPackages(Model.Packages.Where(p => p.Listed), unlisted: false)
+        @PrintPublishedPackages(Model.Packages.Where(p => p.Listed && !p.Deleted), canEdit: true, canDelete: true)
     </section>
 
-    var unlistedPackages = Model.Packages.Where(p => !p.Listed);
+    var unlistedPackages = Model.Packages.Where(p => !p.Listed && !p.Deleted);
     if (unlistedPackages.Any())
     {
         <section id="unlisted">
             <h1>Unlisted Packages</h1>
             <p>These packages are currently unlisted.</p>
 
-            @PrintPublishedPackages(unlistedPackages, unlisted: true)
+            @PrintPublishedPackages(unlistedPackages, canEdit: false, canDelete: true)
+        </section>
+    }
+
+    var deletedPackages = Model.Packages.Where(p => p.Deleted);
+    if (deletedPackages.Any())
+    {
+        <section id="deleted">
+            <h1>Deleted Packages</h1>
+            <p>These packages have been deleted.</p>
+
+            @PrintPublishedPackages(deletedPackages, canEdit: false, canDelete: false)
         </section>
     }
 }
@@ -38,7 +49,7 @@ else
     </section>
 }
 
-@helper PrintPublishedPackages(IEnumerable<PackageViewModel> packages, bool unlisted)
+@helper PrintPublishedPackages(IEnumerable<PackageViewModel> packages, bool canEdit, bool canDelete)
 {
     var totalDownloads = 0;
     var totalPackages = packages.Count();
@@ -61,17 +72,14 @@ else
                 {
                     <tr>
                         <td class="actions">
-                            @if (unlisted)
-                            {
-                                <a href="@Url.DeletePackage(package)" title="List Package" class="table-action-link">
-                                    <i class="icon-share"></i>
-                                </a>
-                            }
-                            else
+                            @if (canEdit)
                             {
                                 <a href="@Url.EditPackage(package.Id, package.Version)" title="Edit" class="table-action-link">
                                     <i class="icon-edit"></i>
                                 </a>
+                            }
+                            @if (canDelete)
+                            {
                                 <a href="@Url.DeletePackage(package)" title="Delete" class="table-action-link">
                                     <i class="icon-trash"></i>
                                 </a>

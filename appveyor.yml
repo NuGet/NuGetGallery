@@ -1,7 +1,9 @@
-version: 1.0.{build}
-configuration: release
-before_build:
-  - nuget restore -DisableParallelProcessing
-build:
-  project: NuGetGallery.sln
-  verbosity: minimal
+version: 3.0.{build}
+configuration: Release
+nuget:
+  disable_publish_on_pr: true
+build_script:
+- cmd: build.cmd
+artifacts:
+- path: '**\app.publish\*.cspkg'
+- path: '**\app.publish\*.nupkg'

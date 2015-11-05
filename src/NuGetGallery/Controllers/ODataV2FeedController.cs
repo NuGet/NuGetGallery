@@ -50,6 +50,7 @@ namespace NuGetGallery.Controllers
         {
             var queryable = _packagesRepository
                 .GetAll()
+                .Where(p => !p.Deleted)
                 .UseSearchService(_searchService, null, _configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
                 .WithoutVersionSort()
                 .ToV2FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
@@ -88,7 +89,7 @@ namespace NuGetGallery.Controllers
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && !p.Deleted);
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -161,7 +162,7 @@ namespace NuGetGallery.Controllers
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Where(p => p.Listed)
+                .Where(p => p.Listed && !p.Deleted)
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version)
                 .AsNoTracking();
 
@@ -265,7 +266,7 @@ namespace NuGetGallery.Controllers
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.SupportedFrameworks)
                 .Where(p =>
-                    p.Listed && (includePrerelease || !p.IsPrerelease) &&
+                    p.Listed && (includePrerelease || !p.IsPrerelease) && !p.Deleted &&
                     idValues.Contains(p.PackageRegistration.Id.ToLower()))
                 .OrderBy(p => p.PackageRegistration.Id);
 

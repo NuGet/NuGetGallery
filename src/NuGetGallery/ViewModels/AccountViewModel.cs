@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Web.Mvc;
 using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery
@@ -27,6 +28,7 @@ namespace NuGetGallery
         [DataType(DataType.Password)]
         [Display(Name = "Current Password (for verification)")]
         [StringLength(64)]
+        [AllowHtml]
         public string Password { get; set; }
     }
 
@@ -34,10 +36,12 @@ namespace NuGetGallery
     {
         [Required]
         [Display(Name = "Old Password")]
+        [AllowHtml]
         public string OldPassword { get; set; }
 
         [Required]
         [Display(Name = "New Password")]
+        [AllowHtml]
         public string NewPassword { get; set; }
     }
 

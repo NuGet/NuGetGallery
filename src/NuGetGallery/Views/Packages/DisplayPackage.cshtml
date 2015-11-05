@@ -22,7 +22,7 @@
     <meta property="og:image" content="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
 }
 @section Meta {
-    @if (!Model.Listed)
+    @if (!Model.Listed || Model.Deleted)
     {
         <meta name="robots" content="noindex">
     }
@@ -77,7 +77,7 @@
                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
             }
             <li><a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact Owners</a></li>
-            @if (Model.IsOwner(User))
+            @if ((Model.IsOwner(User) || User.IsAdministrator()))
             {
                 <li>
                     <a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
@@ -85,7 +85,7 @@
                     </a>
                 </li>
             }
-            else
+            else if (!Model.Deleted)
             {
                 <li>
                     <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
@@ -94,10 +94,13 @@
                 </li>
             }
 
-            <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
-            <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a></li>
+            @if (!Model.Deleted)
+            {
+                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
+                <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a></li>
+            }
 
-            @if (Model.IsOwner(User))
+            @if (!Model.Deleted && (Model.IsOwner(User) || User.IsAdministrator()))
             {
                 <li><a href="@Url.EditPackage(Model.Id, Model.Version)">Edit Package</a></li>
                 <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
@@ -114,7 +117,7 @@
     @if (Config.Features.FriendlyLicenses || User.IsAdministrator())
     {
         @* Package with license report enabled and at least one license field  OR  Owned by user *@
-        if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || Model.IsOwner(User))
+        if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || (Model.IsOwner(User) || User.IsAdministrator()))
         {
             <div class="block">
                 <h3 class="block-title">License details</h3>
@@ -141,7 +144,7 @@
                 {
                     <p><a class="@(Model.HideLicenseReport ? "block-fadedLink": "block-link")" href="@Model.LicenseReportUrl" title="Find out more details about the licenses in this package">View report</a></p>
                 }
-                @if (Model.IsOwner(User))
+                @if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     if (!Model.LicenseNames.AnySafe() && String.IsNullOrEmpty(Model.LicenseReportUrl))
                     {
@@ -205,6 +208,13 @@
         </p>
     }
 
+    @if (Model.Deleted)
+    {
+        <p class="message error">
+            <strong>This package has been deleted from the gallery.</strong> It is no longer available for install/restore.
+        </p>
+    }
+
     <div class="package-page-heading">
         <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
         <h2>@Model.Version</h2>
@@ -214,9 +224,9 @@
         <p>@line</p>
     }
 
-    @if (!Model.Listed)
+    @if (!Model.Listed && !Model.Deleted)
     {
-        if (Model.IsOwner(User))
+        if ((Model.IsOwner(User) || User.IsAdministrator()))
         {
             <p class="message warning">
                 This package is unlisted and hidden from package listings.
@@ -232,36 +242,40 @@
             </p>
         }
     }
-    <p>
-        To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
-            Package Manager Console
-        </a>
-    </p>
-    <div class="nuget-badge">
-        <p>
-            <code>
-                PM&gt; Install-Package @Model.Id
-                @if (!Model.LatestVersion || !Model.Listed)
-                {
-                    <text> -Version @Model.Version</text>
-                }
-                @if (Model.Prerelease)
-                {
-                    <text> -Pre </text>
-                }
-            </code>
-        </p>
-    </div>
-    @if (!String.IsNullOrEmpty(Model.MinClientVersion))
+
+    @if (!Model.Deleted)
     {
-        <p>Requires NuGet @Model.MinClientVersion or higher.</p>
-    }
-    <div id="socialbuttons" style="height: 60px; display: block;">
-        <div>
-            <a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a>
+        <p>
+            To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
+                Package Manager Console
+            </a>
+        </p>
+        <div class="nuget-badge">
+            <p>
+                <code>
+                    PM&gt; Install-Package @Model.Id
+                    @if (!Model.LatestVersion || !Model.Listed)
+                    {
+                        <text> -Version @Model.Version</text>
+                    }
+                    @if (Model.Prerelease)
+                    {
+                        <text> -Pre </text>
+                    }
+                </code>
+            </p>
         </div>
-        <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
-    </div>
+        if (!String.IsNullOrEmpty(Model.MinClientVersion))
+        {
+            <p>Requires NuGet @Model.MinClientVersion or higher.</p>
+        }
+        <div id="socialbuttons" style="height: 60px; display: block;">
+            <div>
+                <a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a>
+            </div>
+            <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+        </div>
+    }
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {
@@ -296,7 +310,7 @@
     }
     @if (Model.Dependencies.DependencySets == null)
     {
-        if (Model.IsOwner(User))
+        if ((Model.IsOwner(User) || User.IsAdministrator()))
         {
             <h3>Dependencies</h3>
             <p>
@@ -324,10 +338,10 @@
                 <th>
                     Downloads
                 </th>
-                <th class="@(Model.IsOwner(User) ? "" : "last")">
+                <th class="@((Model.IsOwner(User) || User.IsAdministrator()) ? "" : "last")">
                     Last updated
                 </th>
-                @if (Model.IsOwner(User))
+                @if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     <th class="last">Listed</th>
                 }
@@ -338,7 +352,7 @@
             {
                 var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
                 var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
-                if (packageVersion.Listed || Model.IsOwner(User))
+                if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                 {
                     <tr class="versionTableRow @rowClass">
                         <td class="version" title="@cellTitle">
@@ -364,9 +378,9 @@
                             @packageVersion.DownloadCount.ToNuGetNumberString()
                         </td>
                         <td>
-                            @packageVersion.LastUpdated.ToNuGetLongDateString()
+                            <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
                         </td>
-                        @if (Model.IsOwner(User))
+                        @if ((Model.IsOwner(User) || User.IsAdministrator()))
                         {
                             <td>
                                 <a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
@@ -374,7 +388,22 @@
                         }
                     </tr>
                 }
-            }
+                else if (packageVersion.Deleted)
+                {
+                    <tr class="versionTableRow deleted">
+                        <td class="version">
+                            @packageVersion.Title.Abbreviate(20) @packageVersion.Version (deleted)
+                        </td>
+                        <td>
+                            @packageVersion.DownloadCount
+                        </td>
+                        <td>
+                            @packageVersion.LastUpdated.ToNuGetLongDateString()
+                        </td>
+                        <td></td>
+                    </tr>
+    }
+}
         </tbody>
     </table>
 </div>

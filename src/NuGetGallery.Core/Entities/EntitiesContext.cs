@@ -212,6 +212,11 @@ namespace NuGetGallery
 
             modelBuilder.Entity<CuratedPackage>()
                 .HasRequired(cp => cp.PackageRegistration);
+
+            modelBuilder.Entity<PackageDelete>()
+                .HasKey(pd => pd.Key)
+                .HasMany(pd => pd.Packages)
+                    .WithOptional();
         }
 #pragma warning restore 618
     }

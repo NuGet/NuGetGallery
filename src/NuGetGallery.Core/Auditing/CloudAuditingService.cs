@@ -89,7 +89,7 @@ namespace NuGetGallery.Auditing
         protected override async Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
             string fullPath = String.Concat(
-                resourceType, "/", 
+                resourceType.ToLowerInvariant(), "/", 
                 filePath.Replace(Path.DirectorySeparatorChar, '/'), "/",
                 timestamp.ToString("s"), "-", // Sortable DateTime format
                 action.ToLowerInvariant(), ".audit.v1.json");

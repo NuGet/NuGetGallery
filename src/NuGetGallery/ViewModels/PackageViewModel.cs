@@ -27,6 +27,7 @@ namespace NuGetGallery
             LatestStableVersion = package.IsLatestStable;
             LastUpdated = package.Published;
             Listed = package.Listed;
+            Deleted = package.Deleted;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
             LicenseReportUrl = package.LicenseReportUrl;
@@ -51,6 +52,7 @@ namespace NuGetGallery
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
+        public bool Deleted { get; set; }
 
         public int TotalDownloadCount
         {

@@ -1,5 +1,8 @@
 [NuGet Gallery](http://nuget.org/) — Where packages are found 
 =======================================================================
+
+[![Build status](https://ci.appveyor.com/api/projects/status/6ob8lbutfecvi5n3/branch/master?svg=true)](https://ci.appveyor.com/project/NuGetteam/nugetgallery/branch/master)
+
 This is an implementation of the NuGet Gallery and API. This serves as the back-end and community 
 website for the NuGet client. For information about the NuGet clients, visit http://nuget.codeplex.com/
 
@@ -35,9 +38,11 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     ```
     Update-Database -StartUpProjectName NuGetGallery
     ```
-If this fails, you are likely to get more useful output by passing -Debug than -Verbose.
+If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
 
-6. Change the value of `Gallery.ConfirmEmailAddresses` to false in `src\NuGetGallery\Web.Config`, this is required to upload the packages after registration.
+6. When working with the gallery, e-mail messages are saved to the file system (under `~/App_Data`).
+    * To change this to use an SMTP server, edit `src\NuGetGallery\Web.Config` and add a `Gallery.SmtpUri` setting. Its value should be an SMTP connection string, for example `smtp://user:password@smtpservername:25`.
+    * To turn off e-mail confirmations, edit `src\NuGetGallery\Web.Config` and change the value of `Gallery.ConfirmEmailAddresses` to `false`.
 
 7. Ensure the 'NuGetGallery' project (under the Frontend folder) is set to the Startup Project
   
@@ -83,7 +88,7 @@ This is the Git workflow we're currently using:
 
 ### Setting up
 
-1. Clone and checkout the following branches (to make sure local copies are made): 'master', 'iter-start'
+1. Clone and checkout the following branches (to make sure local copies are made): 'master'.
 
 ### When starting a new feature/unit of work.
     

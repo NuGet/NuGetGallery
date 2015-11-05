@@ -31,6 +31,8 @@ namespace NuGetGallery.TestUtils.Infrastructure
         {
             var fooPackage = new PackageRegistration { Id = "Foo" };
             var barPackage = new PackageRegistration { Id = "Bar" };
+            var bazPackage = new PackageRegistration { Id = "Baz" };
+
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
             repo.Setup(r => r.GetAll()).Returns(new[]
             {
@@ -111,6 +113,20 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     Description = "Bar",
                     Summary = "Bar",
                     Tags = "Bar CommonTag"
+                },
+                new Package
+                {
+                    PackageRegistration = bazPackage,
+                    Version = "1.0.0",
+                    IsPrerelease = false,
+                    Listed = false,
+                    Deleted = true, // plot twist: this package is a soft-deleted one
+                    DownloadStatistics = new List<PackageStatistics>(),
+                    Authors = new [] { new PackageAuthor { Name = "Test "} },
+                    FlattenedAuthors = "Test",
+                    Description = "Baz",
+                    Summary = "Baz",
+                    Tags = "Baz CommonTag"
                 }
             }.AsQueryable());
 

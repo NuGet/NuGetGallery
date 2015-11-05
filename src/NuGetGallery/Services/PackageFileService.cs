@@ -4,7 +4,9 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -54,6 +56,30 @@ namespace NuGetGallery
 
             var fileName = BuildFileName(package);
             return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile);
+        }
+
+        public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+            
+            if (packageFile == null)
+            {
+                throw new ArgumentNullException("packageFile");
+            }
+
+            if (package.PackageRegistration == null ||
+                string.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
+                (string.IsNullOrWhiteSpace(package.NormalizedVersion) && string.IsNullOrWhiteSpace(package.Version)))
+            {
+                throw new ArgumentException("The package is missing required data.", "package");
+            }
+
+            var fileName = BuildBackupFileName(package.PackageRegistration.Id, string.IsNullOrEmpty(package.NormalizedVersion) 
+                ? SemanticVersion.Parse(package.Version).ToNormalizedString() : package.NormalizedVersion, package.Hash);
+            return _fileStorageService.SaveFileAsync(Constants.PackageBackupsFolderName, fileName, packageFile);
         }
 
         public async Task<Stream> DownloadPackageFileAsync(Package package)
@@ -106,6 +132,34 @@ namespace NuGetGallery
                 String.IsNullOrEmpty(package.NormalizedVersion) ?
                     SemanticVersionExtensions.Normalize(package.Version) :
                     package.NormalizedVersion);
+        }
+
+        private static string BuildBackupFileName(string id, string version, string hash)
+        {
+            if (id == null)
+            {
+                throw new ArgumentNullException("id");
+            }
+
+            if (version == null)
+            {
+                throw new ArgumentNullException("version");
+            }
+
+            if (hash == null)
+            {
+                throw new ArgumentNullException("hash");
+            }
+
+            var hashBytes = Convert.FromBase64String(hash);
+
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                Constants.PackageFileBackupSavePathTemplate,
+                id,
+                version,
+                HttpServerUtility.UrlTokenEncode(hashBytes),
+                Constants.NuGetPackageFileExtension);
         }
     }
 }
