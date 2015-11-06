@@ -391,8 +391,7 @@ namespace NuGetGallery
                 throw new EntityException(
                     "A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
             }
-
-            var now = DateTime.UtcNow;
+            
             var packageFileStream = nugetPackage.GetStream();
 
             package = new Package
@@ -407,10 +406,7 @@ namespace NuGetGallery
                 HashAlgorithm = Constants.Sha512HashAlgorithmId,
                 Hash = Crypto.GenerateHash(packageFileStream.ReadAllBytes()),
                 PackageFileSize = packageFileStream.Length,
-                Created = now,
                 Language = nugetPackage.Metadata.Language,
-                LastUpdated = now,
-                Published = now,
                 Copyright = nugetPackage.Metadata.Copyright,
                 FlattenedAuthors = nugetPackage.Metadata.Authors.Flatten(),
                 IsPrerelease = !nugetPackage.Metadata.IsReleaseVersion(),

@@ -1053,6 +1053,10 @@
     <Compile Include="Migrations\201510011319560_PackageDelete.Designer.cs">
       <DependentUpon>201510011319560_PackageDelete.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201511050008198_PackagesCreatedDateDefaultValue.cs" />
+    <Compile Include="Migrations\201511050008198_PackagesCreatedDateDefaultValue.Designer.cs">
+      <DependentUpon>201511050008198_PackagesCreatedDateDefaultValue.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1518,6 +1522,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201510011319560_PackageDelete.resx">
       <DependentUpon>201510011319560_PackageDelete.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201511050008198_PackagesCreatedDateDefaultValue.resx">
+      <DependentUpon>201511050008198_PackagesCreatedDateDefaultValue.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

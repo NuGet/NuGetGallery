@@ -513,7 +513,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillSetTheNewPackagesCreatedAndLastUpdatedTimes()
+            public void WillNotSetTheNewPackagesCreatedAndLastUpdatedTimesAsTheDatabaseShouldDoIt()
             {
                 var service = CreateService(setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
@@ -522,7 +522,19 @@ namespace NuGetGallery
 
                 var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
-                Assert.NotEqual(DateTime.MinValue, package.Created);
+                Assert.Equal(DateTime.MinValue, package.Created);
+            }
+
+            [Fact]
+            public void WillSetTheNewPackagesLastUpdatedTimes()
+            {
+                var service = CreateService(setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+                var nugetPackage = CreateNuGetPackage();
+                var currentUser = new User();
+
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
+                
                 Assert.NotEqual(DateTime.MinValue, package.LastUpdated);
             }
 
