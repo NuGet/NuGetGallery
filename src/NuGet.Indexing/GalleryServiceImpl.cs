@@ -15,7 +15,6 @@ namespace NuGet.Indexing
             Trace.TraceInformation("Search: {0}", context.Request.QueryString);
 
             string q = context.Request.Query["q"] ?? string.Empty;
-            ServiceImpl.ValidateQuery(q); 
 
             string sortBy = context.Request.Query["sortBy"] ?? string.Empty;
 
