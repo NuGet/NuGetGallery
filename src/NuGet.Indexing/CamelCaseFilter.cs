@@ -13,7 +13,7 @@ namespace NuGet.Indexing
         IOffsetAttribute _offsetAttribute;
         IPositionIncrementAttribute _positionIncrementAttribute;
 
-        Queue<Tuple<string, int, int, int>> _queue = new Queue<Tuple<string, int, int, int>>();
+        Queue<TokenAttributes> _queue = new Queue<TokenAttributes>();
 
         public CamelCaseFilter(TokenStream stream)
             : base(stream)
@@ -36,6 +36,14 @@ namespace NuGet.Indexing
                 return false;
             }
 
+            _queue.Enqueue(new TokenAttributes
+            {
+                TermBuffer = _termAttribute.Term,
+                StartOffset = _offsetAttribute.StartOffset,
+                EndOffset = _offsetAttribute.StartOffset,
+                PositionIncrement = _positionIncrementAttribute.PositionIncrement
+            });
+
             string term = _termAttribute.Term;
             int start = _offsetAttribute.StartOffset;
             int prevStart = start;
@@ -47,10 +55,24 @@ namespace NuGet.Indexing
                 if (prev != string.Empty)
                 {
                     string shingle = string.Format("{0}{1}", prev, subTerm);
-                    _queue.Enqueue(new Tuple<string, int, int, int>(shingle, prevStart, prevStart + shingle.Length, 0));
+
+                    _queue.Enqueue(new TokenAttributes
+                    {
+                        TermBuffer = shingle,
+                        StartOffset = prevStart,
+                        EndOffset = prevStart + shingle.Length,
+                        PositionIncrement = 0
+                    });
                 }
 
-                _queue.Enqueue(new Tuple<string, int, int, int>(subTerm, start, start + subTerm.Length, positionIncrement));
+                _queue.Enqueue(new TokenAttributes
+                {
+                    TermBuffer = subTerm,
+                    StartOffset = start,
+                    EndOffset = start + subTerm.Length,
+                    PositionIncrement = positionIncrement
+                });
+
                 positionIncrement = 1;
                 prevStart = start;
                 start += subTerm.Length;
@@ -66,11 +88,19 @@ namespace NuGet.Indexing
             return false;
         }
 
-        private void SetAttributes(Tuple<string, int, int, int> next)
+        private void SetAttributes(TokenAttributes next)
         {
-            _termAttribute.SetTermBuffer(next.Item1);
-            _offsetAttribute.SetOffset(next.Item2, next.Item3);
-            _positionIncrementAttribute.PositionIncrement = next.Item4;
+            _termAttribute.SetTermBuffer(next.TermBuffer);
+            _offsetAttribute.SetOffset(next.StartOffset, next.EndOffset);
+            _positionIncrementAttribute.PositionIncrement = next.PositionIncrement;
+        }
+
+        private class TokenAttributes
+        {
+            public string TermBuffer { get; set; }
+            public int StartOffset { get; set; }
+            public int EndOffset { get; set; }
+            public int PositionIncrement { get; set; }
         }
     }
 }
