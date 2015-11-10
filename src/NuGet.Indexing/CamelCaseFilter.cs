@@ -56,13 +56,16 @@ namespace NuGet.Indexing
                 {
                     string shingle = string.Format("{0}{1}", prev, subTerm);
 
-                    _queue.Enqueue(new TokenAttributes
+                    if (!shingle.Equals(term, StringComparison.OrdinalIgnoreCase))
                     {
-                        TermBuffer = shingle,
-                        StartOffset = prevStart,
-                        EndOffset = prevStart + shingle.Length,
-                        PositionIncrement = 0
-                    });
+                        _queue.Enqueue(new TokenAttributes
+                        {
+                            TermBuffer = shingle,
+                            StartOffset = prevStart,
+                            EndOffset = prevStart + shingle.Length,
+                            PositionIncrement = 0
+                        });
+                    }
                 }
 
                 _queue.Enqueue(new TokenAttributes
