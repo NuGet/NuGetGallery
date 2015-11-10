@@ -45,6 +45,11 @@ namespace NuGet.Indexing
             // Transform the query for Lucene parsing
             inputQuery = TransformQuery(inputQuery);
 
+            if (string.IsNullOrEmpty(inputQuery))
+            {
+                return new MatchAllDocsQuery();
+            }
+
             // Parse the query our query parser
             PackageQueryParser parser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, DefaultTermName, new PackageAnalyzer());
             Query query = parser.Parse(inputQuery);
@@ -68,9 +73,30 @@ namespace NuGet.Indexing
 
         private static string TransformQuery(string inputQuery)
         {
+            // Treat "" as a word separator
+            inputQuery = inputQuery.Replace("\"\"", " ");
+
+            // If we have an odd number of " then append a " this implies a left to right parse of the quoting
+            if (inputQuery.Count(ch => ch == '"') % 2 != 0)
+            {
+                // We might just have an odd trailing "
+                if (inputQuery.EndsWith("\""))
+                {
+                    inputQuery = inputQuery.TrimEnd('"');
+                }
+                // Otherwise we append a " to fix the remaining parsing
+                else
+                {
+                    inputQuery += '"';
+                }
+            }
+
             // Split on "Terms" and,
             // in each term, escape Lucene characters EXCEPT the first ":" in a field query
-            return String.Join(" ", GetTerms(inputQuery, escape: false).Select(TransformTerm));
+            return String.Join(" ", 
+                GetTerms(inputQuery, escape: false)
+                    .Where(term => term.Length > 0)
+                    .Select(TransformTerm));
         }
 
         private static string TransformTerm(string term)
