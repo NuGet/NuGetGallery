@@ -86,8 +86,7 @@ namespace NuGet.Indexing
         {
             try
             {
-                //Query query = NuGetQuery.MakeQuery(q);
-                Query query = LuceneQueryCreator.Parse(q, false);
+                Query query = NuGetQuery.MakeQuery(q);
                 Query boostedQuery = new RankingScoreQuery(query, rankings);
                 return boostedQuery;
             }

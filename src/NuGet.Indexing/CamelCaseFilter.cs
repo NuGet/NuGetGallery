@@ -47,7 +47,7 @@ namespace NuGet.Indexing
             string term = _termAttribute.Term;
             int start = _offsetAttribute.StartOffset;
             int prevStart = start;
-            int positionIncrement = _positionIncrementAttribute.PositionIncrement;
+            int positionIncrement = 0;
             string prev = string.Empty;
 
             foreach (string subTerm in TokenizingHelper.CamelCaseSplit(term))
