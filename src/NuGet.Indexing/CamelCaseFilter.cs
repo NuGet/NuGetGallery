@@ -56,7 +56,7 @@ namespace NuGet.Indexing
                 {
                     string shingle = string.Format("{0}{1}", prev, subTerm);
 
-                    if (!shingle.Equals(term, StringComparison.OrdinalIgnoreCase))
+                    if (shingle != term)
                     {
                         _queue.Enqueue(new TokenAttributes
                         {
@@ -68,13 +68,16 @@ namespace NuGet.Indexing
                     }
                 }
 
-                _queue.Enqueue(new TokenAttributes
+                if (subTerm != term)
                 {
-                    TermBuffer = subTerm,
-                    StartOffset = start,
-                    EndOffset = start + subTerm.Length,
-                    PositionIncrement = positionIncrement
-                });
+                    _queue.Enqueue(new TokenAttributes
+                    {
+                        TermBuffer = subTerm,
+                        StartOffset = start,
+                        EndOffset = start + subTerm.Length,
+                        PositionIncrement = positionIncrement
+                    });
+                }
 
                 positionIncrement = 1;
                 prevStart = start;

@@ -9,20 +9,14 @@ namespace NuGet.Indexing
 {
     public class PackageAnalyzer : PerFieldAnalyzerWrapper
     {
-        public PackageAnalyzer()
-            : base(new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), CreateFieldAnalyzers())
-        {
-        }
+        static readonly IDictionary<string, Analyzer> _fieldAnalyzers;
 
-        private static IDictionary<string, Analyzer> CreateFieldAnalyzers()
+        static PackageAnalyzer()
         {
-            return new Dictionary<string, Analyzer>(StringComparer.OrdinalIgnoreCase)
+            _fieldAnalyzers = new Dictionary<string, Analyzer>(StringComparer.OrdinalIgnoreCase)
             {
-                { "@type", new KeywordAnalyzer() },
                 { "Id", new IdentifierKeywordAnalyzer() },
                 { "IdAutocomplete", new IdentifierAutocompleteAnalyzer() },
-                { "IdAutocompletePhrase", new IdentifierAutocompleteAnalyzer() },
-                { "Facet", new IdentifierKeywordAnalyzer() },
                 { "TokenizedId", new IdentifierAnalyzer() },
                 { "ShingledId", new ShingledIdentifierAnalyzer() },
                 { "Version", new VersionAnalyzer() },
@@ -30,12 +24,15 @@ namespace NuGet.Indexing
                 { "Description", new DescriptionAnalyzer() },
                 { "Summary", new DescriptionAnalyzer() },
                 { "Authors", new DescriptionAnalyzer() },
-                { "Owners", new DescriptionAnalyzer() },
+                { "Owners", new OwnerAnalyzer() },
                 { "Tags", new TagsAnalyzer() },
-                { "FullId", new IdentifierKeywordAnalyzer() },
-                { "Namespace", new IdentifierKeywordAnalyzer() },
-                { "__default", new KeywordAnalyzer() } // The "__default" field is only used during initial query parsing. It should just be tokenized as a keyword for later processing.
+                { "__default", new KeywordAnalyzer() } 
             };
+        }
+
+        public PackageAnalyzer()
+            : base(new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), _fieldAnalyzers)
+        {
         }
     }
 }

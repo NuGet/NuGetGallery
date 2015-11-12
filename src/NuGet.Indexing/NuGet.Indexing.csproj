@@ -148,6 +148,7 @@
     <Compile Include="ClientException.cs" />
     <Compile Include="Compatibility.cs" />
     <Compile Include="CuratedFeedHandler.cs" />
+    <Compile Include="OwnerAnalyzer.cs" />
     <Compile Include="DownloadRankings.cs" />
     <Compile Include="Downloads.cs" />
     <Compile Include="DownloadLookup.cs" />
@@ -159,6 +160,7 @@
     <Compile Include="IndexReaderProcessor.cs" />
     <Compile Include="IndexReaderProcessorHandler.cs" />
     <Compile Include="LatestListedHandler.cs" />
+    <Compile Include="NuGetQuery.cs" />
     <Compile Include="OwnersHandler.cs" />
     <Compile Include="PackageVersions.cs" />
     <Compile Include="ResponseFormatter.cs" />

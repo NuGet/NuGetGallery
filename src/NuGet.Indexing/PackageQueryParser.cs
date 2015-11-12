@@ -22,8 +22,8 @@ namespace NuGet.Indexing
             { "tags", "Tags" },
             { "author", "Authors" },
             { "authors", "Authors" },
-            { "owner", "Owners" },
-            { "owners", "Owners" },
+            { "owner", "Owner" },
+            { "owners", "Owner" },
         };
 
         public PackageQueryParser(Lucene.Net.Util.Version matchVersion, string f, Analyzer a) :

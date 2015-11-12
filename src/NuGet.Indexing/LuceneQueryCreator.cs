@@ -279,7 +279,7 @@ namespace NuGet.Indexing
                 CreateFieldClause(luceneQuery, "Description", nugetQuery);
                 CreateFieldClause(luceneQuery, "Summary", nugetQuery);
                 CreateFieldClause(luceneQuery, "Authors", nugetQuery);
-                CreateFieldClause(luceneQuery, "Owners", nugetQuery);
+                CreateFieldClause(luceneQuery, "Owner", nugetQuery);
 
                 PackageQueryParser parser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Title", new PackageAnalyzer());
                 nugetParsedQuery = parser.Parse(luceneQuery.ToString());

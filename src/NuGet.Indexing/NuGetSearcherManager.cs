@@ -117,18 +117,18 @@ namespace NuGet.Indexing
                 Trace.TraceInformation("ownersReader {0} (deletes: {1})", ownersReader.MaxDoc, ownersReader.NumDeletedDocs);
                 Trace.TraceInformation("original {0} (deletes: {1})", reader.MaxDoc, reader.NumDeletedDocs);
 
-                //ParallelReader combined = new ParallelReader(false);
-                //combined.Add(reader);
-                //combined.Add(ownersReader);
+                ParallelReader combined = new ParallelReader(false);
+                combined.Add(reader);
+                combined.Add(ownersReader);
 
                 //Uncomment the following line to drop owners from the index...
-                IndexReader combined = reader;
+                //IndexReader combined = reader;
 
                 // Filters must be in terms of the structure of the underlying IndexReader. Specifically if the underlying
                 // reader is Segmented then the filter must be too. Theoretically Lucene should be able to store a cached version of the
                 // filter corresponding to each segment. We are not currently making use of that because we have introduced the ParallelReader
 
-                // There are four flavors of Lasted/Listed filter to reflect all the possible combinations.
+                // There are four flavors of Latest/Listed filter to reflect all the possible combinations.
 
                 var h00 = new LatestListedHandler(includeUnlisted: false, includePrerelease: false);
                 var h01 = new LatestListedHandler(includeUnlisted: false, includePrerelease: true);

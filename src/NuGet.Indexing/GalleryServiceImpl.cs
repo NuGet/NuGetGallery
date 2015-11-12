@@ -59,7 +59,7 @@ namespace NuGet.Indexing
             {
                 Filter filter = searcher.GetFilter(false, includePrerelease, feed);
 
-                Query query = LuceneQueryCreator.Parse(q, false);
+                Query query = NuGetQuery.MakeQuery(q);
 
                 if (countOnly)
                 {
@@ -76,13 +76,6 @@ namespace NuGet.Indexing
             {
                 searcherManager.Release(searcher);
             }
-        }
-
-        public static Query MakeQuery(string q, IDictionary<string, int> rankings)
-        {
-            Query query = LuceneQueryCreator.Parse(q, false);
-            Query boostedQuery = new RankingScoreQuery(query, rankings);
-            return boostedQuery;
         }
 
         private static string DocumentCountImpl(IndexSearcher searcher, Query query, Filter filter)
