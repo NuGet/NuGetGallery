@@ -46,6 +46,7 @@ namespace NuGet.Indexing
                 switch (clause.Key.ToLowerInvariant())
                 {
                     case "id":
+                    case "packageid":
                         IdClause(query, analyzer, clause.Value);
                         break;
                     case "version":
@@ -62,12 +63,14 @@ namespace NuGet.Indexing
                         TagClause(query, analyzer, clause.Value);
                         break;
                     case "author":
+                    case "authors":
                         AuthorClause(query, analyzer, clause.Value);
                         break;
                     case "summary":
                         SummaryClause(query, analyzer, clause.Value);
                         break;
                     case "owner":
+                    case "owners":
                         OwnerClause(query, analyzer, clause.Value);
                         break;
                     case "*":

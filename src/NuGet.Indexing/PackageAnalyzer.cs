@@ -26,7 +26,7 @@ namespace NuGet.Indexing
                 { "Authors", new DescriptionAnalyzer() },
                 { "Owners", new OwnerAnalyzer() },
                 { "Tags", new TagsAnalyzer() },
-                { "__default", new KeywordAnalyzer() } 
+                { "__default", new KeywordAnalyzer() } // this is just used by the LuceneQueryCreator 
             };
         }
 
