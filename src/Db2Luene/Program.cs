@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Db2Luene
+namespace Db2Lucene
 {
     class Program
     {

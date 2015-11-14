@@ -184,7 +184,9 @@ namespace NuGet.Indexing
 
             Query query = queryParser.Parse(q);
 
-            Query boostedQuery = new RankingScoreQuery(query, rankings);
+            //Query boostedQuery = new RankingScoreQuery(query, new Dictionary<string, int>(), 2.0);
+            Query boostedQuery = new RankingScoreQuery(query, rankings, 2.0);
+
             return boostedQuery;
         }
 
