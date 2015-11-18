@@ -73,7 +73,7 @@ namespace NuGet.Indexing
                     case "owners":
                         OwnerClause(query, analyzer, clause.Value);
                         break;
-                    case "*":
+                    default:
                         AnyClause(query, analyzer, clause.Value);
                         break;
                 }
