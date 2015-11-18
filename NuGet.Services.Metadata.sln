@@ -60,7 +60,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NgTests", "NgTests\NgTests.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Db2Lucene", "src\Db2Luene\Db2Lucene.csproj", "{24C1CA5F-5B74-4A7A-B3F1-566121987F99}"
 EndProject
-Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.BasicSearch.CloudService", "NuGet.Services.BasicSearch.CloudService\NuGet.Services.BasicSearch.CloudService.ccproj", "{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}"
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.BasicSearchTests", "tests\NuGet.Services.BasicSearchTests\NuGet.Services.BasicSearchTests.csproj", "{AF189F05-EFC3-4A98-91C7-2AF1E4B8B131}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.IndexingTests", "tests\NuGet.IndexingTests\NuGet.IndexingTests.csproj", "{43665489-01F0-4F35-8A33-258F2231B2D8}"

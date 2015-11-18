@@ -47,31 +47,31 @@ namespace NuGet.Indexing
                 {
                     case "id":
                     case "packageid":
-                        IdClause(query, analyzer, clause.Value);
+                        IdClause(query, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "version":
-                        VersionClause(query, analyzer, clause.Value);
+                        VersionClause(query, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "title":
-                        TitleClause(query, analyzer, clause.Value);
+                        TitleClause(query, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "description":
-                        DescriptionClause(query, analyzer, clause.Value);
+                        DescriptionClause(query, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "tag":
                     case "tags":
-                        TagClause(query, analyzer, clause.Value);
+                        TagClause(query, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "author":
                     case "authors":
-                        AuthorClause(query, analyzer, clause.Value);
+                        AuthorClause(query, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "summary":
-                        SummaryClause(query, analyzer, clause.Value);
+                        SummaryClause(query, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "owner":
                     case "owners":
-                        OwnerClause(query, analyzer, clause.Value);
+                        OwnerClause(query, analyzer, clause.Value, Occur.MUST);
                         break;
                     default:
                         AnyClause(query, analyzer, clause.Value);
@@ -95,8 +95,15 @@ namespace NuGet.Indexing
             return query;
         }
 
-        static void IdClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        static void IdClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
+            if (occur == Occur.MUST)
+            {
+                BooleanQuery subQuery = new BooleanQuery();
+                query.Add(subQuery, Occur.MUST);
+                query = subQuery;
+            }
+
             query.Add(ConstructClauseQuery(analyzer, "Id", values), Occur.SHOULD);
             query.Add(ConstructClauseQuery(analyzer, "ShingledId", values), Occur.SHOULD);
             query.Add(ConstructClauseQuery(analyzer, "TokenizedId", values), Occur.SHOULD);
@@ -106,13 +113,20 @@ namespace NuGet.Indexing
             }
         }
 
-        static void VersionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        static void VersionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Version", values), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, "Version", values), occur);
         }
 
-        static void TitleClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        static void TitleClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
+            if (occur == Occur.MUST)
+            {
+                BooleanQuery subQuery = new BooleanQuery();
+                query.Add(subQuery, Occur.MUST);
+                query = subQuery;
+            }
+
             query.Add(ConstructClauseQuery(analyzer, "Title", values, Occur.SHOULD), Occur.SHOULD);
             if (values.Count() > 1)
             {
@@ -120,40 +134,40 @@ namespace NuGet.Indexing
             }
         }
 
-        static void DescriptionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        static void DescriptionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Description", values), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, "Description", values), occur);
         }
-        static void SummaryClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        static void SummaryClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Summary", values), Occur.SHOULD);
-        }
-
-        static void TagClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
-        {
-            query.Add(ConstructClauseQuery(analyzer, "Tags", values), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, "Summary", values), occur);
         }
 
-        static void AuthorClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        static void TagClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Authors", values), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, "Tags", values), occur);
         }
 
-        static void OwnerClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        static void AuthorClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Owner", values), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, "Authors", values), occur);
+        }
+
+        static void OwnerClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
+        {
+            query.Add(ConstructClauseQuery(analyzer, "Owner", values), occur);
         }
 
         static void AnyClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
         {
-            IdClause(query, analyzer, values);
-            VersionClause(query, analyzer, values);
-            TitleClause(query, analyzer, values);
-            DescriptionClause(query, analyzer, values);
-            SummaryClause(query, analyzer, values);
-            TagClause(query, analyzer, values);
-            AuthorClause(query, analyzer, values);
-            OwnerClause(query, analyzer, values);
+            IdClause(query, analyzer, values, Occur.SHOULD);
+            VersionClause(query, analyzer, values, Occur.SHOULD);
+            TitleClause(query, analyzer, values, Occur.SHOULD);
+            DescriptionClause(query, analyzer, values, Occur.SHOULD);
+            SummaryClause(query, analyzer, values, Occur.SHOULD);
+            TagClause(query, analyzer, values, Occur.SHOULD);
+            AuthorClause(query, analyzer, values, Occur.SHOULD);
+            OwnerClause(query, analyzer, values, Occur.SHOULD);
         }
 
         static Query ExecuteAnalyzer(Analyzer analyzer, string field, string text)
