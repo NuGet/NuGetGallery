@@ -20,8 +20,6 @@ namespace NuGet.Indexing
             IndexReader reader,
             IndexReader originalReader,
             IDictionary<string, string> commitUserData, 
-            NuGetSearcherManager manager, 
-            IndexReader reader, IDictionary<string, string> commitUserData, 
             IDictionary<string, Filter> curatedFeeds, 
             Filter[][] latest,
             VersionsHandler.VersionResult[] versions,
