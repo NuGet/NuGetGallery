@@ -40,7 +40,7 @@ namespace NuGet.Indexing
             {
                 TermBuffer = _termAttribute.Term,
                 StartOffset = _offsetAttribute.StartOffset,
-                EndOffset = _offsetAttribute.StartOffset,
+                EndOffset = _offsetAttribute.EndOffset,
                 PositionIncrement = _positionIncrementAttribute.PositionIncrement
             });
 
