@@ -5,20 +5,12 @@ namespace NuGet.IndexingTests.TestSupport
 {
     public class TokenAttributes
     {
-        public TokenAttributes()
+        public TokenAttributes(string term, int startOffset, int endOffset, int? positionIncrement = null)
         {
-        }
-
-        public TokenAttributes(string term, int startOffset, int endOffset) : this(term, startOffset, endOffset, null)
-        {
-        }
-
-        public TokenAttributes(string term, int startOffset, int endOffset, int? positionIncrement)
-        {
-            this.Term = term;
-            this.StartOffset = startOffset;
-            this.EndOffset = endOffset;
-            this.PositionIncrement = positionIncrement;
+            Term = term;
+            StartOffset = startOffset;
+            EndOffset = endOffset;
+            PositionIncrement = positionIncrement;
         }
 
         public string Term { get; set; }
@@ -28,22 +20,21 @@ namespace NuGet.IndexingTests.TestSupport
 
         public override string ToString()
         {
-            return string.Format(
-                "{{Term: '{0}', Offset: ({1}, {2}), PositionIncrement: {3}}}",
-                this.Term,
-                this.StartOffset,
-                this.EndOffset,
-                this.PositionIncrement.HasValue ? this.PositionIncrement.Value.ToString() : "null");
+            return "{" +
+                   $"Term: '{this.Term}', " +
+                   $"Offset: ({this.StartOffset}, {this.EndOffset}), " +
+                   $"PositionIncrement: {this.PositionIncrement?.ToString() ?? "null"}" +
+                   "}";
         }
 
         public override bool Equals(object obj)
         {
             var other = obj as TokenAttributes;
+
             if (other == null)
             {
                 return false;
             }
- 
 
             return string.Equals(Term, other.Term) &&
                 StartOffset == other.StartOffset &&
@@ -53,7 +44,7 @@ namespace NuGet.IndexingTests.TestSupport
 
         public override int GetHashCode()
         {
-            return this.ToString().GetHashCode();
+            return ToString().GetHashCode();
         }
     }
 }

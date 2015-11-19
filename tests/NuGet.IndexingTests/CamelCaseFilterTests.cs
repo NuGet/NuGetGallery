@@ -1,162 +1,138 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Analysis.Tokenattributes;
-using NuGet.Indexing;
-using Xunit;
 using Lucene.Net.Util;
+using NuGet.Indexing;
 using NuGet.IndexingTests.TestSupport;
+using Xunit;
 
 namespace NuGet.IndexingTests
 {
     public class CamelCaseFilterTests
     {
-        [Theory, MemberData("TheoryData")]
-        public void Theory(string text, TokenAttributes[] expected)
+        [Theory]
+        [MemberData(nameof(TokenizingReturnsExpectedTermAndOffsetsData))]
+        public void TokenizingReturnsExpectedTermAndOffsets(string text, TokenAttributes[] expected)
         {
-            // ARRANGE, ACT
-            var actual = this.GetTokenAttributes(text).ToArray();
-
-            // ASSERT
-            Assert.Equal(expected.Length, actual.Length);
-            for (int i = 0; i < expected.Length; i++)
-            {
-                Assert.Equal(expected[i].Term, actual[i].Term);
-                Assert.Equal(expected[i].StartOffset, actual[i].StartOffset);
-                Assert.Equal(expected[i].EndOffset, actual[i].EndOffset);
-                Assert.Equal(expected[i].PositionIncrement, actual[i].PositionIncrement);
-            }
-        }
-
-        private IEnumerable<TokenAttributes> GetTokenAttributes(string text)
-        {
-            var textReader = new StringReader(text);
-            var tokenStream = new StandardTokenizer(Version.LUCENE_30, textReader);
+            // arrange
+            var tokenStream = new StandardTokenizer(Version.LUCENE_30, new StringReader(text));
             var filter = new CamelCaseFilter(tokenStream);
+            
+            // act
+            var actual = filter.Tokenize().ToArray();
 
-            var termAttribute = filter.GetAttribute<ITermAttribute>();
-            var offsetAttribute = filter.GetAttribute<IOffsetAttribute>();
-            var positionIncrementAttribute = filter.GetAttribute<IPositionIncrementAttribute>();
-
-            while (filter.IncrementToken())
-            {
-                yield return new TokenAttributes
-                {
-                    Term = termAttribute.Term,
-                    StartOffset = offsetAttribute.StartOffset,
-                    EndOffset = offsetAttribute.EndOffset,
-                    PositionIncrement = positionIncrementAttribute.PositionIncrement
-                };
-            }
+            // assert
+            Assert.Equal(expected, actual);
         }
 
-        public static IEnumerable<object[]> TheoryData
+        public static IEnumerable<object[]> TokenizingReturnsExpectedTermAndOffsetsData
         {
             get
             {
+                // shingle depth two with four terms
                 yield return new object[]
                 {
-                    "AaBbCcDd",
+                    "DotNetZipFoo",
                     new[]
                     {
-                        new TokenAttributes("AaBbCcDd", 0, 8, 1),
-                        new TokenAttributes("Aa", 0, 2, 0),
-                        new TokenAttributes("AaBb", 0, 4, 0),
-                        new TokenAttributes("Bb", 2, 4, 1),
-                        new TokenAttributes("BbCc", 2, 6, 0),
-                        new TokenAttributes("Cc", 4, 6, 1),
-                        new TokenAttributes("CcDd", 4, 8, 0),
-                        new TokenAttributes("Dd", 6, 8, 1)
+                        new TokenAttributes("DotNetZipFoo", 0, 12, 1),
+                        new TokenAttributes("Dot", 0, 3, 0),
+                        new TokenAttributes("DotNet", 0, 6, 0),
+                        new TokenAttributes("Net", 3, 6, 1),
+                        new TokenAttributes("NetZip", 3, 9, 0),
+                        new TokenAttributes("Zip", 6, 9, 1),
+                        new TokenAttributes("ZipFoo", 6, 12, 0),
+                        new TokenAttributes("Foo", 9, 12, 1)
                     }
                 };
 
+                // shingle depth two with three terms
                 yield return new object[]
                 {
-                    "AaBbCc",
+                    "DotNetZip",
                     new[]
                     {
-                        new TokenAttributes("AaBbCc", 0, 6, 1),
-                        new TokenAttributes("Aa", 0, 2, 0),
-                        new TokenAttributes("AaBb", 0, 4, 0),
-                        new TokenAttributes("Bb", 2, 4, 1),
-                        new TokenAttributes("BbCc", 2, 6, 0),
-                        new TokenAttributes("Cc", 4, 6, 1)
+                        new TokenAttributes("DotNetZip", 0, 9, 1),
+                        new TokenAttributes("Dot", 0, 3, 0),
+                        new TokenAttributes("DotNet", 0, 6, 0),
+                        new TokenAttributes("Net", 3, 6, 1),
+                        new TokenAttributes("NetZip", 3, 9, 0),
+                        new TokenAttributes("Zip", 6, 9, 1),
                     }
                 };
 
+                // two terms
                 yield return new object[]
                 {
-                    "AaBb",
+                    "DotNet",
                     new[]
                     {
-                        new TokenAttributes("AaBb", 0, 4, 1),
-                        new TokenAttributes("Aa", 0, 2, 0),
-                        new TokenAttributes("Bb", 2, 4, 1)
+                        new TokenAttributes("DotNet", 0, 6, 1),
+                        new TokenAttributes("Dot", 0, 3, 0),
+                        new TokenAttributes("Net", 3, 6, 1)
                     }
                 };
 
+                // one term
                 yield return new object[]
                 {
-                    "Aa",
+                    "Dot",
                     new[]
                     {
-                        new TokenAttributes("Aa", 0, 2, 1)
+                        new TokenAttributes("Dot", 0, 3, 1)
                     }
                 };
 
+                // empty query
                 yield return new object[]
                 {
                     string.Empty,
                     new object[0]
                 };
 
+                // maintain case
                 yield return new object[]
                 {
-                    "ABCD",
+                    "DOT",
                     new[]
                     {
-                        new TokenAttributes("ABCD", 0, 4, 1)
+                        new TokenAttributes("DOT", 0, 3, 1)
                     }
                 };
 
+                // camel case transition is only when the characters go from lowercase to uppercase
                 yield return new object[]
                 {
-                    "ABCde",
+                    "DOTNet",
                     new[]
                     {
-                        new TokenAttributes("ABCde", 0, 5, 1)
+                        new TokenAttributes("DOTNet", 0, 6, 1)
                     }
                 };
 
+                // one character camel case
                 yield return new object[]
                 {
-                    "AaB",
+                    "DotN",
                     new[]
                     {
-                        new TokenAttributes("AaB", 0, 3, 1),
-                        new TokenAttributes("Aa", 0, 2, 0),
-                        new TokenAttributes("B", 2, 3, 1)
+                        new TokenAttributes("DotN", 0, 4, 1),
+                        new TokenAttributes("Dot", 0, 3, 0),
+                        new TokenAttributes("N", 3, 4, 1)
                     }
                 };
 
+                // for now, we do not split on numbers in CamelCaseFilter. We may revisit this in the future.
                 yield return new object[]
                 {
-                    "Abcd",
+                    "Dot1Net2ZIP3",
                     new[]
                     {
-                        new TokenAttributes("Abcd", 0, 4, 1)
-                    }
-                };
-
-                yield return new object[]
-                {
-                    "A1a2B3b",
-                    new[]
-                    {
-                        new TokenAttributes("A1a2B3b", 0, 7, 1)
+                        new TokenAttributes("Dot1Net2ZIP3", 0, 12, 1)
                     }
                 };
             }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,58 +12,66 @@ namespace NuGet.IndexingTests
 {
     public class PackageAnalyzerTests
     {
-        [Theory, MemberData("TheoryData")]
+        [Theory]
+        [MemberData(nameof(AddsCorrectFieldAnalyzersData))]
         public void AddsCorrectFieldAnalyzers(string field, string text, TokenAttributes[] expected)
         {
-            // ARRANGE
+            // arrange
             var analyzer = new PackageAnalyzer();
 
-            // ACT
+            // act
             var tokenStream = analyzer.TokenStream(field, new StringReader(text));
-            var tokenAttributes = tokenStream.GetTokenAttributes().ToArray();
+            var actual = tokenStream.Tokenize().ToArray();
 
-            // ASSERT
-            Assert.Equal(expected, tokenAttributes);
+            // assert
+            Assert.Equal(expected, actual);
         }
 
-        public static IEnumerable<object[]> TheoryData
+        public static IEnumerable<object[]> AddsCorrectFieldAnalyzersData
         {
             get
             {
                 yield return new object[]
                 {
                     "Id",
-                    "AaBbCc",
+                    "DotNetZip",
                     new[]
                     {
-                        new TokenAttributes("aabbcc", 0, 6)
+                        new TokenAttributes("dotnetzip", 0, 9)
                     }
                 };
-
+                
                 yield return new object[]
                 {
                     "IdAutocomplete",
-                    "AaB",
+                    "DotNet",
                     new[]
                     {
-                        new TokenAttributes("a", 0, 1, 1),
-                        new TokenAttributes("aa", 0, 2, 1),
-                        new TokenAttributes("aab", 0, 3, 1),
-                        new TokenAttributes("a", 0, 1, 1),
-                        new TokenAttributes("aa", 0, 2, 1),
-                        new TokenAttributes("b", 2, 3, 1)
+                        new TokenAttributes("d", 0, 1, 1),
+                        new TokenAttributes("do", 0, 2, 1),
+                        new TokenAttributes("dot", 0, 3, 1),
+                        new TokenAttributes("dotn", 0, 4, 1),
+                        new TokenAttributes("dotne", 0, 5, 1),
+                        new TokenAttributes("dotnet", 0, 6, 1),
+                        new TokenAttributes("d", 0, 1, 1),
+                        new TokenAttributes("do", 0, 2, 1),
+                        new TokenAttributes("dot", 0, 3, 1),
+                        new TokenAttributes("n", 3, 4, 1),
+                        new TokenAttributes("ne", 3, 5, 1),
+                        new TokenAttributes("net", 3, 6, 1),
+
                     }
                 };
-
+                
                 yield return new object[]
                 {
                     "TokenizedId",
-                    "AaBb",
+                    "DotNet",
                     new[]
                     {
-                        new TokenAttributes("aabb", 0, 4, 1),
-                        new TokenAttributes("aa", 0, 2, 0),
-                        new TokenAttributes("bb", 2, 4, 1)
+                        new TokenAttributes("dotnet", 0, 6, 1),
+                        new TokenAttributes("dot", 0, 3, 0),
+                        new TokenAttributes("net", 3, 6, 1)
                     }
                 };
 
@@ -84,22 +93,22 @@ namespace NuGet.IndexingTests
                 yield return new object[]
                 {
                     "Owner",
-                    "AAA Bbb",
+                    "Microsoft",
                     new[]
                     {
-                        new TokenAttributes("aaa bbb", 0, 7)
+                        new TokenAttributes("microsoft", 0, 9)
                     }
                 };
 
                 yield return new object[]
                 {
                     "Tags",
-                    "AAA Bbb ccc",
+                    "DOT Net zip",
                     new[]
                     {
-                        new TokenAttributes("aaa", 0, 3, null),
-                        new TokenAttributes("bbb", 4, 7, null),
-                        new TokenAttributes("ccc", 8, 11, null),
+                        new TokenAttributes("dot", 0, 3, null),
+                        new TokenAttributes("net", 4, 7, null),
+                        new TokenAttributes("zip", 8, 11, null),
                     }
                 };
             }
@@ -110,14 +119,17 @@ namespace NuGet.IndexingTests
             return new object[]
             {
                 field,
-                "There is a package called AaBb.",
+                "There is a package called DotNetZip.",
                 new[]
                 {
                     new TokenAttributes("package", 11, 18, 4),
                     new TokenAttributes("called", 19, 25, 1),
-                    new TokenAttributes("aabb", 26, 30, 1),
-                    new TokenAttributes("aa", 26, 28, 0),
-                    new TokenAttributes("bb", 28, 30, 1)
+                    new TokenAttributes("dotnetzip", 26, 35, 1),
+                    new TokenAttributes("dot", 26, 29, 0),
+                    new TokenAttributes("dotnet", 26, 32, 0),
+                    new TokenAttributes("net", 29, 32, 1),
+                    new TokenAttributes("netzip", 29, 35, 0),
+                    new TokenAttributes("zip", 32, 35, 1)
                 }
             };
         }
