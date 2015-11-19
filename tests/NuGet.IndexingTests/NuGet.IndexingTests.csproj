@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CamelCaseFilterTests.cs" />
+    <Compile Include="TagsAnalyzerTests.cs" />
     <Compile Include="DescriptionAnalyzerTests.cs" />
     <Compile Include="DotTokenizerTests.cs" />
     <Compile Include="ShingledIdentifierAnalyzerTests.cs" />
