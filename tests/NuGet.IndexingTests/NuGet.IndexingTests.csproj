@@ -70,7 +70,9 @@
   <ItemGroup>
     <Compile Include="CamelCaseFilterTests.cs" />
     <Compile Include="DotTokenizerTests.cs" />
+    <Compile Include="ShingledIdentifierAnalyzerTests.cs" />
     <Compile Include="IdentifierAutocompleteAnalyzerTests.cs" />
+    <Compile Include="IdentifierAnalyzerTests.cs" />
     <Compile Include="IdentifierKeywordAnalyzerTests.cs" />
     <Compile Include="PackageAnalyzerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
