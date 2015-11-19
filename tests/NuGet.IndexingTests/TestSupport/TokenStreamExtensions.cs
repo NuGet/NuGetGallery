@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Tokenattributes;
 
@@ -32,6 +34,12 @@ namespace NuGet.IndexingTests.TestSupport
 
                 yield return tokenAttributes;
             }
+        }
+
+        public static TokenAttributes[] Tokenize(this Analyzer analyzer, string text)
+        {
+            var tokenStream = analyzer.TokenStream(null, new StringReader(text));
+            return tokenStream.Tokenize().ToArray();
         }
     }
 }

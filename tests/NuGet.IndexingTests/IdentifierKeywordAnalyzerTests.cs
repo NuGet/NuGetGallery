@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using NuGet.Indexing;
 using NuGet.IndexingTests.TestSupport;
 using Xunit;
@@ -16,12 +14,8 @@ namespace NuGet.IndexingTests
         [MemberData(nameof(TokenizerOnlyLowercasesInputData))]
         public void TokenizerOnlyLowercasesInput(string text, TokenAttributes expected)
         {
-            // arrange
-            var analyzer = new IdentifierKeywordAnalyzer();
-            var tokenStream = analyzer.TokenStream(null, new StringReader(text));
-
-            // act
-            var actual = tokenStream.Tokenize().ToArray();
+            // arrange, act
+            var actual = new IdentifierKeywordAnalyzer().Tokenize(text);
 
             // assert
             Assert.Equal(new[] { expected }, actual);
