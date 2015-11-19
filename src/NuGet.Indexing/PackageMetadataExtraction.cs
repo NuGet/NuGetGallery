@@ -78,11 +78,12 @@ namespace NuGet.Indexing
                 return;
             }
 
-            ExtractId(package, document, errors);
-            ExtractVersion(package, document, errors);
+            ExtractRequiredProperty(package, document, errors, "id");
+            ExtractRequiredProperty(package, document, errors, "version");
+            ExtractProperty(package, document, "title");
             ExtractProperty(package, document, "summary");
             ExtractProperty(package, document, "tags");
-            ExtractProperty(package, document, "authors");
+            ExtractProperty(package, document, "authors", "flattenedAuthors");
             ExtractProperty(package, document, "description");
             ExtractProperty(package, document, "iconUrl");
             ExtractProperty(package, document, "projectUrl");
@@ -93,9 +94,12 @@ namespace NuGet.Indexing
             ExtractProperty(package, document, "licenseUrl");
             ExtractProperty(package, document, "requiresLicenseAcceptance");
             ExtractDependencies(package, document);
+
+            package["published"] = DateTimeOffset.UtcNow.ToString("O");
+            package["listed"] = "true";
         }
 
-        static bool TryLoad(Stream stream, out XDocument document, List<string> errors)
+        private static bool TryLoad(Stream stream, out XDocument document, List<string> errors)
         {
             try
             {
@@ -110,42 +114,45 @@ namespace NuGet.Indexing
             }
         }
 
-        static void ExtractId(IDictionary<string, string> package, XDocument document, List<string> errors)
+        /// <summary>
+        /// Same as <see cref="ExtractProperty"/> except an error is added if the property is not found in the .nuspec.
+        /// </summary>
+        /// <param name="package">The package data.</param>
+        /// <param name="document">The parsed .nuspec.</param>
+        /// <param name="errors">The list of errors encountered while parsing the .nuspec.</param>
+        /// <param name="localName">The local name of the XML element to read the text from.</param>
+        /// <param name="key">Optionally, the key to set in the <see cref="package"/> dictionary.</param>
+        private static void ExtractRequiredProperty(IDictionary<string, string> package, XDocument document, List<string> errors, string localName, string key = null)
         {
-            XElement idElement = document.Root.DescendantsAndSelf().Elements().Where(d => d.Name.LocalName == "id").FirstOrDefault();
-            if (idElement != null)
+            if (!ExtractProperty(package, document, localName, key))
             {
-                package["id"] = (idElement.Value);
-            }
-            else
-            {
-                errors.Add("unable to find the id element in the nuspec");
+                errors.Add($"unable to find the '{localName}' element in the nuspec");
             }
         }
 
-        static void ExtractVersion(IDictionary<string, string> package, XDocument document, List<string> errors)
+        /// <summary>
+        /// Extract the property with local name <see cref="localName"/> from the .nuspec XML and added it to the
+        /// <see cref="package"/> dictionary. If <see cref="key"/> is provided, this value will be used as the key in
+        /// <see cref="package"/>. Otherwise, <see cref="localName"/> is used as the key.
+        /// </summary>
+        /// <param name="package">The package data.</param>
+        /// <param name="document">The parsed .nuspec.</param>
+        /// <param name="localName">The local name of the XML element to read the text from.</param>
+        /// <param name="key">Optionally, the key to set in the <see cref="package"/> dictionary.</param>
+        /// <returns>True if the element with the provided <see cref="localName"/> is found. False, otherwise.</returns>
+        private static bool ExtractProperty(IDictionary<string, string> package, XDocument document, string localName, string key = null)
         {
-            XElement idElement = document.Root.DescendantsAndSelf().Elements().Where(d => d.Name.LocalName == "version").FirstOrDefault();
-            if (idElement != null)
-            {
-                package["version"] = (idElement.Value);
-            }
-            else
-            {
-                errors.Add("unable to find the version element in the nuspec");
-            }
-        }
-
-        static void ExtractProperty(IDictionary<string, string> package, XDocument document, string name)
-        {
-            XElement element = document.Root.DescendantsAndSelf().Elements().Where(d => d.Name.LocalName == name).FirstOrDefault();
+            XElement element = document.Root.DescendantsAndSelf().Elements().FirstOrDefault(d => d.Name.LocalName == localName);
             if (element != null)
             {
-                package[name] = element.Value;
+                package[key ?? localName] = element.Value;
+                return true;
             }
+
+            return false;
         }
 
-        static void ExtractDependencies(IDictionary<string, string> package, XDocument document)
+        private static void ExtractDependencies(IDictionary<string, string> package, XDocument document)
         {
             //TODO: extract from the XML - refer to the XSLT for an accurate definition of the generic structure
         }

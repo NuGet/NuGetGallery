@@ -42,7 +42,7 @@ namespace NuGet.Indexing
 
             AddId(document, package, errors);
             AddVersion(document, package, errors);
-            AddField(document, "Title", package, "title", Field.Index.ANALYZED, 2.0f);
+            AddFieldWithDefault(document, "Title", package, "title", package["id"], Field.Index.ANALYZED, 2.0f);
             AddField(document, "Description", package, "description", Field.Index.ANALYZED);
             AddField(document, "Summary", package, "summary", Field.Index.ANALYZED);
             AddField(document, "Tags", package, "tags", Field.Index.ANALYZED, 2.0f);
@@ -65,7 +65,7 @@ namespace NuGet.Indexing
             AddDates(document, package, errors);
             AddSupportedFrameworks(document, package);
 
-            AddField(document, "Listed", package, "listed", Field.Index.NOT_ANALYZED);
+            AddRequiredField(document, "Listed", package, errors, "listed", Field.Index.NOT_ANALYZED);
 
             DetermineLanguageBoost(document, package);
 
@@ -74,7 +74,7 @@ namespace NuGet.Indexing
             return document;
         }
 
-        static void CheckErrors(List<string> errors)
+        private static void CheckErrors(List<string> errors)
         {
             if (errors.Count > 0)
             {
@@ -87,7 +87,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddId(Document document, IDictionary<string, string> package, List<string> errors)
+        private static void AddId(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
             if (package.TryGetValue("id", out value))
@@ -108,7 +108,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddVersion(Document document, IDictionary<string, string> package, List<string> errors)
+        private static void AddVersion(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string originalVersion = null;
             if (package.TryGetValue("originalVersion", out originalVersion))
@@ -143,7 +143,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddDependencies(Document document, IDictionary<string, string> package)
+        private static void AddDependencies(Document document, IDictionary<string, string> package)
         {
             string value;
             if (package.TryGetValue("flattenedDependencies", out value))
@@ -191,7 +191,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddDates(Document document, IDictionary<string, string> package, List<string> errors)
+        private static void AddDates(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string created;
             if (package.TryGetValue("created", out created))
@@ -240,7 +240,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddSupportedFrameworks(Document document, IDictionary<string, string> package)
+        private static void AddSupportedFrameworks(Document document, IDictionary<string, string> package)
         {
             string value;
             if (package.TryGetValue("supportedFrameworks", out value))
@@ -265,16 +265,55 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddField(Document document, string destName, IDictionary<string, string> package, string sourceName, Field.Index fieldIndex, float boost = 1.0f)
+        private static void AddRequiredField(
+            Document document,
+            string destName,
+            IDictionary<string, string> package,
+            List<string> errors,
+            string sourceName,
+            Field.Index fieldIndex,
+            float boost = 1.0f)
+        {
+            if (!AddField(document, destName, package, sourceName, fieldIndex, boost))
+            {
+                errors.Add($"Required property '{sourceName}' not found.");
+            }
+        }
+
+        private static void AddFieldWithDefault(
+            Document document,
+            string destName,
+            IDictionary<string, string> package,
+            string sourceName,
+            string defaultValue,
+            Field.Index fieldIndex,
+            float boost = 1.0f)
+        {
+            if (!AddField(document, destName, package, sourceName, fieldIndex, boost))
+            {
+                document.Add(new Field(destName, defaultValue, Field.Store.YES, fieldIndex) { Boost = boost });
+            }
+        }
+
+        private static bool AddField(
+            Document document,
+            string destName,
+            IDictionary<string, string> package,
+            string sourceName,
+            Field.Index fieldIndex,
+            float boost = 1.0f)
         {
             string value;
             if (package.TryGetValue(sourceName, out value))
             {
                 document.Add(new Field(destName, value, Field.Store.YES, fieldIndex) { Boost = boost });
+                return true;
             }
+
+            return false;
         }
 
-        static void DetermineLanguageBoost(Document document, IDictionary<string, string> package)
+        private static void DetermineLanguageBoost(Document document, IDictionary<string, string> package)
         {
             string id;
             string language;

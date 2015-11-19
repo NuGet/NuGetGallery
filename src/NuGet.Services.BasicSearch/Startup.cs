@@ -171,16 +171,16 @@ namespace NuGet.Services.BasicSearch
             {
                 if (_searcherManager == null)
                 {
-                    await context.Response.WriteAsync("UNINITIALIZED");
                     context.Response.StatusCode = (int)HttpStatusCode.OK;
+                    await context.Response.WriteAsync("UNINITIALIZED");
                 }
                 else
                 {
                     switch (context.Request.Path.Value)
                     {
                         case "/":
-                            await context.Response.WriteAsync("READY");
                             context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            await context.Response.WriteAsync("READY");
                             break;
                         case "/find":
                             await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Find(context, _searcherManager));
@@ -204,8 +204,8 @@ namespace NuGet.Services.BasicSearch
                             break;
 
                         default:
-                            await context.Response.WriteAsync("unrecognized");
                             context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                            await context.Response.WriteAsync("UNRECOGNIZED");
                             break;
                     }
                 }

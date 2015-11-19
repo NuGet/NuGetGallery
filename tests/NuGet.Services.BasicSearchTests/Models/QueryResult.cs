@@ -1,0 +1,39 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+
+namespace NuGet.Services.BasicSearchTests.Models
+{
+    public class QueryResult
+    {
+        [JsonProperty("@context")]
+        public AtContext AtContext { get; set; }
+
+        public int? TotalHits { get; set; }
+
+        public DateTime? LastReopen { get; set; }
+
+        public string Index { get; set; }
+
+        public IEnumerable<Package> Data { get; set; }
+
+        public Package GetPackage(string id)
+        {
+            return Data.FirstOrDefault(p => p.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public bool ContainsPackage(string id)
+        {
+            return GetPackage(id) != null;
+        }
+
+        public string GetPackageVersion(string id)
+        {
+            return GetPackage(id)?.Version;
+        }
+    }
+}
