@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Lucene.Net.Store;
 using Microsoft.Owin.Hosting;
 using NuGet.Services.BasicSearch;
 
@@ -19,7 +19,6 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
         private TestSettings _settings;
         private INupkgDownloader _nupkgDownloader;
         private LuceneDirectoryInitializer _luceneDirectoryInitializer;
-        private DataDirectoryInitializer _dataDirectoryInitializer;
         private PortReserver _portReserver;
         private IDisposable _webApp;
 
@@ -40,22 +39,31 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             _settings = ReadFromXml<TestSettings>("TestSettings.xml");
             _nupkgDownloader = new NupkgDownloader(_settings);
             _luceneDirectoryInitializer = new LuceneDirectoryInitializer(_settings, _nupkgDownloader);
-            _dataDirectoryInitializer = new DataDirectoryInitializer(_settings);
             _portReserver = new PortReserver();
 
             // set up the data
             var enumeratedPackages = packages?.ToArray() ?? new PackageVersion[0];
             await _nupkgDownloader.DownloadPackagesAsync(enumeratedPackages);
-            string luceneDirectory = _luceneDirectoryInitializer.GetInitializedDirectory(enumeratedPackages);
-            string dataDirectory = await _dataDirectoryInitializer.GetInitializedDirectoryAsync();
+            var luceneDirectory = _luceneDirectoryInitializer.GetInitializedDirectory(enumeratedPackages);
 
             // set up the configuration
-            ConfigurationManager.AppSettings.Set("Local.Lucene.Directory", luceneDirectory);
-            ConfigurationManager.AppSettings.Set("Local.Data.Directory", dataDirectory);
-            ConfigurationManager.AppSettings.Set("Search.RegistrationBaseAddress", _settings.RegistrationBaseAddress);
+            var configuration = new InMemoryConfiguration
+            {
+                { "Local.Lucene.Directory", (luceneDirectory as FSDirectory)?.Directory.FullName ?? "RAM" },
+                { "Search.RegistrationBaseAddress", _settings.RegistrationBaseAddress }
+            };
+
+            // set up the data directory
+            var loader = new InMemoryLoader
+            {
+                { "downloads.v1.json", "[]" },
+                { "curatedfeeds.json", "[]" },
+                { "owners.json", "[]" },
+                { "rankings.v1.json", "{\"Rank\": []}" }
+            };
 
             // start the app
-            _webApp = WebApp.Start<Startup>(_portReserver.BaseUri);
+            _webApp = WebApp.Start(_portReserver.BaseUri, app => new Startup().Configuration(app, configuration, luceneDirectory, loader));
             Client = new HttpClient { BaseAddress = new Uri(_portReserver.BaseUri) };
         }
 

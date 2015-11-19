@@ -11,6 +11,7 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Lucene.Net.Store;
 
 [assembly: OwinStartup("NuGet.Services.BasicSearch", typeof(NuGet.Services.BasicSearch.Startup))]
 
@@ -22,7 +23,7 @@ namespace NuGet.Services.BasicSearch
         NuGetSearcherManager _searcherManager;
         int _gate;
 
-        public void Configuration(IAppBuilder app)
+        public void Configuration(IAppBuilder app, IConfiguration configuration, Directory directory, ILoader loader)
         {
             //app.UseErrorPage();
 
@@ -51,20 +52,25 @@ namespace NuGet.Services.BasicSearch
             }));
 
             //  start the service running - the Lucene index needs to be reopened regularly on a background thread
-            string searchIndexRefresh = System.Configuration.ConfigurationManager.AppSettings.Get("Search.IndexRefresh") ?? "15";
+            string searchIndexRefresh = configuration.Get("Search.IndexRefresh") ?? "15";
             int seconds;
             if (!int.TryParse(searchIndexRefresh, out seconds))
             {
                 seconds = 120;
             }
 
-            if (InitializeSearcherManager())
+            if (InitializeSearcherManager(configuration, directory, loader))
             {
                 _gate = 0;
                 _timer = new Timer(new TimerCallback(ReopenCallback), 0, 0, seconds * 1000);
             }
 
             app.Run(Invoke);
+        }
+
+        public void Configuration(IAppBuilder app)
+        {
+            Configuration(app, new ConfigurationService(), null, null);
         }
 
         void ReopenCallback(object obj)
@@ -88,56 +94,11 @@ namespace NuGet.Services.BasicSearch
             }
         }
 
-        bool InitializeSearcherManager()
+        bool InitializeSearcherManager(IConfiguration configuration, Directory directory, ILoader loader)
         {
             try
             {
-                if (SafeRoleEnvironment.IsAvailable)
-                {
-                    var _configurationService = new ConfigurationService();
-                    string luceneDirectory = _configurationService.Get("Local.Lucene.Directory");
-                    if (!string.IsNullOrEmpty(luceneDirectory))
-                    {
-                        string dataDirectory = _configurationService.Get("Local.Data.Directory");
-                        _searcherManager = NuGetSearcherManager.CreateLocal(luceneDirectory, dataDirectory);
-                    }
-                    else
-                    {
-                        string storagePrimary = _configurationService.Get("Storage.Primary");
-                        string searchIndexContainer = _configurationService.Get("Search.IndexContainer");
-                        string searchDataContainer = _configurationService.Get("Search.DataContainer");
-
-                        _searcherManager = NuGetSearcherManager.CreateAzure(storagePrimary, searchIndexContainer, searchDataContainer);
-                    }
-
-                    string registrationBaseAddress = _configurationService.Get("Search.RegistrationBaseAddress");
-
-                    _searcherManager.RegistrationBaseAddress["http"] = MakeRegistrationBaseAddress("http", registrationBaseAddress);
-                    _searcherManager.RegistrationBaseAddress["https"] = MakeRegistrationBaseAddress("https", registrationBaseAddress);
-                }
-                else
-                {
-                    string luceneDirectory = System.Configuration.ConfigurationManager.AppSettings.Get("Local.Lucene.Directory");
-                    if (!string.IsNullOrEmpty(luceneDirectory))
-                    {
-                        string dataDirectory = System.Configuration.ConfigurationManager.AppSettings.Get("Local.Data.Directory");
-                        _searcherManager = NuGetSearcherManager.CreateLocal(luceneDirectory, dataDirectory);
-                    }
-                    else
-                    {
-                        string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
-                        string searchIndexContainer = System.Configuration.ConfigurationManager.AppSettings.Get("Search.IndexContainer");
-                        string searchDataContainer = System.Configuration.ConfigurationManager.AppSettings.Get("Search.DataContainer");
-
-                        _searcherManager = NuGetSearcherManager.CreateAzure(storagePrimary, searchIndexContainer, searchDataContainer);
-                    }
-
-                    string registrationBaseAddress = System.Configuration.ConfigurationManager.AppSettings.Get("Search.RegistrationBaseAddress");
-
-                    _searcherManager.RegistrationBaseAddress["http"] = MakeRegistrationBaseAddress("http", registrationBaseAddress);
-                    _searcherManager.RegistrationBaseAddress["https"] = MakeRegistrationBaseAddress("https", registrationBaseAddress);
-                }
-
+                _searcherManager = NuGetSearcherManager.Create(configuration, directory, loader);
                 _searcherManager.Open();
                 return true;
             }
@@ -145,23 +106,6 @@ namespace NuGet.Services.BasicSearch
             {
                 ServiceHelpers.TraceException(e);
                 return false;
-            }
-        }
-
-        static Uri MakeRegistrationBaseAddress(string scheme, string registrationBaseAddress)
-        {
-            Uri original = new Uri(registrationBaseAddress);
-            if (original.Scheme == scheme)
-            {
-                return original;
-            }
-            else
-            {
-                return new UriBuilder(original)
-                {
-                    Scheme = scheme,
-                    Port = -1
-                }.Uri;
             }
         }
 

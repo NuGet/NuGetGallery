@@ -4,5 +4,4 @@
   <DataDirectory>BasicSearchTests\Data</DataDirectory>
   <RegistrationBaseAddress>http://api.nuget.org/v3/registration0/</RegistrationBaseAddress>
   <ApiIndexUrl>https://api.nuget.org/v3/index.json</ApiIndexUrl>
-  <BaseLuceneDirectory>BasicSearchTests\Lucene</BaseLuceneDirectory>
 </TestSettings>

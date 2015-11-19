@@ -150,6 +150,7 @@
     <Compile Include="Compatibility.cs" />
     <Compile Include="CuratedFeedHandler.cs" />
     <Compile Include="DocumentCreator.cs" />
+    <Compile Include="IConfiguration.cs" />
     <Compile Include="OwnerAnalyzer.cs" />
     <Compile Include="DownloadRankings.cs" />
     <Compile Include="Downloads.cs" />

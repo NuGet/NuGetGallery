@@ -96,9 +96,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestSupport\InMemoryConfiguration.cs" />
+    <Compile Include="TestSupport\InMemoryLoader.cs" />
     <Compile Include="TestSupport\QueryBuilder.cs" />
     <Compile Include="TestSupport\TestSettings.cs" />
-    <Compile Include="TestSupport\DataDirectoryInitializer.cs" />
     <Compile Include="TestSupport\LuceneDirectoryInitializer.cs" />
     <Compile Include="Models\AtContext.cs" />
     <Compile Include="Models\AutocompleteResult.cs" />

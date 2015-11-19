@@ -21,18 +21,23 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             _nupkgDownloader = nupkgDownloader;
         }
 
-        public string GetInitializedDirectory(IEnumerable<PackageVersion> packages)
+        public Lucene.Net.Store.Directory GetInitializedDirectory(IEnumerable<PackageVersion> packages)
         {
-            string directory = Path.Combine(GetBaseLuceneDirectory(), Guid.NewGuid().ToString());
-            CreateLuceneIndex(packages, directory);
-            return directory;
+            string baseLuceneDirectory = GetBaseLuceneDirectory();
+            string directory = null;
+            if (baseLuceneDirectory != null)
+            {
+                directory = Path.Combine(baseLuceneDirectory, Guid.NewGuid().ToString());
+            }
+            
+            return CreateLuceneIndex(packages, directory);
         }
 
         private string GetBaseLuceneDirectory()
         {
             if (_settings.BaseLuceneDirectory == null)
             {
-                return System.IO.Directory.GetCurrentDirectory();
+                return null;
             }
 
             if (!Path.IsPathRooted(_settings.BaseLuceneDirectory))
@@ -43,12 +48,21 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             return _settings.BaseLuceneDirectory;
         }
 
-        private void CreateLuceneIndex(IEnumerable<PackageVersion> packages, string directory)
+        private Lucene.Net.Store.Directory CreateLuceneIndex(IEnumerable<PackageVersion> packages, string luceneDirectory)
         {
-            var directoryInfo = new DirectoryInfo(directory);
-            directoryInfo.Create();
-
-            using (var indexWriter = DocumentCreator.CreateIndexWriter(new SimpleFSDirectory(directoryInfo), true))
+            Lucene.Net.Store.Directory directory;
+            if (luceneDirectory != null)
+            {
+                var directoryInfo = new DirectoryInfo(luceneDirectory);
+                directoryInfo.Create();
+                directory = new SimpleFSDirectory(directoryInfo);
+            }
+            else
+            {
+                directory = new RAMDirectory();
+            }
+            
+            using (var indexWriter = DocumentCreator.CreateIndexWriter(directory, true))
             {
                 foreach (var version in packages)
                 {
@@ -59,6 +73,8 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
 
                 indexWriter.Commit();
             }
+
+            return directory;
         }
 
         private IDictionary<string, string> GetPackageMetadata(PackageVersion version)

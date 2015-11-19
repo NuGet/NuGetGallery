@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
@@ -14,7 +15,7 @@ namespace NuGet.Indexing
 {
     public class NuGetSearcherManager : SearcherManager<NuGetIndexSearcher>
     {
-        ILoader _loader;
+        readonly ILoader _loader;
 
         public NuGetSearcherManager(string indexName, Lucene.Net.Store.Directory directory, ILoader loader)
             : base(directory)
@@ -26,38 +27,65 @@ namespace NuGet.Indexing
         }
 
         public string IndexName { get; private set; }
-        public IDictionary<string, Uri> RegistrationBaseAddress { get; private set; }
+        public IDictionary<string, Uri> RegistrationBaseAddress { get; }
 
-        // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        public static NuGetSearcherManager CreateAzure(string storagePrimary, string indexContainer, string dataContainer)
+        /// <summary>Initializes a <see cref="NuGetSearcherManager"/> instance.</summary>
+        /// <param name="configuration">
+        /// The configuration to read which primarily determines whether the resulting instance will read from the local
+        /// disk or from blob storage.
+        /// </param>
+        /// <param name="directory">
+        /// Optionally, the Lucene directory to read the index from. If <c>null</c> is provided, the directory
+        /// implementation is determined based off of the configuration (<see cref="configuration"/>).
+        /// </param>
+        /// <param name="loader">
+        /// Optionally, the loader used to read the JSON data files. If <c>null</c> is provided, the loader
+        /// implementation is determined based off of the configuration (<see cref="configuration"/>).
+        /// </param>
+        /// <returns>The resulting <see cref="NuGetSearcherManager"/> instance.</returns>
+        public static NuGetSearcherManager Create(IConfiguration configuration, Lucene.Net.Store.Directory directory = null, ILoader loader = null)
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storagePrimary);
+            NuGetSearcherManager searcherManager;
+            var luceneDirectory = configuration.Get("Local.Lucene.Directory");
 
-            if (String.IsNullOrEmpty(indexContainer))
+            if (!string.IsNullOrEmpty(luceneDirectory))
             {
-                indexContainer = "ng-search-index";
+                string dataDirectory = configuration.Get("Local.Data.Directory");
+
+                searcherManager = new NuGetSearcherManager(
+                    luceneDirectory,
+                    directory ?? new SimpleFSDirectory(new DirectoryInfo(luceneDirectory)),
+                    loader ?? new FileLoader(dataDirectory));
+            }
+            else
+            {
+                string storagePrimary = configuration.Get("Storage.Primary");
+                string indexContainer = configuration.Get("Search.IndexContainer");
+                string dataContainer = configuration.Get("Search.DataContainer");
+
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storagePrimary);
+
+                if (string.IsNullOrEmpty(indexContainer))
+                {
+                    indexContainer = "ng-search-index";
+                }
+
+                if (string.IsNullOrEmpty(dataContainer))
+                {
+                    dataContainer = "ng-search-data";
+                }
+
+                searcherManager = new NuGetSearcherManager(
+                    indexContainer,
+                    directory ?? new AzureDirectory(storageAccount, indexContainer, new RAMDirectory()),
+                    loader ?? new StorageLoader(storageAccount, dataContainer));
             }
 
-            if (String.IsNullOrEmpty(dataContainer))
-            {
-                dataContainer = "ng-search-data";
-            }
+            string registrationBaseAddress = configuration.Get("Search.RegistrationBaseAddress");
+            searcherManager.RegistrationBaseAddress["http"] = MakeRegistrationBaseAddress("http", registrationBaseAddress);
+            searcherManager.RegistrationBaseAddress["https"] = MakeRegistrationBaseAddress("https", registrationBaseAddress);
 
-            return new NuGetSearcherManager(
-                indexContainer,
-                new AzureDirectory(storageAccount, indexContainer, new RAMDirectory()),
-                new StorageLoader(storageAccount, dataContainer));
-        }
-
-        // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        public static NuGetSearcherManager CreateLocal(string luceneDirectory, string dataDirectory)
-        {
-            return new NuGetSearcherManager(
-                luceneDirectory,
-                new SimpleFSDirectory(new DirectoryInfo(luceneDirectory)),
-                new FileLoader(dataDirectory));
+            return searcherManager;
         }
 
         protected override IndexReader Reopen(IndexSearcher searcher)
@@ -181,6 +209,23 @@ namespace NuGet.Indexing
         {
             // Warmup search
             searcher.Search(new MatchAllDocsQuery(), 1);
+        }
+
+        static Uri MakeRegistrationBaseAddress(string scheme, string registrationBaseAddress)
+        {
+            Uri original = new Uri(registrationBaseAddress);
+            if (original.Scheme == scheme)
+            {
+                return original;
+            }
+            else
+            {
+                return new UriBuilder(original)
+                {
+                    Scheme = scheme,
+                    Port = -1
+                }.Uri;
+            }
         }
     }
 }

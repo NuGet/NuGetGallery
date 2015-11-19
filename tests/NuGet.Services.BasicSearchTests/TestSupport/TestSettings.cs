@@ -7,8 +7,6 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
     {
         public string PackageDirectory { get; set; }
         
-        public string DataDirectory { get; set; }
-        
         public string RegistrationBaseAddress { get; set; }
         
         public string ApiIndexUrl { get; set; }
