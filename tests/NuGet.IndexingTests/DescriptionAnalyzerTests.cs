@@ -87,6 +87,22 @@ namespace NuGet.IndexingTests
                         new TokenAttributes("words", 32, 37, 1)
                     }
                 };
+
+                // combined
+                yield return new object[]
+                {
+                    "This is a half-baked sentence is describing DotNet.",
+                    new[]
+                    {
+                        new TokenAttributes("half", 10, 14, 4),
+                        new TokenAttributes("baked", 15, 20, 1),
+                        new TokenAttributes("sentence", 21, 29, 1),
+                        new TokenAttributes("describing", 33, 43, 2),
+                        new TokenAttributes("dotnet", 44, 50, 1),
+                        new TokenAttributes("dot", 44, 47, 0),
+                        new TokenAttributes("net", 47, 50, 1)
+                    }
+                };
             }
         }
 

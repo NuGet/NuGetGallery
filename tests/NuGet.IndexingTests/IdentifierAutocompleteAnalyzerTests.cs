@@ -86,6 +86,33 @@ namespace NuGet.IndexingTests
                         new TokenAttributes("net", 10, 13, 1)
                     }
                 };
+
+                // combined
+                yield return new object[]
+                {
+                    "DotNet.ZIP-new",
+                    new[]
+                    {
+                        new TokenAttributes("d", 0, 1, 1),
+                        new TokenAttributes("do", 0, 2, 1),
+                        new TokenAttributes("dot", 0, 3, 1),
+                        new TokenAttributes("dotn", 0, 4, 1),
+                        new TokenAttributes("dotne", 0, 5, 1),
+                        new TokenAttributes("dotnet", 0, 6, 1),
+                        new TokenAttributes("d", 0, 1, 1),
+                        new TokenAttributes("do", 0, 2, 1),
+                        new TokenAttributes("dot", 0, 3, 1),
+                        new TokenAttributes("n", 3, 4, 1),
+                        new TokenAttributes("ne", 3, 5, 1),
+                        new TokenAttributes("net", 3, 6, 1),
+                        new TokenAttributes("z", 7, 8, 1),
+                        new TokenAttributes("zi", 7, 9, 1),
+                        new TokenAttributes("zip", 7, 10, 1),
+                        new TokenAttributes("n", 11, 12, 1),
+                        new TokenAttributes("ne", 11, 13, 1),
+                        new TokenAttributes("new", 11, 14, 1)
+                    }
+                };
             }
         }
     }
