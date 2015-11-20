@@ -11,7 +11,7 @@ namespace NuGet.IndexingTests
     public class IdentifierAutocompleteAnalyzerTests
     {
         [Theory]
-        [MemberData(nameof(TokenizerLowercasesNGramsAndCamelCasesInputData))]
+        [MemberData("TokenizerLowercasesNGramsAndCamelCasesInputData")]
         public void TokenizerLowercasesNGramsAndCamelCasesInput(string text, TokenAttributes[] expected)
         {
             // arrange, act

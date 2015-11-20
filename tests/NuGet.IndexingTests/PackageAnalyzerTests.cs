@@ -13,7 +13,7 @@ namespace NuGet.IndexingTests
     public class PackageAnalyzerTests
     {
         [Theory]
-        [MemberData(nameof(AddsCorrectFieldAnalyzersData))]
+        [MemberData("AddsCorrectFieldAnalyzersData")]
         public void AddsCorrectFieldAnalyzers(string field, string text, TokenAttributes[] expected)
         {
             // arrange

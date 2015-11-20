@@ -11,7 +11,7 @@ namespace NuGet.IndexingTests
     public class DescriptionAnalyzerTests
     {
         [Theory]
-        [MemberData(nameof(TokenizerLowercasesCamelCasesAndRemovesStopWordsInputData))]
+        [MemberData("TokenizerLowercasesCamelCasesAndRemovesStopWordsInputData")]
         public void TokenizerLowercasesCamelCasesAndRemovesStopWordsInput(string text, TokenAttributes[] expected)
         {
             // arrange, act
@@ -22,11 +22,11 @@ namespace NuGet.IndexingTests
         }
 
         [Theory]
-        [MemberData(nameof(TokenizerRemovesCorrectStopWordsData))]
+        [MemberData("TokenizerRemovesCorrectStopWordsData")]
         public void TokenizerRemovesCorrectStopWords(string stopWord)
         {
             // arrange, act
-            var text = $"stop {stopWord} word";
+            var text = string.Format("stop {0} word", stopWord);
             var actual = new DescriptionAnalyzer().Tokenize(text);
             var expected = new[]
             {

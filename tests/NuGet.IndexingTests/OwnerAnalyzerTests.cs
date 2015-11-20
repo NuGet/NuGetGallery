@@ -11,7 +11,7 @@ namespace NuGet.IndexingTests
     public class OwnerAnalyzerTests
     {
         [Theory]
-        [MemberData(nameof(TokenizerOnlyLowercasesOwnerInputData))]
+        [MemberData("TokenizerOnlyLowercasesOwnerInputData")]
         public void TokenizerOnlyLowercasesOwnerInput(string text, TokenAttributes expected)
         {
             // arrange, act
