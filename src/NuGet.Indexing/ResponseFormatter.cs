@@ -1,6 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Newtonsoft.Json;
@@ -12,13 +11,11 @@ namespace NuGet.Indexing
 {
     public static class ResponseFormatter
     {
-        /*
         // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //
         // V3 implementation - called directly from the integrated Visual Studio client
         //
         // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        */
 
         public static string MakeResult(NuGetIndexSearcher searcher, string scheme, TopDocs topDocs, int skip, int take, bool includePrerelease, bool includeExplanation, Query query)
         {
@@ -88,7 +85,6 @@ namespace NuGet.Indexing
                 WriteProperty(jsonWriter, "id", id);
 
                 WriteDocumentValue(jsonWriter, "version", document, "Version");
-                WriteDocumentValue(jsonWriter, "domain", document, "Domain");
                 WriteDocumentValue(jsonWriter, "description", document, "Description");
                 WriteDocumentValue(jsonWriter, "summary", document, "Summary");
                 WriteDocumentValue(jsonWriter, "title", document, "Title");
@@ -338,7 +334,7 @@ namespace NuGet.Indexing
 
         static void WriteDataV2(JsonTextWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
         {
-            jsonWriter.WritePropertyName("Data");
+            jsonWriter.WritePropertyName("data");
 
             jsonWriter.WriteStartArray();
 
@@ -450,7 +446,7 @@ namespace NuGet.Indexing
                 }
                 else
                 {
-                    foreach (var s in value.Split(' '))
+                    foreach (var s in value.Split(new[]{' ', ','}, StringSplitOptions.RemoveEmptyEntries))
                     {
                         jsonWriter.WriteValue(s);
                     }

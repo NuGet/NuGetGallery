@@ -115,9 +115,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Core.2.8.5\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Versioning, Version=1.0.7.0, Culture=neutral, PublicKeyToken=2e465378e3b1a8dd, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Versioning, Version=3.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Versioning.1.0.7\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Versioning.3.2.0\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="NuGetGallery.Core, Version=3.0.413.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -148,6 +148,7 @@
     <Compile Include="ClientException.cs" />
     <Compile Include="Compatibility.cs" />
     <Compile Include="CuratedFeedHandler.cs" />
+    <Compile Include="DocumentCreator.cs" />
     <Compile Include="OwnerAnalyzer.cs" />
     <Compile Include="DownloadRankings.cs" />
     <Compile Include="Downloads.cs" />
@@ -164,6 +165,7 @@
     <Compile Include="OwnersHandler.cs" />
     <Compile Include="PackageVersions.cs" />
     <Compile Include="ResponseFormatter.cs" />
+    <Compile Include="Sql2Lucene.cs" />
     <Compile Include="StorageLoader.cs" />
     <Compile Include="UriFormatter.cs" />
     <Compile Include="IndexingUtils.cs" />

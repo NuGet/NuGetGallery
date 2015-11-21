@@ -48,8 +48,10 @@ namespace NuGet.Indexing
                 switch (clause.Key.ToLowerInvariant())
                 {
                     case "id":
-                    case "packageid":
                         IdClause(query, analyzer, clause.Value, Occur.MUST);
+                        break;
+                    case "packageid":
+                        PackageIdClause(query, analyzer, clause.Value);
                         break;
                     case "version":
                         VersionClause(query, analyzer, clause.Value, Occur.MUST);
@@ -106,13 +108,18 @@ namespace NuGet.Indexing
                 query = subQuery;
             }
 
-            query.Add(ConstructClauseQuery(analyzer, "Id", values), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, "Id", values, Occur.SHOULD), Occur.SHOULD);
             query.Add(ConstructClauseQuery(analyzer, "ShingledId", values), Occur.SHOULD);
             query.Add(ConstructClauseQuery(analyzer, "TokenizedId", values), Occur.SHOULD);
             if (values.Count() > 1)
             {
                 query.Add(ConstructClauseQuery(analyzer, "TokenizedId", values, Occur.MUST, 4.0f), Occur.SHOULD);
             }
+        }
+
+        static void PackageIdClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        {
+            query.Add(ConstructClauseQuery(analyzer, "Id", values), Occur.MUST);
         }
 
         static void VersionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
@@ -147,7 +154,7 @@ namespace NuGet.Indexing
 
         static void TagClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Tags", values), occur);
+            query.Add(ConstructClauseQuery(analyzer, "Tags", values, Occur.SHOULD, 2.0f), occur);
         }
 
         static void AuthorClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
