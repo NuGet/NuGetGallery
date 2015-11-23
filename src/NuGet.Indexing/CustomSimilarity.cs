@@ -8,7 +8,7 @@ namespace NuGet.Indexing
     {
         public override float LengthNorm(string fieldName, int numTerms)
         {
-            if (fieldName == "TokenizedId" || fieldName == "ShingledId" || fieldName == "Owner" || fieldName == "Title")
+            if (fieldName == "TokenizedId" || fieldName == "ShingledId" || fieldName == "Title")
             {
                 return 1;
             }
