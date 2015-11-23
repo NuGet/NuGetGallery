@@ -58,7 +58,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndexingTests", "tests\Inde
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NgTests", "NgTests\NgTests.csproj", "{05C1C78A-9966-4922-9065-A099023E7366}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Db2Lucene", "src\Db2Luene\Db2Lucene.csproj", "{24C1CA5F-5B74-4A7A-B3F1-566121987F99}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Db2Lucene", "src\Db2Lucene\Db2Lucene.csproj", "{24C1CA5F-5B74-4A7A-B3F1-566121987F99}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.BasicSearchTests", "tests\NuGet.Services.BasicSearchTests\NuGet.Services.BasicSearchTests.csproj", "{AF189F05-EFC3-4A98-91C7-2AF1E4B8B131}"
 EndProject
