@@ -124,6 +124,7 @@
     // Get instrumentation key
     var config = DependencyResolver.Current.GetService<ConfigurationService>();
     var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey;
+    var samplingPct = config == null ? 100 : config.Current.AppInsightsSamplingPercentage;
 
     if (!string.IsNullOrEmpty(iKey))
     {
@@ -144,7 +145,8 @@
                     return s !== !0 && t["_" + i](config, r, f, e, o), s
                 }), t
             }({
-                instrumentationKey: '@(iKey)'
+                instrumentationKey: '@(iKey)',
+                samplingPercentage: @(samplingPct)
             });
 
             window.appInsights = appInsights;

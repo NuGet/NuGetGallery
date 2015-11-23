@@ -21,6 +21,7 @@
       <Setting name="Gallery.Environment" value="LocalEmulator" />
       <Setting name="Gallery.FacebookAppId" value="" />
       <Setting name="Gallery.AppInsightsInstrumentationKey" value="" />
+      <Setting name="Gallery.AppInsightsSamplingPercentage" value="100" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
       <Setting name="Gallery.AzureCdnHost" value="" />
       <Setting name="Gallery.SiteRoot" value="nuget.localtest.me" />
