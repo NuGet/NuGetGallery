@@ -7,8 +7,8 @@
     <ProjectGuid>{24C1CA5F-5B74-4A7A-B3F1-566121987F99}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Db2Luene</RootNamespace>
-    <AssemblyName>Db2Luene</AssemblyName>
+    <RootNamespace>Db2Lucene</RootNamespace>
+    <AssemblyName>Db2Lucene</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
