@@ -1137,10 +1137,6 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="NuGetGallery.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="Areas\Admin\DynamicData\Content\Images\web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -1291,6 +1287,10 @@
     <Content Include="Views\Pages\Privacy.cshtml" />
     <Content Include="Views\Pages\Terms.cshtml" />
     <Content Include="Views\Pages\About.cshtml" />
+    <Content Include="NuGetGallery.dll.config">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
