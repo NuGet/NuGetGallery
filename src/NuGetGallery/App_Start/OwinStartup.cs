@@ -12,6 +12,7 @@ using System.Web.Mvc;
 using Elmah;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -57,6 +58,17 @@ namespace NuGetGallery
             if (!string.IsNullOrEmpty(instrumentationKey))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+
+                // Note: sampling rate must be a factor 100/N where N is a whole number
+                // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
+                // https://azure.microsoft.com/en-us/documentation/articles/app-insights-sampling/
+                var instrumentationSamplingPercentage = config.Current.AppInsightsSamplingPercentage;
+                if (instrumentationSamplingPercentage > 0 && instrumentationSamplingPercentage < 100)
+                {
+                    var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.GetTelemetryProcessorChainBuilder();
+                    telemetryProcessorChainBuilder.UseSampling(instrumentationSamplingPercentage);
+                    telemetryProcessorChainBuilder.Build();
+                }
             }
 
             // Configure logging

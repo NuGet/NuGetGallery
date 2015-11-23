@@ -124,6 +124,11 @@ namespace NuGetGallery.Configuration
         string AppInsightsInstrumentationKey { get; set; }
 
         /// <summary>
+        /// Gets the Application Insights sampling percentage associated with this deployment.
+        /// </summary>
+        double AppInsightsSamplingPercentage { get; set; }
+
+        /// <summary>
         /// Gets the protocol-independent site root
         /// </summary>
         string SiteRoot { get; set; }
