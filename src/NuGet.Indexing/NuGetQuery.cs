@@ -108,7 +108,7 @@ namespace NuGet.Indexing
                 query = subQuery;
             }
 
-            query.Add(ConstructClauseQuery(analyzer, "Id", values, Occur.SHOULD), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, "Id", values, Occur.SHOULD, 8.0f), Occur.SHOULD);
             query.Add(ConstructClauseQuery(analyzer, "ShingledId", values), Occur.SHOULD);
             query.Add(ConstructClauseQuery(analyzer, "TokenizedId", values), Occur.SHOULD);
             if (values.Count() > 1)
