@@ -28,6 +28,8 @@ namespace Ng
         private const string LicenseReportUrlProperty = "LicenseReportUrl";
         #endregion
 
+        private static readonly DateTime DateTimeMinValueUtc = new DateTime(0L, DateTimeKind.Utc);
+
         public class PackageIdentity
         {
             public PackageIdentity(string id, string version)
@@ -440,7 +442,7 @@ namespace Ng
                 client.Timeout = timeout;
 
                 // baseline timestamps
-                var lastCreated = await GetCatalogProperty(catalogStorage, "nuget:lastCreated", cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
+                var lastCreated = await GetCatalogProperty(catalogStorage, "nuget:lastCreated", cancellationToken) ?? (startDate ?? DateTimeMinValueUtc);
                 var lastEdited = await GetCatalogProperty(catalogStorage, "nuget:lastEdited", cancellationToken) ?? lastCreated;
                 var lastDeleted = await GetCatalogProperty(catalogStorage, "nuget:lastDeleted", cancellationToken) ?? lastCreated;
                 if (lastDeleted == DateTime.MinValue.ToUniversalTime())

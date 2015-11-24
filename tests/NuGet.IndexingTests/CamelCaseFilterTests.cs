@@ -15,7 +15,7 @@ namespace NuGet.IndexingTests
     public class CamelCaseFilterTests
     {
         [Theory]
-        [MemberData("TokenizingReturnsExpectedTermAndOffsetsData")]
+        [MemberData(nameof(TokenizingReturnsExpectedTermAndOffsetsData))]
         public void TokenizingReturnsExpectedTermAndOffsets(string text, TokenAttributes[] expected)
         {
             // arrange

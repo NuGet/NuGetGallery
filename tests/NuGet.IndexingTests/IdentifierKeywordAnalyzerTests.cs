@@ -11,7 +11,7 @@ namespace NuGet.IndexingTests
     public class IdentifierKeywordAnalyzerTests
     {
         [Theory]
-        [MemberData("TokenizerOnlyLowercasesInputData")]
+        [MemberData(nameof(TokenizerOnlyLowercasesInputData))]
         public void TokenizerOnlyLowercasesInput(string text, TokenAttributes expected)
         {
             // arrange, act

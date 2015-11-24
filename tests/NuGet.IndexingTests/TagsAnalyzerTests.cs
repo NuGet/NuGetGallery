@@ -11,7 +11,7 @@ namespace NuGet.IndexingTests
     public class TagsAnalyzerTests
     {
         [Theory]
-        [MemberData("TokenizerLowercasesAndSplitsInputData")]
+        [MemberData(nameof(TokenizerLowercasesAndSplitsInputData))]
         public void TokenizerLowercasesAndSplitsInput(string text, TokenAttributes[] expected)
         {
             // arrange, act

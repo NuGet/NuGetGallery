@@ -11,7 +11,7 @@ namespace NuGet.IndexingTests
     public class ShingledIdentifierAnalyzerTests
     {
         [Theory]
-        [MemberData("TokenizerShinglesAndLowercasesInputData")]
+        [MemberData(nameof(TokenizerShinglesAndLowercasesInputData))]
         public void TokenizerShinglesAndLowercasesInput(string text, TokenAttributes[] expected)
         {
             // arrange, act

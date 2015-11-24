@@ -20,12 +20,12 @@ namespace NuGet.IndexingTests.TestSupport
 
         public override string ToString()
         {
-            return string.Format(
-                "{{Term: '{0}', Offset: ({1}, {2}), PositionIncrement: {3}}}",
-                Term,
-                StartOffset,
-                EndOffset,
-                PositionIncrement.HasValue ? PositionIncrement.ToString() : "null");
+            return
+                "{" +
+                $"Term: '{Term}', " +
+                $"Offset: ({StartOffset}, {EndOffset}), " +
+                $"PositionIncrement: {PositionIncrement?.ToString() ?? "null"}" +
+                "}";
         }
 
         public override bool Equals(object obj)

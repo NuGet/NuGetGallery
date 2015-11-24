@@ -11,7 +11,7 @@ namespace NuGet.IndexingTests
     public class VersionAnalyzerTests
     {
         [Theory]
-        [MemberData("TokenizerNormalizesVersionInputData")]
+        [MemberData(nameof(TokenizerNormalizesVersionInputData))]
         public void TokenizerNormalizesVersionInput(string text, TokenAttributes expected)
         {
             // arrange, act

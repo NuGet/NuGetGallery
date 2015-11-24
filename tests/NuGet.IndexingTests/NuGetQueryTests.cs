@@ -12,7 +12,7 @@ namespace NuGet.IndexingTests
     public class NuGetQueryTests
     {
         [Theory]
-        [MemberData("MakesQueriesWithProperPhrasingData")]
+        [MemberData(nameof(MakesQueriesWithProperPhrasingData))]
         public void MakesQueriesWithProperPhrasing(string input, Query expected)
         {
             // arrange, act
@@ -23,7 +23,7 @@ namespace NuGet.IndexingTests
         }
 
         [Theory]
-        [MemberData("MakesQueriesSupportingSupportedFieldsData")]
+        [MemberData(nameof(MakesQueriesSupportingSupportedFieldsData))]
         public void MakesQueriesSupportingSupportedFields(string input, Query expected)
         {
             // arrange, act
@@ -38,13 +38,13 @@ namespace NuGet.IndexingTests
         public void MakesQueriesSupportingFieldAliases(string inputField, string expectedField)
         {
             // arrange
-            var queryText = string.Format("{0}:dot", inputField);
+            var queryText = $"{inputField}:dot";
 
             // act
             var actual = NuGetQuery.MakeQuery(queryText);
 
             // assert
-            Assert.Contains(string.Format("{0}:dot", expectedField), actual.ToString());
+            Assert.Contains($"{expectedField}:dot", actual.ToString());
         }
 
         [Fact]

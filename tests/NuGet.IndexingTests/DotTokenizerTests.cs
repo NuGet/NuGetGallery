@@ -13,11 +13,11 @@ namespace NuGet.IndexingTests
     public class DotTokenizerTests
     {
         [Theory]
-        [MemberData("SplitsTextIntoTokensOnCorrectCharactersData")]
+        [MemberData(nameof(SplitsTextIntoTokensOnCorrectCharactersData))]
         public void SplitsTextIntoTokensOnCorrectCharacters(char seperator)
         {
             // arrange
-            var text = string.Format("Dot{0}NET", seperator);
+            var text = $"Dot{seperator}NET";
             var tokenizer = new DotTokenizer(new StringReader(text));
             var expected = new[] { new TokenAttributes("Dot", 0, 3), new TokenAttributes("NET", 4, 7) };
 
