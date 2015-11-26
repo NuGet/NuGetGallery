@@ -9,6 +9,6 @@ namespace NuGetGallery
     public interface IPackageDeleteService
     {
         Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature);
-        Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature);
+        Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration);
     }
 }
