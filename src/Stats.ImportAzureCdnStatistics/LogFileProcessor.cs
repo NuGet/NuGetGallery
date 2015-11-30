@@ -31,14 +31,14 @@ namespace Stats.ImportAzureCdnStatistics
             _targetDatabase = targetDatabase;
         }
 
-        public async Task ProcessLogFileAsync(ILeasedLogFile logFile)
+        public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser)
         {
             if (logFile == null)
                 return;
 
             try
             {
-                var cdnStatistics = await ParseLogEntries(logFile);
+                var cdnStatistics = await ParseLogEntries(logFile, packageStatisticsParser);
                 var hasPackageStatistics = cdnStatistics.PackageStatistics.Any();
                 var hasToolStatistics = cdnStatistics.ToolStatistics.Any();
 
@@ -114,7 +114,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
         }
 
-        private async Task<CdnStatistics> ParseLogEntries(ILeasedLogFile logFile)
+        private async Task<CdnStatistics> ParseLogEntries(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser)
         {
             var logStream = await OpenCompressedBlobAsync(logFile);
             var blobUri = logFile.Uri;
@@ -140,7 +140,7 @@ namespace Stats.ImportAzureCdnStatistics
                             var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogLine);
                             if (logEntry != null)
                             {
-                                var statistic = PackageStatisticsParser.FromCdnLogEntry(logEntry);
+                                var statistic = packageStatisticsParser.FromCdnLogEntry(logEntry);
                                 if (statistic != null)
                                 {
                                     packageStatistics.Add(statistic);

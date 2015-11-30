@@ -89,6 +89,7 @@
   <ItemGroup>
     <Compile Include="CdnLogCustomFieldParserFacts.cs" />
     <Compile Include="PackageDefinitionFacts.cs" />
+    <Compile Include="PackageTranslatorFacts.cs" />
     <Compile Include="StatisticsParserFacts.cs" />
     <Compile Include="ToolStatisticsParserFacts.cs" />
     <Compile Include="UserAgentParserFacts.cs" />
@@ -98,6 +99,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="packagetranslations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj">

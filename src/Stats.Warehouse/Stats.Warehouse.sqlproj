@@ -93,8 +93,6 @@
     <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentPopularityDetail.sql" />
     <Build Include="Programmability\Functions\dbo.GetClientCategory.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentPopularityDetailByPackage.sql" />
-    <Build Include="Tables\dbo.Support_TranslatePackages.sql" />
-    <Build Include="Programmability\Stored Procedures\dbo.GetPackageTranslations.sql" />
     <Build Include="Tables\dbo.Cursors.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.GetDirtyPackageIds.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.DownloadReportListInactive.sql" />

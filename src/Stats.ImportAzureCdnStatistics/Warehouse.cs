@@ -94,12 +94,11 @@ namespace Stats.ImportAzureCdnStatistics
             var clientsTask = GetDimension("client", logFileName, connection => RetrieveClientDimensions(sourceData, connection));
             var platformsTask = GetDimension("platform", logFileName, connection => RetrievePlatformDimensions(sourceData, connection));
             var datesTask = GetDimension("date", logFileName, connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
-            var packageTranslationsTask = GetDimension("package translations", logFileName, connection => RetrievePackageTranslations(sourceData, connection));
             var userAgentsTask = GetDimension("useragent", logFileName, connection => RetrieveUserAgentFacts(sourceData, connection));
             var logFileNamesTask = GetDimension("logfilename", logFileName, connection => RetrieveLogFileNameFacts(logFileName, connection));
             var ipAddressesTask = GetDimension("ipaddress", logFileName, connection => RetrieveIpAddressesFacts(sourceData, connection));
 
-            await Task.WhenAll(operationsTask, projectTypesTask, clientsTask, platformsTask, datesTask, packagesTask, packageTranslationsTask, userAgentsTask, logFileNamesTask, ipAddressesTask);
+            await Task.WhenAll(operationsTask, projectTypesTask, clientsTask, platformsTask, datesTask, packagesTask, userAgentsTask, logFileNamesTask, ipAddressesTask);
 
             var operations = operationsTask.Result;
             var projectTypes = projectTypesTask.Result;
@@ -111,7 +110,6 @@ namespace Stats.ImportAzureCdnStatistics
 
             var dates = datesTask.Result;
             var packages = packagesTask.Result;
-            var packageTranslations = packageTranslationsTask.Result;
 
             // create facts data rows by linking source data with dimensions
             var dataImporter = new DataImporter(_targetDatabase);
@@ -139,35 +137,23 @@ namespace Stats.ImportAzureCdnStatistics
 
                 foreach (var groupedByPackageIdAndVersion in groupedByPackageId.GroupBy(e => e.PackageVersion, StringComparer.OrdinalIgnoreCase))
                 {
-                    int packageId;
                     var package = packagesForId.FirstOrDefault(e => string.Equals(e.PackageVersion, groupedByPackageIdAndVersion.Key, StringComparison.OrdinalIgnoreCase));
                     if (package == null)
                     {
                         // This package id and version could not be 100% accurately parsed from the CDN Request URL,
                         // likely due to weird package ID which could be interpreted as a version string.
-                        // Look for a mapping in the support table in an attempt to auto-correct this entry.
-                        var packageTranslation = packageTranslations.FirstOrDefault(t => t.IncorrectPackageId == groupedByPackageId.Key && t.IncorrectPackageVersion == groupedByPackageIdAndVersion.Key);
-                        if (packageTranslation != null)
-                        {
-                            // there seems to be a mapping
-                            packageId = packageTranslation.CorrectedPackageId;
-                        }
-                        else
-                        {
-                            // Track it in Application Insights.
-                            ApplicationInsights.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key, logFileName);
+                        // Track it in Application Insights.
+                        ApplicationInsights.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key, logFileName);
 
-                            continue;
-                        }
+                        continue;
                     }
-                    else
-                    {
-                        packageId = package.Id;
-                    }
+
+                    int packageId = package.Id;
 
                     foreach (var element in groupedByPackageIdAndVersion)
                     {
                         bool factCreated = false;
+
                         // required dimensions
                         var dateId = dates.First(e => e.Date.Equals(element.EdgeServerTimeDelivered.Date)).Id;
                         var timeId = _times.First(e => e.HourOfDay == element.EdgeServerTimeDelivered.Hour).Id;
@@ -654,31 +640,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             return results;
         }
-
-        private static async Task<IReadOnlyCollection<PackageTranslation>> RetrievePackageTranslations(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
-        {
-            var command = connection.CreateCommand();
-            command.CommandText = "[dbo].[GetPackageTranslations]";
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.CommandType = CommandType.StoredProcedure;
-
-            var results = new List<PackageTranslation>();
-            using (var dataReader = await command.ExecuteReaderAsync())
-            {
-                while (await dataReader.ReadAsync())
-                {
-                    var packageTranslation = new PackageTranslation();
-                    packageTranslation.CorrectedPackageId = dataReader.GetInt32(0);
-                    packageTranslation.IncorrectPackageId = dataReader.GetString(1);
-                    packageTranslation.IncorrectPackageVersion = dataReader.GetString(2);
-
-                    results.Add(packageTranslation);
-                }
-            }
-
-            return results;
-        }
-
+        
         private static async Task<IReadOnlyCollection<DateDimension>> RetrieveDateDimensions(SqlConnection connection, DateTime min, DateTime max)
         {
             var results = new List<DateDimension>();

@@ -90,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dimensions\IpAddressFact.cs" />
+    <Compile Include="PackageTranslator.cs" />
     <Compile Include="UserAgentFactTableType.cs" />
     <Compile Include="ClientDimensionTableType.cs" />
     <Compile Include="Dimensions\ToolDimension.cs" />
@@ -122,6 +123,9 @@
       <LogicalName>knownclients.yaml</LogicalName>
     </EmbeddedResource>
     <None Include="packages.config" />
+    <None Include="packagetranslations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
