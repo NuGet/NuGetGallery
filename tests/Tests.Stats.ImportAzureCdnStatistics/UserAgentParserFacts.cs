@@ -56,6 +56,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             [InlineData("Java/1.7.0_51", "Java", "1", "7", "0")]
             [InlineData("NuGet Core/2.8.6", "NuGet", "2", "8", "6")]
             [InlineData("NuGet/2.8.6", "NuGet", "2", "8", "6")]
+            [InlineData("NuGet Test Client/3.3.0", "NuGet Test Client", "3", "3", "0")]
             [InlineData("dotPeek/102.0.20150521.130901 (Microsoft Windows NT 6.3.9600.0; NuGet/2.8.60318.667; Wave/2.0.0; dotPeek/1.4.20150521.130901)", "JetBrains dotPeek", "1", "4", "20150521")]
             [InlineData("ReSharperPlatformVs10/102.0.20150521.123255 (Microsoft Windows NT 6.1.7601 Service Pack 1; NuGet/2.8.60318.667; Wave/2.0.0; ReSharper/9.1.20150521.134223; dotTrace/6.1.20150521.132011)", "JetBrains ReSharper Platform VS2010", "102", "0", "20150521")]
             [InlineData("ReSharperPlatformVs11/102.0.20150408.145317 (Microsoft Windows NT 6.2.9200.0; NuGet/2.8.50926.602; Wave/2.0.0; ReSharper/9.1.20150408.155143)", "JetBrains ReSharper Platform VS2012", "102", "0", "20150408")]

@@ -1,14 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
+using System.Text.RegularExpressions;
 
 namespace Stats.ImportAzureCdnStatistics
 {
     internal class PackageTranslation
     {
-        public int CorrectedPackageId { get; set; }
         public string IncorrectPackageId { get; set; }
-        public string IncorrectPackageVersion { get; set; }
+        public Regex IncorrectPackageVersionPattern { get; set; }
+        public string CorrectedPackageId { get; set; }
+        public string CorrectedPackageVersionPattern { get; set; }
     }
 }

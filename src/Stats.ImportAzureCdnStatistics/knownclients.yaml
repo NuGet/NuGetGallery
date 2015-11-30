@@ -139,6 +139,10 @@
   - regex: '(Java)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'Java'
 
+  # NuGet Test Client - to be used when making test-calls to nuget.org endpoints
+  - regex: '(NuGet Test Client)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'NuGet Test Client'
+
   # NuGet - Keep this one at the bottom of this file as a catch-all resolver
   - regex: '(NuGet)/?(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet'

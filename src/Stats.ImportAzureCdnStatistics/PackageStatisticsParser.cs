@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Newtonsoft.Json.Linq;
 using NuGet;
 using Stats.AzureCdnLogs.Common;
 
@@ -10,7 +9,14 @@ namespace Stats.ImportAzureCdnStatistics
     public class PackageStatisticsParser
         : StatisticsParser
     {
-        public static PackageStatistics FromCdnLogEntry(CdnLogEntry cdnLogEntry)
+        private readonly PackageTranslator _packageTranslator;
+
+        public PackageStatisticsParser(PackageTranslator packageTranslator)
+        {
+            _packageTranslator = packageTranslator;
+        }
+
+        public PackageStatistics FromCdnLogEntry(CdnLogEntry cdnLogEntry)
         {
             var packageDefinition = PackageDefinition.FromRequestUrl(cdnLogEntry.RequestUrl);
 
@@ -18,6 +24,8 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 return null;
             }
+            
+            packageDefinition = _packageTranslator.TranslatePackageDefinition(packageDefinition);
 
             var statistic = new PackageStatistics();
             statistic.EdgeServerTimeDelivered = cdnLogEntry.EdgeServerTimeDelivered;

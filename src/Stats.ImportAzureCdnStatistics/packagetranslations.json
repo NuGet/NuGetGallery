@@ -1,0 +1,16 @@
+﻿{
+  "translations": [
+    {
+      "incorrectpackageid": "canducci.mongodb.repository4",
+      "incorrectpackageversionpattern": "0.(.*)",
+      "correctedpackageid": "canducci.mongodb.repository4.0",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "canducci.mongodb.repository4",
+      "incorrectpackageversionpattern": "5.(.*)",
+      "correctedpackageid": "canducci.mongodb.repository4.5",
+      "correctedpackageversionpattern": "$1"
+    }
+  ]
+}
