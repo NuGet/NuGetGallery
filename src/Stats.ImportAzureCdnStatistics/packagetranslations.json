@@ -11,6 +11,24 @@
       "incorrectpackageversionpattern": "5.(.*)",
       "correctedpackageid": "canducci.mongodb.repository4.5",
       "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "bzip2.mingw4.7",
+      "incorrectpackageversionpattern": "2.(.*)",
+      "correctedpackageid": "bzip2.mingw4.7.2",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "featureswitch.structuremap.2",
+      "incorrectpackageversionpattern": "6.(.*)",
+      "correctedpackageid": "featureswitch.structuremap.2.6",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "genericmapper.framework.4",
+      "incorrectpackageversionpattern": "0.(.*)",
+      "correctedpackageid": "genericmapper.framework.4.0",
+      "correctedpackageversionpattern": "$1"
     }
   ]
 }

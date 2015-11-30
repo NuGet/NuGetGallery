@@ -31,7 +31,7 @@ namespace Stats.ImportAzureCdnStatistics
                 var packageTranslation = new PackageTranslation
                 {
                     IncorrectPackageId = packageTranslationJson["incorrectpackageid"].ToString(),
-                    IncorrectPackageVersionPattern = new Regex(packageTranslationJson["incorrectpackageversionpattern"].ToString()),
+                    IncorrectPackageVersionPattern = new Regex(string.Format("^{0}$", packageTranslationJson["incorrectpackageversionpattern"])),
                     CorrectedPackageId = packageTranslationJson["correctedpackageid"].ToString(),
                     CorrectedPackageVersionPattern = packageTranslationJson["correctedpackageversionpattern"].ToString()
                 };
