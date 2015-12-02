@@ -53,7 +53,7 @@ namespace Ng
 
                 indexWriter.ExpungeDeletes();
 
-                indexWriter.Commit(CreateCommitMetadata(commitTimeStamp));
+                indexWriter.Commit(DocumentCreator.CreateCommitMetadata(commitTimeStamp, "from catalog", Guid.NewGuid().ToString()));
 
                 Trace.TraceInformation("COMMIT index contains {0} documents commitTimeStamp {1}", indexWriter.NumDocs(), commitTimeStamp.ToString("O"));
             }
@@ -107,7 +107,7 @@ namespace Ng
 
                 if (Utils.IsType(GetContext(catalogItem), catalogItem, Schema.DataTypes.PackageDetails))
                 {
-                    ProcessPackageDetails(indexWriter, catalogItem, baseAddress);
+                    ProcessPackageDetails(indexWriter, catalogItem);
                 }
                 else if (Utils.IsType(GetContext(catalogItem), catalogItem, Schema.DataTypes.PackageDelete))
                 {
@@ -139,31 +139,15 @@ namespace Ng
             return catalogItem["@context"];
         }
 
-        static void ProcessPackageDetails(IndexWriter indexWriter, JObject catalogItem, string baseAddress)
+        static void ProcessPackageDetails(IndexWriter indexWriter, JObject catalogItem)
         {
             Trace.TraceInformation("ProcessPackageDetails");
 
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
 
-            if (IsListed(catalogItem))
-            {
-                Document document = MakeDocument(catalogItem, baseAddress);
-                indexWriter.AddDocument(document);
-            }
-        }
-
-        static bool IsListed(JObject catalogItem)
-        {
-            JToken publishedValue;
-            if (catalogItem.TryGetValue("published", out publishedValue))
-            {
-                var publishedDate = int.Parse(publishedValue.ToObject<DateTime>().ToString("yyyyMMdd"));
-                return (publishedDate != 19000101);
-            }
-            else
-            {
-                return true;
-            }
+            var package = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogItem);
+            var document = DocumentCreator.CreateDocument(package);
+            indexWriter.AddDocument(document);
         }
 
         static void ProcessPackageDelete(IndexWriter indexWriter, JObject catalogItem)
@@ -171,11 +155,6 @@ namespace Ng
             Trace.TraceInformation("ProcessPackageDelete");
 
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
-        }
-
-        IDictionary<string, string> CreateCommitMetadata(DateTime commitTimeStamp)
-        {
-            return new Dictionary<string, string> { { "commitTimeStamp", commitTimeStamp.ToString("O") }, { "commit-time-stamp", commitTimeStamp.ToString() } };
         }
 
         internal static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory)
@@ -230,16 +209,6 @@ namespace Ng
             }
         }
 
-        static Document MakeDocument(JObject catalogEntry, string baseAddress)
-        {
-            string id = catalogEntry["id"].ToString();
-            string version = catalogEntry["version"].ToString();
-
-            string packageUrl = string.Format(_packageTemplate, id.ToLowerInvariant(), version.ToLowerInvariant());
-
-            return CreateLuceneDocument(catalogEntry, packageUrl, baseAddress);
-        }
-
         static void Add(Document doc, string name, string value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
         {
             if (value == null)
@@ -268,167 +237,6 @@ namespace Ng
                 }
             }
             return 1.0f;
-        }
-
-        static Document CreateLuceneDocument(JObject catalogEntry, string packageUrl, string baseAddress)
-        {
-            JToken type = catalogEntry["@type"];
-
-            //TODO: for now this is a MicroservicePackage hi-jack - later we can make this Docuemnt creation more generic
-            if (Utils.IsType(catalogEntry["@context"], catalogEntry, Schema.DataTypes.ApiAppPackage))
-            {
-                NormalizeId(catalogEntry);
-
-                return CreateLuceneDocument_ApiApp(catalogEntry, packageUrl, baseAddress);
-            }
-
-            return CreateLuceneDocument_NuGet(catalogEntry, packageUrl);
-        }
-
-        static Document CreateLuceneDocument_ApiApp(JObject package, string packageUrl, string baseAddress)
-        {
-            Document doc = CreateLuceneDocument_Core(package, packageUrl);
-
-            Add(doc, "Publisher", (string)package["publisher"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "@type", Schema.DataTypes.ApiAppPackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-            if (baseAddress != null)
-            {
-                IEnumerable<string> storagePaths = GetStoragePaths(package);
-                AddStoragePaths(doc, storagePaths, baseAddress);
-            }
-
-            JToken owner = package["owner"];
-            if (owner != null)
-            {
-                Add(doc, "Owner", (string)owner["nameIdentifier"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-                Add(doc, "OwnerDetails", owner.ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-            }
-
-            JToken license = package["license"];
-            if (license != null)
-            {
-                Add(doc, "LicenseDetails", license.ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-            }
-
-            Add(doc, "Homepage", (string)package["homepage"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Categories", string.Join(" ", (package["categories"] ?? new JArray()).Select(s => (string)s)), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-            JArray entries = package["entries"] as JArray;
-            if (entries != null)
-            {
-                var smallIcon = entries.FirstOrDefault(e => e["@type"] is JArray && ((JArray)e["@type"]).Any(t => (string)t == "SmallIcon"));
-                if (smallIcon != null)
-                {
-                    Add(doc, "IconUrl", (string)smallIcon["location"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-                }
-            }
-
-            return doc;
-        }
-
-        static Document CreateLuceneDocument_NuGet(JObject package, string packageUrl)
-        {
-            Document doc = CreateLuceneDocument_Core(package, packageUrl);
-
-            Add(doc, "@type", Schema.DataTypes.NuGetClassicPackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-            return doc;
-        }
-
-        static Document CreateLuceneDocument_Core(JObject package, string packageUrl)
-        {
-            Document doc = new Document();
-
-            Add(doc, "@type", Schema.DataTypes.Package.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-            //  Query Fields
-
-            float titleBoost = 3.0f;
-            float idBoost = 2.0f;
-
-            if (package["tags"] == null)
-            {
-                titleBoost += 0.5f;
-                idBoost += 0.5f;
-            }
-
-            string title = (string)(package["title"] ?? package["id"]);
-
-            Add(doc, "Id", (string)package["id"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "IdAutocomplete", (string)package["id"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.NO);
-            Add(doc, "IdAutocompletePhrase", "/ " + (string)package["id"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "TokenizedId", (string)package["id"], Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "ShingledId", (string)package["id"], Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "Version", (string)package["version"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "Title", title, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, titleBoost);
-            Add(doc, "Tags", string.Join(" ", (package["tags"] ?? new JArray()).Select(s => (string)s)), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, 1.5f);
-            Add(doc, "Description", (string)package["description"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-            JToken authors = package["authors"] ?? package["author"];
-            if (authors is JArray || authors == null)
-            {
-                Add(doc, "Authors", string.Join(" ", (authors ?? new JArray()).Select(s => (string) s)), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            }
-            else
-            {
-                Add(doc, "Authors", (string)authors, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            }
-
-            Add(doc, "Summary", (string)package["summary"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "IconUrl", (string)package["iconUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "ProjectUrl", (string)package["projectUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "MinClientVersion", (string)package["minClientVersion"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "ReleaseNotes", (string)package["releaseNotes"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Copyright", (string)package["copyright"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            
-            Add(doc, "LicenseUrl", (string)package["licenseUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "RequiresLicenseAcceptance", (string)package["requiresLicenseAcceptance"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            
-            Add(doc, "PackageHash", (string)package["packageHash"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "PackageHashAlgorithm", (string)package["packageHashAlgorithm"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "PackageSize", (string)package["packageSize"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            
-            Add(doc, "Language", (string)package["language"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            string fullId = (package["namespace"] != null) ? string.Format("{0}.{1}", package["namespace"], package["id"]) : (string)package["id"];
-            Add(doc, "FullId", fullId, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Namespace", (string)package["namespace"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-            Add(doc, "TenantId", (string)package["tenantId"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Visibility", (string)package["visibility"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-            doc.Add(new NumericField("PublishedDate", Field.Store.YES, true).SetIntValue(int.Parse(package["published"].ToObject<DateTime>().ToString("yyyyMMdd"))));
-
-            DateTime lastEdited = (DateTime)(package["lastEdited"] ?? package["published"]);
-            doc.Add(new NumericField("EditedDate", Field.Store.YES, true).SetIntValue(int.Parse(lastEdited.ToString("yyyyMMdd"))));
-
-            string displayName = String.IsNullOrEmpty((string)package["title"]) ? (string)package["id"] : (string)package["title"];
-            displayName = displayName.ToLower(CultureInfo.CurrentCulture);
-            Add(doc, "DisplayName", displayName, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            Add(doc, "Url", packageUrl.ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-
-            Add(doc, "PackageContent", (string)package["packageContent"], Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-            Add(doc, "CatalogEntry", (string)package["@id"], Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-
-            Add(doc, "Listed", (string)package["listed"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            //  The following fields are added for back compatibility with the V2 gallery
-
-            Add(doc, "OriginalVersion", (string)package["verbatimVersion"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "OriginalCreated", (string)package["created"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "OriginalLastEdited", (string)package["lastEdited"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "OriginalPublished", (string)package["published"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            Add(doc, "LicenseNames", (string)package["licenseNames"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "LicenseReportUrl", (string)package["licenseReportUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            //TODO: add dependency summary
-
-            doc.Boost = DetermineLanguageBoost((string)package["id"], (string)package["language"]);
-
-            return doc;
         }
         
         static void AddStoragePaths(Document doc, IEnumerable<string> storagePaths, string baseAddress)

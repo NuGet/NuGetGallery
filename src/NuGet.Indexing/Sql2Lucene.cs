@@ -63,7 +63,7 @@ namespace NuGet.Indexing
                         Packages.Title                          'title',
                         Packages.Tags                           'tags',
                         Packages.[Description]                  'description',
-                        Packages.FlattenedAuthors               'flattenedAuthors',
+                        Packages.FlattenedAuthors               'authors',
                         Packages.Summary                        'summary',
                         Packages.IconUrl                        'iconUrl',
                         Packages.ProjectUrl                     'projectUrl',
@@ -77,8 +77,6 @@ namespace NuGet.Indexing
                         Packages.HashAlgorithm                  'packageHashAlgorithm',
                         Packages.PackageFileSize                'packageSize',
                         Packages.FlattenedDependencies          'flattenedDependencies',
-                        Packages.LicenseNames                   'licenseNames',
-                        Packages.LicenseReportUrl               'licenseReportUrl',
                         Packages.Created                        'created',
                         Packages.LastEdited                     'lastEdited',
                         Packages.Published                      'published',
@@ -258,7 +256,7 @@ namespace NuGet.Indexing
                         partition.Dispose();
                     }
 
-                    writer.Commit(DocumentCreator.CreateCommitMetadata("from SQL", Guid.NewGuid().ToString()));
+                    writer.Commit(DocumentCreator.CreateCommitMetadata(DateTime.UtcNow, "from SQL", Guid.NewGuid().ToString()));
                 }
             }
 

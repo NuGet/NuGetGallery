@@ -72,8 +72,7 @@ namespace NuGet.Indexing
                 Document document = searcher.Doc(scoreDoc.Doc);               
 
                 jsonWriter.WriteStartObject();
-
-                string url = document.Get("Url");
+                
                 string id = document.Get("Id");
 
                 string relativeAddress = UriFormatter.MakeRegistrationRelativeAddress(id);
@@ -370,7 +369,7 @@ namespace NuGet.Indexing
                 WriteDocumentValue(jsonWriter, "Created", document, "OriginalCreated");
                 WriteDocumentValue(jsonWriter, "Published", document, "OriginalPublished");
                 WriteDocumentValue(jsonWriter, "LastUpdated", document, "OriginalPublished");
-                WriteDocumentValue(jsonWriter, "LastEdited", document, "OriginalEditedDate");
+                WriteDocumentValue(jsonWriter, "LastEdited", document, "OriginalLastEdited");
                 WriteProperty(jsonWriter, "DownloadCount", downloadCounts.Item2);
                 WriteDocumentValue(jsonWriter, "FlattenedDependencies", document, "FlattenedDependencies");
                 jsonWriter.WritePropertyName("Dependencies");
@@ -383,9 +382,6 @@ namespace NuGet.Indexing
                 WriteProperty(jsonWriter, "PackageFileSize", int.Parse(document.Get("PackageSize") ?? "0"));
                 WriteDocumentValue(jsonWriter, "LicenseUrl", document, "LicenseUrl");
                 WriteProperty(jsonWriter, "RequiresLicenseAcceptance", bool.Parse(document.Get("RequiresLicenseAcceptance") ?? "true"));
-                WriteDocumentValue(jsonWriter, "LicenseNames", document, "LicenseNames");
-                WriteDocumentValue(jsonWriter, "LicenseReportUrl", document, "LicenseReportUrl");
-                WriteProperty(jsonWriter, "HideLicenseReport", bool.Parse(document.Get("HideLicenseReport") ?? "true"));   //TODO: data is missing from index
                 jsonWriter.WriteEndObject();
             }
 

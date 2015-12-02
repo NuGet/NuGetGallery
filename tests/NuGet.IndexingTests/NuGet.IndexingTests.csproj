@@ -69,6 +69,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CamelCaseFilterTests.cs" />
+    <Compile Include="Extraction\CatalogPackageMetadataExtractorTests.cs" />
+    <Compile Include="Extraction\DocumentCreatorTests.cs" />
     <Compile Include="NuGetQueryTests.cs" />
     <Compile Include="VersionAnalyzerTests.cs" />
     <Compile Include="OwnerAnalyzerTests.cs" />

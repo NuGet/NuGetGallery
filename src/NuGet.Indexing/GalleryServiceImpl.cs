@@ -56,6 +56,7 @@ namespace NuGet.Indexing
             var searcher = searcherManager.Get();
             try
             {
+                // TODO: this needs to parameterize listed = true | false to support search hijacking
                 Filter filter = searcher.GetFilter(false, includePrerelease, feed);
 
                 Query query = NuGetQuery.MakeQuery(q);
@@ -98,10 +99,10 @@ namespace NuGet.Indexing
         }
 
         private static readonly Dictionary<string, Func<Sort>> _sorts = new Dictionary<string, Func<Sort>>(StringComparer.OrdinalIgnoreCase) {
-            {"lastEdited", () => new Sort(new SortField("EditedDate", SortField.INT, reverse: true))},
+            {"lastEdited", () => new Sort(new SortField("LastEditedDate", SortField.INT, reverse: true))},
             {"published", () => new Sort(new SortField("PublishedDate", SortField.INT, reverse: true))},
-            {"title-asc", () => new Sort(new SortField("DisplayName", SortField.STRING, reverse: false))},
-            {"title-desc", () => new Sort(new SortField("DisplayName", SortField.STRING, reverse: true))},
+            {"title-asc", () => new Sort(new SortField("SortableTitle", SortField.STRING, reverse: false))},
+            {"title-desc", () => new Sort(new SortField("SortableTitle", SortField.STRING, reverse: true))},
         };
 
         private static Sort GetSort(string sortBy)

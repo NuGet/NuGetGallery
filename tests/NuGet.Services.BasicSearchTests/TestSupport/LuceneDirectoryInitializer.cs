@@ -84,7 +84,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             using (var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 var errors = new List<string>();
-                var metadata = PackageMetadataExtraction.MakePackageMetadata(fileStream, errors);
+                var metadata = NupkgPackageMetadataExtraction.MakePackageMetadata(fileStream, errors);
 
                 if (errors.Any())
                 {

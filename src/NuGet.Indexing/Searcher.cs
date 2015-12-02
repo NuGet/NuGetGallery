@@ -158,10 +158,10 @@ namespace NuGet.Indexing
         }
 
         private static readonly Dictionary<string, Func<Sort>> _sorts = new Dictionary<string, Func<Sort>>(StringComparer.OrdinalIgnoreCase) {
-            {"lastEdited", () => new Sort(new SortField("EditedDate", SortField.INT, reverse: true))},
+            {"lastEdited", () => new Sort(new SortField("LastEditedDate", SortField.INT, reverse: true))},
             {"published", () => new Sort(new SortField("PublishedDate", SortField.INT, reverse: true))},
-            {"title-asc", () => new Sort(new SortField("DisplayName", SortField.STRING, reverse: false))},
-            {"title-desc", () => new Sort(new SortField("DisplayName", SortField.STRING, reverse: true))},
+            {"title-asc", () => new Sort(new SortField("SortableTitle", SortField.STRING, reverse: false))},
+            {"title-desc", () => new Sort(new SortField("SortableTitle", SortField.STRING, reverse: true))},
         };
         private static Sort GetSort(string sortBy)
         {
@@ -367,8 +367,8 @@ namespace NuGet.Indexing
             "AuthorsTerms",
             "OwnersTerms",
             "PublishedDate",
-            "EditedDate",
-            "DisplayName",
+            "LastEditedDate",
+            "SortableTitle",
             "IsLatest",
             "IsLatestStable",
             "CuratedFeed",
@@ -426,7 +426,7 @@ namespace NuGet.Indexing
             diagnostics.Add("OwnersTerms", GetTerms(searcher, scoreDoc.Doc, "Owners"));
 
             diagnostics.Add("PublishedDate", GetInt(searcher, scoreDoc.Doc, "PublishedDate"));
-            diagnostics.Add("EditedDate", GetInt(searcher, scoreDoc.Doc, "EditedDate"));
+            diagnostics.Add("LastEditedDate", GetInt(searcher, scoreDoc.Doc, "LastEditedDate"));
 
             diagnostics.Add("CuratedFeed", GetMultiValue(searcher, scoreDoc.Doc, "CuratedFeed"));
             diagnostics.Add("Key", GetInt(searcher, scoreDoc.Doc, "Key"));

@@ -145,11 +145,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitSetCollector.cs" />
+    <Compile Include="Extraction\CatalogPackageMetadataExtraction.cs" />
     <Compile Include="ChainedFilter.cs" />
     <Compile Include="ClientException.cs" />
     <Compile Include="Compatibility.cs" />
     <Compile Include="CuratedFeedHandler.cs" />
-    <Compile Include="DocumentCreator.cs" />
+    <Compile Include="Extraction\DocumentCreator.cs" />
+    <Compile Include="Extraction\PackageEntityMetadataExtraction.cs" />
     <Compile Include="IConfiguration.cs" />
     <Compile Include="OwnerAnalyzer.cs" />
     <Compile Include="DownloadRankings.cs" />
@@ -165,7 +167,7 @@
     <Compile Include="LatestListedHandler.cs" />
     <Compile Include="NuGetQuery.cs" />
     <Compile Include="OwnersHandler.cs" />
-    <Compile Include="PackageMetadataExtraction.cs" />
+    <Compile Include="Extraction\NupkgPackageMetadataExtraction.cs" />
     <Compile Include="PackageVersions.cs" />
     <Compile Include="ResponseFormatter.cs" />
     <Compile Include="Sql2Lucene.cs" />

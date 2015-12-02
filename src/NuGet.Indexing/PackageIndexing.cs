@@ -132,7 +132,9 @@ namespace NuGet.Indexing
                 {
                     if (data.Package.Listed)
                     {
-                        indexWriter.AddDocument(CreateLuceneDocument(data));
+                        var metadata = PackageEntityMetadataExtraction.MakePackageMetadata(data.Package);
+                        var document = DocumentCreator.CreateDocument(metadata);
+                        indexWriter.AddDocument(document);
                     }
                 }
 
@@ -255,95 +257,7 @@ namespace NuGet.Indexing
             }
             return 1.0f;
         }
-
-        /* Open questions:
-        1. Should we propogate curated feed data to V3 ?
-        2. Should the Package Key added to Lucene ? Is it used as high water mark or anything ?
-        3. How to add "CatalogEntry", "TenantId", "Visibility" values.
-        4. Where does the below fields that show up in search query come from :
-           "@id": "http://api.nuget.org/v3/registration0/nunit.runners/2.6.4.json",
-           "@type": "Package",
-           "registration": "http://api.nuget.org/v3/registration0/nunit.runners/index.json",
-         */
-        private static Document CreateLuceneDocument(IndexDocumentData data)
-        {
-            Package package = data.Package;
-
-            Document doc = new Document();
-
-            //  Query Fields
-
-            float titleBoost = 3.0f;
-            float idBoost = 2.0f;
-
-            if (package.Tags == null)
-            {
-                titleBoost += 0.5f;
-                idBoost += 0.5f;
-            }
-
-            string title = package.Title ?? package.PackageRegistration.Id;
-
-            Add(doc, "Id", package.PackageRegistration.Id, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "IdAutocomplete", package.PackageRegistration.Id, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.NO);
-            Add(doc, "IdAutocompletePhrase", "/ " + package.PackageRegistration.Id, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);            
-            Add(doc, "TokenizedId", package.PackageRegistration.Id, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "ShingledId", package.PackageRegistration.Id, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "Version", package.Version, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "Title", title, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, titleBoost);
-            Add(doc, "Tags", package.Tags, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, 1.5f);
-            Add(doc, "Description", package.Description, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Authors", package.FlattenedAuthors, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Owners", PackageJson.ToJson_Owners(package.PackageRegistration.Owners).ToString(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-
-            Add(doc, "Summary", package.Summary, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "IconUrl", package.IconUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "ProjectUrl", package.ProjectUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "MinClientVersion", package.MinClientVersion, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "ReleaseNotes", package.ReleaseNotes, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Copyright", package.Copyright, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Language", package.Language, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            Add(doc, "LicenseUrl", package.LicenseUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "RequiresLicenseAcceptance", package.RequiresLicenseAcceptance.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-            Add(doc, "PackageHash", package.Hash, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "PackageHashAlgorithm", package.HashAlgorithm, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "PackageSize", package.PackageFileSize.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);                       
-
-            doc.Add(new NumericField("PublishedDate", Field.Store.YES, true).SetIntValue(int.Parse(package.Published.ToString("yyyyMMdd"))));
-
-            DateTime lastEdited = (DateTime)(package.LastEdited ?? package.Published);
-            doc.Add(new NumericField("EditedDate", Field.Store.YES, true).SetIntValue(int.Parse(lastEdited.ToString("yyyyMMdd"))));
-
-            string displayName = String.IsNullOrEmpty(package.Title) ? package.PackageRegistration.Id: package.Title;
-            displayName = displayName.ToLower(CultureInfo.CurrentCulture);
-            Add(doc, "DisplayName", displayName, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            string packageUrl = string.Format(_packageTemplate, package.PackageRegistration.Id.ToLowerInvariant(), package.Version.ToLowerInvariant());
-
-            Add(doc, "Url", packageUrl.ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-            Add(doc, "Listed", package.Listed.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "FlattenedDependencies", package.FlattenedDependencies, Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-            Add(doc, "Dependencies",PackageJson.ToJson_PackageDependencies(package.Dependencies).ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-            Add(doc, "SupportedFrameworks", PackageJson.ToJson_SupportedFrameworks(package.SupportedFrameworks).ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-
-            //  The following fields are added for back compatibility with the V2 gallery
-            // Ques: Should any specific format need to be applied for ToString on these DateTime (like how we have in catalog entry).
-            Add(doc, "OriginalVersion", package.Version.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "OriginalCreated", package.Created.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "OriginalLastEdited", package.LastEdited.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "OriginalPublished", package.Published.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            Add(doc, "LicenseNames", package.LicenseNames, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "LicenseReportUrl", package.LicenseReportUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-           
-            doc.Boost = DetermineLanguageBoost(package.PackageRegistration.Id, package.Language);
-
-            return doc;
-        }
-    
+        
         //  helper functions
 
         public static IDictionary<int, IndexDocumentData> LoadDocumentData(string connectionString, List<int> adds, List<int> updates, List<int> deletes, IDictionary<int, IEnumerable<string>> feeds, IDictionary<int, int> checksums, TextWriter log = null)

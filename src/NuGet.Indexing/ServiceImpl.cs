@@ -27,12 +27,6 @@ namespace NuGet.Indexing
                 take = 20;
             }
 
-            bool countOnly;
-            if (!bool.TryParse(context.Request.Query["countOnly"], out countOnly))
-            {
-                countOnly = false;
-            }
-
             bool includePrerelease;
             if (!bool.TryParse(context.Request.Query["prerelease"], out includePrerelease))
             {
@@ -55,10 +49,10 @@ namespace NuGet.Indexing
 
             string scheme = context.Request.Uri.Scheme;
 
-            return QuerySearch(searcherManager, scheme, q, countOnly, includePrerelease, skip, take, feed, includeExplanation);
+            return QuerySearch(searcherManager, scheme, q, includePrerelease, skip, take, feed, includeExplanation);
         }
 
-        public static string QuerySearch(NuGetSearcherManager searcherManager, string scheme, string q, bool countOnly, bool includePrerelease, int skip, int take, string feed, bool includeExplanation)
+        public static string QuerySearch(NuGetSearcherManager searcherManager, string scheme, string q, bool includePrerelease, int skip, int take, string feed, bool includeExplanation)
         {
             var searcher = searcherManager.Get();
             try
