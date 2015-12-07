@@ -179,6 +179,12 @@ namespace NuGetGallery
                 new { controller = "Authentication", action = "Authenticate" });
 
             routes.MapRoute(
+                "RegisterAccount",
+                "account/register",
+                new { controller = "Authentication", action = "Register" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.LegacyRegister,
                 "account/register",
                 new { controller = "Authentication", action = "RegisterLegacy" },
