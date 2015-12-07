@@ -5,7 +5,7 @@ using System;
 
 namespace NuGet.Services.BasicSearchTests.TestSupport
 {
-    public class QueryBuilder
+    public class V2SearchBuilder
     {
         public string Query { get; set; }
         public bool Prerelease { get; set; }
@@ -18,7 +18,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
                 queryString["q"] = Query;
                 queryString["prerelease"] = Prerelease.ToString();
 
-                return new Uri("/query?" + queryString, UriKind.Relative);
+                return new Uri("/search/query?" + queryString, UriKind.Relative);
             }
         }
     }

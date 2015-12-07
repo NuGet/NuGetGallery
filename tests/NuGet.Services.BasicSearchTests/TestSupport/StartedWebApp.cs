@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Lucene.Net.Store;
 using Microsoft.Owin.Hosting;
+using Newtonsoft.Json;
 using NuGet.Services.BasicSearch;
 
 namespace NuGet.Services.BasicSearchTests.TestSupport
@@ -56,10 +57,10 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             // set up the data directory
             var loader = new InMemoryLoader
             {
-                { "downloads.v1.json", "[]" },
+                { "downloads.v1.json", BuildDownloadsFile(enumeratedPackages) },
                 { "curatedfeeds.json", "[]" },
                 { "owners.json", "[]" },
-                { "rankings.v1.json", "{\"Rank\": []}" }
+                { "rankings.v1.json", BuildRankingsFile(enumeratedPackages) }
             };
 
             // start the app
@@ -83,6 +84,37 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             {
                 return (T)xmlSerializer.Deserialize(stream);
             }
+        }
+
+        private string BuildDownloadsFile(PackageVersion[] packages)
+        {
+            var downloadsFile = new List<List<object>>();
+            foreach (var versions in packages.GroupBy(v => v.Id, StringComparer.OrdinalIgnoreCase))
+            {
+                var perPackageRegistration = new List<object>();
+                perPackageRegistration.Add(versions.Key);
+                foreach (var version in versions)
+                {
+                    perPackageRegistration.Add(new List<object> { version.Version, version.Downloads });
+                }
+
+                downloadsFile.Add(perPackageRegistration);
+            }
+
+            return JsonConvert.SerializeObject(downloadsFile, Formatting.Indented);
+        }
+
+        private string BuildRankingsFile(PackageVersion[] packages)
+        {
+            var rankings = packages
+                .GroupBy(v => v.Id, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(g => g.Sum(p => p.Downloads))
+                .Select(g => g.Key)
+                .ToArray();
+
+            var rankingsFile = new { Rank = rankings };
+
+            return JsonConvert.SerializeObject(rankingsFile, Formatting.Indented);
         }
     }
 }

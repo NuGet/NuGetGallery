@@ -81,7 +81,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
         {
             var path = _nupkgDownloader.GetPackagePath(version);
 
-            using (var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+            using (var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 var errors = new List<string>();
                 var metadata = PackageMetadataExtraction.MakePackageMetadata(fileStream, errors);

@@ -310,6 +310,18 @@ namespace NuGet.Indexing
                 return true;
             }
 
+            if (fieldIndex == Field.Index.ANALYZED)
+            {
+                /*
+                 * Analyzed fields are those that are used in queries. There is a problem in the ParallelReader that
+                 * cases a KeyNotFoundException to be thrown when querying for a field that does not exist in a
+                 * document. Therefore, we add an empty value for fields that would otherwise not be present in the
+                 * document.
+                 */
+                document.Add(new Field(destName, string.Empty, Field.Store.YES, fieldIndex) { Boost = boost });
+                return true;
+            }
+
             return false;
         }
 

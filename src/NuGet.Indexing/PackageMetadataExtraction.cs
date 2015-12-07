@@ -79,7 +79,7 @@ namespace NuGet.Indexing
             }
 
             ExtractRequiredProperty(package, document, errors, "id");
-            ExtractRequiredProperty(package, document, errors, "version");
+            ExtractRequiredProperty(package, document, errors, "version", "originalVersion");
             ExtractProperty(package, document, "title");
             ExtractProperty(package, document, "summary");
             ExtractProperty(package, document, "tags");

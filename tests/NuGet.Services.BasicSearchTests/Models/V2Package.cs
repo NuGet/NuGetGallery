@@ -3,9 +3,9 @@
 
 namespace NuGet.Services.BasicSearchTests.Models
 {
-    public class GalleryPackage
+    public class V2Package
     {
-        public PackageRegistration PackageRegistration { get; set; }
+        public V2PackageRegistration PackageRegistration { get; set; }
 
         public string Version { get; set; }
 

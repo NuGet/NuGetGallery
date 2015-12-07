@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -23,6 +24,9 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
     public class NupkgDownloader : INupkgDownloader
     {
         private const string PackageBaseAddressType = "PackageBaseAddress/3.0.0";
+        private static readonly object Lock = new object();
+        private static readonly IDictionary<string, SemaphoreSlim> PackageLocks = new Dictionary<string, SemaphoreSlim>();
+
         private readonly TestSettings _settings;
         private readonly HttpClient _client;
         private string _packageBaseAddress;
@@ -53,12 +57,12 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
                 return;
             }
 
-            // Synchronization is not a concern here. If multiple threads execute this the result should be the same.
+            // download the package
             if (_packageBaseAddress == null)
             {
                 _packageBaseAddress = await GetPackageBaseAddressAsync();
             }
-            
+
             string relativeUri = $"{version.Id}/{version.Version}/{version.Id}.{version.Version}.nupkg".ToLower();
             var requestUri = new Uri(new Uri(_packageBaseAddress, UriKind.Absolute), relativeUri);
             var response = await _client.GetAsync(requestUri);
@@ -68,9 +72,42 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             }
 
             var packageStream = await response.Content.ReadAsStreamAsync();
-            using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+
+            // get or initialize the package lock
+            SemaphoreSlim packageLock;
+            lock (Lock)
             {
-                await packageStream.CopyToAsync(fileStream);
+                if (!PackageLocks.TryGetValue(path, out packageLock))
+                {
+                    packageLock = new SemaphoreSlim(1);
+                    PackageLocks[path] = packageLock;
+                }
+            }
+
+            // get a lock and write the package to disk
+            var acquired = await packageLock.WaitAsync(TimeSpan.FromSeconds(30));
+            if (!acquired)
+            {
+                throw new InvalidOperationException($"Could not get a lock to write the package '{version.Id}' (version '{version.Version}') to '{path}'.");
+            }
+
+            try
+            {
+                if (!File.Exists(path))
+                {
+                    using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+                    {
+                        await packageStream.CopyToAsync(fileStream);
+                    }
+                }
+            }
+            catch (IOException)
+            {
+                // an IOException is thrown when another thread already downloaded this package
+            }
+            finally
+            {
+                packageLock.Release();
             }
         }
 

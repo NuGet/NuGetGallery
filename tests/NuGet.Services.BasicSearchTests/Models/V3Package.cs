@@ -3,11 +3,10 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace NuGet.Services.BasicSearchTests.Models
 {
-    public class Package
+    public class V3Package
     {
         [JsonProperty("@id")]
         public string AtId { get; set; }
@@ -41,6 +40,6 @@ namespace NuGet.Services.BasicSearchTests.Models
 
         public int TotalDownloads { get; set; }
 
-        public IEnumerable<PackageVersion> Versions { get; set; }
+        public IEnumerable<V3PackageVersion> Versions { get; set; }
     }
 }

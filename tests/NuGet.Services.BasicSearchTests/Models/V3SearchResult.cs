@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace NuGet.Services.BasicSearchTests.Models
 {
-    public class QueryResult
+    public class V3SearchResult
     {
         [JsonProperty("@context")]
         public AtContext AtContext { get; set; }
@@ -19,9 +19,9 @@ namespace NuGet.Services.BasicSearchTests.Models
 
         public string Index { get; set; }
 
-        public IEnumerable<Package> Data { get; set; }
+        public IList<V3Package> Data { get; set; }
 
-        public Package GetPackage(string id)
+        public V3Package GetPackage(string id)
         {
             return Data.FirstOrDefault(p => p.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
         }

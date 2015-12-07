@@ -96,28 +96,37 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutocompleteFunctionalTests.cs" />
+    <Compile Include="TestSupport\AutocompleteBuilder.cs" />
+    <Compile Include="TestSupport\Serialization.cs" />
     <Compile Include="TestSupport\InMemoryConfiguration.cs" />
     <Compile Include="TestSupport\InMemoryLoader.cs" />
-    <Compile Include="TestSupport\QueryBuilder.cs" />
+    <Compile Include="TestSupport\V2SearchBuilder.cs" />
+    <Compile Include="TestSupport\V3SearchBuilder.cs" />
     <Compile Include="TestSupport\TestSettings.cs" />
     <Compile Include="TestSupport\LuceneDirectoryInitializer.cs" />
     <Compile Include="Models\AtContext.cs" />
     <Compile Include="Models\AutocompleteResult.cs" />
-    <Compile Include="Models\GalleryPackage.cs" />
-    <Compile Include="Models\GalleryQueryResult.cs" />
-    <Compile Include="Models\Package.cs" />
-    <Compile Include="Models\PackageRegistration.cs" />
-    <Compile Include="Models\PackageVersion.cs" />
-    <Compile Include="Models\QueryResult.cs" />
+    <Compile Include="Models\V2Package.cs" />
+    <Compile Include="Models\V2SearchResult.cs" />
+    <Compile Include="Models\V3Package.cs" />
+    <Compile Include="Models\V2PackageRegistration.cs" />
+    <Compile Include="Models\V3PackageVersion.cs" />
+    <Compile Include="Models\V3SearchResult.cs" />
     <Compile Include="TestSupport\NupkgDownloader.cs" />
     <Compile Include="TestSupport\PackageVersion.cs" />
     <Compile Include="TestSupport\StartedWebApp.cs" />
-    <Compile Include="StartupTests.cs" />
+    <Compile Include="StartupFunctionalTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestSupport\PortReserver.cs" />
+    <Compile Include="V2SearchFunctionalTests.cs" />
+    <Compile Include="V3SearchFunctionalTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Data\V3SearchFunctionalTests.ReturnsCorrectSchema.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
