@@ -179,6 +179,18 @@ namespace NuGetGallery
                 new { controller = "Authentication", action = "Authenticate" });
 
             routes.MapRoute(
+                RouteName.LegacyRegister,
+                "account/register",
+                new { controller = "Authentication", action = "RegisterLegacy" },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.LegacyRegister2,
+                "users/account/register",
+                new { controller = "Authentication", action = "RegisterLegacy" },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.Authentication,
                 "users/account/{action}",
                 new { controller = "Authentication" });
@@ -187,11 +199,6 @@ namespace NuGetGallery
                 RouteName.Profile,
                 "profiles/{username}",
                 new { controller = "Users", action = "Profiles" });
-
-            routes.MapRoute(
-                RouteName.LegacyRegister,
-                "account/register",
-                new { controller = "Authentication", action = "Register" });
 
             routes.MapRoute(
                 RouteName.RemovePassword,

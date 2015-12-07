@@ -13,8 +13,8 @@ namespace NuGetGallery
         public const string DefaultPackageListSortOrder = "package-download-count";
         public const int DefaultPasswordResetTokenExpirationHours = 24;
         public const int MaxEmailSubjectLength = 255;
-        internal static readonly Version MaxSupportedMinClientVersion = new Version("3.2.0.0");
-        public const string PackageContentType = "application/zip";
+        internal static readonly Version MaxSupportedMinClientVersion = new Version("3.3.0.0");
+        public const string PackageContentType = "binary/octet-stream";
         public const string OctetStreamContentType = "application/octet-stream";
         public const string NuGetPackageFileExtension = ".nupkg";
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";

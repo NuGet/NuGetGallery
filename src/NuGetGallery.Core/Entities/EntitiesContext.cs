@@ -66,6 +66,11 @@ namespace NuGetGallery
             ObjectContext.CommandTimeout = seconds;
         }
 
+        public Database GetDatabase()
+        {
+            return Database;
+        }
+
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

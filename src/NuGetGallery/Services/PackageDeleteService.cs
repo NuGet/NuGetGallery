@@ -18,9 +18,22 @@ namespace NuGetGallery
     public class PackageDeleteService
         : IPackageDeleteService
     {
+        internal const string DeletePackageRegistrationQuery = @"
+            IF NOT EXISTS (
+                SELECT TOP 1 [Key]
+                FROM Packages AS p
+                WHERE p.[PackageRegistrationKey] = @key)
+            BEGIN
+                DELETE pro FROM PackageRegistrationOwners AS pro
+                WHERE pro.[PackageRegistrationKey] = @key
+
+                DELETE pr FROM PackageRegistrations AS pr
+                WHERE pr.[Key] = @key
+            END";
+
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IEntityRepository<PackageDelete> _packageDeletesRepository;
-        private readonly DbContext _dbContext;
+        private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
         private readonly IIndexingService _indexingService;
         private readonly IPackageFileService _packageFileService;
@@ -29,7 +42,7 @@ namespace NuGetGallery
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageDelete> packageDeletesRepository,
-            DbContext dbContext,
+            IEntitiesContext entitiesContext,
             IPackageService packageService,
             IIndexingService indexingService,
             IPackageFileService packageFileService,
@@ -37,7 +50,7 @@ namespace NuGetGallery
         {
             _packageRepository = packageRepository;
             _packageDeletesRepository = packageDeletesRepository;
-            _dbContext = dbContext;
+            _entitiesContext = entitiesContext;
             _packageService = packageService;
             _indexingService = indexingService;
             _packageFileService = packageFileService;
@@ -47,10 +60,16 @@ namespace NuGetGallery
         public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
         {
             EntitiesConfiguration.SuspendExecutionStrategy = true;
-            using (var transaction = _dbContext.Database.BeginTransaction())
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
+                // Increase command timeout
+                _entitiesContext.SetCommandTimeout(seconds: 300);
+
                 // Keep package registrations
-                var packageRegistrations = packages.GroupBy(p => p.PackageRegistration).Select(g => g.First().PackageRegistration).ToList();
+                var packageRegistrations = packages
+                    .GroupBy(p => p.PackageRegistration)
+                    .Select(g => g.First().PackageRegistration)
+                    .ToList();
 
                 // Backup the package binaries and remove from main storage
                 // We're doing this early in the process as we need the metadata to still exist in the DB.
@@ -91,11 +110,14 @@ namespace NuGetGallery
             UpdateSearchIndex();
         }
 
-        public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
+        public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration)
         {
             EntitiesConfiguration.SuspendExecutionStrategy = true;
-            using (var transaction = _dbContext.Database.BeginTransaction())
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
+                // Increase command timeout
+                _entitiesContext.SetCommandTimeout(seconds: 300);
+
                 // Keep package registrations
                 var packageRegistrations = packages.GroupBy(p => p.PackageRegistration).Select(g => g.First().PackageRegistration).ToList();
 
@@ -106,28 +128,38 @@ namespace NuGetGallery
                 // Remove the package and related entities from the database
                 foreach (var package in packages)
                 {
-                    await ExecuteSqlCommandAsync(_dbContext.Database,
+                    await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
                         "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
-                    await ExecuteSqlCommandAsync(_dbContext.Database,
+                    await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
                         "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
-                    await ExecuteSqlCommandAsync(_dbContext.Database,
+                    await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
                         "DELETE ps FROM PackageStatistics ps JOIN Packages p ON p.[Key] = ps.PackageKey WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
-                    await ExecuteSqlCommandAsync(_dbContext.Database,
+                    await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
                         "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
 
                     await _auditingService.SaveAuditRecord(CreateAuditRecord(package, package.PackageRegistration, PackageAuditAction.Deleted, reason));
+
+                    package.PackageRegistration.Packages.Remove(package);
                     _packageRepository.DeleteOnCommit(package);
                 }
-                
+
                 // Update latest versions
                 UpdateIsLatest(packageRegistrations);
 
-                // Commit changes
+                // Commit changes to package repository
                 _packageRepository.CommitChanges();
+
+                // Remove package registrations that have no more packages?
+                if (deleteEmptyPackageRegistration)
+                {
+                    await RemovePackageRegistrationsWithoutPackages(packageRegistrations);
+                }
+
+                // Commit transaction
                 transaction.Commit();
             }
             EntitiesConfiguration.SuspendExecutionStrategy = false;
@@ -147,6 +179,23 @@ namespace NuGetGallery
             foreach (var packageRegistration in packageRegistrations)
             {
                 _packageService.UpdateIsLatest(packageRegistration, false);
+            }
+        }
+
+        private async Task RemovePackageRegistrationsWithoutPackages(IEnumerable<PackageRegistration> packageRegistrations)
+        {
+            // Remove package registrations that have no more packages
+            // (making the identifier available again)
+            foreach (var packageRegistration in packageRegistrations)
+            {
+                if (!packageRegistration.Packages.Any())
+                {
+                    // the query also checks if packages exist, we want to avoid
+                    // the delete if someone else uploaded a new package in the meanwhile
+                    await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
+                        DeletePackageRegistrationQuery,
+                        new SqlParameter("@key", packageRegistration.Key));
+                }
             }
         }
 

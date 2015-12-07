@@ -711,7 +711,8 @@ namespace NuGetGallery
                 {
                     await _packageDeleteService.HardDeletePackagesAsync(
                         packagesToDelete, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
-                        deletePackagesRequest.Signature);
+                        deletePackagesRequest.Signature,
+                        deletePackagesRequest.DeleteEmptyPackageRegistration);
                 }
 
                 // Redirect out
