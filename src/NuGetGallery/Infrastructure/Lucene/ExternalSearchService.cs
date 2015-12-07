@@ -131,6 +131,15 @@ namespace NuGetGallery.Infrastructure.Lucene
                         content.Data.Select(ReadPackage).AsQueryable());
                 }
             }
+            else
+            {
+                if (result.HttpResponse.Content != null)
+                {
+                    result.HttpResponse.Content.Dispose();
+                }
+
+                results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable());
+            }
 
             Trace.PerfEvent(
                 SearchRoundtripTimePerfCounter,
@@ -146,7 +155,6 @@ namespace NuGetGallery.Infrastructure.Lucene
                     {"Url", TryGetUrl()}
                 });
 
-            result.HttpResponse.EnsureSuccessStatusCode();
             return results;
         }
 
