@@ -17,5 +17,6 @@ namespace NuGetGallery
         IDbSet<T> Set<T>() where T : class;
         void DeleteOnCommit<T>(T entity) where T : class;
         void SetCommandTimeout(int? seconds);
+        Database GetDatabase();
     }
 }

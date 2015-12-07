@@ -1,4 +1,5 @@
-﻿@using NuGetGallery.Helpers
+﻿@using NuGetGallery
+@using NuGetGallery.Helpers
 @model NuGetGallery.DeletePackagesRequest
 
 @{
@@ -69,6 +70,17 @@
                             <strong>Keep the package id and version reserved.</strong> This will prevent new packages with the same id and version from being pushed to the gallery. It also displays "Package was deleted" on the package details page, helping existing users of the package to identify it was deleted.
                         </label>
                     </div>
+
+                    @if (User.IsAdministrator())
+                    {
+                        <div class="form-field" id="DeleteEmptyPackageRegistrationContainer" style="display: none;">
+                            <br />
+                            @Html.EditorFor(m => m.DeleteEmptyPackageRegistration)
+                            <label for="DeleteEmptyPackageRegistration" class="checkbox">
+                                <strong>Remove the package registration when all packages are deleted.</strong> This will make the package id available again by removing the package registration. It's advised not to use this and leave the package registration intact, unless explicitly needed.
+                            </label>
+                        </div>
+                    }
 
                     <hr/>
                     <p>
@@ -148,6 +160,14 @@
             };
 
             ko.applyBindings(new viewModel(), $('#stage').get(0));
+
+            $('#SoftDelete').change(function(e) {
+                if (!this.checked) {
+                    $('#DeleteEmptyPackageRegistrationContainer').show();
+                } else {
+                    $('#DeleteEmptyPackageRegistrationContainer').hide();
+                }
+            });
 
             $('#delete-form').submit(function(e) {
                 if (!confirm('Deleting these packages will make them unavailable for download and package restore. Are you sure you want to continue with the delete?')) {
