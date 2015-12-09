@@ -3,6 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Canton", "Canton", "{E935D13C-AF64-4896-A1B2-FA5D048C40F4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4AA08EEB-BA47-4ECD-94F3-0700DD50E693}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AAD", "AAD", "{F91EB063-83EC-4194-8D62-12B9F91E4EE7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F1C83FD9-A498-483E-ADFA-B55D82A14965}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata.Catalog", "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", "{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogTests", "tests\CatalogTests\CatalogTests.csproj", "{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}"
@@ -13,28 +26,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetFeedTests", "tests\NuG
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ng", "src\Ng\Ng.csproj", "{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Canton", "Canton", "{E935D13C-AF64-4896-A1B2-FA5D048C40F4}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CantonLib", "src\Canton\CantonLib\CantonLib.csproj", "{291CE865-A96F-4E13-8840-3903F117C689}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CantonOne", "src\Canton\CantonOne\CantonOne.csproj", "{6F18CEEE-4FD0-4F26-A2A1-A78F990F96D1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CantonMany", "src\Canton\CantonMany\CantonMany.csproj", "{2DE8E090-D2C2-4FE1-8F16-6EFB5447EC8D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MennoCopy", "src\Tools\MennoCopy\MennoCopy.csproj", "{7AE1E48A-9F7C-463D-ACAD-3312CB0B97CB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Publish", "src\NuGet.Services.Publish\NuGet.Services.Publish.csproj", "{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4AA08EEB-BA47-4ECD-94F3-0700DD50E693}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\packages.config = .nuget\packages.config
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublishTestDriverWebSite", "tests\PublishTestDriverWebSite\PublishTestDriverWebSite.csproj", "{DCE82063-AD00-4EA9-BB0E-B01047BC861C}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AAD", "AAD", "{F91EB063-83EC-4194-8D62-12B9F91E4EE7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Test.SecureService", "tests\AAD\NuGet.Test.SecureService\NuGet.Test.SecureService.csproj", "{59F5CE10-A505-4B45-88E2-92F7664714E4}"
 EndProject
@@ -51,8 +53,6 @@ EndProject
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.Publish.CloudService", "src\NuGet.Services.Publish.CloudService\NuGet.Services.Publish.CloudService.ccproj", "{8A829025-5D87-4DF3-82E8-18F2ABC513FB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.BasicSearch", "src\NuGet.Services.BasicSearch\NuGet.Services.BasicSearch.csproj", "{1460DE86-6DF4-49A3-822C-E52F8DA834F5}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F1C83FD9-A498-483E-ADFA-B55D82A14965}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndexingTests", "tests\IndexingTests\IndexingTests.csproj", "{420CA633-9153-453C-A181-72AACA039FF4}"
 EndProject
@@ -314,30 +314,6 @@ Global
 		{24C1CA5F-5B74-4A7A-B3F1-566121987F99}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{24C1CA5F-5B74-4A7A-B3F1-566121987F99}.Release|x64.ActiveCfg = Release|Any CPU
 		{24C1CA5F-5B74-4A7A-B3F1-566121987F99}.Release|x64.Build.0 = Release|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Debug|x64.Build.0 = Debug|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Release|x64.ActiveCfg = Release|Any CPU
-		{7965A45F-AE5E-45F2-9B7C-C0A33FB0C3A5}.Release|x64.Build.0 = Release|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Debug|x64.Build.0 = Debug|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Release|Any CPU.Build.0 = Release|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Release|x64.ActiveCfg = Release|Any CPU
-		{05C1C78A-9966-4922-9065-A099023E7366}.Release|x64.Build.0 = Release|Any CPU
 		{AF189F05-EFC3-4A98-91C7-2AF1E4B8B131}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AF189F05-EFC3-4A98-91C7-2AF1E4B8B131}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF189F05-EFC3-4A98-91C7-2AF1E4B8B131}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
