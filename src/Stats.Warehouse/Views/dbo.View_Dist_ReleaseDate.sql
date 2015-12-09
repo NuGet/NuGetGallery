@@ -3,7 +3,7 @@
 	SELECT	Tool.[LowercasedToolId] AS 'Tool',
 			Tool.[LowercasedToolVersion] AS 'Version',
 			'IsPrerelease' =	CASE
-									WHEN Tool.[LowercasedToolVersion] LIKE '%-%'
+									WHEN CHARINDEX('-', Tool.[LowercasedToolVersion]) > 0
 									THEN 1
 									ELSE 0
 								END,
