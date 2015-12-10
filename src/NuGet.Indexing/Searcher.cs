@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,7 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using System.Runtime.Versioning;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Indexing
 {
@@ -41,7 +41,7 @@ namespace NuGet.Indexing
 
                 // De-duplicate
                 IEnumerable<DocumentKey> deduped = groups.Select(g => g.First());
-                
+
                 JObject keys = new JObject();
                 keys.Add(deduped.Select(p => new JProperty(p.PackageKey.ToString(), p.Checksum)));
                 return keys.ToString();
@@ -86,7 +86,8 @@ namespace NuGet.Indexing
                             // Log and suppress the exception to prevent taking down the whole process
                             if (t.IsFaulted)
                             {
-                                Trace.WriteLine("Exception reopening searcher: {0}", t.Exception.ToString());
+                                var logger = PackageSearcherManager.LoggerFactory.CreateLogger(nameof(Searcher));
+                                logger.LogError("Exception reopening searcher.", t.Exception);
 
                                 // Return a completed task indicating everything is A-OK :)
                                 return Task.FromResult(0);
@@ -142,7 +143,7 @@ namespace NuGet.Indexing
         private static string ListDocumentsImpl(IndexSearcher searcher, Query query, IDictionary<string, int> rankings, Filter filter, string sortBy, int skip, int take, bool includeExplanation, PackageSearcherManager manager)
         {
             Query boostedQuery = new RankingScoreQuery(query, rankings);
-            
+
             int nDocs = GetDocsCount(skip, take);
             Sort sort = GetSort(sortBy);
 
@@ -152,7 +153,7 @@ namespace NuGet.Indexing
                searcher.Search(boostedQuery, filter, nDocs) :
                searcher.Search(boostedQuery, filter, nDocs, sort);
             sw.Stop();
-            
+
             sw.Stop();
             return MakeResults(searcher, topDocs, skip, take, includeExplanation, boostedQuery, sw.ElapsedMilliseconds, rankings, manager);
         }
@@ -250,9 +251,9 @@ namespace NuGet.Indexing
                 Document doc = searcher.Doc(scoreDoc.Doc);
                 string data = doc.Get("Data");
 
-                string id = doc.Get("Id");               
-                NuGet.Versioning.NuGetVersion ngVersion = new Versioning.NuGetVersion(doc.Get("Version"));               
-                     
+                string id = doc.Get("Id");
+                NuGet.Versioning.NuGetVersion ngVersion = new Versioning.NuGetVersion(doc.Get("Version"));
+
                 if (!String.IsNullOrEmpty(id) && ngVersion != null)
                 {
                     Tuple<int,int> countRecord = manager.GetDownloadCount(id,ngVersion.ToNormalizedString());
@@ -261,7 +262,7 @@ namespace NuGet.Indexing
                         // Patch the data in to the JSON
                         JObject parsed = JObject.Parse(data);
                         parsed["DownloadCount"] = countRecord.Item1;
-                        parsed["PackageRegistration"]["DownloadCount"] = countRecord.Item2;                      
+                        parsed["PackageRegistration"]["DownloadCount"] = countRecord.Item2;
                         data = parsed.ToString(Formatting.None);
                     }
                 }
@@ -400,7 +401,7 @@ namespace NuGet.Indexing
         private static string AddExplanation(IndexSearcher searcher, string data, Query query, ScoreDoc scoreDoc, IDictionary<string, int> rankings)
         {
             Explanation explanation = searcher.Explain(query, scoreDoc.Doc);
-            
+
             JObject diagnostics = new JObject();
 
             int rankVal;

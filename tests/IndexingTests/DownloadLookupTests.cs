@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NuGet.Indexing;
 using Xunit;
@@ -63,17 +61,18 @@ namespace IndexingTests
             StringDownloadLookup downloadLookup = new StringDownloadLookup(json);
             IDictionary<string, IDictionary<string, int>> packages = downloadLookup.Load();
             // Invaid json should return empty dictionary.
-            Assert.True(packages != null & packages.Count() == 0);         
+            Assert.True(packages != null & packages.Count() == 0);
         }
     }
 
     public class StringDownloadLookup : DownloadLookup
     {
-        string _path;
+        private readonly string _path;
 
         public override string Path { get { return _path; } }
 
         public StringDownloadLookup(string json)
+            : base(new Logger<StringDownloadLookup>(new LoggerFactory()))
         {
             _path = json;
         }

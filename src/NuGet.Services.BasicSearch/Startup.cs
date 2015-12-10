@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Microsoft.Owin;
 using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
@@ -12,6 +13,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Logging;
 
 [assembly: OwinStartup("NuGet.Services.BasicSearch", typeof(NuGet.Services.BasicSearch.Startup))]
 
@@ -19,16 +21,20 @@ namespace NuGet.Services.BasicSearch
 {
     public class Startup
     {
-        Timer _timer;
-        NuGetSearcherManager _searcherManager;
-        int _gate;
+        private ILogger _logger;
+        private Timer _timer;
+        private NuGetSearcherManager _searcherManager;
+        private int _gate;
 
         public void Configuration(IAppBuilder app, IConfiguration configuration, Directory directory, ILoader loader)
         {
-            //app.UseErrorPage();
+            // create an ILoggerFactory
+            var loggerFactory = Logging.CreateLoggerFactory();
+
+            // create a logger that is scoped to this class (only)
+            _logger = loggerFactory.CreateLogger<Startup>();
 
             //  search test console
-
             app.Use(async (context, next) =>
             {
                 if (String.Equals(context.Request.Path.Value, "/console", StringComparison.OrdinalIgnoreCase))
@@ -59,7 +65,10 @@ namespace NuGet.Services.BasicSearch
                 seconds = 120;
             }
 
-            if (InitializeSearcherManager(configuration, directory, loader))
+            _logger.LogInformation(
+                "Search service is configured to refresh the index every {SearchIndexRefresh} seconds", seconds);
+
+            if (InitializeSearcherManager(configuration, directory, loader, loggerFactory))
             {
                 _gate = 0;
                 _timer = new Timer(new TimerCallback(ReopenCallback), 0, 0, seconds * 1000);
@@ -90,21 +99,21 @@ namespace NuGet.Services.BasicSearch
             }
             catch (Exception e)
             {
-                ServiceHelpers.TraceException(e);
+                ServiceHelpers.TraceException(e, _logger);
             }
         }
 
-        bool InitializeSearcherManager(IConfiguration configuration, Directory directory, ILoader loader)
+        bool InitializeSearcherManager(IConfiguration configuration, Directory directory, ILoader loader, ILoggerFactory loggerFactory)
         {
             try
             {
-                _searcherManager = NuGetSearcherManager.Create(configuration, directory, loader);
+                _searcherManager = NuGetSearcherManager.Create(configuration, loggerFactory, directory, loader);
                 _searcherManager.Open();
                 return true;
             }
             catch (Exception e)
             {
-                ServiceHelpers.TraceException(e);
+                ServiceHelpers.TraceException(e, _logger);
                 return false;
             }
         }
@@ -160,7 +169,7 @@ namespace NuGet.Services.BasicSearch
             }
             catch (Exception e)
             {
-                ServiceHelpers.WriteResponse(context, e);
+                ServiceHelpers.WriteResponse(context, e, _logger);
             }
         }
     }

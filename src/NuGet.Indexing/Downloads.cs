@@ -4,14 +4,15 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
     public static class Downloads
     {
-        public static IDictionary<string, IDictionary<string, int>> Load(string name, ILoader loader)
+        public static IDictionary<string, IDictionary<string, int>> Load(string name, ILoader loader, FrameworkLogger logger)
         {
             IDictionary<string, IDictionary<string, int>> result = new Dictionary<string, IDictionary<string, int>>();
             // The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.
@@ -59,15 +60,16 @@ namespace NuGet.Indexing
                         }
                         catch (JsonReaderException ex)
                         {
-                            Trace.TraceInformation("Invalid entry found in downloads.v1.json. Exception Message : {0}", ex.Message);
+                            logger.LogInformation("Invalid entry found in downloads.v1.json. Exception Message : {0}", ex.Message);
                         }
                     }
                 }
                 catch (JsonReaderException ex)
                 {
-                    Trace.TraceError("Data present in downloads.v1.json is invalid. Couldn't get download data. Exception Message : {0}", ex.Message);
+                    logger.LogError("Data present in downloads.v1.json is invalid. Couldn't get download data.", ex);
                 }
             }
+
             return result;
         }
     }

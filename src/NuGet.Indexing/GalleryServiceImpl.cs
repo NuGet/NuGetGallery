@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Search;
 using Microsoft.Owin;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Indexing
 {
@@ -12,7 +13,9 @@ namespace NuGet.Indexing
     {
         public static string Query(IOwinContext context, NuGetSearcherManager searcherManager)
         {
-            Trace.TraceInformation("Search: {0}", context.Request.QueryString);
+            var logger = NuGetSearcherManager.LoggerFactory.CreateLogger<GalleryServiceImpl>();
+
+            logger.LogInformation("Search: {RequestQueryString}", context.Request.QueryString);
 
             string q = context.Request.Query["q"] ?? string.Empty;
 
@@ -44,7 +47,7 @@ namespace NuGet.Indexing
                 take = 20;
             }
 
-            //  currently not used 
+            //  currently not used
             //string projectType = context.Request.Query["projectType"] ?? string.Empty;
             //string supportedFramework = context.Request.Query["supportedFramework"];
 

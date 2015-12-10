@@ -3,12 +3,13 @@
 
 using Lucene.Net.Documents;
 using Microsoft.Owin;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
@@ -51,29 +52,28 @@ namespace NuGet.Indexing
         }
 
 
-        public static void WriteResponse(IOwinContext context, Exception e)
+        public static void WriteResponse(IOwinContext context, Exception e, FrameworkLogger logger)
         {
-            ServiceHelpers.TraceException(e);
+            ServiceHelpers.TraceException(e, logger);
             WriteResponse(context, HttpStatusCode.InternalServerError, "{\"error\":\"Internal server error\"}").Wait();
         }
 
-        public static void TraceException(Exception e)
+        public static void TraceException(Exception e, FrameworkLogger logger)
         {
             if (e is AggregateException)
             {
                 foreach (Exception ex in ((AggregateException)e).InnerExceptions)
                 {
-                    TraceException(ex);
+                    TraceException(ex, logger);
                 }
             }
             else
             {
-                Trace.TraceError("{0} {1}", e.GetType().Name, e.Message);
-                Trace.TraceError("{0}", e.StackTrace);
+                logger.LogError($"{e.GetType().Name} {e.Message}", e);
 
                 if (e.InnerException != null)
                 {
-                    TraceException(e.InnerException);
+                    TraceException(e.InnerException, logger);
                 }
             }
         }

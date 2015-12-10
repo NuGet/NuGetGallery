@@ -5,16 +5,22 @@ using System.IO;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
+using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
     public class StorageDownloadLookup : DownloadLookup
     {
-        CloudBlockBlob _blob;
+        private readonly CloudBlockBlob _blob;
 
         public override string Path { get { return _blob.Uri.AbsoluteUri; } }
 
-        public StorageDownloadLookup(CloudStorageAccount storageAccount, string containerName, string blobName)
+        public StorageDownloadLookup(
+            CloudStorageAccount storageAccount,
+            string containerName,
+            string blobName,
+            FrameworkLogger logger)
+            : base(logger)
         {
             CloudBlobClient client = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = client.GetContainerReference(containerName);

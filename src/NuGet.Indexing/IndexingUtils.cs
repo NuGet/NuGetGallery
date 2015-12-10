@@ -6,29 +6,31 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
     public static class IndexingUtils
     {
-        public static IDictionary<string, HashSet<string>> Load(string name, ILoader loader)
+        public static IDictionary<string, HashSet<string>> Load(string name, ILoader loader, FrameworkLogger logger)
         {
             try
             {
-                using (JsonReader jsonReader = loader.GetReader(name))
+                using (var jsonReader = loader.GetReader(name))
                 {
-                    return IndexingUtils.CreateDictionary(jsonReader);
+                    return CreateDictionary(jsonReader);
                 }
             }
             catch (Exception e)
             {
-                if (IndexingUtils.IsFatal(e))
+                if (IsFatal(e))
                 {
                     throw;
                 }
-                Trace.TraceInformation("Unable to load {0}. Exception Message : {1}", name, e.Message);
+
+                logger.LogError($"Unable to load {name}.", e);
                 return new Dictionary<string, HashSet<string>>();
             }
         }
@@ -37,13 +39,14 @@ namespace NuGet.Indexing
         {
             var result = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
             jsonReader.Read();
+
             while (jsonReader.Read())
             {
                 if (jsonReader.TokenType == JsonToken.StartArray)
                 {
-                    JArray record = (JArray)JToken.ReadFrom(jsonReader);
-                    string id = record[0].ToString();
-                    HashSet<string> data = new HashSet<string>(record[1].Select(t => t.ToString()), StringComparer.OrdinalIgnoreCase);
+                    var record = (JArray)JToken.ReadFrom(jsonReader);
+                    var id = record[0].ToString();
+                    var data = new HashSet<string>(record[1].Select(t => t.ToString()), StringComparer.OrdinalIgnoreCase);
                     result[id] = data;
                 }
             }
@@ -52,7 +55,7 @@ namespace NuGet.Indexing
 
         public static bool IsFatal(Exception e)
         {
-            return (e is StackOverflowException) || (e is OutOfMemoryException) || (e is Win32Exception);
+            return e is StackOverflowException || e is OutOfMemoryException || e is Win32Exception;
         }
     }
 }

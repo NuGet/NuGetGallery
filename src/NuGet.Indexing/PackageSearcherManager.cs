@@ -12,6 +12,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Indexing
@@ -44,7 +45,7 @@ namespace NuGet.Indexing
             Rankings = rankings;
             DownloadCounts = downloadCounts;
             Frameworks = frameworks;
-            IndexName = indexName;      
+            IndexName = indexName;
 
             _currentDownloadCounts = new IndexData<IDictionary<string, IDictionary<string, int>>>(
                 "DownloadCounts",
@@ -119,11 +120,11 @@ namespace NuGet.Indexing
             // Capture the current value and use it
             var downloadCounts = _currentDownloadCounts.Value;
             if (downloadCounts != null)
-            {                                
+            {
                 IDictionary<string,int> versions;
                 if (downloadCounts.TryGetValue(packageId.ToLowerInvariant(), out versions))
                 {
-                    int registrationDownloads = versions.Values.Sum();                    
+                    int registrationDownloads = versions.Values.Sum();
                     int downloadCount;
                     if(!versions.TryGetValue(normalizedVersion,out downloadCount))
                     {
@@ -131,7 +132,7 @@ namespace NuGet.Indexing
                         downloadCount = 0;
                     }
                     return new Tuple<int, int>(downloadCount, registrationDownloads);
-                }                
+                }
             }
             return new Tuple<int,int>(0,0);
         }
@@ -146,10 +147,18 @@ namespace NuGet.Indexing
 
         public static PackageSearcherManager CreateLocal(
             string localDirectory,
+            ILoggerFactory loggerFactory,
             string frameworksFile = null,
             string rankingsFile = null,
             string downloadCountsFile = null)
         {
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            LoggerFactory = loggerFactory;
+
             if (String.IsNullOrEmpty(frameworksFile))
             {
                 frameworksFile = Path.Combine(localDirectory, "data", FrameworksList.FileName);
@@ -167,26 +176,39 @@ namespace NuGet.Indexing
                 dir.Name,
                 new SimpleFSDirectory(dir),
                 new LocalRankings(rankingsFile),
-                new LocalDownloadLookup(downloadCountsFile),
+                new LocalDownloadLookup(downloadCountsFile, loggerFactory.CreateLogger<LocalDownloadLookup>()),
                 new LocalFrameworksList(frameworksFile));
         }
 
+        public static ILoggerFactory LoggerFactory { get; private set; }
+
         public static PackageSearcherManager CreateAzure(
             string storageConnectionString,
+            ILoggerFactory loggerFactory,
             string indexContainer = null,
             string dataContainer = null)
         {
             return CreateAzure(
                 CloudStorageAccount.Parse(storageConnectionString),
+                loggerFactory,
                 indexContainer,
                 dataContainer);
         }
+
         public static PackageSearcherManager CreateAzure(
             CloudStorageAccount storageAccount,
+            ILoggerFactory loggerFactory,
             string indexContainer = null,
             string dataContainer = null,
             bool requireDownloadCounts = true)
         {
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            LoggerFactory = loggerFactory;
+
             if (String.IsNullOrEmpty(indexContainer))
             {
                 indexContainer = "ng-search-index";
@@ -201,9 +223,9 @@ namespace NuGet.Indexing
 
             DownloadLookup downloadCounts = requireDownloadCounts
                     ?
-                (DownloadLookup)new StorageDownloadLookup(storageAccount, dataContainer, dataPath + DownloadLookup.FileName)
+                (DownloadLookup)new StorageDownloadLookup(storageAccount, dataContainer, dataPath + DownloadLookup.FileName, loggerFactory.CreateLogger<StorageDownloadLookup>())
                     :
-                (DownloadLookup)new LocalDownloadLookup(null);
+                (DownloadLookup)new LocalDownloadLookup(null, loggerFactory.CreateLogger<LocalDownloadLookup>());
 
             return new PackageSearcherManager(
                 indexContainer,

@@ -2,16 +2,24 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Logging;
+using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 
 namespace NuGet.Indexing
 {
     public abstract class DownloadLookup
     {
+        private readonly FrameworkLogger _logger;
+
+        protected DownloadLookup(FrameworkLogger logger)
+        {
+            _logger = logger;
+        }
+
         public static readonly string FileName = "downloads.v1.json";
         public abstract string Path { get; }
         protected abstract JsonReader GetReader();
@@ -64,15 +72,16 @@ namespace NuGet.Indexing
                         }
                         catch (JsonReaderException ex)
                         {
-                            Trace.TraceInformation("Invalid entry found in downloads.v1.json. Exception Message : {0}", ex.Message);
+                            _logger.LogInformation("Invalid entry found in downloads.v1.json. Exception Message : {0}", ex.Message);
                         }
                     }
                 }
                 catch (JsonReaderException ex)
                 {
-                    Trace.TraceError("Data present in downloads.v1.json is invalid. Couldn't get download data. Exception Message : {0}", ex.Message);
+                    _logger.LogError("Data present in downloads.v1.json is invalid. Couldn't get download data.", ex);
                 }
             }
+
             return result;
         }
     }

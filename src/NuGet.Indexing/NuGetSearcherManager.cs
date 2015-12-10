@@ -8,18 +8,30 @@ using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using Microsoft.Extensions.Logging;
+using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
     public class NuGetSearcherManager : SearcherManager<NuGetIndexSearcher>
     {
-        readonly ILoader _loader;
+        private readonly ILoader _loader;
+        private readonly FrameworkLogger _logger;
 
-        public NuGetSearcherManager(string indexName, Lucene.Net.Store.Directory directory, ILoader loader)
+        public NuGetSearcherManager(string indexName,
+            FrameworkLogger logger,
+            Lucene.Net.Store.Directory directory,
+            ILoader loader)
             : base(directory)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            _logger = logger;
+
             IndexName = indexName;
             RegistrationBaseAddress = new Dictionary<string, Uri>();
 
@@ -42,9 +54,22 @@ namespace NuGet.Indexing
         /// Optionally, the loader used to read the JSON data files. If <c>null</c> is provided, the loader
         /// implementation is determined based off of the configuration (<see cref="configuration"/>).
         /// </param>
+        /// <param name="loggerFactory">
+        /// Optionally, the logger factory defined by the consuming application.
+        /// </param>
         /// <returns>The resulting <see cref="NuGetSearcherManager"/> instance.</returns>
-        public static NuGetSearcherManager Create(IConfiguration configuration, Lucene.Net.Store.Directory directory = null, ILoader loader = null)
+        public static NuGetSearcherManager Create(IConfiguration configuration,
+            ILoggerFactory loggerFactory,
+            Lucene.Net.Store.Directory directory = null,
+            ILoader loader = null)
         {
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            LoggerFactory = loggerFactory;
+
             NuGetSearcherManager searcherManager;
             var luceneDirectory = configuration.Get("Local.Lucene.Directory");
 
@@ -54,6 +79,7 @@ namespace NuGet.Indexing
 
                 searcherManager = new NuGetSearcherManager(
                     luceneDirectory,
+                    loggerFactory.CreateLogger<NuGetSearcherManager>(),
                     directory ?? new SimpleFSDirectory(new DirectoryInfo(luceneDirectory)),
                     loader ?? new FileLoader(dataDirectory));
             }
@@ -77,8 +103,9 @@ namespace NuGet.Indexing
 
                 searcherManager = new NuGetSearcherManager(
                     indexContainer,
+                    loggerFactory.CreateLogger<NuGetSearcherManager>(),
                     directory ?? new AzureDirectory(storageAccount, indexContainer),
-                    loader ?? new StorageLoader(storageAccount, dataContainer));
+                    loader ?? new StorageLoader(storageAccount, dataContainer, loggerFactory.CreateLogger<StorageLoader>()));
             }
 
             string registrationBaseAddress = configuration.Get("Search.RegistrationBaseAddress");
@@ -87,6 +114,8 @@ namespace NuGet.Indexing
 
             return searcherManager;
         }
+
+        internal static ILoggerFactory LoggerFactory { get; private set; }
 
         protected override IndexReader Reopen(IndexSearcher searcher)
         {
@@ -103,17 +132,17 @@ namespace NuGet.Indexing
         /// <returns></returns>
         protected override NuGetIndexSearcher CreateSearcher(IndexReader reader)
         {
-            Trace.TraceInformation("NuGetSearcherManager.CreateSearcher");
+            _logger.LogInformation("NuGetSearcherManager.CreateSearcher");
 
             try
             {
                 // (Re)load all the auxillary data
                 // Just to keep things simple we will reload everything every time. Currently these structures are relative small.
 
-                IDictionary<string, HashSet<string>> owners = IndexingUtils.Load("owners.json", _loader);
-                IDictionary<string, HashSet<string>> cruratedfeeds = IndexingUtils.Load("curatedfeeds.json", _loader);
-                IDictionary<string, IDictionary<string, int>> downloads = Downloads.Load("downloads.v1.json", _loader);
-                IDictionary<string, int> rankings = DownloadRankings.Load("rankings.v1.json", _loader);
+                IDictionary<string, HashSet<string>> owners = IndexingUtils.Load("owners.json", _loader, _logger);
+                IDictionary<string, HashSet<string>> cruratedfeeds = IndexingUtils.Load("curatedfeeds.json", _loader, _logger);
+                IDictionary<string, IDictionary<string, int>> downloads = Downloads.Load("downloads.v1.json", _loader, _logger);
+                IDictionary<string, int> rankings = DownloadRankings.Load("rankings.v1.json", _loader, _logger);
 
                 // We want owners to be searchable so we need to have them in an IndexReader
                 // To solve this we write them into an in-memory Directory and then create a reader over that
@@ -137,12 +166,12 @@ namespace NuGet.Indexing
                 downloads.Clear();
                 owners.Clear();
 
-                // Create the in-memory reader and then combine with the storage reader using a ParallelReader 
+                // Create the in-memory reader and then combine with the storage reader using a ParallelReader
 
                 IndexReader ownersReader = ownersHandler.OpenReader();
 
-                Trace.TraceInformation("ownersReader {0} (deletes: {1})", ownersReader.MaxDoc, ownersReader.NumDeletedDocs);
-                Trace.TraceInformation("original {0} (deletes: {1})", reader.MaxDoc, reader.NumDeletedDocs);
+                _logger.LogInformation("OwnersReader {MaxDoc} (deletes: {NumDeletedDocs})", ownersReader.MaxDoc, ownersReader.NumDeletedDocs);
+                _logger.LogInformation("Original {MaxDoc} (deletes: {NumDeletedDocs})", reader.MaxDoc, reader.NumDeletedDocs);
 
                 ParallelReader combined = new ParallelReader(false);
                 combined.Add(reader);
@@ -183,7 +212,7 @@ namespace NuGet.Indexing
                 // The point of having a specific subclass of the IndexSearcher is that we want to associate a bunch of auxilliary data along
                 // with that specific instance of the reader. The lifetimes are assocaited, hense the inheritance relationship.
 
-                Trace.TraceInformation("about to create a new NuGetIndexSearcher");
+                _logger.LogInformation("About to create a new NuGetIndexSearcher");
 
                 // Create a NuGetIndexSearcher
                 return new NuGetIndexSearcher(
@@ -200,7 +229,7 @@ namespace NuGet.Indexing
             }
             catch (Exception e)
             {
-                ServiceHelpers.TraceException(e);
+                ServiceHelpers.TraceException(e, _logger);
                 return null;
             }
         }
