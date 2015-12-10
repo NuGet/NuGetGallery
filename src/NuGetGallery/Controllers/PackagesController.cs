@@ -21,6 +21,10 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Packaging;
 using PoliteCaptcha;
+using RestSharp;
+using System.Net;
+using Newtonsoft.Json.Linq;
+using System.Web.Configuration;
 
 namespace NuGetGallery
 {
@@ -393,6 +397,125 @@ namespace NuGetGallery
             return View(viewModel);
         }
 
+        private void AddNewSupportRequest(string subject, ReportPackageRequest request, Package package, User user, ReportAbuseViewModel reportForm)
+        {
+            try
+            {
+                subject = request.FillIn(subject, _config);
+                var admin = new Areas.Admin.Models.AdminModel();
+
+                var issue = new Areas.Admin.Models.IssueModel();
+                var newIssue = new Areas.Admin.Models.Issue();
+                var primaryOnCall = GetPrimaryOnCall();
+                newIssue.AssignedTo = (primaryOnCall == String.Empty) ? 0 : admin.GetAdminKeyFromUserName(primaryOnCall);
+
+                newIssue.CreatedDate = DateTime.Now;
+                newIssue.Details = reportForm.Message;
+                newIssue.IssueStatus = 1;
+                newIssue.IssueTitle = subject;
+                if (user != null)
+                {
+                    newIssue.CreatedBy = user.Username;
+                    newIssue.OwnerEmail = user.EmailAddress;
+                }
+                else
+                {
+                    newIssue.CreatedBy = "Anonymous";
+                    newIssue.OwnerEmail = reportForm.Email;
+                }
+                newIssue.PackageID = package.PackageRegistration.Id;
+                newIssue.PackageVersion = package.Version;
+                newIssue.Reason = reportForm.Reason.ToString();
+                newIssue.SiteRoot = _config.SiteRoot;
+                issue.AddIssue(newIssue);
+            }
+            catch (System.Data.SqlClient.SqlException)
+            {
+                var errorMessage = String.Format("Exception thrown while logging a support request into DB for {0}, {1} at {2}",
+                                                    package.PackageRegistration.Id,
+                                                    package.Version,
+                                                    DateTime.Now);
+                TriggerAPagerDutyIncident(errorMessage);
+            }
+            catch (Exception) //In case getting data from PagerDuty has failed
+            {
+                //swallow
+            }
+        }
+
+        private void TriggerAPagerDutyIncident(string errorMeesage)
+        {
+            try
+            {
+                var pagerDutyAPIKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyAPIKey"];
+                var pagerDutyServiceKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyServiceKey"];
+
+                var client = new RestClient(); //("URL/create_event.json");
+                client.BaseUrl = new Uri(@"https://events.pagerduty.com/generic/2010-04-15/create_event.json");
+
+                var request = new RestRequest();
+                request.AddHeader("Content-Type", "application/json; charset=utf-8");
+                request.AddHeader("Authorization", "Token token=" + pagerDutyAPIKey);
+
+                request.RequestFormat = DataFormat.Json;
+                request.AddBody(
+                new
+                {
+                    service_key = pagerDutyServiceKey,
+                    event_type = "trigger",
+                    description = errorMeesage
+                });
+
+                request.Method = Method.POST;
+
+                var response = client.Execute(request) as RestResponse;
+            }
+            catch (Exception)
+            {
+
+                //swallow?
+            }
+        }
+
+        private string GetPrimaryOnCall()
+        {
+            var pagerDutyAPIKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyAPIKey"];
+            var client = new RestClient(); //("URL/create_event.json");
+            client.BaseUrl = new Uri(@"https://nuget.pagerduty.com/api/v1/users/on_call");
+
+            var request = new RestRequest();
+            request.AddHeader("Content-Type", "application/json; charset=utf-8");
+            request.AddHeader("Authorization", "Token token=" + pagerDutyAPIKey);
+
+            var returnVal = String.Empty;
+            request.RequestFormat = DataFormat.Json;
+            request.Method = Method.GET;
+            var response = client.Execute(request) as RestResponse;
+
+            if (response != null && ((response.StatusCode == HttpStatusCode.OK) &&
+
+                (response.ResponseStatus == ResponseStatus.Completed)))
+            {
+
+                var content = response.Content;
+                var root = JObject.Parse(content);
+                var users = (JArray)root["users"];
+
+                foreach (var item in users)
+                {
+                    var on_call = item["on_call"][0];
+                    if (Convert.ToInt32(on_call["level"]) == 1)
+                    {
+                        var email = item["email"].ToString();
+                        var length = email.IndexOf("@");
+                        returnVal = email.Substring(0, length);
+                        break;
+                    }
+                }
+            }
+            return returnVal;
+        }
+
         // NOTE: Intentionally NOT requiring authentication
         private static readonly ReportPackageReason[] ReportOtherPackageReasons = new[] {
             ReportPackageReason.IsFraudulent,
@@ -523,6 +646,8 @@ namespace NuGetGallery
                 Signature = reportForm.Signature
             };
             _messageService.ReportAbuse(request);
+            string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
+            AddNewSupportRequest(subject, request, package, user, reportForm);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
@@ -552,17 +677,21 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             MailAddress from = user.ToMailAddress();
 
-            _messageService.ReportMyPackage(
-                new ReportPackageRequest
-                {
-                    FromAddress = from,
-                    Message = reportForm.Message,
-                    Package = package,
-                    Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
-                    RequestingUser = user,
-                    Url = Url,
-                    CopySender = reportForm.CopySender
-                });
+            var request = new ReportPackageRequest
+            {
+                FromAddress = from,
+                Message = reportForm.Message,
+                Package = package,
+                Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
+                RequestingUser = user,
+                Url = Url,
+                CopySender = reportForm.CopySender
+            };
+
+            _messageService.ReportMyPackage(request);
+
+            string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
+            AddNewSupportRequest(subject, request, package, user, reportForm);
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
