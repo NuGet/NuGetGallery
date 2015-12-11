@@ -135,7 +135,8 @@ namespace NuGetGallery
                 .Include("~/Scripts/jquery.validate.unobtrusive.js")
                 .Include("~/Scripts/jquery.timeago.js")
                 .Include("~/Scripts/nugetgallery.js")
-                .Include("~/Scripts/stats.js");
+                .Include("~/Scripts/stats.js")
+                .Include("~/Scripts/bootstrap.js");
             BundleTable.Bundles.Add(scriptBundle);
 
             // Modernizr needs to be delivered at the top of the page but putting it in a bundle gets us a cache-buster.
@@ -148,7 +149,8 @@ namespace NuGetGallery
             foreach (string filename in new[] {
                     "Site.css",
                     "Layout.css",
-                    "PageStylings.css"
+                    "PageStylings.css",
+                    "bootstrap.css"
                 })
             {
                 stylesBundle

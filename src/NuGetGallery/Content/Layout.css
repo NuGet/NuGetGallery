@@ -141,7 +141,7 @@ nav.main {
 
 #searchBox {
     background-color: #fff;
-    border: solid 1px #05005F;
+    /*border: solid 1px #05005F;*/
     /*CSS3 properties*/
     height: 32px;
     margin-top: 1px;
@@ -153,7 +153,7 @@ nav.main {
 }
 
 #searchBoxInput {
-    width: 650px;
+    width: 640px;
     border: 0px;
     color: #333;
     font-size: 20px;
