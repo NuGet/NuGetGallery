@@ -68,11 +68,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public ActionResult Save(FormCollection formcollection)
         {
             //Values required for updating the issue
-            int issueId = GetValue(formcollection["IssueId"]);
-            int assignedTo = GetValue(formcollection["AssignedTo"]);
-            int issueStatusName = GetValue(formcollection["IssueStatusName"]);
+            var issueId = GetValue(formcollection["IssueId"]);
+            var assignedTo = GetValue(formcollection["AssignedTo"]);
+            var issueStatusName = GetValue(formcollection["IssueStatusName"]);
 
-            Issue currentIssue = issue.GetIssueById(issueId);
+            var currentIssue = issue.GetIssueById(issueId);
 
             if (issue != null)
             {
@@ -90,7 +90,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             //Values required for remembering the filters applied
-            string reasonFilter = String.Empty;
+            var reasonFilter = String.Empty;
 
             if (formcollection["ReasonFilter"] != "/")
             {
@@ -110,13 +110,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpPost]
         public ActionResult Index(FormCollection formCollection)
         {
-            Uri currentUrl = this.Request.Url;
-            int assignedToFilter = GetValue(formCollection["AssignedToFilter"]);
-            int issueStatusNameFilter = GetValue(formCollection["issueStatusNameFilter"]);
+            var currentUrl = this.Request.Url;
+            var assignedToFilter = GetValue(formCollection["AssignedToFilter"]);
+            var issueStatusNameFilter = GetValue(formCollection["issueStatusNameFilter"]);
 
-            string reasonFilter = formCollection["Reason"];
-            int pageNumber = GetValue(formCollection["Page"]);
-            int statusID = GetValue(formCollection["StatusId"]);
+            var reasonFilter = formCollection["Reason"];
+            var pageNumber = GetValue(formCollection["Page"]);
+            var statusID = GetValue(formCollection["StatusId"]);
 
             if (Session["StatusId"] != null)
             {
@@ -148,11 +148,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public ActionResult Index(int passedInPageNumber = -100, int passedInStatusId = -100, int passedInAssignedToFilter = -100, int passedInIssueStatusNameFilter = -100, string passedInReasonFilter = "")
         {
             //Read values from Session variables
-            int statusID = (passedInStatusId == -100) ? ((Session["StatusId"] == null) ? 1 : (int)Session["StatusId"]) : passedInStatusId;
-            int assignedToFilter = (passedInAssignedToFilter == -100) ? ((Session["AssignedToFilter"] == null) ? -1 : (int)Session["AssignedToFilter"]) : passedInAssignedToFilter;
-            int issueStatusNameFilter = (passedInIssueStatusNameFilter == -100) ? ((Session["IssueStatusNameFilter"] == null) ? -1 : (int)Session["IssueStatusNameFilter"]) : passedInIssueStatusNameFilter;
-            string reasonFilter = (passedInReasonFilter == "clear") ? String.Empty : ((Session["ReasonFilter"] == null) ? string.Empty : (string)Session["ReasonFilter"]);
-            int page = (passedInPageNumber == -100) ? ((Session["PageNumber"] == null) ? 0 : (int)Session["PageNumber"]) : passedInPageNumber;
+            var statusID = (passedInStatusId == -100) ? ((Session["StatusId"] == null) ? 1 : (int)Session["StatusId"]) : passedInStatusId;
+            var assignedToFilter = (passedInAssignedToFilter == -100) ? ((Session["AssignedToFilter"] == null) ? -1 : (int)Session["AssignedToFilter"]) : passedInAssignedToFilter;
+            var issueStatusNameFilter = (passedInIssueStatusNameFilter == -100) ? ((Session["IssueStatusNameFilter"] == null) ? -1 : (int)Session["IssueStatusNameFilter"]) : passedInIssueStatusNameFilter;
+            var reasonFilter = (passedInReasonFilter == "clear") ? String.Empty : ((Session["ReasonFilter"] == null) ? string.Empty : (string)Session["ReasonFilter"]);
+            var page = (passedInPageNumber == -100) ? ((Session["PageNumber"] == null) ? 0 : (int)Session["PageNumber"]) : passedInPageNumber;
 
             var issues = GetIssues(statusID);
 
@@ -301,7 +301,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 rv.OwnerLink = string.Empty;
                 rv.Issue.SiteRoot = VerifyAndFixTralingSlash(rv.Issue.SiteRoot);
 
-                if (rv.Issue.CreatedBy != "Anonymous")
+                if (!rv.Issue.CreatedBy.Equals("Anonymous", StringComparison.OrdinalIgnoreCase))
                 {
                     rv.OwnerLink = String.Concat(rv.Issue.SiteRoot, "Profiles", "/",  rv.Issue.CreatedBy);
                 }
@@ -423,7 +423,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         private int GetValue(string input)
         {
-            int i = -1;
+            var i = -1;
             try
             {
                 if (!String.IsNullOrEmpty(input))

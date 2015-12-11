@@ -9,7 +9,7 @@ namespace NuGetGallery.Areas.Admin.Models
     public partial class IssueStatusModel : DbContext
     {
         public IssueStatusModel()
-            : base("name=IssueModel")
+            : base("name=Gallery.SupportRequestDB")
         {
         }
 
