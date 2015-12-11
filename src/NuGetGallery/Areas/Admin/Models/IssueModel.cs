@@ -13,7 +13,7 @@ namespace NuGetGallery.Areas.Admin.Models
         public IssueStatusModel issueStatus = new IssueStatusModel();
 
         public IssueModel()
-            : base("name=IssueModel")
+            : base("name=Gallery.SupportRequestDB")
         {
         }
 

@@ -9,7 +9,7 @@ namespace NuGetGallery.Areas.Admin.Models
     public partial class HistoryModel : DbContext
     {
         public HistoryModel()
-            : base("name=IssueModel")
+            : base("name=Gallery.SupportRequestDB")
         {
         }
 

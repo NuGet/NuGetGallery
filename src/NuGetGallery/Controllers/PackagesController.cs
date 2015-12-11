@@ -451,7 +451,8 @@ namespace NuGetGallery
                 var pagerDutyServiceKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyServiceKey"];
 
                 var client = new RestClient(); //("URL/create_event.json");
-                client.BaseUrl = new Uri(@"https://events.pagerduty.com/generic/2010-04-15/create_event.json");
+                var pagerDutyIncidentTriggerURL = WebConfigurationManager.AppSettings["Gallery.PagerDutyIncidentTriggerURL"];
+                client.BaseUrl = new Uri(pagerDutyIncidentTriggerURL);
 
                 var request = new RestRequest();
                 request.AddHeader("Content-Type", "application/json; charset=utf-8");
@@ -481,7 +482,8 @@ namespace NuGetGallery
         {
             var pagerDutyAPIKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyAPIKey"];
             var client = new RestClient(); //("URL/create_event.json");
-            client.BaseUrl = new Uri(@"https://nuget.pagerduty.com/api/v1/users/on_call");
+            var pagerDutyOnCallURL = WebConfigurationManager.AppSettings["Gallery.PagerDutyOnCallURL"];
+            client.BaseUrl = new Uri(pagerDutyOnCallURL);
 
             var request = new RestRequest();
             request.AddHeader("Content-Type", "application/json; charset=utf-8");
