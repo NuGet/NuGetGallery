@@ -5,7 +5,6 @@ using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Microsoft.Owin;
-using System;
 using System.Collections.Generic;
 using System.Net;
 
@@ -41,10 +40,6 @@ namespace NuGet.Indexing
                 includeExplanation = false;
             }
 
-            //  currently not used 
-            //string projectType = context.Request.Query["projectType"] ?? string.Empty;
-            //string supportedFramework = context.Request.Query["supportedFramework"];
-
             string q = context.Request.Query["q"] ?? string.Empty;
 
             string scheme = context.Request.Uri.Scheme;
@@ -61,10 +56,6 @@ namespace NuGet.Indexing
                 TopDocs topDocs;
 
                 Filter filter = searcher.GetFilter(false, includePrerelease, feed);
-
-                //TODO: uncomment these lines when we have an index that contains the appropriate @type field in every document
-                //Filter typeFilter = new CachingWrapperFilter(new TypeFilter("http://schema.nuget.org/schema#NuGetClassicPackage"));
-                //filter = new ChainedFilter(new Filter[] { filter, typeFilter }, ChainedFilter.Logic.AND);
 
                 topDocs = searcher.Search(query, filter, skip + take);
 

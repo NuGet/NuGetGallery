@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Indexing;
@@ -33,7 +34,7 @@ namespace NuGet.IndexingTests.Extraction
 
             // Assert
             Assert.Contains("supportedFrameworks", metadata.Keys);
-            Assert.Equal(expected, metadata["supportedFrameworks"]);
+            Assert.Equal(expected.Split('|').OrderBy(f => f), metadata["supportedFrameworks"].Split('|').OrderBy(f => f));
         }
 
         [Theory, MemberData(nameof(AddsFlattenedDependenciesData))]
@@ -69,9 +70,10 @@ namespace NuGet.IndexingTests.Extraction
         {
             get
             {
-                yield return new object[] { WithFrameworkAssemblyGroup(".NETFramework4.0-Client"), "net40-Client" };
-                yield return new object[] { WithFrameworkAssemblyGroup(".NETFramework4.0-Client, .NETFramework4.5"), "net40-Client|net45" };
-                yield return new object[] { WithFrameworkAssemblyGroup("   .NETFramework4.0-Client, , , .NETFramework4.5  ,,"), "net40-Client|net45" };
+                // framework assembly group
+                yield return new object[] { WithFrameworkAssemblyGroup(".NETFramework4.0-Client"), "net40-client" };
+                yield return new object[] { WithFrameworkAssemblyGroup(".NETFramework4.0-Client, .NETFramework4.5"), "net40-client|net45" };
+                yield return new object[] { WithFrameworkAssemblyGroup("   .NETFramework4.0-Client, , , .NETFramework4.5  ,,"), "net40-client|net45" };
                 yield return new object[]
                 {
                     new
@@ -83,17 +85,65 @@ namespace NuGet.IndexingTests.Extraction
                             new { targetFramework = "  " }
                         }
                     },
-                    "net40-Client|net40|net45"
+                    "net40-client|net40|net45"
                 };
+                
+                // a single framework assembly
+                yield return new object[] { new { frameworkAssemblyGroup = new { targetFramework = ".NETFramework4.0, .NETFramework4.5" } }, "net40|net45" };
 
-                // a single item
+                // package entries
+                yield return new object[] { WithPackageEntry("lib/net40/something.dll"), "net40" };
+                yield return new object[] { WithPackageEntry("lib/portable-net45%2Bwin%2Bwpa81%2Bwp80%2BMonoAndroid10%2BXamarin.iOS10%2BMonoTouch10/something.dll"), "portable-net45+win8+wp8+wpa81" };
                 yield return new object[]
                 {
                     new
                     {
-                        frameworkAssemblyGroup = new { targetFramework = ".NETFramework4.0, .NETFramework4.5" }
+                        packageEntries = new object[]
+                        {
+                            new { fullName = "lib/net45/something.dll" },
+                            new { fullName = "lib/net40/something-else.dll" },
+                            new { fullName = "bad" }
+                        }
                     },
-                    "net40|net45"
+                    "net45|net40"
+                };
+
+                // a single package entry
+                yield return new object[] { new { packageEntries = new { fullName = "lib/net40/something.dll" } }, "net40" };
+
+                // not target framework folder name
+                yield return new object[]
+                {
+                    new
+                    {
+                        packageEntries = new object[]
+                        {
+                            new { fullName = "lib/something.dll" },
+                            new { fullName = "lib/net40/something-else.dll" }
+                        }
+                    },
+                    "net40"
+                };
+
+                // both
+                yield return new object[]
+                {
+                    new
+                    {
+                        frameworkAssemblyGroup = new object[]
+                        {
+                            new { targetFramework = ".NETFramework4.0-Client" },
+                            new { targetFramework = ".NETFramework4.0, .NETFramework4.5" },
+                            new { targetFramework = "  " }
+                        },
+                        packageEntries = new object[]
+                        {
+                            new { fullName = "lib/net45/something.dll" },
+                            new { fullName = "lib/net20/something.dll" },
+                            new { fullName = "bad" }
+                        }
+                    },
+                    "net40-client|net40|net45|net20"
                 };
             }
         }
@@ -144,7 +194,7 @@ namespace NuGet.IndexingTests.Extraction
                                 {
                                     new { id = "Microsoft.Data.OData", range = "5.6.2" }
                                 },
-                                targetFramework = ".NETFramework4.0-Client"
+                                targetFramework = ".NETFramework4.0-client"
                             },
                             new
                             {
@@ -156,7 +206,7 @@ namespace NuGet.IndexingTests.Extraction
                         },
 
                     },
-                    "Newtonsoft.Json:4.5.11:net45|Microsoft.Data.OData:5.6.2:net40-Client|Microsoft.Data.OData:5.6.2"
+                    "Newtonsoft.Json:4.5.11:net45|Microsoft.Data.OData:5.6.2:net40-client|Microsoft.Data.OData:5.6.2"
                 };
 
                 // a single item
@@ -178,9 +228,8 @@ namespace NuGet.IndexingTests.Extraction
 
                 // different target framework format
                 yield return new object[] { WithDependency("Newtonsoft.Json", "4.5.11", ".NETFramework4.5"), "Newtonsoft.Json:4.5.11:net45" };
-                yield return new object[] { WithDependency("Newtonsoft.Json", "4.5.11", ".NETPortable0.0-wp8+netcore45+net45"), "Newtonsoft.Json:4.5.11:portable-wp80+win+net45" };
+                yield return new object[] { WithDependency("Newtonsoft.Json", "4.5.11", ".NETFramework4.0"), "Newtonsoft.Json:4.5.11:net40" };
                 yield return new object[] { WithDependency("Newtonsoft.Json", "4.5.11", string.Empty), "Newtonsoft.Json:4.5.11" };
-                yield return new object[] { WithDependency("Newtonsoft.Json", "4.5.11", " "), "Newtonsoft.Json:4.5.11" };
                 yield return new object[] { WithDependency("Newtonsoft.Json", "4.5.11", null), "Newtonsoft.Json:4.5.11" };
                 yield return new object[]
                 {
@@ -231,6 +280,17 @@ namespace NuGet.IndexingTests.Extraction
                 frameworkAssemblyGroup = new object[]
                 {
                     new { targetFramework }
+                }
+            };
+        }
+
+        private static object WithPackageEntry(string fullName)
+        {
+            return new
+            {
+                packageEntries = new object[]
+                {
+                    new { fullName }
                 }
             };
         }

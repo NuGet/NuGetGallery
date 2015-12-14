@@ -43,21 +43,25 @@ namespace NuGet.Indexing
             {
                 take = 20;
             }
+            
+            bool ignoreFilter;
+            if (!bool.TryParse(context.Request.Query["ignoreFilter"], out ignoreFilter))
+            {
+                ignoreFilter = false;
+            }
 
-            //  currently not used 
-            //string projectType = context.Request.Query["projectType"] ?? string.Empty;
-            //string supportedFramework = context.Request.Query["supportedFramework"];
-
-            return QuerySearch(searcherManager, q, countOnly, includePrerelease, sortBy, skip, take, feed);
+            return QuerySearch(searcherManager, q, countOnly, includePrerelease, sortBy, skip, take, feed, ignoreFilter);
         }
 
-        public static string QuerySearch(NuGetSearcherManager searcherManager, string q, bool countOnly, bool includePrerelease, string sortBy, int skip, int take, string feed)
+        public static string QuerySearch(NuGetSearcherManager searcherManager, string q, bool countOnly, bool includePrerelease, string sortBy, int skip, int take, string feed, bool ignoreFilter)
         {
             var searcher = searcherManager.Get();
             try
             {
-                // TODO: this needs to parameterize listed = true | false to support search hijacking
-                Filter filter = searcher.GetFilter(false, includePrerelease, feed);
+                bool includeUnlisted = ignoreFilter;
+                includePrerelease = ignoreFilter || includePrerelease;
+                feed = ignoreFilter ? null : feed;
+                Filter filter = searcher.GetFilter(includeUnlisted, includePrerelease, feed);
 
                 Query query = NuGetQuery.MakeQuery(q);
 

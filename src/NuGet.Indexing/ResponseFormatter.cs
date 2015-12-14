@@ -318,8 +318,7 @@ namespace NuGet.Indexing
             
             WriteDocumentValue(jsonWriter, "Id", document, "Id");
             WriteProperty(jsonWriter, "DownloadCount", downloadCount);
-
-            // TODO: missing owner in lucene
+            
             jsonWriter.WritePropertyName("Owners");
             jsonWriter.WriteStartArray();
             foreach (string owner in document.GetValues("Owner"))
