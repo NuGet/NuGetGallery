@@ -120,10 +120,6 @@
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\NuGetFeed\NuGetFeed.csproj">
-      <Project>{be1e746f-725f-43fe-aa6a-076f19e76602}</Project>
-      <Name>NuGetFeed</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

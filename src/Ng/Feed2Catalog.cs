@@ -20,14 +20,6 @@ namespace Ng
 
     public class Feed2Catalog
     {
-        #region private_strings
-        private const string CreatedDateProperty = "Created";
-        private const string LastEditedDateProperty = "LastEdited";
-        private const string PublishedDateProperty = "Published";
-        private const string LicenseNamesProperty = "LicenseNames";
-        private const string LicenseReportUrlProperty = "LicenseReportUrl";
-        #endregion
-
         private static readonly DateTime DateTimeMinValueUtc = new DateTime(0L, DateTimeKind.Utc);
 
         public class PackageIdentity
@@ -61,7 +53,7 @@ namespace Ng
             return new HttpClient(handler);
         }
 
-        private static Uri MakePackageUri(string source, string id, string version)
+        static Uri MakePackageUri(string source, string id, string version)
         {
             var address = string.Format("{0}/Packages?$filter=Id%20eq%20'{1}'%20and%20Version%20eq%20'{2}'&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
                 source.Trim('/'),
@@ -71,7 +63,7 @@ namespace Ng
             return new Uri(address);
         }
 
-        private static Uri MakePackageUri(string source, string id)
+        static Uri MakePackageUri(string source, string id)
         {
             var address = string.Format("{0}/Packages?$filter=Id%20eq%20'{1}'&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
                 source.Trim('/'),
@@ -80,7 +72,7 @@ namespace Ng
             return new Uri(address);
         }
 
-        private static Uri MakeCreatedUri(string source, DateTime since, int top = 100)
+        static Uri MakeCreatedUri(string source, DateTime since, int top = 100)
         {
             var address = string.Format("{0}/Packages?$filter=Created gt DateTime'{1}'&$top={2}&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
                 source.Trim('/'),
@@ -90,7 +82,7 @@ namespace Ng
             return new Uri(address);
         }
 
-        private static Uri MakeLastEditedUri(string source, DateTime since, int top = 100)
+        static Uri MakeLastEditedUri(string source, DateTime since, int top = 100)
         {
             var address = string.Format("{0}/Packages?$filter=LastEdited gt DateTime'{1}'&$top={2}&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
                 source.Trim('/'),
@@ -168,7 +160,7 @@ namespace Ng
             return result;
         }
 
-        private static bool FilterDeletedPackage(DateTime minimumFileTime, Uri recordUri)
+        static bool FilterDeletedPackage(DateTime minimumFileTime, Uri recordUri)
         {
             var fileName = GetFileName(recordUri);
 
@@ -195,7 +187,7 @@ namespace Ng
             return false;
         }
 
-        private static string GetFileName(Uri uri)
+        static string GetFileName(Uri uri)
         {
             var parts = uri.PathAndQuery.Split('/');
 
@@ -207,7 +199,7 @@ namespace Ng
             return null;
         }
 
-        private static DateTime ForceUtc(DateTime date)
+        static DateTime ForceUtc(DateTime date)
         {
             if (date.Kind == DateTimeKind.Unspecified)
             {
@@ -218,6 +210,12 @@ namespace Ng
 
         public static async Task<SortedList<DateTime, IList<PackageDetails>>> GetPackages(HttpClient client, Uri uri, string keyDateProperty)
         {
+            const string CreatedDateProperty = "Created";
+            const string LastEditedDateProperty = "LastEdited";
+            const string PublishedDateProperty = "Published";
+            const string LicenseNamesProperty = "LicenseNames";
+            const string LicenseReportUrlProperty = "LicenseReportUrl";
+
             var result = new SortedList<DateTime, IList<PackageDetails>>();
 
             XElement feed;
@@ -305,7 +303,12 @@ namespace Ng
                     {
                         using (var stream = await response.Content.ReadAsStreamAsync())
                         {
-                            var item = Utils.CreateCatalogItem(stream, entry.Key, null, packageItem.ContentUri.ToString(), packageItem.CreatedDate, packageItem.LastEditedDate, packageItem.PublishedDate, packageItem.LicenseNames, packageItem.LicenseReportUrl);
+                            CatalogItem item = Utils.CreateCatalogItem(
+                                packageItem.ContentUri.ToString(),
+                                stream,
+                                packageItem.CreatedDate,
+                                packageItem.LastEditedDate,
+                                packageItem.PublishedDate);
 
                             if (item != null)
                             {
@@ -353,7 +356,7 @@ namespace Ng
             return lastDate;
         }
 
-        private static async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<PackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, CancellationToken cancellationToken)
+        static async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<PackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, CancellationToken cancellationToken)
         {
             var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 
@@ -384,7 +387,7 @@ namespace Ng
             return lastDeleted;
         }
 
-        private static DateTime DetermineLastDate(DateTime lastCreated, DateTime lastEdited, bool? createdPackages)
+        static DateTime DetermineLastDate(DateTime lastCreated, DateTime lastEdited, bool? createdPackages)
         {
             if (createdPackages.HasValue)
             {
@@ -401,7 +404,7 @@ namespace Ng
             return DateTime.MinValue;
         }
 
-        private static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName, CancellationToken cancellationToken)
+        static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName, CancellationToken cancellationToken)
         {
             var json = await storage.LoadString(storage.ResolveUri("index.json"), cancellationToken);
 
@@ -419,7 +422,7 @@ namespace Ng
             return null;
         }
 
-        private async Task Loop(string gallery, StorageFactory catalogStorageFactory, StorageFactory auditingStorageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
+        async Task Loop(string gallery, StorageFactory catalogStorageFactory, StorageFactory auditingStorageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
         {
             var catalogStorage = catalogStorageFactory.Create();
             var auditingStorage = auditingStorageFactory.Create();
@@ -528,7 +531,7 @@ namespace Ng
             }
         }
 
-        private static IEnumerable<SortedList<DateTime, IList<PackageIdentity>>> SegmentPackageDeletes(SortedList<DateTime, IList<PackageIdentity>> packageDeletes)
+        static IEnumerable<SortedList<DateTime, IList<PackageIdentity>>> SegmentPackageDeletes(SortedList<DateTime, IList<PackageIdentity>> packageDeletes)
         {
             var packageIdentityTracker = new HashSet<string>();
             var currentSegment = new SortedList<DateTime, IList<PackageIdentity>>();
@@ -567,9 +570,7 @@ namespace Ng
             }
         }
 
-
-
-        private static void PrintUsage()
+        static void PrintUsage()
         {
             Console.WriteLine("Usage: ng feed2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] -storageTypeAuditing file|azure [-storagePathAuditing <path>]|[-storageAccountNameAuditing <azure-acc> -storageKeyValueAuditing <azure-key> -storageContainerAuditing <azure-container> -storagePathAuditing <path>]  [-verbose true|false] [-interval <seconds>] [-startDate <DateTime>]");
         }
@@ -619,7 +620,7 @@ namespace Ng
             Loop(gallery, catalogStorageFactory, auditingStorageFactory, verbose, interval, nullableStartDate, cancellationToken).Wait();
         }
 
-        private static void PackagePrintUsage()
+        static void PackagePrintUsage()
         {
             Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> [-version <version>]");
         }
@@ -667,7 +668,7 @@ namespace Ng
             ProcessPackages(gallery, storageFactory, id, version, verbose, cancellationToken).Wait();
         }
 
-        private async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose, CancellationToken cancellationToken)
+        async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose, CancellationToken cancellationToken)
         {
             var timeout = TimeSpan.FromSeconds(300);
             

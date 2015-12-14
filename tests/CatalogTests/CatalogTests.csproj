@@ -131,14 +131,14 @@
     <Compile Include="ReindexTests.cs" />
     <Compile Include="StorageTests.cs" />
     <Compile Include="TestCollector.cs" />
-    <Compile Include="BuilderTests.cs" />
+    <None Include="BuilderTests.cs" />
     <Compile Include="CatalogTests.cs" />
     <Compile Include="CheckResults.cs" />
     <Compile Include="CollectorTests.cs" />
     <Compile Include="CursorTests.cs" />
     <Compile Include="InstallDataBrowser.cs" />
     <Compile Include="IntegrityTests.cs" />
-    <Compile Include="MakeTestCatalog.cs" />
+    <None Include="MakeTestCatalog.cs" />
     <Compile Include="PartitioningTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

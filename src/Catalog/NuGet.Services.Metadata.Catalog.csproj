@@ -116,6 +116,7 @@
     <Compile Include="CommitMetadata.cs" />
     <Compile Include="DeleteCatalogItem.cs" />
     <Compile Include="Helpers\GraphHelpers.cs" />
+    <Compile Include="NupkgMetadata.cs" />
     <Compile Include="Ownership\AgreementRecord.cs" />
     <Compile Include="Ownership\IRegistration.cs" />
     <Compile Include="Ownership\OwnershipOwner.cs" />
@@ -178,19 +179,15 @@
     <Compile Include="CollectorHttpClient.cs" />
     <Compile Include="DurableCursor.cs" />
     <Compile Include="FileSystemEmulatorHandler.cs" />
-    <Compile Include="GraphExtensions.cs" />
     <Compile Include="Helpers\IndexingHelpers.cs" />
     <Compile Include="Helpers\JsonSort.cs" />
     <Compile Include="AppendOnlyCatalogItem.cs" />
     <Compile Include="AppendOnlyCatalogWriter.cs" />
     <Compile Include="CatalogItemSummary.cs" />
     <Compile Include="CatalogWriterBase.cs" />
-    <Compile Include="GraphAddon.cs" />
     <Compile Include="ICatalogGraphPersistence.cs" />
-    <Compile Include="NupkgCatalogItem.cs" />
     <Compile Include="PackageCatalog.cs" />
     <Compile Include="PackageEntry.cs" />
-    <Compile Include="PackedData.cs" />
     <Compile Include="SingleGraphPersistence.cs" />
     <Compile Include="MemoryCursor.cs" />
     <Compile Include="Persistence\AzureStorageFactory.cs" />
@@ -201,7 +198,6 @@
     <Compile Include="Persistence\StorageContent.cs" />
     <Compile Include="CatalogContext.cs" />
     <Compile Include="CatalogItem.cs" />
-    <Compile Include="NuspecPackageCatalogItem.cs" />
     <Compile Include="PackageCatalogItem.cs" />
     <Compile Include="Persistence\AzureStorage.cs" />
     <Compile Include="Persistence\FileStorage.cs" />

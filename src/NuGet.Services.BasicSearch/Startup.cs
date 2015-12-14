@@ -1,17 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using Lucene.Net.Store;
 using Microsoft.Owin;
 using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.StaticFiles.Infrastructure;
 using NuGet.Indexing;
-using NuGet.Services.Metadata;
 using Owin;
 using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Lucene.Net.Store;
 
 [assembly: OwinStartup("NuGet.Services.BasicSearch", typeof(NuGet.Services.BasicSearch.Startup))]
 

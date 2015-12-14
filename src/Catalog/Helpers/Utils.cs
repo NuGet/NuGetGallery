@@ -418,40 +418,10 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        static PackedData GetPackedData(Stream stream, string filename)
-        {
-            //stream.Seek(0, SeekOrigin.Begin);
-
-            //IEnumerable<string> supportedFrameworks = new string[] { "any" };
-            //IEnumerable<ArtifactGroup> groups = Enumerable.Empty<ArtifactGroup>();
-
-            //try
-            //{
-            //    ZipFileSystem zip = new ZipFileSystem(stream);
-
-            //    using (PackageReader reader = new PackageReader(zip))
-            //    {
-            //        //ArtifactReader artifactReader = new ArtifactReader(reader);
-
-            //        supportedFrameworks = artifactReader.GetSupportedFrameworks();
-
-            //        // groups = artifactReader.GetArtifactGroups();
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    Trace.TraceWarning("Failed to extract supported frameworks from {0} {1} {2}", filename, e.GetType().Name, e.Message);
-            //}
-
-            // TODO: reimplement this with packaging
-            return new PackedData(Enumerable.Empty<string>());
-        }
-
         static IEnumerable<PackageEntry> GetEntries(ZipArchive package)
         {
             IList<PackageEntry> result = new List<PackageEntry>();
 
-            /*  Remove this in Preview
             foreach (ZipArchiveEntry entry in package.Entries)
             {
                 if (entry.FullName.EndsWith("/.rels", StringComparison.OrdinalIgnoreCase))
@@ -471,58 +441,50 @@ namespace NuGet.Services.Metadata.Catalog
 
                 result.Add(new PackageEntry(entry));
             }
-            */
 
             return result;
         }
 
-        static Tuple<XDocument, IEnumerable<PackageEntry>, long, string> GetNupkgMetadata(Stream stream, string hash = null)
+        static NupkgMetadata GetNupkgMetadata(Stream stream)
         {
-            long packageFileSize = stream.Length;
-
-            string packageHash = hash;
-
-            if (String.IsNullOrEmpty(packageHash))
+            var nupkgMetadata = new NupkgMetadata
             {
-                packageHash = GenerateHash(stream);
-            }
+                PackageSize = stream.Length,
+                PackageHash = GenerateHash(stream)
+            };
 
             stream.Seek(0, SeekOrigin.Begin);
 
             using (ZipArchive package = new ZipArchive(stream, ZipArchiveMode.Read, true))
             {
-                XDocument nuspec = GetNuspec(package);
+                nupkgMetadata.Nuspec = GetNuspec(package);
 
-                if (nuspec == null)
+                if (nupkgMetadata.Nuspec == null)
                 {
                     throw new InvalidDataException("Unable to find nuspec");
                 }
 
-                IEnumerable<PackageEntry> entries = GetEntries(package);
+                nupkgMetadata.Entries = GetEntries(package);
 
-                return Tuple.Create(nuspec, entries, packageFileSize, packageHash);
+                return nupkgMetadata;
             }
         }
 
-        public static CatalogItem CreateCatalogItem(Stream stream, DateTime? refreshed, string packageHash, string originName, DateTime? createdDate = null, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
+        public static CatalogItem CreateCatalogItem(string origin, Stream stream, DateTime createdDate, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
         {
             try
             {
-                Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(stream, packageHash);
-
-                // additional sections
-                var addons = new GraphAddon[] { GetPackedData(stream, originName) };
-
-                return new NuspecPackageCatalogItem(metadata.Item1, refreshed, metadata.Item2, metadata.Item3, metadata.Item4, addons, createdDate, lastEditedDate, publishedDate, licenseNames, licenseReportUrl);
+                NupkgMetadata nupkgMetadata = GetNupkgMetadata(stream);
+                return new PackageCatalogItem(nupkgMetadata, createdDate, lastEditedDate, publishedDate);
             }
             catch (InvalidDataException e)
             {
-                Trace.TraceError("Exception: {0} {1} {2}", originName, e.GetType().Name, e.Message);
+                Trace.TraceError("Exception: {0} {1} {2}", origin, e.GetType().Name, e.Message);
                 return null;
             }
             catch (Exception e)
             {
-                throw new Exception(string.Format("Exception processsing {0}", originName), e);
+                throw new Exception(string.Format("Exception processsing {0}", origin), e);
             }
         }
                 
