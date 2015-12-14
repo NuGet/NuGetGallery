@@ -54,9 +54,6 @@ namespace Ng
                         var catalogToDnx = new Catalog2Dnx();
                         catalogToDnx.Run(args, cancellationTokenSource.Token);
                         break;
-                    case "frameworkcompatibility":
-                        FrameworkCompatibility.Run(args);
-                        break;
                     case "copylucene":
                         CopyLucene.Run(args);
                         break;

@@ -164,7 +164,6 @@
     <Compile Include="CheckLucene.cs" />
     <Compile Include="CopyLucene.cs" />
     <Compile Include="Feed2Catalog.cs" />
-    <Compile Include="FrameworkCompatibility.cs" />
     <Compile Include="IndexingCatalogCollector.cs" />
     <Compile Include="LuceneCursor.cs" />
     <Compile Include="Program.cs" />
