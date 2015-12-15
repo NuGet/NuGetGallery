@@ -31,15 +31,15 @@
       "correctedpackageversionpattern": "$1"
     },
     {
-      "incorrectpackageid": "FakeXrmEasy",
+      "incorrectpackageid": "fakexrmeasy",
       "incorrectpackageversionpattern": "2013.(.*)",
-      "correctedpackageid": "FakeXrmEasy.2013",
+      "correctedpackageid": "fakexrmeasy.2013",
       "correctedpackageversionpattern": "$1"
     },
     {
-      "incorrectpackageid": "FakeXrmEasy",
+      "incorrectpackageid": "fakexrmeasy",
       "incorrectpackageversionpattern": "2015.(.*)",
-      "correctedpackageid": "FakeXrmEasy.2015",
+      "correctedpackageid": "fakexrmeasy.2015",
       "correctedpackageversionpattern": "$1"
     }
   ]
