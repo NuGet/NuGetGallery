@@ -29,6 +29,18 @@
       "incorrectpackageversionpattern": "0.(.*)",
       "correctedpackageid": "genericmapper.framework.4.0",
       "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "2013.(.*)",
+      "correctedpackageid": "fakexrmeasy.2013",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "2015.(.*)",
+      "correctedpackageid": "fakexrmeasy.2015",
+      "correctedpackageversionpattern": "$1"
     }
   ]
 }
