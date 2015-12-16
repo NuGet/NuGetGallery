@@ -1,65 +1,30 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Net;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
-using Microsoft.Owin;
-using System.Collections.Generic;
-using System.Net;
+using Newtonsoft.Json;
 
 namespace NuGet.Indexing
 {
     public static class ServiceImpl
     {
-        public static string Query(IOwinContext context, NuGetSearcherManager searcherManager)
-        {
-            int skip;
-            if (!int.TryParse(context.Request.Query["skip"], out skip))
-            {
-                skip = 0;
-            }
-
-            int take;
-            if (!int.TryParse(context.Request.Query["take"], out take))
-            {
-                take = 20;
-            }
-
-            bool includePrerelease;
-            if (!bool.TryParse(context.Request.Query["prerelease"], out includePrerelease))
-            {
-                includePrerelease = false;
-            }
-
-            string feed = context.Request.Query["feed"];
-
-            bool includeExplanation;
-            if (!bool.TryParse(context.Request.Query["explanation"], out includeExplanation))
-            {
-                includeExplanation = false;
-            }
-
-            string q = context.Request.Query["q"] ?? string.Empty;
-
-            string scheme = context.Request.Uri.Scheme;
-
-            return QuerySearch(searcherManager, scheme, q, includePrerelease, skip, take, feed, includeExplanation);
-        }
-
-        public static string QuerySearch(NuGetSearcherManager searcherManager, string scheme, string q, bool includePrerelease, int skip, int take, string feed, bool includeExplanation)
+        public static void Search(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string scheme, string q, bool includePrerelease, int skip, int take, string feed, bool includeExplanation)
         {
             var searcher = searcherManager.Get();
             try
             {
-                Query query = MakeQuery(q, searcher.Rankings);
+                Query query = MakeSearchQuery(q, searcher.Rankings);
                 TopDocs topDocs;
 
                 Filter filter = searcher.GetFilter(false, includePrerelease, feed);
 
                 topDocs = searcher.Search(query, filter, skip + take);
 
-                return ResponseFormatter.MakeResult(searcher, scheme, topDocs, skip, take, includePrerelease, includeExplanation, query);
+                ResponseFormatter.WriteSearchResult(jsonWriter, searcher, scheme, topDocs, skip, take, includePrerelease, includeExplanation, query);
             }
             finally
             {
@@ -67,7 +32,48 @@ namespace NuGet.Indexing
             }
         }
 
-        public static Query MakeQuery(string q, IDictionary<string, int> rankings)
+        public static void AutoComplete(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string q, string id, bool includePrerelease, int skip, int take, bool includeExplanation)
+        {
+            var searcher = searcherManager.Get();
+            try
+            {
+                Filter filter = searcher.GetFilter(false, includePrerelease, null);
+
+                if (q != null)
+                {
+                    Query query = MakeAutoCompleteQuery(q, searcher.Rankings);
+                    TopDocs topDocs = searcher.Search(query, filter, skip + take);
+                    ResponseFormatter.WriteAutoCompleteResult(jsonWriter, searcher, topDocs, skip, take, includeExplanation, query);
+                }
+                else
+                {
+                    Query query = MakeAutoCompleteVersionQuery(id);
+                    TopDocs topDocs = searcher.Search(query, filter, 1);
+                    ResponseFormatter.WriteAutoCompleteVersionResult(jsonWriter, searcher, includePrerelease, topDocs);
+                }
+            }
+            finally
+            {
+                searcherManager.Release(searcher);
+            }
+        }
+
+        public static void Find(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string id, string scheme)
+        {
+            var searcher = searcherManager.Get();
+            try
+            {
+                Query query = MakeFindQuery(id);
+                TopDocs topDocs = searcher.Search(query, 1);
+                ResponseFormatter.WriteFindResult(jsonWriter, searcher, scheme, topDocs);
+            }
+            finally
+            {
+                searcherManager.Release(searcher);
+            }
+        }
+
+        private static Query MakeSearchQuery(string q, IDictionary<string, int> rankings)
         {
             try
             {
@@ -81,78 +87,7 @@ namespace NuGet.Indexing
             }
         }
 
-        public static string AutoComplete(IOwinContext context, NuGetSearcherManager searcherManager)
-        {
-            var searcher = searcherManager.Get();
-            try
-            {
-                int skip;
-                if (!int.TryParse(context.Request.Query["skip"], out skip))
-                {
-                    skip = 0;
-                }
-
-                int take;
-                if (!int.TryParse(context.Request.Query["take"], out take))
-                {
-                    take = 20;
-                }
-
-                bool includePrerelease;
-                if (!bool.TryParse(context.Request.Query["prerelease"], out includePrerelease))
-                {
-                    includePrerelease = false;
-                }
-
-                bool includeExplanation;
-                if (!bool.TryParse(context.Request.Query["explanation"], out includeExplanation))
-                {
-                    includeExplanation = false;
-                }
-
-                string q = context.Request.Query["q"]; 
-                string id = context.Request.Query["id"];
-
-                if (q == null && id == null)
-                {
-                    q = string.Empty;
-                }
-
-                return AutoCompleteSearch(searcherManager, q, id, includePrerelease, skip, take, includeExplanation);
-            }
-            finally
-            {
-                searcherManager.Release(searcher);
-            }
-        }
-
-        static string AutoCompleteSearch(NuGetSearcherManager searcherManager, string q, string id, bool includePrerelease, int skip, int take, bool includeExplanation)
-        {
-            var searcher = searcherManager.Get();
-            try
-            {
-                Filter filter = searcher.GetFilter(false, includePrerelease, null);
-
-                if (q != null)
-                {
-                    Query query = AutoCompleteMakeQuery(q, searcher.Rankings);
-                    TopDocs topDocs = searcher.Search(query, filter, skip + take);
-                    return ResponseFormatter.AutoCompleteMakeResult(searcher, topDocs, skip, take, includeExplanation, query);
-                }
-                else
-                {
-                    Query query = AutoCompleteVersionMakeQuery(id);
-                    TopDocs topDocs = searcher.Search(query, filter, 1);
-                    return ResponseFormatter.AutoCompleteMakeVersionResult(searcher, includePrerelease, topDocs);
-                }
-            }
-            finally
-            {
-                searcherManager.Release(searcher);
-            }
-        }
-
-        static Query AutoCompleteMakeQuery(string q, IDictionary<string, int> rankings)
+        private static Query MakeAutoCompleteQuery(string q, IDictionary<string, int> rankings)
         {
             if (string.IsNullOrEmpty(q))
             {
@@ -160,50 +95,19 @@ namespace NuGet.Indexing
             }
 
             QueryParser queryParser = new QueryParser(Lucene.Net.Util.Version.LUCENE_30, "IdAutocomplete", new PackageAnalyzer());
-
-            //TODO: we should be doing phrase queries to get the ordering right
-            //const int MAX_NGRAM_LENGTH = 8;
-            //q = (q.Length < MAX_NGRAM_LENGTH) ? q : q.Substring(0, MAX_NGRAM_LENGTH);
-            //string phraseQuery = string.Format("IdAutocompletePhrase:\"/ {0}\"~20", q);
-            //Query query = queryParser.Parse(phraseQuery);
-
             Query query = queryParser.Parse(q);
-
-            //Query boostedQuery = new RankingScoreQuery(query, new Dictionary<string, int>(), 2.0);
             Query boostedQuery = new RankingScoreQuery(query, rankings, 2.0);
 
             return boostedQuery;
         }
 
-        static Query AutoCompleteVersionMakeQuery(string id)
+        private static Query MakeAutoCompleteVersionQuery(string id)
         {
             Query query = new TermQuery(new Term("Id", id.ToLowerInvariant()));
             return query;
         }
 
-        public static string Find(IOwinContext context, NuGetSearcherManager searcherManager)
-        {
-            string id = context.Request.Query["id"];
-            string scheme = context.Request.Uri.Scheme;
-            return FindSearch(searcherManager, id, scheme);
-        }
-
-        static string FindSearch(NuGetSearcherManager searcherManager, string id, string scheme)
-        {
-            var searcher = searcherManager.Get();
-            try
-            {
-                Query query = FindMakeQuery(id);
-                TopDocs topDocs = searcher.Search(query, 1);
-                return ResponseFormatter.FindMakeResult(searcher, scheme, topDocs);
-            }
-            finally
-            {
-                searcherManager.Release(searcher);
-            }
-        }
-
-        static Query FindMakeQuery(string id)
+        private static Query MakeFindQuery(string id)
         {
             string analyzedId = id.ToLowerInvariant();
             Query query = new TermQuery(new Term("Id", analyzedId));
