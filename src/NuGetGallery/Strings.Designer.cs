@@ -330,6 +330,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (404) Error - Not Found.
+        /// </summary>
+        public static string Http404NotFound {
+            get {
+                return ResourceManager.GetString("Http404NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Index does not exist.
+        /// </summary>
+        public static string IndexDoesNotExist {
+            get {
+                return ResourceManager.GetString("IndexDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The API key &apos;{0}&apos; is invalid..
         /// </summary>
         public static string InvalidApiKey {
@@ -384,11 +402,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package is missing required data..
+        /// </summary>
+        public static string MissingRequiredData {
+            get {
+                return ResourceManager.GetString("MissingRequiredData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Multiple Credentials match &apos;{0}&apos; credential with Key {1}.
         /// </summary>
         public static string MultipleMatchingCredentials {
             get {
                 return ResourceManager.GetString("MultipleMatchingCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Negative indexes are invalid..
+        /// </summary>
+        public static string NegativeIndexesAreInvalid {
+            get {
+                return ResourceManager.GetString("NegativeIndexesAreInvalid", resourceCulture);
             }
         }
         
@@ -510,6 +546,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Token expiration should give the user at least a minute to change their password.
+        /// </summary>
+        public static string TokenExpirationShouldGiveTheUserAtLeastAMinuteToChangeTheirPassword {
+            get {
+                return ResourceManager.GetString("TokenExpirationShouldGiveTheUserAtLeastAMinuteToChangeTheirPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User is not authorized.
         /// </summary>
         public static string Unauthorized {
@@ -560,6 +605,15 @@ namespace NuGetGallery {
         public static string UserIsNotYetConfirmed {
             get {
                 return ResourceManager.GetString("UserIsNotYetConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A user key is required..
+        /// </summary>
+        public static string UserKeyRequired {
+            get {
+                return ResourceManager.GetString("UserKeyRequired", resourceCulture);
             }
         }
         

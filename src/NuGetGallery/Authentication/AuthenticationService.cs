@@ -230,7 +230,7 @@ namespace NuGetGallery.Authentication
             if (expirationInMinutes < 1)
             {
                 throw new ArgumentException(
-                    "Token expiration should give the user at least a minute to change their password", nameof(expirationInMinutes));
+                    Strings.TokenExpirationShouldGiveTheUserAtLeastAMinuteToChangeTheirPassword, nameof(expirationInMinutes));
             }
             var user = FindByUserNameOrEmail(usernameOrEmail);
             if (user == null)
@@ -250,7 +250,7 @@ namespace NuGetGallery.Authentication
             if (expirationInMinutes < 1)
             {
                 throw new ArgumentException(
-                    "Token expiration should give the user at least a minute to change their password", nameof(expirationInMinutes));
+                    Strings.TokenExpirationShouldGiveTheUserAtLeastAMinuteToChangeTheirPassword, nameof(expirationInMinutes));
             }
 
             if (!user.Confirmed)

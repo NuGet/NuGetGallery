@@ -20,7 +20,7 @@ namespace NuGetGallery
         {
             if (userKey < 1)
             {
-                throw new ArgumentException("A user key is required.", nameof(userKey));
+                throw new ArgumentException(Strings.UserKeyRequired, nameof(userKey));
             }
 
             var uploadFileName = BuildFileName(userKey);
@@ -32,7 +32,7 @@ namespace NuGetGallery
         {
             if (userKey < 1)
             {
-                throw new ArgumentException("A user key is required.", nameof(userKey));
+                throw new ArgumentException(Strings.UserKeyRequired, nameof(userKey));
             }
 
             // Use the trick of a private core method that actually does the async stuff to allow for sync arg contract checking
@@ -43,7 +43,7 @@ namespace NuGetGallery
         {
             if (userKey < 1)
             {
-                throw new ArgumentException("A user key is required.", nameof(userKey));
+                throw new ArgumentException(Strings.UserKeyRequired, nameof(userKey));
             }
 
             if (packageFileStream == null)
