@@ -39,7 +39,7 @@
     {
       "incorrectpackageid": "fakexrmeasy",
       "incorrectpackageversionpattern": "2015.(.*)",
-      "correctedpackageid": "fakexrmeasy.2015", 
+      "correctedpackageid": "fakexrmeasy.2015",
       "correctedpackageversionpattern": "$1"
     }
   ]
