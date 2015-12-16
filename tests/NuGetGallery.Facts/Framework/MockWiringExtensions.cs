@@ -16,9 +16,9 @@ namespace NuGetGallery.Framework
             where T : class
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException(nameof(context));
             if (mock == null)
-                throw new ArgumentNullException("mock");
+                throw new ArgumentNullException(nameof(mock));
 
             object instance = mock.Object;
 

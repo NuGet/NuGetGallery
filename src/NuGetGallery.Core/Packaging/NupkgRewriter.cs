@@ -23,17 +23,17 @@ namespace NuGetGallery.Packaging
         {
             if (!readWriteStream.CanRead)
             {
-                throw new ArgumentException("Must be a readable stream", "readWriteStream");
+                throw new ArgumentException("Must be a readable stream", nameof(readWriteStream));
             }
 
             if (!readWriteStream.CanWrite)
             {
-                throw new ArgumentException("Must be a writeable stream", "readWriteStream");
+                throw new ArgumentException("Must be a writeable stream", nameof(readWriteStream));
             }
 
             if (!readWriteStream.CanSeek)
             {
-                throw new ArgumentException("Must be a seekable stream", "readWriteStream");
+                throw new ArgumentException("Must be a seekable stream", nameof(readWriteStream));
             }
 
             Manifest manifest = Nupkg.SafelyLoadManifest(readWriteStream, leaveOpen: true);

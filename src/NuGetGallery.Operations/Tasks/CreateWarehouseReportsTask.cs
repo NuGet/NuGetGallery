@@ -93,7 +93,7 @@ namespace NuGetGallery.Operations
 
         private void CreatePerPackageReports(Tuple<string[], List<object[]>> report)
         {
-            Log.Info(string.Format("CreatePerPackageReports (count = {0})", report.Item2.Count));
+            Log.Info($"CreatePerPackageReports (count = {report.Item2.Count})");
 
             int indexOfPackageId = 0;
             foreach (string column in report.Item1)
@@ -146,7 +146,7 @@ namespace NuGetGallery.Operations
                 });
             });
 
-            string msg = string.Format("CreateAllPerPackageReports complete {0} seconds", (DateTime.Now - before).TotalSeconds);
+            string msg = $"CreateAllPerPackageReports complete {(DateTime.Now - before).TotalSeconds} seconds";
 
             Log.Info(msg);
         }
@@ -183,7 +183,7 @@ namespace NuGetGallery.Operations
 
             IList<Tuple<string, int>> packageIds = GetPackageIds();
 
-            Log.Info(string.Format("Creating {0} Reports", packageIds.Count));
+            Log.Info($"Creating {packageIds.Count} Reports");
 
             Tuple<string, int>[] bag = new Tuple<string, int>[packageIds.Count];
 
@@ -207,7 +207,7 @@ namespace NuGetGallery.Operations
                 });
             });
 
-            string msg = string.Format("CreateDirtyPerPackageReports complete {0} seconds", (DateTime.Now - before).TotalSeconds);
+            string msg = $"CreateDirtyPerPackageReports complete {(DateTime.Now - before).TotalSeconds} seconds";
 
             Log.Info(msg);
         }
@@ -244,7 +244,7 @@ namespace NuGetGallery.Operations
 
         private void CreatePackageReport(string packageId)
         {
-            Log.Info(string.Format("CreatePackageReport for {0}", packageId));
+            Log.Info($"CreatePackageReport for {packageId}");
 
             // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
 
@@ -296,9 +296,9 @@ namespace NuGetGallery.Operations
 
                 if (row[1].ToString() == "NuGet" || row[1].ToString() == "WebMatrix")
                 {
-                    obj.Add("Client", string.Format("{0} {1}.{2}", row[2], row[3], row[4]));
+                    obj.Add("Client", $"{row[2]} {row[3]}.{row[4]}");
                     obj.Add("ClientName", row[2].ToString());
-                    obj.Add("ClientVersion", string.Format("{0}.{1}", row[3], row[4]));
+                    obj.Add("ClientVersion", $"{row[3]}.{row[4]}");
                 }
                 else
                 {
@@ -374,7 +374,7 @@ namespace NuGetGallery.Operations
 
         private void CreateEmptyPackageReport(string packageId)
         {
-            Log.Info(string.Format("CreateEmptyPackageReport for {0}", packageId));
+            Log.Info($"CreateEmptyPackageReport for {packageId}");
 
             // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
 
@@ -389,7 +389,7 @@ namespace NuGetGallery.Operations
 
             IList<string> packageIds = GetInactivePackageIds();
 
-            Log.Info(string.Format("Creating {0} empty Reports", packageIds.Count));
+            Log.Info($"Creating {packageIds.Count} empty Reports");
 
             string[] bag = new string[packageIds.Count];
 
@@ -433,7 +433,7 @@ namespace NuGetGallery.Operations
 
         private void ConfirmExport(Tuple<string, int> packageId)
         {
-            Log.Info(string.Format("ConfirmPackageExported for {0}", packageId.Item1));
+            Log.Info($"ConfirmPackageExported for {packageId.Item1}");
 
             using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
             {
@@ -536,7 +536,7 @@ namespace NuGetGallery.Operations
                     else
                     {
                         SqlConnection.ClearAllPools();
-                        Log.Info(string.Format("Retry attempts remaining {0}", attempts));
+                        Log.Info($"Retry attempts remaining {attempts}");
                         Thread.Sleep(20 * 1000);
                     }
                 }

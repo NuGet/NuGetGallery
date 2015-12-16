@@ -85,12 +85,8 @@ namespace NuGetGallery.Packaging
             }
 
             var fxes = Enumerable.Concat(
-                metadata.FrameworkAssemblies == null ? 
-                    Enumerable.Empty<string>() : 
-                    (metadata.FrameworkAssemblies.Select(a => a.TargetFramework)),
-                metadata.DependencySets == null ?
-                    Enumerable.Empty<string>() :
-                    (metadata.DependencySets.Select(s => s.TargetFramework)));
+                metadata.FrameworkAssemblies?.Select(a => a.TargetFramework) ?? Enumerable.Empty<string>(),
+                metadata.DependencySets?.Select(s => s.TargetFramework) ?? Enumerable.Empty<string>());
             foreach (var fx in fxes)
             {
                 //if target framework is not specified, then continue. Validate only for wrong specification.

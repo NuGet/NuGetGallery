@@ -35,10 +35,7 @@ namespace NuGetGallery.Auditing
 
         public override string GetPath()
         {
-            return String.Format(
-                "{0}/{1}",
-                Id.ToLowerInvariant(), 
-                SemanticVersionExtensions.Normalize(Version).ToLowerInvariant());
+            return $"{Id.ToLowerInvariant()}/{SemanticVersionExtensions.Normalize(Version).ToLowerInvariant()}";
         }
     }
 

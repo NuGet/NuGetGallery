@@ -28,7 +28,7 @@ namespace NuGetGallery.Operations.Tasks
 
             if (String.IsNullOrEmpty(UserName) && CurrentEnvironment != null)
             {
-                UserName = String.Format("{0}-site-{1}", CurrentEnvironment.EnvironmentName, DateTime.UtcNow.ToString("MMMdd-yyyy"));
+                UserName = $"{CurrentEnvironment.EnvironmentName}-site-{DateTime.UtcNow:MMMdd-yyyy}";
             }
 
             ArgCheck.RequiredOrConfig(UserName, "UserName");
@@ -46,7 +46,7 @@ namespace NuGetGallery.Operations.Tasks
             {
                 if (!WhatIf)
                 {
-                    db.Execute(String.Format("CREATE LOGIN [{0}] WITH PASSWORD='{1}';", UserName, password));
+                    db.Execute($"CREATE LOGIN [{UserName}] WITH PASSWORD='{password}';");
                 }
                 Log.Info("Created Login: {0}", UserName);
             });
@@ -61,14 +61,14 @@ namespace NuGetGallery.Operations.Tasks
 
                 if (!WhatIf)
                 {
-                    db.Execute(String.Format("EXEC sp_addrolemember 'db_owner', '{0}';", UserName));
+                    db.Execute($"EXEC sp_addrolemember 'db_owner', '{UserName}';");
                 }
                 Log.Info("Added User to db_owner role: {0}", UserName);
             });
 
             // Generate the new connection string
             var newstr = new SqlConnectionStringBuilder(ConnectionString.ConnectionString);
-            newstr.UserID = String.Format("{0}@{1}", UserName, Util.GetDatabaseServerName(ConnectionString));
+            newstr.UserID = $"{UserName}@{Util.GetDatabaseServerName(ConnectionString)}";
             newstr.Password = password;
 
             if (Clip)

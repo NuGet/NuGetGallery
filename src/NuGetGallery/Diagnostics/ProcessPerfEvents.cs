@@ -50,7 +50,7 @@ namespace NuGetGallery.Diagnostics
                         // Determine the file name for the log
                         string fileName = Path.Combine(
                             dir,
-                            String.Format("{0:yyyyMMdd}{1}.csv", group.Key.Date, group.Key.Hour));
+                            $"{@group.Key.Date:yyyyMMdd}{@group.Key.Hour}.csv");
 
                         // Append to the log
                         using (var strm = new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.None))

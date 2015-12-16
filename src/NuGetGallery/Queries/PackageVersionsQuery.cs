@@ -38,7 +38,7 @@ namespace NuGetGallery
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             var queryString = "id=" + Uri.EscapeUriString(id);
@@ -82,7 +82,7 @@ WHERE pr.ID = {{0}}
         {
             if (String.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             var dbContext = (DbContext)_entities;

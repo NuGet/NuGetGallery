@@ -16,12 +16,12 @@ namespace NuGetGallery.Authentication
         {
             if (user == null)
             {
-                throw new ArgumentNullException("user");
+                throw new ArgumentNullException(nameof(user));
             }
 
             if (cred == null)
             {
-                throw new ArgumentNullException("cred");
+                throw new ArgumentNullException(nameof(cred));
             }
             
             User = user;

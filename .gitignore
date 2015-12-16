@@ -171,3 +171,4 @@ build/artifacts/
 tests/Scripts/TestResults[*].trx
 src/NuGetGallery.Cloud/ecf/
 *.trx
+.vs/config/applicationhost.config

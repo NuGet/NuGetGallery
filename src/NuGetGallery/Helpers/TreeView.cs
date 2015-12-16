@@ -37,7 +37,7 @@ namespace NuGetGallery.Helpers
 
         public TreeView(HtmlHelper html, IEnumerable<T> items)
         {
-            if (html == null) throw new ArgumentNullException("html");
+            if (html == null) throw new ArgumentNullException(nameof(html));
             _html = html;
             _items = items;
             // The ItemTemplate will default to rendering the DisplayProperty
@@ -49,7 +49,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         public TreeView<T> ItemText(Func<T, string> selector)
         {
-            if (selector == null) throw new ArgumentNullException("selector");
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
             _displayProperty = selector;
             return this;
         }
@@ -60,7 +60,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         public TreeView<T> ItemTemplate(Func<T, HelperResult> itemTemplate)
         {
-            if (itemTemplate == null) throw new ArgumentNullException("itemTemplate");
+            if (itemTemplate == null) throw new ArgumentNullException(nameof(itemTemplate));
             _itemTemplate = itemTemplate;
             return this;
         }
@@ -71,7 +71,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         public TreeView<T> Children(Func<T, IEnumerable<T>> selector)
         {
-            if (selector == null) throw new ArgumentNullException("selector");
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
             _childrenProperty = selector;
             return this;
         }
@@ -81,7 +81,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         public TreeView<T> EmptyContent(string emptyContent)
         {
-            if (emptyContent == null) throw new ArgumentNullException("emptyContent");
+            if (emptyContent == null) throw new ArgumentNullException(nameof(emptyContent));
             _emptyContent = emptyContent;
             return this;
         }
@@ -100,7 +100,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         public TreeView<T> HtmlAttributes(IDictionary<string, object> htmlAttributes)
         {
-            if (htmlAttributes == null) throw new ArgumentNullException("htmlAttributes");
+            if (htmlAttributes == null) throw new ArgumentNullException(nameof(htmlAttributes));
             _htmlAttributes = htmlAttributes;
             return this;
         }
@@ -119,7 +119,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         public TreeView<T> ChildrenHtmlAttributes(IDictionary<string, object> htmlAttributes)
         {
-            if (htmlAttributes == null) throw new ArgumentNullException("htmlAttributes");
+            if (htmlAttributes == null) throw new ArgumentNullException(nameof(htmlAttributes));
             _childHtmlAttributes = htmlAttributes;
             return this;
         }

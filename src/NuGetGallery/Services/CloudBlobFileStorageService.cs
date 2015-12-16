@@ -55,12 +55,12 @@ namespace NuGetGallery
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
-                throw new ArgumentNullException("folderName");
+                throw new ArgumentNullException(nameof(folderName));
             }
 
             if (String.IsNullOrWhiteSpace(fileName))
             {
-                throw new ArgumentNullException("fileName");
+                throw new ArgumentNullException(nameof(fileName));
             }
 
             return (await GetBlobContentAsync(folderName, fileName)).Data;
@@ -70,12 +70,12 @@ namespace NuGetGallery
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
-                throw new ArgumentNullException("folderName");
+                throw new ArgumentNullException(nameof(folderName));
             }
 
             if (String.IsNullOrWhiteSpace(fileName))
             {
-                throw new ArgumentNullException("fileName");
+                throw new ArgumentNullException(nameof(fileName));
             }
 
             ICloudBlobContainer container = await GetContainer(folderName);

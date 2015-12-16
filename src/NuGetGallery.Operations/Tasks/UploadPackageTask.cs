@@ -31,11 +31,7 @@ namespace NuGetGallery.Operations
 
             var container = client.GetContainerReference("packages");
 
-            var fileName = string.Format(
-                "{0}.{1}{2}",
-                PackageId,
-                PackageVersion,
-                ".nupkg");
+            var fileName = $"{PackageId}.{PackageVersion}.nupkg";
 
             var blob = container.GetBlockBlobReference(fileName);
             if (!WhatIf)

@@ -154,7 +154,7 @@ namespace NuGet.Services.Search.Client
         public async Task<ServiceResponse<IDictionary<int, int>>> GetChecksums(int minKey, int maxKey)
         {
             var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType).ConfigureAwait(false);
-            var requestEndpoints = endpoints.Select(e => AppendPathToUri(e, "search/range", string.Format("min={0}&max={1}", minKey, maxKey)));
+            var requestEndpoints = endpoints.Select(e => AppendPathToUri(e, "search/range", $"min={minKey}&max={maxKey}"));
 
             var response = await _retryingHttpClientWrapper.GetAsync(requestEndpoints).ConfigureAwait(false);
             return new ServiceResponse<IDictionary<int, int>>(

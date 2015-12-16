@@ -35,7 +35,7 @@ namespace NuGetGallery
             var argEx = Assert.Throws<ArgumentException>(() => act());
             Assert.Equal(paramName, argEx.ParamName);
             Assert.Equal(
-                message + Environment.NewLine + String.Format("Parameter name: {0}", paramName),
+                message + Environment.NewLine + $"Parameter name: {paramName}",
                 argEx.Message);
         }
     }

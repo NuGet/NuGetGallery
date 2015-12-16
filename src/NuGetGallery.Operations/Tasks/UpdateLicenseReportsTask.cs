@@ -166,7 +166,7 @@ namespace NuGetGallery.Operations.Tasks
                         }
                         else
                         {
-                            Log.ErrorException(String.Format("WebException contacting service: {0}", ex.Status), ex);
+                            Log.ErrorException($"WebException contacting service: {ex.Status}", ex);
                             throw;
                         }
                     }

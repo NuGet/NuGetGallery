@@ -51,9 +51,9 @@ namespace NuGetGallery.Operations
         private string CopyDatabaseForRestore(
             SqlExecutor masterDbExecutor)
         {
-            var restoreDbName = string.Format("Restore_{0}", Util.GetTimestamp());
+            var restoreDbName = $"Restore_{Util.GetTimestamp()}";
             Log.Info("Copying {0} to {1}.", BackupName, restoreDbName);
-            masterDbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", restoreDbName, BackupName));
+            masterDbExecutor.Execute($"CREATE DATABASE {restoreDbName} AS COPY OF {BackupName}");
             Log.Info("Waiting for copy to complete.");
             WaitForBackupCopy(
                 masterDbExecutor,
@@ -92,7 +92,7 @@ namespace NuGetGallery.Operations
             string restoreDbName)
         {
             Log.Info("Renaming {0} to NuGetGallery.", restoreDbName);
-            var sql = string.Format("ALTER DATABASE {0} MODIFY Name = NuGetGallery", restoreDbName);
+            var sql = $"ALTER DATABASE {restoreDbName} MODIFY Name = NuGetGallery";
             masterDbExecutor.Execute(sql);
             Log.Info("Renamed {0} to NuGetGallery.", restoreDbName);
         }
@@ -103,7 +103,7 @@ namespace NuGetGallery.Operations
             var timestamp = Util.GetTimestamp();
             var liveDbName = "Live_" + timestamp;
             Log.Info("Renaming NuGetGallery to {0}.", liveDbName);
-            var sql = string.Format("ALTER DATABASE NuGetGallery MODIFY Name = {0}", liveDbName);
+            var sql = $"ALTER DATABASE NuGetGallery MODIFY Name = {liveDbName}";
             masterDbExecutor.Execute(sql);
             Log.Info("Renamed NuGetGallery to {0}.", liveDbName);
         }
