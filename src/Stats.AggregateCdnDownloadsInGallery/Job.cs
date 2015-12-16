@@ -16,6 +16,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
         : JobBase
     {
         private const string TempTableName = "#AggregateCdnDownloadsInGallery";
+
         private const string CreateTempTable = @"
             IF OBJECT_ID('tempdb.dbo.#AggregateCdnDownloadsInGallery', 'U') IS NOT NULL
                 DROP TABLE #AggregateCdnDownloadsInGallery
@@ -26,6 +27,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 [PackageVersion]            NVARCHAR(255)	NOT NULL,
                 [DownloadCount]             INT             NOT NULL,
             )";
+
         private const string UpdateFromTempTable = @"
             -- Update Packages table
             UPDATE P SET P.[DownloadCount] = Stats.[DownloadCount]
@@ -84,8 +86,14 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 Trace.TraceInformation("Gathering Download Counts from {0}/{1}...", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog);
                 using (var statisticsDatabase = await _statisticsDatabase.ConnectTo())
                 using (var statisticsDatabaseTransaction = statisticsDatabase.BeginTransaction(IsolationLevel.Snapshot)) {
-                    downloadData = (await statisticsDatabase.QueryWithRetryAsync<DownloadCountData>(
-                        StoredProcedureName, transaction: statisticsDatabaseTransaction, commandType: CommandType.StoredProcedure)).ToList();
+                    downloadData = (
+                        await statisticsDatabase.QueryWithRetryAsync<DownloadCountData>(
+                            StoredProcedureName, 
+                            transaction: statisticsDatabaseTransaction, 
+                            commandType: CommandType.StoredProcedure,
+                            commandTimeout: (int)TimeSpan.FromMinutes(15).TotalSeconds,
+                            maxRetries: 3))
+                        .ToList();
                 }
 
                 Trace.TraceInformation("Gathered {0} rows of data.", downloadData.Count);
@@ -101,7 +109,9 @@ namespace Stats.AggregateCdnDownloadsInGallery
                         Trace.TraceInformation("Retrieving package registrations...");
                         var packageRegistrationLookup = (
                             await destinationDatabase.QueryWithRetryAsync<PackageRegistrationData>(
-                                "SELECT [Key], LOWER([Id]) AS Id FROM [dbo].[PackageRegistrations]"))
+                                "SELECT [Key], LOWER([Id]) AS Id FROM [dbo].[PackageRegistrations]",
+                                commandTimeout: (int)TimeSpan.FromMinutes(10).TotalSeconds,
+                                maxRetries: 5))
                             .Where(item => !string.IsNullOrEmpty(item.Id))
                             .ToDictionary(item => item.Id, item => item.Key);
                         Trace.TraceInformation("Retrieved package registrations.");
@@ -114,7 +124,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                         var aggregateCdnDownloadsInGalleryTable = new DataTable();
                         var command = new SqlCommand("SELECT * FROM " + TempTableName, destinationDatabase);
                         command.CommandType = CommandType.Text;
-                        command.CommandTimeout = 60 * 5;
+                        command.CommandTimeout = (int)TimeSpan.FromMinutes(10).TotalSeconds;
                         var reader = await command.ExecuteReaderAsync();
                         aggregateCdnDownloadsInGalleryTable.Load(reader);
                         aggregateCdnDownloadsInGalleryTable.Rows.Clear();
@@ -155,7 +165,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                         Trace.TraceInformation("Populating temporary table in database...");
                         using (SqlBulkCopy bulkcopy = new SqlBulkCopy(destinationDatabase))
                         {
-                            bulkcopy.BulkCopyTimeout = 60 * 30; // 30 minutes
+                            bulkcopy.BulkCopyTimeout = (int)TimeSpan.FromMinutes(30).TotalSeconds;
                             bulkcopy.DestinationTableName = TempTableName;
                             bulkcopy.WriteToServer(aggregateCdnDownloadsInGalleryTable);
                             bulkcopy.Close();
@@ -164,7 +174,8 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
                         // Update counts in destination database
                         Trace.TraceInformation("Updating destination database Download Counts... (" + packageRegistrationGroups.Count() + " package registrations to process)");
-                        await destinationDatabase.ExecuteAsync(UpdateFromTempTable, timeout: 60 * 30); // 30 minutes
+                        await destinationDatabase.ExecuteAsync(UpdateFromTempTable, 
+                            timeout: (int)TimeSpan.FromMinutes(30).TotalSeconds);
                         Trace.TraceInformation("Updated destination database Download Counts.");
                     }
                 }
