@@ -305,4 +305,22 @@ The {2} Team</value>
   <data name="CancelEmailAddress" xml:space="preserve">
     <value>You canceled your email address change request.</value>
   </data>
+  <data name="TokenExpirationShouldGiveTheUserAtLeastAMinuteToChangeTheirPassword" xml:space="preserve">
+    <value>Token expiration should give the user at least a minute to change their password</value>
+  </data>
+  <data name="NegativeIndexesAreInvalid" xml:space="preserve">
+    <value>Negative indexes are invalid.</value>
+  </data>
+  <data name="IndexDoesNotExist" xml:space="preserve">
+    <value>Index does not exist</value>
+  </data>
+  <data name="Http404NotFound" xml:space="preserve">
+    <value>(404) Error - Not Found</value>
+  </data>
+  <data name="MissingRequiredData" xml:space="preserve">
+    <value>The package is missing required data.</value>
+  </data>
+  <data name="UserKeyRequired" xml:space="preserve">
+    <value>A user key is required.</value>
+  </data>
 </root>

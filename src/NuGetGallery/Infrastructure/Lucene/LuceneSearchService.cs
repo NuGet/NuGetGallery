@@ -34,17 +34,17 @@ namespace NuGetGallery
         {
             if (searchFilter == null)
             {
-                throw new ArgumentNullException("searchFilter");
+                throw new ArgumentNullException(nameof(searchFilter));
             }
 
             if (searchFilter.Skip < 0)
             {
-                throw new ArgumentOutOfRangeException("searchFilter");
+                throw new ArgumentOutOfRangeException(nameof(searchFilter));
             }
 
             if (searchFilter.Take < 0)
             {
-                throw new ArgumentOutOfRangeException("searchFilter");
+                throw new ArgumentOutOfRangeException(nameof(searchFilter));
             }
 
             return Task.FromResult(SearchCore(searchFilter));

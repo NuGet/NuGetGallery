@@ -28,7 +28,7 @@ namespace NuGetGallery
         {
             if (metadata == null)
             {
-                throw new ArgumentNullException("metadata");
+                throw new ArgumentNullException(nameof(metadata));
             }
             metadata.AdditionalValues["Subtext"] = AllowHtml ? (object)new HtmlString(Subtext) : Subtext;
         }

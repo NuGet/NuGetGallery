@@ -43,7 +43,7 @@ namespace NuGetGallery.Operations
         {
             if (!WhatIf)
             {
-                dbExecutor.Execute(string.Format("DROP DATABASE {0}", db.Name));
+                dbExecutor.Execute($"DROP DATABASE {db.Name}");
             }
             Log.Info("Deleted database {0}.", db.Name);
         }

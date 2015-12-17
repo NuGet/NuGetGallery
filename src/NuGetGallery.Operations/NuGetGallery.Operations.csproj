@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props')" />
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -79,8 +79,9 @@
       <HintPath>..\..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.Extensions.Desktop.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -398,9 +399,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props'))" />
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets'))" />
   </Target>
   <Import Project="..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets')" />
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" />
 </Project>

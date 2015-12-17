@@ -52,10 +52,7 @@ namespace NuGetGallery.Operations
             string version,
             string folder)
         {
-            var fileName = string.Format(
-                "{0}.{1}.nupkg",
-                id,
-                version);
+            var fileName = $"{id}.{version}.nupkg";
             var path = Path.Combine(folder, fileName);
 
             var blob = container.GetBlockBlobReference(fileName);
@@ -71,7 +68,7 @@ namespace NuGetGallery.Operations
 
         public static string GetDatabaseNameTimestamp(string databaseName)
         {
-            if (databaseName == null) throw new ArgumentNullException("databaseName");
+            if (databaseName == null) throw new ArgumentNullException(nameof(databaseName));
 
             return databaseName.Substring("Backup_".Length);
         }
@@ -181,10 +178,7 @@ namespace NuGetGallery.Operations
             string id,
             string version)
         {
-            return string.Format(
-                "{0}.{1}.nupkg",
-                id.ToLowerInvariant(),
-                version.ToLowerInvariant());
+            return $"{id.ToLowerInvariant()}.{version.ToLowerInvariant()}.nupkg";
         }
 
         internal static string GetTempFolder()
@@ -205,11 +199,7 @@ namespace NuGetGallery.Operations
         {
             var hashBytes = Convert.FromBase64String(hash);
 
-            return string.Format(
-                "{0}/{1}/{2}.nupkg",
-                id,
-                version,
-                HttpServerUtility.UrlTokenEncode(hashBytes));
+            return $"{id}/{version}/{HttpServerUtility.UrlTokenEncode(hashBytes)}.nupkg";
         }
 
         public static string GetBackupOfOriginalPackageFileName(string id, string version)
@@ -398,11 +388,7 @@ namespace NuGetGallery.Operations
 
         public static string GenerateStatusString(int total, ref int counter)
         {
-            return String.Format(
-                "{0:000000}/{1:000000} {2:00.0}%",
-                ++counter,
-                total,
-                (((double)counter / (double)total) * 100.0));
+            return $"{++counter:000000}/{total:000000} {(((double) counter/(double) total)*100.0):00.0}%";
         }
     }
 }

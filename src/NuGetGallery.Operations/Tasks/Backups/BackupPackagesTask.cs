@@ -163,7 +163,7 @@ namespace NuGetGallery.Operations
                         }
                         catch (Exception ex)
                         {
-                            Log.ErrorException(String.Format("Error parsing state file: {0}", ex.Message), ex);
+                            Log.ErrorException($"Error parsing state file: {ex.Message}", ex);
                             return new State(); // Return an empty state and continue
                         }
                     }

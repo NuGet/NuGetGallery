@@ -19,12 +19,12 @@ namespace NuGetGallery.Operations
         {
             if (String.IsNullOrEmpty(resourceNames))
             {
-                throw new ArgumentException(CommonResources.Argument_Cannot_Be_Null_Or_Empty, "resourceNames");
+                throw new ArgumentException(CommonResources.Argument_Cannot_Be_Null_Or_Empty, nameof(resourceNames));
             }
 
             if (resourceType == null)
             {
-                throw new ArgumentNullException("resourceType");
+                throw new ArgumentNullException(nameof(resourceType));
             }
 
             if (_cachedManagers == null)

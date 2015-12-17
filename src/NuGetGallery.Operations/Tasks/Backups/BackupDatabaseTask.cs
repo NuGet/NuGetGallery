@@ -85,7 +85,7 @@ namespace NuGetGallery.Operations
 
                 if (!WhatIf)
                 {
-                    db.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", _backupName, ConnectionString.InitialCatalog));
+                    db.Execute($"CREATE DATABASE {_backupName} AS COPY OF {ConnectionString.InitialCatalog}");
                     _startedBackup = true;
                 }
 

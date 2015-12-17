@@ -48,7 +48,7 @@ namespace NuGetGallery.Packaging
         {
             if (stream == null)
             {
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             if (!stream.CanSeek)
@@ -149,7 +149,7 @@ namespace NuGetGallery.Packaging
                     bool added = ret.Add(partName);
                     if (!added && !interleaved)
                     {
-                        throw new InvalidDataException(string.Format("Duplicate Part Name {0} found in the package.",partName));
+                        throw new InvalidDataException($"Duplicate Part Name {partName} found in the package.");
                     }
                 }
 
@@ -202,7 +202,8 @@ namespace NuGetGallery.Packaging
             //  and UNIX file systems etc..."
             if (zipEntryName.Contains('\\'))
             {
-                throw new InvalidDataException(string.Format("The zip entry {0} has backward slash as path separator and will not be compatible in non-Windows OS",zipEntryName));
+                throw new InvalidDataException(
+                    $"The zip entry {zipEntryName} has backward slash as path separator and will not be compatible in non-Windows OS");
             }
 
             // If it matches the pattern for 'piece of interleaved part' then interleaved is true, and we trim off the piece specifier
@@ -262,7 +263,7 @@ namespace NuGetGallery.Packaging
         {
             if (filePath == null)
             {
-                throw new ArgumentNullException("filePath");
+                throw new ArgumentNullException(nameof(filePath));
             }
 
             var zipEntry = _archive.GetEntry(CanonicalName(filePath));

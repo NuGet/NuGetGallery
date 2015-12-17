@@ -22,7 +22,7 @@ namespace NuGetGallery.Operations.Common
             }
             catch (Exception e)
             {
-                throw new ApplicationException(string.Format("{0}\n{1}", e.Message, sql), e);
+                throw new ApplicationException($"{e.Message}\n{sql}", e);
             }
         }
     }
