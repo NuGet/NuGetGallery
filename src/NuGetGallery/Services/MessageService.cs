@@ -354,7 +354,7 @@ The {3} Team";
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             using (var mailMessage = new MailMessage())
