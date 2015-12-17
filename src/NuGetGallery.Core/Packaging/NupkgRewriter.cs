@@ -94,7 +94,7 @@ namespace NuGetGallery.Packaging
                     using (var archive = new ZipArchive(readWriteStream, ZipArchiveMode.Update, leaveOpen: true))
                     {
                         var manifestEntries = archive.Entries
-                            .Where(entry => entry.Name.IndexOf("/", StringComparison.OrdinalIgnoreCase) == -1
+                            .Where(entry => entry.FullName.IndexOf("/", StringComparison.OrdinalIgnoreCase) == -1
                                 && entry.Name.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).ToList();
 
                         if (manifestEntries.Count == 0)

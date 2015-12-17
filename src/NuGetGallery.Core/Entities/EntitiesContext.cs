@@ -66,6 +66,11 @@ namespace NuGetGallery
             ObjectContext.CommandTimeout = seconds;
         }
 
+        public Database GetDatabase()
+        {
+            return Database;
+        }
+
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -212,6 +217,11 @@ namespace NuGetGallery
 
             modelBuilder.Entity<CuratedPackage>()
                 .HasRequired(cp => cp.PackageRegistration);
+
+            modelBuilder.Entity<PackageDelete>()
+                .HasKey(pd => pd.Key)
+                .HasMany(pd => pd.Packages)
+                    .WithOptional();
         }
 #pragma warning restore 618
     }

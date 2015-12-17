@@ -1,14 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Moq;
-using NuGetGallery.Configuration;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -299,6 +299,139 @@ namespace NuGetGallery
             }
         }
 
+        public class TheStorePackageFileInBackupLocationAsyncMethod
+        {
+            private string packageHashForTests = "NzMzMS1QNENLNEczSDQ1SA==";
+
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var service = CreateService();
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.StorePackageFileInBackupLocationAsync(null, Stream.Null));
+
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfPackageFileIsNull()
+            {
+                var service = CreateService();
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.StorePackageFileInBackupLocationAsync(new Package { PackageRegistration = new PackageRegistration() }, null));
+
+                Assert.Equal("packageFile", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfPackageIsMissingPackageRegistration()
+            {
+                var service = CreateService();
+                var package = new Package { PackageRegistration = null };
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream()));
+
+                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfPackageIsMissingPackageRegistrationId()
+            {
+                var service = CreateService();
+                var packageRegistraion = new PackageRegistration { Id = null };
+                var package = new Package { PackageRegistration = packageRegistraion };
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream()));
+
+                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfPackageIsMissingNormalizedVersionAndVersion()
+            {
+                var service = CreateService();
+                var packageRegistraion = new PackageRegistration { Id = "theId" };
+                var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = null };
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream()));
+
+                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillUseNormalizedRegularVersionIfNormalizedVersionMissing()
+            {
+                var fileStorageSvc = new Mock<IFileStorageService>();
+                var service = CreateService(fileStorageSvc: fileStorageSvc);
+                var packageRegistraion = new PackageRegistration { Id = "theId" };
+                var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01", Hash = packageHashForTests};
+                package.Hash = packageHashForTests;
+
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "1.1.1", packageHashForTests), It.IsAny<Stream>()))
+                    .Completes()
+                    .Verifiable();
+
+                await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
+
+                fileStorageSvc.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WillSaveTheFileViaTheFileStorageServiceUsingThePackagesFolder()
+            {
+                var fileStorageSvc = new Mock<IFileStorageService>();
+                var service = CreateService(fileStorageSvc: fileStorageSvc);
+                fileStorageSvc.Setup(x => x.SaveFileAsync(Constants.PackageBackupsFolderName, It.IsAny<string>(), It.IsAny<Stream>()))
+                    .Completes()
+                    .Verifiable();
+
+                var package = CreatePackage();
+                package.Hash = packageHashForTests;
+
+                await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
+
+                fileStorageSvc.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WillSaveTheFileViaTheFileStorageServiceUsingAFileNameWithIdAndNormalizedersion()
+            {
+                var fileStorageSvc = new Mock<IFileStorageService>();
+                var service = CreateService(fileStorageSvc: fileStorageSvc);
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "theNormalizedVersion", packageHashForTests), It.IsAny<Stream>()))
+                    .Completes()
+                    .Verifiable();
+
+                var package = CreatePackage();
+                package.Hash = packageHashForTests;
+
+                await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
+
+                fileStorageSvc.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WillSaveTheFileStreamViaTheFileStorageService()
+            {
+                var fileStorageSvc = new Mock<IFileStorageService>();
+                var fakeStream = new MemoryStream();
+                var service = CreateService(fileStorageSvc: fileStorageSvc);
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeStream))
+                    .Completes()
+                    .Verifiable();
+
+                var package = CreatePackage();
+                package.Hash = packageHashForTests;
+
+                await service.StorePackageFileInBackupLocationAsync(package, fakeStream);
+
+                fileStorageSvc.VerifyAll();
+            }
+        }
+
         static string BuildFileName(
             string id,
             string version)
@@ -307,6 +440,18 @@ namespace NuGetGallery
                 Constants.PackageFileSavePathTemplate, 
                 id.ToLowerInvariant(), 
                 NuGetVersionNormalizer.Normalize(version).ToLowerInvariant(), // No matter what ends up getting passed in, the version should be normalized
+                Constants.NuGetPackageFileExtension);
+        }
+
+        private static string BuildBackupFileName(string id, string version, string hash)
+        {
+            var hashBytes = Convert.FromBase64String(hash);
+
+            return string.Format(
+                Constants.PackageFileBackupSavePathTemplate,
+                id,
+                version,
+                HttpServerUtility.UrlTokenEncode(hashBytes),
                 Constants.NuGetPackageFileExtension);
         }
 

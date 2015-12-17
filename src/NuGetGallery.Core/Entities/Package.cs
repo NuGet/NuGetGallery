@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGetGallery
 {
@@ -37,6 +38,7 @@ namespace NuGetGallery
         /// </remarks>
         public string Copyright { get; set; }
 
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime Created { get; set; }
 
         public virtual ICollection<PackageDependency> Dependencies { get; set; }
@@ -80,6 +82,7 @@ namespace NuGetGallery
         /// <summary>
         /// This is when the Package Entity was last touched (so caches can notice changes). In UTC.
         /// </summary>
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime LastUpdated { get; set; }
 
         /// <summary>
@@ -97,6 +100,7 @@ namespace NuGetGallery
         [StringLength(20)]
         public string Language { get; set; }
 
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime Published { get; set; }
 
         /// <summary>The size of the nupkg file in bytes.</summary>
@@ -170,6 +174,8 @@ namespace NuGetGallery
         /// List of historical metadata info of this package (before edits were applied)
         /// </summary>
         public virtual ICollection<PackageHistory> PackageHistories { get; set; }
+
+        public bool Deleted { get; set; }
 
         public void ApplyEdit(PackageEdit edit, string hashAlgorithm, string hash, long packageFileSize)
         {

@@ -19,6 +19,7 @@
       <Setting name="Gallery.SmtpUri" />
       <Setting name="Gallery.FacebookAppId" />
       <Setting name="Gallery.AppInsightsInstrumentationKey" />
+      <Setting name="Gallery.AppInsightsSamplingPercentage" />
       <Setting name="Gallery.SiteRoot" />
       <Setting name="Gallery.AzureCdnHost" />
       <Setting name="Gallery.LuceneIndexLocation" />

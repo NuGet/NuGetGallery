@@ -99,6 +99,13 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
+        [HttpGet]
+        [RequireSsl]
+        public virtual ActionResult RegisterLegacy(string returnUrl)
+        {
+            return RedirectToAction("LogOn", new { returnUrl });
+        }
+        
         [HttpPost]
         [RequireSsl]
         [ValidateAntiForgeryToken]

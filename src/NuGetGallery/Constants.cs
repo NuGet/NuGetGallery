@@ -14,13 +14,15 @@ namespace NuGetGallery
         public const int DefaultPasswordResetTokenExpirationHours = 24;
         public const int MaxEmailSubjectLength = 255;
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("3.4.0.0");
-        public const string PackageContentType = "application/zip";
+        public const string PackageContentType = "binary/octet-stream";
         public const string OctetStreamContentType = "application/octet-stream";
         public const string NuGetPackageFileExtension = ".nupkg";
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
+        public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
 
         public const string PackagesFolderName = "packages";
+        public const string PackageBackupsFolderName = "package-backups";
         public const string DownloadsFolderName = "downloads";
         public const string ContentFolderName = "content";
 

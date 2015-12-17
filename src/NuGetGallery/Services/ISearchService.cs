@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Linq;
+
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -19,34 +18,5 @@ namespace NuGetGallery
         /// Gets a boolean indicating if all versions of each package are stored in the index
         /// </summary>
         bool ContainsAllVersions { get; }
-    }
-
-    public interface IRawSearchService
-    {
-        /// <summary>
-        /// Executes a raw lucene query against the search index
-        /// </summary>
-        /// <param name="filter">The query to execute, with the search term interpreted as a raw lucene query</param>
-        /// <returns>The results of the query</returns>
-        Task<SearchResults> RawSearch(SearchFilter filter);
-    }
-
-    public class SearchResults
-    {
-        public int Hits { get; private set; }
-        public DateTime? IndexTimestampUtc { get; private set; }
-        public IQueryable<Package> Data { get; private set; }
-
-        public SearchResults(int hits, DateTime? indexTimestampUtc)
-            : this(hits, indexTimestampUtc, Enumerable.Empty<Package>().AsQueryable())
-        {
-        }
-
-        public SearchResults(int hits, DateTime? indexTimestampUtc, IQueryable<Package> data)
-        {
-            Hits = hits;
-            Data = data;
-            IndexTimestampUtc = indexTimestampUtc;
-        }
     }
 }

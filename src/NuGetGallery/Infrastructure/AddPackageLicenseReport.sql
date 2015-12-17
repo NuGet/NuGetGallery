@@ -27,7 +27,7 @@ CREATE PROCEDURE [dbo].[AddPackageLicenseReport]
      @reportUrl NVARCHAR(256) = NULL,
      @licenseNames LicenseNamesList READONLY,
      @comment NVARCHAR(256) = NULL,
-	 @whatIf BIT
+	 @whatIf BIT = 0
  )
  AS
  BEGIN

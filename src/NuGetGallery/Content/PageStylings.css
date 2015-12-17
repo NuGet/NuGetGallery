@@ -121,6 +121,10 @@
     padding: 15px;
 }
 
+    .nuget-badge code::before {
+        content: "PM> ";
+    }
+
 /* Messages on package page (Display Package) */
 
 .pending-edit-message,
@@ -506,4 +510,10 @@ li.signin-authprovider {
     margin: 0;
     margin-left: 5px;
     margin-right: 8px;
+}
+
+/* Package details */
+.versionTableRow.deleted {
+    color: #BBB;
+    text-decoration: line-through;
 }

@@ -44,7 +44,7 @@ namespace NuGetGallery
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
             packageRegistration.Packages.Add(package);
-            UpdateIsLatest(packageRegistration);
+            UpdateIsLatest(packageRegistration, false);
 
             if (commitChanges)
             {
@@ -55,36 +55,7 @@ namespace NuGetGallery
             return package;
         }
 
-        public void DeletePackage(string id, string version, bool commitChanges = true)
-        {
-            var package = FindPackageByIdAndVersion(id, version);
-
-            if (package == null)
-            {
-                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
-            }
-
-            var packageRegistration = package.PackageRegistration;
-            _packageRepository.DeleteOnCommit(package);
-
-            UpdateIsLatest(packageRegistration);
-
-            if (packageRegistration.Packages.Count == 0)
-            {
-                _packageRegistrationRepository.DeleteOnCommit(packageRegistration);
-            }
-
-            if (commitChanges)
-            {
-                // we don't need to call _packageRegistrationRepository.CommitChanges() here because 
-                // it shares the same EntityContext as _packageRepository.
-                _packageRepository.CommitChanges();
-
-                NotifyIndexingService();
-            }
-        }
-
-        public virtual PackageRegistration FindPackageRegistrationById(string id)
+       public virtual PackageRegistration FindPackageRegistrationById(string id)
         {
             if (id == null)
             {
@@ -148,18 +119,6 @@ namespace NuGetGallery
             return package;
         }
 
-        public IQueryable<Package> GetPackagesForListing(bool includePrerelease)
-        {
-            var packages = _packageRepository.GetAll()
-                .Include(x => x.PackageRegistration)
-                .Include(x => x.PackageRegistration.Owners)
-                .Where(p => p.Listed);
-
-            return includePrerelease
-                       ? packages.Where(p => p.IsLatest)
-                       : packages.Where(p => p.IsLatestStable);
-        }
-
         public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted)
         {
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
@@ -191,8 +150,17 @@ namespace NuGetGallery
             var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
             foreach (var package in latestPackageVersions.Where(p => p != null))
             {
-                mergedResults.Add(package.PackageRegistration.Id, package);
+                if (mergedResults.ContainsKey(package.PackageRegistration.Id)
+                    && mergedResults[package.PackageRegistration.Id].Created < package.Created)
+                {
+                    mergedResults[package.PackageRegistration.Id] = package;
+                }
+                else
+                {
+                    mergedResults.Add(package.PackageRegistration.Id, package);
+                }
             }
+
             foreach (var package in latestStablePackageVersions.Where(p => p != null))
             {
                 mergedResults[package.PackageRegistration.Id] = package;
@@ -239,7 +207,7 @@ namespace NuGetGallery
             package.Published = DateTime.UtcNow;
             package.Listed = true;
 
-            UpdateIsLatest(package.PackageRegistration);
+            UpdateIsLatest(package.PackageRegistration, false);
 
             if (commitChanges)
             {
@@ -300,6 +268,10 @@ namespace NuGetGallery
                 return;
             }
 
+            if (package.Deleted)
+            {
+                throw new InvalidOperationException("A deleted package should never be listed!");
+            }
             if (!package.Listed && (package.IsLatestStable || package.IsLatest))
             {
                 throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");
@@ -309,7 +281,7 @@ namespace NuGetGallery
             package.LastUpdated = DateTime.UtcNow;
             package.LastEdited = DateTime.UtcNow;
 
-            UpdateIsLatest(package.PackageRegistration);
+            UpdateIsLatest(package.PackageRegistration, false);
 
             if (commitChanges)
             {
@@ -334,7 +306,7 @@ namespace NuGetGallery
 
             if (package.IsLatest || package.IsLatestStable)
             {
-                UpdateIsLatest(package.PackageRegistration);
+                UpdateIsLatest(package.PackageRegistration, false);
             }
 
             if (commitChanges)
@@ -430,8 +402,7 @@ namespace NuGetGallery
                 throw new EntityException(
                     "A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
             }
-
-            var now = DateTime.UtcNow;
+            
 
             package = new Package
             {
@@ -445,10 +416,7 @@ namespace NuGetGallery
                 HashAlgorithm = packageStreamMetadata.HashAlgorithm,
                 Hash = packageStreamMetadata.Hash,
                 PackageFileSize = packageStreamMetadata.Size,
-                Created = now,
                 Language = packageMetadata.Language,
-                LastUpdated = now,
-                Published = now,
                 Copyright = packageMetadata.Copyright,
                 FlattenedAuthors = packageMetadata.Authors.Flatten(),
                 IsPrerelease = packageMetadata.Version.IsPrerelease,
@@ -602,7 +570,7 @@ namespace NuGetGallery
             }
         }
 
-        private static void UpdateIsLatest(PackageRegistration packageRegistration)
+        public void UpdateIsLatest(PackageRegistration packageRegistration, bool commitChanges = true)
         {
             if (!packageRegistration.Packages.Any())
             {
@@ -618,7 +586,7 @@ namespace NuGetGallery
             }
 
             // If the last listed package was just unlisted, then we won't find another one
-            var latestPackage = FindPackage(packageRegistration.Packages, p => p.Listed);
+            var latestPackage = FindPackage(packageRegistration.Packages, p => !p.Deleted && p.Listed);
 
             if (latestPackage != null)
             {
@@ -629,7 +597,7 @@ namespace NuGetGallery
                 {
                     // If the newest uploaded package is a prerelease package, we need to find an older package that is 
                     // a release version and set it to IsLatest.
-                    var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && p.Listed));
+                    var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
                     if (latestReleasePackage != null)
                     {
                         // We could have no release packages
@@ -642,6 +610,11 @@ namespace NuGetGallery
                     // Only release versions are marked as IsLatestStable. 
                     latestPackage.IsLatestStable = true;
                 }
+            }
+
+            if (commitChanges)
+            {
+                _packageRepository.CommitChanges();
             }
         }
 

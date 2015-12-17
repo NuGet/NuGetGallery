@@ -128,6 +128,7 @@ namespace NuGetGallery
             switch (folderName)
             {
                 case Constants.PackagesFolderName:
+                case Constants.PackageBackupsFolderName:
                 case Constants.DownloadsFolderName:
                     creationTask = PrepareContainer(folderName, isPublic: true);
                     break;
@@ -201,6 +202,7 @@ namespace NuGetGallery
             switch (folderName)
             {
                 case Constants.PackagesFolderName:
+                case Constants.PackageBackupsFolderName:
                 case Constants.UploadsFolderName:
                     return Constants.PackageContentType;
 

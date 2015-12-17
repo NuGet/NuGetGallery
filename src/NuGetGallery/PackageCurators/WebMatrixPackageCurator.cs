@@ -22,7 +22,7 @@ namespace NuGetGallery
             PackageReader nugetPackage,
             bool commitChanges)
         {
-            var curatedFeed = CuratedFeedService.GetFeedByName("webmatrix", includePackages: false);
+            var curatedFeed = CuratedFeedService.GetFeedByName("webmatrix", includePackages: true);
             if (curatedFeed == null)
             {
                 return;

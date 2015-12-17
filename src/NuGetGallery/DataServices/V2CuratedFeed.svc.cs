@@ -48,7 +48,8 @@ namespace NuGetGallery
                 throw new DataServiceException(404, "Not Found");
             }
 
-            var packages = _curatedFeedService.GetPackages(curatedFeedName);
+            var packages = _curatedFeedService.GetPackages(curatedFeedName)
+                .Where(p => !p.Deleted);
 
             return new V2FeedContext
                 {
