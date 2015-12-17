@@ -352,6 +352,11 @@ The {3} Team";
 
         private void SendSupportMessage(User user, string body, string subject)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;

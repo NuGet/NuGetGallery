@@ -4,7 +4,7 @@
     ViewBag.Tab = "Statistics";
 }
 
-@if (Model.IsReportAvailable)
+@if (Model.IsReportAvailable && Model.Report != null)
 {
     <h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (@Model.Report.Total over the Last 6 Weeks)</h1>
     @Html.Partial("_LastUpdated", Model)

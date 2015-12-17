@@ -1,13 +1,25 @@
 ﻿@{
     Page.Title = "Page Not Found";
-    var errorPath = Request.QueryString["aspxerrorpath"];
+    var errorPath = string.Empty;
 
-    if (String.IsNullOrEmpty(errorPath))
+    if (Request.QueryString["aspxerrorpath"] != null)
+    {
+        errorPath = Request.QueryString["aspxerrorpath"];
+    }
+    else
     {
         errorPath = Request.RawUrl;
     }
 
-    errorPath = Path.GetFileNameWithoutExtension(errorPath);
+    try
+    {
+        errorPath = Path.GetFileNameWithoutExtension(errorPath);
+    }
+    catch (ArgumentException)
+    {
+        // seems we can't format the error path nicely...
+        errorPath = string.Empty;
+    }
     Response.StatusCode = 404;
 }
 

@@ -28,7 +28,12 @@ namespace NuGetGallery
                     var targetFramework = dependencySet.Key == null
                                               ? "All Frameworks"
                                               : NuGetFramework.Parse(dependencySet.Key).ToFriendlyName();
-                    DependencySets.Add(targetFramework, dependencySet.Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec)));
+
+                    if (!DependencySets.ContainsKey(targetFramework))
+                    {
+                        DependencySets.Add(targetFramework,
+                            dependencySet.Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec)));
+                    }
                 }
             }
             catch (Exception e)
