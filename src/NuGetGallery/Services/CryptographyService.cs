@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -14,9 +15,11 @@ namespace NuGetGallery
         private const int SaltLengthInBytes = 16;
 
         public static string GenerateHash(
-            byte[] input,
+            Stream input,
             string hashAlgorithmId = Constants.Sha512HashAlgorithmId)
         {
+            input.Position = 0;
+
             byte[] hashBytes;
 
             using (var hashAlgorithm = HashAlgorithm.Create(hashAlgorithmId))
@@ -57,7 +60,10 @@ namespace NuGetGallery
             byte[] input,
             string hashAlgorithmId = Constants.Sha512HashAlgorithmId)
         {
-            return hash.Equals(GenerateHash(input, hashAlgorithmId));
+            using (var tempStream = new MemoryStream(input))
+            {
+                return hash.Equals(GenerateHash(tempStream, hashAlgorithmId));
+            }
         }
 
         public static bool ValidateSaltedHash(

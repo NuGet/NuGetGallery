@@ -13,7 +13,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
-using NuGet;
+using NuGet.Packaging;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
@@ -32,7 +32,7 @@ namespace NuGetGallery
         public Mock<IIndexingService> MockIndexingService { get; private set; }
         public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
         
-        private INupkg PackageFromInputStream { get; set; }
+        private Stream PackageFromInputStream { get; set; }
 
         public TestableApiController(MockBehavior behavior = MockBehavior.Default)
         {
@@ -53,14 +53,14 @@ namespace NuGetGallery
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
 
-        internal void SetupPackageFromInputStream(Mock<INupkg> nuGetPackage)
+        internal void SetupPackageFromInputStream(Stream packageStream)
         {
-            this.PackageFromInputStream = nuGetPackage.Object;
+            PackageFromInputStream = packageStream;
         }
-
-        protected internal override INupkg ReadPackageFromRequest()
+        
+        protected internal override Stream ReadPackageFromRequest()
         {
-            return this.PackageFromInputStream;
+            return PackageFromInputStream;
         }
     }
 
@@ -75,8 +75,7 @@ namespace NuGetGallery
             public async Task CreatePackageWillSavePackageFileToFileStorage()
             {
                 // Arrange
-                var user = new User() { EmailAddress = "confirmed@email.com" }; 
-                var userService = new Mock<IUserService>();
+                var user = new User() { EmailAddress = "confirmed@email.com" };
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Owners.Add(user);
 
@@ -85,9 +84,7 @@ namespace NuGetGallery
                 controller.MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0)).Verifiable();
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
 
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act
@@ -100,10 +97,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists()
             {
-                var version = new SemanticVersion("1.0.042");
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(version);
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.042");
 
                 var user = new User() { EmailAddress = "confirmed@email.com" }; 
 
@@ -131,72 +125,64 @@ namespace NuGetGallery
             [Fact]
             public void WillCreateAPackageFromTheNuGetPackage()
             {
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+
                 var user = new User() { EmailAddress = "confirmed@email.com" }; 
                 var controller = new TestableApiController();
-                var apiKey = Guid.NewGuid();
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false));
+                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<PackageReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
             [Fact]
             public void WillCurateThePackage()
             {
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+
                 var user = new User() { EmailAddress = "confirmed@email.com" };
                 var controller = new TestableApiController();
-                var apiKey = Guid.NewGuid();
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 controller.CreatePackagePut();
 
-                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), nuGetPackage.Object, false));
+                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), It.IsAny<PackageReader>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
             [Fact]
-            public void WillCurateThePackageViaAPI()
+            public void WillCurateThePackageViaApi()
             {
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+
                 var user = new User() { EmailAddress = "confirmed@email.com" };
                 var controller = new TestableApiController();
-                var apiKey = Guid.NewGuid();
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 controller.CreatePackagePost();
 
-                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), nuGetPackage.Object, false));
+                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), It.IsAny<PackageReader>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
             [Fact]
             public void WillCreateAPackageWithTheUserMatchingTheApiKey()
             {
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+
                 var user = new User() { EmailAddress = "confirmed@email.com" }; 
                 var controller = new TestableApiController();
-                var apiKey = Guid.NewGuid();
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<INupkg>(), user, false));
+                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<PackageReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
         }
@@ -204,7 +190,7 @@ namespace NuGetGallery
         public class TheDeletePackageAction
         {
             [Fact]
-            public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist()
+            public void WillThrowIfAPackageWithTheIdAndNuGetVersionDoesNotExist()
             {
                 var controller = new TestableApiController();
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns((Package)null);
@@ -227,7 +213,7 @@ namespace NuGetGallery
                     {
                         PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
                     };
-                var apiKey = Guid.NewGuid();
+
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(notOwner);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns(package);
@@ -308,13 +294,13 @@ namespace NuGetGallery
             public async Task GetPackageReturnsPackageIfItExists()
             {
                 // Arrange
-                const string PackageId = "Baz";
+                const string packageId = "Baz";
                 var package = new Package() { Version = "1.0.01", NormalizedVersion = "1.0.1" };
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
                 // controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "1.0.1", false)).Returns(package);
                 // controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, PackageId, package.NormalizedVersion))
+                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
                               .Verifiable();
                 
@@ -333,7 +319,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(PackageId, "1.0.01");
+                var result = await controller.GetPackage(packageId, "1.0.01");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -346,7 +332,6 @@ namespace NuGetGallery
             public async Task GetPackageReturnsSpecificPackageEvenIfDatabaseIsOffline()
             {
                 // Arrange
-                var package = new Package();
                 var actionResult = new EmptyResult();
 
                 var controller = new TestableApiController(MockBehavior.Strict);
@@ -382,14 +367,14 @@ namespace NuGetGallery
             public async Task GetPackageReturnsLatestPackageIfNoVersionIsProvided()
             {
                 // Arrange
-                const string PackageId = "Baz";
+                const string packageId = "Baz";
                 var package = new Package() { Version = "1.2.0408", NormalizedVersion = "1.2.408" };
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "", false)).Returns(package);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(packageId, "", false)).Returns(package);
                 //controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
 
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, PackageId, package.NormalizedVersion))
+                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
                               .Verifiable();
 
@@ -408,7 +393,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(PackageId, "");
+                var result = await controller.GetPackage(packageId, "");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -421,12 +406,12 @@ namespace NuGetGallery
             public async Task GetPackageReturns503IfNoVersionIsProvidedAndDatabaseUnavailable()
             {
                 // Arrange
-                const string PackageId = "Baz";
+                const string packageId = "Baz";
                 var package = new Package();
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "", false)).Throws(new DataException("Oh noes, database broked!"));
- 		        controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, PackageId, package.NormalizedVersion))
+ 		        controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
                              .Returns(Task.FromResult<ActionResult>(actionResult))
                              .Verifiable();
 
@@ -458,7 +443,7 @@ namespace NuGetGallery
         public class ThePublishPackageAction
         {
             [Fact]
-            public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist()
+            public void WillThrowIfAPackageWithTheIdAndNuGetVersionDoesNotExist()
             {
                 // Arrange
                 var controller = new TestableApiController();
@@ -568,7 +553,6 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = new TestableApiController();
-                var owner = new User();
                 var nonOwner = new User();
                 controller.SetCurrentUser(nonOwner);
                 controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns(
@@ -588,7 +572,6 @@ namespace NuGetGallery
             public void VerifyPackageKeyReturns200IfUserIsAnOwner()
             {
                 // Arrange
-                var apiKey = Guid.NewGuid();
                 var user = new User();
                 var package = new Package { PackageRegistration = new PackageRegistration() };
                 package.PackageRegistration.Owners.Add(user);

@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
+using System.IO;
+using System.IO.Compression;
 using Moq;
-using NuGet;
-using NuGetGallery.Packaging;
+using NuGet.Packaging;
 using Xunit;
 
 namespace NuGetGallery.PackageCurators
@@ -69,12 +71,12 @@ namespace NuGetGallery.PackageCurators
                 var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.IsLatestStable = false;
-                var stubNuGetPackage = CreateStubNuGetPackage();
+                var stubNuGetPackageReader = CreateStubNuGetPackageReader();
 
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    stubNuGetPackage.Object);
+                    stubNuGetPackageReader.Object);
 
                 Assert.False(result);
             }
@@ -84,13 +86,13 @@ namespace NuGetGallery.PackageCurators
             {
                 var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                var stubNuGetPackage = CreateStubNuGetPackage();
+                var stubNuGetPackageReader = CreateStubNuGetPackageReader();
                 stubGalleryPackage.Tags = "aspnetwebpages";
 
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    stubNuGetPackage.Object);
+                    stubNuGetPackageReader.Object);
 
                 Assert.True(result);
             }
@@ -100,12 +102,13 @@ namespace NuGetGallery.PackageCurators
             {
                 var curator = TestableWebMatrixPackageCurator.Create(null);
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                var stubNuGetPackage = CreateStubNuGetPackage();
+                var stubNuGetPackageReader = CreateStubNuGetPackageReader();
                 stubGalleryPackage.Tags = "aTag aspnetwebpages aThirdTag";
                 
-                curator.Curate(stubGalleryPackage, stubNuGetPackage.Object, commitChanges: true);
+                curator.Curate(stubGalleryPackage, stubNuGetPackageReader.Object, commitChanges: true);
 
-                stubNuGetPackage.Verify(stub => stub.GetFiles(), Times.Never());
+                // at most once - reading the NuSpec will call GetFiles() under the hood
+                stubNuGetPackageReader.Verify(stub => stub.GetFiles(), Times.AtMostOnce());
             }
 
             [Fact]
@@ -113,19 +116,17 @@ namespace NuGetGallery.PackageCurators
             {
                 var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                var stubNuGetPackage = CreateStubNuGetPackage();
-                stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(
-                    new []
-                        {
-                            "foo.txt",
-                            "foo.ps1",
-                            "foo.cs",
-                        });
+                var stubNuGetPackage = CreateStubNuGetPackage(populatePackage: p =>
+                {
+                    p.CreateEntry("foo.txt", CompressionLevel.Fastest);
+                    p.CreateEntry("foo.ps1", CompressionLevel.Fastest);
+                    p.CreateEntry("foo.cs", CompressionLevel.Fastest);
+                });
 
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    stubNuGetPackage.Object);
+                    new PackageReader(stubNuGetPackage));
 
                 Assert.False(result);
             }
@@ -135,19 +136,17 @@ namespace NuGetGallery.PackageCurators
             {
                 var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                var stubNuGetPackage = CreateStubNuGetPackage();
-                stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(
-                    new[]
-                        {
-                            "foo.txt",
-                            "foo.t4",
-                            "foo.cs",
-                        });
+                var stubNuGetPackage = CreateStubNuGetPackage(populatePackage: p =>
+                {
+                    p.CreateEntry("foo.txt", CompressionLevel.Fastest);
+                    p.CreateEntry("foo.t4", CompressionLevel.Fastest);
+                    p.CreateEntry("foo.cs", CompressionLevel.Fastest);
+                });
 
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    stubNuGetPackage.Object);
+                    new PackageReader(stubNuGetPackage));
 
                 Assert.False(result);
             }
@@ -156,7 +155,7 @@ namespace NuGetGallery.PackageCurators
             public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsNotIncluded()
             {
                 var stubFeed = new CuratedFeed();
-                var stubNuGetPackage = CreateStubNuGetPackage().Object;
+                var stubNuGetPackage = CreateStubNuGetPackageReader();
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.Dependencies.Add(
                     new PackageDependency { Id = "NotACuratedPackage" });
@@ -164,7 +163,7 @@ namespace NuGetGallery.PackageCurators
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    stubNuGetPackage);
+                    stubNuGetPackage.Object);
 
                 Assert.False(result);
             }
@@ -180,7 +179,7 @@ namespace NuGetGallery.PackageCurators
                     PackageRegistration = new PackageRegistration { Id = "ManuallyExcludedPackage" }
                 };
                 stubFeed.Packages.Add(dependencyPackage);
-                var stubNuGetPackage = CreateStubNuGetPackage().Object;
+                var stubNuGetPackage = CreateStubNuGetPackageReader();
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.Dependencies.Add(
                     new PackageDependency { Id = "ManuallyExcludedPackage" });
@@ -188,7 +187,7 @@ namespace NuGetGallery.PackageCurators
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    stubNuGetPackage);
+                    stubNuGetPackage.Object);
 
                 Assert.False(result);
             }
@@ -198,18 +197,16 @@ namespace NuGetGallery.PackageCurators
             {
                 var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                var stubNuGetPackage = CreateStubNuGetPackage();
-                stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(
-                    new[]
-                        {
-                            "foo.txt",
-                            "foo.cs",
-                        });
+                var stubNuGetPackage = CreateStubNuGetPackage(populatePackage: p =>
+                {
+                    p.CreateEntry("foo.txt", CompressionLevel.Fastest);
+                    p.CreateEntry("foo.cs", CompressionLevel.Fastest);
+                });
 
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    stubNuGetPackage.Object);
+                    new PackageReader(stubNuGetPackage));
 
                 Assert.True(result);
             }
@@ -219,13 +216,12 @@ namespace NuGetGallery.PackageCurators
             {
                 var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                var stubNuGetPackage = CreateStubNuGetPackage();
-                stubNuGetPackage.Setup(n => n.Metadata.MinClientVersion).Returns(new Version(3, 0));
+                var stubNuGetPackage = CreateStubNuGetPackage(minClientVersion: "3.0.0");
                 
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    stubNuGetPackage.Object);
+                    new PackageReader(stubNuGetPackage));
 
                 Assert.False(result);
             }
@@ -235,7 +231,7 @@ namespace NuGetGallery.PackageCurators
             {
                 var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                var stubNuGetPackage = CreateStubNuGetPackage();
+                var stubNuGetPackage = CreateStubNuGetPackageReader();
                 stubGalleryPackage.Tags = "aspnetwebpages";
                 stubGalleryPackage.SupportedFrameworks.Add(new PackageFramework()
                 {
@@ -256,7 +252,7 @@ namespace NuGetGallery.PackageCurators
                 var curator = TestableWebMatrixPackageCurator.Create(null);
                 curator.StubCuratedFeed.Key = 42;
 
-                curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackage().Object, commitChanges: true);
+                curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackageReader().Object, commitChanges: true);
 
                 curator.StubCuratedFeedService.Verify(
                     stub => stub.CreatedCuratedPackage(
@@ -275,7 +271,7 @@ namespace NuGetGallery.PackageCurators
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.PackageRegistration.Key = 42;
 
-                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
+                curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
                 curator.StubCuratedFeedService.Verify(
                     stub => stub.CreatedCuratedPackage(
@@ -292,7 +288,7 @@ namespace NuGetGallery.PackageCurators
             {
                 var curator = TestableWebMatrixPackageCurator.Create(null);
 
-                curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackage().Object, commitChanges: true);
+                curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackageReader().Object, commitChanges: true);
 
                 curator.StubCuratedFeedService.Verify(
                     stub => stub.CreatedCuratedPackage(
@@ -316,19 +312,16 @@ namespace NuGetGallery.PackageCurators
                     };
             }
 
-            private static Mock<INupkg> CreateStubNuGetPackage()
+            private static Stream CreateStubNuGetPackage(string minClientVersion = null, Action<ZipArchive> populatePackage = null)
             {
-                var stubNuGetPackage = new Mock<INupkg>();
-                stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(new string[] { });
-                stubNuGetPackage.Setup(stub => stub.Metadata.Id).Returns("test");
-                return stubNuGetPackage;
+                return TestPackage.CreateTestPackageStream("test", "1.0.0", minClientVersion: minClientVersion, populatePackage: populatePackage);
             }
 
-            private static Mock<IPackageFile> CreateStubNuGetPackageFile(string path)
+            private static Mock<TestPackageReader> CreateStubNuGetPackageReader()
             {
-                var stubPackageFile = new Mock<IPackageFile>();
-                stubPackageFile.Setup(stub => stub.Path).Returns(path);
-                return stubPackageFile;
+                var mock = new Mock<TestPackageReader>(CreateStubNuGetPackage());
+                mock.CallBase = true;
+                return mock;
             }
         }
     }

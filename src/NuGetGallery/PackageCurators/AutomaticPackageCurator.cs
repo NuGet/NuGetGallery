@@ -3,8 +3,7 @@
 
 using System;
 using System.Linq;
-using NuGet;
-using NuGetGallery.Packaging;
+using NuGet.Packaging;
 
 namespace NuGetGallery
 {
@@ -19,12 +18,12 @@ namespace NuGetGallery
 
         public abstract void Curate(
             Package galleryPackage,
-            INupkg nugetPackage,
+            PackageReader nugetPackage,
             bool commitChanges);
         
         protected static bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)
         {
-            if (galleryPackage.Dependencies.IsEmpty())
+            if (!galleryPackage.Dependencies.AnySafe())
             {
                 return true;
             }

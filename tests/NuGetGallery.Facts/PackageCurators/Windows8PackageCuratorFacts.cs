@@ -1,11 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using Moq;
-using NuGet;
-using NuGetGallery.Packaging;
+using NuGet.Packaging;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery.PackageCurators
 {
@@ -136,13 +135,12 @@ namespace NuGetGallery.PackageCurators
         public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsNotIncluded()
         {
             var curator = TestableWindows8PackageCurator.Create(null);
-            var stubNuGetPackage = CreateStubNuGetPackage();
 
             var stubGalleryPackage = CreateStubGalleryPackage();
             stubGalleryPackage.Tags = "win8";
             stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "NotACuratedPackage" });
 
-            curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
+            curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
                 stub => stub.CreatedCuratedPackage(
@@ -164,7 +162,7 @@ namespace NuGetGallery.PackageCurators
             stubGalleryPackage.Tags = "win8";
             stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "ManuallyExcludedPackage" });
 
-            curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
+            curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
                 stub => stub.CreatedCuratedPackage(
@@ -184,7 +182,7 @@ namespace NuGetGallery.PackageCurators
             var package = CreateStubGalleryPackage();
             package.Tags = "winrt";
 
-            curator.Curate(package, CreateStubNuGetPackage().Object, commitChanges: true);
+            curator.Curate(package, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
                 stub => stub.CreatedCuratedPackage(
@@ -204,7 +202,7 @@ namespace NuGetGallery.PackageCurators
             stubGalleryPackage.PackageRegistration.Key = 42;
             stubGalleryPackage.Tags = "winrt";
 
-            curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
+            curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
                 stub => stub.CreatedCuratedPackage(
@@ -223,7 +221,7 @@ namespace NuGetGallery.PackageCurators
             var stubGalleryPackage = CreateStubGalleryPackage();
             stubGalleryPackage.Tags = "winrt";
 
-            curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
+            curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
                 stub => stub.CreatedCuratedPackage(
@@ -247,11 +245,9 @@ namespace NuGetGallery.PackageCurators
             };
         }
 
-        private static Mock<INupkg> CreateStubNuGetPackage()
+        private static Mock<PackageReader> CreateStubNuGetPackageReader()
         {
-            var stubNuGetPackage = new Mock<INupkg>();
-            stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(new string[] {});
-            return stubNuGetPackage;
+            return new Mock<PackageReader>(TestPackage.CreateTestPackageStream("TestPackage", "1.0.0"));
         }
     }
 }

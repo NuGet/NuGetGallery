@@ -7,13 +7,13 @@ using System.Data.Entity;
 using System.Data.Services;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.Versioning;
 using System.ServiceModel.Web;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
 using System.Web.Routing;
-using NuGet;
+using NuGet.Frameworks;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.DataServices;
 using QueryInterceptor;
@@ -205,7 +205,7 @@ namespace NuGetGallery
             var versionValues = versions.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             var targetFrameworkValues = String.IsNullOrEmpty(targetFrameworks)
                                             ? null
-                                            : targetFrameworks.Split('|').Select(VersionUtility.ParseFrameworkName).ToList();
+                                            : targetFrameworks.Split('|').Select(tfx => NuGetFramework.Parse(tfx)).ToList();
             var versionConstraintValues = String.IsNullOrEmpty(versionConstraints)
                                             ? new string[idValues.Length]
                                             : versionConstraints.Split('|');
@@ -218,13 +218,13 @@ namespace NuGetGallery
 
             var versionLookup = idValues.Select((id, i) =>
                 {
-                    SemanticVersion currentVersion;
-                    if (SemanticVersion.TryParse(versionValues[i], out currentVersion))
+                    NuGetVersion currentVersion;
+                    if (NuGetVersion.TryParse(versionValues[i], out currentVersion))
                     {
-                        IVersionSpec versionConstraint = null;
+                        VersionRange versionConstraint = null;
                         if (versionConstraintValues[i] != null)
                         {
-                            if (!VersionUtility.TryParseVersionSpec(versionConstraintValues[i], out versionConstraint))
+                            if (!VersionRange.TryParse(versionConstraintValues[i], out versionConstraint))
                             {
                                 versionConstraint = null;
                             }
@@ -250,23 +250,24 @@ namespace NuGetGallery
 
         private static IEnumerable<Package> GetUpdates(
             IEnumerable<Package> packages,
-            ILookup<string, Tuple<SemanticVersion, IVersionSpec>> versionLookup,
-            IEnumerable<FrameworkName> targetFrameworkValues,
+            ILookup<string, Tuple<NuGetVersion, VersionRange>> versionLookup,
+            IEnumerable<NuGetFramework> targetFrameworkValues,
             bool includeAllVersions)
         {
             var updates = from p in packages.AsEnumerable()
-                          let version = SemanticVersion.Parse(p.Version)
+                          let version = NuGetVersion.Parse(p.Version)
                           where versionLookup[p.PackageRegistration.Id]
                             .Any(versionTuple =>
                             {
-                                SemanticVersion clientVersion = versionTuple.Item1;
+                                NuGetVersion clientVersion = versionTuple.Item1;
                                 var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
 
-                                IVersionSpec versionConstraint = versionTuple.Item2;
+                                VersionRange versionConstraint = versionTuple.Item2;
 
                                 return (version > clientVersion) &&
                                         (targetFrameworkValues == null ||
-                                        targetFrameworkValues.Any(s => VersionUtility.IsCompatible(s, supportedPackageFrameworks))) &&
+                                        !supportedPackageFrameworks.Any() ||
+                                        targetFrameworkValues.Any(s => supportedPackageFrameworks.Any(supported => NuGetFrameworkUtility.IsCompatibleWithFallbackCheck(s, supported)))) &&
                                         (versionConstraint == null || versionConstraint.Satisfies(version));
                             })
                           select p;
@@ -274,7 +275,7 @@ namespace NuGetGallery
             if (!includeAllVersions)
             {
                 updates = updates.GroupBy(p => p.PackageRegistration.Id)
-                    .Select(g => g.OrderByDescending(p => SemanticVersion.Parse(p.Version)).First());
+                    .Select(g => g.OrderByDescending(p => NuGetVersion.Parse(p.Version)).First());
             }
             return updates;
         }
