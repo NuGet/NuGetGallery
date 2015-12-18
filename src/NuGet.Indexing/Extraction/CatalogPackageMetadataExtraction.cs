@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using NuGet.Frameworks;
+using NuGet.Versioning;
 
 namespace NuGet.Indexing
 {
@@ -20,13 +23,15 @@ namespace NuGet.Indexing
         private class Extractor
         {
             private JObject _catalog;
+            private CatalogPackageReader _reader;
             private Dictionary<string, string> _metadata;
 
             public IDictionary<string, string> Extract(JObject catalog)
             {
                 _catalog = catalog;
+                _reader = new CatalogPackageReader(_catalog);
                 _metadata = new Dictionary<string, string>();
-                
+
                 AddString("id");
                 AddString("version");
                 AddString("verbatimVersion", "originalVersion");
@@ -53,6 +58,7 @@ namespace NuGet.Indexing
                 AddString("packageSize");
                 AddString("requiresLicenseAcceptance");
 
+                
                 AddFlattenedDependencies();
                 AddSupportedFrameworks();
 
@@ -103,56 +109,29 @@ namespace NuGet.Indexing
 
             private void AddFlattenedDependencies()
             {
-                var dependencyGroups = _catalog["dependencyGroups"];
-                if (dependencyGroups == null)
-                {
-                    return;
-                }
-
-                if (!(dependencyGroups is JArray))
-                {
-                    dependencyGroups = new JArray(dependencyGroups);
-                }
-
+                var dependencies = _reader
+                    .GetPackageDependencies()
+                    .SelectMany(g => g.Packages.Select(p => new { g.TargetFramework, Package = p }));
+                
                 var builder = new StringBuilder();
-                foreach (var group in dependencyGroups)
+                foreach (var dependency in dependencies)
                 {
-                    var dependencies = group["dependencies"];
-                    if (dependencies == null)
+                    if (builder.Length > 0)
                     {
-                        continue;
+                        builder.Append("|");
                     }
 
-                    var targetFramework = (string)group["targetFramework"];
-                    if (!string.IsNullOrWhiteSpace(targetFramework))
+                    builder.Append(dependency.Package.Id);
+                    builder.Append(":");
+                    if (!dependency.Package.VersionRange.Equals(VersionRange.All))
                     {
-                        var parsedTargetFramework = VersionUtility.ParseFrameworkName(targetFramework);
-                        targetFramework = VersionUtility.GetShortFrameworkName(parsedTargetFramework);
+                        builder.Append(dependency.Package.VersionRange?.ToString("S", new VersionRangeFormatter()));
                     }
-
-                    foreach (var dependency in dependencies)
+                    
+                    if (!SpecialFrameworks.Contains(dependency.TargetFramework))
                     {
-                        string id = (string)dependency["id"];
-                        string range = (string)dependency["range"];
-                        if (!string.IsNullOrWhiteSpace(range))
-                        {
-                            var parsedRange = VersionUtility.ParseVersionSpec(range);
-                            range = parsedRange.ToString();
-                        }
-
-                        if (builder.Length > 0)
-                        {
-                            builder.Append("|");
-                        }
-
-                        builder.Append(id);
                         builder.Append(":");
-                        builder.Append(range);
-                        if (!string.IsNullOrWhiteSpace(targetFramework))
-                        {
-                            builder.Append(":");
-                            builder.Append(targetFramework);
-                        }
+                        builder.Append(dependency.TargetFramework?.GetShortFolderName());
                     }
                 }
 
@@ -164,55 +143,24 @@ namespace NuGet.Indexing
 
             private void AddSupportedFrameworks()
             {
-                var frameworkAssemblyGroups = _catalog["frameworkAssemblyGroup"];
-                if (frameworkAssemblyGroups == null)
+                var supportedFrameworks = _reader
+                    .GetSupportedFrameworks()
+                    .Except(SpecialFrameworks)
+                    .Select(f => f.GetShortFolderName())
+                    .ToArray();
+                
+                if (supportedFrameworks.Any())
                 {
-                    return;
-                }
-
-                if (!(frameworkAssemblyGroups is JArray))
-                {
-                    frameworkAssemblyGroups = new JArray(frameworkAssemblyGroups);
-                }
-
-                var supportedFrameworks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var builder = new StringBuilder();
-                foreach (var group in frameworkAssemblyGroups)
-                {
-                    var frameworkNameList = (string)group["targetFramework"];
-                    if (string.IsNullOrWhiteSpace(frameworkNameList))
-                    {
-                        continue;
-                    }
-
-                    var frameworkNames = frameworkNameList
-                        .Split(',')
-                        .Select(t => t.Trim())
-                        .Where(t => t.Length > 0);
-                    foreach (var frameworkName in frameworkNames)
-                    {
-                        var parsedFrameworkName = VersionUtility.ParseFrameworkName(frameworkName);
-                        var shortFrameworkName = VersionUtility.GetShortFrameworkName(parsedFrameworkName);
-                        if (supportedFrameworks.Add(shortFrameworkName))
-                        {
-                            if (builder.Length > 0)
-                            {
-                                builder.Append("|");
-                            }
-
-                            builder.Append(shortFrameworkName);
-                        }
-                    }
-                }
-
-                // TODO: this is missing supported frameworks implied by the file paths
-                // https://github.com/NuGet/NuGetGallery/blob/0609ea34e75fadec8920d4098814d648594dcfeb/src/NuGetGallery.Core/Packaging/Nupkg.cs#L233-L252
-
-                if (builder.Length > 0)
-                {
-                    _metadata["supportedFrameworks"] = builder.ToString();
+                    _metadata["supportedFrameworks"] = string.Join("|", supportedFrameworks);
                 }
             }
+
+            private IEnumerable<NuGetFramework> SpecialFrameworks => new[]
+            {
+                NuGetFramework.AnyFramework,
+                NuGetFramework.AgnosticFramework,
+                NuGetFramework.UnsupportedFramework
+            };
         }
     }
 }

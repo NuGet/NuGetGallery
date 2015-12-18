@@ -49,42 +49,43 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="dotNetRDF, Version=1.0.8.3533, Culture=neutral, PublicKeyToken=6055ffe4c97cc780, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\dotNetRDF.1.0.8.3533\lib\net40\dotNetRDF.dll</HintPath>
+      <HintPath>..\..\packages\dotnetrdf.1.0.8.3533\lib\net40\dotNetRDF.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.4.9.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\HtmlAgilityPack.1.4.9\lib\Net45\HtmlAgilityPack.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="JsonLD">
+    <Reference Include="JsonLD, Version=1.0.4.0, Culture=neutral, PublicKeyToken=2e465378e3b1a8dd, processorArchitecture=MSIL">
       <HintPath>..\..\packages\json-ld.net.1.0.4\lib\net40-Client\JsonLD.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.Edm.5.6.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.OData, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.OData.5.6.4\lib\net40\Microsoft.Data.OData.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.Services.Client, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.Services.Client.5.6.4\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Storage, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\WindowsAzure.Storage.4.3.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\packages\newtonsoft.json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Versioning, Version=3.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\nuget.versioning.3.2.0\lib\net45\NuGet.Versioning.dll</HintPath>
+    <Reference Include="NuGet.Versioning, Version=3.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Versioning.3.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -94,8 +95,8 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Spatial, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -103,8 +104,8 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="VDS.Common, Version=1.5.0.0, Culture=neutral, PublicKeyToken=ab5f4eb908061bf0, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\VDS.Common.1.5.0\lib\net40-client\VDS.Common.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -116,12 +117,7 @@
     <Compile Include="CommitMetadata.cs" />
     <Compile Include="DeleteCatalogItem.cs" />
     <Compile Include="Helpers\GraphHelpers.cs" />
-    <Compile Include="Ownership\AgreementRecord.cs" />
-    <Compile Include="Ownership\IRegistration.cs" />
-    <Compile Include="Ownership\OwnershipOwner.cs" />
-    <Compile Include="Ownership\OwnershipRecord.cs" />
-    <Compile Include="Ownership\OwnershipRegistration.cs" />
-    <Compile Include="Ownership\TableStorageRegistration.cs" />
+    <Compile Include="NupkgMetadata.cs" />
     <Compile Include="Persistence\IStorage.cs" />
     <Compile Include="Persistence\IStorageFactory.cs" />
     <Compile Include="Pipeline\CommitDetailsStage.cs" />
@@ -178,19 +174,15 @@
     <Compile Include="CollectorHttpClient.cs" />
     <Compile Include="DurableCursor.cs" />
     <Compile Include="FileSystemEmulatorHandler.cs" />
-    <Compile Include="GraphExtensions.cs" />
     <Compile Include="Helpers\IndexingHelpers.cs" />
     <Compile Include="Helpers\JsonSort.cs" />
     <Compile Include="AppendOnlyCatalogItem.cs" />
     <Compile Include="AppendOnlyCatalogWriter.cs" />
     <Compile Include="CatalogItemSummary.cs" />
     <Compile Include="CatalogWriterBase.cs" />
-    <Compile Include="GraphAddon.cs" />
     <Compile Include="ICatalogGraphPersistence.cs" />
-    <Compile Include="NupkgCatalogItem.cs" />
     <Compile Include="PackageCatalog.cs" />
     <Compile Include="PackageEntry.cs" />
-    <Compile Include="PackedData.cs" />
     <Compile Include="SingleGraphPersistence.cs" />
     <Compile Include="MemoryCursor.cs" />
     <Compile Include="Persistence\AzureStorageFactory.cs" />
@@ -201,7 +193,6 @@
     <Compile Include="Persistence\StorageContent.cs" />
     <Compile Include="CatalogContext.cs" />
     <Compile Include="CatalogItem.cs" />
-    <Compile Include="NuspecPackageCatalogItem.cs" />
     <Compile Include="PackageCatalogItem.cs" />
     <Compile Include="Persistence\AzureStorage.cs" />
     <Compile Include="Persistence\FileStorage.cs" />
@@ -246,13 +237,13 @@
     <EmbeddedResource Include="context\PackageDetails.json" />
     <EmbeddedResource Include="context\Ownership.json" />
     <EmbeddedResource Include="context\Catalog.json" />
-    <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
     <EmbeddedResource Include="sparql\SelectInlinePackage.rq" />
     <EmbeddedResource Include="sparql\SelectDistinctDependency.rq" />
     <EmbeddedResource Include="sparql\ConstructCatalogEntryGraph.rq" />
     <EmbeddedResource Include="sparql\ConstructRegistrationPageContentGraph.rq" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

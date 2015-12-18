@@ -3,7 +3,6 @@
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
@@ -13,74 +12,29 @@ using VDS.RDF.Parsing;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-    //TODO: don't use virtual function overloads to pass around what has become arbitrary properties
-
-    public abstract class PackageCatalogItem : AppendOnlyCatalogItem
+    public class PackageCatalogItem : AppendOnlyCatalogItem
     {
-        protected string _id;
-        protected string _version;
+        NupkgMetadata _nupkgMetadata;
+        DateTime? _createdDate;
+        DateTime? _lastEditedDate;
+        DateTime? _publishedDate;
+        string _id;
+        string _version;
 
-        protected abstract XDocument GetNuspec();
-
-        protected virtual DateTime? GetPublished()
+        public PackageCatalogItem(NupkgMetadata nupkgMetadata, DateTime? createdDate = null, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
         {
-            return null;
-        }
-
-        protected virtual DateTime? GetCreated()
-        {
-            return null;
-        }
-
-        protected virtual DateTime? GetLastEdited()
-        {
-            return null;
-        }
-
-        protected virtual DateTime? GetRefreshed()
-        {
-            return null;
-        }
-
-        protected virtual IEnumerable<PackageEntry> GetEntries()
-        {
-            return null;
-        }
-
-        protected virtual long? GetPackageSize()
-        {
-            return null;
-        }
-
-        protected virtual string GetPackageHash()
-        {
-            return null;
-        }
-
-        protected virtual string GetLicenseNames()
-        {
-            return null;
-        }
-
-        protected virtual string GetLicenseReportUrl()
-        {
-            return null;
-        }
-
-        // Additional catalog item sections
-        protected virtual IEnumerable<GraphAddon> GetAddons()
-        {
-            return Enumerable.Empty<GraphAddon>();
+            _nupkgMetadata = nupkgMetadata;
+            _createdDate = createdDate;
+            _lastEditedDate = lastEditedDate;
+            _publishedDate = publishedDate;
         }
 
         public override IGraph CreateContentGraph(CatalogContext context)
         {
-            XDocument original = GetNuspec();
-            XDocument nuspec = NormalizeNuspecNamespace(original, context.GetXslt("xslt.normalizeNuspecNamespace.xslt"));
+            XDocument nuspec = NormalizeNuspecNamespace(_nupkgMetadata.Nuspec, context.GetXslt("xslt.normalizeNuspecNamespace.xslt"));
             IGraph graph = CreateNuspecGraph(nuspec, GetBaseAddress(), context.GetXslt("xslt.nuspec.xslt"));
 
             //  catalog infrastructure fields
-
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
             INode permanentType = graph.CreateUriNode(Schema.DataTypes.Permalink);
             Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
@@ -88,7 +42,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             //  published
             INode publishedPredicate = graph.CreateUriNode(Schema.Predicates.Published);
-            DateTime published = GetPublished() ?? TimeStamp;
+            DateTime published = _publishedDate ?? TimeStamp;
             graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(published.ToString("O"), Schema.DataTypes.DateTime));
 
             //  listed
@@ -98,39 +52,17 @@ namespace NuGet.Services.Metadata.Catalog
 
             //  created
             INode createdPredicate = graph.CreateUriNode(Schema.Predicates.Created);
-            DateTime created = GetCreated() ?? TimeStamp;
+            DateTime created = _createdDate ?? TimeStamp;
             graph.Assert(resource.Subject, createdPredicate, graph.CreateLiteralNode(created.ToString("O"), Schema.DataTypes.DateTime));
 
             //  lastEdited
             INode lastEditedPredicate = graph.CreateUriNode(Schema.Predicates.LastEdited);
-            DateTime lastEdited = GetLastEdited() ?? DateTime.MinValue;
+            DateTime lastEdited = _lastEditedDate ?? DateTime.MinValue;
             graph.Assert(resource.Subject, lastEditedPredicate, graph.CreateLiteralNode(lastEdited.ToString("O"), Schema.DataTypes.DateTime));
-
-            //  licenseNames
-            string licenseNames = GetLicenseNames();
-            if (licenseNames != null)
-            {
-                INode licenseNamesPredicate = graph.CreateUriNode(Schema.Predicates.LicenseNames);
-                graph.Assert(resource.Subject, licenseNamesPredicate, graph.CreateLiteralNode(licenseNames));
-            }
-
-            //  licenseReportUrl
-            string licenseReportUrl = GetLicenseReportUrl();
-            if (licenseReportUrl != null)
-            {
-                INode licenseReportUrlPredicate = graph.CreateUriNode(Schema.Predicates.LicenseReportUrl);
-                graph.Assert(resource.Subject, licenseReportUrlPredicate, graph.CreateLiteralNode(licenseReportUrl));
-            }
-
-            ////  refreshed
-            //INode refreshedPredicate = graph.CreateUriNode(Schema.Predicates.Refreshed);
-            //DateTime listed = GetRefreshed() ?? TimeStamp;
-            //graph.Assert(resource.Subject, refreshedPredicate, graph.CreateLiteralNode(listed.ToString("O"), Schema.DataTypes.DateTime));
 
             //  entries
 
-            IEnumerable<PackageEntry> entries = GetEntries();
-            if (entries != null)
+            if (_nupkgMetadata.Entries != null)
             {
                 INode packageEntryPredicate = graph.CreateUriNode(Schema.Predicates.PackageEntry);
                 INode packageEntryType = graph.CreateUriNode(Schema.DataTypes.PackageEntry);
@@ -139,7 +71,7 @@ namespace NuGet.Services.Metadata.Catalog
                 INode lengthPredicate = graph.CreateUriNode(Schema.Predicates.Length);
                 INode compressedLengthPredicate = graph.CreateUriNode(Schema.Predicates.CompressedLength);
 
-                foreach (PackageEntry entry in entries)
+                foreach (PackageEntry entry in _nupkgMetadata.Entries)
                 {
                     Uri entryUri = new Uri(resource.Subject.ToString() + "#" + entry.FullName);
 
@@ -155,28 +87,12 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             //  packageSize and packageHash
-
-            long? packageSize = GetPackageSize();
-            if (packageSize != null)
-            {
-                graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageSize), graph.CreateLiteralNode(packageSize.ToString(), Schema.DataTypes.Integer));
-            }
-
-            string packageHash = GetPackageHash();
-            if (packageHash != null)
-            {
-                graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHash), graph.CreateLiteralNode(packageHash));
-                graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHashAlgorithm), graph.CreateLiteralNode("SHA512"));
-            }
+            graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageSize), graph.CreateLiteralNode(_nupkgMetadata.PackageSize.ToString(), Schema.DataTypes.Integer));
+            graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHash), graph.CreateLiteralNode(_nupkgMetadata.PackageHash));
+            graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHashAlgorithm), graph.CreateLiteralNode("SHA512"));
 
             //  identity and version
             SetIdVersionFromGraph(graph);
-
-            // apply addons
-            foreach (GraphAddon addon in GetAddons())
-            {
-                addon.ApplyToGraph(graph, (IUriNode)resource.Subject);
-            }
 
             return graph;
         }
@@ -184,7 +100,7 @@ namespace NuGet.Services.Metadata.Catalog
         private bool GetListed(DateTime published)
         {
             //If the published date is 1900/01/01, then the package is unlisted
-            if (published.ToUniversalTime() == Convert.ToDateTime("1900-01-01T00:00:00Z"))
+            if (published.ToUniversalTime() == Convert.ToDateTime("1900-01-01T00:00:00Z").ToUniversalTime())
             {
                 return false;
             }
@@ -218,7 +134,6 @@ namespace NuGet.Services.Metadata.Catalog
             using (IGraph graph = CreateContentGraph(context))
             {
                 //  catalog infrastructure fields
-
                 INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
                 INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimeStamp);
                 INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
@@ -228,7 +143,6 @@ namespace NuGet.Services.Metadata.Catalog
                 graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(CommitId.ToString()));
 
                 //  create JSON content
-
                 JObject frame = context.GetJsonLdContext("context.PackageDetails.json", GetItemType());
 
                 StorageContent content = new StringStorageContent(Utils.CreateArrangedJson(graph, frame), "application/json", "no-store");
@@ -303,16 +217,6 @@ namespace NuGet.Services.Metadata.Catalog
             rdfXmlParser.Load(graph, doc);
 
             return graph;
-        }
-
-        /// <summary>
-        /// Ensure this item has been fully loaded if it was lazy loaded.
-        /// </summary>
-        public virtual void Load()
-        {
-            // get the nuspec and throw it away
-            XDocument nuspec = GetNuspec();
-            nuspec = null;
         }
     }
 }

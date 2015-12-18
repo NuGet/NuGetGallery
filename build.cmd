@@ -13,4 +13,3 @@ REM Build
 REM Test
 tools\nuget.exe install xunit.runner.console -Version 2.0.0 -OutputDirectory packages
 packages\xunit.runner.console.2.0.0\tools\xunit.console.exe NgTests\bin\%config%\NgTests.dll
-packages\xunit.runner.console.2.0.0\tools\xunit.console.exe tests\NuGetFeedTests\bin\%config%\NuGetFeedTests.dll

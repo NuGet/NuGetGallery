@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -37,7 +38,7 @@ namespace Ng
                 string type = item["@type"].ToString().Replace("nuget:", Schema.Prefixes.NuGet);
 
                 Storage storage = _storageFactory.Create(id);
-                
+
                 if (type == Schema.DataTypes.PackageDetails.ToString())
                 {
                     // Add/update package
@@ -61,7 +62,7 @@ namespace Ng
                     await UpdateMetadata(storage, versions => versions.Remove(NuGetVersion.Parse(version)), cancellationToken);
                     await DeleteNuspec(storage, id, version, cancellationToken);
                     await DeleteNupkg(storage, id, version, cancellationToken);
-                    
+
                     Trace.TraceInformation("commit delete: {0}/{1}", id, version);
                 }
             }

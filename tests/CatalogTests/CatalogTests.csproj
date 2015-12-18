@@ -99,8 +99,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.CatalogPackaging.1.0.0-alpha003\lib\net45\NuGet.Packaging.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Versioning, Version=3.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\nuget.versioning.3.2.0\lib\net45\NuGet.Versioning.dll</HintPath>
+    <Reference Include="NuGet.Versioning, Version=3.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\nuget.versioning.3.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -131,14 +131,14 @@
     <Compile Include="ReindexTests.cs" />
     <Compile Include="StorageTests.cs" />
     <Compile Include="TestCollector.cs" />
-    <Compile Include="BuilderTests.cs" />
+    <None Include="BuilderTests.cs" />
     <Compile Include="CatalogTests.cs" />
     <Compile Include="CheckResults.cs" />
     <Compile Include="CollectorTests.cs" />
     <Compile Include="CursorTests.cs" />
     <Compile Include="InstallDataBrowser.cs" />
     <Compile Include="IntegrityTests.cs" />
-    <Compile Include="MakeTestCatalog.cs" />
+    <None Include="MakeTestCatalog.cs" />
     <Compile Include="PartitioningTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

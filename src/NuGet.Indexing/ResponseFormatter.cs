@@ -1,11 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace NuGet.Indexing
 {
@@ -17,28 +20,17 @@ namespace NuGet.Indexing
         //
         // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        public static string MakeResult(NuGetIndexSearcher searcher, string scheme, TopDocs topDocs, int skip, int take, bool includePrerelease, bool includeExplanation, Query query)
+        public static void WriteSearchResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, string scheme, TopDocs topDocs, int skip, int take, bool includePrerelease, bool includeExplanation, Query query)
         {
             Uri baseAddress = searcher.Manager.RegistrationBaseAddress[scheme];
 
-            using (StringWriter stringWriter = new StringWriter())
-            {
-                using (JsonTextWriter jsonWriter = new JsonTextWriter(stringWriter))
-                {
-                    jsonWriter.WriteStartObject();
-                    WriteInfo(jsonWriter, baseAddress, searcher, topDocs);
-                    WriteData(jsonWriter, searcher, topDocs, skip, take, baseAddress, includePrerelease, includeExplanation, query);
-                    jsonWriter.WriteEndObject();
-
-                    jsonWriter.Flush();
-                    stringWriter.Flush();
-
-                    return stringWriter.ToString();
-                }
-            }
+            jsonWriter.WriteStartObject();
+            WriteInfo(jsonWriter, baseAddress, searcher, topDocs);
+            WriteData(jsonWriter, searcher, topDocs, skip, take, baseAddress, includePrerelease, includeExplanation, query);
+            jsonWriter.WriteEndObject();
         }
 
-        static void WriteInfo(JsonTextWriter jsonWriter, Uri baseAddress, NuGetIndexSearcher searcher, TopDocs topDocs)
+        private static void WriteInfo(JsonWriter jsonWriter, Uri baseAddress, NuGetIndexSearcher searcher, TopDocs topDocs)
         {
             WriteContext(jsonWriter, baseAddress);
             WriteProperty(jsonWriter, "totalHits", topDocs.TotalHits);
@@ -46,7 +38,7 @@ namespace NuGet.Indexing
             WriteProperty(jsonWriter, "index", searcher.Manager.IndexName);
         }
 
-        static void WriteContext(JsonTextWriter jsonWriter, Uri baseAddress)
+        private static void WriteContext(JsonWriter jsonWriter, Uri baseAddress)
         {
             jsonWriter.WritePropertyName("@context");
         
@@ -59,7 +51,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndObject();
         }
 
-        static void WriteData(JsonTextWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, Uri baseAddress, bool includePrerelease, bool includeExplanation, Query query)
+        private static void WriteData(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, Uri baseAddress, bool includePrerelease, bool includeExplanation, Query query)
         {
             jsonWriter.WritePropertyName("data");
 
@@ -107,7 +99,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        static void WriteVersions(JsonTextWriter jsonWriter, string id, bool includePrerelease, VersionsHandler.VersionResult versionResult)
+        private static void WriteVersions(JsonWriter jsonWriter, string id, bool includePrerelease, VersionsHandler.VersionResult versionResult)
         {
             jsonWriter.WritePropertyName("versions");
 
@@ -133,32 +125,29 @@ namespace NuGet.Indexing
         //
         // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        public static string AutoCompleteMakeResult(NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, bool includeExplanation, Query query)
+        public static void WriteAutoCompleteResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, bool includeExplanation, Query query)
         {
-            using (StringWriter stringWriter = new StringWriter())
+            jsonWriter.WriteStartObject();
+            WriteInfo(jsonWriter, null, searcher, topDocs);
+            WriteIds(jsonWriter, searcher, topDocs, skip, take);
+                    
+            if (includeExplanation)
             {
-                using (JsonTextWriter jsonWriter = new JsonTextWriter(stringWriter))
-                {
-                    jsonWriter.WriteStartObject();
-                    WriteInfo(jsonWriter, null, searcher, topDocs);
-                    WriteIds(jsonWriter, searcher, topDocs, skip, take);
-                    
-                    if (includeExplanation)
-                    {
-                        WriteExplanations(jsonWriter, searcher, topDocs, skip, take, query);
-                    }
-                    
-                    jsonWriter.WriteEndObject();
-
-                    jsonWriter.Flush();
-                    stringWriter.Flush();
-
-                    return stringWriter.ToString();
-                }
+                WriteExplanations(jsonWriter, searcher, topDocs, skip, take, query);
             }
+                    
+            jsonWriter.WriteEndObject();
         }
 
-        static void WriteIds(JsonTextWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
+        public static void WriteAutoCompleteVersionResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, bool includePrerelease, TopDocs topDocs)
+        {
+            jsonWriter.WriteStartObject();
+            WriteInfo(jsonWriter, null, searcher, topDocs);
+            WriteVersions(jsonWriter, searcher, includePrerelease, topDocs);
+            jsonWriter.WriteEndObject();
+        }
+
+        private static void WriteIds(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
         {
             jsonWriter.WritePropertyName("data");
             jsonWriter.WriteStartArray();
@@ -172,7 +161,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        static void WriteExplanations(JsonTextWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, Query query)
+        private static void WriteExplanations(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, Query query)
         {
             jsonWriter.WritePropertyName("explanations");
             jsonWriter.WriteStartArray();
@@ -185,26 +174,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        public static string AutoCompleteMakeVersionResult(NuGetIndexSearcher searcher, bool includePrerelease, TopDocs topDocs)
-        {
-            using (StringWriter stringWriter = new StringWriter())
-            {
-                using (JsonTextWriter jsonWriter = new JsonTextWriter(stringWriter))
-                {
-                    jsonWriter.WriteStartObject();
-                    WriteInfo(jsonWriter, null, searcher, topDocs);
-                    WriteVersions(jsonWriter, searcher, includePrerelease, topDocs);
-                    jsonWriter.WriteEndObject();
-
-                    jsonWriter.Flush();
-                    stringWriter.Flush();
-
-                    return stringWriter.ToString();
-                }
-            }
-        }
-
-        static void WriteVersions(JsonTextWriter jsonWriter, NuGetIndexSearcher searcher, bool includePrerelease, TopDocs topDocs)
+        private static void WriteVersions(JsonWriter jsonWriter, NuGetIndexSearcher searcher, bool includePrerelease, TopDocs topDocs)
         {
             jsonWriter.WritePropertyName("data");
             jsonWriter.WriteStartArray();
@@ -230,36 +200,25 @@ namespace NuGet.Indexing
         //
         // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        public static string FindMakeResult(NuGetIndexSearcher searcher, string scheme, TopDocs topDocs)
+        public static void WriteFindResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, string scheme, TopDocs topDocs)
         {
             Uri baseAddress = searcher.Manager.RegistrationBaseAddress[scheme];
 
-            using (StringWriter stringWriter = new StringWriter())
+            jsonWriter.WriteStartObject();
+            WriteInfo(jsonWriter, null, searcher, topDocs);
+
+            if (topDocs.TotalHits > 0)
             {
-                using (JsonTextWriter jsonWriter = new JsonTextWriter(stringWriter))
-                {
-                    jsonWriter.WriteStartObject();
-                    WriteInfo(jsonWriter, null, searcher, topDocs);
+                ScoreDoc scoreDoc = topDocs.ScoreDocs[0];
+                Document document = searcher.Doc(scoreDoc.Doc);
+                string id = document.Get("Id");
 
-                    if (topDocs.TotalHits > 0)
-                    {
-                        ScoreDoc scoreDoc = topDocs.ScoreDocs[0];
-                        Document document = searcher.Doc(scoreDoc.Doc);
-                        string id = document.Get("Id");
+                string relativeAddress = UriFormatter.MakeRegistrationRelativeAddress(id); 
 
-                        string relativeAddress = UriFormatter.MakeRegistrationRelativeAddress(id); 
-
-                        WriteProperty(jsonWriter, "registration", new Uri(baseAddress, relativeAddress).AbsoluteUri);
-                    }
-
-                    jsonWriter.WriteEndObject();
-
-                    jsonWriter.Flush();
-                    stringWriter.Flush();
-
-                    return stringWriter.ToString();
-                }
+                WriteProperty(jsonWriter, "registration", new Uri(baseAddress, relativeAddress).AbsoluteUri);
             }
+
+            jsonWriter.WriteEndObject();
         }
 
         // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -267,26 +226,22 @@ namespace NuGet.Indexing
         // V2 search implementation - called from the NuGet Gallery
         //
         // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        public static string MakeCountResultV2(int totalHits)
+        public static void WriteV2Result(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
         {
-            using (StringWriter stringWriter = new StringWriter())
-            {
-                using (JsonTextWriter jsonWriter = new JsonTextWriter(stringWriter))
-                {
-                    jsonWriter.WriteStartObject();
-                    WriteProperty(jsonWriter, "totalHits", totalHits);
-                    jsonWriter.WriteEndObject();
-
-                    jsonWriter.Flush();
-                    stringWriter.Flush();
-
-                    return stringWriter.ToString();
-                }
-            }
+            jsonWriter.WriteStartObject();
+            WriteInfoV2(jsonWriter, searcher, topDocs);
+            WriteDataV2(jsonWriter, searcher, topDocs, skip, take);
+            jsonWriter.WriteEndObject();
         }
 
-        static void WriteInfoV2(JsonTextWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs)
+        public static void WriteV2CountResult(JsonWriter jsonWriter, int totalHits)
+        {
+            jsonWriter.WriteStartObject();
+            WriteProperty(jsonWriter, "totalHits", totalHits);
+            jsonWriter.WriteEndObject();
+        }
+
+        private static void WriteInfoV2(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs)
         {
             WriteProperty(jsonWriter, "totalHits", topDocs.TotalHits);
 
@@ -311,15 +266,14 @@ namespace NuGet.Indexing
             WriteProperty(jsonWriter, "indexTimestamp", timestamp);
         }
 
-        static void WriteRegistrationV2(JsonTextWriter jsonWriter, Document document, int downloadCount)
+        private static void WriteRegistrationV2(JsonWriter jsonWriter, Document document, int downloadCount)
         {
             jsonWriter.WritePropertyName("PackageRegistration");
             jsonWriter.WriteStartObject();
             
             WriteDocumentValue(jsonWriter, "Id", document, "Id");
             WriteProperty(jsonWriter, "DownloadCount", downloadCount);
-
-            // TODO: missing owner in lucene
+            
             jsonWriter.WritePropertyName("Owners");
             jsonWriter.WriteStartArray();
             foreach (string owner in document.GetValues("Owner"))
@@ -331,7 +285,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndObject();
         }
 
-        static void WriteDataV2(JsonTextWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
+        private static void WriteDataV2(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
         {
             jsonWriter.WritePropertyName("data");
 
@@ -388,23 +342,46 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        public static string MakeResultsV2(NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
+        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //
+        // Diagnostic responses
+        //
+        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        public static void WriteStatsResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher)
         {
-            using (StringWriter stringWriter = new StringWriter())
+            jsonWriter.WriteStartObject();
+            WriteProperty(jsonWriter, "numDocs", searcher.IndexReader.NumDocs());
+            WriteProperty(jsonWriter, "indexName", searcher.Manager.IndexName);
+            WriteProperty(jsonWriter, "lastReopen", searcher.LastReopen);
+
+            jsonWriter.WritePropertyName("CommitUserData");
+            jsonWriter.WriteStartObject();
+            foreach (var userData in searcher.CommitUserData)
             {
-                using (JsonTextWriter jsonWriter = new JsonTextWriter(stringWriter))
-                {
-                    jsonWriter.WriteStartObject();
-                    WriteInfoV2(jsonWriter, searcher, topDocs);
-                    WriteDataV2(jsonWriter, searcher, topDocs, skip, take);
-                    jsonWriter.WriteEndObject();
-
-                    jsonWriter.Flush();
-                    stringWriter.Flush();
-
-                    return stringWriter.ToString();
-                }
+                WriteProperty(jsonWriter, userData.Key, userData.Value);
             }
+
+            jsonWriter.WriteEndObject();
+            jsonWriter.WriteEndObject();
+        }
+
+        public static void WriteRankingsResult(JsonWriter jsonWriter, IDictionary<string, int> rankings)
+        {
+            jsonWriter.WriteStartObject();
+            jsonWriter.WritePropertyName("rankings");
+            jsonWriter.WriteStartArray();
+            foreach (var ranking in rankings)
+            {
+                jsonWriter.WriteStartObject();
+                jsonWriter.WritePropertyName("id");
+                jsonWriter.WriteValue(ranking.Key);
+                jsonWriter.WritePropertyName("Rank");
+                jsonWriter.WriteValue(ranking.Value);
+                jsonWriter.WriteEndObject();
+            }
+            jsonWriter.WriteEndArray();
+            jsonWriter.WriteEndObject();
         }
 
         // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -413,13 +390,13 @@ namespace NuGet.Indexing
         //
         // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        static void WriteProperty<T>(JsonTextWriter jsonWriter, string propertyName, T value)
+        private static void WriteProperty<T>(JsonWriter jsonWriter, string propertyName, T value)
         {
             jsonWriter.WritePropertyName(propertyName);
             jsonWriter.WriteValue(value);
         }
 
-        static void WriteDocumentValue(JsonTextWriter jsonWriter, string propertyName, Document document, string fieldName)
+        private static void WriteDocumentValue(JsonWriter jsonWriter, string propertyName, Document document, string fieldName)
         {
             string value = document.Get(fieldName);
             if (value != null)
@@ -428,7 +405,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void WriteDocumentValueAsArray(JsonTextWriter jsonWriter, string propertyName, Document document, string fieldName, bool singleElement = false)
+        private static void WriteDocumentValueAsArray(JsonWriter jsonWriter, string propertyName, Document document, string fieldName, bool singleElement = false)
         {
             string value = document.Get(fieldName);
             if (value != null)

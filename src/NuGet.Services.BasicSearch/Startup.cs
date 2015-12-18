@@ -6,7 +6,6 @@ using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.StaticFiles.Infrastructure;
 using NuGet.Indexing;
-using NuGet.Services.Metadata;
 using Owin;
 using System;
 using System.Net;
@@ -37,14 +36,14 @@ namespace NuGet.Services.BasicSearch
             //  search test console
             app.Use(async (context, next) =>
             {
-                if (String.Equals(context.Request.Path.Value, "/console", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(context.Request.Path.Value, "/console", StringComparison.OrdinalIgnoreCase))
                 {
                     // Redirect to trailing slash to maintain relative links
                     context.Response.Redirect(context.Request.PathBase + context.Request.Path + "/");
                     context.Response.StatusCode = 301;
                     return;
                 }
-                else if (String.Equals(context.Request.Path.Value, "/console/", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(context.Request.Path.Value, "/console/", StringComparison.OrdinalIgnoreCase))
                 {
                     context.Request.Path = new PathString("/console/Index.html");
                 }
@@ -136,26 +135,23 @@ namespace NuGet.Services.BasicSearch
                             await context.Response.WriteAsync("READY");
                             break;
                         case "/find":
-                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Find(context, _searcherManager));
+                            await ServiceEndpoints.FindAsync(context, _searcherManager);
                             break;
                         case "/query":
-                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Query(context, _searcherManager));
+                            await ServiceEndpoints.V3SearchAsync(context, _searcherManager);
                             break;
                         case "/autocomplete":
-                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.AutoComplete(context, _searcherManager));
+                            await ServiceEndpoints.AutoCompleteAsync(context, _searcherManager);
                             break;
                         case "/search/query":
-                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, GalleryServiceImpl.Query(context, _searcherManager));
+                            await ServiceEndpoints.V2SearchAsync(context, _searcherManager);
                             break;
                         case "/rankings":
-                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceInfoImpl.Rankings(context, _searcherManager));
+                            await ServiceEndpoints.RankingsAsync(context, _searcherManager);
                             break;
-
                         case "/search/diag":
-                            _searcherManager.MaybeReopen();
-                            await ServiceInfoImpl.Stats(context, _searcherManager);
+                            await ServiceEndpoints.Stats(context, _searcherManager);
                             break;
-
                         default:
                             context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                             await context.Response.WriteAsync("UNRECOGNIZED");
@@ -165,11 +161,11 @@ namespace NuGet.Services.BasicSearch
             }
             catch (ClientException e)
             {
-                ServiceHelpers.WriteResponse(context, e);
+                await ResponseHelpers.WriteResponseAsync(context, e);
             }
             catch (Exception e)
             {
-                ServiceHelpers.WriteResponse(context, e, _logger);
+                await ResponseHelpers.WriteResponseAsync(context, e, _logger);
             }
         }
     }
