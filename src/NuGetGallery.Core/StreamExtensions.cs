@@ -11,6 +11,7 @@ namespace NuGetGallery
         {
             if (stream.CanRead && stream.CanSeek)
             {
+                stream.Position = 0;
                 return stream;
             }
 

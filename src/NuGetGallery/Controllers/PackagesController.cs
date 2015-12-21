@@ -1030,7 +1030,7 @@ namespace NuGetGallery
 
                 // save package to blob storage
                 uploadFile.Position = 0;
-                await _packageFileService.SavePackageFileAsync(package, uploadFile);
+                await _packageFileService.SavePackageFileAsync(package, uploadFile.AsSeekableStream());
 
                 // commit all changes to database as an atomic transaction
                 _entitiesContext.SaveChanges();
