@@ -35,7 +35,7 @@ namespace NuGetGallery.SearchClient
         private static readonly Uri ValidUri2 = new Uri("http://www.bing.com");
         private static readonly Uri InvalidUri1 = new Uri("http://nonexisting.domain.atleast.ihope");
         private static readonly Uri InvalidUri2 = new Uri("http://nonexisting.domain.atleast.ihope/foo");
-        private static readonly Uri InvalidUri3 = new Uri("http://www.nuget.org/packages?q=%22Windows&sortOrder=package-download-count&page=7&prerelease=False");
+        private static readonly Uri InvalidUri3 = new Uri("http://www.nuget.org/com/ibm/mq/com.ibm.mq.soap/7.0.1.10/com.ibm.mq.soap-7.0.1.10");
         private static readonly Uri InvalidUriWith404 = new Uri("http://www.nuget.org/thisshouldreturna404page");
 
         private RetryingHttpClientWrapper CreateWrapperClient(HttpMessageHandler handler)

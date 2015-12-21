@@ -29,6 +29,8 @@ namespace NuGetGallery
 
         public bool SoftDelete { get; set; }
 
+        public bool DeleteEmptyPackageRegistration { get; set; }
+
         public IEnumerable<ReportPackageReason> ReasonChoices { get; set; }
     }
 }

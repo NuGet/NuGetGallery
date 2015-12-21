@@ -121,6 +121,10 @@
     padding: 15px;
 }
 
+    .nuget-badge code::before {
+        content: "PM> ";
+    }
+
 /* Messages on package page (Display Package) */
 
 .pending-edit-message,

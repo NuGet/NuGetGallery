@@ -16,7 +16,8 @@ using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
-using NuGet;
+using NuGet.Packaging;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
@@ -26,15 +27,18 @@ namespace NuGetGallery
     public partial class ApiController
         : AppController
     {
-        private const string _idKey = "id";
-        private const string _versionKey = "version";
-        private const string _ipAddressKey = "ipAddress";
-        private const string _userAgentKey = "userAgent";
-        private const string _operationKey = "operation";
-        private const string _dependentPackageKey = "dependentPackage";
-        private const string _projectGuidsKey = "projectGuids";
-        private const string _metricsDownloadEventMethod = "/DownloadEvent";
-        private const string _contentTypeJson = "application/json";
+        private const string IdKey = "id";
+        private const string VersionKey = "version";
+        private const string IpAddressKey = "ipAddress";
+        private const string UserAgentKey = "userAgent";
+        private const string OperationKey = "operation";
+        private const string DependentPackageKey = "dependentPackage";
+        private const string ProjectGuidsKey = "projectGuids";
+        private const string MetricsDownloadEventMethod = "/DownloadEvent";
+        private const string ContentTypeJson = "application/json";
+
+        private static readonly HttpClient HttpClient = new HttpClient();
+
         private readonly IAppConfiguration _config;
 
         public IEntitiesContext EntitiesContext { get; set; }
@@ -113,13 +117,13 @@ namespace NuGetGallery
             // if version is non-null, check if it's semantically correct and normalize it.
             if (!String.IsNullOrEmpty(version))
             {
-                SemanticVersion dummy;
-                if (!SemanticVersion.TryParse(version, out dummy))
+                NuGetVersion dummy;
+                if (!NuGetVersion.TryParse(version, out dummy))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
                 }
                 // Normalize the version
-                version = SemanticVersionExtensions.Normalize(version);
+                version = NuGetVersionNormalizer.Normalize(version);
             }
             else
             {
@@ -179,13 +183,13 @@ namespace NuGetGallery
         private static JObject GetJObject(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
         {
             var jObject = new JObject();
-            jObject.Add(_idKey, id);
-            jObject.Add(_versionKey, version);
-            if (!String.IsNullOrEmpty(ipAddress)) jObject.Add(_ipAddressKey, ipAddress);
-            if (!String.IsNullOrEmpty(userAgent)) jObject.Add(_userAgentKey, userAgent);
-            if (!String.IsNullOrEmpty(operation)) jObject.Add(_operationKey, operation);
-            if (!String.IsNullOrEmpty(dependentPackage)) jObject.Add(_dependentPackageKey, dependentPackage);
-            if (!String.IsNullOrEmpty(projectGuids)) jObject.Add(_projectGuidsKey, projectGuids);
+            jObject.Add(IdKey, id);
+            jObject.Add(VersionKey, version);
+            if (!String.IsNullOrEmpty(ipAddress)) jObject.Add(IpAddressKey, ipAddress);
+            if (!String.IsNullOrEmpty(userAgent)) jObject.Add(UserAgentKey, userAgent);
+            if (!String.IsNullOrEmpty(operation)) jObject.Add(OperationKey, operation);
+            if (!String.IsNullOrEmpty(dependentPackage)) jObject.Add(DependentPackageKey, dependentPackage);
+            if (!String.IsNullOrEmpty(projectGuids)) jObject.Add(ProjectGuidsKey, projectGuids);
 
             return jObject;
         }
@@ -201,10 +205,7 @@ namespace NuGetGallery
             {
                 var jObject = GetJObject(id, version, ipAddress, userAgent, operation, dependentPackage, projectGuids);
 
-                using (var httpClient = new System.Net.Http.HttpClient())
-                {
-                    await httpClient.PostAsync(new Uri(_config.MetricsServiceUri, _metricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, _contentTypeJson), cancellationToken);
-                }
+                await HttpClient.PostAsync(new Uri(_config.MetricsServiceUri, MetricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, ContentTypeJson), cancellationToken);
             }
             catch (WebException ex)
             {
@@ -290,18 +291,32 @@ namespace NuGetGallery
             // Get the user
             var user = GetCurrentUser();
 
-            using (var packageToPush = ReadPackageFromRequest())
+            using (var packageStream = ReadPackageFromRequest())
+            using (var packageToPush = new PackageReader(packageStream, leaveStreamOpen: false))
             {
-                if (packageToPush.Metadata.MinClientVersion > Constants.MaxSupportedMinClientVersion)
+                NuspecReader nuspec = null;
+                try
+                {
+                    nuspec = packageToPush.GetNuspecReader();
+                }
+                catch (Exception ex)
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.UploadPackage_InvalidNuspec,
+                        ex.Message));
+                }
+
+                if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.UploadPackage_MinClientVersionOutOfRange,
-                        packageToPush.Metadata.MinClientVersion));
+                        nuspec.GetMinClientVersion()));
                 }
 
                 // Ensure that the user can push packages for this partialId.
-                var packageRegistration = PackageService.FindPackageRegistrationById(packageToPush.Metadata.Id);
+                var packageRegistration = PackageService.FindPackageRegistrationById(nuspec.GetId());
                 if (packageRegistration != null)
                 {
                     if (!packageRegistration.IsOwner(user))
@@ -310,7 +325,7 @@ namespace NuGetGallery
                     }
 
                     // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                    string normalizedVersion = packageToPush.Metadata.Version.ToNormalizedString();
+                    string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
                     bool packageExists =
                         packageRegistration.Packages.Any(
                             p => String.Equals(
@@ -323,15 +338,22 @@ namespace NuGetGallery
                         return new HttpStatusCodeWithBodyResult(
                             HttpStatusCode.Conflict,
                             String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                          packageToPush.Metadata.Id, packageToPush.Metadata.Version.ToNormalizedStringSafe()));
+                                          nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe()));
                     }
                 }
 
-                var package = PackageService.CreatePackage(packageToPush, user, commitChanges: false);
+                var packageStreamMetadata = new PackageStreamMetadata
+                {
+                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                    Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
+                    Size = packageStream.Length,
+                };
+
+                var package = PackageService.CreatePackage(packageToPush, packageStreamMetadata, user, commitChanges: false);
                 AutoCuratePackage.Execute(package, packageToPush, commitChanges: false);
                 EntitiesContext.SaveChanges();
 
-                using (Stream uploadStream = packageToPush.GetStream())
+                using (Stream uploadStream = packageStream)
                 {
                     await PackageFileService.SavePackageFileAsync(package, uploadStream);
                     IndexingService.UpdatePackage(package);
@@ -433,12 +455,13 @@ namespace NuGetGallery
             }
         }
 
-        protected internal virtual INupkg ReadPackageFromRequest()
+        protected internal virtual Stream ReadPackageFromRequest()
         {
             Stream stream;
             if (Request.Files.Count > 0)
             {
                 // If we're using the newer API, the package stream is sent as a file.
+                // ReSharper disable once PossibleNullReferenceException
                 stream = Request.Files[0].InputStream;
             }
             else
@@ -446,7 +469,7 @@ namespace NuGetGallery
                 stream = Request.InputStream;
             }
 
-            return new Nupkg(stream, leaveOpen: false);
+            return stream;
         }
 
         [HttpGet]

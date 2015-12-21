@@ -1,19 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using AnglicanGeek.DbExecutor;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using NuGet;
+using NuGet.Packaging;
 using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations
@@ -109,12 +107,14 @@ namespace NuGetGallery.Operations
                         try
                         {
                             var downloadPath = DownloadPackage(package);
-                            var nugetPackage = new ZipPackage(downloadPath);
 
-                            var supportedFrameworks = GetSupportedFrameworks(nugetPackage);
-                            report.PackageFrameworks = supportedFrameworks.ToArray();
-                            report = PopulateFrameworks(package, report);
-
+                            using (var nugetPackage = new PackageReader(File.OpenRead(downloadPath)))
+                            {
+                                var supportedFrameworks = GetSupportedFrameworks(nugetPackage);
+                                report.PackageFrameworks = supportedFrameworks.ToArray();
+                                report = PopulateFrameworks(package, report);
+                            }
+                            
                             File.Delete(downloadPath);
 
                             // Resolve the report
@@ -296,9 +296,12 @@ namespace NuGetGallery.Operations
             return report;
         }
 
-        private static IEnumerable<string> GetSupportedFrameworks(IPackage nugetPackage)
+        private static IEnumerable<string> GetSupportedFrameworks(PackageReader packageReader)
         {
-            return nugetPackage.GetSupportedFrameworks().Select(fn => fn.ToShortNameOrNull()).ToArray();
+            return packageReader
+                .GetSupportedFrameworks()
+                .Select(fn => fn.ToShortNameOrNull())
+                .ToArray();
         }
 
         public class PackageFrameworkReport

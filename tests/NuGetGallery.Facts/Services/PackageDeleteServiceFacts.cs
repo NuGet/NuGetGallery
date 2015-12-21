@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
@@ -20,7 +19,7 @@ namespace NuGetGallery
         private static IPackageDeleteService CreateService(
             Mock<IEntityRepository<Package>> packageRepository = null,
             Mock<IEntityRepository<PackageDelete>> packageDeletesRepository = null,
-            Mock<DbContext> dbContext = null,
+            Mock<IEntitiesContext> entitiesContext = null,
             Mock<IPackageService> packageService = null,
             Mock<IIndexingService> indexingService = null,
             Mock<IPackageFileService> packageFileService = null,
@@ -29,7 +28,10 @@ namespace NuGetGallery
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             packageDeletesRepository = packageDeletesRepository ?? new Mock<IEntityRepository<PackageDelete>>();
-            dbContext = dbContext ?? new Mock<DbContext>();
+
+            var dbContext = new Mock<DbContext>();
+            entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
+            entitiesContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
 
             packageService = packageService ?? new Mock<IPackageService>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
@@ -40,7 +42,7 @@ namespace NuGetGallery
             var packageDeleteService = new Mock<TestPackageDeleteService>(
                 packageRepository.Object,
                 packageDeletesRepository.Object,
-                dbContext.Object,
+                entitiesContext.Object,
                 packageService.Object,
                 indexingService.Object,
                 packageFileService.Object,
@@ -61,8 +63,8 @@ namespace NuGetGallery
         {
             public PackageAuditRecord LastAuditRecord { get; set; }
 
-            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, DbContext dbContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, AuditingService auditingService) 
-                : base(packageRepository, packageDeletesRepository, dbContext, packageService, indexingService, packageFileService, auditingService)
+            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, AuditingService auditingService) 
+                : base(packageRepository, packageDeletesRepository, entitiesContext, packageService, indexingService, packageFileService, auditingService)
             {
             }
 
@@ -86,6 +88,24 @@ namespace NuGetGallery
 
         public class TheSoftDeletePackagesAsyncMethod
         {
+            [Fact]
+            public async Task WillIncreaseTheDatabaseCommandTimeout()
+            {
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var entitiesContext = new Mock<IEntitiesContext>();
+                var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+
+                entitiesContext.Verify(x => x.SetCommandTimeout(300));
+                Mock.Get(service).Verify();
+            }
+
             [Fact]
             public async Task WillUpdateThePackage()
             {
@@ -214,11 +234,29 @@ namespace NuGetGallery
         public class TheHardDeletePackagesAsyncMethod
         {
             [Fact]
+            public async Task WillIncreaseTheDatabaseCommandTimeout()
+            {
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var entitiesContext = new Mock<IEntitiesContext>();
+                var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+                
+                entitiesContext.Verify(x => x.SetCommandTimeout(300));
+                Mock.Get(service).Verify();
+            }
+
+            [Fact]
             public async Task WillDeletePackageAndRelatedEntities()
             {
                 var packageRepository = new Mock<IEntityRepository<Package>>();
-                var dbContext = new Mock<DbContext>();
-                var service = CreateService(packageRepository: packageRepository, dbContext: dbContext, setup: svc =>
+                var entitiesContext = new Mock<IEntitiesContext>();
+                var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext, setup: svc =>
                 {
                     svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
                     svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
@@ -226,12 +264,79 @@ namespace NuGetGallery
                     svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
                 });
                 var packageRegistration = new PackageRegistration();
+                packageRegistration.Packages.Add(new Package { Key = 124, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests });
+
                 var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
                 packageRegistration.Packages.Add(package);
                 var user = new User("test");
 
-                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
+                Assert.DoesNotContain(package, packageRegistration.Packages);
+                packageRepository.Verify(x => x.DeleteOnCommit(package));
+                packageRepository.Verify(x => x.CommitChanges());
+                Mock.Get(service).Verify();
+            }
+
+            [Fact]
+            public async Task WillNotDeletePackageRegistrationWhenNoPackagesLeftAndDeleteEmptyPackageRegistrationFalse()
+            {
+                var deleteEmptyPackageRegistration = false;
+
+                var ranDeleteQuery = false;
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var entitiesContext = new Mock<IEntitiesContext>();
+                var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext, setup: svc =>
+                {
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE ps FROM PackageStatistics ps JOIN Packages p ON p.[Key] = ps.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Callback(() => ranDeleteQuery = true).Returns(Task.FromResult(0));
+                });
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, deleteEmptyPackageRegistration);
+
+                Assert.Equal(0, packageRegistration.Packages.Count);
+                Assert.DoesNotContain(package, packageRegistration.Packages);
+                packageRepository.Verify(x => x.DeleteOnCommit(package));
+                packageRepository.Verify(x => x.CommitChanges());
+                Assert.False(ranDeleteQuery);
+                Mock.Get(service).Verify();
+            }
+
+            [Fact]
+            public async Task WillDeletePackageRegistrationWhenNoPackagesLeftAndDeleteEmptyPackageRegistrationTrue()
+            {
+                var deleteEmptyPackageRegistration = true;
+
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var entitiesContext = new Mock<IEntitiesContext>();
+                var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext, setup: svc =>
+                {
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE ps FROM PackageStatistics ps JOIN Packages p ON p.[Key] = ps.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                });
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, deleteEmptyPackageRegistration);
+
+                Assert.Equal(0, packageRegistration.Packages.Count);
+                Assert.DoesNotContain(package, packageRegistration.Packages);
                 packageRepository.Verify(x => x.DeleteOnCommit(package));
                 packageRepository.Verify(x => x.CommitChanges());
                 Mock.Get(service).Verify();
@@ -247,7 +352,7 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
                 var user = new User("test");
 
-                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
                 packageService.Verify(x => x.UpdateIsLatest(packageRegistration, false));
             }
@@ -262,7 +367,7 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
                 var user = new User("test");
 
-                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
                 indexingService.Verify(x => x.UpdateIndex(true));
             }
@@ -280,7 +385,7 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
                 var user = new User("test");
 
-                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
                 packageFileService.Verify(x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()));
                 packageFileService.Verify(x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version));
@@ -298,7 +403,7 @@ namespace NuGetGallery
                 var reason = "Unit testing";
                 var signature = "The Terminator";
 
-                await service.HardDeletePackagesAsync(new[] { package }, user, reason, signature);
+                await service.HardDeletePackagesAsync(new[] { package }, user, reason, signature, false);
 
                 var testService = service as TestPackageDeleteService;
                 Assert.Equal(package.PackageRegistration.Id, testService.LastAuditRecord.Id);

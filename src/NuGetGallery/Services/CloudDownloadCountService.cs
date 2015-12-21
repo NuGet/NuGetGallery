@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -95,9 +96,35 @@ namespace NuGetGallery
 
             if (shouldRefresh)
             {
-                RefreshCore();
-                _isRefreshing = false;
-                LastRefresh = DateTime.UtcNow;
+                try
+                {
+                    RefreshCore();
+                }
+                catch (WebException ex)
+                {
+                    var rethrow = true;
+
+                    if (ex.Status == WebExceptionStatus.ProtocolError)
+                    {
+                        var response = ex.Response as HttpWebResponse;
+                        if (response != null && response.StatusCode == HttpStatusCode.PreconditionFailed)
+                        {
+                            // HTTP 412 - the blob has been updated just now
+                            // don't rethrow, we'll just fetch the new data on the next refresh
+                            rethrow = false;
+                        }
+                    }
+
+                    if (rethrow)
+                    {
+                        throw;
+                    }
+                }
+                finally
+                {
+                    _isRefreshing = false;
+                    LastRefresh = DateTime.UtcNow;
+                }
             }
         }
 

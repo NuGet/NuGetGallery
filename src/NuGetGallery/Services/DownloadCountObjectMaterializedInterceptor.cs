@@ -29,7 +29,7 @@ namespace NuGetGallery
             }
 
             var packageNormalizedVersion = String.IsNullOrEmpty(package.NormalizedVersion)
-                ? SemanticVersionExtensions.Normalize(package.Version)
+                ? NuGetVersionNormalizer.Normalize(package.Version)
                 : package.NormalizedVersion;
 
             int downloadCount;

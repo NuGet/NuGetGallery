@@ -247,7 +247,7 @@ namespace NuGetGallery.OData
                 }
                 else if (memberSide.Member == _versionMember)
                 {
-                    return Tuple.Create(Target.Version, SemanticVersionExtensions.Normalize((string)constSide.Value));
+                    return Tuple.Create(Target.Version, NuGetVersionNormalizer.Normalize((string)constSide.Value));
                 }
                 else if (memberSide.Member == _idMember)
                 {

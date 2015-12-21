@@ -35,7 +35,7 @@ namespace NuGetGallery
 
         public static string ToNuGetLongDateString(this DateTime self)
         {
-            return self.ToString("dddd, MMMM dd yyyy", CultureInfo.CurrentCulture);
+            return self.ToString("D", CultureInfo.CurrentCulture);
         }
     }
 }

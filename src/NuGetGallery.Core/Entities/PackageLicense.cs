@@ -12,7 +12,7 @@ namespace NuGetGallery
         public int Key { get; set; }
 
         [Required]
-        [StringLength(128)]
+        [StringLength(CoreConstants.MaxPackageIdLength)]
         public string Name { get; set; }
 
         public virtual ICollection<PackageLicenseReport> Reports { get; set; }

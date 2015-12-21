@@ -546,6 +546,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The NuGet package contains an invaid .nuspec file. The error encountered was:&apos;{0}&apos;. Correct the error and try again..
+        /// </summary>
+        public static string UploadPackage_InvalidNuspec {
+            get {
+                return ResourceManager.GetString("UploadPackage_InvalidNuspec", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package requires version &apos;{0}&apos; of NuGet, which this gallery does not currently support. Please contact us if you have questions..
         /// </summary>
         public static string UploadPackage_MinClientVersionOutOfRange {
