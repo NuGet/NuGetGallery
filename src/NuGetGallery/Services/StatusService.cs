@@ -18,6 +18,8 @@ namespace NuGetGallery
 {
     public class StatusService : IStatusService
     {
+        private static readonly HttpClient _httpClient = new HttpClient();
+
         private readonly IEntitiesContext _entities;
         private readonly IFileStorageService _fileStorageService;
         private readonly IAppConfiguration _config;
@@ -128,12 +130,11 @@ namespace NuGetGallery
             return await IsGetSuccessful(_config.MetricsServiceUri);
         }
 
-        private async Task<bool> IsGetSuccessful(Uri uri)
+        private static async Task<bool> IsGetSuccessful(Uri uri)
         {
-            using(var httpClient = new HttpClient())
+            // This method does not throw for unsuccessful responses
+            using (var responseMessage = await _httpClient.GetAsync(uri))
             {
-                // This method does not throw for unsuccessful responses
-                var responseMessage = await httpClient.GetAsync(uri);
                 return responseMessage.IsSuccessStatusCode;
             }
         }
