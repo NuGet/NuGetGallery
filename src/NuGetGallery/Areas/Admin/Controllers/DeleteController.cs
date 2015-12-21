@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
-using NuGet;
+using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery.Areas.Admin.Controllers
@@ -80,7 +80,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 PackageId = package.PackageRegistration.Id,
                 PackageVersionNormalized = !string.IsNullOrEmpty(package.NormalizedVersion)
                     ? package.NormalizedVersion 
-                    : SemanticVersion.Parse(package.Version).ToNormalizedString(),
+                    : NuGetVersion.Parse(package.Version).ToNormalizedString(),
                 DownloadCount = package.DownloadCount,
                 Listed = package.Listed,
                 Deleted = package.Deleted

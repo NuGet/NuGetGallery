@@ -135,7 +135,7 @@ namespace NuGetGallery
             document.Add(new Field("Version", Package.Version.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             
             string normalizedVersion = String.IsNullOrEmpty(Package.NormalizedVersion) ? 
-                SemanticVersionExtensions.Normalize(Package.Version) : 
+                NuGetVersionNormalizer.Normalize(Package.Version) : 
                 Package.NormalizedVersion;
             document.Add(new Field("NormalizedVersion", normalizedVersion.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             

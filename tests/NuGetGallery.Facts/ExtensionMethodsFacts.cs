@@ -7,6 +7,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using NuGet;
+using NuGet.Frameworks;
 using Xunit;
 using Xunit.Extensions;
 
@@ -25,7 +26,7 @@ namespace NuGetGallery
             [InlineData("Portable Class Library (.NETFramework 4.5, Windows 8.0)", "portable-net45+win8")]
             public void CorrectlyConvertsShortNameToFriendlyName(string expected, string shortName)
             {
-                var fx = VersionUtility.ParseFrameworkName(shortName);
+                var fx = NuGetFramework.Parse(shortName);
                 var actual = fx.ToFriendlyName();
                 Assert.Equal(expected, actual);
             }

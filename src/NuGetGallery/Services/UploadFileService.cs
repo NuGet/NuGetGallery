@@ -51,6 +51,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException("packageFileStream");
             }
 
+            packageFileStream.Position = 0;
+
             var uploadFileName = BuildFileName(userKey);
             return _fileStorageService.SaveFileAsync(Constants.UploadsFolderName, uploadFileName, packageFileStream);
         }

@@ -45,7 +45,7 @@ namespace NuGetGallery.Operations
                     PackageHash = package.Hash
                 }.ExecuteCommand();
 
-                var hash = Util.GenerateHash(ReplacementFile.ReadAllBytes());
+                var hash = Util.GenerateHash(ReplacementFile.AsSeekableStream());
                 Log.Info("Updating hash for package '{0}.{1}' to '{2}'", package.Id, package.Version, hash);
                 dbExecutor.Execute(
                     "UPDATE Packages SET Hash = @hash WHERE [Key] = @key",

@@ -10,7 +10,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGet;
+using NuGet.Versioning;
 using NuGetGallery.Auditing;
 
 namespace NuGetGallery
@@ -213,7 +213,7 @@ namespace NuGetGallery
                 }
                 await _packageFileService.DeletePackageFileAsync(package.PackageRegistration.Id,
                         string.IsNullOrEmpty(package.NormalizedVersion)
-                            ? SemanticVersion.Parse(package.Version).ToNormalizedString()
+                            ? NuGetVersion.Parse(package.Version).ToNormalizedString()
                             : package.NormalizedVersion);
             }
         }

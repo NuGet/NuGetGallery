@@ -29,7 +29,7 @@ namespace NuGetGallery
                         // We have a "Package.Version == <constant>" expression!
                         
                         // Transform the constant version into a normalized version
-                        string newVersion = SemanticVersionExtensions.Normalize((string)constSide.Value);
+                        string newVersion = NuGetVersionNormalizer.Normalize((string)constSide.Value);
 
                         // Create a new expression that checks the new constant against NormalizedVersion instead
                         return Expression.MakeBinary(

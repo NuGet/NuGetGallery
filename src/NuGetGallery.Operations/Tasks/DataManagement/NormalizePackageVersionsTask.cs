@@ -53,7 +53,7 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                     updateTable.Columns.Add(new DataColumn("NormalizedVersion", typeof(string)));
                     foreach (var package in packages)
                     {
-                        string normalized = SemanticVersionExtensions.Normalize(package.Version);
+                        string normalized = NuGetVersionNormalizer.Normalize(package.Version);
                         var row = updateTable.NewRow();
                         row.SetField("PackageKey", package.Key);
                         row.SetField("NormalizedVersion", normalized);

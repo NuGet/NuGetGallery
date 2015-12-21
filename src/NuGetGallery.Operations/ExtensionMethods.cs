@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Versioning;
 using NuGet;
+using NuGet.Frameworks;
 
 namespace NuGetGallery.Operations
 {
@@ -27,9 +28,9 @@ namespace NuGetGallery.Operations
             return items.Any(predicate);
         }
         
-        public static string ToShortNameOrNull(this FrameworkName frameworkName)
+        public static string ToShortNameOrNull(this NuGetFramework frameworkName)
         {
-            return frameworkName == null ? null : VersionUtility.GetShortFrameworkName(frameworkName);
+            return frameworkName == null ? null : frameworkName.GetShortFolderName();
         }
 
         public static string ToFriendlyDateTimeString(this DateTime self)

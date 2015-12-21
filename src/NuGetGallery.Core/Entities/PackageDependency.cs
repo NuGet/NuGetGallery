@@ -15,7 +15,7 @@ namespace NuGetGallery
         ///     We insert a record with a null Id to indicate an empty package dependency set. In such a case, the Id would be empty and hence
         ///     we cannot mandate that it is required.
         /// </remarks>
-        [StringLength(128)]
+        [StringLength(CoreConstants.MaxPackageIdLength)]
         public string Id { get; set; }
 
         [StringLength(256)]

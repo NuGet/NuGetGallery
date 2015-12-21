@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using Moq;
-using NuGetGallery.Packaging;
+using NuGet.Packaging;
 using Xunit;
 
 namespace NuGetGallery.Commands
@@ -25,10 +25,10 @@ namespace NuGetGallery.Commands
                 }, null);
                 
 
-                cmd.Execute(new Package(), new Mock<INupkg>().Object, commitChanges: true);
+                cmd.Execute(new Package(), new Mock<PackageReader>(TestPackage.CreateTestPackageStream("test", "1.0.0")).Object, commitChanges: true);
 
-                firstStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<INupkg>(), true));
-                secondStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<INupkg>(), true));
+                firstStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<PackageReader>(), true));
+                secondStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<PackageReader>(), true));
             }
         }
     }

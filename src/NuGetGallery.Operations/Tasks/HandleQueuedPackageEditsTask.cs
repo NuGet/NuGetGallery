@@ -8,7 +8,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.WindowsAzure.Storage.Blob;
-using NuGet;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery.Operations.Tasks
@@ -72,7 +71,7 @@ namespace NuGetGallery.Operations.Tasks
             var originalPackageBackupBlob = packagesContainer.GetBlockBlobReference(originalPackageFileName);
             var latestPackageBlob = packagesContainer.GetBlockBlobReference(latestPackageFileName);
 
-            var edits = new List<Action<ManifestMetadata>>
+            var edits = new List<Action<ManifestEdit>>
             { 
                 (m) => { m.Authors = edit.Authors; },
                 (m) => { m.Copyright = edit.Copyright; },

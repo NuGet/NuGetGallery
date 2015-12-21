@@ -305,4 +305,7 @@ The {2} Team</value>
   <data name="CancelEmailAddress" xml:space="preserve">
     <value>You canceled your email address change request.</value>
   </data>
+  <data name="UploadPackage_InvalidNuspec" xml:space="preserve">
+    <value>The NuGet package contains an invaid .nuspec file. The error encountered was:'{0}'. Correct the error and try again.</value>
+  </data>
 </root>
