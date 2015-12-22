@@ -34,6 +34,19 @@ namespace NuGetGallery
             _indexingService = indexingService;
         }
 
+        public void EnsureValid(PackageReader packageReader)
+        {
+            var packageMetadata = PackageMetadata.FromNuspecReader(packageReader.GetNuspecReader());
+
+            ValidateNuGetPackageMetadata(packageMetadata);
+
+            var supportedFrameworks = GetSupportedFrameworks(packageReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
+            if (!supportedFrameworks.AnySafe(sf => sf == null))
+            {
+                ValidateSupportedFrameworks(supportedFrameworks);
+            }
+        }
+
         public Package CreatePackage(PackageReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
         {
             var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
@@ -403,7 +416,6 @@ namespace NuGetGallery
                     "A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
             }
             
-
             package = new Package
             {
                 // Version must always be the exact string from the nuspec, which ToString will return to us. 
@@ -444,6 +456,8 @@ namespace NuGetGallery
             var supportedFrameworks = GetSupportedFrameworks(nugetPackage).Select(fn => fn.ToShortNameOrNull()).ToArray();
             if (!supportedFrameworks.AnySafe(sf => sf == null))
             {
+                ValidateSupportedFrameworks(supportedFrameworks);
+
                 foreach (var supportedFramework in supportedFrameworks)
                 {
                     package.SupportedFrameworks.Add(new PackageFramework { TargetFramework = supportedFramework });
@@ -481,7 +495,7 @@ namespace NuGetGallery
 
             return package;
         }
-
+        
         public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageReader package)
         {
             return package.GetSupportedFrameworks();
@@ -491,9 +505,9 @@ namespace NuGetGallery
         private static void ValidateNuGetPackageMetadata(PackageMetadata packageMetadata)
         {
             // TODO: Change this to use DataAnnotations
-            if (packageMetadata.Id.Length > 100)
+            if (packageMetadata.Id.Length > CoreConstants.MaxPackageIdLength)
             {
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "100");
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength);
             }
             if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > 4000)
             {
@@ -566,6 +580,24 @@ namespace NuGetGallery
                 if (packageDependencies.Flatten().Length > Int16.MaxValue)
                 {
                     throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
+                }
+            }
+        }
+        
+        private static void ValidateSupportedFrameworks(string[] supportedFrameworks)
+        {
+            foreach (var supportedFramework in supportedFrameworks.Where(fx => !string.IsNullOrEmpty(fx)))
+            {
+                // Frameworks within the portable profile are not allowed to have profiles themselves.
+                // Ensure portable framework does not contain more than one hyphen.
+                if (supportedFramework.StartsWith("portable-", StringComparison.OrdinalIgnoreCase))
+                {
+                    var hyphenized = supportedFramework.Split('-');
+                    if (hyphenized.Length > 2)
+                    {
+                        throw new EntityException(
+                            "The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.", supportedFramework);
+                    }
                 }
             }
         }

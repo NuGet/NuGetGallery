@@ -195,6 +195,8 @@ namespace NuGetGallery
                 try
                 {
                     packageReader = CreatePackage(uploadStream);
+
+                    _packageService.EnsureValid(packageReader);
                 }
                 catch (InvalidPackageException ipex)
                 {
@@ -206,6 +208,12 @@ namespace NuGetGallery
                 {
                     idex.Log();
                     ModelState.AddModelError(String.Empty, idex.Message);
+                    return View();
+                }
+                catch (EntityException enex)
+                {
+                    enex.Log();
+                    ModelState.AddModelError(String.Empty, enex.Message);
                     return View();
                 }
                 catch (Exception ex)
@@ -1063,20 +1071,27 @@ namespace NuGetGallery
             {
                 caught = idex.AsUserSafeException();
             }
+            catch (EntityException enex)
+            {
+                caught = enex.AsUserSafeException();
+            }
             catch (Exception ex)
             {
                 // Can't wait for Roslyn to let us await in Catch blocks :(
                 caught = ex;
             }
+
             if (caught != null)
             {
                 caught.Log();
+
                 // Report the error
                 TempData["Message"] = caught.GetUserSafeMessage();
 
                 // Clear the upload
                 await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
             }
+
             return packageReader;
         }
 
