@@ -4,7 +4,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/6ob8lbutfecvi5n3/branch/master?svg=true)](https://ci.appveyor.com/project/NuGetteam/nugetgallery/branch/master)
 
 This is an implementation of the NuGet Gallery and API. This serves as the back-end and community 
-website for the NuGet client. For information about the NuGet clients, visit http://nuget.codeplex.com/
+website for the NuGet client. For information about the NuGet project, visit the [Home repository](https://github.com/nuget/home).
 
 ## Build and Run the Gallery in (arbitrary number) easy steps
 
@@ -50,7 +50,7 @@ If this fails, you are likely to get more useful output by passing `-Debug` than
 That's it! You should now be able to press Ctrl-F5 to run the site!
 
 ## Contribute
-If you find a bug with the gallery, please visit the Issue tracker (https://github.com/NuGet/NuGetGallery/issues) and 
+If you find a bug with the gallery, please visit the [Issue tracker](https://github.com/NuGet/NuGetGallery/issues) and 
 create an issue. If you're feeling generous, please search to see if the issue is already logged before creating a 
 new one.
 
