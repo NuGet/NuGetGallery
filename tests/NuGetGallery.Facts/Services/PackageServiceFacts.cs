@@ -875,6 +875,28 @@ namespace NuGetGallery
             }
 
             [Fact]
+            private void WillNotSaveAnySupportedFrameworksWhenThereIsAnAnyTargetFramework()
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
+                {
+                    mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                    mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageReader>())).Returns(
+                        new[]
+                        {
+                            NuGetFramework.Parse("any"),
+                            NuGetFramework.Parse("net35")
+                        });
+                });
+                var nugetPackage = CreateNuGetPackage();
+                var currentUser = new User();
+
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
+
+                Assert.Empty(package.SupportedFrameworks);
+            }
+
+            [Fact]
             private void WillThrowIfSupportedFrameworksContainsPortableFrameworkWithProfile()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();

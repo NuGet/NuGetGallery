@@ -586,19 +586,17 @@ namespace NuGetGallery
         
         private static void ValidateSupportedFrameworks(string[] supportedFrameworks)
         {
-            foreach (var supportedFramework in supportedFrameworks.Where(fx => !string.IsNullOrEmpty(fx)))
+            // Frameworks within the portable profile are not allowed to have profiles themselves.
+            // Ensure portable framework does not contain more than one hyphen.
+            var invalidPortableFramework = supportedFrameworks.FirstOrDefault(fx =>
+                !string.IsNullOrEmpty(fx)
+                && fx.StartsWith("portable-", StringComparison.OrdinalIgnoreCase)
+                && fx.Split('-').Length > 2);
+            
+            if (invalidPortableFramework != null)
             {
-                // Frameworks within the portable profile are not allowed to have profiles themselves.
-                // Ensure portable framework does not contain more than one hyphen.
-                if (supportedFramework.StartsWith("portable-", StringComparison.OrdinalIgnoreCase))
-                {
-                    var hyphenized = supportedFramework.Split('-');
-                    if (hyphenized.Length > 2)
-                    {
-                        throw new EntityException(
-                            "The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.", supportedFramework);
-                    }
-                }
+                throw new EntityException(
+                    "The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.", invalidPortableFramework);
             }
         }
 
