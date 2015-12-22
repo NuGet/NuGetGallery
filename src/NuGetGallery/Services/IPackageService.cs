@@ -43,5 +43,7 @@ namespace NuGetGallery
         void RemovePackageOwner(PackageRegistration package, User user);
 
         void SetLicenseReportVisibility(Package package, bool visible, bool commitChanges = true);
+
+        void EnsureValid(PackageReader packageReader);
     }
 }

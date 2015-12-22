@@ -635,11 +635,11 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageIdIsLongerThanMaxPackageIdLength()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(id: "theId".PadRight(101, '_'));
+                var nugetPackage = CreateNuGetPackage(id: "theId".PadRight(131, '_'));
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", "100"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
@@ -853,25 +853,71 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private void WillNotSaveAnySuuportedFrameworksWhenThereIsANullTargetFramework()
+            private void WillNotSaveAnySupportedFrameworksWhenThereIsANullTargetFramework()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
-                               {
-                                   mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                                   mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageReader>())).Returns(
-                                       new[]
-                                       {
+                {
+                    mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                    mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageReader>())).Returns(
+                        new[]
+                        {
                                            null,
                                            NuGetFramework.Parse("net35")
-                                       });
-                               });
+                        });
+                });
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
                 var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 Assert.Empty(package.SupportedFrameworks);
+            }
+
+            [Fact]
+            private void WillNotSaveAnySupportedFrameworksWhenThereIsAnAnyTargetFramework()
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
+                {
+                    mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                    mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageReader>())).Returns(
+                        new[]
+                        {
+                            NuGetFramework.Parse("any"),
+                            NuGetFramework.Parse("net35")
+                        });
+                });
+                var nugetPackage = CreateNuGetPackage();
+                var currentUser = new User();
+
+                var package = service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
+
+                Assert.Empty(package.SupportedFrameworks);
+            }
+
+            [Fact]
+            private void WillThrowIfSupportedFrameworksContainsPortableFrameworkWithProfile()
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
+                {
+                    mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                    mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageReader>())).Returns(
+                        new[]
+                        {
+                            NuGetFramework.Parse("portable-net+win+wpa+wp+sl+net-cf+netmf+MonoAndroid+MonoTouch+Xamarin.iOS")
+                        });
+                });
+
+                var nugetPackage = CreateNuGetPackage();
+                var currentUser = new User();
+
+                // Act
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser));
+
+                // Assert
+                Assert.Contains("Frameworks within the portable profile are not allowed to have profiles themselves.", ex.Message);
             }
         }
 
