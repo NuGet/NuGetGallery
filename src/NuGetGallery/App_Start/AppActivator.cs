@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Claims;
 using System.Web.Helpers;
+using System.Web.Http;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Optimization;
@@ -22,6 +23,7 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
+using Owin;
 using WebBackgrounder;
 using WebActivatorEx;
 
@@ -167,8 +169,10 @@ namespace NuGetGallery
 
         private static void AppPostStart(IAppConfiguration configuration)
         {
+            WebApiConfig.Register(GlobalConfiguration.Configuration);
+            NuGetODataConfig.Register(GlobalConfiguration.Configuration);
+
             Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
-            Routes.RegisterServiceRoutes(RouteTable.Routes);
             AreaRegistration.RegisterAllAreas();
 
             GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });

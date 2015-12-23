@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props')" />
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -119,6 +119,15 @@
     <Reference Include="Autofac.Integration.Owin">
       <HintPath>..\..\packages\Autofac.Owin.3.1.0\lib\net45\Autofac.Integration.Owin.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Autofac.Integration.WebApi, Version=3.4.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Autofac.WebApi2.3.4.0\lib\net45\Autofac.Integration.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="DynamicData.EFCodeFirstProvider, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\DynamicData.EFCodeFirstProvider.0.3.0.0\lib\net40\DynamicData.EFCodeFirstProvider.dll</HintPath>
     </Reference>
     <Reference Include="Elmah, Version=1.2.14706.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -247,6 +256,10 @@
       <HintPath>..\..\packages\Microsoft.AspNet.Identity.Core.1.0.0\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.AspNet.WebApi.MessageHandlers.Compression, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.MessageHandlers.Compression.1.3.0\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\Microsoft.AspNet.WebApi.MessageHandlers.Compression.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="Microsoft.Data.Edm, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -327,7 +340,8 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Frameworks, Version=3.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -401,6 +415,7 @@
       <HintPath>..\..\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceModel.Activation" />
@@ -415,6 +430,18 @@
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Http.OData, Version=5.5.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.OData.5.5.1\lib\net45\System.Web.Http.OData.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.3\lib\net45\System.Web.Http.WebHost.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.Mvc, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -453,13 +480,19 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="WebActivator">
-      <HintPath>..\..\packages\WebActivator.1.4.4\lib\net40\WebActivator.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="WebActivatorEx, Version=2.0.0.0, Culture=neutral, PublicKeyToken=7b26dc2a43f6a0d4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\WebActivatorEx.2.0.6\lib\net40\WebActivatorEx.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WebApi.OutputCache.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Strathweb.CacheOutput.WebApi2.0.9.0\lib\net45\WebApi.OutputCache.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WebApi.OutputCache.V2, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Strathweb.CacheOutput.WebApi2.0.9.0\lib\net45\WebApi.OutputCache.V2.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebBackgrounder">
@@ -483,12 +516,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\NuGetODataV2CuratedFeedConfig.cs" />
+    <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
+    <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
+    <Compile Include="App_Start\NuGetODataConfig.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Controllers\ODataV1FeedController.cs" />
+    <Compile Include="Controllers\ODataV2CuratedFeedController.cs" />
+    <Compile Include="Controllers\ODataV2FeedController.cs" />
     <Compile Include="Diagnostics\PerfCounters.cs" />
     <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
@@ -523,9 +564,11 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
-    <Compile Include="DataServices\NormalizeVersionInterceptor.cs" />
-    <Compile Include="DataServices\RewriteBaseUrlMessageInspector.cs" />
-    <Compile Include="DataServices\SearchHijacker.cs" />
+    <Compile Include="Infrastructure\QueryInterceptorExtensions.cs" />
+    <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
+    <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
+    <Compile Include="OData\QueryInterceptors\NormalizeVersionInterceptor.cs" />
+    <Compile Include="OData\SearchService\SearchHijacker.cs" />
     <Compile Include="Diagnostics\AuthenticationGlimpseTab.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsGlimpseTab.cs" />
@@ -549,6 +592,7 @@
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\GlimpseServiceLocator.cs" />
     <Compile Include="Configuration\StorageType.cs" />
+    <Content Include="bin\NuGetGallery.dll.config" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
     <Compile Include="Areas\Admin\Controllers\HomeController.cs" />
@@ -784,34 +828,19 @@
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
-    <Compile Include="DataServices\ODataRemoveVersionSorter.cs" />
-    <Compile Include="DataServices\CountInterceptor.cs">
+    <Compile Include="OData\QueryInterceptors\ODataRemoveVersionSorter.cs" />
+    <Compile Include="OData\QueryInterceptors\CountInterceptor.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataServices\DisregardODataInterceptor.cs" />
-    <Compile Include="DataServices\SearchAdaptor.cs" />
-    <Compile Include="DataServices\V2CuratedFeed.svc.cs">
-      <DependentUpon>V2CuratedFeed.svc</DependentUpon>
-    </Compile>
-    <Compile Include="DataServices\V1FeedPackage.cs">
+    <Compile Include="OData\QueryInterceptors\DisregardODataInterceptor.cs" />
+    <Compile Include="OData\SearchService\SearchAdaptor.cs" />
+    <Compile Include="OData\V1FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataServices\V1Feed.svc.cs">
-      <DependentUpon>V1Feed.svc</DependentUpon>
+    <Compile Include="OData\PackageExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataServices\FeedContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DataServices\FeedServiceBase.cs" />
-    <Compile Include="DataServices\PackageExtensions.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DataServices\V2Feed.svc.cs">
-      <DependentUpon>V2Feed.svc</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DataServices\V2FeedPackage.cs">
+    <Compile Include="OData\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
@@ -1097,6 +1126,16 @@
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
+    <Compile Include="OData\Conventions\ActionCountRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\ControllerAliasingODataRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\CompositeKeyRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\EntitySetCountRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\MethodNameActionRoutingConvention.cs" />
+    <Compile Include="OData\NuGetODataController.cs" />
+    <Compile Include="OData\Routing\CountODataPathHandler.cs" />
+    <Compile Include="OData\Routing\CountPathSegment.cs" />
+    <Compile Include="OData\Serializers\NuGetEntityTypeSerializer.cs" />
+    <Compile Include="OData\Serializers\CustomSerializerProvider.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\TagBasedPackageCurator.cs" />
@@ -1111,13 +1150,12 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
+    <Compile Include="WebApi\PlainTextResult.cs" />
+    <Compile Include="WebApi\QueryResult.cs" />
+    <Compile Include="WebApi\QueryResultExtensions.cs" />
     <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="NuGetGallery.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
     </Content>
     <Content Include="Areas\Admin\DynamicData\Content\Images\web.config">
       <SubType>Designer</SubType>
@@ -1271,6 +1309,10 @@
     <Content Include="Views\Pages\Privacy.cshtml" />
     <Content Include="Views\Pages\Terms.cshtml" />
     <Content Include="Views\Pages\About.cshtml" />
+    <Content Include="NuGetGallery.dll.config">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -1422,9 +1464,6 @@
     <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.css" />
     <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.min.css" />
     <Content Include="D3 LICENSE.txt" />
-    <Content Include="DataServices\V2CuratedFeed.svc" />
-    <Content Include="DataServices\V1Feed.svc" />
-    <Content Include="DataServices\V2Feed.svc" />
     <Content Include="Public\Error.html" />
     <Content Include="Public\favicon.ico" />
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
@@ -1649,9 +1688,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props'))" />
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets'))" />
   </Target>
   <Import Project="..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets')" />
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" />
 </Project>
