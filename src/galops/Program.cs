@@ -65,7 +65,7 @@ namespace NuGetGallery.Operations.Tools
                 if (!ArgumentCountValid(command))
                 {
                     string commandName = command.CommandAttribute.CommandName;
-                    Console.WriteLine("{0}: invalid arguments..", commandName);
+                    Console.WriteLine(Strings.CommandInvalidArguments, commandName);
                     HelpCommand.ViewHelpForCommand(commandName);
                 }
                 else
