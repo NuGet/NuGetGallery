@@ -700,7 +700,7 @@ namespace NuGetGallery
                 // Get the packages to delete
                 foreach (var package in deletePackagesRequest.Packages)
                 {
-                    var split = package.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                    var split = package.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                     if (split.Length == 2)
                     {
                         var packageToDelete = _packageService.FindPackageByIdAndVersion(split[0], split[1], allowPrerelease: true);
@@ -727,9 +727,9 @@ namespace NuGetGallery
                 }
 
                 // Redirect out
-                TempData["Message"] = 
+                TempData["Message"] =
                     "We're performing the package delete right now. It may take a while for this change to propagate through our system.";
-                
+
                 return Redirect("/");
             }
 
@@ -854,10 +854,10 @@ namespace NuGetGallery
             ConfirmOwnershipResult result = _packageService.ConfirmPackageOwner(package, user, token);
 
             var model = new PackageOwnerConfirmationModel
-                {
-                    Result = result,
-                    PackageId = package.Id
-                };
+            {
+                Result = result,
+                PackageId = package.Id
+            };
 
             return View(model);
         }
@@ -894,7 +894,7 @@ namespace NuGetGallery
             _indexingService.UpdatePackage(package);
             return Redirect(urlFactory(package));
         }
-        
+
         [Authorize]
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> VerifyPackage()
@@ -927,12 +927,18 @@ namespace NuGetGallery
                 }
             }
 
+
             var model = new VerifyPackageRequest
             {
                 Id = packageMetadata.Id,
                 Version = packageMetadata.Version.ToNormalizedStringSafe(),
                 LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
                 Listed = true,
+                Language = packageMetadata.Language,
+                MinClientVersion = packageMetadata.MinClientVersion,
+                FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
+                DependencyGroups = packageMetadata.GetDependencyGroups(),
+                DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
                 Edit = new EditPackageVersionRequest
                 {
                     Authors = packageMetadata.Authors.Flatten(),
@@ -976,7 +982,7 @@ namespace NuGetGallery
                     return new RedirectResult(Url.UploadPackage());
                 }
                 Debug.Assert(nugetPackage != null);
-                
+
                 var packageMetadata = PackageMetadata.FromNuspecReader(
                     nugetPackage.GetNuspecReader());
 

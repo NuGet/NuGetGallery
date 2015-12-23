@@ -80,7 +80,10 @@
     <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
         <li>@ReadOnlyField("Package ID", "Id", Model.Id)</li>
         <li>@ReadOnlyField("Version", "Version", Model.Version)</li>
+        <li>@ReadOnlyField("Minimum NuGet Client Version", "MinClientVersion", Model.MinClientVersion.ToStringSafe())</li>
         <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
+        <li>@ReadOnlyField("Language", "Language", Model.Language)</li>
+        <li>@ReadOnlyField("Development Dependency", "DevDependency", Model.DevelopmentDependency)</li>
         <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
         <li>@EditableField("Description", m => m.Edit.Description)</li>
         <li>@EditableField("Summary", m => m.Edit.Summary)</li>
@@ -90,6 +93,69 @@
         <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
         <li>@EditableField("Tags", m => m.Edit.Tags)</li>
         <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
+
+        @if (Model.DependencyGroups != null && Model.DependencyGroups.Any())
+        {
+            <li>
+                <h4>
+                    Dependencies
+                </h4>
+                <div style="position: relative">
+                    <ul>
+                        @foreach (var dependencyset in Model.DependencyGroups)
+                        {
+                            if (dependencyset.TargetFramework != null)
+                            {
+                                <li>
+                                    <b>@dependencyset.TargetFramework.DotNetFrameworkName</b>
+
+                                    <ul style="padding-left: 15px">
+                                        @foreach (var dependency in dependencyset.Packages)
+                                        {
+                                            <li>@dependency.Id @dependency.VersionRange.ToString()</li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                            else
+                            {
+                                foreach (var dependency in dependencyset.Packages)
+                                {
+                                    <li>@dependency.Id @dependency.VersionRange.ToString()</li>
+                                }
+                            }
+                        }
+                    </ul>
+                </div>
+            </li>
+        }
+
+        @if (Model.FrameworkReferenceGroups.Any())
+        {
+            <li>
+                <h4>
+                    Framework Assembly References
+                </h4>
+                <div style="position: relative">
+                    <ul>
+                        @foreach (var framework in Model.FrameworkReferenceGroups)
+                        {
+                            <li>
+                                <b>@framework.TargetFramework</b>
+
+                                <ul style="padding-left: 15px">
+                                    @foreach (var assembly in framework.Items)
+                                    {
+                                        <li>@assembly</li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </li>
+        }
+
 
         @if (!String.IsNullOrEmpty(Model.LicenseUrl))
         {
