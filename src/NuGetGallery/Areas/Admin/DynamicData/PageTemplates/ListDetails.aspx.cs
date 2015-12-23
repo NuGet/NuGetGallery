@@ -133,7 +133,7 @@ namespace NuGetGallery
             }
         }
 
-        private void SetDeleteConfirmation(TableRow row)
+        private static void SetDeleteConfirmation(TableRow row)
         {
             foreach (Control c in row.Cells[0].Controls)
             {
