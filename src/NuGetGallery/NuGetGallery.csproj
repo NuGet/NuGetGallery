@@ -36,7 +36,8 @@
     </NuGetPackageImportStamp>
     <MvcProjectUpgradeChecked>true</MvcProjectUpgradeChecked>
     <UseGlobalApplicationHostFile />
-  </PropertyGroup>
+    <MvcBuildViews Condition=" '$(MvcBuildViews)' == '' ">false</MvcBuildViews>
+</PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -485,6 +486,20 @@
   <ItemGroup>
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
+      <DependentUpon>Url_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.designer.cs">
+      <DependentUpon>Url_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx.cs">
+      <DependentUpon>ListDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx.designer.cs">
+      <DependentUpon>ListDetails.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
@@ -1115,6 +1130,8 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="NuGetGallery.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
