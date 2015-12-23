@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NLog;
 using NLog.Targets;
@@ -9,6 +10,7 @@ using ColorPair = System.Tuple<System.ConsoleColor, System.ConsoleColor?>;
 
 namespace NuBot.Infrastructure
 {
+    [SuppressMessage("ReSharper", "LocalizableElement")]
     public class SnazzyConsoleTarget : TargetWithLayout
     {
         private static readonly Dictionary<LogLevel, ColorPair> ColorTable = new Dictionary<LogLevel, ColorPair>()

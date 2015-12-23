@@ -15,6 +15,7 @@ namespace NuGetGallery.Operations
     [Command(typeof(CommandHelp), "help", "HelpCommandDescription", AltName = "?", MaxArgs = 1,
         UsageSummaryResourceName = "HelpCommandUsageSummary", UsageDescriptionResourceName = "HelpCommandUsageDescription",
         UsageExampleResourceName = "HelpCommandUsageExamples")]
+    [SuppressMessage("ReSharper", "LocalizableElement")]
     public class HelpCommand : OpsTask
     {
         private readonly string _commandExe;
@@ -69,6 +70,7 @@ namespace NuGetGallery.Operations
             }
         }
 
+        [SuppressMessage("ReSharper", "LocalizableElement")]
         public void ViewHelp(bool all)
         {
             Console.WriteLine("{0} Version: {1}", _productName, GetType().Assembly.GetName().Version);

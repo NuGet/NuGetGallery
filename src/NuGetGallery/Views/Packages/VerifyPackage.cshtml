@@ -103,15 +103,15 @@
                 </h4>
                 <div style="position: relative">
                     <div id="Edit_RequiresLicenseAcceptanceText">
-                        <p>@(Model.Edit.RequiresLicenseAcceptance ? "Yes" : "No")</p>
+                        <p>@(Model.Edit.RequiresLicenseAcceptance ? Strings.Yes : Strings.No)</p>
                     </div>
                     <div id="Edit_RequiresLicenseAcceptanceField" style="display: none; width: 100%">
                         <div class="form-field" style="display: inline">
                             @Html.DropDownList("Edit.RequiresLicenseAcceptance",
                                 new List<SelectListItem>
                                 {
-                                    new SelectListItem { Text = "Yes", Value = "true" },
-                                    new SelectListItem { Text = "No", Value = "false" },
+                                    new SelectListItem { Text = Strings.Yes, Value = "true" },
+                                    new SelectListItem { Text = Strings.No, Value = "false" },
                                 })
                             @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
                         </div>
@@ -123,13 +123,13 @@
         <li>
             <h4>Listed in Search Results</h4>
                 <div class="form-field">
-                   @Html.DropDownList("Listed",
-                            new List<SelectListItem>
-                            {
-                                new SelectListItem { Text = "Yes", Value = "true", Selected = true },
-                                new SelectListItem { Text = "No", Value = "false" },
-                            })
-                        @Html.ValidationMessageFor(model => model.Listed)
+                    @Html.DropDownList("Listed",
+                        new List<SelectListItem>
+                        {
+                            new SelectListItem { Text = Strings.Yes, Value = "true", Selected = true },
+                            new SelectListItem { Text = Strings.No, Value = "false" },
+                        })
+                    @Html.ValidationMessageFor(model => model.Listed)
                     @*<label for="Listed" class="checkbox">
                         List this package in search results. 
                     </label>*@

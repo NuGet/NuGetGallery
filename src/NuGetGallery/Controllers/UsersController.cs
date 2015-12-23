@@ -154,7 +154,7 @@ namespace NuGetGallery
                     return SendPasswordResetEmail(user, forgotPassword: true);
                 }
 
-                ModelState.AddModelError("Email", "Could not find anyone with that email.");
+                ModelState.AddModelError("Email", Strings.CouldNotFindAnyoneWithThatEmail);
             }
 
             return View(model);
@@ -207,7 +207,7 @@ namespace NuGetGallery
             
             if (!ViewBag.ResetTokenValid)
             {
-                ModelState.AddModelError("", "The Password Reset Token is not valid or expired.");
+                ModelState.AddModelError("", Strings.InvalidOrExpiredPasswordResetToken);
                 return View(model);
             }
 
