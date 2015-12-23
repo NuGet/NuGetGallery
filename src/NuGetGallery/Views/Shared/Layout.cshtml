@@ -18,7 +18,7 @@
 
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
 
-        <link title="NuGet.org" type="application/opensearchdescription+xml" href="https://www.nuget.org/opensearch.xml" rel="search">
+        <link title="NuGet.org" type="application/opensearchdescription+xml" href="@Url.Content("~/opensearch.xml")" rel="search">
 
         @Scripts.Render("~/Scripts/modernizr")
         @ViewHelpers.AnalyticsScript()
