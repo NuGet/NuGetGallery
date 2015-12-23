@@ -27,10 +27,24 @@ namespace NuGetGallery.Operations
             }
             return items.Any(predicate);
         }
-        
+
         public static string ToShortNameOrNull(this NuGetFramework frameworkName)
         {
-            return frameworkName == null ? null : frameworkName.GetShortFolderName();
+            if (frameworkName == null)
+            {
+                return null;
+            }
+
+            var shortFolderName = frameworkName.GetShortFolderName();
+
+            // If the shortFolderName is "any", we want to return null to preserve NuGet.Core
+            // compatibility in the V2 feed.
+            if (String.Equals(shortFolderName, "any", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return shortFolderName;
         }
 
         public static string ToFriendlyDateTimeString(this DateTime self)
