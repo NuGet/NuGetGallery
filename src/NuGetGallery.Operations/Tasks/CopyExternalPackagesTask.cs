@@ -51,11 +51,11 @@ namespace NuGetGallery.Operations.Tasks
                         pkg.Version);
                     if (packageFileBlob.Exists())
                     {
-                        Console.WriteLine("SKIPPED! Package file blob " + fileName + " already exists");
+                        Console.WriteLine(NuGetGallery.Strings.CopyExternalPackages_PackageFileBlobAlreadyExists, fileName);
                     }
                     else
                     {
-                        Console.WriteLine("Saving the package file " + pkg.ExternalPackageUrl + " to blob storage as " + fileName);
+                        Console.WriteLine(NuGetGallery.Strings.CopyExternalPackages_SavingPackageFileBlob, pkg.ExternalPackageUrl, fileName);
                         if (!WhatIf)
                         {
                             packageFileBlob.UploadFromStream(

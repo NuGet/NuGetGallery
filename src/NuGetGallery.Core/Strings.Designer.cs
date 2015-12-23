@@ -149,5 +149,32 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("Manifest_MissingId", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Must be a readable stream.
+        /// </summary>
+        internal static string StreamMustBeReadable {
+            get {
+                return ResourceManager.GetString("StreamMustBeReadable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Must be a seekable stream.
+        /// </summary>
+        internal static string StreamMustBeSeekable {
+            get {
+                return ResourceManager.GetString("StreamMustBeSeekable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Must be a writeable stream.
+        /// </summary>
+        internal static string StreamMustBeWriteable {
+            get {
+                return ResourceManager.GetString("StreamMustBeWriteable", resourceCulture);
+            }
+        }
     }
 }
