@@ -1427,6 +1427,7 @@
     <Content Include="DataServices\V2Feed.svc" />
     <Content Include="Public\Error.html" />
     <Content Include="Public\favicon.ico" />
+    <Content Include="Public\opensearch.xml" />
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
