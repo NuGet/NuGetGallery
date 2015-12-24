@@ -94,38 +94,14 @@
         <li>@EditableField("Tags", m => m.Edit.Tags)</li>
         <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
 
-        @if (Model.DependencyGroups != null && Model.DependencyGroups.Any())
+        @if (Model.Dependencies != null)
         {
             <li>
                 <h4>
                     Dependencies
                 </h4>
-                <div style="position: relative">
-                    <ul>
-                        @foreach (var dependencyset in Model.DependencyGroups)
-                        {
-                            if (dependencyset.TargetFramework != null)
-                            {
-                                <li>
-                                    <b>@dependencyset.TargetFramework.DotNetFrameworkName</b>
-
-                                    <ul style="padding-left: 15px">
-                                        @foreach (var dependency in dependencyset.Packages)
-                                        {
-                                            <li>@dependency.Id @dependency.VersionRange.ToString()</li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                            else
-                            {
-                                foreach (var dependency in dependencyset.Packages)
-                                {
-                                    <li>@dependency.Id @dependency.VersionRange.ToString()</li>
-                                }
-                            }
-                        }
-                    </ul>
+                <div style="position: relative; margin-left: 15px;">
+                    @Html.Partial("_PackageDependencies", Model.Dependencies)
                 </div>
             </li>
         }
@@ -136,14 +112,21 @@
                 <h4>
                     Framework Assembly References
                 </h4>
-                <div style="position: relative">
-                    <ul>
+                <div style="position: relative; margin-left: 15px;">
+                    <ul id="dependencySets">
                         @foreach (var framework in Model.FrameworkReferenceGroups)
                         {
                             <li>
-                                <b>@framework.TargetFramework</b>
+                                @if (!framework.TargetFramework.IsAny)
+                                {
+                                    <h4>@framework.TargetFramework.ToFriendlyName()</h4>
+                                }
+                                else
+                                {
+                                    <h4>Any</h4>
+                                }
 
-                                <ul style="padding-left: 15px">
+                                <ul class="dependencySet">
                                     @foreach (var assembly in framework.Items)
                                     {
                                         <li>@assembly</li>
@@ -152,17 +135,18 @@
                             </li>
                         }
                     </ul>
+
                 </div>
             </li>
         }
 
 
-        @if (!String.IsNullOrEmpty(Model.LicenseUrl))
+                                    @if (!String.IsNullOrEmpty(Model.LicenseUrl))
         {
             <li>
                 <h4>Requires License Acceptance
                     @{
-                        var formid2 = "Edit_RequiresLicenseAcceptance";
+                                            var formid2 = "Edit_RequiresLicenseAcceptance";
                         <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit"></span></button>
                         <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
                     }

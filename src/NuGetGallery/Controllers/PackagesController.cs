@@ -927,7 +927,6 @@ namespace NuGetGallery
                 }
             }
 
-
             var model = new VerifyPackageRequest
             {
                 Id = packageMetadata.Id,
@@ -937,7 +936,8 @@ namespace NuGetGallery
                 Language = packageMetadata.Language,
                 MinClientVersion = packageMetadata.MinClientVersion,
                 FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
-                DependencyGroups = packageMetadata.GetDependencyGroups(),
+                Dependencies = new DependencySetsViewModel(
+                    packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
                 DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
                 Edit = new EditPackageVersionRequest
                 {
@@ -954,6 +954,7 @@ namespace NuGetGallery
                     VersionTitle = packageMetadata.Title,
                 }
             };
+            
             return View(model);
         }
 

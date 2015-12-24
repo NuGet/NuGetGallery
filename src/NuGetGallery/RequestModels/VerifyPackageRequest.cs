@@ -2,9 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using NuGet.Packaging;
 using NuGet.Versioning;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace NuGetGallery
 {
@@ -18,7 +16,7 @@ namespace NuGetGallery
         public NuGetVersion MinClientVersion { get; set; }
         public string Language { get; set; }
         public string DevelopmentDependency { get; set; }
-        public IReadOnlyCollection<PackageDependencyGroup> DependencyGroups { get; set; }
+        public DependencySetsViewModel Dependencies { get; set; }
         public IReadOnlyCollection<FrameworkSpecificGroup> FrameworkReferenceGroups { get; set; }
     }
 }
