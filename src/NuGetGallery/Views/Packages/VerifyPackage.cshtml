@@ -80,7 +80,10 @@
     <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
         <li>@ReadOnlyField("Package ID", "Id", Model.Id)</li>
         <li>@ReadOnlyField("Version", "Version", Model.Version)</li>
+        <li>@ReadOnlyField("Minimum NuGet Client Version", "MinClientVersion", Model.MinClientVersion.ToStringSafe())</li>
         <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
+        <li>@ReadOnlyField("Language", "Language", Model.Language)</li>
+        <li>@ReadOnlyField("Development Dependency", "DevDependency", Model.DevelopmentDependency)</li>
         <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
         <li>@EditableField("Description", m => m.Edit.Description)</li>
         <li>@EditableField("Summary", m => m.Edit.Summary)</li>
@@ -91,12 +94,59 @@
         <li>@EditableField("Tags", m => m.Edit.Tags)</li>
         <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
 
-        @if (!String.IsNullOrEmpty(Model.LicenseUrl))
+        @if (Model.Dependencies != null)
+        {
+            <li>
+                <h4>
+                    Dependencies
+                </h4>
+                <div style="position: relative; margin-left: 15px;">
+                    @Html.Partial("_PackageDependencies", Model.Dependencies)
+                </div>
+            </li>
+        }
+
+        @if (Model.FrameworkReferenceGroups.Any())
+        {
+            <li>
+                <h4>
+                    Framework Assembly References
+                </h4>
+                <div style="position: relative; margin-left: 15px;">
+                    <ul id="dependencySets">
+                        @foreach (var framework in Model.FrameworkReferenceGroups)
+                        {
+                            <li>
+                                @if (!framework.TargetFramework.IsAny)
+                                {
+                                    <h4>@framework.TargetFramework.ToFriendlyName()</h4>
+                                }
+                                else
+                                {
+                                    <h4>Any</h4>
+                                }
+
+                                <ul class="dependencySet">
+                                    @foreach (var assembly in framework.Items)
+                                    {
+                                        <li>@assembly</li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+
+                </div>
+            </li>
+        }
+
+
+                                    @if (!String.IsNullOrEmpty(Model.LicenseUrl))
         {
             <li>
                 <h4>Requires License Acceptance
                     @{
-                        var formid2 = "Edit_RequiresLicenseAcceptance";
+                                            var formid2 = "Edit_RequiresLicenseAcceptance";
                         <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit"></span></button>
                         <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
                     }

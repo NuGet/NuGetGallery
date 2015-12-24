@@ -464,38 +464,15 @@ namespace NuGetGallery
                 }
             }
 
-            foreach (var dependencyGroup in packageMetadata.GetDependencyGroups())
-            {
-                if (!dependencyGroup.Packages.Any())
-                {
-                    package.Dependencies.Add(
-                        new PackageDependency
-                            {
-                                Id = null,
-                                VersionSpec = null,
-                                TargetFramework = dependencyGroup.TargetFramework.ToShortNameOrNull()
-                            });
-                }
-                else
-                {
-                    foreach (var dependency in dependencyGroup.Packages.Select(d => new { d.Id, d.VersionRange, dependencyGroup.TargetFramework }))
-                    {
-                        package.Dependencies.Add(
-                            new PackageDependency
-                                {
-                                    Id = dependency.Id,
-                                    VersionSpec = dependency.VersionRange == null ? null : dependency.VersionRange.ToString(),
-                                    TargetFramework = dependency.TargetFramework.ToShortNameOrNull()
-                                });
-                    }
-                }
-            }
-
+            package.Dependencies = packageMetadata
+                .GetDependencyGroups()
+                .AsPackageDependencyEnumerable()
+                .ToList();
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             return package;
         }
-        
+
         public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageReader package)
         {
             return package.GetSupportedFrameworks();
