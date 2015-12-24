@@ -18,13 +18,15 @@ namespace NuGetGallery.Packaging
         public PackageMetadata(
             Dictionary<string, string> metadata,
             IEnumerable<PackageDependencyGroup> dependencyGroups, 
-            IEnumerable<FrameworkSpecificGroup> frameworkGroups)
+            IEnumerable<FrameworkSpecificGroup> frameworkGroups,
+            NuGetVersion minClientVersion)
         {
             _metadata = new Dictionary<string, string>(metadata, StringComparer.OrdinalIgnoreCase);
             _dependencyGroups = dependencyGroups.ToList().AsReadOnly();
             _frameworkReferenceGroups = frameworkGroups.ToList().AsReadOnly();
 
             SetPropertiesFromMetadata();
+            MinClientVersion = minClientVersion;
         }
 
         private void SetPropertiesFromMetadata()
@@ -35,10 +37,6 @@ namespace NuGetGallery.Packaging
             if (NuGetVersion.TryParse(GetValue("version", string.Empty), out nugetVersion))
             {
                 Version = nugetVersion;
-            }
-            if (NuGetVersion.TryParse(GetValue("minClientVersion", string.Empty), out nugetVersion))
-            {
-                MinClientVersion = nugetVersion;
             }
 
             IconUrl = GetValue("iconUrl", (Uri) null);
@@ -136,7 +134,8 @@ namespace NuGetGallery.Packaging
             return new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(),
-                nuspecReader.GetFrameworkReferenceGroups()
+                nuspecReader.GetFrameworkReferenceGroups(),
+                nuspecReader.GetMinClientVersion()
            );
         }
     }
