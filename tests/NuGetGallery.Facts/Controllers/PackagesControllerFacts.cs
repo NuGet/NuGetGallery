@@ -1232,7 +1232,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillPassFrameworkAssembliesWithSupportedFrameworkGroupingToTheView()
+            public async Task WillPassDependenciesToTheView()
             {
                 var dependencyGroups = new[]
                 {
