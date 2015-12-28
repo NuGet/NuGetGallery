@@ -19,6 +19,8 @@ using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using Xunit;
+using NuGet.Versioning;
+using NuGet.Frameworks;
 
 namespace NuGetGallery
 {
@@ -1190,6 +1192,90 @@ namespace NuGetGallery
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
                 Assert.Equal("firstAuthor, secondAuthor", model.Edit.Authors);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillPassMinClientVersionToTheView()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0", minClientVersion: "1.2.3");
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
+
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeUploadFileStream);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
+
+                Assert.Equal(new NuGetVersion(1, 2, 3, 0), model.MinClientVersion);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillPassLanguageToTheView()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0", language: "de-DE");
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
+
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeUploadFileStream);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
+
+                Assert.Equal("de-DE", model.Language);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillPassDependenciesToTheView()
+            {
+                var dependencyGroups = new[]
+                {
+                    new PackageDependencyGroup(
+                        new NuGetFramework("net451"),
+                        new[]
+                        {
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "firstTestDependency",
+                                VersionRange.Parse("[1.0.0, 2.0.0)")),
+
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "secondTestDependency",
+                                VersionRange.Parse("[1.0]")),
+                        }),
+
+                    new PackageDependencyGroup(
+                        new NuGetFramework("testFrameworkTwo"),
+                        new[]
+                        {
+                             new NuGet.Packaging.Core.PackageDependency(
+                                "newFirstTestDependency",
+                                VersionRange.Parse("[1.0.0, 2.0.0)")),
+
+                        })
+                };
+             
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0", packageDependencyGroups: dependencyGroups);
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
+
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeUploadFileStream);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
+
+                var assert = model.Dependencies.DependencySets.ToList();
+
+                Assert.Equal(2, assert[0].Value.Count()); //net451 has 2 dependencies
+                Assert.Equal(1, assert[1].Value.Count()); //unsupported has 1 dependency
+
                 fakeUploadFileStream.Dispose();
             }
         }
