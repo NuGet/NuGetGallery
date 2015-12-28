@@ -8,6 +8,7 @@ using Microsoft.Owin.StaticFiles.Infrastructure;
 using NuGet.Indexing;
 using Owin;
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,7 +71,7 @@ namespace NuGet.Services.BasicSearch
             if (InitializeSearcherManager(configuration, directory, loader, loggerFactory))
             {
                 _gate = 0;
-                _timer = new Timer(new TimerCallback(ReopenCallback), 0, 0, seconds * 1000);
+                _timer = new Timer(ReopenCallback, 0, 0, seconds * 1000);
             }
 
             app.Run(Invoke);
@@ -81,20 +82,24 @@ namespace NuGet.Services.BasicSearch
             Configuration(app, new ConfigurationService(), null, null);
         }
 
-        void ReopenCallback(object obj)
+        void ReopenCallback(object state)
         {
             try
             {
                 int val = Interlocked.Increment(ref _gate);
                 if (val > 1)
                 {
+                    _logger.LogInformation("Search index is already being reopened so thread ID {ThreadId} will not try to reopen the index again", Thread.CurrentThread.ManagedThreadId);
                     Interlocked.Decrement(ref _gate);
                     return;
                 }
 
+                _logger.LogInformation("Beginning to reopen the search index on thread ID {ThreadId}", Thread.CurrentThread.ManagedThreadId);
+                var stopwatch = Stopwatch.StartNew();
                 _searcherManager.MaybeReopen();
+                _logger.LogInformation("Reopening the search index took {ElapsedSeconds} seconds on thread ID {ThreadId}", stopwatch.Elapsed.TotalSeconds, Thread.CurrentThread.ManagedThreadId);
+
                 Interlocked.Decrement(ref _gate);
-                return;
             }
             catch (Exception e)
             {
