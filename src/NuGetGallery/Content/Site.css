@@ -341,9 +341,9 @@ p.authors {
 }
 
 .stat-label {
-    font-size: 1.25em;
+    font-size: 1.0em;
     line-height: 1em;
-    margin: -7px 0 0 5px;
+    margin: -7px 0 0 0px;
 }
 
 /* License Gadget */
