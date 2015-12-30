@@ -285,7 +285,7 @@ namespace NuGetGallery
             return shortFolderName;
         }
 
-        public static string ToFriendlyName(this NuGetFramework frameworkName)
+        public static string ToFriendlyName(this NuGetFramework frameworkName, bool allowRecurseProfile = true)
         {
             if (frameworkName == null)
             {
@@ -295,12 +295,19 @@ namespace NuGetGallery
             var sb = new StringBuilder();
             if (String.Equals(frameworkName.Framework, ".NETPortable", StringComparison.OrdinalIgnoreCase))
             {
-                sb.Append("Portable Class Library (");
+                sb.Append("Portable Class Library");
 
                 // Recursively parse the profile
-                var subprofiles = frameworkName.GetShortFolderName().Replace("portable-", string.Empty).Split('+');
-                sb.Append(String.Join(", ", subprofiles.Select(s => NuGetFramework.Parse(s).ToFriendlyName())));
-                sb.Append(")");
+                if (allowRecurseProfile)
+                {
+                    sb.Append(" (");
+
+                    var profiles = frameworkName.GetShortFolderName().Replace("portable-", string.Empty).Split('+');
+                    sb.Append(String.Join(", ",
+                        profiles.Select(s => NuGetFramework.Parse(s).ToFriendlyName(allowRecurseProfile: false))));
+
+                    sb.Append(")");
+                }
             }
             else
             {

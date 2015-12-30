@@ -30,6 +30,20 @@ namespace NuGetGallery
                 var actual = fx.ToFriendlyName();
                 Assert.Equal(expected, actual);
             }
+
+            [Theory]
+            [InlineData(".NETFramework 4.0", "net40")]
+            [InlineData("Silverlight 4.0", "sl40")]
+            [InlineData("WindowsPhone 8.0", "wp8")]
+            [InlineData("Windows 8.1", "win81")]
+            [InlineData("Portable Class Library", "portable-net40+sl4+win8+wp71")]
+            [InlineData("Portable Class Library", "portable-net45+win8")]
+            public void DoesNotRecurseWhenAllowRecurseProfileFalse(string expected, string shortName)
+            {
+                var fx = NuGetFramework.Parse(shortName);
+                var actual = fx.ToFriendlyName(allowRecurseProfile: false);
+                Assert.Equal(expected, actual);
+            }
         }
     }
 }
