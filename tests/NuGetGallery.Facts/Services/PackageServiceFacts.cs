@@ -643,6 +643,28 @@ namespace NuGetGallery
             }
 
             [Fact]
+            private void WillThrowIfTheNuGetPackageSpecialVersionContainsADot()
+            {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage(id: "theId", version: "1.2.3-alpha.0");
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
+
+                Assert.Equal(String.Format(Strings.NuGetPackageReleaseVersionWithDot, "Version"), ex.Message);
+            }
+
+            [Fact]
+            private void WillThrowIfTheNuGetPackageSpecialVersionContainsOnlyNumbers()
+            {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage(id: "theId", version: "1.2.3-12345");
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), null));
+
+                Assert.Equal(String.Format(Strings.NuGetPackageReleaseVersionContainsOnlyNumerics, "Version"), ex.Message);
+            }
+
+            [Fact]
             private void WillThrowIfTheNuGetPackageAuthorsIsLongerThan4000()
             {
                 var service = CreateService();

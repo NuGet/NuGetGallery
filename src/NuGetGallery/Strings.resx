@@ -308,4 +308,10 @@ The {2} Team</value>
   <data name="UploadPackage_InvalidNuspec" xml:space="preserve">
     <value>The NuGet package contains an invaid .nuspec file. The error encountered was:'{0}'. Correct the error and try again.</value>
   </data>
+  <data name="NuGetPackageReleaseVersionWithDot" xml:space="preserve">
+    <value>Package {0} invalid: no '.' allowed in the release label.</value>
+  </data>
+  <data name="NuGetPackageReleaseVersionContainsOnlyNumerics" xml:space="preserve">
+    <value>Package {0} invalid: the release label can not only contain numerics.</value>
+  </data>
 </root>
