@@ -170,6 +170,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Catalog2Dnx.cs" />
+    <Compile Include="Db2Lucene.cs" />
     <Compile Include="DnxCatalogCollector.cs" />
     <Compile Include="ResetLucene.cs" />
     <Compile Include="Catalog2Lucene.cs" />

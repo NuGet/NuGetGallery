@@ -470,5 +470,27 @@ namespace Ng
             }
             return handlerFunc;
         }
+
+        public static string GetConnectionString(IDictionary<string, string> arguments)
+        {
+            string connectionString;
+            if (!arguments.TryGetValue("-connectionString", out connectionString))
+            {
+                return null;
+            }
+
+            return connectionString;
+        }
+
+        public static string GetPath(IDictionary<string, string> arguments)
+        {
+            string path;
+            if (!arguments.TryGetValue("-path", out path))
+            {
+                return null;
+            }
+
+            return path;
+        }
     }
 }
