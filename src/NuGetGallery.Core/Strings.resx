@@ -147,4 +147,13 @@
   <data name="Manifest_MissingId" xml:space="preserve">
     <value>The package manifest is missing the Id field</value>
   </data>
+  <data name="StreamMustBeReadable" xml:space="preserve">
+    <value>Must be a readable stream</value>
+  </data>
+  <data name="StreamMustBeWriteable" xml:space="preserve">
+    <value>Must be a writeable stream</value>
+  </data>
+  <data name="StreamMustBeSeekable" xml:space="preserve">
+    <value>Must be a seekable stream</value>
+  </data>
 </root>

@@ -264,11 +264,11 @@
                             <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
                                 <div class="form-field" style="display: inline">
                                     @Html.DropDownList("Edit.RequiresLicenseAcceptance",
-                                    new List<SelectListItem>
-                                    {
-                                        new SelectListItem { Text = "Yes", Value = "true" },
-                                        new SelectListItem { Text = "No", Value = "false" },
-                                    })
+                                        new List<SelectListItem>
+                                        {
+                                            new SelectListItem { Text = Strings.Yes, Value = "true" },
+                                            new SelectListItem { Text = Strings.No, Value = "false" },
+                                        })
                                     @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
                                 </div>
                             </div>

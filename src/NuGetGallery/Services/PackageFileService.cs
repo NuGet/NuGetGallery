@@ -75,7 +75,7 @@ namespace NuGetGallery
                 string.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
                 (string.IsNullOrWhiteSpace(package.NormalizedVersion) && string.IsNullOrWhiteSpace(package.Version)))
             {
-                throw new ArgumentException("The package is missing required data.", "package");
+                throw new ArgumentException(Strings.PackageIsMissingRequiredData, "package");
             }
 
             var fileName = BuildBackupFileName(package.PackageRegistration.Id, string.IsNullOrEmpty(package.NormalizedVersion) 
@@ -125,7 +125,7 @@ namespace NuGetGallery
                 String.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
                 (String.IsNullOrWhiteSpace(package.NormalizedVersion) && String.IsNullOrWhiteSpace(package.Version)))
             {
-                throw new ArgumentException("The package is missing required data.", "package");
+                throw new ArgumentException(Strings.PackageIsMissingRequiredData, "package");
             }
 
             return BuildFileName(

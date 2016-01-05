@@ -96,7 +96,7 @@ namespace NuGetGallery.Operations
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error in sending mail : {0}", ex.Message);
+                Console.WriteLine(NuGetGallery.Strings.ErrorInSendingMail, ex.Message);
             }
             
         }
