@@ -1,0 +1,67 @@
+﻿@model IEnumerable<NuGetGallery.Areas.Admin.ViewModels.HistoryViewModel>
+
+<h1>
+    @ViewBag.Title
+</h1>
+
+@if (Model != null)
+{
+    ViewBag.Id = Model.First().History.IssueKey;
+    <table class="table">
+        <tr style="font-family: Arial; font-size: large; color: maroon">
+            <td>
+                History for @ViewBag.IssueTitle
+            </td>
+        </tr>
+    </table>
+
+    <table class="table">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.First().History.EntryDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.First().History.EditedBy)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.First().History.AssignedTo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.First().History.IssueStatus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.First().History.Comments)
+            </th>
+            <th></th>
+        </tr>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.History.EntryDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EditedBy)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.History.AssignedTo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.History.IssueStatus)
+                </td>
+
+                <td width="400">
+                    @Html.DisplayFor(modelItem => item.History.Comments)
+                </td>
+            </tr>
+        }
+
+        <tr>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = ViewBag.Id })
+            </td>
+        </tr>
+    </table>
+}
+@Html.ActionLink("Back to List", "Index")
