@@ -33,7 +33,7 @@
     <p>
         NuGet 3.3 for Visual Studio 2015 was released on November 30th 2015. NuGet 2.8.7 for Visual Studio 2013 was released on July 27th 2015. <strong>Upgrade now</strong> using the Visual Studio Extension Manager.
     </p>
-<p>
+	<p>
         For details about what's in the 3.3 release, read the <a href="https://docs.nuget.org/release-notes/nuget-3.3">release notes</a>.
     </p>
     <p>
@@ -42,13 +42,26 @@
 </section>
 
 <section class="info">
+	<h3>NuGet Feed Locations</h3>
+	
+	<p>
+		NuGet delivers packages to your project from a feed URL that provides interactions with the repository for your NuGet client.
+		For NuGet.org, <a href="http://docs.nuget.org/consume/package-manager-dialog#package-sources">configure your NuGet clients</a>
+		to use one of the following repository URLs:
+		
+		<ul>
+			<li>NuGet feed v3 (VS 2015 / NuGet v3.x): <code>https://api.nuget.org/v3/index.json</code></li>
+			<li>NuGet feed v2 (VS 2013 and earlier / NuGet 2.x): <code>https://www.nuget.org/api/v2</code></li>
+		</ul>
+	</p>
+
     <h3>About</h3>
 
-<p>When you use NuGet to install a package, it copies the library files to your solution and automatically updates your project (add references, change config files, etc.). If you remove a package, NuGet reverses whatever changes it made so that no clutter is left.</p>
+	<p>When you use NuGet to install a package, it copies the library files to your solution and automatically updates your project (add references, change config files, etc.). If you remove a package, NuGet reverses whatever changes it made so that no clutter is left.</p>
 
-<p>To learn more about the NuGet Gallery project and see who has contributed, see the <a href="/policies/About">About the Gallery</a> page.</p>
+	<p>To learn more about the NuGet Gallery project and see who has contributed, see the <a href="/policies/About">About the Gallery</a> page.</p>
 
-<h3>Important Notice</h3>
+	<h3>Important Notice</h3>
 
-<p>You can develop your own package and share it via the NuGet Gallery. Read the documentation for more details on <a href="http://docs.nuget.org/docs/creating-packages/creating-and-publishing-a-package" title="Creating and submitting a package">how to create and publish a package</a>.</p>
+	<p>You can develop your own package and share it via the NuGet Gallery. Read the documentation for more details on <a href="http://docs.nuget.org/docs/creating-packages/creating-and-publishing-a-package" title="Creating and submitting a package">how to create and publish a package</a>.</p>
 </section>
