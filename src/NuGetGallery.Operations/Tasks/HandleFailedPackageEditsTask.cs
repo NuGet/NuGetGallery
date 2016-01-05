@@ -41,8 +41,8 @@ namespace NuGetGallery.Operations.Tasks
                     EmailHost = this.EmailHost,
                     ToList = this.UserAccount,
                     ReplyToList = this.UserAccount,
-                    MailSubject = string.Format(" [NuGet Gallery] : Package Edit Request for {0}", edit.Package.PackageRegistration.Id),
-                    MailContent = string.Format("<b><i>Package:</i></b>  {0} </br> <b>Version:</b>  {1} </br> <b>TimeStamp:</b>  {2} </br> <b>LastError:</b>  {3} </br> <i>Message sent from NuGet Gallery</i> ", edit.Package.PackageRegistration.Id, edit.Package.NormalizedVersion,  edit.Timestamp,edit.LastError)
+                    MailSubject = $" [NuGet Gallery] : Package Edit Request for {edit.Package.PackageRegistration.Id}",
+                    MailContent = $"<b><i>Package:</i></b>  {edit.Package.PackageRegistration.Id} </br> <b>Version:</b>  {edit.Package.NormalizedVersion} </br> <b>TimeStamp:</b>  {edit.Timestamp} </br> <b>LastError:</b>  {edit.LastError} </br> <i>Message sent from NuGet Gallery</i> "
                 };
                 try
                 {

@@ -104,7 +104,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                 filter.SearchTerm,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
-                curatedFeed: filter.CuratedFeed == null ? null : filter.CuratedFeed.Name,
+                curatedFeed: filter.CuratedFeed?.Name,
                 sortBy: filter.SortOrder,
                 skip: filter.Skip,
                 take: filter.Take,
@@ -151,7 +151,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                     {"Hits", results == null ? -1 : results.Hits},
                     {"StatusCode", (int)result.StatusCode},
                     {"SortOrder", filter.SortOrder.ToString()},
-                    {"CuratedFeed", filter.CuratedFeed == null ? null : filter.CuratedFeed.Name},
+                    {"CuratedFeed", filter.CuratedFeed?.Name},
                     {"Url", TryGetUrl()}
                 });
 
@@ -269,7 +269,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                 LastUpdated = doc.Value<DateTime>("LastUpdated"),
                 LastEdited = doc.Value<DateTime?>("LastEdited"),
                 PackageRegistration = registration,
-                PackageRegistrationKey = registration == null ? 0 : registration.Key,
+                PackageRegistrationKey = registration?.Key ?? 0,
                 PackageFileSize = doc.Value<long>("PackageFileSize"),
                 ProjectUrl = doc.Value<string>("ProjectUrl"),
                 Published = doc.Value<DateTime>("Published"),

@@ -83,12 +83,12 @@ namespace NuGetGallery.Infrastructure
             {
                 if (index < 0)
                 {
-                    throw new ArgumentOutOfRangeException("index", index, Strings.NegativeIndexesAreInvalid);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.NegativeIndexesAreInvalid);
                 }
 
                 if (index >= LongCount)
                 {
-                    throw new ArgumentOutOfRangeException("index", index, Strings.IndexDoesNotExist);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.IndexDoesNotExist);
                 }
 
                 long page = index / 1000;
@@ -99,7 +99,7 @@ namespace NuGetGallery.Infrastructure
                 var response = _tableRef.Execute(TableOperation.Retrieve<T>(partitionKey, rowKey));
                 if (response.HttpStatusCode == 404)
                 {
-                    throw new ArgumentOutOfRangeException("index", index, Strings.Http404NotFound);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.Http404NotFound);
                 }
 
                 ThrowIfErrorStatus(response);
@@ -110,12 +110,12 @@ namespace NuGetGallery.Infrastructure
             {
                 if (index < 0)
                 {
-                    throw new ArgumentOutOfRangeException("index", index, Strings.NegativeIndexesAreInvalid);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.NegativeIndexesAreInvalid);
                 }
 
                 if (index >= LongCount)
                 {
-                    throw new ArgumentOutOfRangeException("index", index, Strings.IndexDoesNotExist);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.IndexDoesNotExist);
                 }
 
                 long page = index / 1000;

@@ -105,7 +105,7 @@ namespace NuGetGallery
                         yield return new PackageDependency
                         {
                             Id = dependency.Id,
-                            VersionSpec = dependency.VersionRange == null ? null : dependency.VersionRange.ToString(),
+                            VersionSpec = dependency.VersionRange?.ToString(),
                             TargetFramework = dependency.TargetFramework.ToShortNameOrNull()
                         };
                     }
@@ -186,7 +186,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
             if (user == null || user.Identity == null)
             {
@@ -199,7 +199,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
             if (user == null)
             {
@@ -218,7 +218,7 @@ namespace NuGetGallery
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             int descIndex = sortExpression.IndexOf(" desc", StringComparison.OrdinalIgnoreCase);
@@ -289,7 +289,7 @@ namespace NuGetGallery
         {
             if (frameworkName == null)
             {
-                throw new ArgumentNullException("frameworkName");
+                throw new ArgumentNullException(nameof(frameworkName));
             }
 
             var sb = new StringBuilder();

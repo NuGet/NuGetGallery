@@ -20,7 +20,7 @@ namespace NuGetGallery.Filters
         {
             if (filterContext == null)
             {
-                throw new ArgumentNullException("filterContext");
+                throw new ArgumentNullException(nameof(filterContext));
             }
 
             if (!filterContext.HttpContext.Request.IsAuthenticated)

@@ -47,7 +47,7 @@ namespace NuGetGallery.Operations
                 
                 destinationConnection.Open();
 
-                var copyDbName = string.Format("CopyOf{0}", BackupName);
+                var copyDbName = $"CopyOf{BackupName}";
                 
                 var existingDatabaseBackup = Util.GetDatabase(
                     destinationDbExecutor,
@@ -92,7 +92,7 @@ namespace NuGetGallery.Operations
             Log.Trace("Starting copy of {0} from {1} to {2}.", sourceDbName, sourceDbServerName, destinationDbServerName);
             if (!WhatIf)
             {
-                var sql = string.Format("CREATE DATABASE {0} AS COPY OF {1}.{2}", copyDbName, sourceDbServerName, sourceDbName);
+                var sql = $"CREATE DATABASE {copyDbName} AS COPY OF {sourceDbServerName}.{sourceDbName}";
                 dbExecutor.Execute(sql);
             }
             Log.Info("Copying {0} from {1} to {2}.", sourceDbName, sourceDbServerName, destinationDbServerName);

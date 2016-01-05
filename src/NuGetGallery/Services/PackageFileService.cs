@@ -36,12 +36,12 @@ namespace NuGetGallery
         {
             if (String.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             if (String.IsNullOrWhiteSpace(version))
             {
-                throw new ArgumentNullException("version");
+                throw new ArgumentNullException(nameof(version));
             }
 
             var fileName = BuildFileName(id, version);
@@ -52,7 +52,7 @@ namespace NuGetGallery
         {
             if (packageFile == null)
             {
-                throw new ArgumentNullException("packageFile");
+                throw new ArgumentNullException(nameof(packageFile));
             }
 
             var fileName = BuildFileName(package);
@@ -63,19 +63,19 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
             
             if (packageFile == null)
             {
-                throw new ArgumentNullException("packageFile");
+                throw new ArgumentNullException(nameof(packageFile));
             }
 
             if (package.PackageRegistration == null ||
                 string.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
                 (string.IsNullOrWhiteSpace(package.NormalizedVersion) && string.IsNullOrWhiteSpace(package.Version)))
             {
-                throw new ArgumentException(Strings.PackageIsMissingRequiredData, "package");
+                throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
             }
 
             var fileName = BuildBackupFileName(package.PackageRegistration.Id, string.IsNullOrEmpty(package.NormalizedVersion) 
@@ -93,12 +93,12 @@ namespace NuGetGallery
         {
             if (id == null)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
             
             if (version == null)
             {
-                throw new ArgumentNullException("version");
+                throw new ArgumentNullException(nameof(version));
             }
 
             // Note: packages should be saved and retrieved in blob storage using the lower case version of their filename because
@@ -118,14 +118,14 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             if (package.PackageRegistration == null || 
                 String.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
                 (String.IsNullOrWhiteSpace(package.NormalizedVersion) && String.IsNullOrWhiteSpace(package.Version)))
             {
-                throw new ArgumentException(Strings.PackageIsMissingRequiredData, "package");
+                throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
             }
 
             return BuildFileName(
@@ -139,17 +139,17 @@ namespace NuGetGallery
         {
             if (id == null)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             if (version == null)
             {
-                throw new ArgumentNullException("version");
+                throw new ArgumentNullException(nameof(version));
             }
 
             if (hash == null)
             {
-                throw new ArgumentNullException("hash");
+                throw new ArgumentNullException(nameof(hash));
             }
 
             var hashBytes = Convert.FromBase64String(hash);

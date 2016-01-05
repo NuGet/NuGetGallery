@@ -36,7 +36,7 @@ namespace NuGetGallery
 
         public DateTime LastModifiedUtc
         {
-            get { return _blob.Properties.LastModified.HasValue ? _blob.Properties.LastModified.Value.UtcDateTime : DateTime.MinValue; }
+            get { return _blob.Properties.LastModified?.UtcDateTime ?? DateTime.MinValue; }
         }
 
         public string ETag

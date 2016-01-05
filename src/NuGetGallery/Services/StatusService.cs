@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using NuGetGallery.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -10,7 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Helpers;
 
@@ -18,6 +16,7 @@ namespace NuGetGallery
 {
     public class StatusService : IStatusService
     {
+        private readonly HttpClient _httpClient = new HttpClient();
         private readonly IEntitiesContext _entities;
         private readonly IFileStorageService _fileStorageService;
         private readonly IAppConfiguration _config;
@@ -130,10 +129,9 @@ namespace NuGetGallery
 
         private async Task<bool> IsGetSuccessful(Uri uri)
         {
-            using(var httpClient = new HttpClient())
+            // This method does not throw for unsuccessful responses
+            using (var responseMessage = await _httpClient.GetAsync(uri))
             {
-                // This method does not throw for unsuccessful responses
-                var responseMessage = await httpClient.GetAsync(uri);
                 return responseMessage.IsSuccessStatusCode;
             }
         }

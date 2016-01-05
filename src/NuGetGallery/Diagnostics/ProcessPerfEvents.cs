@@ -50,7 +50,7 @@ namespace NuGetGallery.Diagnostics
                         // Determine the file name for the log
                         string fileName = Path.Combine(
                             dir,
-                            String.Format("{0:yyyyMMdd}{1}.csv", group.Key.Date, group.Key.Hour));
+                            $"{@group.Key.Date:yyyyMMdd}{@group.Key.Hour}.csv");
 
                         // Append to the log
                         using (var strm = new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.None))
@@ -69,7 +69,7 @@ namespace NuGetGallery.Diagnostics
                                     CsvEscape(evt.Source) + "," +
                                     CsvEscape(evt.TimestampUtc.ToString("O")) + "," + 
                                     CsvEscape(evt.Duration.TotalMilliseconds.ToString("0.00")) + "," + 
-                                    String.Join(",", fields.Select(f => CsvEscape(f.Value == null ? String.Empty : f.Value.ToString()))));
+                                    String.Join(",", fields.Select(f => CsvEscape(f.Value?.ToString() ?? String.Empty))));
                             }
                         }
                     }

@@ -102,9 +102,7 @@ namespace NuGetGallery.Auditing
             }
             catch (StorageException ex)
             {
-                if(ex.RequestInformation != null && 
-                    ex.RequestInformation.ExtendedErrorInformation != null &&
-                    ex.RequestInformation.ExtendedErrorInformation.ErrorCode == BlobErrorCodeStrings.ContainerNotFound)
+                if (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.ContainerNotFound)
                 {
                     retry = true;
                 }

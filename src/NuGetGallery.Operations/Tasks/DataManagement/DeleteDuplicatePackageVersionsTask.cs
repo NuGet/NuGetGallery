@@ -135,7 +135,7 @@ namespace NuGetGallery.Operations.Tasks
                 WhatIf = WhatIf,
                 PackageId = package.Id,
                 PackageVersion = package.Version,
-                Reason = String.Format("duplicate package versions ({0})", subreason)
+                Reason = $"duplicate package versions ({subreason})"
             }.Execute();
         }
     }

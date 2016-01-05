@@ -35,12 +35,12 @@ namespace NuGetGallery
         {
             if (curatedFeed == null)
             {
-                throw new ArgumentNullException("curatedFeed");
+                throw new ArgumentNullException(nameof(curatedFeed));
             }
 
             if (packageRegistration == null)
             {
-                throw new ArgumentNullException("packageRegistration");
+                throw new ArgumentNullException(nameof(packageRegistration));
             }
 
             var curatedPackage = curatedFeed.Packages

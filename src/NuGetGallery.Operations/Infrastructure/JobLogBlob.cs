@@ -31,7 +31,7 @@ namespace NuGetGallery.Operations.Infrastructure
             var parsed = BlobNameParser.Match(blob.Name);
             if (!parsed.Success)
             {
-                throw new ArgumentException(string.Format(NuGetGallery.Strings.JobLogBlobNameInvalid, blob.Name), "blob");
+                throw new ArgumentException(string.Format(NuGetGallery.Strings.JobLogBlobNameInvalid, blob.Name), nameof(blob));
             }
 
             // Grab the chunks we care about

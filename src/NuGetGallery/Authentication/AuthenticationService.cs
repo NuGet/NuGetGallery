@@ -88,7 +88,7 @@ namespace NuGetGallery.Authentication
             if (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase))
             {
                 // Password credentials cannot be used this way.
-                throw new ArgumentException(Strings.PasswordCredentialsCannotBeUsedHere, "credential");
+                throw new ArgumentException(Strings.PasswordCredentialsCannotBeUsedHere, nameof(credential));
             }
 
             using (_trace.Activity("Authenticate Credential: " + credential.Type))
@@ -195,7 +195,7 @@ namespace NuGetGallery.Authentication
         {
             if (String.IsNullOrEmpty(newPassword))
             {
-                throw new ArgumentNullException("newPassword");
+                throw new ArgumentNullException(nameof(newPassword));
             }
 
             var user = Entities
@@ -225,12 +225,12 @@ namespace NuGetGallery.Authentication
         {
             if (String.IsNullOrEmpty(usernameOrEmail))
             {
-                throw new ArgumentNullException("usernameOrEmail");
+                throw new ArgumentNullException(nameof(usernameOrEmail));
             }
             if (expirationInMinutes < 1)
             {
                 throw new ArgumentException(
-                    Strings.TokenExpirationShouldGiveUser1MinuteToChangePassword, "expirationInMinutes");
+                    Strings.TokenExpirationShouldGiveUser1MinuteToChangePassword, nameof(expirationInMinutes));
             }
             var user = FindByUserNameOrEmail(usernameOrEmail);
             if (user == null)
@@ -245,12 +245,12 @@ namespace NuGetGallery.Authentication
         {
             if (user == null)
             {
-                throw new ArgumentNullException("user");
+                throw new ArgumentNullException(nameof(user));
             }
             if (expirationInMinutes < 1)
             {
                 throw new ArgumentException(
-                    Strings.TokenExpirationShouldGiveUser1MinuteToChangePassword, "expirationInMinutes");
+                    Strings.TokenExpirationShouldGiveUser1MinuteToChangePassword, nameof(expirationInMinutes));
             }
 
             if (!user.Confirmed)
@@ -338,7 +338,7 @@ namespace NuGetGallery.Authentication
                 Identity = credential.Identity,
                 Value = kind == CredentialKind.Token ? credential.Value : String.Empty,
                 Kind = kind,
-                AuthUI = auther == null ? null : auther.GetUI()
+                AuthUI = auther?.GetUI()
             };
         }
 
