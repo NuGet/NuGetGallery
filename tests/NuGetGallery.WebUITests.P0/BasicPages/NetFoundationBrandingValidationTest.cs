@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.WebTesting;
 using NuGetGallery.FunctionalTests.Helpers;
@@ -23,7 +24,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
             //send a request to home page and check for default home page text.
             var pageRequest = new WebTestRequest(UrlHelper.BaseUrl);
             var homePageTextValidationRuleLogo = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a title="".NET Foundation"" href=""http://www.dotnetfoundation.org""><img src=""/Content/Logos/dnf.png"" alt="".NET Foundation"" /></a>");
-            var homePageTextValidationRuleCopyright = AssertAndValidationHelper.GetValidationRuleForFindText(@"&copy; 2015 .NET Foundation");
+            var homePageTextValidationRuleCopyright = AssertAndValidationHelper.GetValidationRuleForFindText(@"&copy; " + DateTime.UtcNow.Year + " .NET Foundation");
             var homePageTextValidationRuleTOU = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""/policies/Terms"">Terms of Use</a>");
             var homePageTextValidationRulePrivacy = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""/policies/Privacy"">Privacy Policy</a>");
 
