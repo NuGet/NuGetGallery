@@ -1,9 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Data.Entity;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 
 namespace NuGetGallery
@@ -11,12 +9,16 @@ namespace NuGetGallery
     public class EditPackageService
     {
         public IEntitiesContext EntitiesContext { get; set; }
+        public IPackageNamingConflictValidator PackageNamingConflictValidator { get; set; }
 
         public EditPackageService() { }
 
-        public EditPackageService(IEntitiesContext entitiesContext)
+        public EditPackageService(
+            IEntitiesContext entitiesContext,
+            IPackageNamingConflictValidator packageNamingConflictValidator)
         {
             EntitiesContext = entitiesContext;
+            PackageNamingConflictValidator = packageNamingConflictValidator;
         }
 
         /// <summary>
@@ -32,6 +34,11 @@ namespace NuGetGallery
 
         public virtual void StartEditPackageRequest(Package p, EditPackageVersionRequest request, User editingUser)
         {
+            if (PackageNamingConflictValidator.TitleConflictsWithExistingRegistrationId(p.PackageRegistration.Id, request.VersionTitle))
+            {
+                throw new EntityException(Strings.TitleMatchesExistingRegistration, request.VersionTitle);
+            }
+
             PackageEdit edit = new PackageEdit
             {
                 // Description

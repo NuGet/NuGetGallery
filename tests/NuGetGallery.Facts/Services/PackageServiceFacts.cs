@@ -3,11 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.Versioning;
 using Moq;
-using NuGet;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
@@ -90,6 +87,7 @@ namespace NuGetGallery
             Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null,
             Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Mock<IIndexingService> indexingService = null,
+            IPackageNamingConflictValidator packageNamingConflictValidator = null,
             Action<Mock<PackageService>> setup = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
@@ -98,12 +96,20 @@ namespace NuGetGallery
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
 
+            if (packageNamingConflictValidator == null)
+            {
+                packageNamingConflictValidator = new PackageNamingConflictValidator(
+                    packageRegistrationRepository.Object, 
+                    packageRepository.Object);
+            }
+
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageStatsRepo.Object,
                 packageOwnerRequestRepo.Object,
-                indexingService.Object);
+                indexingService.Object,
+                packageNamingConflictValidator);
 
             packageService.CallBase = true;
 
@@ -332,6 +338,48 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void WillThrowWhenCreateANewPackageRegistrationWithAnIdThatMatchesAnExistingPackageTitle()
+            {
+                // Arrange
+                var idThatMatchesExistingTitle = "AwesomePackage";
+
+                var currentUser = new User();
+                var existingPackageRegistration = new PackageRegistration
+                {
+                    Id = "SomePackageId",
+                    Owners = new HashSet<User>()
+                };
+                var existingPackage = new Package
+                {
+                    PackageRegistration = existingPackageRegistration,
+                    Version = "1.0.0",
+                    Title = idThatMatchesExistingTitle
+                };
+
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackageRegistration }.AsQueryable());
+
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                packageRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackage }.AsQueryable());
+
+                var service = CreateService(
+                    packageRegistrationRepository: packageRegistrationRepository,
+                    packageRepository: packageRepository,
+                    setup: mockPackageService =>
+                    {
+                        mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                    });
+
+                // Act
+                var nugetPackage = CreateNuGetPackage(id: idThatMatchesExistingTitle);
+
+                // Assert
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
+
+                Assert.Equal(String.Format(Strings.NewRegistrationIdMatchesExistingPackageTitle, idThatMatchesExistingTitle), ex.Message);
+            }
+
+            [Fact]
             public void WillMakeTheCurrentUserTheOwnerWhenCreatingANewPackageRegistration()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
@@ -405,6 +453,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 packageRegistrationRepository.Setup(r => r.CommitChanges()).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
@@ -425,6 +474,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
@@ -443,6 +493,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 var indexingService = new Mock<IIndexingService>(MockBehavior.Strict);
                 var service = CreateService(indexingService: indexingService, packageRegistrationRepository: packageRegistrationRepository, setup:
@@ -460,6 +511,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 packageRegistrationRepository.Setup(r => r.CommitChanges()).Verifiable();
                 var indexingService = new Mock<IIndexingService>(MockBehavior.Strict);
@@ -481,6 +533,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 packageRegistrationRepository.Setup(r => r.CommitChanges()).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
@@ -629,6 +682,34 @@ namespace NuGetGallery
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
 
                 Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), ex.Message);
+            }
+
+            [Theory]
+            [InlineData("Microsoft.FooBar", "Microsoft.FooBar")]
+            [InlineData("Microsoft.FooBar", "microsoft.foobar")]
+            [InlineData("Microsoft.FooBar", " microsoft.foObar ")]
+            private void WillThrowIfThePackageTitleMatchesAnExistingPackageRegistrationId(string existingRegistrationId, string newPackageTitle)
+            {
+                // Arrange
+                var currentUser = new User();
+                var existingPackageRegistration = new PackageRegistration
+                {
+                    Id = existingRegistrationId,
+                    Owners = new HashSet<User>()
+                };
+
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackageRegistration }.AsQueryable());
+
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository);
+
+                // Act
+                var nugetPackage = CreateNuGetPackage(title: newPackageTitle);
+
+                // Assert
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
+
+                Assert.Equal(String.Format(Strings.TitleMatchesExistingRegistration, newPackageTitle), ex.Message);
             }
 
             [Fact]

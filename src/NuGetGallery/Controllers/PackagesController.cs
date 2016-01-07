@@ -804,26 +804,40 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             if (!ModelState.IsValid)
             {
-                formData.PackageId = package.PackageRegistration.Id;
-                formData.PackageTitle = package.Title;
-                formData.Version = package.Version;
-
-                var packageRegistration = _packageService.FindPackageRegistrationById(id);
-                formData.PackageVersions = packageRegistration.Packages
-                        .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                        .ToList();
-
-                return View(formData);
+                return EditFailed(id, formData, package);
             }
 
             // Add the edit request to a queue where it will be processed in the background.
             if (formData.Edit != null)
             {
-                _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
-                _entitiesContext.SaveChanges();
+                try
+                {
+                    _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
+                    _entitiesContext.SaveChanges();
+                }
+                catch (EntityException ex)
+                {
+                    ModelState.AddModelError("Edit.VersionTitle", ex.Message);
+
+                    return EditFailed(id, formData, package);
+                }
             }
 
             return SafeRedirect(returnUrl ?? Url.Package(id, version));
+        }
+
+        private ActionResult EditFailed(string id, EditPackageRequest formData, Package package)
+        {
+            formData.PackageId = package.PackageRegistration.Id;
+            formData.PackageTitle = package.Title;
+            formData.Version = package.Version;
+
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+            formData.PackageVersions = packageRegistration.Packages
+                .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
+                .ToList();
+
+            return View(formData);
         }
 
         [Authorize]
@@ -1024,8 +1038,16 @@ namespace NuGetGallery
                 };
 
                 // update relevant database tables
-                package = _packageService.CreatePackage(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
-                Debug.Assert(package.PackageRegistration != null);
+                try
+                { 
+                    package = _packageService.CreatePackage(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
+                    Debug.Assert(package.PackageRegistration != null);
+                }
+                catch (EntityException ex)
+                {
+                    TempData["Message"] = ex.Message;
+                    return Redirect(Url.UploadPackage());
+                }
 
                 _packageService.PublishPackage(package, commitChanges: false);
 
