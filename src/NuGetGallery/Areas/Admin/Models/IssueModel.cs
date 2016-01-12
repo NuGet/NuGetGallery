@@ -12,6 +12,12 @@ namespace NuGetGallery.Areas.Admin.Models
         public AdminModel admin = new AdminModel();
         public IssueStatusModel issueStatus = new IssueStatusModel();
 
+        const int UnassignedAdmin = 0;
+        const int PackageDeletedResolution = 5;
+        const int WorkAroundProvidedResolution = 6;
+        const int NewIssueStatus = 1;
+        const string NewUser = "new";
+
         public IssueModel()
             : base("name=Gallery.SupportRequestDB")
         {
@@ -59,7 +65,8 @@ namespace NuGetGallery.Areas.Admin.Models
         public List<Issue> GetOpenIssues()
         {
             var allOpenIssues = from r in Issues
-                                where (r.IssueStatus != 5 && r.IssueStatus != 6)
+                                where (r.IssueStatus != PackageDeletedResolution 
+                                && r.IssueStatus != WorkAroundProvidedResolution)
                                 select r;
             return allOpenIssues.ToList();
         }
@@ -67,7 +74,8 @@ namespace NuGetGallery.Areas.Admin.Models
         public List<Issue> GetResolvedIssues()
         {
             var allResolvedIssues = from r in Issues
-                                    where (r.IssueStatus == 5 || r.IssueStatus == 6)
+                                    where (r.IssueStatus == PackageDeletedResolution 
+                                    || r.IssueStatus == WorkAroundProvidedResolution)
                                     select r;
             return allResolvedIssues.ToList();
         }
@@ -82,7 +90,7 @@ namespace NuGetGallery.Areas.Admin.Models
         public List<Issue> GetUnassignedIssues()
         {
             var allUnassignedIssues = from r in Issues
-                                      where (r.AssignedTo == 0)
+                                      where (r.AssignedTo == UnassignedAdmin)
                                       select r;
             return allUnassignedIssues.ToList();
         }
@@ -90,7 +98,7 @@ namespace NuGetGallery.Areas.Admin.Models
         public int GetCountOfUnassignedIssues()
         {
             var allIssues = from r in Issues
-                            where (r.AssignedTo == 0)
+                            where (r.AssignedTo == UnassignedAdmin)
                             select r;
             var count = 0;
             if (allIssues != null)
@@ -118,7 +126,8 @@ namespace NuGetGallery.Areas.Admin.Models
         public int GetCountOfOpenIssues()
         {
             var count = (from r in Issues
-                         where (r.IssueStatus != 5 && r.IssueStatus != 6)
+                         where (r.IssueStatus != PackageDeletedResolution 
+                         && r.IssueStatus != WorkAroundProvidedResolution)
                          select r).Count();
             return count;
         }
@@ -126,29 +135,38 @@ namespace NuGetGallery.Areas.Admin.Models
         public int GetCountOfResolvedIssues()
         {
             var count = (from r in Issues
-                         where (r.IssueStatus == 5 || r.IssueStatus == 6)
+                         where (r.IssueStatus == PackageDeletedResolution 
+                         || r.IssueStatus == WorkAroundProvidedResolution)
                          select r).Count();
             return count;
         }
 
-        public void AddIssue(Issue newIssue)
+        public void AddIssue(Issue newIssue, string loggedInUser)
         {
             Issues.Add(newIssue);
             SaveChanges();
 
-            AddHistoryEntry(newIssue);
+            AddHistoryEntry(newIssue, loggedInUser);
         }
 
-        public void AddHistoryEntry(Issue newIssue)
+        public void AddHistoryEntry(Issue newIssue, string loggedInUser)
         {
             var history = new HistoryModel();
             var newEntry = new History();
-            newEntry.EntryDate = DateTime.Now;
-            newEntry.EditedBy = 1;
-            newEntry.AssignedTo = admin.GetUserNameById(newIssue.AssignedTo);
-            newEntry.IssueStatus = issueStatus.GetIssueStatusNameById(newIssue.IssueStatus);
+            newEntry.EntryDate = DateTime.UtcNow;
+            newEntry.AssignedTo = admin.GetUserNameById(newIssue.AssignedTo ?? UnassignedAdmin);
+            newEntry.IssueStatus = issueStatus.GetIssueStatusNameById(newIssue.IssueStatus ?? NewIssueStatus);
             newEntry.IssueKey = newIssue.Id;
             newEntry.Comments = newIssue.Comments;
+            if (!string.IsNullOrEmpty(loggedInUser) && 
+                !string.Equals(loggedInUser, NewUser, StringComparison.OrdinalIgnoreCase))
+            {
+                newEntry.EditedBy = admin.GetAdminKeyFromUserName(loggedInUser);
+            }
+            else
+            {
+                newEntry.EditedBy = 0;
+            }
             history.AddNewHistoryEntry(newEntry);
         }
     }

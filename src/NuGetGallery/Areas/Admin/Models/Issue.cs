@@ -20,9 +20,9 @@ namespace NuGetGallery.Areas.Admin.Models
         [StringLength(1000)]
         public string IssueTitle { get; set; }
 
-        public int AssignedTo { get; set; }
+        public int? AssignedTo { get; set; }
 
-        public int IssueStatus { get; set; }
+        public int? IssueStatus { get; set; }
 
         public string Details { get; set; }
 

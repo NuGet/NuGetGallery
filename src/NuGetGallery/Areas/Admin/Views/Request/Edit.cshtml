@@ -1,4 +1,6 @@
-﻿@model NuGetGallery.Areas.Admin.Models.Issue
+﻿@model NuGetGallery.Areas.Admin.ViewModels.EditViewModel
+
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
 
 <h1>
     @ViewBag.Title
@@ -11,50 +13,50 @@
     {
     @Html.AntiForgeryToken()
 
-    @Html.HiddenFor(model => model.Id)
-    @Html.HiddenFor(model => model.OwnerEmail)
-    @Html.HiddenFor(model => model.PackageID)
-    @Html.HiddenFor(model => model.PackageVersion)
-    @Html.HiddenFor(model => model.SiteRoot)
-    @Html.HiddenFor(model => model.Reason)
-    @Html.HiddenFor(model => model.CreatedBy)
-    @Html.HiddenFor(model => model.CreatedDate)
-    @Html.HiddenFor(model => model.AssignedTo)
-    @Html.HiddenFor(model => model.IssueStatus)
-    @Html.HiddenFor(model => model.Details)
-    @Html.HiddenFor(model => model.IssueTitle)
+    @Html.HiddenFor(model => model.Issue.Id)
+    @Html.HiddenFor(model => model.Issue.OwnerEmail)
+    @Html.HiddenFor(model => model.Issue.PackageID)
+    @Html.HiddenFor(model => model.Issue.PackageVersion)
+    @Html.HiddenFor(model => model.Issue.SiteRoot)
+    @Html.HiddenFor(model => model.Issue.Reason)
+    @Html.HiddenFor(model => model.Issue.CreatedBy)
+    @Html.HiddenFor(model => model.Issue.CreatedDate)
+    @Html.HiddenFor(model => model.Issue.Details)
+    @Html.HiddenFor(model => model.Issue.IssueTitle)
+        @Html.HiddenFor(model => model.Issue.AssignedTo)
+        @Html.HiddenFor(model => model.Issue.IssueStatus)
 
-    <input type="hidden" name="AssignedToFilter" value=@Session["AssignedToFilter"] />
-    <input type="hidden" name="IssueStatusNameFilter" value=@Session["IssueStatusNameFilter"] />
-    <input type="hidden" name="ReasonFilter" value=@Session["ReasonFilter"] />
-    <input type="hidden" name="StatusId" value=@Session["StatusId"] />
-    <input type="hidden" name="Page" value=@Session["PageNumber"] />
+        <input type="hidden" name="CurrentStatusId" value=@Model.CurrentStatusId />
+        <input type="hidden" name="CurrentPageNumber" value=@Model.CurrentPageNumber />
+        <input type="hidden" name="CurrentReasonFilter" value=@Model.CurrentReasonFilter />
+        <input type="hidden" name="CurrentAssignedToFilter" value=@Model.CurrentAssignedToFilter />
+        <input type="hidden" name="CurrentIssueStatusNameFilter" value=@Model.CurrentIssueStatusNameFilter />
 
     <div class="tab-pane active" id="edit-item">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title"><strong>@Html.DisplayFor(model => model.IssueTitle)</strong></h3>
+                <h3 class="panel-title"><strong>@Html.DisplayFor(model => model.Issue.IssueTitle)</strong></h3>
             </div>
             <div class="panel-heading">
-                <h3 class="label" style="font-size: large; color: black"><strong>@ViewBag.AssignedTo, @ViewBag.IssueStatus</strong></h3>
+                <h3 class="label" style="font-size: large; color: black"><strong>@Model.AssignedToLabel, @Model.IssueStatusNameLabel</strong></h3>
             </div>
 
             <div class="panel-body">
                 <ul class="list-group">
                     <li class="list-group-item" style="">
                         <div class="row">
-                            <span>@Html.DisplayFor(model => model.Details)</span>
+                            <span>@Html.DisplayFor(model => model.Issue.Details)</span>
                         </div>
                         <div class="row">
                             <div class="col-md-10">
 
-                                <span class="label" style="background-color: #CCCCCC; color: #000000">@Html.DisplayFor(model => model.CreatedBy)</span>
-                                <span class="label" style="background-color: #159818; color: #ffffff">@Html.DisplayFor(model => model.CreatedDate)</span>
-                                <span class="label" style="background-color: #d59b9b; color: #000000">@Html.DisplayFor(model => model.Reason)</span>
-                                <span class="badge pull-right" style="background-color: #ffd800; color: #ffffff">@Html.DisplayFor(model => model.OwnerEmail)</span>
+                                <span class="label" style="background-color: #CCCCCC; color: #000000">@Html.DisplayFor(model => model.Issue.CreatedBy)</span>
+                                <span class="label" style="background-color: #159818; color: #ffffff">@Html.DisplayFor(model => model.Issue.CreatedDate)</span>
+                                <span class="label" style="background-color: #d59b9b; color: #000000">@Html.DisplayFor(model => model.Issue.Reason)</span>
+                                <span class="badge pull-right" style="background-color: #ffd800; color: #ffffff">@Html.DisplayFor(model => model.Issue.OwnerEmail)</span>
 
-                                <span class="badge pull-right" style="margin-left: 4px">@Html.DisplayFor(model => model.PackageID)</span>
-                                <span class="badge pull-right" style="margin-left: 4px">@Html.DisplayFor(model => model.PackageVersion)</span>
+                                <span class="badge pull-right" style="margin-left: 4px">@Html.DisplayFor(model => model.Issue.PackageID)</span>
+                                <span class="badge pull-right" style="margin-left: 4px">@Html.DisplayFor(model => model.Issue.PackageVersion)</span>
                             </div>
                         </div>
             </div>
@@ -62,10 +64,10 @@
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(model => model.Comments, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.LabelFor(model => model.Issue.Comments, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.TextAreaFor(model => model.Comments, new { @cols = 70, @rows = 10 })
-            @Html.ValidationMessageFor(model => model.Comments, "", new { @class = "text-danger" })
+            @Html.TextAreaFor(model => model.Issue.Comments, new { @cols = 70, @rows = 10 })
+            @Html.ValidationMessageFor(model => model.Issue.Comments, "", new { @class = "text-danger" })
         </div>
     </div>
     <div class="form-group">
@@ -83,4 +85,5 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/scripts/bootstrap.js")
 }

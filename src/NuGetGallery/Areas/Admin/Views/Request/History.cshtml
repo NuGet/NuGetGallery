@@ -1,4 +1,6 @@
-﻿@model IEnumerable<NuGetGallery.Areas.Admin.ViewModels.HistoryViewModel>
+﻿@model NuGetGallery.Areas.Admin.ViewModels.HistoryViewModel
+
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
 
 <h1>
     @ViewBag.Title
@@ -6,7 +8,7 @@
 
 @if (Model != null)
 {
-    ViewBag.Id = Model.First().History.IssueKey;
+    ViewBag.Id = Model.HistoryList.First().History.IssueKey;
     <table class="table">
         <tr style="font-family: Arial; font-size: large; color: maroon">
             <td>
@@ -18,24 +20,24 @@
     <table class="table">
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.First().History.EntryDate)
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.EntryDate)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.First().History.EditedBy)
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.EditedBy)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.First().History.AssignedTo)
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.AssignedTo)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.First().History.IssueStatus)
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.IssueStatus)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.First().History.Comments)
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.Comments)
             </th>
             <th></th>
         </tr>
 
-        @foreach (var item in Model)
+        @foreach (var item in Model.HistoryList)
         {
             <tr>
                 <td>
@@ -63,5 +65,25 @@
             </td>
         </tr>
     </table>
+    @Html.ActionLink("Back to List", "Index",
+    new
+    {
+        passedInStatusId = Model.CurrentStatusId,
+        passedInPageNumber = Model.CurrentPageNumber,
+        passedInAssignedToFilter = Model.CurrentAssignedToFilter,
+        passedInIssueStatusNameFilter = Model.CurrentIssueStatusNameFilter,
+        passedInReasonFilter = Model.CurrentReasonFilter
+    })
 }
-@Html.ActionLink("Back to List", "Index")
+else
+{
+    @Html.ActionLink("Back to List", "Index",
+    new
+    {
+        passedInStatusId = 1,
+        passedInPageNumber = 0,
+        passedInAssignedToFilter = -1,
+        passedInIssueStatusNameFilter = -1,
+        passedInReasonFilter = "[Reason]"
+    })
+}

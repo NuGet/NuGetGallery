@@ -424,21 +424,19 @@ namespace NuGetGallery
                 newIssue.Details = reportForm.Message;
                 newIssue.IssueStatus = 1;
                 newIssue.IssueTitle = subject;
+
+                string loggedInUser = (user != null) ? user.Username : "Anonymous";
+                newIssue.CreatedBy = loggedInUser;
+
+                string ownerEmail = (user != null) ? user.EmailAddress : reportForm.Email;
+                newIssue.OwnerEmail = ownerEmail;
                 if (user != null)
-                {
-                    newIssue.CreatedBy = user.Username;
-                    newIssue.OwnerEmail = user.EmailAddress;
-                }
-                else
-                {
-                    newIssue.CreatedBy = "Anonymous";
-                    newIssue.OwnerEmail = reportForm.Email;
-                }
+               
                 newIssue.PackageID = package.PackageRegistration.Id;
                 newIssue.PackageVersion = package.Version;
                 newIssue.Reason = reportForm.Reason.ToString();
                 newIssue.SiteRoot = _config.SiteRoot;
-                issue.AddIssue(newIssue);
+                issue.AddIssue(newIssue, "new");
             }
             catch (System.Data.SqlClient.SqlException)
             {

@@ -1,4 +1,6 @@
-﻿@model NuGetGallery.Areas.Admin.Models.Issue
+﻿@model NuGetGallery.Areas.Admin.ViewModels.CreateViewModel
+
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
 
 @{
     ViewBag.Title = "Create";
@@ -17,89 +19,87 @@
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
         <div class="form-group">
-            @Html.LabelFor(model => model.CreatedBy, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.CreatedBy, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.CreatedBy, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.CreatedBy, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.Issue.CreatedBy, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Issue.CreatedBy, "", new { @class = "text-danger" })
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.IssueTitle, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.IssueTitle, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.IssueTitle, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.IssueTitle, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.Issue.IssueTitle, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Issue.IssueTitle, "", new { @class = "text-danger" })
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.SiteRoot, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.SiteRoot, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.SiteRoot, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.SiteRoot, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.Issue.SiteRoot, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Issue.SiteRoot, "", new { @class = "text-danger" })
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.PackageID, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.PackageID, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.PackageID, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.PackageID, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.Issue.PackageID, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Issue.PackageID, "", new { @class = "text-danger" })
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.PackageVersion, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.PackageVersion, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.PackageVersion, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.PackageVersion, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.Issue.PackageVersion, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Issue.PackageVersion, "", new { @class = "text-danger" })
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.OwnerEmail, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.OwnerEmail, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.OwnerEmail, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.OwnerEmail, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.Issue.OwnerEmail, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Issue.OwnerEmail, "", new { @class = "text-danger" })
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.AssignedTo, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-
-                @Html.DropDownList("AssignedTo", "[Select]")
+            @Html.LabelFor(model => model.Issue.AssignedTo, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">   
+                @Html.DropDownListFor(m => Model.Issue.AssignedTo, Model.AssignedToChoices, "[Select]")
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.Reason, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.Reason, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-
-                @Html.DropDownList("Reason", "[Select]")
+                @Html.DropDownListFor(m => Model.Issue.Reason, Model.ReasonChoices, "[Select]")
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.IssueStatus, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.IssueStatus, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownList("IssueStatus", "[Select]")
+                @Html.DropDownListFor(m => Model.Issue.IssueStatus, Model.IssueStatusNameChoices, "[Select]")
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.Details, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.Details, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.Details, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Details, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.Issue.Details, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Issue.Details, "", new { @class = "text-danger" })
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.Comments, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.Issue.Comments, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.Comments, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Comments, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.Issue.Comments, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Issue.Comments, "", new { @class = "text-danger" })
             </div>
         </div>
 
@@ -117,4 +117,5 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/scripts/bootstrap.js")
 }

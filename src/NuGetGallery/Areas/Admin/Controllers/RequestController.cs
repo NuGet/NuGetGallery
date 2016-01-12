@@ -10,165 +10,119 @@ namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class RequestController : AdminControllerBase
     {
-        IssueModel issue = new IssueModel();
-        AdminModel admin = new AdminModel();
-        HistoryModel history = new HistoryModel();
-
-        IList<IssueViewModel> issueViews = new List<IssueViewModel>();
-        IList<HistoryViewModel> issueHistories = new List<HistoryViewModel>();
-        IssueStatusModel issueStatus = new IssueStatusModel();
-
         public ActionResult Create()
         {
-            var issueStatues = issueStatus.GetAllIssueStatuses();
-            var items = new List<SelectListItem>();
+            var admin = new AdminModel();
+            var issueStatus = new IssueStatusModel();
+            var createView = new CreateViewModel();
 
-            foreach (var i in issueStatues)
-            {
-                SelectListItem s = new SelectListItem { Text = i.StatusName, Value = i.Id.ToString() };
-                items.Add(s);
-
-            }
-
+            var allIssueStatuses = issueStatus.GetAllIssueStatuses();
             var allAdmins = admin.GetAllAdmins();
-            var admins = new List<SelectListItem>();
-            foreach (var a in allAdmins)
-            {
-                SelectListItem currentItem = new SelectListItem { Text = a.UserName, Value = a.Id.ToString() };
 
-                admins.Add(currentItem);
-            }
+            createView.AssignedToChoices = GetListOfAdmins(allAdmins, -1);
+            createView.IssueStatusNameChoices = GetListOfIssueStatuses(allIssueStatuses, -1);
+            createView.ReasonChoices = GetListOfReasons(string.Empty);
 
-            var reasons = CreateListOfReasons(String.Empty);
-
-            ViewBag.IssueStatus = items;
-            ViewBag.AssignedTo = admins;
-            ViewBag.Reason = reasons;
-
-            return View();
+            return View(createView);
         }
 
         [HttpPost]
-        public ActionResult Create(Issue newissue)
+        public ActionResult Create(CreateViewModel createViewModel)
         {
+            var issue = new IssueModel();
+            var newIssue = createViewModel.Issue;
 
             if (ModelState.IsValid)
             {
-                newissue.CreatedDate = DateTime.Now;
-                issue.AddIssue(newissue);
-                return RedirectToAction("Index");
+                newIssue.CreatedDate = DateTime.UtcNow;
+                newIssue.AssignedTo = newIssue.AssignedTo ?? 0;
+                newIssue.IssueStatus = newIssue.IssueStatus ?? 1;
+                newIssue.Reason = String.IsNullOrEmpty(newIssue.Reason) ? "Other" : newIssue.Reason;
+                issue.AddIssue(newIssue, GetLoggedInUser());
+                return RedirectToAction("index");
             }
             else
             {
-                return View(newissue);
+                return View(newIssue);
             }
         }
-
+  
         [HttpPost]
-        public ActionResult Save(FormCollection formcollection)
+        public ActionResult Save([Bind(Prefix = "item")]IssueViewModel issueViewModel)
         {
             //Values required for updating the issue
-            var issueId = GetValue(formcollection["IssueId"]);
-            var assignedTo = GetValue(formcollection["AssignedTo"]);
-            var issueStatusName = GetValue(formcollection["IssueStatusName"]);
+            var issue = new IssueModel();
+            var issueId = issueViewModel.Issue.Id;
+
+            var newAssignedTo = issueViewModel.AssignedTo ?? -1;
+            var newIssueStatusName = issueViewModel.IssueStatusName ?? -1;
 
             var currentIssue = issue.GetIssueById(issueId);
 
             if (issue != null)
             {
-                if (assignedTo != -1)
+                if (newAssignedTo != -1)
                 {
-                    currentIssue.AssignedTo = assignedTo;
+                    currentIssue.AssignedTo = newAssignedTo;
                 }
 
-                if (issueStatusName != -1)
+                if (newIssueStatusName != -1)
                 {
-                    currentIssue.IssueStatus = issueStatusName;
+                    currentIssue.IssueStatus = newIssueStatusName;
                 }
                 issue.SaveChanges();
-                issue.AddHistoryEntry(currentIssue);
+               
+                issue.AddHistoryEntry(currentIssue, GetLoggedInUser());
             }
 
-            //Values required for remembering the filters applied
-            var reasonFilter = String.Empty;
-
-            if (formcollection["ReasonFilter"] != "/")
+            return RedirectToAction("index", new
             {
-                reasonFilter = formcollection["ReasonFilter"];
-            }
-
-            //Write values into Session variables
-            Session["StatusId"] = GetValue(formcollection["StatusId"]);
-            Session["AssignedToFilter"] = GetValue(formcollection["AssignedToFilter"]);
-            Session["IssueStatusNameFilter"] = GetValue(formcollection["IssueStatusNameFilter"]);
-            Session["ReasonFilter"] = reasonFilter;
-            Session["PageNumber"] = GetValue(formcollection["Page"]);
-
-            return RedirectToAction("Index");
+                passedInAssignedToFilter = issueViewModel.CurrentAssignedToFilter,
+                passedInIssueStatusNameFilter = issueViewModel.CurrentIssueStatusNameFilter,
+                passedInReasonFilter = issueViewModel.CurrentReasonFilter,
+                passedInStatusId = issueViewModel.CurrentStatusId,
+                passedInPageNumber = issueViewModel.CurrentPageNumber
+            });
         }
 
         [HttpPost]
-        public ActionResult Index(FormCollection formCollection)
+        public ActionResult Filter([Bind(Prefix = "Filter")]FilterResultsViewModel filterResultsView)
         {
-            var currentUrl = this.Request.Url;
-            var assignedToFilter = GetValue(formCollection["AssignedToFilter"]);
-            var issueStatusNameFilter = GetValue(formCollection["issueStatusNameFilter"]);
-
-            var reasonFilter = formCollection["Reason"];
-            var pageNumber = GetValue(formCollection["Page"]);
-            var statusID = GetValue(formCollection["StatusId"]);
-
-            if (Session["StatusId"] != null)
+            return RedirectToAction("index", new
             {
-                statusID = (int)Session["StatusId"];
-            }
-            else if (!String.IsNullOrEmpty(currentUrl.Query))
-            {
-                var input = currentUrl.Query.Substring(1);
-                var items = input.Split(new[] { '&' });
-                var dict = items.Select(item => item.Split(new[] { '=' })).ToDictionary(pair => pair[0], pair => pair[1]);
-                statusID = GetValue(dict["statusID"]);
-            }
-
-            if (statusID == -1)
-            {
-                statusID = 1;
-            }
-
-            //Write values into Session variables
-            Session["StatusId"] = statusID;
-            Session["AssignedToFilter"] = assignedToFilter;
-            Session["IssueStatusNameFilter"] = issueStatusNameFilter;
-            Session["ReasonFilter"] = reasonFilter;
-            Session["PageNumber"] = pageNumber;
-
-            return RedirectToAction("Index");
+                passedInAssignedToFilter = filterResultsView.AssignedTo,
+                passedInIssueStatusNameFilter = filterResultsView.IssueStatusName,
+                passedInReasonFilter = filterResultsView.Reason,
+                passedInStatusId = filterResultsView.StatusID,
+                passedInPageNumber = filterResultsView.PageNumber
+            });
         }
-
-        public ActionResult Index(int passedInPageNumber = -100, int passedInStatusId = -100, int passedInAssignedToFilter = -100, int passedInIssueStatusNameFilter = -100, string passedInReasonFilter = "")
+       
+        public ActionResult index(int passedInPageNumber = 0,
+            int passedInStatusId = 1,
+            int? passedInAssignedToFilter = -1,
+            int? passedInIssueStatusNameFilter = -1,
+            string passedInReasonFilter = "[Reason]")
         {
-            //Read values from Session variables
-            var statusID = (passedInStatusId == -100) ? ((Session["StatusId"] == null) ? 1 : (int)Session["StatusId"]) : passedInStatusId;
-            var assignedToFilter = (passedInAssignedToFilter == -100) ? ((Session["AssignedToFilter"] == null) ? -1 : (int)Session["AssignedToFilter"]) : passedInAssignedToFilter;
-            var issueStatusNameFilter = (passedInIssueStatusNameFilter == -100) ? ((Session["IssueStatusNameFilter"] == null) ? -1 : (int)Session["IssueStatusNameFilter"]) : passedInIssueStatusNameFilter;
-            var reasonFilter = (passedInReasonFilter == "clear") ? String.Empty : ((Session["ReasonFilter"] == null) ? string.Empty : (string)Session["ReasonFilter"]);
-            var page = (passedInPageNumber == -100) ? ((Session["PageNumber"] == null) ? 0 : (int)Session["PageNumber"]) : passedInPageNumber;
+            IndexViewModel indexViewModel = new IndexViewModel();
+            var issues = GetIssues(passedInStatusId);
 
-            var issues = GetIssues(statusID);
-
-            if (assignedToFilter != -1)
+            if (passedInAssignedToFilter.HasValue && 
+                passedInAssignedToFilter != -1)
             {
-                issues = issues.Where(r => r.AssignedTo == assignedToFilter).ToList();
+                issues = issues.Where(r => r.AssignedTo == passedInAssignedToFilter).ToList();
             }
 
-            if (issueStatusNameFilter != -1)
+            if (passedInIssueStatusNameFilter.HasValue &&
+                passedInIssueStatusNameFilter != -1)
             {
-                issues = issues.Where(r => r.IssueStatus == issueStatusNameFilter).ToList();
+                issues = issues.Where(r => r.IssueStatus == passedInIssueStatusNameFilter).ToList();
             }
 
-            if (!String.IsNullOrEmpty(reasonFilter))
+            if (!String.IsNullOrEmpty(passedInReasonFilter) && 
+                !String.Equals(passedInReasonFilter, "[Reason]", StringComparison.OrdinalIgnoreCase))
             {
-                issues = issues.Where(r => r.Reason == reasonFilter).ToList();
+                issues = issues.Where(r => r.Reason == passedInReasonFilter).ToList();
             }
 
             if (issues.Count == 0)
@@ -181,7 +135,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var count = issues.Count();
 
-            var data = issues.Skip(page * PageSize).Take(PageSize).ToList();
+            var data = issues.Skip(passedInPageNumber * PageSize).Take(PageSize).ToList();
 
             if (count % PageSize == 0)
             {
@@ -192,23 +146,40 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 ViewBag.MaxPage = count / PageSize + 1;
             }
 
-            ViewBag.Page = page;
+            ViewBag.Page = passedInPageNumber;
+            SetViewBagForIndexView();
+            indexViewModel = CreateIndexViewModel(data, passedInAssignedToFilter,
+                passedInIssueStatusNameFilter,
+                passedInReasonFilter,
+                passedInStatusId,
+                passedInPageNumber);
 
-            SetViewBagForIndexView(assignedToFilter, issueStatusNameFilter, reasonFilter);
-
-            //Write values into Session variables
-            Session["StatusId"] = statusID;
-            Session["AssignedToFilter"] = assignedToFilter;
-            Session["IssueStatusNameFilter"] = issueStatusNameFilter;
-            Session["ReasonFilter"] = reasonFilter;
-            Session["PageNumber"] = page;
-
-            issueViews = CreateIssueViews(data);
-            return View(issueViews);
+            return View(indexViewModel);
         }
-               
-        public ActionResult Edit(int id = 1)
+
+        [HttpPost]
+        public ActionResult index(IndexViewModel indexViewModel)
         {
+            return RedirectToAction("index", new
+            {
+                passedInAssignedToFilter = indexViewModel.Filter.AssignedTo,
+                passedInIssueStatusNameFilter = indexViewModel.Filter.IssueStatusName,
+                passedInReasonFilter = indexViewModel.Filter.Reason,
+                passedInStatusId = indexViewModel.Filter.StatusID,
+                passedInPageNumber = indexViewModel.Filter.PageNumber
+            });
+        }
+
+        public ActionResult Edit(int id = 1,
+            int passedInPageNumber = 0, int passedInStatusId = 1,
+            int passedInAssignedToFilter = -1, int passedInIssueStatusNameFilter = -1,
+            string passedInReasonFilter = "[Reason]")
+        {
+            var admin = new AdminModel();
+            var issue = new IssueModel();
+            var issueStatus = new IssueStatusModel();
+            var editView = new EditViewModel();
+
             var currentRequest = issue.GetIssueById(id);
 
             if (currentRequest == null)
@@ -217,14 +188,60 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return View();
             }
 
-            ViewBag.AssignedTo = admin.GetUserNameById(currentRequest.AssignedTo);
-            ViewBag.IssueStatus = issueStatus.GetIssueStatusNameById(currentRequest.IssueStatus);
+            editView.Issue = currentRequest;
+            editView.AssignedToLabel = admin.GetUserNameById(currentRequest.AssignedTo ?? 0);
+            editView.IssueStatusNameLabel = issueStatus.GetIssueStatusNameById(currentRequest.IssueStatus ?? 1);
+            editView.CurrentAssignedToFilter = passedInAssignedToFilter;
+            editView.CurrentIssueStatusNameFilter = passedInIssueStatusNameFilter;
+            editView.CurrentPageNumber = passedInPageNumber;
+            editView.CurrentReasonFilter = passedInReasonFilter;
+            editView.CurrentStatusId = passedInStatusId;
 
-            return View(currentRequest);
+            return View(editView);
         }
 
-        public ActionResult History(int id = 1)
+        [HttpPost]
+        public ActionResult Edit(EditViewModel editViewModel)
         {
+            var issue = new IssueModel();
+            var currentIssue = editViewModel.Issue;
+
+            if (ModelState.IsValid)
+            {
+                issue.Entry(currentIssue).State = System.Data.Entity.EntityState.Modified;
+                issue.SaveChanges();
+
+                issue.AddHistoryEntry(currentIssue, GetLoggedInUser());
+
+                return RedirectToAction("index", new
+                {
+                    passedInAssignedToFilter = editViewModel.CurrentAssignedToFilter,
+                    passedInIssueStatusNameFilter = editViewModel.CurrentIssueStatusNameFilter,
+                    passedInReasonFilter = editViewModel.CurrentReasonFilter,
+                    passedInStatusId = editViewModel.CurrentStatusId,
+                    passedInPageNumber = editViewModel.CurrentPageNumber
+                });
+            }
+
+            return RedirectToAction("Edit", new { id = currentIssue.Id, passedInAssignedToFilter = editViewModel.CurrentAssignedToFilter,
+                                            passedInIssueStatusNameFilter = editViewModel.CurrentIssueStatusNameFilter,
+                                            passedInReasonFilter = editViewModel.CurrentReasonFilter,
+                                            passedInStatusId = editViewModel.CurrentStatusId,
+                                            passedInPageNumber = editViewModel.CurrentPageNumber});
+        }
+
+        public ActionResult History(int id = 1,
+            int passedInPageNumber = 0, int passedInStatusId = 1,
+            int passedInAssignedToFilter = -1, int passedInIssueStatusNameFilter = -1,
+            string passedInReasonFilter = "[Reason]")
+        {
+            var history = new HistoryModel();
+            var admin = new AdminModel();
+            var issue = new IssueModel();
+
+            var issueHistories = new List<HistoryListModel>();
+            var historyViewModel = new HistoryViewModel();
+
             var historyEntries = history.GetHistoryEntriesByIssueKey(id);
 
             if (historyEntries != null && historyEntries.Count > 0)
@@ -239,77 +256,39 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 foreach (History h in historyEntries)
                 {
                     var edited = admin.GetUserNameById(h.EditedBy);
-                    var ih = new HistoryViewModel();
+                    var ih = new HistoryListModel();
                     ih.History = h;
                     ih.EditedBy = edited;
                     issueHistories.Add(ih);
 
                 }
+
+                historyViewModel.HistoryList = issueHistories;
+                historyViewModel.CurrentAssignedToFilter = passedInAssignedToFilter;
+                historyViewModel.CurrentIssueStatusNameFilter = passedInIssueStatusNameFilter;
+                historyViewModel.CurrentPageNumber = passedInPageNumber;
+                historyViewModel.CurrentReasonFilter = passedInReasonFilter;
+                historyViewModel.CurrentStatusId = passedInStatusId;
+
                 ViewBag.Title = String.Empty;
-                return View(issueHistories);
+                return View(historyViewModel);
             }
             ViewBag.Title = "No history to display";
             return View();
         }
-
-        [HttpPost]
-        public ActionResult Edit(Issue currentRequest, FormCollection formCollection)
-        {
-            if (ModelState.IsValid)
-            {
-                issue.Entry(currentRequest).State = System.Data.Entity.EntityState.Modified;
-                issue.SaveChanges();
-
-                issue.AddHistoryEntry(currentRequest);
-
-                //Get filtering values
-                int statusID = GetValue(formCollection["StatusId"]);
-
-                if (statusID == -1)
-                {
-                    statusID = 1;
-                }
-
-                //Write values into Session variables
-                Session["StatusId"] = statusID;
-                Session["AssignedToFilter"] = GetValue(formCollection["AssignedToFilter"]);
-                Session["IssueStatusNameFilter"] = GetValue(formCollection["issueStatusNameFilter"]);
-                Session["ReasonFilter"] = (formCollection["ReasonFilter"] == "/") ? String.Empty : formCollection["ReasonFilter"];
-                Session["PageNumber"] = GetValue(formCollection["Page"]);
-                return RedirectToAction("Index");
-            }
-
-            return RedirectToAction("Edit", new { id = currentRequest.Id });
-        }
+           
 
         #region private
 
-        private List<IssueViewModel> CreateIssueViews(List<Issue> filteredIssues)
+        private string GetLoggedInUser()
         {
-            var filteredIssueViews = new List<IssueViewModel>();
-            var admins = admin.GetAllAdmins();
-            var issueStatuses = issueStatus.GetAllIssueStatuses();
-
-            foreach (Issue i in filteredIssues)
+            string loggedInUser = string.Empty;
+            if (this.User != null)
             {
-                var rv = new IssueViewModel();
-                rv.Issue = i;
-                rv.AssignedToLabel = admin.GetUserNameById(i.AssignedTo);
-                rv.IssueStatusNameLabel = issueStatus.GetIssueStatusNameById(i.IssueStatus);
-                rv.AssignedTo = GetListOfAdmins(admins, -1);
-                rv.IssueStatusName = GetListOfIssueStatuses(issueStatuses, -1);
-                rv.OwnerLink = string.Empty;
-                rv.Issue.SiteRoot = VerifyAndFixTralingSlash(rv.Issue.SiteRoot);
-
-                if (!rv.Issue.CreatedBy.Equals("Anonymous", StringComparison.OrdinalIgnoreCase))
-                {
-                    rv.OwnerLink = String.Concat(rv.Issue.SiteRoot, "Profiles", "/",  rv.Issue.CreatedBy);
-                }
-                filteredIssueViews.Add(rv);
-
-                rv.PackageLink = String.Concat(rv.Issue.SiteRoot, "Packages", "/", rv.Issue.PackageID, "/", rv.Issue.PackageVersion);
+                loggedInUser = this.User.Identity.Name;
             }
-            return filteredIssueViews;
+
+            return loggedInUser;
         }
 
         private string VerifyAndFixTralingSlash(string p)
@@ -322,35 +301,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return returnVal;
         }
 
-        private List<SelectListItem> CreateListOfReasons(string reasonToSelect)
-        {
-            var reasons = new List<SelectListItem>();
-            var item = new SelectListItem { Text = "Other" };
-            reasons.Add(item);
-            item = new SelectListItem { Text = "HasABugOrFailedToInstall" };
-            reasons.Add(item);
-            item = new SelectListItem { Text = "ContainsMaliciousCode" };
-            reasons.Add(item);
-            item = new SelectListItem { Text = "ViolatesALicenseIOwn" };
-            reasons.Add(item);
-            item = new SelectListItem { Text = "IsFradulent" };
-            reasons.Add(item);
-            item = new SelectListItem { Text = "ContainsPrivateAndConfidentialData" };
-            reasons.Add(item);
-            item = new SelectListItem { Text = "PublishedWithWrongVersion" };
-            reasons.Add(item);
-            item = new SelectListItem { Text = "ReleasedInPublicByAccident}" };
-            reasons.Add(item);
-            foreach (var r in reasons)
-            {
-                if (String.Equals(reasonToSelect, r.Text, StringComparison.OrdinalIgnoreCase))
-                {
-                    r.Selected = true;
-                }
-            }
-            return reasons;
-        }
-        private List<SelectListItem> GetListOfIssueStatuses(List<IssueStatus> incoming, int issueToSelect)
+        private List<SelectListItem> GetListOfIssueStatuses(List<IssueStatus> incoming, int? issueToSelect)
         {
             var items = new List<SelectListItem>();
 
@@ -358,7 +309,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 var s = new SelectListItem { Text = i.StatusName, Value = i.Id.ToString() };
                 items.Add(s);
-                if (i.Id == issueToSelect)
+                if (issueToSelect.HasValue && i.Id == issueToSelect)
                 {
                     s.Selected = true;
                 }
@@ -367,36 +318,58 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return items;
         }
 
-        private List<SelectListItem> GetListOfAdmins(List<NuGetGallery.Areas.Admin.Models.Admin> incoming, int adminToSelect)
+        private List<SelectListItem> GetListOfReasons(string reasonToSelect)
+        {
+            var reasons = new List<SelectListItem>();
+            var reasonValues = System.Enum.GetValues(typeof(ReportPackageReason));
+
+            int i = 0;
+            foreach (var reasonValue in reasonValues)
+            {
+                var item = new SelectListItem { Text = reasonValue.ToString() };
+
+                if (!String.IsNullOrEmpty(reasonToSelect) && 
+                    String.Equals(reasonValue.ToString(), reasonToSelect, StringComparison.OrdinalIgnoreCase))
+                {
+                    item.Selected = true;
+                }
+
+                i++;
+                reasons.Add(item);
+            }
+
+            return reasons;
+        }
+
+        private List<SelectListItem> GetListOfAdmins(List<NuGetGallery.Areas.Admin.Models.Admin> incoming, 
+                                                        int? adminToSelect)
         {
             var admins = new List<SelectListItem>();
 
             foreach (var a in incoming)
             {
                 var currentItem = new SelectListItem { Text = a.UserName, Value = a.Id.ToString() };
-                if (a.Id == adminToSelect)
+                if (adminToSelect.HasValue && a.Id == adminToSelect)
                 {
                     currentItem.Selected = true;
                 }
                 admins.Add(currentItem);
             }
+
             return admins;
         }
 
-        private void SetViewBagForIndexView(int assignedToFilter, int issueStatusNameFilter, string reason)
+        private void SetViewBagForIndexView()
         {
+            var issue = new IssueModel();
             ViewBag.OpenCount = issue.GetCountOfOpenIssues();
             ViewBag.ResolvedCount = issue.GetCountOfResolvedIssues();
             ViewBag.UnAssignedCount = issue.GetCountOfUnassignedIssues();
-            ViewBag.AssignedTo = GetListOfAdmins(admin.GetAllAdmins(), assignedToFilter);
-            ViewBag.AssignedToFilter = GetListOfAdmins(admin.GetAllAdmins(), assignedToFilter);
-            ViewBag.IssueStatusName = GetListOfIssueStatuses(issueStatus.GetAllIssueStatuses(), issueStatusNameFilter);
-            ViewBag.IssueStatusNameFilter = GetListOfIssueStatuses(issueStatus.GetAllIssueStatuses(), issueStatusNameFilter);
-            ViewBag.Reason = CreateListOfReasons(reason);
         }
 
         private List<Issue> GetIssues(int statusID)
         {
+            var issue = new IssueModel();
             var issues = new List<Issue>();
             if (statusID == 2)
             {
@@ -421,21 +394,49 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return issues;
         }
 
-        private int GetValue(string input)
+        private IndexViewModel CreateIndexViewModel(List<Issue> filteredIssues,
+            int? passedInAssignedToFilter, int? passedInIssueStatusNameFilter,
+            string passedInReasonFilter, int passedInStatusId, int passedInPageNumber)
         {
-            var i = -1;
-            try
-            {
-                if (!String.IsNullOrEmpty(input))
-                {
-                    i = Convert.ToInt32(input);
-                }
-            }
-            catch
-            {
+            var admin = new AdminModel();
+            var issueStatus = new IssueStatusModel();
 
+            var indexViewModel = new IndexViewModel();
+            var filterResultsViewModel = new FilterResultsViewModel();
+            var filteredIssueViews = new List<IssueViewModel>();
+
+            var admins = admin.GetAllAdmins();
+            var issueStatuses = issueStatus.GetAllIssueStatuses();
+            var adminsList = GetListOfAdmins(admins, -1);
+            var issueStatusesList = GetListOfIssueStatuses(issueStatuses, -1);
+
+            foreach (Issue i in filteredIssues)
+            {
+                var rv = new IssueViewModel();
+                rv.Issue = i;
+                rv.AssignedToLabel = admin.GetUserNameById(i.AssignedTo ?? 0);
+                rv.IssueStatusNameLabel = issueStatus.GetIssueStatusNameById(i.IssueStatus ?? 1);
+                rv.AssignedToChoices = adminsList;
+                rv.IssueStatusNameChoices = issueStatusesList;
+                rv.Issue.SiteRoot = VerifyAndFixTralingSlash(rv.Issue.SiteRoot);
+                rv.CurrentPageNumber = passedInPageNumber;
+                rv.CurrentStatusId = passedInStatusId;
+                rv.CurrentAssignedToFilter = passedInAssignedToFilter ?? -1;
+                rv.CurrentIssueStatusNameFilter = passedInIssueStatusNameFilter ?? -1;
+                rv.CurrentReasonFilter = passedInReasonFilter;
+                filteredIssueViews.Add(rv);
             }
-            return i;
+
+            filterResultsViewModel.AssignedToChoices = GetListOfAdmins(admins, passedInAssignedToFilter);
+            filterResultsViewModel.IssueStatusNameChoices = GetListOfIssueStatuses(issueStatuses, passedInIssueStatusNameFilter);
+            filterResultsViewModel.PageNumber = passedInPageNumber;
+            filterResultsViewModel.StatusID = passedInStatusId;
+            filterResultsViewModel.ReasonChoices = GetListOfReasons(passedInReasonFilter);
+
+            indexViewModel.Issues = filteredIssueViews;
+            indexViewModel.Filter = filterResultsViewModel;
+
+            return indexViewModel;
         }
         #endregion
     }

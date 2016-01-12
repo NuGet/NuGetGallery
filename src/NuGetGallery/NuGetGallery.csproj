@@ -498,8 +498,12 @@
     <Compile Include="Areas\Admin\Models\IssueModel.cs" />
     <Compile Include="Areas\Admin\Models\IssueStatus.cs" />
     <Compile Include="Areas\Admin\Models\IssueStatusModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\CreateViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\EditViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\FilterResultsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\HistoryViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\IndexViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\IssueViewModel.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
@@ -1134,6 +1138,7 @@
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\SupportRequestStyles.css" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="NuGetGallery.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -1154,7 +1159,12 @@
     <Content Include="Areas\Admin\Views\Request\Create.cshtml" />
     <Content Include="Areas\Admin\Views\Request\Edit.cshtml" />
     <Content Include="Areas\Admin\Views\Request\History.cshtml" />
+    <Content Include="Areas\Admin\Views\Request\Filter.cshtml" />
     <Content Include="Areas\Admin\Views\Request\Index.cshtml" />
+    <None Include="Scripts\jquery-1.10.2.intellisense.js" />
+    <Content Include="Scripts\jquery-1.10.2.js" />
+    <Content Include="Scripts\jquery-1.10.2.min.js" />
+    <Content Include="Scripts\jquery-1.10.2.min.map" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Content\Logos\dnf.png" />
     <Content Include="Scripts\bootstrap.js" />
