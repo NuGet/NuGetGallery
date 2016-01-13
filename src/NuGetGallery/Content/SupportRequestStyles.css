@@ -1,0 +1,79 @@
+﻿.badgeorange1 {
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    color: #eeeeee;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    background-color: #f36944;
+    border-radius: 10px;
+}
+
+input[type="submit"] {
+    color: #333 !important;
+    background-color: #fff !important;
+    border-color: #ccc !important;
+}
+
+    input[type="submit"]:focus,
+    input[type="submit"].focus {
+        color: #333 !important;
+        background-color: #e6e6e6 !important;
+        border-color: #8c8c8c !important;
+    }
+
+    input[type="submit"]:hover {
+        color: #333 !important;
+        background-color: #e6e6e6 !important;
+        border-color: #adadad !important;
+    }
+
+    input[type="submit"]:active,
+    input[type="submit"].active,
+    .open > .dropdown-toggle.btn-default {
+        color: #333 !important;
+        background-color: #e6e6e6 !important;
+        border-color: #adadad !important;
+    }
+
+        input[type="submit"]:active:hover,
+        input[type="submit"].active:hover,
+        .open > .dropdown-toggleinput[type="submit"]:hover,
+        input[type="submit"]:active:focus,
+        input[type="submit"].active:focus,
+        .open > .dropdown-toggleinput[type="submit"]:focus,
+        input[type="submit"]:active.focus,
+        input[type="submit"].active.focus,
+        .open > .dropdown-toggleinput[type="submit"].focus {
+            color: #333 !important;
+            background-color: #d4d4d4 !important;
+            border-color: #8c8c8c !important;
+        }
+
+    input[type="submit"]:active,
+    input[type="submit"].active,
+    .open > .dropdown-toggleinput[type="submit"] {
+        background-image: none !important;
+    }
+
+    input[type="submit"].disabled:hover,
+    input[type="submit"][disabled]:hover,
+    fieldset[disabled] input[type="submit"]:hover,
+    input[type="submit"].disabled:focus,
+    input[type="submit"][disabled]:focus,
+    fieldset[disabled] input[type="submit"]:focus,
+    input[type="submit"].disabled.focus,
+    input[type="submit"][disabled].focus,
+    fieldset[disabled] input[type="submit"].focus {
+        background-color: #fff !important;
+        border-color: #ccc !important;
+    }
+
+    input[type="submit"] .badge {
+        color: #fff !important;
+        background-color: #333 !important;
+    }
