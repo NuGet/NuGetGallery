@@ -41,12 +41,12 @@ namespace NuGetGallery
         {
             if (fileStorage == null)
             {
-                throw new ArgumentNullException("fileStorage");
+                throw new ArgumentNullException(nameof(fileStorage));
             }
 
             if (diagnosticsService == null)
             {
-                throw new ArgumentNullException("diagnosticsService");
+                throw new ArgumentNullException(nameof(diagnosticsService));
             }
 
             FileStorage = fileStorage;
@@ -61,7 +61,7 @@ namespace NuGetGallery
         {
             if (String.IsNullOrEmpty(name))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "name"), "name");
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, nameof(name)), nameof(name));
             }
             
             return GetContentItemCore(
@@ -76,11 +76,12 @@ namespace NuGetGallery
         {
             if (String.IsNullOrEmpty(name))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "name"), "name");
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, nameof(name)), nameof(name));
             }
+
             if (String.IsNullOrEmpty(extension))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "extension"), "extension");
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, nameof(extension)), nameof(extension));
             }
 
             if (!extension.StartsWith(".", StringComparison.OrdinalIgnoreCase))
@@ -130,7 +131,7 @@ namespace NuGetGallery
                 IFileReference reference = await FileStorage.GetFileReferenceAsync(
                     Constants.ContentFolderName,
                     fileName,
-                    ifNoneMatch: cachedItem == null ? null : cachedItem.ContentId);
+                    ifNoneMatch: cachedItem?.ContentId);
 
                 if (reference == null)
                 {
@@ -145,7 +146,7 @@ namespace NuGetGallery
 
                     // Update the expiry time
                     cachedItem.ExpiryUtc = DateTime.UtcNow + expiresIn;
-                    Trace.Verbose(String.Format("Updating Cache: {0} expires at {1}", fileName, cachedItem.ExpiryUtc));
+                    Trace.Verbose($"Updating Cache: {fileName} expires at {cachedItem.ExpiryUtc}");
                     return cachedItem;
                 }
 

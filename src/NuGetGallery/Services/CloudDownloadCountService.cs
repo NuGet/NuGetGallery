@@ -40,7 +40,7 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             id = id.ToLowerInvariant();
@@ -59,11 +59,12 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
+
             if (string.IsNullOrEmpty(version))
             {
-                throw new ArgumentNullException("version");
+                throw new ArgumentNullException(nameof(version));
             }
 
             id = id.ToLowerInvariant();

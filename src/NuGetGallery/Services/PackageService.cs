@@ -79,7 +79,7 @@ namespace NuGetGallery
         {
             if (id == null)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             return _packageRegistrationRepository.GetAll()
@@ -91,7 +91,7 @@ namespace NuGetGallery
         {
             if (String.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             // Optimization: Everytime we look at a package we almost always want to see 
@@ -221,7 +221,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             package.Published = DateTime.UtcNow;
@@ -280,7 +280,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             if (package.Listed)
@@ -313,7 +313,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
             if (!package.Listed)
             {
@@ -361,17 +361,17 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             if (pendingOwner == null)
             {
-                throw new ArgumentNullException("pendingOwner");
+                throw new ArgumentNullException(nameof(pendingOwner));
             }
 
             if (String.IsNullOrEmpty(token))
             {
-                throw new ArgumentNullException("token");
+                throw new ArgumentNullException(nameof(token));
             }
 
             if (package.IsOwner(pendingOwner))
@@ -600,7 +600,7 @@ namespace NuGetGallery
             if (invalidPortableFramework != null)
             {
                 throw new EntityException(
-                    "The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.", invalidPortableFramework);
+                    Strings.InvalidPortableFramework, invalidPortableFramework);
             }
         }
 
@@ -692,7 +692,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
             package.HideLicenseReport = !visible;
             if (commitChanges)

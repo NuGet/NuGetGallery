@@ -163,7 +163,7 @@ namespace NuGetGallery.Operations
                         }
                         catch (Exception ex)
                         {
-                            Log.ErrorException(String.Format("Error parsing state file: {0}", ex.Message), ex);
+                            Log.ErrorException($"Error parsing state file: {ex.Message}", ex);
                             return new State(); // Return an empty state and continue
                         }
                     }
@@ -201,7 +201,7 @@ namespace NuGetGallery.Operations
             {
                 sqlConnection.Open();
 
-                Log.Info("Getting {1} packages to back up (since Package #{0})...", lastBackupId.HasValue ? lastBackupId.Value.ToString() : "?", forcedRecheck ? "all" : "1000");
+                Log.Info("Getting {1} packages to back up (since Package #{0})...", lastBackupId?.ToString() ?? "?", forcedRecheck ? "all" : "1000");
 
                 StringBuilder uglySqlInjectionyStringBuilder = new StringBuilder(); // We trust our own code so it's not so SQL Injectiony...
                 uglySqlInjectionyStringBuilder.Append("SELECT ");

@@ -76,7 +76,7 @@ namespace NuGetGallery.Operations
             }
             catch (Exception e)
             {
-                string msg = string.Format("Exception in GetLastOriginalKey (warehouse side): {0}", e.Message);
+                string msg = $"Exception in GetLastOriginalKey (warehouse side): {e.Message}";
                 throw new ApplicationException(msg, e);
             }
         }
@@ -127,7 +127,7 @@ namespace NuGetGallery.Operations
             }
             catch (Exception e)
             {
-                string msg = string.Format("Exception in GetDownloadRecords (gallery side): {0}", e.Message);
+                string msg = $"Exception in GetDownloadRecords (gallery side): {e.Message}";
                 throw new ApplicationException(msg, e);
             }
         }
@@ -173,7 +173,7 @@ namespace NuGetGallery.Operations
             }
             catch (Exception e)
             {
-                string msg = string.Format("(DEBUG) Exception in PutDownloadRecords (warehouse side): {0}", e.Message);
+                string msg = $"(DEBUG) Exception in PutDownloadRecords (warehouse side): {e.Message}";
                 throw new ApplicationException(msg, e);
             }
         }
@@ -205,7 +205,7 @@ namespace NuGetGallery.Operations
                 DateTime after = DateTime.Now;
                 TimeSpan duration = after - before;
 
-                Log.Trace(string.Format("source query duration: {0} seconds", duration.TotalSeconds));
+                Log.Trace($"source query duration: {duration.TotalSeconds} seconds");
 
                 if (batch.Rows.Count > 0)
                 {
@@ -220,7 +220,7 @@ namespace NuGetGallery.Operations
                         return total;
                     }
 
-                    Log.Trace(string.Format("replicated {0} records", batch.Rows.Count));
+                    Log.Trace($"replicated {batch.Rows.Count} records");
 
                     total += batch.Rows.Count;
 

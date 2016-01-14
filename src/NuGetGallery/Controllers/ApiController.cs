@@ -427,7 +427,7 @@ namespace NuGetGallery
             if (String.IsNullOrEmpty(alertString) && _config.ReadOnlyMode)
             {
                 var readOnly = await ContentService.GetContentItemAsync(Constants.ContentNames.ReadOnly, markdownContentFileExtension, TimeSpan.Zero);
-                alertString = (readOnly == null) ? null : readOnly.ToString();
+                alertString = readOnly?.ToString();
             }
             return Content(alertString, "text/html");
         }

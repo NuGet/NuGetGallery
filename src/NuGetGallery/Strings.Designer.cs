@@ -402,6 +402,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package framework &apos;{0}&apos; is not supported. Frameworks within the portable profile are not allowed to have profiles themselves..
+        /// </summary>
+        public static string InvalidPortableFramework {
+            get {
+                return ResourceManager.GetString("InvalidPortableFramework", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Job Log Blob name is invalid Bob! Expected [jobname].[yyyy-MM-dd].json or [jobname].json. Got: {0}.
         /// </summary>
         public static string JobLogBlobNameInvalid {

@@ -21,7 +21,7 @@ namespace Owin
         {
             if (self == null)
             {
-                throw new ArgumentNullException("self");
+                throw new ArgumentNullException(nameof(self));
             }
 
             self.Use(typeof(ApiKeyAuthenticationMiddleware), self, options);

@@ -71,7 +71,7 @@ namespace NuGetGallery.Auditing
         {
             protected override Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
             {
-                var uriString = string.Format("http://auditing.local/{0}/{1}/{2}-{3}", resourceType, filePath, timestamp.ToString("s"), action.ToLowerInvariant());
+                var uriString = $"http://auditing.local/{resourceType}/{filePath}/{timestamp:s}-{action.ToLowerInvariant()}";
                 var uri = new Uri(uriString);
                 return Task.FromResult(uri);
             }

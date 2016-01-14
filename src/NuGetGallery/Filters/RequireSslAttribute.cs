@@ -19,7 +19,7 @@ namespace NuGetGallery.Filters
         {
             if (filterContext == null)
             {
-                throw new ArgumentNullException("filterContext");
+                throw new ArgumentNullException(nameof(filterContext));
             }
 
             var request = filterContext.HttpContext.Request;

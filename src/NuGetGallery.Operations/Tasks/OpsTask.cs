@@ -53,7 +53,7 @@ namespace NuGetGallery.Operations
             }
         }
 
-        public string EnvironmentName { get { return CurrentEnvironment == null ? null : CurrentEnvironment.EnvironmentName; } }
+        public string EnvironmentName { get { return CurrentEnvironment?.EnvironmentName; } }
 
         [Option("Gets help for this command", AltName = "?")]
         public bool Help { get; set; }

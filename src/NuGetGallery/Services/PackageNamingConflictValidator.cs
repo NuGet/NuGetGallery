@@ -24,7 +24,7 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(registrationId))
             {
-                throw new ArgumentNullException("registrationId");
+                throw new ArgumentNullException(nameof(registrationId));
             }
 
             if (!string.IsNullOrEmpty(packageTitle))
@@ -50,7 +50,7 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(registrationId))
             {
-                throw new ArgumentNullException("registrationId");
+                throw new ArgumentNullException(nameof(registrationId));
             }
 
             registrationId = registrationId.ToLowerInvariant();

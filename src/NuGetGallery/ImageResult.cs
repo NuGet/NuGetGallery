@@ -13,12 +13,12 @@ namespace NuGetGallery
         {
             if (imageStream == null)
             {
-                throw new ArgumentNullException("imageStream");
+                throw new ArgumentNullException(nameof(imageStream));
             }
 
             if (contentType == null)
             {
-                throw new ArgumentNullException("contentType");
+                throw new ArgumentNullException(nameof(contentType));
             }
 
             ImageStream = imageStream;
@@ -32,7 +32,7 @@ namespace NuGetGallery
         {
             if (context == null)
             {
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException(nameof(context));
             }
 
             HttpResponseBase response = context.HttpContext.Response;

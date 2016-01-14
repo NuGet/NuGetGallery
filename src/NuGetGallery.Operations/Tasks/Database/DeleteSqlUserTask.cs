@@ -42,7 +42,7 @@ namespace NuGetGallery.Operations.Tasks.Database
                     {
                         if (!WhatIf)
                         {
-                            db.Execute(String.Format("DROP USER [{0}]", user));
+                            db.Execute($"DROP USER [{user}]");
                         }
                         Log.Info("Deleted Database User: {0}", user);
                     }
@@ -61,7 +61,7 @@ namespace NuGetGallery.Operations.Tasks.Database
                     {
                         if (!WhatIf)
                         {
-                            db.Execute(String.Format("DROP LOGIN [{0}]", user));
+                            db.Execute($"DROP LOGIN [{user}]");
                         }
                         Log.Info("Deleted SQL Login: {0}", user);
                     }
