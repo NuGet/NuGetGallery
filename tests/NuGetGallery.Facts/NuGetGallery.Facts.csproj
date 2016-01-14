@@ -351,6 +351,7 @@
     <Compile Include="Filters\RequiresAccountConfirmationAttributeFacts.cs" />
     <Compile Include="Filters\RequireSslAttributeFacts.cs" />
     <Compile Include="GlimpseSecurityPolicy.cs" />
+    <Compile Include="Services\PackageNamingConflictValidatorFacts.cs" />
     <Compile Include="TestPackage.cs" />
     <Compile Include="Framework\AssertEx.cs" />
     <Compile Include="Framework\Fakes.cs" />

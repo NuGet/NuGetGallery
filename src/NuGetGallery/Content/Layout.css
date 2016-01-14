@@ -203,7 +203,10 @@ nav.main {
     color: #3e483c;
     padding-bottom: 1em;
     padding-top: 0px;
-    position: relative;
+    position: absolute;
+    width: 100%;
+    bottom: 0px;
+    min-height: 220px;
 }
 
 footer#footer {
@@ -274,12 +277,15 @@ footer#footer {
 
 #outer-wrapper {
     background: url('../Content/Images/headerbackground.png') repeat-x top left #fff;
+    position: relative;
+    min-height: 100%;
 }
 
 #content-wrapper {
     margin: 0 auto;
     min-width: 960px;
     width: 960px;
+    padding-bottom: 250px;
 }
 
 /* Columns (For Two-Column Layout) */

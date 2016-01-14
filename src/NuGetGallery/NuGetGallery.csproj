@@ -1344,6 +1344,8 @@
     <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="Filters\RequireSslAttribute.cs" />
+    <Compile Include="Services\PackageIdAndTitleValidationService.cs" />
+    <Compile Include="Services\PackageNamingConflictValidator.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\JsonAggregateStatsService.cs" />
     <Compile Include="Services\SearchResults.cs" />
@@ -1717,7 +1719,6 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
-    <Folder Include="Packaging\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
