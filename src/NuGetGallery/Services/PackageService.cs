@@ -19,19 +19,22 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
+        private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageStatistics> packageStatsRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
-            IIndexingService indexingService)
+            IIndexingService indexingService,
+            IPackageNamingConflictValidator packageNamingConflictValidator)
         {
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
             _packageStatsRepository = packageStatsRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _indexingService = indexingService;
+            _packageNamingConflictValidator = packageNamingConflictValidator;
         }
 
         public void EnsureValid(PackageReader packageReader)
@@ -39,6 +42,8 @@ namespace NuGetGallery
             var packageMetadata = PackageMetadata.FromNuspecReader(packageReader.GetNuspecReader());
 
             ValidateNuGetPackageMetadata(packageMetadata);
+
+            ValidatePackageTitle(packageMetadata);
 
             var supportedFrameworks = GetSupportedFrameworks(packageReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
             if (!supportedFrameworks.AnySafe(sf => sf == null))
@@ -52,6 +57,8 @@ namespace NuGetGallery
             var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
             ValidateNuGetPackageMetadata(packageMetadata);
+
+            ValidatePackageTitle(packageMetadata);
 
             var packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata);
 
@@ -393,6 +400,11 @@ namespace NuGetGallery
 
             if (packageRegistration == null)
             {
+                if (_packageNamingConflictValidator.IdConflictsWithExistingPackageTitle(packageMetadata.Id))
+                {
+                    throw new EntityException(Strings.NewRegistrationIdMatchesExistingPackageTitle, packageMetadata.Id);
+                }
+
                 packageRegistration = new PackageRegistration
                 {
                     Id = packageMetadata.Id
@@ -589,6 +601,14 @@ namespace NuGetGallery
             {
                 throw new EntityException(
                     "The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.", invalidPortableFramework);
+            }
+        }
+
+        private void ValidatePackageTitle(PackageMetadata packageMetadata)
+        {
+            if (_packageNamingConflictValidator.TitleConflictsWithExistingRegistrationId(packageMetadata.Id, packageMetadata.Title))
+            {
+                throw new EntityException(Strings.TitleMatchesExistingRegistration, packageMetadata.Title);
             }
         }
 

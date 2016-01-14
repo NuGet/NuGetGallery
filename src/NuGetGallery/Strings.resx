@@ -356,4 +356,10 @@ The {2} Team</value>
   <data name="No" xml:space="preserve">
     <value>No</value>
   </data>
+  <data name="TitleMatchesExistingRegistration" xml:space="preserve">
+    <value>The title of your package, '{0}', is similar to the ID of an existing package, which can cause confusion with our users. Please modify the title of your package and try uploading again.</value>
+  </data>
+  <data name="NewRegistrationIdMatchesExistingPackageTitle" xml:space="preserve">
+    <value>The ID of your package, '{0}', is similar to the title of an existing package, which can cause confusion with our users. Please modify the ID of your package and try uploading again.</value>
+  </data>
 </root>
