@@ -30,7 +30,7 @@ namespace NuGetGallery.Operations
         {
             if (type == null)
             {
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             }
 
             if (value == null)
@@ -39,6 +39,7 @@ namespace NuGetGallery.Operations
                 {
                     return null;
                 }
+
                 return Convert.ChangeType(value, type, CultureInfo.CurrentCulture);
             }
 

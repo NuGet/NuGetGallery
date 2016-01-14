@@ -24,7 +24,7 @@ namespace NuGetGallery
 
             // This attribute way of getting token properties isn't very good, but it's the non-obsolete one.
             var attr1 = filter.GetAttribute<ITermAttribute>();
-            Func<string> getText = () => attr1 != null ? attr1.Term : null;
+            Func<string> getText = () => attr1?.Term;
 
             Func<int> getPositionIncrement;
             if (filter.HasAttribute<IPositionIncrementAttribute>())

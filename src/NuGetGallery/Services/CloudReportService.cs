@@ -47,7 +47,7 @@ namespace NuGetGallery
             await blob.FetchAttributesAsync();
             string content = await blob.DownloadTextAsync();
 
-            return new StatisticsReport(content, (blob.Properties.LastModified == null ? (DateTime?)null : blob.Properties.LastModified.Value.UtcDateTime));
+            return new StatisticsReport(content, blob.Properties.LastModified?.UtcDateTime);
         }
     }
 }

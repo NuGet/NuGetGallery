@@ -51,9 +51,9 @@ namespace NuGetGallery
                             <language>" + (language ?? string.Empty) + @"</language>
                             <copyright>" + (copyright ?? string.Empty) + @"</copyright>
                             <releaseNotes>" + (releaseNotes ?? string.Empty) + @"</releaseNotes>
-                            <licenseUrl>" + (licenseUrl != null ? licenseUrl.ToString() : string.Empty) + @"</licenseUrl>
-                            <projectUrl>" + (projectUrl != null ? projectUrl.ToString() : string.Empty) + @"</projectUrl>
-                            <iconUrl>" + (iconUrl != null ? iconUrl.ToString() : string.Empty) + @"</iconUrl>
+                            <licenseUrl>" + (licenseUrl?.ToString() ?? string.Empty) + @"</licenseUrl>
+                            <projectUrl>" + (projectUrl?.ToString() ?? string.Empty) + @"</projectUrl>
+                            <iconUrl>" + (iconUrl?.ToString() ?? string.Empty) + @"</iconUrl>
                             <dependencies>" + WriteDependencies(packageDependencyGroups) + @"</dependencies>
                         </metadata>
                     </package>");

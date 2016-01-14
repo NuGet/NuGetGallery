@@ -21,6 +21,7 @@ using System.Web.WebPages;
 using Microsoft.Owin;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -83,6 +84,35 @@ namespace NuGetGallery
             return String.Empty;
         }
 
+        public static IEnumerable<PackageDependency> AsPackageDependencyEnumerable(this IEnumerable<PackageDependencyGroup> dependencyGroups)
+        {
+            foreach (var dependencyGroup in dependencyGroups)
+            {
+                if (!dependencyGroup.Packages.Any())
+                {
+                    yield return new PackageDependency
+                    {
+                        Id = null,
+                        VersionSpec = null,
+                        TargetFramework = dependencyGroup.TargetFramework.ToShortNameOrNull()
+                    };
+                }
+                else
+                {
+                    foreach (var dependency in dependencyGroup.Packages.Select(
+                        d => new {d.Id, d.VersionRange, dependencyGroup.TargetFramework}))
+                    {
+                        yield return new PackageDependency
+                        {
+                            Id = dependency.Id,
+                            VersionSpec = dependency.VersionRange?.ToString(),
+                            TargetFramework = dependency.TargetFramework.ToShortNameOrNull()
+                        };
+                    }
+                }
+            }
+        }
+
         public static string Flatten(this IEnumerable<string> list)
         {
             if (list == null)
@@ -95,37 +125,8 @@ namespace NuGetGallery
 
         public static string Flatten(this IEnumerable<PackageDependencyGroup> dependencyGroups)
         {
-            var dependencies = new List<dynamic>();
-
-            foreach (var dependencyGroup in dependencyGroups)
-            {
-                if (!dependencyGroup.Packages.Any())
-                {
-                    dependencies.Add(
-                        new
-                            {
-                                Id = (string)null,
-                                VersionSpec = (string)null,
-                                TargetFramework =
-                            dependencyGroup.TargetFramework == null ? null : dependencyGroup.TargetFramework.GetShortFolderName()
-                        });
-                }
-                else
-                {
-                    foreach (var dependency in dependencyGroup.Packages.Select(d => new { d.Id, d.VersionRange, dependencyGroup.TargetFramework }))
-                    {
-                        dependencies.Add(
-                            new
-                                {
-                                    dependency.Id,
-                                    VersionSpec = dependency.VersionRange == null ? null : dependency.VersionRange.ToString(),
-                                    TargetFramework =
-                                dependency.TargetFramework == null ? null : dependency.TargetFramework.GetShortFolderName()
-                            });
-                    }
-                }
-            }
-            return FlattenDependencies(dependencies);
+            return FlattenDependencies(
+                AsPackageDependencyEnumerable(dependencyGroups).ToList());
         }
 
         public static string Flatten(this ICollection<PackageDependency> dependencies)
@@ -185,7 +186,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
             if (user == null || user.Identity == null)
             {
@@ -198,7 +199,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
             if (user == null)
             {
@@ -217,7 +218,7 @@ namespace NuGetGallery
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             int descIndex = sortExpression.IndexOf(" desc", StringComparison.OrdinalIgnoreCase);
@@ -288,7 +289,7 @@ namespace NuGetGallery
         {
             if (frameworkName == null)
             {
-                throw new ArgumentNullException("frameworkName");
+                throw new ArgumentNullException(nameof(frameworkName));
             }
 
             var sb = new StringBuilder();

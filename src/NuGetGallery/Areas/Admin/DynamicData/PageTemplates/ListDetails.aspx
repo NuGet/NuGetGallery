@@ -1,6 +1,6 @@
-<%@ Page Language="C#" MasterPageFile="~/Site.master" CodeBehind="ListDetails.aspx.cs" Inherits="NuGetGallery.ListDetails" %>
+<%@ Page Language="C#" MasterPageFile="~/Areas/Admin/DynamicData/Site.master" CodeBehind="ListDetails.aspx.cs" Inherits="NuGetGallery.ListDetails" %>
 
-<%@ Register src="~/DynamicData/Content/GridViewPager.ascx" tagname="GridViewPager" tagprefix="asp" %>
+<%@ Register src="~/Areas/Admin/DynamicData/Content/GridViewPager.ascx" tagname="GridViewPager" tagprefix="asp" %>
 
 <asp:Content ID="headContent" ContentPlaceHolderID="head" Runat="Server">
 </asp:Content>

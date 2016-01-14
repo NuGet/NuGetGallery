@@ -19,19 +19,22 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
+        private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageStatistics> packageStatsRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
-            IIndexingService indexingService)
+            IIndexingService indexingService,
+            IPackageNamingConflictValidator packageNamingConflictValidator)
         {
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
             _packageStatsRepository = packageStatsRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _indexingService = indexingService;
+            _packageNamingConflictValidator = packageNamingConflictValidator;
         }
 
         public void EnsureValid(PackageReader packageReader)
@@ -39,6 +42,8 @@ namespace NuGetGallery
             var packageMetadata = PackageMetadata.FromNuspecReader(packageReader.GetNuspecReader());
 
             ValidateNuGetPackageMetadata(packageMetadata);
+
+            ValidatePackageTitle(packageMetadata);
 
             var supportedFrameworks = GetSupportedFrameworks(packageReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
             if (!supportedFrameworks.AnySafe(sf => sf == null))
@@ -52,6 +57,8 @@ namespace NuGetGallery
             var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
             ValidateNuGetPackageMetadata(packageMetadata);
+
+            ValidatePackageTitle(packageMetadata);
 
             var packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata);
 
@@ -72,7 +79,7 @@ namespace NuGetGallery
         {
             if (id == null)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             return _packageRegistrationRepository.GetAll()
@@ -84,7 +91,7 @@ namespace NuGetGallery
         {
             if (String.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             // Optimization: Everytime we look at a package we almost always want to see 
@@ -214,7 +221,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             package.Published = DateTime.UtcNow;
@@ -273,7 +280,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             if (package.Listed)
@@ -306,7 +313,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
             if (!package.Listed)
             {
@@ -354,17 +361,17 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             if (pendingOwner == null)
             {
-                throw new ArgumentNullException("pendingOwner");
+                throw new ArgumentNullException(nameof(pendingOwner));
             }
 
             if (String.IsNullOrEmpty(token))
             {
-                throw new ArgumentNullException("token");
+                throw new ArgumentNullException(nameof(token));
             }
 
             if (package.IsOwner(pendingOwner))
@@ -393,6 +400,11 @@ namespace NuGetGallery
 
             if (packageRegistration == null)
             {
+                if (_packageNamingConflictValidator.IdConflictsWithExistingPackageTitle(packageMetadata.Id))
+                {
+                    throw new EntityException(Strings.NewRegistrationIdMatchesExistingPackageTitle, packageMetadata.Id);
+                }
+
                 packageRegistration = new PackageRegistration
                 {
                     Id = packageMetadata.Id
@@ -464,38 +476,15 @@ namespace NuGetGallery
                 }
             }
 
-            foreach (var dependencyGroup in packageMetadata.GetDependencyGroups())
-            {
-                if (!dependencyGroup.Packages.Any())
-                {
-                    package.Dependencies.Add(
-                        new PackageDependency
-                            {
-                                Id = null,
-                                VersionSpec = null,
-                                TargetFramework = dependencyGroup.TargetFramework.ToShortNameOrNull()
-                            });
-                }
-                else
-                {
-                    foreach (var dependency in dependencyGroup.Packages.Select(d => new { d.Id, d.VersionRange, dependencyGroup.TargetFramework }))
-                    {
-                        package.Dependencies.Add(
-                            new PackageDependency
-                                {
-                                    Id = dependency.Id,
-                                    VersionSpec = dependency.VersionRange == null ? null : dependency.VersionRange.ToString(),
-                                    TargetFramework = dependency.TargetFramework.ToShortNameOrNull()
-                                });
-                    }
-                }
-            }
-
+            package.Dependencies = packageMetadata
+                .GetDependencyGroups()
+                .AsPackageDependencyEnumerable()
+                .ToList();
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             return package;
         }
-        
+
         public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageReader package)
         {
             return package.GetSupportedFrameworks();
@@ -611,7 +600,15 @@ namespace NuGetGallery
             if (invalidPortableFramework != null)
             {
                 throw new EntityException(
-                    "The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.", invalidPortableFramework);
+                    Strings.InvalidPortableFramework, invalidPortableFramework);
+            }
+        }
+
+        private void ValidatePackageTitle(PackageMetadata packageMetadata)
+        {
+            if (_packageNamingConflictValidator.TitleConflictsWithExistingRegistrationId(packageMetadata.Id, packageMetadata.Title))
+            {
+                throw new EntityException(Strings.TitleMatchesExistingRegistration, packageMetadata.Title);
             }
         }
 
@@ -695,7 +692,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
             package.HideLicenseReport = !visible;
             if (commitChanges)

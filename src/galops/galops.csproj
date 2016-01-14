@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props')" />
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
@@ -41,20 +41,24 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.Edm.5.6.5-beta\lib\net40\Microsoft.Data.Edm.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.OData, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.OData.5.6.5-beta\lib\net40\Microsoft.Data.OData.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.Services.Client, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.Services.Client.5.6.5-beta\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=2.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -63,20 +67,23 @@
     <Reference Include="Microsoft.WindowsAzure.Storage, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\WindowsAzure.Storage.4.3.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NLog.2.0.0.2000\lib\net40\NLog.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.Spatial, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\System.Spatial.5.6.5-beta\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
@@ -93,6 +100,11 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SnazzyConsoleTarget.cs" />
+    <Compile Include="Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.Operations\NuGetGallery.Operations.csproj">
@@ -107,13 +119,19 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.props'))" />
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets'))" />
   </Target>
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.9\build\NuGet.Services.Build.targets')" />
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" />
 </Project>

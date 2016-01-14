@@ -26,7 +26,7 @@ namespace NuGetGallery
 
         public static StatisticsReportResult Success(DateTimeOffset? lastUpdated)
         {
-            return Success(lastUpdated.HasValue ? lastUpdated.Value.UtcDateTime : (DateTime?)null);
+            return Success(lastUpdated?.UtcDateTime);
         }
 
         public static StatisticsReportResult Success(DateTime? lastUpdatedUtc)

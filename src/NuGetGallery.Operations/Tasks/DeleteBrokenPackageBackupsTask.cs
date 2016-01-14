@@ -42,14 +42,14 @@ namespace NuGetGallery.Operations
                         DeleteBlobDirectory(blobDirectory);
                     }
                     Interlocked.Increment(ref processedCount);
-                    Log.Info(string.Format("Deleted broken package backup root directory '{0}' ({1} of {2}).", blobDirectory.Uri.Segments.Last(), processedCount, totalCount));
+                    Log.Info(
+                        $"Deleted broken package backup root directory '{blobDirectory.Uri.Segments.Last()}' ({processedCount} of {totalCount}).");
                 }
                 catch(Exception ex)
                 {
                     Interlocked.Increment(ref processedCount);
                     Log.Error(
-                            "Error deleting broken package backup root directory '{0}': {1} ({2} of {3}).", 
-                            blobDirectory.Uri.Segments.Last(), processedCount, totalCount, ex.Message);
+                        $"Error deleting broken package backup root directory '{blobDirectory.Uri.Segments.Last()}': {processedCount} ({totalCount} of {ex.Message}).");
                 }
             });
         }

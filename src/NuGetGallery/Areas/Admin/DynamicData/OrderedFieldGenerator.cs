@@ -40,7 +40,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
                 ((!(control is IDataBoundListControl) && !(control is Repeater)) && (control is IDataBoundItemControl)) ?
                 ContainerType.Item :
                 ContainerType.List;
-            var mode = itemControl == null ? DataBoundControlMode.ReadOnly : itemControl.Mode;
+            var mode = itemControl?.Mode ?? DataBoundControlMode.ReadOnly;
 
             var columns = _table.GetScaffoldColumns(mode, containerType);
             

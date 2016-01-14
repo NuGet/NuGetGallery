@@ -77,7 +77,7 @@ namespace NuGetGallery.Operations.Tasks
                 Log.Info(" Warehouse SQL: {0}", CurrentEnvironment.WarehouseDatabase == null ? "<unknown>" : CurrentEnvironment.WarehouseDatabase.DataSource);
                 Log.Info(" Main Storage: {0}", CurrentEnvironment.MainStorage == null ? "<unknown>" : CurrentEnvironment.MainStorage.Credentials.AccountName);
                 Log.Info(" Backup Storage: {0}", CurrentEnvironment.BackupStorage == null ? "<unknown>" : CurrentEnvironment.BackupStorage.Credentials.AccountName);
-                Log.Info(" SQL DAC: {0}", CurrentEnvironment.SqlDacEndpoint == null ? "<unknown>" : CurrentEnvironment.SqlDacEndpoint.AbsoluteUri);
+                Log.Info(" SQL DAC: {0}", CurrentEnvironment.SqlDacEndpoint?.AbsoluteUri ?? "<unknown>");
             }
             else
             {

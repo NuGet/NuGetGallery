@@ -310,7 +310,7 @@ namespace NuGetGallery
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
             {
-                var isIndexedCacheKey = string.Format("IsIndexed_{0}_{1}", package.PackageRegistration.Id, package.Version);
+                var isIndexedCacheKey = $"IsIndexed_{package.PackageRegistration.Id}_{package.Version}";
                 var isIndexed = HttpContext.Cache.Get(isIndexedCacheKey) as bool?;
                 if (!isIndexed.HasValue)
                 {
@@ -700,7 +700,7 @@ namespace NuGetGallery
                 // Get the packages to delete
                 foreach (var package in deletePackagesRequest.Packages)
                 {
-                    var split = package.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                    var split = package.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                     if (split.Length == 2)
                     {
                         var packageToDelete = _packageService.FindPackageByIdAndVersion(split[0], split[1], allowPrerelease: true);
@@ -727,9 +727,9 @@ namespace NuGetGallery
                 }
 
                 // Redirect out
-                TempData["Message"] = 
+                TempData["Message"] =
                     "We're performing the package delete right now. It may take a while for this change to propagate through our system.";
-                
+
                 return Redirect("/");
             }
 
@@ -804,26 +804,40 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             if (!ModelState.IsValid)
             {
-                formData.PackageId = package.PackageRegistration.Id;
-                formData.PackageTitle = package.Title;
-                formData.Version = package.Version;
-
-                var packageRegistration = _packageService.FindPackageRegistrationById(id);
-                formData.PackageVersions = packageRegistration.Packages
-                        .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                        .ToList();
-
-                return View(formData);
+                return EditFailed(id, formData, package);
             }
 
             // Add the edit request to a queue where it will be processed in the background.
             if (formData.Edit != null)
             {
-                _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
-                _entitiesContext.SaveChanges();
+                try
+                {
+                    _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
+                    _entitiesContext.SaveChanges();
+                }
+                catch (EntityException ex)
+                {
+                    ModelState.AddModelError("Edit.VersionTitle", ex.Message);
+
+                    return EditFailed(id, formData, package);
+                }
             }
 
             return SafeRedirect(returnUrl ?? Url.Package(id, version));
+        }
+
+        private ActionResult EditFailed(string id, EditPackageRequest formData, Package package)
+        {
+            formData.PackageId = package.PackageRegistration.Id;
+            formData.PackageTitle = package.Title;
+            formData.Version = package.Version;
+
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+            formData.PackageVersions = packageRegistration.Packages
+                .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
+                .ToList();
+
+            return View(formData);
         }
 
         [Authorize]
@@ -854,10 +868,10 @@ namespace NuGetGallery
             ConfirmOwnershipResult result = _packageService.ConfirmPackageOwner(package, user, token);
 
             var model = new PackageOwnerConfirmationModel
-                {
-                    Result = result,
-                    PackageId = package.Id
-                };
+            {
+                Result = result,
+                PackageId = package.Id
+            };
 
             return View(model);
         }
@@ -894,7 +908,7 @@ namespace NuGetGallery
             _indexingService.UpdatePackage(package);
             return Redirect(urlFactory(package));
         }
-        
+
         [Authorize]
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> VerifyPackage()
@@ -933,6 +947,12 @@ namespace NuGetGallery
                 Version = packageMetadata.Version.ToNormalizedStringSafe(),
                 LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
                 Listed = true,
+                Language = packageMetadata.Language,
+                MinClientVersion = packageMetadata.MinClientVersion,
+                FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
+                Dependencies = new DependencySetsViewModel(
+                    packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
+                DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
                 Edit = new EditPackageVersionRequest
                 {
                     Authors = packageMetadata.Authors.Flatten(),
@@ -948,6 +968,7 @@ namespace NuGetGallery
                     VersionTitle = packageMetadata.Title,
                 }
             };
+            
             return View(model);
         }
 
@@ -976,7 +997,7 @@ namespace NuGetGallery
                     return new RedirectResult(Url.UploadPackage());
                 }
                 Debug.Assert(nugetPackage != null);
-                
+
                 var packageMetadata = PackageMetadata.FromNuspecReader(
                     nugetPackage.GetNuspecReader());
 
@@ -1017,8 +1038,16 @@ namespace NuGetGallery
                 };
 
                 // update relevant database tables
-                package = _packageService.CreatePackage(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
-                Debug.Assert(package.PackageRegistration != null);
+                try
+                { 
+                    package = _packageService.CreatePackage(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
+                    Debug.Assert(package.PackageRegistration != null);
+                }
+                catch (EntityException ex)
+                {
+                    TempData["Message"] = ex.Message;
+                    return Redirect(Url.UploadPackage());
+                }
 
                 _packageService.PublishPackage(package, commitChanges: false);
 

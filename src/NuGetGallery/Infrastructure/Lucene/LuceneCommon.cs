@@ -21,7 +21,7 @@ namespace NuGetGallery
         internal static string GetDirectoryLocation()
         {
             // Don't create the directory if it's not already present.
-            return _directorySingleton == null ? null : _directorySingleton.Directory.FullName;
+            return _directorySingleton?.Directory.FullName;
         }
 
         internal static string GetIndexMetadataPath()

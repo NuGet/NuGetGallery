@@ -106,7 +106,7 @@ namespace WASDImportExport
                     xmlStreamReader = XmlReader.Create(webResponse.GetResponseStream());
                     xmlStreamReader.ReadToFollowing("guid");
                     requestGuid = xmlStreamReader.ReadElementContentAsString();
-                    _log.Info(String.Format("Export Request '{0}' submitted", requestGuid));
+                    _log.Info($"Export Request '{requestGuid}' submitted");
 
                     //Get Export Operation Status
                     string last = null;

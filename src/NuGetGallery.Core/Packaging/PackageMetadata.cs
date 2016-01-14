@@ -18,13 +18,15 @@ namespace NuGetGallery.Packaging
         public PackageMetadata(
             Dictionary<string, string> metadata,
             IEnumerable<PackageDependencyGroup> dependencyGroups, 
-            IEnumerable<FrameworkSpecificGroup> frameworkGroups)
+            IEnumerable<FrameworkSpecificGroup> frameworkGroups,
+            NuGetVersion minClientVersion)
         {
             _metadata = new Dictionary<string, string>(metadata, StringComparer.OrdinalIgnoreCase);
             _dependencyGroups = dependencyGroups.ToList().AsReadOnly();
             _frameworkReferenceGroups = frameworkGroups.ToList().AsReadOnly();
 
             SetPropertiesFromMetadata();
+            MinClientVersion = minClientVersion;
         }
 
         private void SetPropertiesFromMetadata()
@@ -36,24 +38,20 @@ namespace NuGetGallery.Packaging
             {
                 Version = nugetVersion;
             }
-            if (NuGetVersion.TryParse(GetValue("minClientVersion", string.Empty), out nugetVersion))
-            {
-                MinClientVersion = nugetVersion;
-            }
 
-            IconUrl = GetValue((string) "iconUrl", (Uri) null);
-            ProjectUrl = GetValue((string) "projectUrl", (Uri) null);
-            LicenseUrl = GetValue((string) "licenseUrl", (Uri) null);
-            Copyright = GetValue((string) "copyright", (string) null);
-            Description = GetValue((string) "description", (string) null);
-            ReleaseNotes = GetValue((string) "releaseNotes", (string) null);
+            IconUrl = GetValue("iconUrl", (Uri) null);
+            ProjectUrl = GetValue("projectUrl", (Uri) null);
+            LicenseUrl = GetValue("licenseUrl", (Uri) null);
+            Copyright = GetValue("copyright", (string) null);
+            Description = GetValue("description", (string) null);
+            ReleaseNotes = GetValue("releaseNotes", (string) null);
             RequireLicenseAcceptance = GetValue("requireLicenseAcceptance", false);
-            Summary = GetValue((string) "summary", (string) null);
-            Title = GetValue((string) "title", (string) null);
-            Tags = GetValue((string) "tags", (string) null);
-            Language = GetValue((string) "language", (string) null);
+            Summary = GetValue("summary", (string) null);
+            Title = GetValue("title", (string) null);
+            Tags = GetValue("tags", (string) null);
+            Language = GetValue("language", (string) null);
 
-            Owners = GetValue((string) "owners", (string) null);
+            Owners = GetValue("owners", (string) null);
 
             var authorsString = GetValue("authors", Owners ?? string.Empty);
             Authors = new List<string>(authorsString.Split(',').Select(author => author.Trim()));
@@ -136,7 +134,8 @@ namespace NuGetGallery.Packaging
             return new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(),
-                nuspecReader.GetFrameworkReferenceGroups()
+                nuspecReader.GetFrameworkReferenceGroups(),
+                nuspecReader.GetMinClientVersion()
            );
         }
     }

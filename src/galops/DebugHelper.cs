@@ -17,7 +17,7 @@ namespace NuGetGallery.Operations.Tools
                  String.Equals("debug", args[0], StringComparison.OrdinalIgnoreCase)))
             {
                 args = args.Skip(1).ToArray();
-                Console.WriteLine("Waiting for Debugger...");
+                Console.WriteLine(Strings.WaitingForDebugger);
                 Debugger.Launch();
             }
         }

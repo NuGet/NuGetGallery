@@ -31,7 +31,7 @@ namespace NuGetGallery.Operations.Infrastructure
             var parsed = BlobNameParser.Match(blob.Name);
             if (!parsed.Success)
             {
-                throw new ArgumentException("Job Log Blob name is invalid Bob! Expected [jobname].[yyyy-MM-dd].json or [jobname].json. Got: " + blob.Name, "blob");
+                throw new ArgumentException(string.Format(NuGetGallery.Strings.JobLogBlobNameInvalid, blob.Name), nameof(blob));
             }
 
             // Grab the chunks we care about
