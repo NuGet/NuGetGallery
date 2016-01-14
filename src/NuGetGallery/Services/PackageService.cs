@@ -600,7 +600,7 @@ namespace NuGetGallery
             if (invalidPortableFramework != null)
             {
                 throw new EntityException(
-                    "The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.", invalidPortableFramework);
+                    Strings.InvalidPortableFramework, invalidPortableFramework);
             }
         }
 
