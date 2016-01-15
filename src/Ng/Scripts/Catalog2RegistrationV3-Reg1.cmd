@@ -9,7 +9,7 @@ cd Ng
 
 	title #{Jobs.catalog2registrationv3reg1.Title}
 
-    start /w Ng.exe catalog2registration -source #{Jobs.common.v3.Source} -contentBaseAddress #{Jobs.catalog2registrationv3reg1.ContentBaseAddress} -storageBaseAddress #{Jobs.catalog2registrationv3reg1.StorageBaseAddress} -storageType azure -storageAccountName #{Jobs.common.v3.c2r.StorageAccountName} -storageKeyValue #{Jobs.common.v3.c2r.StorageAccountKey} -storageContainer #{Jobs.catalog2registrationv3reg1.StorageContainer} -verbose true -interval #{Jobs.common.v3.Interval}
+    start /w Ng.exe catalog2registration -source #{Jobs.common.v3.Source} -contentBaseAddress #{Jobs.catalog2registrationv3reg1.ContentBaseAddress} -storageBaseAddress #{Jobs.catalog2registrationv3reg1.StorageBaseAddress} -storageType azure -storageAccountName #{Jobs.common.v3.c2r.StorageAccountName} -storageKeyValue #{Jobs.common.v3.c2r.StorageAccountKey} -storageContainer #{Jobs.catalog2registrationv3reg1.StorageContainer} -elasticsearchendpoint #{Jobs.common.v3.Logging.ElasticsearchEndpoint} -elasticsearchusername #{Jobs.common.v3.Logging.ElasticsearchUsername} -elasticsearchpassword #{Jobs.common.v3.Logging.ElasticsearchPassword} -verbose true -interval #{Jobs.common.v3.Interval}
 
 	echo "Finished #{Jobs.catalog2registrationv3reg1.Title}"
 

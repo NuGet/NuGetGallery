@@ -1,24 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using NuGet.Indexing;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Ng
 {
-    class Db2Lucene
+    internal class Db2Lucene
     {
-        static void PrintUsage()
-        {
-            Console.WriteLine("Usage: ng db2lucene -connectionString <connectionString> -path <folder> [-verbose true|false]");
-        }
-
-        public static void Run(string[] args, CancellationToken cancellationToken)
+        public static void Run(string[] args, CancellationToken cancellationToken, ILoggerFactory loggerFactory)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)
@@ -27,7 +20,7 @@ namespace Ng
                 return;
             }
 
-            string connectionString = CommandHelpers.GetConnectionString(arguments);
+            var connectionString = CommandHelpers.GetConnectionString(arguments);
             if (connectionString == null)
             {
                 PrintUsage();
@@ -41,11 +34,12 @@ namespace Ng
                 return;
             }
 
-            bool verbose = CommandHelpers.GetVerbose(arguments);
+            Sql2Lucene.Export(connectionString, path, loggerFactory);
+        }
 
-            TextWriter log = verbose ? Console.Out : new StringWriter();
-
-            Sql2Lucene.Export(connectionString, path, log);
+        private static void PrintUsage()
+        {
+            Console.WriteLine("Usage: ng db2lucene -connectionString <connectionString> -path <folder> [-verbose true|false]");
         }
     }
 }

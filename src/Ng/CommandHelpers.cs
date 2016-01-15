@@ -39,7 +39,7 @@ namespace Ng
             return result;
         }
 
-        static void TraceRequiredArgument(string name)
+        private static void TraceRequiredArgument(string name)
         {
             Console.WriteLine("Required argument \"{0}\" not provided", name);
             Trace.TraceError("Required argument \"{0}\" not provided", name);
@@ -458,7 +458,7 @@ namespace Ng
             Func<HttpMessageHandler> handlerFunc = null;
             if (verbose)
             {
-                handlerFunc = () => 
+                handlerFunc = () =>
                 {
                     if (catalogBaseAddress != null)
                     {
@@ -491,6 +491,39 @@ namespace Ng
             }
 
             return path;
+        }
+
+        public static string GetElasticsearchEndpoint(IDictionary<string, string> arguments)
+        {
+            string endpoint;
+            if (arguments == null || !arguments.TryGetValue("-elasticsearchendpoint", out endpoint))
+            {
+                return null;
+            }
+
+            return endpoint;
+        }
+
+        public static string GetElasticsearchUsername(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (arguments == null || !arguments.TryGetValue("-elasticsearchusername", out value))
+            {
+                return null;
+            }
+
+            return value;
+        }
+
+        public static string GetElasticsearchPassword(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (arguments == null || !arguments.TryGetValue("-elasticsearchpassword", out value))
+            {
+                return null;
+            }
+
+            return value;
         }
     }
 }

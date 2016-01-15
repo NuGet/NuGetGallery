@@ -9,7 +9,7 @@ cd Ng
 
 	title #{Jobs.feed2catalogv3.Title}
 
-    start /w .\Ng.exe feed2catalog -gallery #{Jobs.common.v3.f2c.Gallery} -storageBaseAddress #{Jobs.feed2catalogv3.StorageBaseAddress} -storageType azure -storageAccountName #{Jobs.common.v3.c2r.StorageAccountName} -storageKeyValue #{Jobs.common.v3.c2r.StorageAccountKey} -storageContainer #{Jobs.feed2catalogv3.StorageContainer} -storageTypeAuditing azure -storageAccountNameAuditing #{Jobs.common.v3.c2r.StorageAccountName} -storageKeyValueAuditing #{Jobs.common.v3.c2r.StorageAccountKey} -storageContainerAuditing auditing -storagePathAuditing package -verbose true -interval #{Jobs.common.v3.Interval}
+    start /w .\Ng.exe feed2catalog -gallery #{Jobs.common.v3.f2c.Gallery} -storageBaseAddress #{Jobs.feed2catalogv3.StorageBaseAddress} -storageType azure -storageAccountName #{Jobs.common.v3.c2r.StorageAccountName} -storageKeyValue #{Jobs.common.v3.c2r.StorageAccountKey} -storageContainer #{Jobs.feed2catalogv3.StorageContainer} -storageTypeAuditing azure -storageAccountNameAuditing #{Jobs.common.v3.c2r.StorageAccountName} -storageKeyValueAuditing #{Jobs.common.v3.c2r.StorageAccountKey} -storageContainerAuditing auditing -storagePathAuditing package -elasticsearchendpoint #{Jobs.common.v3.Logging.ElasticsearchEndpoint} -elasticsearchusername #{Jobs.common.v3.Logging.ElasticsearchUsername} -elasticsearchpassword #{Jobs.common.v3.Logging.ElasticsearchPassword} -verbose true -interval #{Jobs.common.v3.Interval}
 
 	echo "Finished #{Jobs.feed2catalogv3.Title}"
 

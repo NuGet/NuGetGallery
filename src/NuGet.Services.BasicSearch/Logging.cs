@@ -9,28 +9,35 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Messaging;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace NuGet.Services.BasicSearch
+namespace NuGet.Services
 {
     internal static class Logging
     {
-        public static ILoggerFactory CreateLoggerFactory()
+        public static ILoggerFactory CreateLoggerFactory(
+            string elasticsearchEndpoint = null,
+            string elasticsearchUsername = null,
+            string elasticsearchPassword = null)
         {
             // setup Serilog
             var loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .WriteTo.Trace()
+                .WriteTo.ColoredConsole()
                 .Enrich.WithMachineName();
-            
-            var nodeUriValues = ConfigurationManager.AppSettings["serilog:Elasticsearch.nodeUris"];
-            if (!string.IsNullOrEmpty(nodeUriValues))
+
+            if (string.IsNullOrEmpty(elasticsearchEndpoint))
+            {
+                // fallback to config setting if available
+                elasticsearchEndpoint = ConfigurationManager.AppSettings["serilog:Elasticsearch.nodeUris"];
+            }
+
+            if (!string.IsNullOrEmpty(elasticsearchEndpoint))
             {
                 var nodeUris = new List<Uri>();
-                foreach (var nodeUriValue in nodeUriValues.Split(';'))
+                foreach (var nodeUriValue in elasticsearchEndpoint.Split(';'))
                 {
                     Uri nodeUri;
                     if (Uri.TryCreate(nodeUriValue, UriKind.Absolute, out nodeUri)
@@ -44,12 +51,21 @@ namespace NuGet.Services.BasicSearch
                 elasticsearchOptions.AutoRegisterTemplate = true;
 
                 // authentication settings
-                var username = ConfigurationManager.AppSettings["serilog:Elasticsearch.username"];
-                var password = ConfigurationManager.AppSettings["serilog:Elasticsearch.password"];
-
-                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                if (elasticsearchUsername == null)
                 {
-                    elasticsearchOptions.ModifyConnectionSettings = config => config.SetBasicAuthentication(username, password);
+                    elasticsearchUsername = ConfigurationManager.AppSettings["serilog:Elasticsearch.username"];
+                }
+
+                if (elasticsearchPassword == null)
+                {
+                    elasticsearchPassword = ConfigurationManager.AppSettings["serilog:Elasticsearch.password"];
+                }
+
+                if (!string.IsNullOrEmpty(elasticsearchUsername)
+                    && !string.IsNullOrEmpty(elasticsearchPassword))
+                {
+                    elasticsearchOptions.ModifyConnectionSettings =
+                        config => config.SetBasicAuthentication(elasticsearchUsername, elasticsearchPassword);
                 }
 
                 loggerConfiguration = loggerConfiguration
@@ -64,7 +80,6 @@ namespace NuGet.Services.BasicSearch
             // note: this confusing setting will be removed when new version of Microsoft.Extensions.Logging is out
             // https://github.com/aspnet/Announcements/issues/122
             loggerFactory.MinimumLevel = LogLevel.Debug;
-
             loggerFactory.AddProvider(new SerilogLoggerProvider());
 
             return loggerFactory;
@@ -81,7 +96,7 @@ namespace NuGet.Services.BasicSearch
             {
             }
 
-            public ILogger CreateLogger(string categoryName)
+            public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
             {
                 return new SerilogLogger(this, categoryName);
             }
@@ -107,7 +122,7 @@ namespace NuGet.Services.BasicSearch
             }
 
             private class SerilogLogger
-                : ILogger
+                : Microsoft.Extensions.Logging.ILogger
             {
                 private readonly string _categoryName;
                 private readonly SerilogLoggerProvider _provider;
@@ -125,7 +140,7 @@ namespace NuGet.Services.BasicSearch
 
                     if (categoryName != null)
                     {
-                        _logger = Serilog.Log.Logger.ForContext(Constants.SourceContextPropertyName, categoryName);
+                        _logger = Serilog.Log.Logger.ForContext(Serilog.Core.Constants.SourceContextPropertyName, categoryName);
                     }
                     else
                     {
@@ -153,7 +168,7 @@ namespace NuGet.Services.BasicSearch
                             if (property.Key == SerilogLoggerProvider._originalFormatPropertyName &&
                                 property.Value is string)
                             {
-                                messageTemplate = (string) property.Value;
+                                messageTemplate = (string)property.Value;
                             }
                             else if (property.Key.StartsWith("@"))
                             {

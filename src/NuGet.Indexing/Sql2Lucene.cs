@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
@@ -9,12 +10,12 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Indexing
 {
-    public static class Sql2Lucene
+    public class Sql2Lucene
     {
         static Document CreateDocument(SqlDataReader reader, IDictionary<int, List<string>> packageFrameworks)
         {
@@ -56,7 +57,7 @@ namespace NuGet.Indexing
                 connection.Open();
 
                 string cmdText = @"
-                    SELECT 
+                    SELECT
                         Packages.[Key]                          'key',
                         PackageRegistrations.Id                 'id',
                         Packages.[Version]                      'originalVersion',
@@ -216,26 +217,24 @@ namespace NuGet.Indexing
             return result;
         }
 
-        public static void Export(string sourceConnectionString, string destinationPath, TextWriter log)
+        public static void Export(string sourceConnectionString, string destinationPath, ILoggerFactory loggerFactory)
         {
-            Stopwatch stopwatch = new Stopwatch();
+            var logger = loggerFactory.CreateLogger<Sql2Lucene>();
+            var stopwatch = new Stopwatch();
 
             stopwatch.Start();
 
-            List<Tuple<int, int>> batches = CalculateBatches(sourceConnectionString);
-
-            log.WriteLine("Calculated batches - {0} batches (took {1} seconds)", batches.Count, stopwatch.Elapsed.TotalSeconds);
-
-            stopwatch.Restart();
-
-            IDictionary<int, List<string>> packageFrameworks = LoadPackageFrameworks(sourceConnectionString);
-
-            log.WriteLine("Load PackageFrameworks (took {0} seconds)", stopwatch.Elapsed.TotalSeconds);
+            var batches = CalculateBatches(sourceConnectionString);
+            logger.LogVerbose("Calculated {BatchCount} batches (took {BatchCalculationTime} seconds)", batches.Count, stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
 
-            List<Task<string>> tasks = new List<Task<string>>();
+            var packageFrameworks = LoadPackageFrameworks(sourceConnectionString);
+            logger.LogVerbose("Loaded package frameworks (took {PackageFrameworksLoadTime} seconds)", stopwatch.Elapsed.TotalSeconds);
 
+            stopwatch.Restart();
+
+            var tasks = new List<Task<string>>();
             foreach (Tuple<int, int> batch in batches)
             {
                 tasks.Add(Task.Run(() => { return IndexBatch(destinationPath + @"\batches", sourceConnectionString, packageFrameworks, batch.Item1, batch.Item2); }));
@@ -247,18 +246,12 @@ namespace NuGet.Indexing
             }
             catch (AggregateException ex)
             {
-                var flattenedAggregateException = ex.Flatten();
-
-                log.WriteLine("An AggregateException occurred while running batches.");
-                foreach (var innerException in flattenedAggregateException.InnerExceptions)
-                {
-                    log.WriteLine("Message: {0} - Stack trace: {1}", ex.Message, innerException.StackTrace);
-                }
+                logger.LogError("An AggregateException occurred while running batches.", ex);
 
                 throw;
             }
 
-            log.WriteLine("Partition indexes generated (took {0} seconds)", stopwatch.Elapsed.TotalSeconds);
+            logger.LogVerbose("Partition indexes generated (took {PartitionIndexGenerationTime} seconds", stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
 
@@ -279,9 +272,9 @@ namespace NuGet.Indexing
                 }
             }
 
-            log.WriteLine("All done (took {0} seconds)", stopwatch.Elapsed.TotalSeconds);
+            logger.LogInformation("Sql2Lucene.Export done (took {Sql2LuceneExportTime} seconds)", stopwatch.Elapsed.TotalSeconds);
 
-            stopwatch.Restart();
+            stopwatch.Reset();
         }
     }
 }

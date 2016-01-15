@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
@@ -20,7 +21,13 @@ namespace Ng
 
     public class Feed2Catalog
     {
-        private static readonly DateTime DateTimeMinValueUtc = new DateTime(0L, DateTimeKind.Utc);
+        private static readonly DateTime _dateTimeMinValueUtc = new DateTime(0L, DateTimeKind.Utc);
+        private readonly ILogger _logger;
+
+        public Feed2Catalog(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger<Feed2Catalog>();
+        }
 
         public class PackageIdentity
         {
@@ -102,7 +109,7 @@ namespace Ng
             return GetPackages(client, MakeLastEditedUri(source, since, top), "LastEdited");
         }
 
-        public static async Task<SortedList<DateTime, IList<PackageIdentity>>> GetDeletedPackages(Storage auditingStorage, HttpClient client, string source, DateTime since, int top = 100)
+        private async Task<SortedList<DateTime, IList<PackageIdentity>>> GetDeletedPackages(Storage auditingStorage, HttpClient client, string source, DateTime since, int top = 100)
         {
             var result = new SortedList<DateTime, IList<PackageIdentity>>();
 
@@ -111,7 +118,7 @@ namespace Ng
             var minimumFileTime = since.AddMinutes(-15);
             var auditRecordUris = (await auditingStorage.List(CancellationToken.None))
                 .Where(recordUri => FilterDeletedPackage(minimumFileTime, recordUri));
-            
+
             foreach (var auditRecordUri in auditRecordUris)
             {
                 var contents = await auditingStorage.LoadString(auditRecordUri, CancellationToken.None);
@@ -133,12 +140,12 @@ namespace Ng
                     }
                     catch (JsonReaderException)
                     {
-                        Trace.TraceWarning("Audit record at {0} contains invalid JSON.", auditRecordUri);
+                        _logger.LogWarning("Audit record at {AuditRecordUri} contains invalid JSON.", auditRecordUri);
                         continue;
                     }
                     catch (NullReferenceException)
                     {
-                        Trace.TraceWarning("Audit record at {0} does not contain required JSON properties to perform a package delete.", auditRecordUri);
+                        _logger.LogWarning("Audit record at {AuditRecordUri} does not contain required JSON properties to perform a package delete.", auditRecordUri);
                         continue;
                     }
 
@@ -160,9 +167,9 @@ namespace Ng
             return result;
         }
 
-        static bool FilterDeletedPackage(DateTime minimumFileTime, Uri recordUri)
+        private bool FilterDeletedPackage(DateTime minimumFileTime, Uri auditRecordUri)
         {
-            var fileName = GetFileName(recordUri);
+            var fileName = GetFileName(auditRecordUri);
 
             // over time, we have had three "deleted" file names. Try working with them all.
             if (fileName.EndsWith("-Deleted.audit.v1.json") || fileName.EndsWith("-deleted.audit.v1.json") || fileName.EndsWith("-softdeleted.audit.v1.json"))
@@ -180,7 +187,7 @@ namespace Ng
                 }
                 else
                 {
-                    Trace.TraceWarning("Could not parse date from filename in FilterDeletedPackage. Uri: {0}", recordUri);
+                    _logger.LogWarning("Could not parse date from filename in FilterDeletedPackage. Uri: {AuditRecordUri}", auditRecordUri);
                 }
             }
 
@@ -267,7 +274,7 @@ namespace Ng
                     packages = new List<PackageDetails>();
                     result.Add(keyDate, packages);
                 }
-                
+
                 packages.Add(new PackageDetails
                 {
                     ContentUri = content,
@@ -281,8 +288,8 @@ namespace Ng
 
             return result;
         }
-        
-        private static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<PackageDetails>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
+
+        private async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<PackageDetails>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken)
         {
             var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 
@@ -314,11 +321,11 @@ namespace Ng
                             {
                                 writer.Add(item);
 
-                                Trace.TraceInformation("Add: {0}", packageItem.ContentUri);
+                                _logger.LogInformation("Add metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
                             }
                             else
                             {
-                                Trace.TraceWarning("Unable to extract metadata from: {0}", packageItem.ContentUri);
+                                _logger.LogWarning("Unable to extract metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
                             }
                         }
                     }
@@ -327,12 +334,12 @@ namespace Ng
                         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                         {
                             //  the feed is out of sync with the actual package storage - if we don't have the package there is nothing to be done we might as well move onto the next package
-                            Trace.TraceWarning("Unable to download: {0} http status: {1}", packageItem.ContentUri, response.StatusCode);
+                            _logger.LogWarning("Unable to download: {PackageDetailsContentUri}. Http status: {HttpStatusCode}", packageItem.ContentUri, response.StatusCode);
                         }
                         else
                         {
                             //  this should trigger a restart - of this program - and not move the cursor forward
-                            Trace.TraceError(string.Format("Unable to download: {0} http status: {1}", packageItem.ContentUri, response.StatusCode));
+                            _logger.LogError("Unable to download: {PackageDetailsContentUri}. Http status: {HttpStatusCode}", packageItem.ContentUri, response.StatusCode);
                             throw new Exception(string.Format("Unable to download: {0} http status: {1}", packageItem.ContentUri, response.StatusCode));
                         }
                     }
@@ -348,15 +355,15 @@ namespace Ng
             }
 
             var commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(lastCreated, lastEdited, lastDeleted));
-            
+
             await writer.Commit(commitMetadata, cancellationToken);
 
-            Trace.TraceInformation("COMMIT");
+            _logger.LogInformation("COMMIT metadata to catalog.");
 
             return lastDate;
         }
 
-        static async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<PackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, CancellationToken cancellationToken)
+        private async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<PackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, CancellationToken cancellationToken)
         {
             var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 
@@ -372,22 +379,22 @@ namespace Ng
                     var catalogItem = new DeleteCatalogItem(packageIdentity.Id, packageIdentity.Version, entry.Key);
                     writer.Add(catalogItem);
 
-                    Trace.TraceInformation("Delete: {0} {1}", packageIdentity.Id, packageIdentity.Version);
+                    _logger.LogInformation("Delete: {PackageId} {PackageVersion}", packageIdentity.Id, packageIdentity.Version);
                 }
 
                 lastDeleted = entry.Key;
             }
-            
+
             var commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(lastCreated, lastEdited, lastDeleted));
 
             await writer.Commit(commitMetadata, cancellationToken);
 
-            Trace.TraceInformation("COMMIT");
+            _logger.LogInformation("COMMIT package deletes to catalog.");
 
             return lastDeleted;
         }
 
-        static DateTime DetermineLastDate(DateTime lastCreated, DateTime lastEdited, bool? createdPackages)
+        private static DateTime DetermineLastDate(DateTime lastCreated, DateTime lastEdited, bool? createdPackages)
         {
             if (createdPackages.HasValue)
             {
@@ -404,7 +411,7 @@ namespace Ng
             return DateTime.MinValue;
         }
 
-        static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName, CancellationToken cancellationToken)
+        private static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName, CancellationToken cancellationToken)
         {
             var json = await storage.LoadString(storage.ResolveUri("index.json"), cancellationToken);
 
@@ -422,7 +429,7 @@ namespace Ng
             return null;
         }
 
-        async Task Loop(string gallery, StorageFactory catalogStorageFactory, StorageFactory auditingStorageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
+        private async Task Loop(string gallery, StorageFactory catalogStorageFactory, StorageFactory auditingStorageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
         {
             var catalogStorage = catalogStorageFactory.Create();
             var auditingStorage = auditingStorageFactory.Create();
@@ -445,7 +452,7 @@ namespace Ng
                 client.Timeout = timeout;
 
                 // baseline timestamps
-                var lastCreated = await GetCatalogProperty(catalogStorage, "nuget:lastCreated", cancellationToken) ?? (startDate ?? DateTimeMinValueUtc);
+                var lastCreated = await GetCatalogProperty(catalogStorage, "nuget:lastCreated", cancellationToken) ?? (startDate ?? _dateTimeMinValueUtc);
                 var lastEdited = await GetCatalogProperty(catalogStorage, "nuget:lastEdited", cancellationToken) ?? lastCreated;
                 var lastDeleted = await GetCatalogProperty(catalogStorage, "nuget:lastDeleted", cancellationToken) ?? lastCreated;
                 if (lastDeleted == DateTime.MinValue.ToUniversalTime())
@@ -461,11 +468,11 @@ namespace Ng
                     do
                     {
                         // Get deleted packages
-                        Trace.TraceInformation("CATALOG LastDeleted: {0}", lastDeleted.ToString("O"));
+                        _logger.LogInformation("CATALOG LastDeleted: {CatalogDeletedTime}", lastDeleted.ToString("O"));
 
                         deletedPackages = await GetDeletedPackages(auditingStorage, client, gallery, lastDeleted, top);
 
-                        Trace.TraceInformation("FEED DeletedPackages: {0}", deletedPackages.Count);
+                        _logger.LogInformation("FEED DeletedPackages: {DeletedPackagesCount}", deletedPackages.Count);
 
                         // We want to ensure a commit only contains each package once at most.
                         // Therefore we segment by package id + version.
@@ -478,7 +485,7 @@ namespace Ng
                             // Wait for one second to ensure the next catalog commit gets a new timestamp
                             Thread.Sleep(TimeSpan.FromSeconds(1));
                         }
-                        
+
                         if (previousLastDeleted == lastDeleted)
                         {
                             break;
@@ -493,10 +500,10 @@ namespace Ng
                 var previousLastCreated = DateTime.MinValue;
                 do
                 {
-                    Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
+                    _logger.LogInformation("CATALOG LastCreated: {CatalogLastCreatedTime}", lastCreated.ToString("O"));
 
                     createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
-                    Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
+                    _logger.LogInformation("FEED CreatedPackages: {CreatedPackagesCount}", createdPackages.Count);
 
                     lastCreated = await DownloadMetadata2Catalog(
                         client, createdPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, true, cancellationToken);
@@ -513,11 +520,11 @@ namespace Ng
                 var previousLastEdited = DateTime.MinValue;
                 do
                 {
-                    Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));
+                    _logger.LogInformation("CATALOG LastEdited: {CatalogLastEditedTime}", lastEdited.ToString("O"));
 
                     editedPackages = await GetEditedPackages(client, gallery, lastEdited, top);
 
-                    Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
+                    _logger.LogInformation("FEED EditedPackages: {EditedPackagesCount}", editedPackages.Count);
 
                     lastEdited = await DownloadMetadata2Catalog(
                         client, editedPackages, catalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken);
@@ -671,7 +678,7 @@ namespace Ng
         async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose, CancellationToken cancellationToken)
         {
             var timeout = TimeSpan.FromSeconds(300);
-            
+
             using (var client = CreateHttpClient(verbose))
             {
                 client.Timeout = timeout;
