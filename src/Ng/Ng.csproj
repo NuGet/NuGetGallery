@@ -170,6 +170,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Catalog2Dnx.cs" />
+    <Compile Include="Lightning.cs" />
     <Compile Include="Db2Lucene.cs" />
     <Compile Include="DnxCatalogCollector.cs" />
     <Compile Include="ResetLucene.cs" />
@@ -232,6 +233,11 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="lightning-template.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

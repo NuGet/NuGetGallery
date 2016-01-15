@@ -482,6 +482,17 @@ namespace Ng
             return connectionString;
         }
 
+        public static string Get(IDictionary<string, string> arguments, string argumentName)
+        {
+            string argumentValue;
+            if (!arguments.TryGetValue("-" + argumentName, out argumentValue))
+            {
+                return null;
+            }
+
+            return argumentValue;
+        }
+
         public static string GetPath(IDictionary<string, string> arguments)
         {
             string path;
