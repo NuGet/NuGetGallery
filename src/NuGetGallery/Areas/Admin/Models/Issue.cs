@@ -7,9 +7,10 @@ namespace NuGetGallery.Areas.Admin.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    public partial class Issue
+    public partial class Issue : IEntity
     {
-        public int Id { get; set; }
+        [Key]
+        public int Key { get; set; }
 
         [StringLength(50)]
         public string CreatedBy { get; set; }

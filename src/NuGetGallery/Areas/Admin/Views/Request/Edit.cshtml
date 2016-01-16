@@ -13,7 +13,7 @@
     {
     @Html.AntiForgeryToken()
 
-    @Html.HiddenFor(model => model.Issue.Id)
+    @Html.HiddenFor(model => model.Issue.Key)
     @Html.HiddenFor(model => model.Issue.OwnerEmail)
     @Html.HiddenFor(model => model.Issue.PackageID)
     @Html.HiddenFor(model => model.Issue.PackageVersion)

@@ -7,9 +7,10 @@ namespace NuGetGallery.Areas.Admin.Models
     using System.Data.Entity.Spatial;
 
     [Table("History")]
-    public partial class History
+    public partial class History : IEntity
     {
-        public int Id { get; set; }
+        [Key]
+        public int Key { get; set; }
 
         public int IssueKey { get; set; }
 

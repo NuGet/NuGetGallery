@@ -68,7 +68,7 @@
                        <input type="hidden" name="item.CurrentReasonFilter" value=@item.CurrentReasonFilter />
                        <input type="hidden" name="item.CurrentAssignedToFilter" value=@item.CurrentAssignedToFilter />
                        <input type="hidden" name="item.CurrentIssueStatusNameFilter" value=@item.CurrentIssueStatusNameFilter />
-                       @Html.HiddenFor(m => item.Issue.Id)
+                       @Html.HiddenFor(m => item.Issue.Key)
 
                         <div class="tab-content">
                             <div class="tab-pane active">
@@ -82,7 +82,7 @@
                                             </a>
                                         </div>
 
-                                        <span class="label" style="background-color: #CCCCCC; color: #000000">#@Html.DisplayFor(modelItem => item.Issue.Id)</span>
+                                        <span class="label" style="background-color: #CCCCCC; color: #000000">#@Html.DisplayFor(modelItem => item.Issue.Key)</span>
                                         <span class="label" style="background-color: #159818; color: #ffffff">@Html.DisplayFor(modelItem => item.Issue.CreatedDate)</span>
 
                                         @{
@@ -104,12 +104,12 @@
                                         <div class="col-md-offset-4">
                                             <span>@Html.DropDownListFor(m => item.AssignedTo, item.AssignedToChoices, "[Reassign]") </span>
                                             <span>@Html.DropDownListFor(m => item.IssueStatusName, item.IssueStatusNameChoices, "[Change Status]")</span>
-                                            <input type="submit" value="Save" class="btn-sm" id="@item.Issue.Id" />
+                                            <input type="submit" value="Save" class="btn-sm" id="@item.Issue.Key" />
 
                                             <span class="btn btn-link">@Html.ActionLink("Add Comments", "Edit",
                                              new
                                              {
-                                                 id = item.Issue.Id,
+                                                 id = item.Issue.Key,
                                                  passedInStatusId = item.CurrentStatusId,
                                                  passedInPageNumber = item.CurrentPageNumber,
                                                  passedInAssignedToFilter = item.CurrentAssignedToFilter,
@@ -119,7 +119,7 @@
                                             <span class="btn btn-link">@Html.ActionLink("History", "History",
                                             new
                                             {
-                                                id = item.Issue.Id,
+                                                id = item.Issue.Key,
                                                 passedInStatusId = item.CurrentStatusId,
                                                 passedInPageNumber = item.CurrentPageNumber,
                                                 passedInAssignedToFilter = item.CurrentAssignedToFilter,

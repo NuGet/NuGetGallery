@@ -18,6 +18,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery
 {
@@ -69,6 +70,11 @@ namespace NuGetGallery
                 .As<DbContext>()
                 .InstancePerLifetimeScope();
 
+            builder.Register(c => new SupportRequest())
+                .AsSelf()
+                .As<ISupportRequest>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<User>>()
                 .AsSelf()
                 .As<IEntityRepository<User>>()
@@ -117,6 +123,31 @@ namespace NuGetGallery
             builder.RegisterType<EntityRepository<PackageOwnerRequest>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageOwnerRequest>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<Admin>>()
+                .AsSelf()
+                .As<IEntityRepository<Admin>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<Issue>>()
+                .AsSelf()
+                .As<IEntityRepository<Issue>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<IssueStatus>>()
+                .AsSelf()
+                .As<IEntityRepository<IssueStatus>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<History>>()
+                .AsSelf()
+                .As<IEntityRepository<History>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SupportRequestService>()
+                .AsSelf()
+                .As<ISupportRequestService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<CuratedFeedService>()

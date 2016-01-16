@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using NuGetGallery;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 
@@ -10,14 +11,22 @@ namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class RequestController : AdminControllerBase
     {
+        public ISupportRequestService SupportRequestService { get; protected set; }
+        private readonly ISupportRequest _context;
+
+        public RequestController(ISupportRequestService supportRequestService,
+            ISupportRequest context)
+        {
+            SupportRequestService = supportRequestService;
+            _context = context;
+        }
+
         public ActionResult Create()
         {
-            var admin = new AdminModel();
-            var issueStatus = new IssueStatusModel();
             var createView = new CreateViewModel();
 
-            var allIssueStatuses = issueStatus.GetAllIssueStatuses();
-            var allAdmins = admin.GetAllAdmins();
+            var allIssueStatuses = SupportRequestService.GetAllIssueStatuses();
+            var allAdmins = SupportRequestService.GetAllAdmins();
 
             createView.AssignedToChoices = GetListOfAdmins(allAdmins, -1);
             createView.IssueStatusNameChoices = GetListOfIssueStatuses(allIssueStatuses, -1);
@@ -29,7 +38,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpPost]
         public ActionResult Create(CreateViewModel createViewModel)
         {
-            var issue = new IssueModel();
             var newIssue = createViewModel.Issue;
 
             if (ModelState.IsValid)
@@ -38,7 +46,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 newIssue.AssignedTo = newIssue.AssignedTo ?? 0;
                 newIssue.IssueStatus = newIssue.IssueStatus ?? 1;
                 newIssue.Reason = String.IsNullOrEmpty(newIssue.Reason) ? "Other" : newIssue.Reason;
-                issue.AddIssue(newIssue, GetLoggedInUser());
+                SupportRequestService.AddIssue(newIssue, GetLoggedInUser());
                 return RedirectToAction("index");
             }
             else
@@ -51,15 +59,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public ActionResult Save([Bind(Prefix = "item")]IssueViewModel issueViewModel)
         {
             //Values required for updating the issue
-            var issue = new IssueModel();
-            var issueId = issueViewModel.Issue.Id;
+            var issueId = issueViewModel.Issue.Key;
 
             var newAssignedTo = issueViewModel.AssignedTo ?? -1;
             var newIssueStatusName = issueViewModel.IssueStatusName ?? -1;
 
-            var currentIssue = issue.GetIssueById(issueId);
+            var currentIssue = SupportRequestService.GetIssueById(issueId);
 
-            if (issue != null)
+            if (currentIssue != null)
             {
                 if (newAssignedTo != -1)
                 {
@@ -70,9 +77,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 {
                     currentIssue.IssueStatus = newIssueStatusName;
                 }
-                issue.SaveChanges();
-               
-                issue.AddHistoryEntry(currentIssue, GetLoggedInUser());
+
+                _context.CommitChanges();
+                SupportRequestService.AddHistoryEntry(currentIssue, GetLoggedInUser());
             }
 
             return RedirectToAction("index", new
@@ -175,12 +182,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             int passedInAssignedToFilter = -1, int passedInIssueStatusNameFilter = -1,
             string passedInReasonFilter = "[Reason]")
         {
-            var admin = new AdminModel();
-            var issue = new IssueModel();
-            var issueStatus = new IssueStatusModel();
             var editView = new EditViewModel();
 
-            var currentRequest = issue.GetIssueById(id);
+            var currentRequest = SupportRequestService.GetIssueById(id);
 
             if (currentRequest == null)
             {
@@ -189,8 +193,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             editView.Issue = currentRequest;
-            editView.AssignedToLabel = admin.GetUserNameById(currentRequest.AssignedTo ?? 0);
-            editView.IssueStatusNameLabel = issueStatus.GetIssueStatusNameById(currentRequest.IssueStatus ?? 1);
+            editView.AssignedToLabel = SupportRequestService.GetUserNameById(currentRequest.AssignedTo ?? 0);
+            editView.IssueStatusNameLabel = SupportRequestService.GetIssueStatusNameById(currentRequest.IssueStatus ?? 1);
             editView.CurrentAssignedToFilter = passedInAssignedToFilter;
             editView.CurrentIssueStatusNameFilter = passedInIssueStatusNameFilter;
             editView.CurrentPageNumber = passedInPageNumber;
@@ -203,15 +207,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpPost]
         public ActionResult Edit(EditViewModel editViewModel)
         {
-            var issue = new IssueModel();
             var currentIssue = editViewModel.Issue;
 
             if (ModelState.IsValid)
             {
-                issue.Entry(currentIssue).State = System.Data.Entity.EntityState.Modified;
-                issue.SaveChanges();
+                _context.CommitChanges();
 
-                issue.AddHistoryEntry(currentIssue, GetLoggedInUser());
+                SupportRequestService.AddHistoryEntry(currentIssue, GetLoggedInUser());
 
                 return RedirectToAction("index", new
                 {
@@ -223,7 +225,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 });
             }
 
-            return RedirectToAction("Edit", new { id = currentIssue.Id, passedInAssignedToFilter = editViewModel.CurrentAssignedToFilter,
+            return RedirectToAction("Edit", new { id = currentIssue.Key, passedInAssignedToFilter = editViewModel.CurrentAssignedToFilter,
                                             passedInIssueStatusNameFilter = editViewModel.CurrentIssueStatusNameFilter,
                                             passedInReasonFilter = editViewModel.CurrentReasonFilter,
                                             passedInStatusId = editViewModel.CurrentStatusId,
@@ -235,27 +237,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
             int passedInAssignedToFilter = -1, int passedInIssueStatusNameFilter = -1,
             string passedInReasonFilter = "[Reason]")
         {
-            var history = new HistoryModel();
-            var admin = new AdminModel();
-            var issue = new IssueModel();
-
+  
             var issueHistories = new List<HistoryListModel>();
             var historyViewModel = new HistoryViewModel();
 
-            var historyEntries = history.GetHistoryEntriesByIssueKey(id);
+            var historyEntries = SupportRequestService.GetHistoryEntriesByIssueKey(id);
 
             if (historyEntries != null && historyEntries.Count > 0)
             {
-                var currentIssue = issue.GetIssueById(id);
+                var currentIssue = SupportRequestService.GetIssueById(id);
                 if (currentIssue != null)
                 {
-                    var issueTitle = issue.GetIssueById(id).IssueTitle;
+                    var issueTitle = SupportRequestService.GetIssueById(id).IssueTitle;
                     ViewBag.IssueTitle = issueTitle;
                 }
 
                 foreach (History h in historyEntries)
                 {
-                    var edited = admin.GetUserNameById(h.EditedBy);
+                    var edited = SupportRequestService.GetUserNameById(h.EditedBy);
                     var ih = new HistoryListModel();
                     ih.History = h;
                     ih.EditedBy = edited;
@@ -307,9 +306,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             foreach (var i in incoming)
             {
-                var s = new SelectListItem { Text = i.StatusName, Value = i.Id.ToString() };
+                var s = new SelectListItem { Text = i.StatusName, Value = i.Key.ToString() };
                 items.Add(s);
-                if (issueToSelect.HasValue && i.Id == issueToSelect)
+                if (issueToSelect.HasValue && i.Key == issueToSelect)
                 {
                     s.Selected = true;
                 }
@@ -348,8 +347,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             foreach (var a in incoming)
             {
-                var currentItem = new SelectListItem { Text = a.UserName, Value = a.Id.ToString() };
-                if (adminToSelect.HasValue && a.Id == adminToSelect)
+                var currentItem = new SelectListItem { Text = a.UserName, Value = a.Key.ToString() };
+                if (adminToSelect.HasValue && a.Key == adminToSelect)
                 {
                     currentItem.Selected = true;
                 }
@@ -361,34 +360,32 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         private void SetViewBagForIndexView()
         {
-            var issue = new IssueModel();
-            ViewBag.OpenCount = issue.GetCountOfOpenIssues();
-            ViewBag.ResolvedCount = issue.GetCountOfResolvedIssues();
-            ViewBag.UnAssignedCount = issue.GetCountOfUnassignedIssues();
+            ViewBag.OpenCount = SupportRequestService.GetCountOfOpenIssues();
+            ViewBag.ResolvedCount = SupportRequestService.GetCountOfResolvedIssues();
+            ViewBag.UnAssignedCount = SupportRequestService.GetCountOfUnassignedIssues();
         }
 
         private List<Issue> GetIssues(int statusID)
         {
-            var issue = new IssueModel();
             var issues = new List<Issue>();
             if (statusID == 2)
             {
-                issues = issue.GetResolvedIssues();
+                issues = SupportRequestService.GetResolvedIssues();
                 ViewBag.Title = "Resolved Support Requests";
             }
             else if (statusID == 3)
             {
-                issues = issue.GetAllIssues();
+                issues = SupportRequestService.GetAllIssues();
                 ViewBag.Title = "All Support Requests";
             }
             else if (statusID == 4)
             {
-                issues = issue.GetUnassignedIssues();
+                issues = SupportRequestService.GetUnassignedIssues();
                 ViewBag.Title = "Unassigned Support Requests";
             }
             else
             {
-                issues = issue.GetOpenIssues();
+                issues = SupportRequestService.GetOpenIssues();
                 ViewBag.Title = "Open Support Requests";
             }
             return issues;
@@ -398,15 +395,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
             int? passedInAssignedToFilter, int? passedInIssueStatusNameFilter,
             string passedInReasonFilter, int passedInStatusId, int passedInPageNumber)
         {
-            var admin = new AdminModel();
-            var issueStatus = new IssueStatusModel();
-
             var indexViewModel = new IndexViewModel();
             var filterResultsViewModel = new FilterResultsViewModel();
             var filteredIssueViews = new List<IssueViewModel>();
 
-            var admins = admin.GetAllAdmins();
-            var issueStatuses = issueStatus.GetAllIssueStatuses();
+            var admins = SupportRequestService.GetAllAdmins();
+            var issueStatuses = SupportRequestService.GetAllIssueStatuses();
             var adminsList = GetListOfAdmins(admins, -1);
             var issueStatusesList = GetListOfIssueStatuses(issueStatuses, -1);
 
@@ -414,8 +408,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 var rv = new IssueViewModel();
                 rv.Issue = i;
-                rv.AssignedToLabel = admin.GetUserNameById(i.AssignedTo ?? 0);
-                rv.IssueStatusNameLabel = issueStatus.GetIssueStatusNameById(i.IssueStatus ?? 1);
+                rv.AssignedToLabel = SupportRequestService.GetUserNameById(i.AssignedTo ?? 0);
+                rv.IssueStatusNameLabel = SupportRequestService.GetIssueStatusNameById(i.IssueStatus ?? 1);
                 rv.AssignedToChoices = adminsList;
                 rv.IssueStatusNameChoices = issueStatusesList;
                 rv.Issue.SiteRoot = VerifyAndFixTralingSlash(rv.Issue.SiteRoot);

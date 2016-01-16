@@ -6,10 +6,10 @@ namespace NuGetGallery.Areas.Admin.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    public partial class Admin
+    public partial class Admin : IEntity
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int Id { get; set; }
+        [Key]
+        public int Key { get; set; }
 
         [StringLength(255)]
         public string UserName { get; set; }

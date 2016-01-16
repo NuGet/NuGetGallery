@@ -491,13 +491,11 @@
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
     <Compile Include="Areas\Admin\Controllers\RequestController.cs" />
     <Compile Include="Areas\Admin\Models\Admin.cs" />
-    <Compile Include="Areas\Admin\Models\AdminModel.cs" />
+    <Compile Include="Areas\Admin\Models\ISupportRequest.cs" />
+    <Compile Include="Areas\Admin\Models\SupportRequest.cs" />
     <Compile Include="Areas\Admin\Models\History.cs" />
-    <Compile Include="Areas\Admin\Models\HistoryModel.cs" />
     <Compile Include="Areas\Admin\Models\Issue.cs" />
-    <Compile Include="Areas\Admin\Models\IssueModel.cs" />
     <Compile Include="Areas\Admin\Models\IssueStatus.cs" />
-    <Compile Include="Areas\Admin\Models\IssueStatusModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\CreateViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\EditViewModel.cs" />
@@ -1159,12 +1157,7 @@
     <Content Include="Areas\Admin\Views\Request\Create.cshtml" />
     <Content Include="Areas\Admin\Views\Request\Edit.cshtml" />
     <Content Include="Areas\Admin\Views\Request\History.cshtml" />
-    <Content Include="Areas\Admin\Views\Request\Filter.cshtml" />
     <Content Include="Areas\Admin\Views\Request\Index.cshtml" />
-    <None Include="Scripts\jquery-1.10.2.intellisense.js" />
-    <Content Include="Scripts\jquery-1.10.2.js" />
-    <Content Include="Scripts\jquery-1.10.2.min.js" />
-    <Content Include="Scripts\jquery-1.10.2.min.map" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Content\Logos\dnf.png" />
     <Content Include="Scripts\bootstrap.js" />
@@ -1183,6 +1176,7 @@
     <Compile Include="Services\IDownloadCountService.cs" />
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
+    <Compile Include="Services\ISupportRequestService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
     <Compile Include="Services\IStatusService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
@@ -1214,6 +1208,7 @@
     <Compile Include="Filters\RequireSslAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\JsonAggregateStatsService.cs" />
+    <Compile Include="Services\SupportRequestService.cs" />
     <Compile Include="Services\SearchResults.cs" />
     <Compile Include="Services\SqlAggregateStatsService.cs" />
     <Compile Include="Services\ReportPackageRequest.cs" />

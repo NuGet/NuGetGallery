@@ -49,6 +49,7 @@ namespace NuGetGallery
         private readonly ICacheService _cacheService;
         private readonly EditPackageService _editPackageService;
         private readonly IPackageDeleteService _packageDeleteService;
+        private readonly ISupportRequestService _supportRequestService;
 
         public PackagesController(
             IPackageService packageService,
@@ -76,6 +77,36 @@ namespace NuGetGallery
             _cacheService = cacheService;
             _editPackageService = editPackageService;
             _packageDeleteService = packageDeleteService;
+        }
+
+        public PackagesController(
+            IPackageService packageService,
+            IUploadFileService uploadFileService,
+            IMessageService messageService,
+            ISearchService searchService,
+            IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
+            IPackageFileService packageFileService,
+            IEntitiesContext entitiesContext,
+            IAppConfiguration config,
+            IIndexingService indexingService,
+            ICacheService cacheService,
+            EditPackageService editPackageService,
+            IPackageDeleteService packageDeleteService,
+            SupportRequestService supportRequestService)
+        {
+            _packageService = packageService;
+            _uploadFileService = uploadFileService;
+            _messageService = messageService;
+            _searchService = searchService;
+            _autoCuratedPackageCmd = autoCuratedPackageCmd;
+            _packageFileService = packageFileService;
+            _entitiesContext = entitiesContext;
+            _config = config;
+            _indexingService = indexingService;
+            _cacheService = cacheService;
+            _editPackageService = editPackageService;
+            _packageDeleteService = packageDeleteService;
+            _supportRequestService = supportRequestService;
         }
 
         [Authorize]
@@ -413,12 +444,11 @@ namespace NuGetGallery
             try
             {
                 subject = request.FillIn(subject, _config);
-                var admin = new Areas.Admin.Models.AdminModel();
-
-                var issue = new Areas.Admin.Models.IssueModel();
+               
                 var newIssue = new Areas.Admin.Models.Issue();
                 var primaryOnCall = GetPrimaryOnCall();
-                newIssue.AssignedTo = (primaryOnCall == String.Empty) ? 0 : admin.GetAdminKeyFromUserName(primaryOnCall);
+                newIssue.AssignedTo = (primaryOnCall == String.Empty) ? 0 : 
+                    _supportRequestService.GetAdminKeyFromUserName(primaryOnCall);
 
                 newIssue.CreatedDate = DateTime.Now;
                 newIssue.Details = reportForm.Message;
@@ -436,7 +466,7 @@ namespace NuGetGallery
                 newIssue.PackageVersion = package.Version;
                 newIssue.Reason = reportForm.Reason.ToString();
                 newIssue.SiteRoot = _config.SiteRoot;
-                issue.AddIssue(newIssue, "new");
+                _supportRequestService.AddIssue(newIssue, "new");
             }
             catch (System.Data.SqlClient.SqlException)
             {
