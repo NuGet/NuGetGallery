@@ -13,11 +13,13 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGetGallery.Areas.Admin;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery
 {
@@ -122,6 +124,21 @@ namespace NuGetGallery
             builder.RegisterType<CuratedFeedService>()
                 .AsSelf()
                 .As<ICuratedFeedService>()
+                .InstancePerLifetimeScope();
+
+            builder.Register(c => new SupportRequestDbContext(configuration.Current.SqlConnectionStringSupportRequest))
+                .AsSelf()
+                .As<ISupportRequestDbContext>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SupportRequestService>()
+                .AsSelf()
+                .As<ISupportRequestService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PagerDutyService>()
+                .AsSelf()
+                .As<IMonitoringService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<UserService>()

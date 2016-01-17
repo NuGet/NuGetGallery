@@ -117,6 +117,14 @@ namespace NuGetGallery.Configuration
         public string SqlConnectionString { get; set; }
 
         /// <summary>
+        /// Gets the SQL Connection string used to connect to the database for support requests
+        /// </summary>
+        [Required]
+        [DisplayName("SupportRequestSqlServer")]
+        [DefaultValue("NuGetGallery")]
+        public string SqlConnectionStringSupportRequest { get; set; }
+
+        /// <summary>
         /// Gets the host name of the Azure CDN being used
         /// </summary>
         public string AzureCdnHost { get; set; }
@@ -156,5 +164,25 @@ namespace NuGetGallery.Configuration
         /// </summary>
         [DefaultValue(true)]
         public bool AutoUpdateSearchIndex { get; set; }
+
+        /// <summary>
+        /// Gets a string containing the PagerDuty API key.
+        /// </summary>
+        public string PagerDutyAPIKey { get; set; }
+
+        /// <summary>
+        /// Gets a string containing the PagerDuty Service key.
+        /// </summary>
+        public string PagerDutyServiceKey { get; set; }
+
+        /// <summary>
+        /// Gets a string containing the PagerDuty incident trigger URL.
+        /// </summary>
+        public string PagerDutyIncidentTriggerURL { get; set; }
+
+        /// <summary>
+        /// Gets a string containing the PagerDuty On-Call URL.
+        /// </summary>
+        public string PagerDutyOnCallURL { get; set; }
     }
 }

@@ -603,11 +603,11 @@ namespace NuGetGallery
         public class TheReportAbuseMethod
         {
             [Fact]
-            public void SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
+            public async Task SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger"), -1));
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -629,7 +629,7 @@ namespace NuGetGallery
                     };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
+                var result = await controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
 
                 Assert.NotNull(result);
                 messageService.Verify(
@@ -639,15 +639,15 @@ namespace NuGetGallery
                                  && r.Package == package
                                  && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
                                  && r.Message == "Mordor took my finger."
-                                 && r.AlreadyContactedOwners)));
+                                 && r.AlreadyContactedOwners), -1));
             }
 
             [Fact]
-            public void SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
+            public async Task SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger"), -1));
                 var user = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 1 };
                 var package = new Package
                     {
@@ -669,7 +669,7 @@ namespace NuGetGallery
                     };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                ActionResult result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
+                ActionResult result = await controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
 
                 Assert.NotNull(result);
                 messageService.Verify(
@@ -678,7 +678,7 @@ namespace NuGetGallery
                             r => r.Message == "Mordor took my finger"
                                  && r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.FromAddress.DisplayName == "Frodo"
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent))));
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)), -1));
             }
 
             [Fact]
@@ -705,11 +705,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void HtmlEncodesMessageContent()
+            public async Task HtmlEncodesMessageContent()
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger"), -1));
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -732,7 +732,7 @@ namespace NuGetGallery
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                controller.ReportAbuse("mordor", "2.0.1", model);
+                await controller.ReportAbuse("mordor", "2.0.1", model);
 
                 messageService.Verify(
                     s => s.ReportAbuse(
@@ -741,7 +741,7 @@ namespace NuGetGallery
                                  && r.Package == package
                                  && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
                                  && r.Message == "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;."
-                                 && r.AlreadyContactedOwners)));
+                                 && r.AlreadyContactedOwners), -1));
             }
         }
 
@@ -771,7 +771,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void HtmlEncodesMessageContent()
+            public async void HtmlEncodesMessageContent()
             {
                 var user = new User { Username = "Sauron", Key = 1, EmailAddress = "sauron@mordor.example.com" };
                 var package = new Package
@@ -785,8 +785,8 @@ namespace NuGetGallery
                 ReportPackageRequest reportRequest = null;
                 var messageService = new Mock<IMessageService>();
                 messageService
-                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>()))
-                    .Callback<ReportPackageRequest>(r => reportRequest = r);
+                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>(), It.IsAny<int>()))
+                    .Callback<ReportPackageRequest, int>((r, sr) => reportRequest = r);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
                     packageService: packageService,
@@ -802,7 +802,7 @@ namespace NuGetGallery
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                controller.ReportMyPackage("mordor", "2.0.1", model);
+                await controller.ReportMyPackage("mordor", "2.0.1", model);
 
                 Assert.NotNull(reportRequest);
                 Assert.Equal(user.EmailAddress, reportRequest.FromAddress.Address);

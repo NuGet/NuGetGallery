@@ -46,7 +46,7 @@ namespace NuGetGallery
                         RequestingUser = null,
                         Signature = "Joe Schmoe",
                         Url = TestUtility.MockUrlHelper(),
-                    });
+                    }, -1);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 // Assert
@@ -90,7 +90,7 @@ namespace NuGetGallery
                     Url = TestUtility.MockUrlHelper(),
                     CopySender = true,
                 };
-                messageService.ReportAbuse(reportPackageRequest);
+                messageService.ReportAbuse(reportPackageRequest, -1);
 
                 var message = messageService.MockMailSender.Sent.Single();
                 Assert.Equal(TestGalleryOwner, message.To.Single());

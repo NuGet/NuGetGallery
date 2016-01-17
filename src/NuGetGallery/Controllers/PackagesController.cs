@@ -16,6 +16,8 @@ using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Versioning;
+using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
@@ -46,6 +48,8 @@ namespace NuGetGallery
         private readonly ICacheService _cacheService;
         private readonly EditPackageService _editPackageService;
         private readonly IPackageDeleteService _packageDeleteService;
+        private readonly ISupportRequestService _supportRequestService;
+        private readonly IMonitoringService _monitoringService;
 
         public PackagesController(
             IPackageService packageService,
@@ -73,6 +77,38 @@ namespace NuGetGallery
             _cacheService = cacheService;
             _editPackageService = editPackageService;
             _packageDeleteService = packageDeleteService;
+        }
+
+        public PackagesController(
+            IPackageService packageService,
+            IUploadFileService uploadFileService,
+            IMessageService messageService,
+            ISearchService searchService,
+            IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
+            IPackageFileService packageFileService,
+            IEntitiesContext entitiesContext,
+            IAppConfiguration config,
+            IIndexingService indexingService,
+            ICacheService cacheService,
+            EditPackageService editPackageService,
+            IPackageDeleteService packageDeleteService,
+            SupportRequestService supportRequestService,
+            PagerDutyService monitoringService)
+        {
+            _packageService = packageService;
+            _uploadFileService = uploadFileService;
+            _messageService = messageService;
+            _searchService = searchService;
+            _autoCuratedPackageCmd = autoCuratedPackageCmd;
+            _packageFileService = packageFileService;
+            _entitiesContext = entitiesContext;
+            _config = config;
+            _indexingService = indexingService;
+            _cacheService = cacheService;
+            _editPackageService = editPackageService;
+            _packageDeleteService = packageDeleteService;
+            _supportRequestService = supportRequestService;
+            _monitoringService = monitoringService;
         }
 
         [Authorize]
@@ -415,6 +451,62 @@ namespace NuGetGallery
             return View(viewModel);
         }
 
+        private async Task<int> AddNewSupportRequest(string subject, Package package, User user, ReportAbuseViewModel reportForm)
+        {
+            try
+            {
+                var newIssue = new Issue();
+                var primaryOnCall = await _monitoringService.GetPrimaryOnCall(_config);
+
+                //if primary on call is not yet configured in the Support Request DB yet, assign to unassigned
+                if (string.IsNullOrEmpty(primaryOnCall) || _supportRequestService.GetAdminKeyFromUsername(primaryOnCall) == -1)
+                {
+                    newIssue.AssignedTo = null;
+                }
+                else
+                {
+                    newIssue.AssignedToId = _supportRequestService.GetAdminKeyFromUsername(primaryOnCall);
+                }
+
+                newIssue.CreatedDate = DateTime.UtcNow;
+                newIssue.Details = reportForm.Message;
+                newIssue.IssueStatusId = IssueStatusKeys.New;
+                newIssue.IssueTitle = subject;
+
+                var loggedInUser = user != null ? user.Username : "Anonymous";
+                newIssue.CreatedBy = loggedInUser;
+
+                var ownerEmail = user != null ? user.EmailAddress : reportForm.Email;
+                newIssue.OwnerEmail = ownerEmail;
+                newIssue.PackageId = package.PackageRegistration.Id;
+                newIssue.PackageVersion = package.Version;
+                newIssue.Reason = EnumHelper.GetDescription(reportForm.Reason.Value);
+                newIssue.SiteRoot = _config.SiteRoot;
+                newIssue.UserKey = user?.Key;
+                newIssue.PackageRegistrationKey = package.PackageRegistrationKey;
+
+                await _supportRequestService.AddIssueAsync(newIssue);
+
+                return newIssue.Key;
+            }
+            catch (System.Data.SqlClient.SqlException)
+            {
+                var errorMessage = string.Format(CultureInfo.InvariantCulture,
+                                                    "Exception thrown while logging a support request into DB for {0}, {1} at {2}",
+                                                    package.PackageRegistration.Id,
+                                                    package.Version,
+                                                    DateTime.UtcNow);
+
+                await _monitoringService.TriggerIncident(_config, errorMessage);
+            }
+            catch (Exception e) //In case getting data from PagerDuty has failed
+            {
+                //Log to elmah
+                QuietLog.LogHandledException(e);
+            }
+            return -1;
+        }
+
         // NOTE: Intentionally NOT requiring authentication
         private static readonly ReportPackageReason[] ReportOtherPackageReasons = new[] {
             ReportPackageReason.IsFraudulent,
@@ -504,7 +596,7 @@ namespace NuGetGallery
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ValidateSpamPrevention]
-        public virtual ActionResult ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
+        public virtual async Task<ActionResult> ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
             // Html Encode the message
             reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
@@ -544,7 +636,10 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender,
                 Signature = reportForm.Signature
             };
-            _messageService.ReportAbuse(request);
+
+            var supportRequestId = await AddNewSupportRequest($"Support Request for '{package.PackageRegistration.Id}' version {package.Version}", package, user, reportForm);
+
+            _messageService.ReportAbuse(request, supportRequestId);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
@@ -555,7 +650,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("contact support about your package")]
         [ValidateAntiForgeryToken]
         [ValidateSpamPrevention]
-        public virtual ActionResult ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
+        public virtual async Task<ActionResult> ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
         {
             // Html Encode the message
             reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
@@ -574,17 +669,20 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             MailAddress from = user.ToMailAddress();
 
-            _messageService.ReportMyPackage(
-                new ReportPackageRequest
-                {
-                    FromAddress = from,
-                    Message = reportForm.Message,
-                    Package = package,
-                    Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
-                    RequestingUser = user,
-                    Url = Url,
-                    CopySender = reportForm.CopySender
-                });
+            var request = new ReportPackageRequest
+            {
+                FromAddress = from,
+                Message = reportForm.Message,
+                Package = package,
+                Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
+                RequestingUser = user,
+                Url = Url,
+                CopySender = reportForm.CopySender
+            };
+
+            var supportRequestId = await AddNewSupportRequest($"Owner Support Request for '{package.PackageRegistration.Id}' version {package.Version}", package, user, reportForm);
+
+            _messageService.ReportMyPackage(request, supportRequestId);
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
