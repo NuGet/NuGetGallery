@@ -18,6 +18,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery
 {
@@ -122,6 +123,16 @@ namespace NuGetGallery
             builder.RegisterType<CuratedFeedService>()
                 .AsSelf()
                 .As<ICuratedFeedService>()
+                .InstancePerLifetimeScope();
+
+            builder.Register(c => new SupportRequest())
+                .AsSelf()
+                .As<ISupportRequest>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SupportRequestService>()
+                .AsSelf()
+                .As<ISupportRequestService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<UserService>()

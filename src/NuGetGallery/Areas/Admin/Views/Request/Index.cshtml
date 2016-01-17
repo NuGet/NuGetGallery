@@ -1,0 +1,168 @@
+﻿@model NuGetGallery.Areas.Admin.ViewModels.IndexViewModel
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+<link href="~/Content/SupportRequestStyles.css" rel="stylesheet" />
+
+@if (Model != null)
+{
+    <h1>
+        @ViewBag.Title
+    </h1>
+
+    ViewBag.Temp = ViewBag.OpenCount + ViewBag.ResolvedCount;
+    <div class="container body-content">
+        <div class="row">
+            <div class="col-md-2 col-md-push-11">
+                <h3>Issues</h3>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Current Open Issues">
+                    @Html.ActionLink("Open", "index", new { passedInStatusId = 1}) <span class="badge">@ViewBag.OpenCount</span>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Current Resolved Issues">
+                    @Html.ActionLink("Resolved", "index", new { passedInStatusId = 2}) <span class="badge">@ViewBag.ResolvedCount</span>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="All Issues">
+
+                    @Html.ActionLink("All", "index", new { passedInStatusId = 3}) <span class="badge">@ViewBag.Temp</span>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Unassigned Issues">
+                    @Html.ActionLink("Unassigned", "index", new { passedInStatusId = 4}) <span class="badge">@ViewBag.UnAssignedCount</span>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Create">
+                    <p>
+                        @Html.ActionLink("Create New", "Create")
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-10 col-md-pull-2">
+                @using (Html.BeginForm("Filter", "Request", FormMethod.Post))
+                {
+                    <div class="tab-content">
+                        <div class="tab-pane active">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h2 class="panel-title"><strong>Filter Results</strong> </h2>
+                                </div>
+                                <div class="panel-body">
+                                    <span>@Html.DropDownListFor(m => Model.Filter.AssignedTo, Model.Filter.AssignedToChoices, "[Assigned To]")</span>
+                                    <span>@Html.DropDownListFor(m => Model.Filter.IssueStatusName, Model.Filter.IssueStatusNameChoices, "[Issue Status]")</span>
+                                    <span>@Html.DropDownListFor(m => Model.Filter.Reason, Model.Filter.ReasonChoices, "[Reason]")</span>
+
+                                    <input type="hidden" name="Filter.StatusId" value=@Model.Filter.StatusID />
+                                    <input type="hidden" name="Filter.PageNumber" value="0" />
+                                    <input type="submit" value="Filter" class="btn-default" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="panel-heading">
+                    <h4 class="panel-title"><strong>Issues List</strong> </h4>
+                </div>
+
+                @foreach (var item in Model.Issues)
+                {
+                    using (Html.BeginForm("Save", "Request", FormMethod.Post))
+                    {
+                       <input type="hidden" name="item.CurrentStatusId" value=@item.CurrentStatusId />
+                       <input type="hidden" name="item.CurrentPageNumber" value=@item.CurrentPageNumber />
+                       <input type="hidden" name="item.CurrentReasonFilter" value=@item.CurrentReasonFilter />
+                       <input type="hidden" name="item.CurrentAssignedToFilter" value=@item.CurrentAssignedToFilter />
+                       <input type="hidden" name="item.CurrentIssueStatusNameFilter" value=@item.CurrentIssueStatusNameFilter />
+                       @Html.HiddenFor(m => item.Issue.Key)
+
+                        <div class="tab-content">
+                            <div class="tab-pane active">
+                                <div class="panel panel-default">
+                                    <div class="panel-body">
+                                        <div>
+                                            <a href=@String.Concat(item.Issue.SiteRoot, "Packages", "/", item.Issue.PackageID, "/", item.Issue.PackageVersion) style="color: black">
+                                                <strong>
+                                                    @Html.DisplayFor(modelItem => item.Issue.IssueTitle)
+                                                </strong>
+                                            </a>
+                                        </div>
+
+                                        <span class="label" style="background-color: #CCCCCC; color: #000000">#@Html.DisplayFor(modelItem => item.Issue.Key)</span>
+                                        <span class="label" style="background-color: #159818; color: #ffffff">@Html.DisplayFor(modelItem => item.Issue.CreatedDate)</span>
+
+                                        @{
+                                            string ownerLink = string.Empty;
+                                            if (!item.Issue.CreatedBy.Equals("Anonymous", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                ownerLink = String.Concat(item.Issue.SiteRoot, "Profiles", "/", item.Issue.CreatedBy);
+
+                                            }
+                                            <a href=@ownerLink>
+                                                <span class="label" style="background-color: #bfd4f2; color: #000000">@Html.DisplayFor(modelItem => item.Issue.CreatedBy)</span>
+                                            </a>
+                                        }
+
+                                        <span class="label" style="background-color: #159818; color: #ffd800">@Html.DisplayFor(modelItem => item.Issue.Reason)</span>
+                                        <span class="badgeorange1 pull-right" style="margin-left: 4px">@Html.DisplayFor(modelItem => item.AssignedToLabel)</span>
+                                        <span class="badge pull-right" style="margin-left: 4px">@Html.DisplayFor(modelItem => item.IssueStatusNameLabel)</span>
+
+                                        <div class="col-md-offset-4">
+                                            <span>@Html.DropDownListFor(m => item.AssignedTo, item.AssignedToChoices, "[Reassign]") </span>
+                                            <span>@Html.DropDownListFor(m => item.IssueStatusName, item.IssueStatusNameChoices, "[Change Status]")</span>
+                                            <input type="submit" value="Save" class="btn-sm" id="@item.Issue.Key" />
+
+                                            <span class="btn btn-link">@Html.ActionLink("Add Comments", "Edit",
+                                             new
+                                             {
+                                                 id = item.Issue.Key,
+                                                 passedInStatusId = item.CurrentStatusId,
+                                                 passedInPageNumber = item.CurrentPageNumber,
+                                                 passedInAssignedToFilter = item.CurrentAssignedToFilter,
+                                                 passedInIssueStatusNameFilter = item.CurrentIssueStatusNameFilter,
+                                                 passedInReasonFilter = item.CurrentReasonFilter
+                                             })</span>
+                                            <span class="btn btn-link">@Html.ActionLink("History", "History",
+                                            new
+                                            {
+                                                id = item.Issue.Key,
+                                                passedInStatusId = item.CurrentStatusId,
+                                                passedInPageNumber = item.CurrentPageNumber,
+                                                passedInAssignedToFilter = item.CurrentAssignedToFilter,
+                                                passedInIssueStatusNameFilter = item.CurrentIssueStatusNameFilter,
+                                                passedInReasonFilter = item.CurrentReasonFilter
+                                            })</span>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    if (ViewBag.Page > 0)
+    {
+        <a href="@Url.Action("index", new { passedInPageNumber = ViewBag.Page - 1 })"
+           class="btn-primary">
+            &laquo; Prev
+        </a>
+    }
+
+    if (ViewBag.Page < ViewBag.MaxPage - 1)
+    {
+        <a href="@Url.Action("index", new { passedInPageNumber = ViewBag.Page + 1 })"
+           class="btn-primary">
+            Next &raquo;
+        </a>
+    }
+
+}
+else
+{
+   <p>
+        @Html.ActionLink("Back To Open Issues List", "index")
+    </p>
+}
+
+@section Scripts {
+    @Scripts.Render("~/scripts/bootstrap.js")
+}
+
