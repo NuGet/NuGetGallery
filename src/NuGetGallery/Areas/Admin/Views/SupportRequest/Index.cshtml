@@ -1,0 +1,472 @@
+﻿@using NuGetGallery.Helpers
+@model SupportRequestsViewModel
+
+@{
+    ViewBag.Title = "Support Requests";
+}
+
+@section TopScripts{
+    <link href="~/Content/themes/custom/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" />
+    <link href="~/Content/admin/SupportRequestStyles.css" rel="stylesheet" />
+}
+
+<section>
+    <article id="supportrequests">
+        @if (Model == null || !Model.Issues.Any())
+        {
+            <p>No issues to display.</p>
+            <p>@Html.ActionLink("Refresh", "Index")</p>
+        }
+        else
+        {
+            <div style="display: none;" id="history-dialog">
+                <table id="history-table" class="sexy-table">
+                    <thead>
+                        <tr>
+                            <th>When (UTC)</th>
+                            <th>Who</th>
+                            <th>What</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: historyEntries()">
+                        <tr>
+                            <td>
+                                <span data-bind="datetime: EntryDate"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: EditedBy"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: Comments"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="display: none;" id="editSupportRequest-dialog">
+                <form id="editSupportRequest-form">
+                    @Html.AntiForgeryToken()
+                    <fieldset class="form">
+                        <legend>Edit</legend>
+
+                        <div class="form-field">
+                            <label for="editAssignedTo">Assigned to</label>
+                            <select id="editAssignedTo"
+                                    name="editAssignedTo"
+                                    data-bind="options: assignedToChoices,
+                                    value: editAssignedToId,
+                                    optionsText: 'Text',
+                                    optionsValue: 'Value'"></select>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editIssueStatus">Issue status</label>
+                            <select id="editIssueStatus"
+                                    name="editIssueStatus"
+                                    data-bind="options: issueStatusChoices,
+                                    value: editIssueStatusId,
+                                    optionsText: 'Text',
+                                    optionsValue: 'Value'"></select>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editIssueComment">Add comment</label>
+                            <textarea id="editIssueComment" name="editIssueComment" data-bind="value: editIssueComment" rows="10"
+                                      placeholder="Add a comment..." autocomplete="off" autofocus></textarea>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+
+            <div id="sr-nav-menu">
+                <a id="manageAdminsButton" href="@Url.Action("Admins")" title="Manage Support Request Administrators">Manage SR-Admins</a>
+            </div>
+
+            <div id="filter-container">
+                <form>
+                    <fieldset id="filter-supportrequests-form" class="form">
+                        <legend>Filter</legend>
+
+                        <div class="form-field">
+
+                            <select id="assignedToFilter"
+                                    name="assignedToFilter"
+                                    data-bind="options: assignedToChoices,
+                                    value: assignedToFilter,
+                                    optionsText: 'Text',
+                                    optionsValue: 'Value',
+                                    optionsCaption: '[Assigned To]'"></select>
+
+                            <select id="issueStatusIdFilter"
+                                    name="issueStatusIdFilter"
+                                    data-bind="options: issueStatusChoices,
+                                    value: issueStatusIdFilter,
+                                    optionsText: 'Text',
+                                    optionsValue: 'Value',
+                                    optionsCaption: '[Issue Status]'"></select>
+
+
+                            <select id="reasonFilter"
+                                    name="reasonFilter"
+                                    data-bind="options: reasonChoices,
+                                    value: reasonFilter,
+                                    optionsText: 'Text',
+                                    optionsValue: 'Text',
+                                    optionsCaption: '[Reason]'"></select>
+
+                            <br />
+
+                            <input type="submit" value="Filter" data-bind="click: applyFilter" />
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+
+            <div style="display: none;" data-bind="visible: filteredIssues().length > 0, foreach: filteredIssues()">
+                <div class="supportrequest" data-bind="id: 'sr-' + Issue.Key">
+                    <div class="side">
+                        <p class="sr-issue-id" data-bind="text: '#SR-' + Issue.Key"></p>
+                        <p data-bind="text: '&diams; ' + Issue.IssueStatus.Name, attr: { style: $parent.getStyleForIssueStatus($data) }"></p>
+                    </div>
+                    <div class="sr-issue">
+                        <div class="pull-right">
+                            <a class="historyButton" data-bind="click: $parent.showHistory" title="Click to view history for this issue.">History</a>
+                            <a class="editButton" href="#" data-bind="click: $parent.editSupportRequest" title="Click to edit this issue.">Edit</a>
+                        </div>
+                        <p class="bold" data-bind="text: Issue.IssueTitle, click: $parent.editSupportRequest"></p>
+                        <p>
+                            Created by <a data-bind="text: Issue.CreatedBy, attr: { href: $parent.generateUserProfileUrl($data) }"></a> on <span data-bind="text: Issue.CreatedDate"></span>.<br />
+                            <span data-bind="visible: Issue.AssignedTo !== null">
+                                Assigned to <span class="bold" data-bind="text: Issue.AssignedTo ? Issue.AssignedTo.GalleryUsername : ''"></span>.
+                            </span>
+                            <span data-bind="visible: Issue.AssignedTo === null" style="color: #ff0000">Not assigned!</span>
+                        </p>
+                        <p>
+                            <span class="italic" data-bind="html: Issue.Details"></span>
+                        </p>
+                        <p class="sr-issue-reason">
+                            <span class="ui-icon ui-icon-tag"></span>
+                            <span data-bind="text: Issue.Reason"></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div data-bind="visible: filteredIssues().length > 0">
+                <ul class="pager">
+                    <li class="previous" data-bind="visible: hasPreviousPage()">
+                        <a href="#" data-bind="click: goToPreviousPage" title="Go to the previous page.">Previous</a>
+                    </li>
+                    <li class="next" data-bind="visible: hasNextPage()">
+                        <a href="#" data-bind="click: goToNextPage" title="Go to the next page.">Next</a>
+                    </li>
+                </ul>
+            </div>
+        }
+    </article>
+</section>
+
+@section BottomScripts {
+    @if (Model != null)
+    {
+        <script src="~/Scripts/jquery-ui-1.10.3.min.js"></script>
+        <script src="~/Scripts/moment.min.js"></script>
+        <script src="~/Scripts/knockout-2.2.1.js"></script>
+        <script src="~/Scripts/knockout.mapping-latest.js"></script>
+
+        <script type="text/javascript">
+            $(function () {
+
+                ko.bindingHandlers.datetime = {
+                    update: function (element, valueAccessor) {
+                        var value = valueAccessor();
+                        var date = moment(value);
+                        $(element).text(date.format("L") + " " + date.format("LTS"));
+                    }
+                };
+
+                function HistoryViewModel() {
+                    var $self = this;
+
+                    this.issue = ko.observable();
+                    this.historyEntries = ko.observableArray();
+                };
+
+                function EditViewModel() {
+                    var $self = this;
+
+                    this.issue = ko.observable();
+                    this.editAssignedToId = ko.observable();
+                    this.editIssueStatusId = ko.observable();
+                    this.editIssueComment = ko.observable();
+                    this.assignedToChoices = ko.observableArray();
+                    this.issueStatusChoices = ko.observableArray();
+
+                    this.updateSupportRequest = function (success, error) {
+                        var url = '@Url.Action("Save")';
+                        var model = JSON.stringify({
+                            issueKey: $self.issue.Key,
+                            assignedToId: $self.editAssignedToId,
+                            issueStatusId: $self.editIssueStatusId,
+                            comment: $self.editIssueComment()
+                        });
+
+                        $.ajax({
+                            url: url,
+                            type: 'POST',
+                            cache: false,
+                            dataType: 'json',
+                            contentType: 'application/json; charset=utf-8',
+                            data: model,
+                            success: success
+                        })
+                        .error(error);
+                    }
+                }
+
+                function ViewModel() {
+                    var $self = this;
+
+                    this.editSupportRequestForm = $('#editSupportRequest-form').get(0);
+                    this.editAssignedToCtrl = $('#editAssignedTo').get(0);
+                    this.editIssueStatusCtrl = $('#editIssueStatus').get(0);
+                    this.editIssueCommentCtrl = $('#editIssueComment').get(0);
+                    this.historyTableCtrl = $('#history-table').get(0);
+
+                    this.assignedToFilter = ko.observable();
+                    this.issueStatusIdFilter = ko.observable();
+                    this.reasonFilter = ko.observable();
+                    this.pageNumber = ko.observable(1);
+                    this.maxPageNumber = ko.observable(1);
+                    this.take = ko.observable(5);
+
+                    this.hasPreviousPage = ko.computed(function () {
+                        return $self.pageNumber() > 1;
+                    });
+
+                    this.hasNextPage = ko.computed(function () {
+                        return $self.pageNumber() < $self.maxPageNumber();
+                    });
+
+                    this.goToPreviousPage = function () {
+                        $self.filter($self.pageNumber() - 1, $self.take());
+                    };
+                    this.goToNextPage = function () {
+                        $self.filter($self.pageNumber() + 1, $self.take());
+                    };
+
+                    this.filteredIssues = ko.observableArray();
+                    this.assignedToChoices = ko.observableArray();
+                    this.issueStatusChoices = ko.observableArray();
+                    this.reasonChoices = ko.observableArray();
+
+                    this.styleButtons = function () {
+                        $('a.editButton').button(
+                        {
+                            icons: {
+                                primary: 'ui-icon-pencil'
+                            }
+                        });
+                        $('a.historyButton').button(
+                        {
+                            icons: {
+                                primary: 'ui-icon-clock'
+                            }
+                        });
+                    }
+
+                    this.updateSupportRequest = function () {
+                        var updatedViewModel = ko.dataFor($self.editSupportRequestForm);
+
+                        updatedViewModel.updateSupportRequest(
+                            function () {
+                                $self.pageNumber(0);
+                                $self.filter();
+                                $self.editSupportRequestDialog.dialog("close");
+                            },
+                            function (jqXhr, textStatus, errorThrown) {
+                                alert("Error: " + errorThrown);
+                            });
+                    }
+
+                    this.historyDialog = $('#history-dialog').dialog({
+                        autoOpen: false,
+                        modal: true,
+                        width: 800,
+                        overlay: {
+                            backgroundColor: '#000',
+                            opacity: 0.5
+                        },
+                        buttons: {
+                            "Close": function () {
+                                $self.historyDialog.dialog("close");
+                            }
+                        }
+                    });
+
+                    this.editSupportRequestFields = $([])
+                        .add($self.editAssignedToCtrl)
+                        .add($self.editIssueStatusCtrl)
+                        .add($self.editIssueCommentCtrl);
+
+                    this.editSupportRequestDialog = $("#editSupportRequest-dialog").dialog({
+                        autoOpen: false,
+                        modal: true,
+                        width: 400,
+                        overlay: {
+                            backgroundColor: '#000',
+                            opacity: 0.5
+                        },
+                        buttons: {
+                            "Save Changes": $self.updateSupportRequest,
+                            Cancel: function () {
+                                $self.editSupportRequestDialog.dialog("close");
+                            }
+                        },
+                        close: function () {
+                            $('#editSupportRequest-form')[0].reset();
+                            $self.editSupportRequestFields.removeClass("ui-state-error");
+                        }
+                    });
+
+                    this.editSupportRequest = function (supportRequestViewModel) {
+
+                        var editViewModel = new EditViewModel();
+                        editViewModel.issue = supportRequestViewModel.Issue;
+                        editViewModel.assignedToChoices = $self.assignedToChoices;
+                        editViewModel.issueStatusChoices = $self.issueStatusChoices;
+                        editViewModel.editAssignedToId = supportRequestViewModel.Issue.AssignedToId;
+                        editViewModel.editIssueStatusId = supportRequestViewModel.Issue.IssueStatusId;
+
+                        ko.applyBindings(editViewModel, $self.editSupportRequestForm);
+
+                        $self.editSupportRequestDialog.dialog('option', 'title', 'Edit SR-' + supportRequestViewModel.Issue.Key);
+                        $self.editSupportRequestDialog.dialog('open');
+                        return false;
+                    };
+
+                    this.showHistory = function (supportRequestViewModel) {
+
+                        var url = $self.generateHistoryUrl(supportRequestViewModel);
+
+                        $.ajax({
+                            url: url,
+                            type: 'GET',
+                            cache: false,
+                            dataType: 'json',
+                            success: function (data) {
+
+                                var historyViewModel = ko.dataFor($self.historyTableCtrl);
+                                historyViewModel.issue(supportRequestViewModel.Issue);
+                                historyViewModel.historyEntries(data);
+
+                                $self.historyDialog.dialog('option', 'title', 'History for SR-' + supportRequestViewModel.Issue.Key);
+                                $self.historyDialog.dialog('open');
+                            }
+                        })
+                        .error(function (jqXhr, textStatus, errorThrown) {
+                            alert("Error: " + errorThrown);
+                        });
+
+                        return false;
+                    };
+
+                    this.generateUserProfileUrl = function (supportRequestViewModel) {
+                        if (supportRequestViewModel.Issue.CreatedBy.toUpperCase !== 'ANONYMOUS') {
+                            return supportRequestViewModel.Issue.SiteRoot + 'Profiles/' + supportRequestViewModel.Issue.CreatedBy;
+                        }
+                        return '#';
+                    }
+
+                    this.generateHistoryUrl = function (supportRequestViewModel) {
+                        return '@Url.Action("History")?id=' + supportRequestViewModel.Issue.Key;
+                    }
+
+                    this.getStyleForIssueStatus = function (supportRequestViewModel) {
+                        if (supportRequestViewModel.Issue.IssueStatus.Name.toUpperCase() === 'NEW') {
+                            return 'color: #FF1F19; style: bold;';
+                        }
+                        else if (supportRequestViewModel.Issue.IssueStatus.Name.toUpperCase() === 'RESOLVED') {
+                            return 'color: #09B25B; style: bold;';
+                        }
+                        else {
+                            return 'color: #FF8D00; style: bold;';
+                        }
+                    }
+
+                    this.applyFilter = function() {
+                        $self.filter($self.pageNumber(), $self.take());
+                    };
+
+                    this.filter = function (pageNumber, take) {
+
+                        var url = '@Url.Action("Filter")?pageNumber=' + pageNumber + '&take=' + take;
+
+                        if ($self.assignedToFilter() !== undefined) {
+                            url += '&assignedToId=' + $self.assignedToFilter();
+                        }
+
+                        if ($self.reasonFilter() !== undefined && $self.reasonFilter() !== '') {
+                            url += '&reason=' + $self.reasonFilter();
+                        }
+
+                        if ($self.issueStatusIdFilter() !== undefined) {
+                            url += '&issueStatusId=' + $self.issueStatusIdFilter();
+                        }
+
+                        $.ajax({
+                            url: url,
+                            type: 'GET',
+                            cache: false,
+                            dataType: 'json',
+                            success: function (data) {
+                                var parsed = JSON.parse(data);
+                                $self.filteredIssues(parsed.Issues);
+                                $self.pageNumber(parsed.CurrentPageNumber);
+                                $self.maxPageNumber(parsed.MaxPage);
+                                $self.styleButtons();
+                            }
+                        })
+                        .error(function (jqXhr, textStatus, errorThrown) {
+                            alert("Error: " + errorThrown);
+                        });
+                    };
+                };
+
+                var viewModel = new ViewModel();
+
+                viewModel.take(@Model.ItemsPerPage);
+                viewModel.pageNumber(@Model.CurrentPageNumber);
+                viewModel.maxPageNumber(@Model.MaxPage);
+                viewModel.filteredIssues(@Html.ToJson(Model.Issues));
+                viewModel.assignedToChoices(@Html.ToJson(Model.AssignedToChoices));
+                viewModel.issueStatusChoices(@Html.ToJson(Model.IssueStatusNameChoices));
+                viewModel.reasonChoices(@Html.ToJson(Model.ReasonChoices));
+
+                @if (Model.AssignedToFilter.HasValue)
+                {
+                @:viewModel.assignedToFilter(@Model.AssignedToFilter);
+                }
+
+                @if (Model.IssueStatusIdFilter.HasValue)
+                {
+                @:viewModel.issueStatusIdFilter(@Model.IssueStatusIdFilter);
+                }
+
+                @if (Model.ReasonFilter != null)
+                {
+                @:viewModel.reasonFilter(@Model.ReasonFilter);
+                }
+
+                ko.applyBindings(viewModel, $('#supportrequests').get(0));
+
+                var historyViewModel = new HistoryViewModel();
+
+                ko.applyBindings(historyViewModel, $('#history-table').get(0));
+
+                viewModel.styleButtons();
+            });
+        </script>
+    }
+}

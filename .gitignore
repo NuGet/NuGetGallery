@@ -173,4 +173,4 @@ src/NuGetGallery.Cloud/ecf/
 *.trx
 
 # Vs2015
- .vs/config/applicationhost.config
+.vs/config/applicationhost.config
