@@ -6,9 +6,9 @@ namespace NuGetGallery.Areas.Admin.Models
     using System.Linq;
     using System.Collections.Generic;
 
-    public partial class SupportRequest :  DbContext, ISupportRequest
+    public partial class SupportRequestDbContext :  DbContext, ISupportRequestDbContext
     {
-        public SupportRequest()
+        public SupportRequestDbContext()
             : base("name=SupportRequest")
         {
         }
