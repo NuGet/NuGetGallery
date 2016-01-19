@@ -68,11 +68,11 @@
     @Html.ActionLink("Back to List", "Index",
     new
     {
-        passedInStatusId = Model.CurrentStatusId,
-        passedInPageNumber = Model.CurrentPageNumber,
-        passedInAssignedToFilter = Model.CurrentAssignedToFilter,
-        passedInIssueStatusNameFilter = Model.CurrentIssueStatusNameFilter,
-        passedInReasonFilter = Model.CurrentReasonFilter
+        statusId = Model.CurrentStatusId,
+        pageNumber = Model.CurrentPageNumber,
+        assignedToFilter = Model.CurrentAssignedToFilter,
+        issueStatusNameFilter = Model.CurrentIssueStatusNameFilter,
+        reasonFilter = Model.CurrentReasonFilter
     })
 }
 else
@@ -80,10 +80,10 @@ else
     @Html.ActionLink("Back to List", "Index",
     new
     {
-        passedInStatusId = 1,
-        passedInPageNumber = 0,
-        passedInAssignedToFilter = -1,
-        passedInIssueStatusNameFilter = -1,
-        passedInReasonFilter = "[Reason]"
+        statusId = 1,
+        pageNumber = 0,
+        assignedToFilter = -1,
+        issueStatusNameFilter = -1,
+        reasonFilter = "[Reason]"
     })
 }

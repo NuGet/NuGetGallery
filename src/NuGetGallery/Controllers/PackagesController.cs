@@ -27,6 +27,8 @@ using RestSharp;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using System.Web.Configuration;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace NuGetGallery
 {
@@ -476,44 +478,43 @@ namespace NuGetGallery
                                                     DateTime.Now);
                 TriggerAPagerDutyIncident(errorMessage);
             }
-            catch (Exception) //In case getting data from PagerDuty has failed
+            catch (Exception e) //In case getting data from PagerDuty has failed
             {
-                //swallow
+                //Log to elmah
+                QuietLog.LogHandledException(e);
             }
         }
 
-        private void TriggerAPagerDutyIncident(string errorMeesage)
+        private void TriggerAPagerDutyIncident(string errorMessage)
         {
             try
             {
                 var pagerDutyAPIKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyAPIKey"];
                 var pagerDutyServiceKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyServiceKey"];
-
-                var client = new RestClient(); //("URL/create_event.json");
                 var pagerDutyIncidentTriggerURL = WebConfigurationManager.AppSettings["Gallery.PagerDutyIncidentTriggerURL"];
-                client.BaseUrl = new Uri(pagerDutyIncidentTriggerURL);
 
-                var request = new RestRequest();
-                request.AddHeader("Content-Type", "application/json; charset=utf-8");
-                request.AddHeader("Authorization", "Token token=" + pagerDutyAPIKey);
+                var httpClient = new HttpClient();
 
-                request.RequestFormat = DataFormat.Json;
-                request.AddBody(
-                new
+                var _token = "Token token=" + pagerDutyAPIKey;
+                httpClient.DefaultRequestHeaders.Add("Authorization", _token);
+
+                var obj = new JObject
                 {
-                    service_key = pagerDutyServiceKey,
-                    event_type = "trigger",
-                    description = errorMeesage
-                });
+                    { "service_key", pagerDutyServiceKey },
+                    { "event_type", "trigger" },
+                    { "description", errorMessage }
+                };
 
-                request.Method = Method.POST;
+                var content = new StringContent(obj.ToString());
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-                var response = client.Execute(request) as RestResponse;
+                var response = httpClient.PostAsync(pagerDutyIncidentTriggerURL, content).Result;
+                response.EnsureSuccessStatusCode();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-
-                //swallow?
+                QuietLog.LogHandledException(e);
+         
             }
         }
 

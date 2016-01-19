@@ -125,9 +125,9 @@ namespace NuGetGallery
                 .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new SupportRequest())
+            builder.Register(c => new SupportRequestDbContext())
                 .AsSelf()
-                .As<ISupportRequest>()
+                .As<ISupportRequestDbContext>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<SupportRequestService>()

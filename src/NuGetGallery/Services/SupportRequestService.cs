@@ -15,7 +15,7 @@ namespace NuGetGallery
 {
     public class SupportRequestService : ISupportRequestService
     {
-        SupportRequest _supportRequestContext;
+        SupportRequestDbContext _supportRequestContext;
 
         const int UnassignedAdmin = 0;
         const int PackageDeletedResolution = 5;
@@ -24,7 +24,7 @@ namespace NuGetGallery
         const string NewUser = "new";
 
         public SupportRequestService(
-           SupportRequest supportRequestContext)
+           SupportRequestDbContext supportRequestContext)
         {
             _supportRequestContext = supportRequestContext;
         }

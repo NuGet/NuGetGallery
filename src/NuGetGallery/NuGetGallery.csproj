@@ -461,10 +461,6 @@
       <HintPath>..\..\packages\recaptcha.1.0.5.0\lib\.NetFramework 4.0\Recaptcha.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RestSharp">
-      <HintPath>..\..\packages\RestSharp.105.2.3\lib\net452\RestSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="RouteMagic, Version=1.1.3.0, Culture=neutral, PublicKeyToken=84b59be021aa4cee, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\RouteMagic.1.1.3\lib\net40\RouteMagic.dll</HintPath>
@@ -589,7 +585,7 @@
   <ItemGroup>
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
-    <Compile Include="Areas\Admin\Controllers\RequestController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
       <DependentUpon>Url_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -608,8 +604,8 @@
     <Compile Include="Areas\Admin\Models\History.cs" />
     <Compile Include="Areas\Admin\Models\Issue.cs" />
     <Compile Include="Areas\Admin\Models\IssueStatus.cs" />
-    <Compile Include="Areas\Admin\Models\ISupportRequest.cs" />
-    <Compile Include="Areas\Admin\Models\SupportRequest.cs" />
+    <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
+    <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\ViewModels\CreateViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\EditViewModel.cs" />
@@ -1252,6 +1248,7 @@
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\SupportRequestStyles.css" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -1463,10 +1460,10 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\d3.v3.js" />
     <Content Include="Scripts\d3.v3.min.js" />
-    <Content Include="Areas\Admin\Views\Request\Create.cshtml" />
-    <Content Include="Areas\Admin\Views\Request\Edit.cshtml" />
-    <Content Include="Areas\Admin\Views\Request\History.cshtml" />
-    <Content Include="Areas\Admin\Views\Request\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\Create.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\History.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />

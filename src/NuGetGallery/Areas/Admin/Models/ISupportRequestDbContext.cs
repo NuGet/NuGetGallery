@@ -6,7 +6,7 @@ using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery
 {
-    public interface ISupportRequest 
+    public interface ISupportRequestDbContext
     {
         DbSet<Admin> Admins { get; set; }
         DbSet<Issue> Issues { get; set; }
