@@ -130,8 +130,16 @@ namespace NuGet.Indexing
                     
                     if (!SpecialFrameworks.Contains(dependency.TargetFramework))
                     {
-                        builder.Append(":");
-                        builder.Append(dependency.TargetFramework?.GetShortFolderName());
+                        try
+                        {
+                            builder.Append(":");
+                            builder.Append(dependency.TargetFramework?.GetShortFolderName());
+                        }
+                        catch (FrameworkException)
+                        {
+                            // ignoring FrameworkException on purpose - we don't want the job crashing
+                            // whenever someone uploads an unsupported framework
+                        }
                     }
                 }
 
@@ -146,7 +154,20 @@ namespace NuGet.Indexing
                 var supportedFrameworks = _reader
                     .GetSupportedFrameworks()
                     .Except(SpecialFrameworks)
-                    .Select(f => f.GetShortFolderName())
+                    .Select(f =>
+                    {
+                        try
+                        {
+                            return f.GetShortFolderName();
+                        }
+                        catch (FrameworkException)
+                        {
+                            // ignoring FrameworkException on purpose - we don't want the job crashing
+                            // whenever someone uploads an unsupported framework
+                            return null;
+                        }
+                    })
+                    .Where(f => !String.IsNullOrEmpty(f))
                     .ToArray();
                 
                 if (supportedFrameworks.Any())
