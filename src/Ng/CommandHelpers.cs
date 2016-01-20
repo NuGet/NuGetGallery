@@ -444,7 +444,7 @@ namespace Ng
 
                 StorageCredentials credentials = new StorageCredentials(luceneStorageAccountName, luceneStorageKeyValue);
                 CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-                return new AzureDirectory(account, luceneStorageContainer, new RAMDirectory());
+                return new AzureDirectory(account, luceneStorageContainer);
             }
             else
             {
