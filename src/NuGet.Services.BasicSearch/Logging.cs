@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Configuration;
 using System.Reflection;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Messaging;
@@ -9,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Serilog.Sinks.Elasticsearch;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Services.BasicSearch
@@ -19,9 +22,40 @@ namespace NuGet.Services.BasicSearch
         {
             // setup Serilog
             var loggerConfiguration = new LoggerConfiguration()
-                .ReadFrom.AppSettings()
+                .MinimumLevel.Verbose()
                 .WriteTo.Trace()
                 .Enrich.WithMachineName();
+            
+            var nodeUriValues = ConfigurationManager.AppSettings["serilog:Elasticsearch.nodeUris"];
+            if (!string.IsNullOrEmpty(nodeUriValues))
+            {
+                var nodeUris = new List<Uri>();
+                foreach (var nodeUriValue in nodeUriValues.Split(';'))
+                {
+                    Uri nodeUri;
+                    if (Uri.TryCreate(nodeUriValue, UriKind.Absolute, out nodeUri)
+                        && !nodeUris.Contains(nodeUri))
+                    {
+                        nodeUris.Add(nodeUri);
+                    }
+                }
+
+                var elasticsearchOptions = new ElasticsearchSinkOptions(nodeUris);
+                elasticsearchOptions.AutoRegisterTemplate = true;
+                elasticsearchOptions.BufferBaseFilename = "./Logs/buffer";
+
+                // authentication settings
+                var username = ConfigurationManager.AppSettings["serilog:Elasticsearch.username"];
+                var password = ConfigurationManager.AppSettings["serilog:Elasticsearch.password"];
+
+                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                {
+                    elasticsearchOptions.ModifyConnectionSettings = config => config.SetBasicAuthentication(username, password);
+                }
+
+                loggerConfiguration = loggerConfiguration
+                    .WriteTo.Elasticsearch(elasticsearchOptions);
+            }
 
             Log.Logger = loggerConfiguration.CreateLogger();
 
