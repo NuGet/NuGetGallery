@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace NuGet.Indexing
@@ -90,6 +91,7 @@ namespace NuGet.Indexing
                 ";
 
                 SqlCommand command = new SqlCommand(cmdText, connection);
+                command.CommandTimeout = (int)TimeSpan.FromMinutes(15).TotalSeconds;
                 command.Parameters.AddWithValue("BeginKey", beginKey);
                 command.Parameters.AddWithValue("EndKey", endKey);
 
@@ -141,6 +143,7 @@ namespace NuGet.Indexing
                 ";
 
                 SqlCommand command = new SqlCommand(cmdText, connection);
+                command.CommandTimeout = (int)TimeSpan.FromMinutes(15).TotalSeconds;
 
                 SqlDataReader reader = command.ExecuteReader();
 
@@ -185,6 +188,7 @@ namespace NuGet.Indexing
                 string cmdText = @"SELECT Package_Key, TargetFramework FROM PackageFrameworks";
 
                 SqlCommand command = new SqlCommand(cmdText, connection);
+                command.CommandTimeout = (int)TimeSpan.FromMinutes(15).TotalSeconds;
 
                 SqlDataReader reader = command.ExecuteReader();
 
@@ -220,13 +224,13 @@ namespace NuGet.Indexing
 
             List<Tuple<int, int>> batches = CalculateBatches(sourceConnectionString);
 
-            log.WriteLine("calculated batches {0} seconds", stopwatch.Elapsed.TotalSeconds);
+            log.WriteLine("Calculated batches - {0} batches (took {1} seconds)", batches.Count, stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
 
             IDictionary<int, List<string>> packageFrameworks = LoadPackageFrameworks(sourceConnectionString);
 
-            log.WriteLine("load PackageFrameworks {0} seconds", stopwatch.Elapsed.TotalSeconds);
+            log.WriteLine("Load PackageFrameworks (took {0} seconds)", stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
 
@@ -237,9 +241,24 @@ namespace NuGet.Indexing
                 tasks.Add(Task.Run(() => { return IndexBatch(destinationPath + @"\batches", sourceConnectionString, packageFrameworks, batch.Item1, batch.Item2); }));
             }
 
-            Task.WaitAll(tasks.ToArray());
+            try
+            {
+                Task.WaitAll(tasks.ToArray());
+            }
+            catch (AggregateException ex)
+            {
+                var flattenedAggregateException = ex.Flatten();
 
-            log.WriteLine("partition indexes generated {0} seconds", stopwatch.Elapsed.TotalSeconds);
+                log.WriteLine("An AggregateException occurred while running batches.");
+                foreach (var innerException in flattenedAggregateException.InnerExceptions)
+                {
+                    log.WriteLine("Message: {0} - Stack trace: {1}", ex.Message, innerException.StackTrace);
+                }
+
+                throw;
+            }
+
+            log.WriteLine("Partition indexes generated (took {0} seconds)", stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
 
@@ -260,7 +279,7 @@ namespace NuGet.Indexing
                 }
             }
 
-            log.WriteLine("all done {0} seconds", stopwatch.Elapsed.TotalSeconds);
+            log.WriteLine("All done (took {0} seconds)", stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
         }
