@@ -23,7 +23,6 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Packaging;
 using PoliteCaptcha;
-using RestSharp;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using System.Web.Configuration;
@@ -520,27 +519,20 @@ namespace NuGetGallery
 
         private string GetPrimaryOnCall()
         {
+            var returnVal = string.Empty;
             var pagerDutyAPIKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyAPIKey"];
-            var client = new RestClient(); //("URL/create_event.json");
             var pagerDutyOnCallURL = WebConfigurationManager.AppSettings["Gallery.PagerDutyOnCallURL"];
-            client.BaseUrl = new Uri(pagerDutyOnCallURL);
 
-            var request = new RestRequest();
-            request.AddHeader("Content-Type", "application/json; charset=utf-8");
-            request.AddHeader("Authorization", "Token token=" + pagerDutyAPIKey);
+            var httpClient = new HttpClient(); //("URL/create_event.json");
+          
+            var _token = "Token token=" + pagerDutyAPIKey;
+            httpClient.DefaultRequestHeaders.Add("Authorization", _token);
 
-            var returnVal = String.Empty;
-            request.RequestFormat = DataFormat.Json;
-            request.Method = Method.GET;
-            var response = client.Execute(request) as RestResponse;
+            var response = httpClient.GetStringAsync(pagerDutyOnCallURL).Result;
 
-            if (response != null && ((response.StatusCode == HttpStatusCode.OK) &&
-
-                (response.ResponseStatus == ResponseStatus.Completed)))
+            if (!String.IsNullOrEmpty(response))
             {
-
-                var content = response.Content;
-                var root = JObject.Parse(content);
+                var root = JObject.Parse(response);
                 var users = (JArray)root["users"];
 
                 foreach (var item in users)
