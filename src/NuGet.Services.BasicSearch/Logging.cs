@@ -42,7 +42,6 @@ namespace NuGet.Services.BasicSearch
 
                 var elasticsearchOptions = new ElasticsearchSinkOptions(nodeUris);
                 elasticsearchOptions.AutoRegisterTemplate = true;
-                elasticsearchOptions.BufferBaseFilename = "./Logs/buffer";
 
                 // authentication settings
                 var username = ConfigurationManager.AppSettings["serilog:Elasticsearch.username"];
