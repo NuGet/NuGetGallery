@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
-using NuGet;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.AsyncFileUpload;
@@ -23,7 +22,6 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Packaging;
 using PoliteCaptcha;
-using System.Net;
 using Newtonsoft.Json.Linq;
 using System.Web.Configuration;
 using System.Net.Http;
@@ -488,9 +486,9 @@ namespace NuGetGallery
         {
             try
             {
-                var pagerDutyAPIKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyAPIKey"];
-                var pagerDutyServiceKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyServiceKey"];
-                var pagerDutyIncidentTriggerURL = WebConfigurationManager.AppSettings["Gallery.PagerDutyIncidentTriggerURL"];
+                var pagerDutyAPIKey = _config.PagerDutyAPIKey;
+                var pagerDutyServiceKey = _config.PagerDutyServiceKey;
+                var pagerDutyIncidentTriggerURL = _config.PagerDutyIncidentTriggerURL;
 
                 var httpClient = new HttpClient();
 
@@ -520,8 +518,8 @@ namespace NuGetGallery
         private string GetPrimaryOnCall()
         {
             var returnVal = string.Empty;
-            var pagerDutyAPIKey = WebConfigurationManager.AppSettings["Gallery.PagerDutyAPIKey"];
-            var pagerDutyOnCallURL = WebConfigurationManager.AppSettings["Gallery.PagerDutyOnCallURL"];
+            var pagerDutyAPIKey = _config.PagerDutyAPIKey;
+            var pagerDutyOnCallURL = _config.PagerDutyOnCallURL;
 
             var httpClient = new HttpClient(); //("URL/create_event.json");
           
