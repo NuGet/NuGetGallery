@@ -1,15 +1,25 @@
 namespace NuGetGallery.Areas.Admin.Models
 {
-    using System;
     using System.Data.Entity;
-    using System.ComponentModel.DataAnnotations.Schema;
-    using System.Linq;
-    using System.Collections.Generic;
 
-    public partial class SupportRequestDbContext :  DbContext, ISupportRequestDbContext
+    [DbConfigurationType(typeof(EntitiesConfiguration))]
+    public partial class SupportRequestDbContext 
+        : DbContext, ISupportRequestDbContext
     {
+        /// <summary>
+        /// The NuGet Gallery code should not use this constructor.
+        /// </summary>
         public SupportRequestDbContext()
-            : base("name=SupportRequest")
+            : base("name=Gallery.SupportRequestSqlServer")
+        {
+        }
+
+        /// <summary>
+        /// The NuGet Gallery code should usually use this constructor, 
+        /// so that we can configure the connection via the CLoud Service configuraton.
+        /// </summary>
+        public SupportRequestDbContext(string connectionString)
+            : base(connectionString)
         {
         }
 
