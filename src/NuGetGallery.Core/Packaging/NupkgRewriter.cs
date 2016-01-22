@@ -39,9 +39,9 @@ namespace NuGetGallery.Packaging
                 throw new ArgumentException(Strings.StreamMustBeSeekable, nameof(readWriteStream));
             }
 
-            using (var packageReader = new PackageReader(readWriteStream, leaveStreamOpen: true))
+            using (var packageArchiveReader = new PackageArchiveReader(readWriteStream, leaveStreamOpen: true))
             {
-                var nuspecReader = packageReader.GetNuspecReader();
+                var nuspecReader = packageArchiveReader.GetNuspecReader();
 
                 // Read <metadata> node from nuspec
                 var metadataNode = nuspecReader.Xml.Root.Elements()

@@ -28,7 +28,7 @@ namespace NuGetGallery.Packaging
                     });
 
             // Assert
-            using (var nupkg = new PackageReader(packageStream, leaveStreamOpen: false))
+            using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
             {
                 var nuspec = nupkg.GetNuspecReader();
 
@@ -60,7 +60,7 @@ namespace NuGetGallery.Packaging
             var manifestStreamLength1 = GetManifestStreamLength(packageStream);
             Assert.True(manifestStreamLength1 > manifestStreamLengthOriginal);
 
-            using (var nupkg = new PackageReader(packageStream, leaveStreamOpen: true))
+            using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: true))
             {
                 var nuspec = nupkg.GetNuspecReader();
 
@@ -82,7 +82,7 @@ namespace NuGetGallery.Packaging
             var manifestStreamLength2 = GetManifestStreamLength(packageStream);
             Assert.True(manifestStreamLength2 < manifestStreamLength1);
 
-            using (var nupkg = new PackageReader(packageStream, leaveStreamOpen: true))
+            using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: true))
             {
                 var nuspec = nupkg.GetNuspecReader();
 

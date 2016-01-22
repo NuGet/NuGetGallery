@@ -2,18 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Packaging;
-using NuGet.Packaging.Core;
 
 namespace NuGetGallery
 {
     /// <summary>
-    /// Utilities extending IPackageReaderCore
+    /// Utilities extending PackageArchiveReader
     /// </summary>
-    public static class PackageReaderCoreExtensions
+    public static class PackageArchiveReaderExtensions
     {
-        public static NuspecReader GetNuspecReader(this IPackageReaderCore packageReader)
+        public static NuspecReader GetNuspecReader(this PackageArchiveReader packageArchiveReader)
         {
-            return new NuspecReader(packageReader.GetNuspec());
+            return new NuspecReader(packageArchiveReader.GetNuspec());
         }
     }
 }

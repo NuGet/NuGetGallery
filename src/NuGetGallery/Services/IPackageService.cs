@@ -28,7 +28,7 @@ namespace NuGetGallery
         /// <param name="user">The owner of the package</param>
         /// <param name="commitChanges">Specifies whether to commit the changes to database.</param>
         /// <returns>The created package entity.</returns>
-        Package CreatePackage(PackageReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true);
+        Package CreatePackage(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true);
 
         void PublishPackage(string id, string version, bool commitChanges = true);
         void PublishPackage(Package package, bool commitChanges = true);
@@ -44,6 +44,6 @@ namespace NuGetGallery
 
         void SetLicenseReportVisibility(Package package, bool visible, bool commitChanges = true);
 
-        void EnsureValid(PackageReader packageReader);
+        void EnsureValid(PackageArchiveReader packageArchiveReader);
     }
 }

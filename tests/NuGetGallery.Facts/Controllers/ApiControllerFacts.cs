@@ -134,7 +134,7 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<PackageReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false));
+                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
@@ -150,7 +150,7 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut();
 
-                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), It.IsAny<PackageReader>(), false));
+                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
@@ -166,7 +166,7 @@ namespace NuGetGallery
 
                 controller.CreatePackagePost();
 
-                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), It.IsAny<PackageReader>(), false));
+                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
@@ -182,7 +182,7 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<PackageReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
+                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
         }

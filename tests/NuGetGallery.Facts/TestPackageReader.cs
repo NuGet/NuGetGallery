@@ -8,7 +8,7 @@ using NuGet.Packaging;
 namespace NuGetGallery
 {
     public class TestPackageReader
-        : PackageReader
+        : PackageArchiveReader
     {
         private readonly Stream _stream;
 

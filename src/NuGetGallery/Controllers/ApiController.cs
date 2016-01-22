@@ -292,7 +292,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
 
             using (var packageStream = ReadPackageFromRequest())
-            using (var packageToPush = new PackageReader(packageStream, leaveStreamOpen: false))
+            using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
             {
                 NuspecReader nuspec = null;
                 try

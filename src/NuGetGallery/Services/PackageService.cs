@@ -37,22 +37,22 @@ namespace NuGetGallery
             _packageNamingConflictValidator = packageNamingConflictValidator;
         }
 
-        public void EnsureValid(PackageReader packageReader)
+        public void EnsureValid(PackageArchiveReader packageArchiveReader)
         {
-            var packageMetadata = PackageMetadata.FromNuspecReader(packageReader.GetNuspecReader());
+            var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
 
             ValidateNuGetPackageMetadata(packageMetadata);
 
             ValidatePackageTitle(packageMetadata);
 
-            var supportedFrameworks = GetSupportedFrameworks(packageReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
+            var supportedFrameworks = GetSupportedFrameworks(packageArchiveReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
             if (!supportedFrameworks.AnySafe(sf => sf == null))
             {
                 ValidateSupportedFrameworks(supportedFrameworks);
             }
         }
 
-        public Package CreatePackage(PackageReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
+        public Package CreatePackage(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
         {
             var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
@@ -418,7 +418,7 @@ namespace NuGetGallery
             return packageRegistration;
         }
 
-        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, PackageReader nugetPackage, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user)
+        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, PackageArchiveReader nugetPackage, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user)
         {
             var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == packageMetadata.Version.ToString());
 
@@ -485,7 +485,7 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageReader package)
+        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package)
         {
             return package.GetSupportedFrameworks();
         }
