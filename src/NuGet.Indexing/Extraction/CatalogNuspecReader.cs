@@ -1,18 +1,28 @@
+using System;
+using System.IO;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 
 namespace NuGet.Indexing
 {
-    public class CatalogNuspecReader : NuspecReader
+    public class CatalogNuspecReader 
+        : NuspecReader, IDisposable
     {
         private readonly JObject _catalogItem;
 
-        public CatalogNuspecReader(JObject catalogItem) : base(CreateXDocument(catalogItem))
+        public MemoryStream NuspecStream { get; }
+
+        public CatalogNuspecReader(JObject catalogItem) 
+            : base(CreateXDocument(catalogItem))
         {
             _catalogItem = catalogItem;
-        }
 
+            NuspecStream = new MemoryStream();
+            CreateXDocument(catalogItem).Save(NuspecStream, SaveOptions.DisableFormatting);
+            NuspecStream.Position = 0;
+        }
+        
         private static XDocument CreateXDocument(JObject catalogItem)
         {
             var document = new XDocument();
@@ -55,6 +65,20 @@ namespace NuGet.Indexing
             document.Add(package);
 
             return document;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                NuspecStream?.Dispose();
+            }
         }
     }
 }

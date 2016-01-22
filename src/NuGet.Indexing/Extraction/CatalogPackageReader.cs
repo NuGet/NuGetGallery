@@ -2,19 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 
 namespace NuGet.Indexing
 {
-    public class CatalogPackageReader : PackageReaderBase
+    public class CatalogPackageReader 
+        : PackageReaderBase, IDisposable
     {
         private readonly JObject _catalogItem;
+        private readonly CatalogNuspecReader _catalogNuspecReader;
 
         public CatalogPackageReader(JObject catalogItem) : base(DefaultFrameworkNameProvider.Instance, DefaultCompatibilityProvider.Instance)
         {
             _catalogItem = catalogItem;
+            _catalogNuspecReader = new CatalogNuspecReader(_catalogItem);
         }
 
         public override Stream GetStream(string path)
@@ -22,8 +26,11 @@ namespace NuGet.Indexing
             throw new NotSupportedException();
         }
 
-        protected override NuspecReader Nuspec => new CatalogNuspecReader(_catalogItem);
-
+        public override Stream GetNuspec()
+        {
+            return _catalogNuspecReader.NuspecStream;
+        }
+        
         public override IEnumerable<string> GetFiles()
         {
             var array = _catalogItem.GetJArray("packageEntries");
@@ -38,9 +45,22 @@ namespace NuGet.Indexing
             }
         }
 
-        protected override IEnumerable<string> GetFiles(string folder)
+        public override IEnumerable<string> GetFiles(string folder)
         {
             return GetFiles().Where(f => f.StartsWith(folder + "/", StringComparison.OrdinalIgnoreCase));
+        }
+
+        public override IEnumerable<string> CopyFiles(string destination, IEnumerable<string> packageFiles, CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _catalogNuspecReader.Dispose();
+            }
         }
     }
 }
