@@ -8,10 +8,10 @@ namespace NuGetGallery
 {
     public interface ISupportRequestDbContext
     {
-        DbSet<Admin> Admins { get; set; }
-        DbSet<Issue> Issues { get; set; }
-        DbSet <History> Histories { get; set; }
-        DbSet<IssueStatus> IssueStatus { get; set; }
+        IDbSet<Admin> Admins { get; set; }
+        IDbSet<Issue> Issues { get; set; }
+        IDbSet <History> Histories { get; set; }
+        IDbSet<IssueStatus> IssueStatus { get; set; }
 
         void CommitChanges();
     }

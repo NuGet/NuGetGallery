@@ -15,7 +15,7 @@ namespace NuGetGallery
 {
     public class SupportRequestService : ISupportRequestService
     {
-        SupportRequestDbContext _supportRequestContext;
+        ISupportRequestDbContext _supportRequestContext;
 
         const int UnassignedAdmin = 0;
         const int PackageDeletedResolution = 5;
@@ -24,7 +24,7 @@ namespace NuGetGallery
         const string NewUser = "new";
 
         public SupportRequestService(
-           SupportRequestDbContext supportRequestContext)
+           ISupportRequestDbContext supportRequestContext)
         {
             _supportRequestContext = supportRequestContext;
         }
@@ -92,7 +92,7 @@ namespace NuGetGallery
         public void AddNewHistoryEntry(History newEntry)
         {
             _supportRequestContext.Histories.Add(newEntry);
-            _supportRequestContext.SaveChanges();
+            _supportRequestContext.CommitChanges();
         }
 
         public List<Issue> GetOpenIssues()
@@ -177,7 +177,7 @@ namespace NuGetGallery
         public void AddIssue(Issue newIssue, string loggedInUser)
         {
             _supportRequestContext.Issues.Add(newIssue);
-            _supportRequestContext.SaveChanges();
+            _supportRequestContext.CommitChanges();
 
             AddHistoryEntry(newIssue, loggedInUser);
         }
@@ -200,7 +200,7 @@ namespace NuGetGallery
                 newEntry.EditedBy = 0;
             }
             _supportRequestContext.Histories.Add(newEntry);
-            _supportRequestContext.SaveChanges();
+            _supportRequestContext.CommitChanges();
         }
 
         public List<IssueStatus> GetAllIssueStatuses()

@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using NuGetGallery;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
+using System.Globalization;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -19,6 +20,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         private const string DefaultReasonToCreate = "Other";
 
+        public SupportRequestController(ISupportRequestDbContext context)
+        {
+            _context = context;
+            SupportRequestService = new SupportRequestService(_context);
+        }
+
         public SupportRequestController(ISupportRequestService supportRequestService,
             ISupportRequestDbContext context)
         {
@@ -26,7 +33,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _context = context;
         }
 
-        public ActionResult Create()
+        public ViewResult Create()
         {
             var createView = new CreateViewModel();
 
@@ -110,7 +117,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             });
         }
        
-        public ActionResult index(int pageNumber = 0,
+        public ViewResult index(int pageNumber = 0,
             int statusId = 1,
             int? assignedToFilter = -1,
             int? issueStatusNameFilter = -1,
@@ -295,7 +302,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return loggedInUser;
         }
 
-        private string VerifyAndFixTralingSlash(string url)
+        private static string VerifyAndFixTralingSlash(string url)
         {
             var returnVal = url;
             if (!String.IsNullOrEmpty(url) && url.Substring(url.Length - 1, 1) != "/")
@@ -305,13 +312,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return returnVal;
         }
 
-        private List<SelectListItem> GetListOfIssueStatuses(List<IssueStatus> incoming, int? issueToSelect)
+        private static List<SelectListItem> GetListOfIssueStatuses(List<IssueStatus> incoming, int? issueToSelect)
         {
             var items = new List<SelectListItem>();
 
             foreach (var i in incoming)
             {
-                var s = new SelectListItem { Text = i.StatusName, Value = i.Key.ToString() };
+                var s = new SelectListItem { Text = i.StatusName, Value = i.Key.ToString(CultureInfo.InvariantCulture) };
                 items.Add(s);
                 if (issueToSelect.HasValue && i.Key == issueToSelect)
                 {
@@ -322,7 +329,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return items;
         }
 
-        private List<SelectListItem> GetListOfReasons(string reasonToSelect)
+        private static List<SelectListItem> GetListOfReasons(string reasonToSelect)
         {
             var reasons = new List<SelectListItem>();
             var reasonValues = System.Enum.GetValues(typeof(ReportPackageReason));
@@ -345,14 +352,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return reasons;
         }
 
-        private List<SelectListItem> GetListOfAdmins(List<NuGetGallery.Areas.Admin.Models.Admin> incoming, 
+        private static List<SelectListItem> GetListOfAdmins(List<NuGetGallery.Areas.Admin.Models.Admin> incoming, 
                                                         int? adminToSelect)
         {
             var admins = new List<SelectListItem>();
 
             foreach (var a in incoming)
             {
-                var currentItem = new SelectListItem { Text = a.UserName, Value = a.Key.ToString() };
+                var currentItem = new SelectListItem { Text = a.UserName, Value = a.Key.ToString(CultureInfo.InvariantCulture) };
                 if (adminToSelect.HasValue && a.Key == adminToSelect)
                 {
                     currentItem.Selected = true;

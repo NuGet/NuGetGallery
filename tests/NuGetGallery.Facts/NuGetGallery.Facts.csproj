@@ -335,6 +335,7 @@
     <Compile Include="Controllers\CuratedFeedsControllerFacts.cs" />
     <Compile Include="Controllers\CuratedPackagesControllerFacts.cs" />
     <Compile Include="Controllers\JsonApiControllerFacts.cs" />
+    <Compile Include="Controllers\SupportRequestControllerFacts.cs" />
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />

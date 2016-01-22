@@ -446,7 +446,7 @@ namespace NuGetGallery
 
                 var newIssue = new Areas.Admin.Models.Issue();
                 var primaryOnCall = GetPrimaryOnCall();
-                newIssue.AssignedTo = (primaryOnCall == String.Empty) ? 0 :
+                newIssue.AssignedTo = (String.IsNullOrEmpty(primaryOnCall)) ? 0 :
                     _supportRequestService.GetAdminKeyFromUserName(primaryOnCall);
 
                 newIssue.CreatedDate = DateTime.Now;
@@ -469,7 +469,8 @@ namespace NuGetGallery
             }
             catch (System.Data.SqlClient.SqlException)
             {
-                var errorMessage = String.Format("Exception thrown while logging a support request into DB for {0}, {1} at {2}",
+                var errorMessage = String.Format(CultureInfo.InvariantCulture, 
+                                                    "Exception thrown while logging a support request into DB for {0}, {1} at {2}",
                                                     package.PackageRegistration.Id,
                                                     package.Version,
                                                     DateTime.Now);
@@ -536,10 +537,10 @@ namespace NuGetGallery
                 foreach (var item in users)
                 {
                     var on_call = item["on_call"][0];
-                    if (Convert.ToInt32(on_call["level"]) == 1)
+                    if (Convert.ToInt32(on_call["level"], CultureInfo.InvariantCulture) == 1)
                     {
                         var email = item["email"].ToString();
-                        var length = email.IndexOf("@");
+                        var length = email.IndexOf("@", 0, StringComparison.OrdinalIgnoreCase);
                         returnVal = email.Substring(0, length);
                         break;
                     }
