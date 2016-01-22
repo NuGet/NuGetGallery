@@ -23,10 +23,10 @@ namespace NuGetGallery.Areas.Admin.Models
         {
         }
 
-        public virtual DbSet<Admin> Admins { get; set; }
-        public virtual DbSet<Issue> Issues { get; set; }
-        public virtual DbSet<IssueStatus> IssueStatus { get; set; }
-        public virtual DbSet<History> Histories { get; set; }
+        public virtual IDbSet<Admin> Admins { get; set; }
+        public virtual IDbSet<Issue> Issues { get; set; }
+        public virtual IDbSet<IssueStatus> IssueStatus { get; set; }
+        public virtual IDbSet<History> Histories { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
