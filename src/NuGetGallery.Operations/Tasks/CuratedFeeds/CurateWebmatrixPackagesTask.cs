@@ -49,7 +49,7 @@ namespace NuGetGallery.Operations.CuratedFeeds
                     var downloadPath = DownloadPackage(package);
 
                     bool shouldBeIncluded;
-                    using (var nugetPackage = new PackageReader(File.OpenRead(downloadPath)))
+                    using (var nugetPackage = new PackageArchiveReader(File.OpenRead(downloadPath)))
                     {
                         var nuspecReader = nugetPackage.GetNuspecReader();
                         var metadata = nuspecReader.GetMetadata()

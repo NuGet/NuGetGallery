@@ -108,7 +108,7 @@ namespace NuGetGallery.Operations
                         {
                             var downloadPath = DownloadPackage(package);
 
-                            using (var nugetPackage = new PackageReader(File.OpenRead(downloadPath)))
+                            using (var nugetPackage = new PackageArchiveReader(File.OpenRead(downloadPath)))
                             {
                                 var supportedFrameworks = GetSupportedFrameworks(nugetPackage);
                                 report.PackageFrameworks = supportedFrameworks.ToArray();
@@ -296,9 +296,9 @@ namespace NuGetGallery.Operations
             return report;
         }
 
-        private static IEnumerable<string> GetSupportedFrameworks(PackageReader packageReader)
+        private static IEnumerable<string> GetSupportedFrameworks(PackageArchiveReader packageArchiveReader)
         {
-            return packageReader
+            return packageArchiveReader
                 .GetSupportedFrameworks()
                 .Select(fn => fn.ToShortNameOrNull())
                 .ToArray();

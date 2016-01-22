@@ -7,6 +7,6 @@ namespace NuGetGallery
 {
     public interface IAutomaticPackageCurator
     {
-        void Curate(Package galleryPackage, PackageReader nugetPackage, bool commitChanges);
+        void Curate(Package galleryPackage, PackageArchiveReader nugetPackage, bool commitChanges);
     }
 }

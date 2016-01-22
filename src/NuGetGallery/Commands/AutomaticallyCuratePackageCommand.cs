@@ -11,7 +11,7 @@ namespace NuGetGallery
     {
         void Execute(
             Package galleryPackage,
-            PackageReader nugetPackage,
+            PackageArchiveReader nugetPackage,
             bool commitChanges);
     }
 
@@ -25,7 +25,7 @@ namespace NuGetGallery
             _curators = curators.ToList();
         }
 
-        public void Execute(Package galleryPackage, PackageReader nugetPackage, bool commitChanges)
+        public void Execute(Package galleryPackage, PackageArchiveReader nugetPackage, bool commitChanges)
         {
             foreach (var curator in _curators)
             {

@@ -25,10 +25,10 @@ namespace NuGetGallery.Commands
                 }, null);
                 
 
-                cmd.Execute(new Package(), new Mock<PackageReader>(TestPackage.CreateTestPackageStream("test", "1.0.0")).Object, commitChanges: true);
+                cmd.Execute(new Package(), new Mock<PackageArchiveReader>(TestPackage.CreateTestPackageStream("test", "1.0.0")).Object, commitChanges: true);
 
-                firstStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<PackageReader>(), true));
-                secondStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<PackageReader>(), true));
+                firstStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), true));
+                secondStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), true));
             }
         }
     }

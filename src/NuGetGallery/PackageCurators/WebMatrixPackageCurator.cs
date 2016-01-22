@@ -19,7 +19,7 @@ namespace NuGetGallery
 
         public override void Curate(
             Package galleryPackage,
-            PackageReader nugetPackage,
+            PackageArchiveReader nugetPackage,
             bool commitChanges)
         {
             var curatedFeed = CuratedFeedService.GetFeedByName("webmatrix", includePackages: true);
@@ -43,9 +43,9 @@ namespace NuGetGallery
         internal static bool ShouldCuratePackage(
             CuratedFeed curatedFeed, 
             Package galleryPackage,
-            PackageReader nugetPackage)
+            PackageArchiveReader packageArchiveReader)
         {
-            var nuspec = nugetPackage.GetNuspecReader();
+            var nuspec = packageArchiveReader.GetNuspecReader();
 
             return 
                 // Must have min client version of null or <= 2.2
@@ -62,7 +62,7 @@ namespace NuGetGallery
                     ContainsAspNetWebPagesTag(galleryPackage) ||
 
                     // OR: Must not contain powershell or T4
-                    DoesNotContainUnsupportedFiles(nugetPackage)
+                    DoesNotContainUnsupportedFiles(packageArchiveReader)
                 ) &&
 
                 // Dependencies on the gallery must be curated
@@ -86,7 +86,7 @@ namespace NuGetGallery
                 .Any();
         }
 
-        private static bool DoesNotContainUnsupportedFiles(PackageReader nugetPackage)
+        private static bool DoesNotContainUnsupportedFiles(PackageArchiveReader nugetPackage)
         {
             foreach (var filePath in nugetPackage.GetFiles())
             {

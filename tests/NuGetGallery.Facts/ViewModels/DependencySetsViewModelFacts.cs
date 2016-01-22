@@ -1,10 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -34,7 +31,7 @@ namespace NuGetGallery.ViewModels
                 var actual = vm.DependencySets["Portable Class Library (.NETFramework 4.0, Silverlight 4.0, Windows 8.0, WindowsPhone 7.1)"].ToArray();
                 Assert.Equal(1, actual.Length);
                 Assert.Equal("Microsoft.Net.Http", actual[0].Id);
-                Assert.Equal("(≥ 2.1.0 && < 3.0.0)", actual[0].VersionSpec);
+                Assert.Equal("(>= 2.1.0 && < 3.0.0)", actual[0].VersionSpec);
             }
         }
     }

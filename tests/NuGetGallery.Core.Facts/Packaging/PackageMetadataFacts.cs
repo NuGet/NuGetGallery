@@ -18,7 +18,7 @@ namespace NuGetGallery.Packaging
         public static void CanReadBasicMetadataProperties()
         {
             var packageStream = CreateTestPackageStream();
-            var nupkg = new PackageReader(packageStream, leaveStreamOpen: false);
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
             var nuspec = nupkg.GetNuspecReader();
 
             // Act

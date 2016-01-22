@@ -191,12 +191,12 @@ namespace NuGetGallery
 
             using (var uploadStream = uploadFile.InputStream)
             {
-                PackageReader packageReader;
+                PackageArchiveReader packageArchiveReader;
                 try
                 {
-                    packageReader = CreatePackage(uploadStream);
+                    packageArchiveReader = CreatePackage(uploadStream);
 
-                    _packageService.EnsureValid(packageReader);
+                    _packageService.EnsureValid(packageArchiveReader);
                 }
                 catch (InvalidPackageException ipex)
                 {
@@ -228,7 +228,7 @@ namespace NuGetGallery
                 }
 
                 NuspecReader nuspec;
-                var errors = ManifestValidator.Validate(packageReader.GetNuspec(), out nuspec).ToArray();
+                var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), out nuspec).ToArray();
                 if (errors.Length > 0)
                 {
                     foreach (var error in errors)
@@ -1084,13 +1084,13 @@ namespace NuGetGallery
             return RedirectToRoute(RouteName.DisplayPackage, new { package.PackageRegistration.Id, package.Version });
         }
 
-        private async Task<PackageReader> SafeCreatePackage(NuGetGallery.User currentUser, Stream uploadFile)
+        private async Task<PackageArchiveReader> SafeCreatePackage(NuGetGallery.User currentUser, Stream uploadFile)
         {
             Exception caught = null;
-            PackageReader packageReader = null;
+            PackageArchiveReader packageArchiveReader = null;
             try
             {
-                packageReader = CreatePackage(uploadFile);
+                packageArchiveReader = CreatePackage(uploadFile);
             }
             catch (InvalidPackageException ipex)
             {
@@ -1121,7 +1121,7 @@ namespace NuGetGallery
                 await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
             }
 
-            return packageReader;
+            return packageArchiveReader;
         }
 
         [Authorize]
@@ -1169,11 +1169,11 @@ namespace NuGetGallery
         }
 
         // this methods exist to make unit testing easier
-        protected internal virtual PackageReader CreatePackage(Stream stream)
+        protected internal virtual PackageArchiveReader CreatePackage(Stream stream)
         {
             try
             {
-                return new PackageReader(stream, leaveStreamOpen: true);
+                return new PackageArchiveReader(stream, leaveStreamOpen: true);
             }
             catch (Exception)
             {

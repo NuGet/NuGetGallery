@@ -18,7 +18,7 @@ namespace NuGetGallery
 
         public abstract void Curate(
             Package galleryPackage,
-            PackageReader nugetPackage,
+            PackageArchiveReader nugetPackage,
             bool commitChanges);
         
         protected static bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)

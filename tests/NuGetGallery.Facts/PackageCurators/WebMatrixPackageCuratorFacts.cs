@@ -126,7 +126,7 @@ namespace NuGetGallery.PackageCurators
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    new PackageReader(stubNuGetPackage));
+                    new PackageArchiveReader(stubNuGetPackage));
 
                 Assert.False(result);
             }
@@ -146,7 +146,7 @@ namespace NuGetGallery.PackageCurators
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    new PackageReader(stubNuGetPackage));
+                    new PackageArchiveReader(stubNuGetPackage));
 
                 Assert.False(result);
             }
@@ -206,7 +206,7 @@ namespace NuGetGallery.PackageCurators
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    new PackageReader(stubNuGetPackage));
+                    new PackageArchiveReader(stubNuGetPackage));
 
                 Assert.True(result);
             }
@@ -221,7 +221,7 @@ namespace NuGetGallery.PackageCurators
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
-                    new PackageReader(stubNuGetPackage));
+                    new PackageArchiveReader(stubNuGetPackage));
 
                 Assert.False(result);
             }

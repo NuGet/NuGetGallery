@@ -245,9 +245,9 @@ namespace NuGetGallery.PackageCurators
             };
         }
 
-        private static Mock<PackageReader> CreateStubNuGetPackageReader()
+        private static Mock<PackageArchiveReader> CreateStubNuGetPackageReader()
         {
-            return new Mock<PackageReader>(TestPackage.CreateTestPackageStream("TestPackage", "1.0.0"));
+            return new Mock<PackageArchiveReader>(TestPackage.CreateTestPackageStream("TestPackage", "1.0.0"));
         }
     }
 }
