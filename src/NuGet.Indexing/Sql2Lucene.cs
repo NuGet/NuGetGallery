@@ -84,7 +84,6 @@ namespace NuGet.Indexing
                         Packages.Listed                         'listed'
                     FROM Packages
                     INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
-                    WHERE Packages.Listed = 1
                       AND Packages.[Key] >= @BeginKey
                       AND Packages.[Key] < @EndKey
                     ORDER BY Packages.[Key]
@@ -138,7 +137,6 @@ namespace NuGet.Indexing
                     SELECT Packages.[Key]
                     FROM Packages
                     INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
-                    WHERE Packages.Listed = 1
                     ORDER BY Packages.[Key]
                 ";
 
