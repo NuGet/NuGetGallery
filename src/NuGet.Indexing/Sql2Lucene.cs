@@ -86,6 +86,7 @@ namespace NuGet.Indexing
                     INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
                       AND Packages.[Key] >= @BeginKey
                       AND Packages.[Key] < @EndKey
+                    WHERE Packages.Deleted = 0
                     ORDER BY Packages.[Key]
                 ";
 
@@ -137,6 +138,7 @@ namespace NuGet.Indexing
                     SELECT Packages.[Key]
                     FROM Packages
                     INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
+                    WHERE Packages.Deleted = 0
                     ORDER BY Packages.[Key]
                 ";
 
