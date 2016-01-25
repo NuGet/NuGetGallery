@@ -8,6 +8,7 @@ using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
@@ -119,7 +120,15 @@ namespace NuGet.Indexing
 
         protected override IndexReader Reopen(IndexSearcher searcher)
         {
-            return ((NuGetIndexSearcher)searcher).OriginalReader.Reopen();
+            _logger.LogInformation("NuGetSearcherManager.Reopen: refreshing original IndexReader.");
+
+            var stopwatch = Stopwatch.StartNew();
+            var indexReader = ((NuGetIndexSearcher)searcher).OriginalReader.Reopen();
+            stopwatch.Stop();
+
+            _logger.LogInformation("NuGetSearcherManager.Reopen: refreshed original IndexReader in {IndexReaderReopenDuration} seconds.", stopwatch.Elapsed.TotalSeconds);
+
+            return indexReader;
         }
 
         /// <summary>
@@ -240,7 +249,7 @@ namespace NuGet.Indexing
             searcher.Search(new MatchAllDocsQuery(), 1);
         }
 
-        static Uri MakeRegistrationBaseAddress(string scheme, string registrationBaseAddress)
+        private static Uri MakeRegistrationBaseAddress(string scheme, string registrationBaseAddress)
         {
             Uri original = new Uri(registrationBaseAddress);
             if (original.Scheme == scheme)
