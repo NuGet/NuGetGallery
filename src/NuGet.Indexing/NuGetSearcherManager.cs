@@ -245,8 +245,15 @@ namespace NuGet.Indexing
 
         protected override void Warm(NuGetIndexSearcher searcher)
         {
+            _logger.LogInformation("NuGetSearcherManager.Warm");
+            var stopwatch = Stopwatch.StartNew();
+
             // Warmup search
             searcher.Search(new MatchAllDocsQuery(), 1);
+
+            stopwatch.Stop();
+            _logger.LogInformation("NuGetSearcherManager.Warm completed in {IndexSearcherWarmDuration} seconds.",
+                stopwatch.Elapsed.TotalSeconds);
         }
 
         private static Uri MakeRegistrationBaseAddress(string scheme, string registrationBaseAddress)
