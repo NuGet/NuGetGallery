@@ -519,32 +519,40 @@ namespace NuGetGallery
         private string GetPrimaryOnCall()
         {
             var returnVal = string.Empty;
-            var pagerDutyAPIKey = _config.PagerDutyAPIKey;
-            var pagerDutyOnCallURL = _config.PagerDutyOnCallURL;
-
-            var httpClient = new HttpClient(); //("URL/create_event.json");
-          
-            var _token = "Token token=" + pagerDutyAPIKey;
-            httpClient.DefaultRequestHeaders.Add("Authorization", _token);
-
-            var response = httpClient.GetStringAsync(pagerDutyOnCallURL).Result;
-
-            if (!String.IsNullOrEmpty(response))
+            try
             {
-                var root = JObject.Parse(response);
-                var users = (JArray)root["users"];
+                var pagerDutyAPIKey = _config.PagerDutyAPIKey;
+                var pagerDutyOnCallURL = _config.PagerDutyOnCallURL;
 
-                foreach (var item in users)
+                var httpClient = new HttpClient(); //("URL/create_event.json");
+
+                var _token = "Token token=" + pagerDutyAPIKey;
+                httpClient.DefaultRequestHeaders.Add("Authorization", _token);
+
+                var response = httpClient.GetStringAsync(pagerDutyOnCallURL).Result;
+
+                if (!String.IsNullOrEmpty(response))
                 {
-                    var on_call = item["on_call"][0];
-                    if (Convert.ToInt32(on_call["level"], CultureInfo.InvariantCulture) == 1)
+                    var root = JObject.Parse(response);
+                    var users = (JArray)root["users"];
+
+                    foreach (var item in users)
                     {
-                        var email = item["email"].ToString();
-                        var length = email.IndexOf("@", 0, StringComparison.OrdinalIgnoreCase);
-                        returnVal = email.Substring(0, length);
-                        break;
+                        var on_call = item["on_call"][0];
+                        if (Convert.ToInt32(on_call["level"], CultureInfo.InvariantCulture) == 1)
+                        {
+                            var email = item["email"].ToString();
+                            var length = email.IndexOf("@", 0, StringComparison.OrdinalIgnoreCase);
+                            returnVal = email.Substring(0, length);
+                            break;
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+
+                QuietLog.LogHandledException(e);
             }
             return returnVal;
         }
