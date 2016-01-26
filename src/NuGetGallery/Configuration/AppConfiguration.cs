@@ -121,6 +121,7 @@ namespace NuGetGallery.Configuration
         /// </summary>
         [Required]
         [DisplayName("SupportRequestSqlServer")]
+        [DefaultValue("NuGetGallery")]
         public string SqlConnectionStringSupportRequest { get; set; }
 
         /// <summary>
