@@ -9,7 +9,6 @@ namespace NuGet.Indexing
     {
         public static void Stats(JsonWriter jsonWriter, NuGetSearcherManager searcherManager)
         {
-            searcherManager.MaybeReopen();
             var searcher = searcherManager.Get();
             try
             {
