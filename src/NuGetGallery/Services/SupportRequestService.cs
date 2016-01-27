@@ -3,19 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
-using NuGet.Frameworks;
-using NuGet.Packaging;
-using NuGet.Versioning;
-using NuGetGallery.Packaging;
 using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery
 {
-    public class SupportRequestService : ISupportRequestService
+    public class SupportRequestService 
+        : ISupportRequestService
     {
-        ISupportRequestDbContext _supportRequestContext;
+        private readonly ISupportRequestDbContext _supportRequestContext;
 
         const int UnassignedAdmin = 0;
         const int PackageDeletedResolution = 5;
@@ -47,7 +43,7 @@ namespace NuGetGallery
                        where a.Key == id
                        select (a.UserName);
 
-            if (name != null && name.Count() > 0)
+            if (name.Any())
             {
                 return name.First();
             }
@@ -63,7 +59,7 @@ namespace NuGetGallery
                      where userName.Equals(a.UserName, StringComparison.OrdinalIgnoreCase)
                      select (a.Key);
 
-            if (id != null && id.Count() > 0)
+            if (id.Any())
             {
                 return id.First();
             }
@@ -79,7 +75,7 @@ namespace NuGetGallery
                           where a.IssueKey == id
                           select a;
 
-            if (entries.Count() > 0)
+            if (entries.Any())
             {
                 return entries.ToList();
             }
@@ -133,12 +129,8 @@ namespace NuGetGallery
             var allIssues = from r in _supportRequestContext.Issues
                             where (r.AssignedTo == UnassignedAdmin)
                             select r;
-            var count = 0;
-            if (allIssues != null)
-            {
-                count = allIssues.Count();
-            }
-            return count;
+            
+            return allIssues.Count();
         }
 
         public Issue GetIssueById(int id)
@@ -146,7 +138,8 @@ namespace NuGetGallery
             var issue = from r in _supportRequestContext.Issues
                         where (r.Key == id)
                         select r;
-            if (issue.Count() > 0)
+
+            if (issue.Any())
             {
                 return issue.First();
             }
@@ -216,7 +209,7 @@ namespace NuGetGallery
                          where (r.Key == id)
                          select r;
 
-            if (status.Count() > 0)
+            if (status.Any())
             {
                 return status.First();
             }
@@ -251,7 +244,7 @@ namespace NuGetGallery
                      where (r.StatusName == issueStatusName)
                      select r.Key;
 
-            if (id.Count() > 0)
+            if (id.Any())
             {
                 return id.First();
             }

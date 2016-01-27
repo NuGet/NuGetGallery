@@ -1,7 +1,7 @@
+using System.Data.Entity;
+
 namespace NuGetGallery.Areas.Admin.Models
 {
-    using System.Data.Entity;
-
     [DbConfigurationType(typeof(EntitiesConfiguration))]
     public partial class SupportRequestDbContext 
         : DbContext, ISupportRequestDbContext
@@ -16,7 +16,7 @@ namespace NuGetGallery.Areas.Admin.Models
 
         /// <summary>
         /// The NuGet Gallery code should usually use this constructor, 
-        /// so that we can configure the connection via the CLoud Service configuraton.
+        /// so that we can configure the connection via the Cloud Service configuraton.
         /// </summary>
         public SupportRequestDbContext(string connectionString)
             : base(connectionString)
@@ -89,7 +89,7 @@ namespace NuGetGallery.Areas.Admin.Models
 
         public void CommitChanges()
         {
-            this.SaveChanges();
+            SaveChanges();
         }
     }
 }
