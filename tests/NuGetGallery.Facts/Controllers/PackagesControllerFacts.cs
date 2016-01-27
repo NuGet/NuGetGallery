@@ -771,7 +771,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void HtmlEncodesMessageContent()
+            public async void HtmlEncodesMessageContent()
             {
                 var user = new User { Username = "Sauron", Key = 1, EmailAddress = "sauron@mordor.example.com" };
                 var package = new Package
@@ -802,7 +802,7 @@ namespace NuGetGallery
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                controller.ReportMyPackage("mordor", "2.0.1", model);
+                await controller.ReportMyPackage("mordor", "2.0.1", model);
 
                 Assert.NotNull(reportRequest);
                 Assert.Equal(user.EmailAddress, reportRequest.FromAddress.Address);

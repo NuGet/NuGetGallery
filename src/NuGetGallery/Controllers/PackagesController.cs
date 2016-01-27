@@ -701,7 +701,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("contact support about your package")]
         [ValidateAntiForgeryToken]
         [ValidateSpamPrevention]
-        public virtual ActionResult ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
+        public virtual async Task<ActionResult> ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
         {
             // Html Encode the message
             reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
@@ -734,7 +734,7 @@ namespace NuGetGallery
             _messageService.ReportMyPackage(request);
 
             string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
-            AddNewSupportRequest(subject, request, package, user, reportForm);
+            await AddNewSupportRequest(subject, request, package, user, reportForm);
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));

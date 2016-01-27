@@ -1,19 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
-using System.Collections.Generic;
-using System.Web.Mvc;
-using Moq;
 using Xunit;
-using System.Net.Mail;
-using NuGetGallery.Framework;
-using NuGetGallery.Authentication;
-using Microsoft.Owin;
-using System.Threading.Tasks;
-using NuGetGallery.Authentication.Providers;
-using NuGetGallery.Configuration;
-using System.Security.Claims;
-using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
