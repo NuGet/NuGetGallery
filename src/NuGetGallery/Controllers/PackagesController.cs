@@ -719,17 +719,21 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             MailAddress from = user.ToMailAddress();
 
-            _messageService.ReportMyPackage(
-                new ReportPackageRequest
-                {
-                    FromAddress = from,
-                    Message = reportForm.Message,
-                    Package = package,
-                    Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
-                    RequestingUser = user,
-                    Url = Url,
-                    CopySender = reportForm.CopySender
-                });
+            var request = new ReportPackageRequest
+            {
+                FromAddress = from,
+                Message = reportForm.Message,
+                Package = package,
+                Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
+                RequestingUser = user,
+                Url = Url,
+                CopySender = reportForm.CopySender
+            };
+
+            _messageService.ReportMyPackage(request);
+
+            string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
+            AddNewSupportRequest(subject, request, package, user, reportForm);
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
