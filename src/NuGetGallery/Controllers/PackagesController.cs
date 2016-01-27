@@ -438,14 +438,14 @@ namespace NuGetGallery
             return View(viewModel);
         }
 
-        private void AddNewSupportRequest(string subject, ReportPackageRequest request, Package package, User user, ReportAbuseViewModel reportForm)
+        private async Task AddNewSupportRequest(string subject, ReportPackageRequest request, Package package, User user, ReportAbuseViewModel reportForm)
         {
             try
             {
                 subject = request.FillIn(subject, _config);
 
                 var newIssue = new Areas.Admin.Models.Issue();
-                var primaryOnCall = GetPrimaryOnCall();
+                var primaryOnCall = await GetPrimaryOnCall();
                 newIssue.AssignedTo = (String.IsNullOrEmpty(primaryOnCall)) ? 0 :
                     _supportRequestService.GetAdminKeyFromUserName(primaryOnCall);
 
@@ -474,7 +474,8 @@ namespace NuGetGallery
                                                     package.PackageRegistration.Id,
                                                     package.Version,
                                                     DateTime.Now);
-                TriggerAPagerDutyIncident(errorMessage);
+
+                await TriggerAPagerDutyIncident(errorMessage);
             }
             catch (Exception e) //In case getting data from PagerDuty has failed
             {
@@ -483,7 +484,7 @@ namespace NuGetGallery
             }
         }
 
-        private void TriggerAPagerDutyIncident(string errorMessage)
+        private async Task TriggerAPagerDutyIncident(string errorMessage)
         {
             try
             {
@@ -506,7 +507,7 @@ namespace NuGetGallery
                 var content = new StringContent(obj.ToString());
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-                var response = httpClient.PostAsync(pagerDutyIncidentTriggerURL, content).Result;
+                var response = await httpClient.PostAsync(pagerDutyIncidentTriggerURL, content);
                 response.EnsureSuccessStatusCode();
             }
             catch (Exception e)
@@ -516,7 +517,7 @@ namespace NuGetGallery
             }
         }
 
-        private string GetPrimaryOnCall()
+        private async Task<string> GetPrimaryOnCall()
         {
             var returnVal = string.Empty;
             try
@@ -529,7 +530,7 @@ namespace NuGetGallery
                 var _token = "Token token=" + pagerDutyAPIKey;
                 httpClient.DefaultRequestHeaders.Add("Authorization", _token);
 
-                var response = httpClient.GetStringAsync(pagerDutyOnCallURL).Result;
+                var response = await httpClient.GetStringAsync(pagerDutyOnCallURL);
 
                 if (!String.IsNullOrEmpty(response))
                 {
@@ -646,7 +647,7 @@ namespace NuGetGallery
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ValidateSpamPrevention]
-        public virtual ActionResult ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
+        public virtual async Task<ActionResult> ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
             // Html Encode the message
             reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
@@ -689,7 +690,7 @@ namespace NuGetGallery
             _messageService.ReportAbuse(request);
 
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
-            AddNewSupportRequest(subject, request, package, user, reportForm);
+            await AddNewSupportRequest(subject, request, package, user, reportForm);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
