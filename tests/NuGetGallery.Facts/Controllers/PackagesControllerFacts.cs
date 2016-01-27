@@ -603,7 +603,7 @@ namespace NuGetGallery
         public class TheReportAbuseMethod
         {
             [Fact]
-            public void SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
+            public async Task SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
@@ -629,7 +629,7 @@ namespace NuGetGallery
                     };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
+                var result = await controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
 
                 Assert.NotNull(result);
                 messageService.Verify(
@@ -643,7 +643,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
+            public async Task SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
@@ -669,7 +669,7 @@ namespace NuGetGallery
                     };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                ActionResult result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
+                ActionResult result = await controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
 
                 Assert.NotNull(result);
                 messageService.Verify(
@@ -705,7 +705,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void HtmlEncodesMessageContent()
+            public async Task HtmlEncodesMessageContent()
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
@@ -732,7 +732,7 @@ namespace NuGetGallery
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                controller.ReportAbuse("mordor", "2.0.1", model);
+                await controller.ReportAbuse("mordor", "2.0.1", model);
 
                 messageService.Verify(
                     s => s.ReportAbuse(
