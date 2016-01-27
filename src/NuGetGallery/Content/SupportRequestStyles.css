@@ -1,4 +1,7 @@
-﻿.badgeorange1 {
+﻿/* Copyright (c) .NET Foundation. All rights reserved.
+Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.*/
+
+.badgeorange1 {
     display: inline-block;
     min-width: 10px;
     padding: 3px 7px;
