@@ -15,12 +15,14 @@ namespace NuGetGallery.Areas.Admin.Models
         [Key]
         public int Key { get; set; }
 
+        [Required(ErrorMessage = "Please enter your username")]
         [StringLength(50)]
         public string CreatedBy { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime? CreatedDate { get; set; }
 
+        [Required(ErrorMessage = "Please enter an issue title")]
         [StringLength(1000)]
         public string IssueTitle { get; set; }
 
@@ -28,19 +30,25 @@ namespace NuGetGallery.Areas.Admin.Models
 
         public int? IssueStatus { get; set; }
 
+        [Required(ErrorMessage = "Please enter your the details of the issue")]
         public string Details { get; set; }
 
+        [Required(ErrorMessage = "Please enter your additional comments")]
         public string Comments { get; set; }
 
+        [Required(ErrorMessage = "Please enter the site root")]
         [DataType(DataType.Url)]
         public string SiteRoot { get; set; }
 
+        [Required(ErrorMessage = "Please enter the package Id")]
         [StringLength(300)]
         public string PackageID { get; set; }
 
+        [Required(ErrorMessage = "Please enter the package version")]
         [StringLength(300)]
         public string PackageVersion { get; set; }
 
+        [Required(ErrorMessage = "Please enter the owner email address")]
         [StringLength(100)]
         [DataType(DataType.EmailAddress)]
         public string OwnerEmail { get; set; }
