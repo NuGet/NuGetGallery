@@ -1,0 +1,17 @@
+﻿@Echo off
+
+:Top
+
+title [cursor]
+
+@echo starting
+
+start /w ng.exe lightning -command strike -indexFile [index] -cursorFile [cursor] -storageAccount [storage] -container [container] -baseAddress [baseaddress] -verbose true
+
+@echo finished
+
+If exist DONE[cursor] GOTO EOF
+
+Goto Top
+
+:EOF

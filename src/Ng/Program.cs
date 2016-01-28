@@ -16,7 +16,7 @@ namespace Ng
 
         private static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng [package2catalog|feed2catalog|catalog2registration|catalog2lucene|catalog2dnx|frameworkcompatibility|copylucene|checklucene|clearlucene|db2lucene]");
+            Console.WriteLine("Usage: ng [package2catalog|feed2catalog|catalog2registration|catalog2lucene|catalog2dnx|frameworkcompatibility|copylucene|checklucene|clearlucene|db2lucene|lightning]");
         }
 
         public static void Main(string[] args)
@@ -78,6 +78,9 @@ namespace Ng
                         break;
                     case "db2lucene":
                         Db2Lucene.Run(args, cancellationTokenSource.Token, loggerFactory);
+                        break;
+                    case "lightning":
+                        Lightning.Run(args, cancellationTokenSource.Token);
                         break;
                     default:
                         PrintUsage();
