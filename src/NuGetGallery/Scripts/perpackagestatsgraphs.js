@@ -168,7 +168,7 @@ var drawDownloadsByVersionBarChart = function () {
         .attr("x", (width - margin.right) / 2.0)
         .attr("y", -10)
         .attr("font-weight", "bold")
-        .text("Downloads by Package Version (Last 6 weeks)");
+        .text("Downloads for 15 Latest Package Versions (Last 6 weeks)");
 
     svg.append("g")
         .attr("class", "y axis")
