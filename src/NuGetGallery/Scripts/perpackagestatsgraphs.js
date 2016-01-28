@@ -90,6 +90,12 @@ var sortByVersion = function (a, b) {
     return (new SemVer(a.version)).compareTo(new SemVer(b.version));
 }
 
+var sortByTopDownloads = function (a, b) {
+    if (a.downloads > b.downloads) return -1;
+    if (a.downloads < b.downloads) return 1;
+    return 0;
+}
+
 var drawDownloadsByVersionBarChart = function () {
 
     //  scrape data
@@ -104,12 +110,13 @@ var drawDownloadsByVersionBarChart = function () {
         data[data.length] = item;
     });
 
-    data.sort(sortByVersion);
-
-    //  limit the bar graph to the most recent 15 versions
+    //  limit the bar graph to the top 15 downloaded packages
     if (data.length > 15) {
+        data.sort(sortByTopDownloads);
         data = data.slice(data.length - 15, data.length);
     }
+
+    data.sort(sortByVersion);
 
     //  draw graph
 
@@ -168,7 +175,7 @@ var drawDownloadsByVersionBarChart = function () {
         .attr("x", (width - margin.right) / 2.0)
         .attr("y", -10)
         .attr("font-weight", "bold")
-        .text("Downloads by Package Version (Last 6 weeks)");
+        .text("Top Downloads by Package Version (Last 6 weeks)");
 
     svg.append("g")
         .attr("class", "y axis")
