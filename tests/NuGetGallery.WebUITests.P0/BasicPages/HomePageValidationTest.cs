@@ -11,9 +11,9 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
     /// Sends http request to gallery home page checks for the default home page text in the reponse.
     /// priority : p0
     /// </summary>
-    public class HomePageValidationTest : WebTest
+    public class depHomePageValidationTest : WebTest
     {
-        public HomePageValidationTest()
+        public void HomePageValidationTest()
         {
             PreAuthenticate = true;
         }
