@@ -459,9 +459,8 @@ namespace NuGetGallery
 
                 string ownerEmail = (user != null) ? user.EmailAddress : reportForm.Email;
                 newIssue.OwnerEmail = ownerEmail;
-                if (user != null)
-
-                    newIssue.PackageID = package.PackageRegistration.Id;
+                newIssue.Comments = "New Issue Created";
+                newIssue.PackageID = package.PackageRegistration.Id;
                 newIssue.PackageVersion = package.Version;
                 newIssue.Reason = reportForm.Reason.ToString();
                 newIssue.SiteRoot = _config.SiteRoot;

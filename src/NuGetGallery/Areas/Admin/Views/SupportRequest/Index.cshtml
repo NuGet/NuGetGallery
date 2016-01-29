@@ -5,12 +5,12 @@
 <link href="~/Content/bootstrap.css" rel="stylesheet" />
 <link href="~/Content/SupportRequestStyles.css" rel="stylesheet" />
 
+<h1>
+    @ViewBag.Title
+</h1>
+
 @if (Model != null)
 {
-    <h1>
-        @ViewBag.Title
-    </h1>
-
     ViewBag.Temp = ViewBag.OpenCount + ViewBag.ResolvedCount;
     <div class="container body-content">
         <div class="row">
