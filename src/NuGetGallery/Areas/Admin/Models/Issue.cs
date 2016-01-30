@@ -15,7 +15,6 @@ namespace NuGetGallery.Areas.Admin.Models
         [Key]
         public int Key { get; set; }
 
-        [Required(ErrorMessage = "Please enter your username")]
         [StringLength(50)]
         public string CreatedBy { get; set; }
 
@@ -35,7 +34,6 @@ namespace NuGetGallery.Areas.Admin.Models
 
         public string Comments { get; set; }
 
-        [Required(ErrorMessage = "Please enter the site root")]
         [DataType(DataType.Url)]
         public string SiteRoot { get; set; }
 

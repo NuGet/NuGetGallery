@@ -35,6 +35,7 @@ namespace NuGetGallery
         IssueStatus GetIssueStatusById(int id);
         string GetIssueStatusNameById(int id);
         int GetIssueStatusIdByName(string issueStatusName);
-
+        List<Issue> GetIssuesAssignedToMe(string galleryUserName);
+        int GetCountOfMyIssues(string galleryUserName);
     }
 }

@@ -87,7 +87,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddAdmin(NuGetGallery.Areas.Admin.Models.Admin admin)
+        public ActionResult AddAdmin(Models.Admin admin)
         {
 
             if (ModelState.IsValid)
@@ -108,7 +108,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public ActionResult DeleteAdmin(NuGetGallery.Areas.Admin.Models.Admin admin)
+        public ActionResult DeleteAdmin(Models.Admin admin)
         {
 
             if (ModelState.IsValid)
@@ -431,6 +431,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             ViewBag.OpenCount = SupportRequestService.GetCountOfOpenIssues();
             ViewBag.ResolvedCount = SupportRequestService.GetCountOfResolvedIssues();
             ViewBag.UnAssignedCount = SupportRequestService.GetCountOfUnassignedIssues();
+            ViewBag.MyAssignedCount = SupportRequestService.GetCountOfMyIssues(GetLoggedInUser());
         }
 
         private List<Issue> GetIssues(int statusID)
@@ -450,6 +451,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 issues = SupportRequestService.GetUnassignedIssues();
                 ViewBag.Title = "Unassigned Support Requests";
+            }
+            else if (statusID == 5)
+            {
+                issues = SupportRequestService.GetIssuesAssignedToMe(GetLoggedInUser());
+                ViewBag.Title = "My Support Requests";
             }
             else
             {

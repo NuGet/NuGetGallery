@@ -21,14 +21,6 @@ Licensed under the Apache License, Version 2.0. See License.txt in the project r
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-        @*<div class="form-group">
-            @Html.LabelFor(model => model.Issue.CreatedBy, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Issue.CreatedBy, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Issue.CreatedBy, "", new { @class = "text-danger" })
-            </div>
-        </div>*@
-
         <div class="form-group">
             @Html.LabelFor(model => model.Issue.IssueTitle, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
@@ -37,13 +29,6 @@ Licensed under the Apache License, Version 2.0. See License.txt in the project r
             </div>
         </div>
 
-        @*<div class="form-group">
-            @Html.LabelFor(model => model.Issue.SiteRoot, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Issue.SiteRoot, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Issue.SiteRoot, "", new { @class = "text-danger" })
-            </div>
-        </div>*@
 
         <div class="form-group">
             @Html.LabelFor(model => model.Issue.PackageID, htmlAttributes: new { @class = "control-label col-md-2" })
@@ -98,14 +83,7 @@ Licensed under the Apache License, Version 2.0. See License.txt in the project r
             </div>
         </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Issue.Comments, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Issue.Comments, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Issue.Comments, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
+ 
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Create" class="btn btn-default" />

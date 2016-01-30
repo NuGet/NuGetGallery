@@ -65,7 +65,7 @@ namespace NuGetGallery
             }
             else
             {
-                return 0;
+                return -1;
             }
         }
 
@@ -81,7 +81,7 @@ namespace NuGetGallery
             }
             else
             {
-                return 0;
+                return -1;
             }
         }
 
@@ -147,6 +147,25 @@ namespace NuGetGallery
                             select r;
             
             return allIssues.Count();
+        }
+
+        public List<Issue> GetIssuesAssignedToMe(string galleryUserName)
+        {
+            var adminId = GetAdminKeyFromGalleryUserName(galleryUserName);
+            var myIssues = from r in _supportRequestContext.Issues
+                                      where (r.AssignedTo == adminId)
+                                      select r;
+            return myIssues.ToList();
+        }
+
+        public int GetCountOfMyIssues(string galleryUserName)
+        {
+            var adminId = GetAdminKeyFromGalleryUserName(galleryUserName);
+            var myIssues = from r in _supportRequestContext.Issues
+                           where (r.AssignedTo == adminId)
+                           select r;
+
+            return myIssues.Count();
         }
 
         public Issue GetIssueById(int id)
@@ -221,7 +240,8 @@ namespace NuGetGallery
             if (!string.IsNullOrEmpty(loggedInUser) &&
                 !string.Equals(loggedInUser, NewUser, StringComparison.OrdinalIgnoreCase))
             {
-                newEntry.EditedBy = GetAdminKeyFromGalleryUserName(loggedInUser);
+                newEntry.EditedBy = (GetAdminKeyFromGalleryUserName(loggedInUser) == -1) ? 0 :
+                                        GetAdminKeyFromGalleryUserName(loggedInUser);
             }
             else
             {

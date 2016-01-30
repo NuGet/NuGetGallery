@@ -5,15 +5,15 @@ Licensed under the Apache License, Version 2.0. See License.txt in the project r
 
 <link href="~/Content/bootstrap.css" rel="stylesheet" />
 
+
+<h2>Delete Admin from Support Request DB</h2>
+
+
 @{
-    ViewBag.Title = "Delete Admin from Support Request DB";
     <b>
-        ViewBag.Message
+        @ViewBag.Message
     </b>
 }
-
-<h2>Create</h2>
-
 
 @using (Html.BeginForm())
 {
@@ -27,7 +27,7 @@ Licensed under the Apache License, Version 2.0. See License.txt in the project r
                 @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "text-danger" })
             </div>
         </div>
-
+        <input type="hidden" name="GalleryUserName" value="default" />
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Delete" class="btn btn-default" />
