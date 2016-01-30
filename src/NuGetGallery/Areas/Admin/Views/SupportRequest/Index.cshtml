@@ -34,6 +34,16 @@
                         @Html.ActionLink("Create New", "Create")
                     </p>
                 </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Create">
+                    <p>
+                        @Html.ActionLink("Add SR Admin", "AddAdmin")
+                    </p>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Create">
+                    <p>
+                        @Html.ActionLink("Delete SR Admin", "Create")
+                    </p>
+                </div>
             </div>
             <div class="col-md-10 col-md-pull-2">
                 @using (Html.BeginForm("Filter", "SupportRequest", FormMethod.Post))
@@ -107,7 +117,7 @@
                                         <div class="col-md-offset-4">
                                             <span>@Html.DropDownListFor(m => item.AssignedTo, item.AssignedToChoices, "[Reassign]") </span>
                                             <span>@Html.DropDownListFor(m => item.IssueStatusName, item.IssueStatusNameChoices, "[Change Status]")</span>
-                                            <input type="submit" value="Save" class="btn-sm" id="@item.Issue.Key" />
+                                            <input type="submit" value="Save" class="btn" id="@item.Issue.Key" />
 
                                             <span class="btn btn-link">@Html.ActionLink("Add Comments", "Edit",
                                              new
@@ -144,7 +154,7 @@
     if (ViewBag.Page > 0)
     {
         <a href="@Url.Action("index", new { pageNumber = ViewBag.Page - 1 })"
-           class="btn-primary">
+           class="btn-primary col-md-5">
             &laquo; Prev
         </a>
     }
@@ -152,7 +162,7 @@
     if (ViewBag.Page < ViewBag.MaxPage - 1)
     {
         <a href="@Url.Action("index", new { pageNumber = ViewBag.Page + 1 })"
-           class="btn-primary">
+           class="btn-primary col-md-6">
             Next &raquo;
         </a>
     }

@@ -1335,6 +1335,7 @@
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
+    <Compile Include="Services\IMonitoringService.cs" />
     <Compile Include="Services\IStatusService.cs" />
     <Compile Include="Services\ISupportRequestService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
@@ -1358,6 +1359,7 @@
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\LocalFileReference.cs" />
+    <Compile Include="Services\PageryDutyService.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\NullReportService.cs" />
     <Compile Include="Services\NullStatisticsService.cs" />
@@ -1472,6 +1474,8 @@
     <Content Include="Content\bootstrap.css.map" />
     <Content Include="Content\bootstrap-theme.min.css.map" />
     <Content Include="Content\bootstrap-theme.css.map" />
+    <Content Include="Areas\Admin\Views\SupportRequest\AddAdmin.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\DeleteAdmin.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
@@ -1783,7 +1787,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>https://nuget.localtest.me</IISUrl>
+          <IISUrl>http://nuget.localtest.me</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

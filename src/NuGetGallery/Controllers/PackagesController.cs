@@ -22,10 +22,6 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Packaging;
 using PoliteCaptcha;
-using Newtonsoft.Json.Linq;
-using System.Web.Configuration;
-using System.Net.Http;
-using System.Net.Http.Headers;
 
 namespace NuGetGallery
 {
@@ -49,6 +45,7 @@ namespace NuGetGallery
         private readonly EditPackageService _editPackageService;
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly IMonitoringService _monitoringService;
 
         public PackagesController(
             IPackageService packageService,
@@ -91,7 +88,8 @@ namespace NuGetGallery
             ICacheService cacheService,
             EditPackageService editPackageService,
             IPackageDeleteService packageDeleteService,
-            SupportRequestService supportRequestService)
+            SupportRequestService supportRequestService,
+            PagerDutyService monitoringService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -106,6 +104,7 @@ namespace NuGetGallery
             _editPackageService = editPackageService;
             _packageDeleteService = packageDeleteService;
             _supportRequestService = supportRequestService;
+            _monitoringService = monitoringService;
         }
 
         [Authorize]
@@ -445,7 +444,8 @@ namespace NuGetGallery
                 subject = request.FillIn(subject, _config);
 
                 var newIssue = new Areas.Admin.Models.Issue();
-                var primaryOnCall = await GetPrimaryOnCall();
+                var primaryOnCall = await _monitoringService.GetPrimaryOnCall(_config);
+                
                 newIssue.AssignedTo = (String.IsNullOrEmpty(primaryOnCall)) ? 0 :
                     _supportRequestService.GetAdminKeyFromUserName(primaryOnCall);
 
@@ -474,7 +474,7 @@ namespace NuGetGallery
                                                     package.Version,
                                                     DateTime.Now);
 
-                await TriggerAPagerDutyIncident(errorMessage);
+                await _monitoringService.TriggerAPagerDutyIncident(_config, errorMessage);
             }
             catch (Exception e) //In case getting data from PagerDuty has failed
             {
@@ -482,81 +482,7 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(e);
             }
         }
-
-        private async Task TriggerAPagerDutyIncident(string errorMessage)
-        {
-            try
-            {
-                var pagerDutyAPIKey = _config.PagerDutyAPIKey;
-                var pagerDutyServiceKey = _config.PagerDutyServiceKey;
-                var pagerDutyIncidentTriggerURL = _config.PagerDutyIncidentTriggerURL;
-
-                var httpClient = new HttpClient();
-
-                var _token = "Token token=" + pagerDutyAPIKey;
-                httpClient.DefaultRequestHeaders.Add("Authorization", _token);
-
-                var obj = new JObject
-                {
-                    { "service_key", pagerDutyServiceKey },
-                    { "event_type", "trigger" },
-                    { "description", errorMessage }
-                };
-
-                var content = new StringContent(obj.ToString());
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-                var response = await httpClient.PostAsync(pagerDutyIncidentTriggerURL, content);
-                response.EnsureSuccessStatusCode();
-            }
-            catch (Exception e)
-            {
-                QuietLog.LogHandledException(e);
-         
-            }
-        }
-
-        private async Task<string> GetPrimaryOnCall()
-        {
-            var returnVal = string.Empty;
-            try
-            {
-                var pagerDutyAPIKey = _config.PagerDutyAPIKey;
-                var pagerDutyOnCallURL = _config.PagerDutyOnCallURL;
-
-                var httpClient = new HttpClient(); //("URL/create_event.json");
-
-                var _token = "Token token=" + pagerDutyAPIKey;
-                httpClient.DefaultRequestHeaders.Add("Authorization", _token);
-
-                var response = await httpClient.GetStringAsync(pagerDutyOnCallURL);
-
-                if (!String.IsNullOrEmpty(response))
-                {
-                    var root = JObject.Parse(response);
-                    var users = (JArray)root["users"];
-
-                    foreach (var item in users)
-                    {
-                        var on_call = item["on_call"][0];
-                        if (Convert.ToInt32(on_call["level"], CultureInfo.InvariantCulture) == 1)
-                        {
-                            var email = item["email"].ToString();
-                            var length = email.IndexOf("@", 0, StringComparison.OrdinalIgnoreCase);
-                            returnVal = email.Substring(0, length);
-                            break;
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-
-                QuietLog.LogHandledException(e);
-            }
-            return returnVal;
-        }
-
+ 
         // NOTE: Intentionally NOT requiring authentication
         private static readonly ReportPackageReason[] ReportOtherPackageReasons = new[] {
             ReportPackageReason.IsFraudulent,

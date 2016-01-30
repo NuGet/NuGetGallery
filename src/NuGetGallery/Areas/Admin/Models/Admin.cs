@@ -14,7 +14,14 @@ namespace NuGetGallery.Areas.Admin.Models
         [Key]
         public int Key { get; set; }
 
+        [Required(ErrorMessage ="Please enter the Pagerduty User Name aka Microsoft alias")]
         [StringLength(255)]
+        [Display(Name = "Pager Duty UserName")]
         public string UserName { get; set; }
+
+        [Required(ErrorMessage = "Please enter the NuGet Gallery User Name")]
+        [Display(Name = "NuGet Gallery UserName")]
+        [StringLength(255)]
+        public string GalleryUserName { get; set; }
     }
 }

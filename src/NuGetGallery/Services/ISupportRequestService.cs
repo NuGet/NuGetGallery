@@ -13,9 +13,10 @@ namespace NuGetGallery
     public interface ISupportRequestService
     {
         List<Admin> GetAllAdmins();
-        List<String> GetAllAdminUserNames();
-        string GetUserNameById(int id);
+        List<String> GetAllAdminGalleryUserNames();
+        string GetGalleryUserNameById(int id);
         int GetAdminKeyFromUserName(string userName);
+        int GetAdminKeyFromGalleryUserName(string userName);
         List<History> GetHistoryEntriesByIssueKey(int id);
         void AddNewHistoryEntry(History newEntry);
         List<Issue> GetOpenIssues();
@@ -28,6 +29,8 @@ namespace NuGetGallery
         Issue GetIssueById(int id);
         void AddIssue(Issue newIssue, string loggedInUser);
         void AddHistoryEntry(Issue newIssue, string loggedInUser);
+        void AddAdmin(Admin admin);
+        bool DeleteAdmin(string userName);
         List<IssueStatus> GetAllIssueStatuses();
         IssueStatus GetIssueStatusById(int id);
         string GetIssueStatusNameById(int id);

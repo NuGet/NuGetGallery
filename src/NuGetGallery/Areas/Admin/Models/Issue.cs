@@ -33,7 +33,6 @@ namespace NuGetGallery.Areas.Admin.Models
         [Required(ErrorMessage = "Please enter your the details of the issue")]
         public string Details { get; set; }
 
-        [Required(ErrorMessage = "Please enter your additional comments")]
         public string Comments { get; set; }
 
         [Required(ErrorMessage = "Please enter the site root")]
