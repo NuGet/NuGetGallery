@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using Xunit;
+using NuGetGallery.Configuration;
 using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using System.Data.Entity;
+using Moq;
 
 namespace NuGetGallery
 {
@@ -114,13 +116,15 @@ namespace NuGetGallery
             //Arrange
             var context = CreateBasicTestContext();
             var newIssue = CreateBasicTestIssue();
+            Mock<IAppConfiguration> StubConfiguration = new Mock<IAppConfiguration>();
+
 
             var createViewModel = new CreateViewModel
             {
                 Issue = newIssue
             };
 
-            var controller = new SupportRequestController(context);
+            var controller = new SupportRequestController(context, StubConfiguration.Object);
             var prevIssueCount = context.GetIssueCount();
             var prevHistoryCount = context.GetHistoryCount();
 

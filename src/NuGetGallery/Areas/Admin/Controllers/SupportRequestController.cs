@@ -25,20 +25,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private const string DefaultReasonToCreate = "Other";
 
         public SupportRequestController(ISupportRequestDbContext context)
+            : this(context, null)
         {
-            _context = context;
-            SupportRequestService = new SupportRequestService(_context);
         }
 
         public SupportRequestController(ISupportRequestDbContext context, IAppConfiguration config)
+            :this(context, config, new SupportRequestService(context))
         {
-            _context = context;
-            _config = config;
-            SupportRequestService = new SupportRequestService(_context);
+           
         }
 
-        public SupportRequestController(ISupportRequestService supportRequestService,
-            ISupportRequestDbContext context, IAppConfiguration config)
+        public SupportRequestController(ISupportRequestDbContext context, 
+            IAppConfiguration config, 
+            ISupportRequestService supportRequestService)
         {
             SupportRequestService = supportRequestService;
             _context = context;
@@ -72,7 +71,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 newIssue.IssueStatus = newIssue.IssueStatus ?? 1;
                 newIssue.Comments = String.IsNullOrEmpty(newIssue.Comments) ? string.Empty : newIssue.Comments;
                 newIssue.Reason = String.IsNullOrEmpty(newIssue.Reason) ? DefaultReasonToCreate : newIssue.Reason;
-                newIssue.SiteRoot = _config.SiteRoot;
+                newIssue.SiteRoot = String.IsNullOrEmpty(_config.SiteRoot) ? string.Empty : _config.SiteRoot;
                 SupportRequestService.AddIssue(newIssue, GetLoggedInUser());
                 return RedirectToAction("index");
             }
