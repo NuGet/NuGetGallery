@@ -222,9 +222,13 @@ namespace NuGetGallery
             {
                 var id = GetAdminKeyFromUserName(userName.Trim());
                 var admin = _supportRequestContext.Admins.Find(id);
-                _supportRequestContext.Admins.Remove(admin);
-                _supportRequestContext.CommitChanges();
-                return true;
+
+                if (admin != null)
+                {
+                    _supportRequestContext.Admins.Remove(admin);
+                    _supportRequestContext.CommitChanges();
+                    return true;
+                }
             }
             return false;
         }
