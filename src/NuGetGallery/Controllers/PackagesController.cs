@@ -448,10 +448,18 @@ namespace NuGetGallery
 
                 var newIssue = new Areas.Admin.Models.Issue();
                 var primaryOnCall = await _monitoringService.GetPrimaryOnCall(_config);
-                
-                newIssue.AssignedTo = (String.IsNullOrEmpty(primaryOnCall)) ? _supportRequestService.GetAdminKeyFromUserName(UnassingedAdmin) :
-                    _supportRequestService.GetAdminKeyFromUserName(primaryOnCall);
 
+                //if primary on call is not yet configured in the Support Request DB yet, assign to unassigned
+                if (String.IsNullOrEmpty(primaryOnCall) 
+                    || _supportRequestService.GetAdminKeyFromUserName(primaryOnCall) == -1)
+                {
+                    newIssue.AssignedTo = _supportRequestService.GetAdminKeyFromUserName(UnassingedAdmin);
+                }
+                else
+                {
+                    newIssue.AssignedTo = _supportRequestService.GetAdminKeyFromUserName(primaryOnCall);
+                }
+                
                 newIssue.CreatedDate = DateTime.Now;
                 newIssue.Details = reportForm.Message;
                 newIssue.IssueStatus = _supportRequestService.GetIssueStatusIdByName(NewIssueStatus);

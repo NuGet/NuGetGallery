@@ -15,6 +15,7 @@ namespace NuGetGallery
     {
         public PagerDutyService()
         {
+            QuietLog.LogHandledException(new Exception("To debug the dev deployment. Will be removed"));
         }
 
         public async Task<string> GetPrimaryOnCall(IAppConfiguration _config)
@@ -45,7 +46,11 @@ namespace NuGetGallery
                             var email = item["email"].ToString();
                             var length = email.IndexOf("@", 0, StringComparison.OrdinalIgnoreCase);
                             returnVal = email.Substring(0, length);
-                            break;
+                            //Find the primary that is not nugetcore
+                            if (!returnVal.Equals("nugetcore", StringComparison.OrdinalIgnoreCase))
+                            {
+                                break;
+                            }
                         }
                     }
                 }
