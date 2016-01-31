@@ -15,7 +15,7 @@ namespace NuGetGallery
     {
         public PagerDutyService()
         {
-            QuietLog.LogHandledException(new Exception("To debug the dev deployment. Will be removed"));
+            QuietLog.LogHandledException(new ArgumentException("To debug the dev deployment. Will be removed"));
         }
 
         public async Task<string> GetPrimaryOnCall(IAppConfiguration _config)
