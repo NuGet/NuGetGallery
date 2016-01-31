@@ -63,7 +63,7 @@
                                     <span>@Html.DropDownListFor(m => Model.Filter.IssueStatusName, Model.Filter.IssueStatusNameChoices, "[Issue Status]")</span>
                                     <span>@Html.DropDownListFor(m => Model.Filter.Reason, Model.Filter.ReasonChoices, "[Reason]")</span>
 
-                                    <input type="hidden" name="Filter.StatusId" value=@Model.Filter.StatusID />
+                                    <input type="hidden" name="Filter.StatusId" value="3" />
                                     <input type="hidden" name="Filter.PageNumber" value="0" />
                                     <input type="submit" value="Filter" class="btn-default" />
                                 </div>

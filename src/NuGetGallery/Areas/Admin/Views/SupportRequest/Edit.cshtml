@@ -80,11 +80,23 @@
     </div>
 
     }
-}
 
+    @Html.ActionLink("Back to List", "Index",
+    new
+    {
+        statusId = Model.CurrentStatusId,
+        pageNumber = Model.CurrentPageNumber,
+        assignedToFilter = Model.CurrentAssignedToFilter,
+        issueStatusNameFilter = Model.CurrentIssueStatusNameFilter,
+        reasonFilter = Model.CurrentReasonFilter
+    })
+}
+else
+{
 <div>
     @Html.ActionLink("Back to List", "Index")
 </div>
+}
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")

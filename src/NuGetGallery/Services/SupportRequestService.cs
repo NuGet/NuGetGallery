@@ -13,7 +13,7 @@ namespace NuGetGallery
     {
         private readonly ISupportRequestDbContext _supportRequestContext;
 
-        const int UnassignedAdmin = 0;
+        const string UnassignedAdmin = "unassigned";
         const int PackageDeletedResolution = 5;
         const int WorkAroundProvidedResolution = 6;
         const int NewIssueStatus = 1;
@@ -134,16 +134,18 @@ namespace NuGetGallery
 
         public List<Issue> GetUnassignedIssues()
         {
+            var id = GetAdminKeyFromUserName(UnassignedAdmin);
             var allUnassignedIssues = from r in _supportRequestContext.Issues
-                                      where (r.AssignedTo == UnassignedAdmin)
+                                      where (r.AssignedTo == id)
                                       select r;
             return allUnassignedIssues.ToList();
         }
 
         public int GetCountOfUnassignedIssues()
         {
+            var id = GetAdminKeyFromUserName(UnassignedAdmin);
             var allIssues = from r in _supportRequestContext.Issues
-                            where (r.AssignedTo == UnassignedAdmin)
+                            where (r.AssignedTo == id)
                             select r;
             
             return allIssues.Count();
@@ -237,7 +239,7 @@ namespace NuGetGallery
         {
             var newEntry = new History();
             newEntry.EntryDate = DateTime.UtcNow;
-            newEntry.AssignedTo = GetGalleryUserNameById(newIssue.AssignedTo ?? UnassignedAdmin);
+            newEntry.AssignedTo = GetGalleryUserNameById(newIssue.AssignedTo ?? GetAdminKeyFromUserName(UnassignedAdmin));
             newEntry.IssueStatus = GetIssueStatusNameById(newIssue.IssueStatus ?? NewIssueStatus);
             newEntry.IssueKey = newIssue.Key;
             newEntry.Comments = newIssue.Comments;

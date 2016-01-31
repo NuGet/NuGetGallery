@@ -439,6 +439,9 @@ namespace NuGetGallery
 
         private async Task AddNewSupportRequest(string subject, ReportPackageRequest request, Package package, User user, ReportAbuseViewModel reportForm)
         {
+            const string UnassingedAdmin = "unassigned";
+            const string NewIssueStatus = "New";
+
             try
             {
                 subject = request.FillIn(subject, _config);
@@ -446,12 +449,12 @@ namespace NuGetGallery
                 var newIssue = new Areas.Admin.Models.Issue();
                 var primaryOnCall = await _monitoringService.GetPrimaryOnCall(_config);
                 
-                newIssue.AssignedTo = (String.IsNullOrEmpty(primaryOnCall)) ? 0 :
+                newIssue.AssignedTo = (String.IsNullOrEmpty(primaryOnCall)) ? _supportRequestService.GetAdminKeyFromUserName(UnassingedAdmin) :
                     _supportRequestService.GetAdminKeyFromUserName(primaryOnCall);
 
                 newIssue.CreatedDate = DateTime.Now;
                 newIssue.Details = reportForm.Message;
-                newIssue.IssueStatus = 1;
+                newIssue.IssueStatus = _supportRequestService.GetIssueStatusIdByName(NewIssueStatus);
                 newIssue.IssueTitle = subject;
 
                 string loggedInUser = (user != null) ? user.Username : "Anonymous";

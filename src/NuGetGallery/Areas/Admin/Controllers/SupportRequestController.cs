@@ -23,7 +23,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private const int DefaultIssueStatusToSelect = -1;
 
         private const string DefaultReasonToCreate = "Other";
-
+        private const string UnAssignedAdminAccount = "unassigned";
+        private const string NewIssueStatusName = "New";
+       
         public SupportRequestController(ISupportRequestDbContext context)
             : this(context, null)
         {
@@ -67,8 +69,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 newIssue.CreatedBy = GetLoggedInUser();
                 newIssue.CreatedDate = DateTime.UtcNow;
-                newIssue.AssignedTo = newIssue.AssignedTo ?? 0;
-                newIssue.IssueStatus = newIssue.IssueStatus ?? 1;
+                newIssue.AssignedTo = newIssue.AssignedTo ?? SupportRequestService.GetAdminKeyFromUserName(UnAssignedAdminAccount);
+                newIssue.IssueStatus = newIssue.IssueStatus ?? SupportRequestService.GetIssueStatusIdByName(NewIssueStatusName);
                 newIssue.Comments = String.IsNullOrEmpty(newIssue.Comments) ? string.Empty : newIssue.Comments;
                 newIssue.Reason = String.IsNullOrEmpty(newIssue.Reason) ? DefaultReasonToCreate : newIssue.Reason;
                 newIssue.SiteRoot = String.IsNullOrEmpty(_config.SiteRoot) ? string.Empty : _config.SiteRoot;
@@ -168,7 +170,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 assignedToFilter = filterResultsView.AssignedTo,
                 issueStatusNameFilter = filterResultsView.IssueStatusName,
                 reasonFilter = filterResultsView.Reason,
-                statusId = filterResultsView.StatusID,
+                statusId = 6,
                 pageNumber = filterResultsView.PageNumber
             });
         }
@@ -261,8 +263,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             editView.Issue = currentRequest;
-            editView.AssignedToLabel = SupportRequestService.GetGalleryUserNameById(currentRequest.AssignedTo ?? 0);
-            editView.IssueStatusNameLabel = SupportRequestService.GetIssueStatusNameById(currentRequest.IssueStatus ?? 1);
+            editView.AssignedToLabel = SupportRequestService.GetGalleryUserNameById(currentRequest.AssignedTo ?? 
+                                        SupportRequestService.GetAdminKeyFromUserName(UnAssignedAdminAccount));
+            editView.IssueStatusNameLabel = SupportRequestService.GetIssueStatusNameById(currentRequest.IssueStatus ?? 
+                                                SupportRequestService.GetIssueStatusIdByName(NewIssueStatusName));
             editView.CurrentAssignedToFilter = assignedToFilter;
             editView.CurrentIssueStatusNameFilter = issueStatusNameFilter;
             editView.CurrentPageNumber = pageNumber;
@@ -457,6 +461,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 issues = SupportRequestService.GetIssuesAssignedToMe(GetLoggedInUser());
                 ViewBag.Title = "My Support Requests";
             }
+            else if (statusID == 6)
+            {
+                issues = SupportRequestService.GetAllIssues();
+                ViewBag.Title = "Filtered Support Requests";
+            }
             else
             {
                 issues = SupportRequestService.GetOpenIssues();
@@ -482,8 +491,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 var rv = new IssueViewModel();
                 rv.Issue = i;
-                rv.AssignedToLabel = SupportRequestService.GetGalleryUserNameById(i.AssignedTo ?? 0);
-                rv.IssueStatusNameLabel = SupportRequestService.GetIssueStatusNameById(i.IssueStatus ?? 1);
+                rv.AssignedToLabel = SupportRequestService.GetGalleryUserNameById(i.AssignedTo ?? 
+                                        SupportRequestService.GetAdminKeyFromUserName(UnAssignedAdminAccount));
+                rv.IssueStatusNameLabel = SupportRequestService.GetIssueStatusNameById(i.IssueStatus ?? 
+                                            SupportRequestService.GetIssueStatusIdByName(NewIssueStatusName));
                 rv.AssignedToChoices = adminsList;
                 rv.IssueStatusNameChoices = issueStatusesList;
                 rv.Issue.SiteRoot = VerifyAndFixTralingSlash(rv.Issue.SiteRoot);
