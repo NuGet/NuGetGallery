@@ -13,7 +13,7 @@ namespace NuGetGallery
 {
     public class PagerDutyService : IMonitoringService
     {
-        protected PagerDutyService()
+        public PagerDutyService()
         {
         }
 
