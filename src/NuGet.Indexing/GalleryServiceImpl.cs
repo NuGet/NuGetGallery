@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Lucene.Net.Search;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace NuGet.Indexing
@@ -13,6 +12,16 @@ namespace NuGet.Indexing
     {
         public static void Search(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string q, bool countOnly, bool includePrerelease, string sortBy, int skip, int take, string feed, bool ignoreFilter)
         {
+            if (jsonWriter == null)
+            {
+                throw new ArgumentNullException(nameof(jsonWriter));
+            }
+
+            if (searcherManager == null)
+            {
+                throw new ArgumentNullException(nameof(searcherManager));
+            }
+
             var searcher = searcherManager.Get();
             try
             {
