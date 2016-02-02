@@ -184,7 +184,7 @@ namespace NuGet.Services.Metadata.Catalog
                 JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
                 JObject compacted = JsonLdProcessor.Compact(framed, frame["@context"], new JsonLdOptions());
 
-                return compacted.ToString();
+                return compacted.ToString(Newtonsoft.Json.Formatting.None, new Newtonsoft.Json.JsonConverter[0]);
             }
         }
 
@@ -228,7 +228,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             IRdfReader rdfReader = new JsonLdReader();
             IGraph graph = new Graph();
-            rdfReader.Load(graph, new StringReader(flattened.ToString()));
+            rdfReader.Load(graph, new StringReader(flattened.ToString(Newtonsoft.Json.Formatting.None, new Newtonsoft.Json.JsonConverter[0])));
 
             return graph;
         }
