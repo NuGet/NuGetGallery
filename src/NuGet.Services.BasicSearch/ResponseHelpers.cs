@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -61,7 +62,7 @@ namespace NuGet.Services.BasicSearch
 
         public static async Task WriteResponseAsync(IOwinContext context, Exception e, FrameworkLogger logger)
         {
-            ServiceHelpers.TraceException(e, logger);
+            logger.LogError("Internal server error", e);
             await WriteResponseAsync(context, HttpStatusCode.InternalServerError, JObject.FromObject(new { error = "Internal server error" }));
         }
 

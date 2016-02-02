@@ -211,7 +211,6 @@
     <Compile Include="NuGetIndexSearcher.cs" />
     <Compile Include="SearcherManagerT.cs" />
     <Compile Include="SegmentInfoEventArgs.cs" />
-    <Compile Include="ServiceHelpers.cs" />
     <Compile Include="ServiceInfoImpl.cs" />
     <Compile Include="IndexConsistencyReport.cs" />
     <Compile Include="NuGetSearcherManager.cs" />

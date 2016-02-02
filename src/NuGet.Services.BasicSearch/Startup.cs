@@ -34,6 +34,8 @@ namespace NuGet.Services.BasicSearch
             // create a logger that is scoped to this class (only)
             _logger = loggerFactory.CreateLogger<Startup>();
 
+            _logger.LogInformation(LogMessages.AppStartup);
+
             //  search test console
             app.Use(async (context, next) =>
             {
@@ -104,7 +106,7 @@ namespace NuGet.Services.BasicSearch
             }
             catch (Exception e)
             {
-                ServiceHelpers.TraceException(e, _logger);
+                _logger.LogError(LogMessages.SearchIndexReopenFailed, e);
             }
         }
 
@@ -118,7 +120,7 @@ namespace NuGet.Services.BasicSearch
             }
             catch (Exception e)
             {
-                ServiceHelpers.TraceException(e, _logger);
+                _logger.LogError("Internal server error", e);
                 return false;
             }
         }

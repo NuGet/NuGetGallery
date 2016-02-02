@@ -61,6 +61,15 @@ namespace NuGet.Services.BasicSearch {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Application Startup called.
+        /// </summary>
+        internal static string AppStartup {
+            get {
+                return ResourceManager.GetString("AppStartup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incoming request on {RequestPath} ({RequestUri}).
         /// </summary>
         internal static string RequestPath {
@@ -102,6 +111,15 @@ namespace NuGet.Services.BasicSearch {
         internal static string SearchIndexReopenCompleted {
             get {
                 return ResourceManager.GetString("SearchIndexReopenCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search index reopen failed with an exception.
+        /// </summary>
+        internal static string SearchIndexReopenFailed {
+            get {
+                return ResourceManager.GetString("SearchIndexReopenFailed", resourceCulture);
             }
         }
         

@@ -238,7 +238,7 @@ namespace NuGet.Indexing
             }
             catch (Exception e)
             {
-                ServiceHelpers.TraceException(e, _logger);
+                _logger.LogError("Internal server error", e);
                 return null;
             }
         }
