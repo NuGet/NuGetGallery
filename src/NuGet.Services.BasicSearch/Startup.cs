@@ -65,8 +65,7 @@ namespace NuGet.Services.BasicSearch
                 seconds = 120;
             }
 
-            _logger.LogInformation(
-                "Search service is configured to refresh the index every {SearchIndexRefresh} seconds", seconds);
+            _logger.LogInformation(LogMessages.SearchIndexRefreshConfiguration, seconds);
 
             if (InitializeSearcherManager(configuration, directory, loader, loggerFactory))
             {
@@ -89,15 +88,17 @@ namespace NuGet.Services.BasicSearch
                 int val = Interlocked.Increment(ref _gate);
                 if (val > 1)
                 {
-                    _logger.LogInformation("Search index is already being reopened so thread ID {ThreadId} will not try to reopen the index again", Thread.CurrentThread.ManagedThreadId);
+                    _logger.LogInformation(LogMessages.SearchIndexAlreadyReopened, Thread.CurrentThread.ManagedThreadId);
                     Interlocked.Decrement(ref _gate);
                     return;
                 }
 
-                _logger.LogInformation("Beginning to reopen the search index on thread ID {ThreadId}", Thread.CurrentThread.ManagedThreadId);
+                _logger.LogInformation(LogMessages.SearchIndexReopenStarted, Thread.CurrentThread.ManagedThreadId);
+
                 var stopwatch = Stopwatch.StartNew();
                 _searcherManager.MaybeReopen();
-                _logger.LogInformation("Reopening the search index took {ElapsedSeconds} seconds on thread ID {ThreadId}", stopwatch.Elapsed.TotalSeconds, Thread.CurrentThread.ManagedThreadId);
+
+                _logger.LogInformation(LogMessages.SearchIndexReopenCompleted, stopwatch.Elapsed.TotalSeconds, Thread.CurrentThread.ManagedThreadId);
 
                 Interlocked.Decrement(ref _gate);
             }
@@ -124,10 +125,13 @@ namespace NuGet.Services.BasicSearch
 
         public async Task InvokeAsync(IOwinContext context)
         {
+            _logger.LogInformation(LogMessages.RequestPath, context.Request.Path.Value, context.Request.Uri);
+
             try
             {
                 if (_searcherManager == null)
                 {
+                    _logger.LogInformation(LogMessages.SearcherManagerNotInitialized);
                     context.Response.StatusCode = (int)HttpStatusCode.OK;
                     await context.Response.WriteAsync("UNINITIALIZED");
                 }

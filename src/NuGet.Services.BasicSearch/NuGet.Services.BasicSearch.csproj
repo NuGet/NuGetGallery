@@ -190,6 +190,10 @@
     <EmbeddedResource Include="Console\Master.css" />
     <Content Include="ApplicationInsights.config" />
     <Content Include="packages.config" />
+    <EmbeddedResource Include="LogMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>LogMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <None Include="Properties\PublishProfiles\nuget-int-0-v3search - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\nuget-int-0-v3search - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\nuget-prod-0-v3search.pubxml" />
@@ -212,6 +216,11 @@
   <ItemGroup>
     <Compile Include="ConfigurationService.cs" />
     <Compile Include="Logging.cs" />
+    <Compile Include="LogMessages.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LogMessages.resx</DependentUpon>
+    </Compile>
     <Compile Include="ResponseHelpers.cs" />
     <Compile Include="ServiceEndpoints.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
