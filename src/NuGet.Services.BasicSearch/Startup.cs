@@ -58,7 +58,7 @@ namespace NuGet.Services.BasicSearch
             }));
 
             //  start the service running - the Lucene index needs to be reopened regularly on a background thread
-            string searchIndexRefresh = configuration.Get("Search.IndexRefresh") ?? "15";
+            var searchIndexRefresh = configuration.Get("Search.IndexRefresh") ?? "15";
             int seconds;
             if (!int.TryParse(searchIndexRefresh, out seconds))
             {
@@ -74,7 +74,7 @@ namespace NuGet.Services.BasicSearch
                 _timer = new Timer(ReopenCallback, 0, 0, seconds * 1000);
             }
 
-            app.Run(Invoke);
+            app.Run(InvokeAsync);
         }
 
         public void Configuration(IAppBuilder app)
@@ -82,7 +82,7 @@ namespace NuGet.Services.BasicSearch
             Configuration(app, new ConfigurationService(), null, null);
         }
 
-        void ReopenCallback(object state)
+        private void ReopenCallback(object state)
         {
             try
             {
@@ -107,7 +107,7 @@ namespace NuGet.Services.BasicSearch
             }
         }
 
-        bool InitializeSearcherManager(IConfiguration configuration, Directory directory, ILoader loader, ILoggerFactory loggerFactory)
+        private bool InitializeSearcherManager(IConfiguration configuration, Directory directory, ILoader loader, ILoggerFactory loggerFactory)
         {
             try
             {
@@ -122,7 +122,7 @@ namespace NuGet.Services.BasicSearch
             }
         }
 
-        public async Task Invoke(IOwinContext context)
+        public async Task InvokeAsync(IOwinContext context)
         {
             try
             {

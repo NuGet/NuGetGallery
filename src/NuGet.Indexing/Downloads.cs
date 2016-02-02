@@ -14,10 +14,11 @@ namespace NuGet.Indexing
     {
         public static IDictionary<string, IDictionary<string, int>> Load(string name, ILoader loader, FrameworkLogger logger)
         {
-            IDictionary<string, IDictionary<string, int>> result = new Dictionary<string, IDictionary<string, int>>();
+            var result = new Dictionary<string, IDictionary<string, int>>();
+
             // The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.
             // Sample.json : [["AutofacContrib.NSubstitute",["2.4.3.700",406],["2.5.0",137]],["Assman.Core",["2.0.7",138]]....
-            using (JsonReader jsonReader = loader.GetReader(name))
+            using (var jsonReader = loader.GetReader(name))
             {
                 try
                 {
@@ -29,20 +30,21 @@ namespace NuGet.Indexing
                         {
                             if (jsonReader.TokenType == JsonToken.StartArray)
                             {
-                                JToken record = JToken.ReadFrom(jsonReader);
-                                string id = record[0].ToString().ToLowerInvariant();
+                                var record = JToken.ReadFrom(jsonReader);
+                                var id = record[0].ToString().ToLowerInvariant();
                                 // The second entry in each record should be an array of versions, if not move on to next entry.
                                 // This is a check to safe guard against invalid entries.
                                 if (record.Count() == 2 && record[1].Type != JTokenType.Array)
                                 {
                                     continue;
                                 }
-                                IDictionary<string, int> versions = new Dictionary<string, int>();
-                                foreach (JToken token in record)
+
+                                var versions = new Dictionary<string, int>();
+                                foreach (var token in record)
                                 {
                                     if (token != null && token.Count() == 2)
                                     {
-                                        string version = token[0].ToString().ToLowerInvariant();
+                                        var version = token[0].ToString().ToLowerInvariant();
                                         // Check for duplicate versions before adding.
                                         if (!versions.ContainsKey(version))
                                         {
@@ -50,6 +52,7 @@ namespace NuGet.Indexing
                                         }
                                     }
                                 }
+
                                 //Check for duplicate Ids before adding to dict.
                                 if (!result.ContainsKey(id))
                                 {
