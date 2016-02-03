@@ -24,7 +24,7 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
         {
             JToken flattened = MakeExpandedForm(g);
 
-            output.Write(flattened.ToString());
+            output.Write(flattened.ToString(Formatting.None, new JsonConverter[0]));
             output.Flush();
         }
 
