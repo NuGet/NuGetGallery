@@ -153,8 +153,9 @@ namespace NuGetGallery
 
         public List<Issue> GetIssuesAssignedToMe(string galleryUserName)
         {
+            var openIssues = GetOpenIssues();
             var adminId = GetAdminKeyFromGalleryUserName(galleryUserName);
-            var myIssues = from r in _supportRequestContext.Issues
+            var myIssues = from r in openIssues
                                       where (r.AssignedTo == adminId)
                                       select r;
             return myIssues.ToList();

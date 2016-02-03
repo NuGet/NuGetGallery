@@ -273,20 +273,41 @@ namespace NuGetGallery.Areas.Admin.Controllers
             editView.CurrentReasonFilter = reasonFilter;
             editView.CurrentStatusId = statusId;
 
+            var admins = SupportRequestService.GetAllAdmins();
+            var issueStatuses = SupportRequestService.GetAllIssueStatuses();
+            var adminsList = GetListOfAdmins(admins, DefaultAdminToSelect);
+            var issueStatusesList = GetListOfIssueStatuses(issueStatuses, DefaultIssueStatusToSelect);
+            editView.AssignedToChoices = adminsList;
+            editView.IssueStatusNameChoices = issueStatusesList;
+
             return View(editView);
         }
 
         [HttpPost]
         public ActionResult Edit(EditViewModel editViewModel)
         {
-            var currentIssue = editViewModel.Issue;
+            var currentIssue = SupportRequestService.GetIssueById(editViewModel.Issue.Key);
 
-            if (ModelState.IsValid)
+            var newAssignedTo = editViewModel.AssignedTo ?? -1;
+            var newIssueStatusName = editViewModel.IssueStatusName ?? -1;
+
+            if (currentIssue != null && ModelState.IsValid)
             {
+                if (newAssignedTo != -1)
+                {
+                    currentIssue.AssignedTo = newAssignedTo;
+                }
+
+                if (newIssueStatusName != -1)
+                {
+                    currentIssue.IssueStatus = newIssueStatusName;
+                }
+
+                currentIssue.Comments = editViewModel.Issue.Comments;
+
                 _context.CommitChanges();
-
                 SupportRequestService.AddHistoryEntry(currentIssue, GetLoggedInUser());
-
+           
                 return RedirectToAction("index", new
                 {
                     assignedToFilter = editViewModel.CurrentAssignedToFilter,

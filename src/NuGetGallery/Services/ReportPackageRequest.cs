@@ -21,7 +21,7 @@ namespace NuGetGallery
         public UrlHelper Url { get; set; }
         public bool CopySender { get; set; }
 
-        internal string FillIn(string subject, IAppConfiguration config)
+        internal string FillIn(string subject, IAppConfiguration config, int supportRequestID = -1)
         {
             // note, format blocks {xxx} are matched by ordinal-case-sensitive comparison
             var builder = new StringBuilder(subject);
@@ -52,6 +52,12 @@ namespace NuGetGallery
             Substitute(builder, "{Reason}", Reason);
             Substitute(builder, "{Signature}", Signature);
             Substitute(builder, "{Message}", Message);
+
+            if (supportRequestID != -1)
+            {
+                var srLink = String.Concat(config.SiteRoot, "Admin/SupportRequest/Edit/" + supportRequestID);
+                Substitute(builder, "{SupportRequestLink}", srLink);
+            }
 
             builder.Replace(@"\{\", "{");
             return builder.ToString();

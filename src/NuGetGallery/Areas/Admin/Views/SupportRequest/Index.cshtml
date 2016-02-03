@@ -19,8 +19,8 @@
                 <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Unassigned Issues">
                     @Html.ActionLink("Unassigned", "index", new { statusId = 4 }) <span class="badge">@ViewBag.UnAssignedCount</span>
                 </div>
-                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Unassigned Issues">
-                    @Html.ActionLink("Assigned To Me", "index", new { statusId = 5 }) <span class="badge">@ViewBag.MyAssignedCount</span>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Active Assigned To Me">
+                    @Html.ActionLink("Active Assigned To Me", "index", new { statusId = 5 }) <span class="badge">@ViewBag.MyAssignedCount</span>
                 </div>
                 <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Current Open Issues">
                     @Html.ActionLink("Open", "index", new { statusId = 1 }) <span class="badge">@ViewBag.OpenCount</span>
@@ -38,12 +38,12 @@
                         @Html.ActionLink("Create New", "Create")
                     </p>
                 </div>
-                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Create">
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Add Admin">
                     <p>
                         @Html.ActionLink("Add SR Admin", "AddAdmin")
                     </p>
                 </div>
-                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Create">
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Delete Admin">
                     <p>
                         @Html.ActionLink("Delete SR Admin", "DeleteAdmin")
                     </p>

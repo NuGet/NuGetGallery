@@ -437,7 +437,7 @@ namespace NuGetGallery
             return View(viewModel);
         }
 
-        private async Task AddNewSupportRequest(string subject, ReportPackageRequest request, Package package, User user, ReportAbuseViewModel reportForm)
+        private async Task<int> AddNewSupportRequest(string subject, ReportPackageRequest request, Package package, User user, ReportAbuseViewModel reportForm)
         {
             const string UnassingedAdmin = "unassigned";
             const string NewIssueStatus = "New";
@@ -476,6 +476,7 @@ namespace NuGetGallery
                 newIssue.Reason = reportForm.Reason.ToString();
                 newIssue.SiteRoot = _config.SiteRoot;
                 _supportRequestService.AddIssue(newIssue, "new");
+                return newIssue.Key;
             }
             catch (System.Data.SqlClient.SqlException)
             {
@@ -492,6 +493,7 @@ namespace NuGetGallery
                 //Log to elmah
                 QuietLog.LogHandledException(e);
             }
+            return -1;
         }
  
         // NOTE: Intentionally NOT requiring authentication
@@ -623,10 +625,11 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender,
                 Signature = reportForm.Signature
             };
-            _messageService.ReportAbuse(request);
-
+   
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
-            await AddNewSupportRequest(subject, request, package, user, reportForm);
+            int supportRequestID = await AddNewSupportRequest(subject, request, package, user, reportForm);
+
+            _messageService.ReportAbuse(request, supportRequestID);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
@@ -667,10 +670,10 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender
             };
 
-            _messageService.ReportMyPackage(request);
-
             string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
-            await AddNewSupportRequest(subject, request, package, user, reportForm);
+            int supportRequestID = await AddNewSupportRequest(subject, request, package, user, reportForm);
+
+            _messageService.ReportMyPackage(request, supportRequestID);
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));

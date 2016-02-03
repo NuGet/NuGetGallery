@@ -67,21 +67,43 @@
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(model => model.Issue.Comments, htmlAttributes: new { @class = "control-label col-md-2" })
+           <div class="col-md-10">
+            @Html.LabelFor(model => model.Issue.AssignedTo)
+            <span>@Html.DropDownListFor(model => model.AssignedTo, Model.AssignedToChoices, "[Reassign]") </span>
+        </div>
+        <br />
         <div class="col-md-10">
-            @Html.TextAreaFor(model => model.Issue.Comments, new { @cols = 70, @rows = 10 })
+            @Html.LabelFor(model => model.Issue.IssueStatus)
+            <span>@Html.DropDownListFor(model => model.IssueStatusName, Model.IssueStatusNameChoices, "[Change Status]")</span>
+        </div>
+        <br />
+        <div class="col-md-10">
+            @Html.LabelFor(model => model.Issue.Comments)
+            @Html.TextAreaFor(model => model.Issue.Comments, new { @cols = 70, @rows = 2 })
             @Html.ValidationMessageFor(model => model.Issue.Comments, "", new { @class = "text-danger" })
         </div>
-    </div>
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10">
+        <br />
+        <div class="col-md-10">
             <input type="submit" value="Save" class="btn btn-sm" />
         </div>
     </div>
 
     }
-
-    @Html.ActionLink("Back to List", "Index",
+    <div class="col-md-10">
+        @Html.ActionLink("History", "History",
+                                            new
+                                            {
+                                                id = Model.Issue.Key,
+                                                statusId = Model.CurrentStatusId,
+                                                pageNumber = Model.CurrentPageNumber,
+                                                assignedToFilter = Model.CurrentAssignedToFilter,
+                                                issueStatusNameFilter = Model.CurrentIssueStatusNameFilter,
+                                                reasonFilter = Model.CurrentReasonFilter
+                                            })
+    </div>
+    <br />
+    <div class="col-md-10">
+        @Html.ActionLink("Back to List", "Index",
     new
     {
         statusId = Model.CurrentStatusId,
@@ -90,15 +112,17 @@
         issueStatusNameFilter = Model.CurrentIssueStatusNameFilter,
         reasonFilter = Model.CurrentReasonFilter
     })
+    </div>
+
 }
 else
 {
-<div>
-    @Html.ActionLink("Back to List", "Index")
-</div>
-}
+        <div>
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+        }
 
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-    @Scripts.Render("~/scripts/bootstrap.js")
-}
+        @section Scripts {
+            @Scripts.Render("~/bundles/jqueryval")
+            @Scripts.Render("~/scripts/bootstrap.js")
+        }

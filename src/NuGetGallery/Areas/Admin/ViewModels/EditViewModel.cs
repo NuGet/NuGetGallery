@@ -20,5 +20,9 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public int CurrentStatusId { get; set; }
         public string AssignedToLabel { get; set; }
         public string IssueStatusNameLabel { get; set; }
+        public List<SelectListItem> AssignedToChoices { get; set; }
+        public List<SelectListItem> IssueStatusNameChoices { get; set; }
+        public int? AssignedTo { get; set; }
+        public int? IssueStatusName { get; set; }
     }
 }

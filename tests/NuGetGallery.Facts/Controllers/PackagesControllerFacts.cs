@@ -607,7 +607,7 @@ namespace NuGetGallery
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger"), -1));
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -639,7 +639,7 @@ namespace NuGetGallery
                                  && r.Package == package
                                  && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
                                  && r.Message == "Mordor took my finger."
-                                 && r.AlreadyContactedOwners)));
+                                 && r.AlreadyContactedOwners), -1));
             }
 
             [Fact]
@@ -647,7 +647,7 @@ namespace NuGetGallery
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger"), -1));
                 var user = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 1 };
                 var package = new Package
                     {
@@ -678,7 +678,7 @@ namespace NuGetGallery
                             r => r.Message == "Mordor took my finger"
                                  && r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.FromAddress.DisplayName == "Frodo"
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent))));
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)), -1));
             }
 
             [Fact]
@@ -709,7 +709,7 @@ namespace NuGetGallery
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger"), -1));
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -741,7 +741,7 @@ namespace NuGetGallery
                                  && r.Package == package
                                  && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
                                  && r.Message == "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;."
-                                 && r.AlreadyContactedOwners)));
+                                 && r.AlreadyContactedOwners), -1));
             }
         }
 
@@ -785,7 +785,7 @@ namespace NuGetGallery
                 ReportPackageRequest reportRequest = null;
                 var messageService = new Mock<IMessageService>();
                 messageService
-                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>()))
+                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>(), -1))
                     .Callback<ReportPackageRequest>(r => reportRequest = r);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
