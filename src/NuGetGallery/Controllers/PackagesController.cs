@@ -21,6 +21,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using PoliteCaptcha;
 

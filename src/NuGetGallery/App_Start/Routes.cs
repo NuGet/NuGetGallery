@@ -13,7 +13,7 @@ namespace NuGetGallery
         {
             if (!feedOnlyMode)
             {
-                Routes.RegisterUIRoutes(routes);
+                RegisterUIRoutes(routes);
             }
             else
             {
@@ -25,7 +25,7 @@ namespace NuGetGallery
                 "",
                 new { controller = "Pages", action = "EmptyHome" });
             }
-            Routes.RegisterApiV2Routes(routes);
+            RegisterApiV2Routes(routes);
         }
 
         public static void RegisterUIRoutes(RouteCollection routes)
@@ -438,35 +438,6 @@ namespace NuGetGallery
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
                 new { controller = "Api", action = "GetNuGetExeApi" });
-        }
-
-        // note: Pulled out service route registration separately because it's not testable T.T (won't run outside IIS/WAS) 
-        public static void RegisterServiceRoutes(RouteCollection routes)
-        {
-            routes.MapServiceRoute(
-                RouteName.V1ApiFeed,
-                "api/v1/FeedService.svc",
-                typeof(V1Feed));
-
-            routes.MapServiceRoute(
-                "LegacyFeedService",
-                "v1/FeedService.svc",
-                typeof(V1Feed));
-
-            routes.MapServiceRoute(
-                "v1" + RouteName.V1ApiFeed,
-                "api/v1",
-                typeof(V1Feed));
-
-            routes.MapServiceRoute(
-                RouteName.V2ApiCuratedFeed,
-                "api/v2/curated-feed",
-                typeof(V2CuratedFeed));
-
-            routes.MapServiceRoute(
-                RouteName.V2ApiFeed,
-                "api/v2/",
-                typeof(V2Feed));
         }
     }
 }

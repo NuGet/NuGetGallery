@@ -28,9 +28,14 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task ApiV2BaseUrlTest()
         {
-            string expectedText = @"<atom:title>Packages</atom:title>";
-            bool containsResponseText = await _odataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl, expectedText);
-            Assert.True(containsResponseText);
+            string expectedText1 = @"<atom:title";
+            string expectedText2 = @"Packages</atom:title>";
+
+            bool containsResponseText1 = await _odataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl, expectedText1);
+            Assert.True(containsResponseText1);
+
+            bool containsResponseText2 = await _odataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl, expectedText2);
+            Assert.True(containsResponseText2);
         }
 
         [Fact]
