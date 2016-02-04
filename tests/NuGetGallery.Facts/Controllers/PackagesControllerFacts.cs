@@ -785,8 +785,8 @@ namespace NuGetGallery
                 ReportPackageRequest reportRequest = null;
                 var messageService = new Mock<IMessageService>();
                 messageService
-                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>(), -1))
-                    .Callback<ReportPackageRequest>(r => reportRequest = r);
+                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>(), It.IsAny<int>()))
+                    .Callback<ReportPackageRequest, int>((r, sr) => reportRequest = r);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
                     packageService: packageService,
