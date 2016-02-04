@@ -51,26 +51,26 @@ namespace NgTests
             // Ensure catalog has index.json
             var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
             Assert.NotNull(catalogIndex.Key);
-            Assert.Contains("\"nuget:lastCreated\": \"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
-            Assert.Contains("\"nuget:lastDeleted\": \"0001-01-01", catalogIndex.Value.GetContentString());
-            Assert.Contains("\"nuget:lastEdited\": \"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastCreated\":\"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastDeleted\":\"0001-01-01", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastEdited\":\"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
 
             // Ensure catalog has page0.json
             var pageZero = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("page0.json"));
             Assert.NotNull(pageZero.Key);
-            Assert.Contains("\"parent\": \"http://tempuri.org/index.json\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"parent\":\"http://tempuri.org/index.json\",", pageZero.Value.GetContentString());
 
             Assert.Contains("/listedpackage.1.0.0.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"ListedPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.0\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"ListedPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             Assert.Contains("/listedpackage.1.0.1.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"ListedPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.1\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"ListedPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.1\"", pageZero.Value.GetContentString());
 
             Assert.Contains("/unlistedpackage.1.0.0.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"UnlistedPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.0\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"UnlistedPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             // Check individual package entries
             var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json"));
@@ -129,30 +129,30 @@ namespace NgTests
             // Ensure catalog has index.json
             var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
             Assert.NotNull(catalogIndex.Key);
-            Assert.Contains("\"nuget:lastCreated\": \"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
-            Assert.Contains("\"nuget:lastDeleted\": \"2015-01-01T01:01:01", catalogIndex.Value.GetContentString());
-            Assert.Contains("\"nuget:lastEdited\": \"2015-01-01T00:00:00", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastCreated\":\"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastDeleted\":\"2015-01-01T01:01:01", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastEdited\":\"2015-01-01T00:00:00", catalogIndex.Value.GetContentString());
 
             // Ensure catalog has page0.json
             var pageZero = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("page0.json"));
             Assert.NotNull(pageZero.Key);
-            Assert.Contains("\"parent\": \"http://tempuri.org/index.json\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"parent\":\"http://tempuri.org/index.json\",", pageZero.Value.GetContentString());
 
             Assert.Contains("/listedpackage.1.0.0.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"ListedPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.0\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"ListedPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             Assert.Contains("/listedpackage.1.0.1.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"ListedPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.1\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"ListedPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.1\"", pageZero.Value.GetContentString());
 
             Assert.Contains("/unlistedpackage.1.0.0.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"UnlistedPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.0\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"UnlistedPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             Assert.Contains("/otherpackage.1.0.0.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"OtherPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.0\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"OtherPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             // Check individual package entries
             var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json"));
@@ -216,30 +216,30 @@ namespace NgTests
             // Ensure catalog has index.json
             var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
             Assert.NotNull(catalogIndex.Key);
-            Assert.Contains("\"nuget:lastCreated\": \"2015-01-01T01:01:03Z\"", catalogIndex.Value.GetContentString());
-            Assert.Contains("\"nuget:lastDeleted\": \"2015-01-01T01:01:01", catalogIndex.Value.GetContentString());
-            Assert.Contains("\"nuget:lastEdited\": \"2015-01-01T00:00:00", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastCreated\":\"2015-01-01T01:01:03Z\"", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastDeleted\":\"2015-01-01T01:01:01", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastEdited\":\"2015-01-01T00:00:00", catalogIndex.Value.GetContentString());
 
             // Ensure catalog has page0.json
             var pageZero = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("page0.json"));
             Assert.NotNull(pageZero.Key);
-            Assert.Contains("\"parent\": \"http://tempuri.org/index.json\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"parent\":\"http://tempuri.org/index.json\",", pageZero.Value.GetContentString());
 
             Assert.Contains("/listedpackage.1.0.0.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"ListedPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.0\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"ListedPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             Assert.Contains("/listedpackage.1.0.1.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"ListedPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.1\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"ListedPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.1\"", pageZero.Value.GetContentString());
 
             Assert.Contains("/unlistedpackage.1.0.0.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"UnlistedPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.0\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"UnlistedPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             Assert.Contains("/otherpackage.1.0.0.json\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:id\": \"OtherPackage\",", pageZero.Value.GetContentString());
-            Assert.Contains("\"nuget:version\": \"1.0.0\"", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"OtherPackage\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             // Check individual package entries
             var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json"));

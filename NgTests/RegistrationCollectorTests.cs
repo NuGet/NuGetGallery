@@ -60,8 +60,8 @@ namespace NgTests
             Assert.Contains("\"http://tempuri.org/packages/listedpackage.1.0.0.nupkg\"", package1Index.Value.GetContentString());
             Assert.Contains("\"http://tempuri.org/data/2015.10.12.10.08.55/listedpackage.1.0.1.json\"", package1Index.Value.GetContentString());
             Assert.Contains("\"http://tempuri.org/packages/listedpackage.1.0.1.nupkg\"", package1Index.Value.GetContentString());
-            Assert.Contains("\"lower\": \"1.0.0\",", package1Index.Value.GetContentString());
-            Assert.Contains("\"upper\": \"1.0.1\"", package1Index.Value.GetContentString());
+            Assert.Contains("\"lower\":\"1.0.0\",", package1Index.Value.GetContentString());
+            Assert.Contains("\"upper\":\"1.0.1\"", package1Index.Value.GetContentString());
 
             var package1 = catalogToRegistrationStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.0.json"));
             Assert.NotNull(package1.Key);
@@ -76,8 +76,8 @@ namespace NgTests
             Assert.Contains("\"PackageRegistration\"", package2Index.Value.GetContentString());
             Assert.Contains("\"http://tempuri.org/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json\"", package2Index.Value.GetContentString());
             Assert.Contains("\"http://tempuri.org/packages/unlistedpackage.1.0.0.nupkg\"", package2Index.Value.GetContentString());
-            Assert.Contains("\"lower\": \"1.0.0\",", package2Index.Value.GetContentString());
-            Assert.Contains("\"upper\": \"1.0.0\"", package2Index.Value.GetContentString());
+            Assert.Contains("\"lower\":\"1.0.0\",", package2Index.Value.GetContentString());
+            Assert.Contains("\"upper\":\"1.0.0\"", package2Index.Value.GetContentString());
 
             var package3 = catalogToRegistrationStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0.json"));
             Assert.NotNull(package3.Key);
