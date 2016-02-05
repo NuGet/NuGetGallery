@@ -1,12 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Owin;
-using Microsoft.Owin.FileSystems;
-using Microsoft.Owin.StaticFiles;
-using Microsoft.Owin.StaticFiles.Infrastructure;
-using NuGet.Indexing;
-using Owin;
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -14,6 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
+using Microsoft.Owin;
+using Microsoft.Owin.FileSystems;
+using Microsoft.Owin.StaticFiles;
+using Microsoft.Owin.StaticFiles.Infrastructure;
+using NuGet.Indexing;
+using Owin;
+using SerilogWeb.Classic.Enrichers;
 
 [assembly: OwinStartup("NuGet.Services.BasicSearch", typeof(NuGet.Services.BasicSearch.Startup))]
 
@@ -29,7 +30,15 @@ namespace NuGet.Services.BasicSearch
         public void Configuration(IAppBuilder app, IConfiguration configuration, Directory directory, ILoader loader)
         {
             // create an ILoggerFactory
-            var loggerFactory = Logging.CreateLoggerFactory();
+            var loggerConfiguration = Logging.CreateDefaultLoggerConfiguration()
+                .Enrich.With<HttpRequestIdEnricher>()
+                .Enrich.With<HttpRequestTraceIdEnricher>()
+                .Enrich.With<HttpRequestTypeEnricher>()
+                .Enrich.With<HttpRequestUrlReferrerEnricher>()
+                .Enrich.With<HttpRequestUserAgentEnricher>()
+                .Enrich.With<HttpRequestRawUrlEnricher>();
+
+            var loggerFactory = Logging.CreateLoggerFactory(loggerConfiguration);
 
             // create a logger that is scoped to this class (only)
             _logger = loggerFactory.CreateLogger<Startup>();

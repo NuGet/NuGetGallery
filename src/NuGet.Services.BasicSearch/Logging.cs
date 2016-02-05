@@ -16,16 +16,25 @@ namespace NuGet.Services
 {
     internal static class Logging
     {
+        public static LoggerConfiguration CreateDefaultLoggerConfiguration()
+        {
+            return new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .WriteTo.ColoredConsole()
+                .Enrich.WithMachineName();
+        }
+
         public static ILoggerFactory CreateLoggerFactory(
+            LoggerConfiguration loggerConfiguration = null,
             string elasticsearchEndpoint = null,
             string elasticsearchUsername = null,
             string elasticsearchPassword = null)
         {
             // setup Serilog
-            var loggerConfiguration = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.ColoredConsole()
-                .Enrich.WithMachineName();
+            if (loggerConfiguration == null)
+            {
+                loggerConfiguration = CreateDefaultLoggerConfiguration();
+            }
 
             if (string.IsNullOrEmpty(elasticsearchEndpoint))
             {
