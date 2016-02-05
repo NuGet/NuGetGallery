@@ -529,9 +529,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             filterResultsViewModel.AssignedToChoices = GetListOfAdmins(admins, assignedToFilter);
             filterResultsViewModel.IssueStatusNameChoices = GetListOfIssueStatuses(issueStatuses, issueStatusNameFilter);
+            filterResultsViewModel.ReasonChoices = GetListOfReasons(reasonFilter);
+
             filterResultsViewModel.PageNumber = pageNumber;
             filterResultsViewModel.StatusID = statusId;
-            filterResultsViewModel.ReasonChoices = GetListOfReasons(reasonFilter);
+            filterResultsViewModel.AssignedTo = assignedToFilter ?? -1;
+            filterResultsViewModel.IssueStatusName = issueStatusNameFilter ?? -1;
+            filterResultsViewModel.Reason = reasonFilter;
 
             indexViewModel.Issues = filteredIssueViews;
             indexViewModel.Filter = filterResultsViewModel;

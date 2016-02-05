@@ -15,7 +15,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public List<SelectListItem> AssignedToChoices { get; set; }
         public List<SelectListItem> IssueStatusNameChoices { get; set; }
         public List<SelectListItem> ReasonChoices { get; set; }
-        public ReportPackageReason? Reason { get; set; }
+        public string Reason { get; set; }
         public int StatusID { get; set; }
         public int PageNumber { get; set; }
         public int? AssignedTo { get; set; }

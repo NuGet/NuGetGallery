@@ -125,27 +125,27 @@
 
                                             <span class="btn btn-link">
                                                 @Html.ActionLink("Add Comments", "Edit",
-                                             new
-                                             {
-                                                 id = item.Issue.Key,
-                                                 statusId = item.CurrentStatusId,
-                                                 pageNumber = item.CurrentPageNumber,
-                                                 assignedToFilter = item.CurrentAssignedToFilter,
-                                                 issueStatusNameFilter = item.CurrentIssueStatusNameFilter,
-                                                 reasonFilter = item.CurrentReasonFilter
-                                             })
+                                                          new
+                                                          {
+                                                              id = item.Issue.Key,
+                                                              statusId = item.CurrentStatusId,
+                                                              pageNumber = item.CurrentPageNumber,
+                                                              assignedToFilter = item.CurrentAssignedToFilter,
+                                                              issueStatusNameFilter = item.CurrentIssueStatusNameFilter,
+                                                              reasonFilter = item.CurrentReasonFilter
+                                                          })
                                             </span>
                                             <span class="btn btn-link">
                                                 @Html.ActionLink("History", "History",
-                                            new
-                                            {
-                                                id = item.Issue.Key,
-                                                statusId = item.CurrentStatusId,
-                                                pageNumber = item.CurrentPageNumber,
-                                                assignedToFilter = item.CurrentAssignedToFilter,
-                                                issueStatusNameFilter = item.CurrentIssueStatusNameFilter,
-                                                reasonFilter = item.CurrentReasonFilter
-                                            })
+                                                         new
+                                                         {
+                                                             id = item.Issue.Key,
+                                                             statusId = item.CurrentStatusId,
+                                                             pageNumber = item.CurrentPageNumber,
+                                                             assignedToFilter = item.CurrentAssignedToFilter,
+                                                             issueStatusNameFilter = item.CurrentIssueStatusNameFilter,
+                                                             reasonFilter = item.CurrentReasonFilter
+                                                         })
                                             </span>
                                         </div>
 
@@ -161,7 +161,14 @@
     </div>
                                             if (ViewBag.Page > 0)
                                             {
-                                                <a href="@Url.Action("index", new { pageNumber = ViewBag.Page - 1, statusId = @Model.Filter.StatusID })"
+                                                <a href="@Url.Action("index", new
+                                                    {
+                                                        pageNumber = ViewBag.Page - 1,
+                                                        statusId = @Model.Filter.StatusID,
+                                                        assignedToFilter = @Model.Filter.AssignedTo,
+                                                        issueStatusNameFilter = @Model.Filter.IssueStatusName,
+                                                        reasonFilter = @Model.Filter.Reason
+                                                    })"
                                                    class="btn-default ">
                                                     &laquo; Prev
                                                 </a>
@@ -169,12 +176,18 @@
 
                                             if (ViewBag.Page < ViewBag.MaxPage - 1)
                                             {
-                                                <a href="@Url.Action("index", new { pageNumber = ViewBag.Page + 1 , statusId = @Model.Filter.StatusID})"
+                                                <a href="@Url.Action("index", new
+                                                    {
+                                                        pageNumber = ViewBag.Page + 1,
+                                                        statusId = @Model.Filter.StatusID,
+                                                        assignedToFilter = @Model.Filter.AssignedTo,
+                                                        issueStatusNameFilter = @Model.Filter.IssueStatusName,
+                                                        reasonFilter = @Model.Filter.Reason
+                                                    })"
                                                    class="btn-default">
                                                     Next &raquo;
                                                 </a>
                                                 }
-
                                             }
                                             else
                                             {
