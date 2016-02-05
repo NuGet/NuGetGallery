@@ -171,6 +171,10 @@
       <HintPath>..\..\packages\Serilog.Sinks.Elasticsearch.2.0.70\lib\net45\Serilog.Sinks.Elasticsearch.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SerilogTraceListener, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SerilogTraceListener.1.0.7\lib\net45\SerilogTraceListener.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Concurrent" />
     <Reference Include="System.Data" />

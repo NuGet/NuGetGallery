@@ -24,7 +24,6 @@ namespace NuGet.Services
             // setup Serilog
             var loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .WriteTo.Trace()
                 .WriteTo.ColoredConsole()
                 .Enrich.WithMachineName();
 
@@ -81,6 +80,9 @@ namespace NuGet.Services
             // https://github.com/aspnet/Announcements/issues/122
             loggerFactory.MinimumLevel = LogLevel.Debug;
             loggerFactory.AddProvider(new SerilogLoggerProvider());
+
+            // hook into anything that is being traced in other libs using system.diagnostics.trace
+            System.Diagnostics.Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
 
             return loggerFactory;
         }
