@@ -120,9 +120,6 @@
   <data name="AppStartup" xml:space="preserve">
     <value>Application Startup called</value>
   </data>
-  <data name="RequestPath" xml:space="preserve">
-    <value>Incoming request on {RequestPath} ({RequestUri})</value>
-  </data>
   <data name="SearcherManagerNotInitialized" xml:space="preserve">
     <value>SearcherManager is not initialized</value>
   </data>

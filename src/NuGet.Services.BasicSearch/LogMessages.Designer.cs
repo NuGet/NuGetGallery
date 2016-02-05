@@ -70,15 +70,6 @@ namespace NuGet.Services.BasicSearch {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Incoming request on {RequestPath} ({RequestUri}).
-        /// </summary>
-        internal static string RequestPath {
-            get {
-                return ResourceManager.GetString("RequestPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SearcherManager is not initialized.
         /// </summary>
         internal static string SearcherManagerNotInitialized {

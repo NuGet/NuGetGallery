@@ -136,8 +136,6 @@ namespace NuGet.Services.BasicSearch
 
         public async Task InvokeAsync(IOwinContext context)
         {
-            _logger.LogInformation(LogMessages.RequestPath, context.Request.Path.Value, context.Request.Uri);
-
             try
             {
                 if (_searcherManager == null)
