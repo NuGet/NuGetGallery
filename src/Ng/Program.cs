@@ -32,7 +32,7 @@ namespace Ng
             var elasticsearchEndpoint = CommandHelpers.GetElasticsearchEndpoint(arguments);
             var elasticsearchUsername = CommandHelpers.GetElasticsearchUsername(arguments);
             var elasticsearchPassword = CommandHelpers.GetElasticsearchPassword(arguments);
-            var loggerFactory = Logging.CreateLoggerFactory(elasticsearchEndpoint, elasticsearchUsername, elasticsearchPassword);
+            var loggerFactory = Logging.CreateLoggerFactory(null, elasticsearchEndpoint, elasticsearchUsername, elasticsearchPassword);
 
             // create a logger that is scoped to this class (only)
             _logger = loggerFactory.CreateLogger<Program>();
