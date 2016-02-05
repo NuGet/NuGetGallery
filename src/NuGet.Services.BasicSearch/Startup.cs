@@ -107,11 +107,17 @@ namespace NuGet.Services.BasicSearch
                 _logger.LogInformation(LogMessages.SearchIndexReopenStarted, Thread.CurrentThread.ManagedThreadId);
 
                 var stopwatch = Stopwatch.StartNew();
-                _searcherManager.MaybeReopen();
+                try
+                {
+                    _searcherManager.MaybeReopen();
 
-                _logger.LogInformation(LogMessages.SearchIndexReopenCompleted, stopwatch.Elapsed.TotalSeconds, Thread.CurrentThread.ManagedThreadId);
-
-                Interlocked.Decrement(ref _gate);
+                    _logger.LogInformation(LogMessages.SearchIndexReopenCompleted, stopwatch.Elapsed.TotalSeconds,
+                        Thread.CurrentThread.ManagedThreadId);
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _gate);
+                }
             }
             catch (Exception e)
             {
