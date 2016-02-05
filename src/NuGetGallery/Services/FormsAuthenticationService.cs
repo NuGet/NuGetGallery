@@ -65,7 +65,7 @@ namespace NuGetGallery
             var cookie = context.Request.Cookies[ForceSSLCookieName];
             if (cookie != null)
             {
-                cookie.Expires = DateTime.Now.AddDays(-1d);
+                cookie.Expires = DateTime.UtcNow.AddDays(-1d);
                 context.Response.Cookies.Add(cookie);
             }
         }

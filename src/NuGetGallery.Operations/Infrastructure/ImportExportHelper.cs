@@ -151,7 +151,7 @@ namespace WASDImportExport
 
         //public bool DoImport(string blobUri)
         //{
-        //    Console.Write(String.Format("Starting Import Operation - {0}\n\r", DateTime.Now));
+        //    Console.Write(String.Format("Starting Import Operation - {0}\n\r", DateTime.UtcNow));
         //    string requestGuid = null;
         //    bool importComplete = false;
 

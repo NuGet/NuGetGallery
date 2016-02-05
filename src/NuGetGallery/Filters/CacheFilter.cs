@@ -34,7 +34,7 @@ namespace NuGetGallery.Filters
             TimeSpan cacheDuration = TimeSpan.FromSeconds(Duration);
 
             cache.SetCacheability(HttpCacheability.Public);
-            cache.SetExpires(DateTime.Now.Add(cacheDuration));
+            cache.SetExpires(DateTime.UtcNow.Add(cacheDuration));
             cache.SetMaxAge(cacheDuration);
             cache.AppendCacheExtension("must-revalidate, proxy-revalidate");
         }
