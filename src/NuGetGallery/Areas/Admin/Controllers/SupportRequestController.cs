@@ -99,12 +99,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 //Show an error
                 if (existingAdminKey != -1)
                 {
-                    ViewBag.ExistingAdminMessage = String.Format("An admin with name '{0}' already exists with an active/ inactive admin status. Please use a different name", admin.UserName);
+                    ViewBag.ExistingAdminMessage = String.Format(CultureInfo.CurrentCulture,
+                        "An admin with name '{0}' already exists with an active/ inactive admin status. Please use a different name", admin.UserName);
                     return View(admin);
                 }
 
                 SupportRequestService.AddAdmin(admin);
-                ViewBag.AddSuccessMessage = String.Format("Admin '{0}' has been successfully added to SR DB", admin.UserName);
+                ViewBag.AddSuccessMessage = String.Format(CultureInfo.CurrentCulture,
+                    "Admin '{0}' has been successfully added to SR DB", admin.UserName);
                 return View(admin);
             }
             return View(admin);
@@ -126,15 +128,18 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var retVal = SupportRequestService.InactivateAdmin(userName);
                 if (retVal == SupportRequestDeleteAdminResult.AdminNotPresent)
                 {
-                    ViewBag.InactivateMessage = String.Format("Couldn't find the admin '{0}'. Check the user name!", userName);
+                    ViewBag.InactivateMessage = String.Format(CultureInfo.CurrentCulture,
+                        "Couldn't find the admin '{0}'. Check the user name!", userName);
                 }
                 else if (retVal == SupportRequestDeleteAdminResult.AdminHasAssignedIssues)
                 {
-                    ViewBag.InactivateMessage = String.Format("Admin '{0}' still has issues assigned to her/ him. Please reassign the issues before deleting the admin", userName);
+                    ViewBag.InactivateMessage = String.Format(CultureInfo.CurrentCulture,
+                        "Admin '{0}' still has issues assigned to her/ him. Please reassign the issues before deleting the admin", userName);
                 }
                 else if (retVal == SupportRequestDeleteAdminResult.DeleteSuccessful)
                 {
-                    ViewBag.InactivateSuccessMessage = String.Format("Admin '{0}' has been inactivated from Support Request DB", userName);         
+                    ViewBag.InactivateSuccessMessage = String.Format(CultureInfo.CurrentCulture,
+                        "Admin '{0}' has been inactivated from Support Request DB", userName);         
                 }
                 else
                 {
