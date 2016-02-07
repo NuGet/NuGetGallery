@@ -1,0 +1,92 @@
+﻿@*// Copyright (c) .NET Foundation. All rights reserved.
+    // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.*@
+
+@model NuGetGallery.Areas.Admin.ViewModels.HistoryViewModel
+
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+
+<h1>
+    @ViewBag.Title
+</h1>
+
+@if (Model != null)
+{
+    ViewBag.Id = Model.HistoryList.First().History.IssueKey;
+    <table class="table">
+        <tr style="font-family: Arial; font-size: large; color: maroon">
+            <td>
+                History for @ViewBag.IssueTitle
+            </td>
+        </tr>
+    </table>
+
+    <table class="table">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.EntryDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.EditedBy)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.AssignedTo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.IssueStatus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HistoryList.First().History.Comments)
+            </th>
+            <th></th>
+        </tr>
+
+        @foreach (var item in Model.HistoryList)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.History.EntryDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EditedBy)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.History.AssignedTo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.History.IssueStatus)
+                </td>
+
+                <td width="400">
+                    @Html.DisplayFor(modelItem => item.History.Comments)
+                </td>
+            </tr>
+        }
+
+        <tr>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = ViewBag.Id })
+            </td>
+        </tr>
+    </table>
+    @Html.ActionLink("Back to List", "Index",
+    new
+    {
+        statusId = Model.CurrentStatusId,
+        pageNumber = Model.CurrentPageNumber,
+        assignedToFilter = Model.CurrentAssignedToFilter,
+        issueStatusNameFilter = Model.CurrentIssueStatusNameFilter,
+        reasonFilter = Model.CurrentReasonFilter
+    })
+}
+else
+{
+    @Html.ActionLink("Back to List", "Index",
+    new
+    {
+        statusId = 1,
+        pageNumber = 0,
+        assignedToFilter = -1,
+        issueStatusNameFilter = -1,
+        reasonFilter = "[Reason]"
+    })
+}

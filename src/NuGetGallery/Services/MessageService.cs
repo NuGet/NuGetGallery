@@ -31,7 +31,7 @@ namespace NuGetGallery
         public IAppConfiguration Config { get; protected set; }
         public AuthenticationService AuthService { get; protected set; }
 
-        public void ReportAbuse(ReportPackageRequest request)
+        public void ReportAbuse(ReportPackageRequest request, int supportRequestID = -1)
         {
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, Config);
@@ -55,11 +55,15 @@ namespace NuGetGallery
 
 **Message:**
 {Message}
+
+
+**SupportRequestLink:**
+{SupportRequestLink}
 ";
 
 
             var body = new StringBuilder();
-            body.Append(request.FillIn(bodyTemplate, Config));
+            body.Append(request.FillIn(bodyTemplate, Config, supportRequestID));
             body.AppendFormat(CultureInfo.InvariantCulture, @"
 
 *Message sent from {0}*", Config.GalleryOwner.DisplayName);
@@ -82,7 +86,7 @@ namespace NuGetGallery
             }
         }
 
-        public void ReportMyPackage(ReportPackageRequest request)
+        public void ReportMyPackage(ReportPackageRequest request, int supportRequestID = -1)
         {
             string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, Config);
@@ -102,10 +106,13 @@ namespace NuGetGallery
 
 **Message:**
 {Message}
+
+**Support Request Link:**
+{SupportRequestLink}
 ";
 
             var body = new StringBuilder();
-            body.Append(request.FillIn(bodyTemplate, Config));
+            body.Append(request.FillIn(bodyTemplate, Config, supportRequestID));
             body.AppendFormat(CultureInfo.InvariantCulture, @"
 
 *Message sent from {0}*", Config.GalleryOwner.DisplayName);

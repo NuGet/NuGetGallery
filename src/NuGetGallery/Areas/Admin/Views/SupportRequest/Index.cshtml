@@ -1,0 +1,202 @@
+﻿@*// Copyright (c) .NET Foundation. All rights reserved.
+    // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.*@
+
+@model NuGetGallery.Areas.Admin.ViewModels.IndexViewModel
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+<link href="~/Content/SupportRequestStyles.css" rel="stylesheet" />
+
+<h1>
+    @ViewBag.Title
+</h1>
+
+@if (Model != null)
+{
+    ViewBag.Temp = ViewBag.OpenCount + ViewBag.ResolvedCount;
+    <div class="container body-content">
+        <div class="row">
+            <div class="col-md-2 col-md-push-11">
+                <h4>Issues</h4>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Unassigned Issues">
+                    @Html.ActionLink("Unassigned", "index", new { statusId = 4 }) <span class="badge">@ViewBag.UnAssignedCount</span>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Active Assigned To Me">
+                    @Html.ActionLink("Active Assigned To Me", "index", new { statusId = 5 }) <span class="badge">@ViewBag.MyAssignedCount</span>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Current Open Issues">
+                    @Html.ActionLink("Open", "index", new { statusId = 1 }) <span class="badge">@ViewBag.OpenCount</span>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Current Resolved Issues">
+                    @Html.ActionLink("Resolved", "index", new { statusId = 2 }) <span class="badge">@ViewBag.ResolvedCount</span>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="All Issues">
+
+                    @Html.ActionLink("All", "index", new { statusId = 3 }) <span class="badge">@ViewBag.Temp</span>
+                </div>
+                <h4>Other</h4>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Create">
+                    <p>
+                        @Html.ActionLink("Create New", "Create")
+                    </p>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Add Admin">
+                    <p>
+                        @Html.ActionLink("Add SR Admin", "AddAdmin")
+                    </p>
+                </div>
+                <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Delete Admin">
+                    <p>
+                        @Html.ActionLink("Inactivate SR Admin", "InactivateAdmin")
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-10 col-md-pull-2">
+                @using (Html.BeginForm("Filter", "SupportRequest", FormMethod.Post))
+                {
+                    <div class="tab-content">
+                        <div class="tab-pane active">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h2 class="panel-title"><strong>Filter Results</strong> </h2>
+                                </div>
+                                <div class="panel-body">
+                                    <span>@Html.DropDownListFor(m => Model.Filter.AssignedTo, Model.Filter.AssignedToChoices, "[Assigned To]")</span>
+                                    <span>@Html.DropDownListFor(m => Model.Filter.IssueStatusName, Model.Filter.IssueStatusNameChoices, "[Issue Status]")</span>
+                                    <span>@Html.DropDownListFor(m => Model.Filter.Reason, Model.Filter.ReasonChoices, "[Reason]")</span>
+
+                                    <input type="hidden" name="Filter.StatusId" value="3" />
+                                    <input type="hidden" name="Filter.PageNumber" value="0" />
+                                    <input type="submit" value="Filter" class="btn-default" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="panel-heading">
+                    <h4 class="panel-title"><strong>Issues List</strong> </h4>
+                </div>
+
+                @foreach (var item in Model.Issues)
+                {
+                    using (Html.BeginForm("Save", "SupportRequest", FormMethod.Post))
+                    {
+                        <input type="hidden" name="item.CurrentStatusId" value=@item.CurrentStatusId />
+                        <input type="hidden" name="item.CurrentPageNumber" value=@item.CurrentPageNumber />
+                        <input type="hidden" name="item.CurrentReasonFilter" value=@item.CurrentReasonFilter />
+                        <input type="hidden" name="item.CurrentAssignedToFilter" value=@item.CurrentAssignedToFilter />
+                        <input type="hidden" name="item.CurrentIssueStatusNameFilter" value=@item.CurrentIssueStatusNameFilter />
+                        @Html.HiddenFor(m => item.Issue.Key)
+
+                        <div class="tab-content">
+                            <div class="tab-pane active">
+                                <div class="panel panel-default">
+                                    <div class="panel-body">
+                                        <div>
+                                            <a href=@String.Concat(item.Issue.SiteRoot, "Packages", "/", item.Issue.PackageID, "/", item.Issue.PackageVersion) style="color: black">
+                                                <strong>
+                                                    @Html.DisplayFor(modelItem => item.Issue.IssueTitle)
+                                                </strong>
+                                            </a>
+                                        </div>
+
+                                        <span class="label issueKey">#@Html.DisplayFor(modelItem => item.Issue.Key)</span>
+                                        <span class="label issueCreatedDate">@Html.DisplayFor(modelItem => item.Issue.CreatedDate)</span>
+
+                                        @{
+                                            string ownerLink = string.Empty;
+                                            if (!item.Issue.CreatedBy.Equals("Anonymous", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                ownerLink = String.Concat(item.Issue.SiteRoot, "Profiles", "/", item.Issue.CreatedBy);
+
+                                            }
+                                            <a href=@ownerLink>
+                                                <span class="label issueCreatedBy">@Html.DisplayFor(modelItem => item.Issue.CreatedBy)</span>
+                                            </a>
+                                        }
+
+                                        <span class="label reason">@Html.DisplayFor(modelItem => item.Issue.Reason)</span>
+                                        <span class="badgeorange1 pull-right" style="margin-left: 4px">@Html.DisplayFor(modelItem => item.AssignedToLabel)</span>
+                                        <span class="badge pull-right" style="margin-left: 4px">@Html.DisplayFor(modelItem => item.IssueStatusNameLabel)</span>
+
+                                        <div class="col-md-offset-2">
+                                            <span>@Html.DropDownListFor(m => item.AssignedTo, item.AssignedToChoices, "[Reassign]") </span>
+                                            <span>@Html.DropDownListFor(m => item.IssueStatusName, item.IssueStatusNameChoices, "[Change Status]")</span>
+                                            <input type="submit" value="Save" class="btn" id="@item.Issue.Key" />
+
+                                            <span class="btn btn-link">
+                                                @Html.ActionLink("Add Comments", "Edit",
+                                                          new
+                                                          {
+                                                              id = item.Issue.Key,
+                                                              statusId = item.CurrentStatusId,
+                                                              pageNumber = item.CurrentPageNumber,
+                                                              assignedToFilter = item.CurrentAssignedToFilter,
+                                                              issueStatusNameFilter = item.CurrentIssueStatusNameFilter,
+                                                              reasonFilter = item.CurrentReasonFilter
+                                                          })
+                                            </span>
+                                            <span class="btn btn-link">
+                                                @Html.ActionLink("History", "History",
+                                                         new
+                                                         {
+                                                             id = item.Issue.Key,
+                                                             statusId = item.CurrentStatusId,
+                                                             pageNumber = item.CurrentPageNumber,
+                                                             assignedToFilter = item.CurrentAssignedToFilter,
+                                                             issueStatusNameFilter = item.CurrentIssueStatusNameFilter,
+                                                             reasonFilter = item.CurrentReasonFilter
+                                                         })
+                                            </span>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                                                }
+                                            }
+            </div>
+        </div>
+    </div>
+                                            if (ViewBag.Page > 0)
+                                            {
+                                                <a href="@Url.Action("index", new
+                                                    {
+                                                        pageNumber = ViewBag.Page - 1,
+                                                        statusId = @Model.Filter.StatusID,
+                                                        assignedToFilter = @Model.Filter.AssignedTo,
+                                                        issueStatusNameFilter = @Model.Filter.IssueStatusName,
+                                                        reasonFilter = @Model.Filter.Reason
+                                                    })"
+                                                   class="btn-default ">
+                                                    &laquo; Prev
+                                                </a>
+                                            }
+
+                                            if (ViewBag.Page < ViewBag.MaxPage - 1)
+                                            {
+                                                <a href="@Url.Action("index", new
+                                                    {
+                                                        pageNumber = ViewBag.Page + 1,
+                                                        statusId = @Model.Filter.StatusID,
+                                                        assignedToFilter = @Model.Filter.AssignedTo,
+                                                        issueStatusNameFilter = @Model.Filter.IssueStatusName,
+                                                        reasonFilter = @Model.Filter.Reason
+                                                    })"
+                                                   class="btn-default">
+                                                    Next &raquo;
+                                                </a>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <p>
+                                                    @Html.ActionLink("Back To Open Issues List", "index")
+                                                </p>
+                                            }
+
+@section Scripts {
+    @Scripts.Render("~/scripts/bootstrap.js")
+}
+

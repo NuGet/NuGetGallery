@@ -585,6 +585,7 @@
   <ItemGroup>
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
       <DependentUpon>Url_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -599,7 +600,19 @@
     <Compile Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx.designer.cs">
       <DependentUpon>ListDetails.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Models\Admin.cs" />
+    <Compile Include="Areas\Admin\Models\History.cs" />
+    <Compile Include="Areas\Admin\Models\Issue.cs" />
+    <Compile Include="Areas\Admin\Models\IssueStatus.cs" />
+    <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
+    <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
+    <Compile Include="Areas\Admin\ViewModels\CreateViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\EditViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\FilterResultsViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HistoryViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\IndexViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\IssueViewModel.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
@@ -1231,6 +1244,11 @@
     </Content>
     <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
+    <Content Include="Content\bootstrap-theme.css" />
+    <Content Include="Content\bootstrap-theme.min.css" />
+    <Content Include="Content\bootstrap.css" />
+    <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\SupportRequestStyles.css" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -1294,6 +1312,7 @@
     <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.tooltip.min.css" />
     <Content Include="D3 LICENSE.txt" />
+    <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="NuGetGallery.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -1316,7 +1335,9 @@
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
+    <Compile Include="Services\IMonitoringService.cs" />
     <Compile Include="Services\IStatusService.cs" />
+    <Compile Include="Services\ISupportRequestService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />
@@ -1338,6 +1359,7 @@
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\LocalFileReference.cs" />
+    <Compile Include="Services\PageryDutyService.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\NullReportService.cs" />
     <Compile Include="Services\NullStatisticsService.cs" />
@@ -1356,6 +1378,8 @@
     <Compile Include="Services\StatisticsReportNotFoundException.cs" />
     <Compile Include="Services\StatisticsReportResult.cs" />
     <Compile Include="Services\StatusService.cs" />
+    <Compile Include="Services\SupportRequestDeleteAdminResult.cs" />
+    <Compile Include="Services\SupportRequestService.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="Services\EditPackageService.cs" />
@@ -1435,8 +1459,24 @@
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
     <Content Include="Public\Blocked.html" />
+    <Content Include="Scripts\bootstrap.js" />
+    <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\d3.v3.js" />
     <Content Include="Scripts\d3.v3.min.js" />
+    <Content Include="Areas\Admin\Views\SupportRequest\Create.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\History.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff2" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="fonts\glyphicons-halflings-regular.ttf" />
+    <Content Include="fonts\glyphicons-halflings-regular.eot" />
+    <Content Include="Content\bootstrap.min.css.map" />
+    <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Content\bootstrap-theme.min.css.map" />
+    <Content Include="Content\bootstrap-theme.css.map" />
+    <Content Include="Areas\Admin\Views\SupportRequest\AddAdmin.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\InactivateAdmin.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
@@ -1748,7 +1788,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>https://nuget.localtest.me</IISUrl>
+          <IISUrl>http://nuget.localtest.me</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

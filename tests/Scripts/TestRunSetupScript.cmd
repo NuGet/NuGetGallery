@@ -14,7 +14,7 @@ Echo Set the gallery Url...
 set galleryUrl=%1
 if "%galleryUrl%" == "" (
 Echo Setting galleryUrl to the default - int.nugettest.org
-set galleryUrl=https://int.nugettest.org/
+set galleryUrl=http://adc0813a2cc84db4bc37aa11e0a66cc4.cloudapp.net/
 )
 Echo The gallery Url was set to %galleryUrl%
 Echo.

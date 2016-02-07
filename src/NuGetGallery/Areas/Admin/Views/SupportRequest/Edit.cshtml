@@ -1,0 +1,128 @@
+﻿@*// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.*@
+
+@model NuGetGallery.Areas.Admin.ViewModels.EditViewModel
+
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+
+<h1>
+    @ViewBag.Title
+</h1>
+
+@if (Model != null)
+{
+    <h2>Edit</h2>
+    using (Html.BeginForm())
+    {
+    @Html.AntiForgeryToken()
+
+    @Html.HiddenFor(model => model.Issue.Key)
+    @Html.HiddenFor(model => model.Issue.OwnerEmail)
+    @Html.HiddenFor(model => model.Issue.PackageID)
+    @Html.HiddenFor(model => model.Issue.PackageVersion)
+    @Html.HiddenFor(model => model.Issue.SiteRoot)
+    @Html.HiddenFor(model => model.Issue.Reason)
+    @Html.HiddenFor(model => model.Issue.CreatedBy)
+    @Html.HiddenFor(model => model.Issue.CreatedDate)
+    @Html.HiddenFor(model => model.Issue.Details)
+    @Html.HiddenFor(model => model.Issue.IssueTitle)
+        @Html.HiddenFor(model => model.Issue.AssignedTo)
+        @Html.HiddenFor(model => model.Issue.IssueStatus)
+
+        <input type="hidden" name="CurrentStatusId" value=@Model.CurrentStatusId />
+        <input type="hidden" name="CurrentPageNumber" value=@Model.CurrentPageNumber />
+        <input type="hidden" name="CurrentReasonFilter" value=@Model.CurrentReasonFilter />
+        <input type="hidden" name="CurrentAssignedToFilter" value=@Model.CurrentAssignedToFilter />
+        <input type="hidden" name="CurrentIssueStatusNameFilter" value=@Model.CurrentIssueStatusNameFilter />
+
+    <div class="tab-pane active" id="edit-item">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><strong>@Html.DisplayFor(model => model.Issue.IssueTitle)</strong></h3>
+            </div>
+            <div class="panel-heading">
+                <h3 class="label" style="font-size: large; color: black"><strong>@Model.AssignedToLabel, @Model.IssueStatusNameLabel</strong></h3>
+            </div>
+
+            <div class="panel-body">
+                <ul class="list-group">
+                    <li class="list-group-item" style="">
+                        <div class="row">
+                            <span>@Html.DisplayFor(model => model.Issue.Details)</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-10">
+
+                                <span class="label" style="background-color: #CCCCCC; color: #000000">@Html.DisplayFor(model => model.Issue.CreatedBy)</span>
+                                <span class="label" style="background-color: #159818; color: #ffffff">@Html.DisplayFor(model => model.Issue.CreatedDate)</span>
+                                <span class="label" style="background-color: #d59b9b; color: #000000">@Html.DisplayFor(model => model.Issue.Reason)</span>
+                                <span class="badge pull-right" style="background-color: #ffd800; color: #ffffff">@Html.DisplayFor(model => model.Issue.OwnerEmail)</span>
+
+                                <span class="badge pull-right" style="margin-left: 4px">@Html.DisplayFor(model => model.Issue.PackageID)</span>
+                                <span class="badge pull-right" style="margin-left: 4px">@Html.DisplayFor(model => model.Issue.PackageVersion)</span>
+                            </div>
+                        </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+           <div class="col-md-10">
+            @Html.LabelFor(model => model.Issue.AssignedTo)
+            <span>@Html.DropDownListFor(model => model.AssignedTo, Model.AssignedToChoices, "[Reassign]") </span>
+        </div>
+        <br />
+        <div class="col-md-10">
+            @Html.LabelFor(model => model.Issue.IssueStatus)
+            <span>@Html.DropDownListFor(model => model.IssueStatusName, Model.IssueStatusNameChoices, "[Change Status]")</span>
+        </div>
+        <br />
+        <div class="col-md-10">
+            @Html.LabelFor(model => model.Issue.Comments)
+            @Html.TextAreaFor(model => model.Issue.Comments, new { @cols = 70, @rows = 2 })
+            @Html.ValidationMessageFor(model => model.Issue.Comments, "", new { @class = "text-danger" })
+        </div>
+        <br />
+        <div class="col-md-10">
+            <input type="submit" value="Save" class="btn btn-sm" />
+        </div>
+    </div>
+
+    }
+    <div class="col-md-10">
+        @Html.ActionLink("History", "History",
+                                            new
+                                            {
+                                                id = Model.Issue.Key,
+                                                statusId = Model.CurrentStatusId,
+                                                pageNumber = Model.CurrentPageNumber,
+                                                assignedToFilter = Model.CurrentAssignedToFilter,
+                                                issueStatusNameFilter = Model.CurrentIssueStatusNameFilter,
+                                                reasonFilter = Model.CurrentReasonFilter
+                                            })
+    </div>
+    <br />
+    <div class="col-md-10">
+        @Html.ActionLink("Back to List", "Index",
+    new
+    {
+        statusId = Model.CurrentStatusId,
+        pageNumber = Model.CurrentPageNumber,
+        assignedToFilter = Model.CurrentAssignedToFilter,
+        issueStatusNameFilter = Model.CurrentIssueStatusNameFilter,
+        reasonFilter = Model.CurrentReasonFilter
+    })
+    </div>
+
+}
+else
+{
+        <div>
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+        }
+
+        @section Scripts {
+            @Scripts.Render("~/bundles/jqueryval")
+            @Scripts.Render("~/scripts/bootstrap.js")
+        }
