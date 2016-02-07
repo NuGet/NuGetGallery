@@ -10,6 +10,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using System.Globalization;
+using NuGetGallery.Services;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -91,37 +92,57 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpPost]
         public ActionResult AddAdmin(Models.Admin admin)
         {
-
             if (ModelState.IsValid)
             {
+                var existingAdminKey = SupportRequestService.GetAdminKeyFromUserName(admin.UserName);
+                //if existingAdminKey != -1, an admin with the same name exists. 
+                //Show an error
+                if (existingAdminKey != -1)
+                {
+                    ViewBag.ExistingAdminMessage = String.Format("An admin with name '{0}' already exists with an active/ inactive admin status. Please use a different name", admin.UserName);
+                    return View(admin);
+                }
+
                 SupportRequestService.AddAdmin(admin);
-                return RedirectToAction("index");
-            }
-            else
-            {
+                ViewBag.AddSuccessMessage = String.Format("Admin '{0}' has been successfully added to SR DB", admin.UserName);
                 return View(admin);
             }
+            return View(admin);
         }
 
-        public ViewResult DeleteAdmin()
+        public ViewResult InactivateAdmin()
         {
-            ViewBag.DeleteMessage = string.Empty;
+            ViewBag.InactivateMessage = string.Empty;
             return View();
         }
 
         [HttpPost]
-        public ActionResult DeleteAdmin(Models.Admin admin)
+        public ActionResult InactivateAdmin(Models.Admin admin)
         {
 
             if (ModelState.IsValid)
             {
-                var retVal = SupportRequestService.DeleteAdmin(admin.UserName);
-                if (retVal)
+                var userName = admin.UserName;
+                var retVal = SupportRequestService.InactivateAdmin(userName);
+                if (retVal == SupportRequestDeleteAdminResult.AdminNotPresent)
                 {
-                    return RedirectToAction("index");
+                    ViewBag.InactivateMessage = String.Format("Couldn't find the admin '{0}'. Check the user name!", userName);
                 }
+                else if (retVal == SupportRequestDeleteAdminResult.AdminHasAssignedIssues)
+                {
+                    ViewBag.InactivateMessage = String.Format("Admin '{0}' still has issues assigned to her/ him. Please reassign the issues before deleting the admin", userName);
+                }
+                else if (retVal == SupportRequestDeleteAdminResult.DeleteSuccessful)
+                {
+                    ViewBag.InactivateSuccessMessage = String.Format("Admin '{0}' has been inactivated from Support Request DB", userName);         
+                }
+                else
+                {
+                    ViewBag.InactivateMessage = "Delete was not successful. Check the user name!";
+                }
+                return View(admin);
             }
-            ViewBag.DeleteMessage = "Delete was not successful. Check the user name!";
+            ViewBag.InactivateMessage = "Delete was not successful. Check the user name!";
             return View(admin);
         }
 

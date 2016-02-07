@@ -1378,6 +1378,7 @@
     <Compile Include="Services\StatisticsReportNotFoundException.cs" />
     <Compile Include="Services\StatisticsReportResult.cs" />
     <Compile Include="Services\StatusService.cs" />
+    <Compile Include="Services\SupportRequestDeleteAdminResult.cs" />
     <Compile Include="Services\SupportRequestService.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
@@ -1475,7 +1476,7 @@
     <Content Include="Content\bootstrap-theme.min.css.map" />
     <Content Include="Content\bootstrap-theme.css.map" />
     <Content Include="Areas\Admin\Views\SupportRequest\AddAdmin.cshtml" />
-    <Content Include="Areas\Admin\Views\SupportRequest\DeleteAdmin.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\InactivateAdmin.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />

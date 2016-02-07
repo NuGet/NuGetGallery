@@ -7,6 +7,7 @@ using System.Linq;
 using NuGet.Packaging;
 using NuGetGallery.Packaging;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -30,7 +31,7 @@ namespace NuGetGallery
         void AddIssue(Issue newIssue, string loggedInUser);
         void AddHistoryEntry(Issue newIssue, string loggedInUser);
         void AddAdmin(Admin admin);
-        bool DeleteAdmin(string userName);
+        SupportRequestDeleteAdminResult InactivateAdmin(string userName);
         List<IssueStatus> GetAllIssueStatuses();
         IssueStatus GetIssueStatusById(int id);
         string GetIssueStatusNameById(int id);

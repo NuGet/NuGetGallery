@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -27,7 +28,9 @@ namespace NuGetGallery
 
         public List<Admin> GetAllAdmins()
         {
+            //Return only active admins. AdminStatus is 1 for active admins
             return (from a in _supportRequestContext.Admins
+                    where (a.AdminStatus == 1)
                     select a).ToList();
         }
 
@@ -151,6 +154,14 @@ namespace NuGetGallery
             return allIssues.Count();
         }
 
+        public int GetCountOfIssuesAssignedToAnAdmin(int adminKey)
+        {
+            var issues = from r in GetAllIssues()
+                         where (r.AssignedTo == adminKey)
+                         select r;
+            return issues.Count();
+        }
+
         public List<Issue> GetIssuesAssignedToMe(string galleryUserName)
         {
             var openIssues = GetOpenIssues();
@@ -215,25 +226,39 @@ namespace NuGetGallery
 
         public void AddAdmin(Admin admin)
         {
+            admin.AdminStatus = 1;
             _supportRequestContext.Admins.Add(admin);
             _supportRequestContext.CommitChanges();
         }
 
-        public bool DeleteAdmin(string userName)
+        public SupportRequestDeleteAdminResult InactivateAdmin(string userName)
         {
             if (!string.IsNullOrEmpty(userName))
             {
                 var id = GetAdminKeyFromUserName(userName.Trim());
                 var admin = _supportRequestContext.Admins.Find(id);
+                var issueCount = GetCountOfIssuesAssignedToAnAdmin(id);
+
+                if (issueCount > 0)
+                {
+                    return SupportRequestDeleteAdminResult.AdminHasAssignedIssues;
+                }
 
                 if (admin != null)
                 {
-                    _supportRequestContext.Admins.Remove(admin);
+                    //Change the admin status to 0 instead of deleting the admin
+                    //this is because the admin key is associated with history entries
+                    //By setting to zero, we will filter it out from showing in the UI
+                    admin.AdminStatus = 0;
                     _supportRequestContext.CommitChanges();
-                    return true;
+                    return SupportRequestDeleteAdminResult.DeleteSuccessful;
+                }
+                else
+                {
+                    return SupportRequestDeleteAdminResult.AdminNotPresent;
                 }
             }
-            return false;
+            return SupportRequestDeleteAdminResult.EmptyUserName;
         }
 
         public void AddHistoryEntry(Issue newIssue, string loggedInUser)

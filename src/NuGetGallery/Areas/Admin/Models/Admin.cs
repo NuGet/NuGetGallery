@@ -23,5 +23,7 @@ namespace NuGetGallery.Areas.Admin.Models
         [Display(Name = "NuGet Gallery UserName")]
         [StringLength(255)]
         public string GalleryUserName { get; set; }
+
+        public int AdminStatus { get; set; }
     }
 }
