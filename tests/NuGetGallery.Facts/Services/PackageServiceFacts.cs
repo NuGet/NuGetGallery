@@ -1695,7 +1695,7 @@ namespace NuGetGallery
                 var package = new Package
                     {
                         Version = "1.0.42-alpha",
-                        Published = DateTime.Now,
+                        Published = DateTime.UtcNow,
                         PackageRegistration = new PackageRegistration
                             {
                                 Id = "theId",
@@ -1708,7 +1708,7 @@ namespace NuGetGallery
                     {
                         Version = "1.0.39",
                         PackageRegistration = package.PackageRegistration,
-                        Published = DateTime.Now.AddDays(-1)
+                        Published = DateTime.UtcNow.AddDays(-1)
                     };
                 package.PackageRegistration.Packages.Add(package39);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
@@ -1728,7 +1728,7 @@ namespace NuGetGallery
                 var package = new Package
                 {
                     Version = "1.0.42-alpha",
-                    Published = DateTime.Now,
+                    Published = DateTime.UtcNow,
                     PackageRegistration = new PackageRegistration
                     {
                         Id = "theId",
@@ -1741,7 +1741,7 @@ namespace NuGetGallery
                 {
                     Version = "1.0.39",
                     PackageRegistration = package.PackageRegistration,
-                    Published = DateTime.Now.AddDays(-1)
+                    Published = DateTime.UtcNow.AddDays(-1)
                 };
                 package.PackageRegistration.Packages.Add(package39);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
@@ -1762,7 +1762,7 @@ namespace NuGetGallery
                 var package = new Package
                     {
                         Version = "1.0.42-alpha",
-                        Published = DateTime.Now,
+                        Published = DateTime.UtcNow,
                         IsPrerelease = true,
                         PackageRegistration = new PackageRegistration
                             {
@@ -1775,7 +1775,7 @@ namespace NuGetGallery
                     {
                         Version = "1.0.39-beta",
                         PackageRegistration = package.PackageRegistration,
-                        Published = DateTime.Now.AddDays(-1),
+                        Published = DateTime.UtcNow.AddDays(-1),
                         IsPrerelease = true
                     };
                 package.PackageRegistration.Packages.Add(package39);
@@ -1796,7 +1796,7 @@ namespace NuGetGallery
                 var package = new Package
                 {
                     Version = "1.0.42-alpha",
-                    Published = DateTime.Now,
+                    Published = DateTime.UtcNow,
                     IsPrerelease = true,
                     PackageRegistration = new PackageRegistration
                     {
@@ -1809,7 +1809,7 @@ namespace NuGetGallery
                 {
                     Version = "1.0.39-beta",
                     PackageRegistration = package.PackageRegistration,
-                    Published = DateTime.Now.AddDays(-1),
+                    Published = DateTime.UtcNow.AddDays(-1),
                     IsPrerelease = true
                 };
                 package.PackageRegistration.Packages.Add(package39);
