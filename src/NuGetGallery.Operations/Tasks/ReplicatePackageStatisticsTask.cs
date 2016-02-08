@@ -200,9 +200,9 @@ namespace NuGetGallery.Operations
                 int originalKey = GetLastOriginalKey(destination);
                 Log.Trace("replicating records since {0}", originalKey);
 
-                DateTime before = DateTime.Now;
+                DateTime before = DateTime.UtcNow;
                 DownloadBatch batch = GetDownloadRecords(source, originalKey, batchSize);
-                DateTime after = DateTime.Now;
+                DateTime after = DateTime.UtcNow;
                 TimeSpan duration = after - before;
 
                 Log.Trace($"source query duration: {duration.TotalSeconds} seconds");

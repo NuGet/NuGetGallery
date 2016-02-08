@@ -124,7 +124,7 @@ namespace NuGetGallery.Operations
         {
             Log.Info("CreateAllPerPackageReports");
 
-            DateTime before = DateTime.Now;
+            DateTime before = DateTime.UtcNow;
 
             IList<string> packageIds = GetAllPackageIds();
 
@@ -146,7 +146,7 @@ namespace NuGetGallery.Operations
                 });
             });
 
-            string msg = $"CreateAllPerPackageReports complete {(DateTime.Now - before).TotalSeconds} seconds";
+            string msg = $"CreateAllPerPackageReports complete {(DateTime.UtcNow - before).TotalSeconds} seconds";
 
             Log.Info(msg);
         }
@@ -179,7 +179,7 @@ namespace NuGetGallery.Operations
         {
             Log.Info("CreateDirtyPerPackageReports");
 
-            DateTime before = DateTime.Now;
+            DateTime before = DateTime.UtcNow;
 
             IList<Tuple<string, int>> packageIds = GetPackageIds();
 
@@ -207,7 +207,7 @@ namespace NuGetGallery.Operations
                 });
             });
 
-            string msg = $"CreateDirtyPerPackageReports complete {(DateTime.Now - before).TotalSeconds} seconds";
+            string msg = $"CreateDirtyPerPackageReports complete {(DateTime.UtcNow - before).TotalSeconds} seconds";
 
             Log.Info(msg);
         }
