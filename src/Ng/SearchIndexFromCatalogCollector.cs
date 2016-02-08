@@ -21,10 +21,6 @@ namespace Ng
     public class SearchIndexFromCatalogCollector : CommitCollector
     {
         private const string _packageTemplate = "{0}/{1}.json";
-        private const int MergeFactor = 10;
-
-        //  Define the size of a file in a level (exponentially) and the count of files that constitue a level
-        private const int MaxMergeDocs = 7999;              //  Except never merge segments that have more docs than this
 
         private readonly Lucene.Net.Store.Directory _directory;
         private readonly string _baseAddress;
@@ -172,8 +168,8 @@ namespace Ng
             }
 
             IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), create, IndexWriter.MaxFieldLength.UNLIMITED);
-            indexWriter.MergeFactor = MergeFactor;
-            indexWriter.MaxMergeDocs = MaxMergeDocs;
+            indexWriter.MergeFactor = LuceneConstants.MergeFactor;
+            indexWriter.MaxMergeDocs = LuceneConstants.MaxMergeDocs;
 
             indexWriter.SetSimilarity(new CustomSimilarity());
 

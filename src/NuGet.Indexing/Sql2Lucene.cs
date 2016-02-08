@@ -259,8 +259,11 @@ namespace NuGet.Indexing
             {
                 using (IndexWriter writer = DocumentCreator.CreateIndexWriter(directory, true))
                 {
-                    Lucene.Net.Store.Directory[] partitions = tasks.Select(t => new SimpleFSDirectory(new DirectoryInfo(t.Result))).ToArray();
+                    writer.MergeFactor = LuceneConstants.MergeFactor;
+                    writer.MaxMergeDocs = LuceneConstants.MaxMergeDocs;
 
+                    Lucene.Net.Store.Directory[] partitions = tasks.Select(t => new SimpleFSDirectory(new DirectoryInfo(t.Result))).ToArray();
+                    
                     writer.AddIndexesNoOptimize(partitions);
 
                     foreach (var partition in partitions)
