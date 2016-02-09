@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
@@ -12,14 +13,15 @@ namespace NuGet.Indexing
     {
         const double BaseBoostConstant = 10.0;
 
-        double _baseBoost;
-        IDictionary<string, int> _rankings;
+        private readonly double _baseBoost;
+        private readonly IDictionary<string, int> _rankings;
+
         public Query Query { get; private set; }
 
-        public RankingScoreQuery(Query q, IDictionary<string, int> rankings, double baseBoost = BaseBoostConstant)
-            : base(q)
+        public RankingScoreQuery(Query query, IDictionary<string, int> rankings, double baseBoost = BaseBoostConstant)
+            : base(query)
         {
-            Query = q;
+            Query = query;
             _rankings = rankings;
             _baseBoost = baseBoost;
         }
@@ -36,9 +38,9 @@ namespace NuGet.Indexing
 
         private class RankingScoreProvider : CustomScoreProvider
         {
-            double _baseBoost;
-            IDictionary<string, int> _rankings;
-            string[] _ids;
+            private readonly double _baseBoost;
+            private readonly IDictionary<string, int> _rankings;
+            private readonly string[] _ids;
 
             public RankingScoreProvider(IndexReader reader, IDictionary<string, int> rankings, double baseBoost)
                 : base(reader)
@@ -53,7 +55,8 @@ namespace NuGet.Indexing
                 string id = _ids[doc];
 
                 float score = GetRankingScore(_rankings, id, _baseBoost);
-                if(score == 0.0f) {
+                if (score == 0.0f)
+                {
                     return subQueryScore;
                 }
 
@@ -65,10 +68,12 @@ namespace NuGet.Indexing
         public static float GetRankingScore(IDictionary<string, int> rankings, string id, double baseBoost = BaseBoostConstant)
         {
             int ranking = 0;
-            if(!rankings.TryGetValue(id, out ranking)) {
+            if (!rankings.TryGetValue(id, out ranking))
+            {
                 return 0.0f;
             }
-            return (float)Math.Pow(baseBoost, (1.1 - ((double)ranking / ((double)rankings.Count + 1.0))));
+
+            return (float)Math.Pow(baseBoost, (1.2 - ((double)ranking / ((double)rankings.Count + 1.0))));
         }
     }
 }
