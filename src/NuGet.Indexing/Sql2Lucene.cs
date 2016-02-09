@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Lucene.Net.Documents;
-using Lucene.Net.Index;
 using Lucene.Net.Store;
 using System;
 using System.Collections.Generic;
@@ -20,7 +19,7 @@ namespace NuGet.Indexing
         static Document CreateDocument(SqlDataReader reader, IDictionary<int, List<string>> packageFrameworks)
         {
             var package = new Dictionary<string, string>();
-            for (int i = 0; i < reader.FieldCount; i++)
+            for (var i = 0; i < reader.FieldCount; i++)
             {
                 if (!reader.IsDBNull(i))
                 {
@@ -29,7 +28,7 @@ namespace NuGet.Indexing
 
                     if (name == "key")
                     {
-                        int key = (int)obj;
+                        var key = (int)obj;
                         List<string> targetFrameworks;
                         if (packageFrameworks.TryGetValue(key, out targetFrameworks))
                         {
@@ -37,26 +36,27 @@ namespace NuGet.Indexing
                         }
                     }
 
-                    string value = (obj is DateTime) ? ((DateTime)obj).ToUniversalTime().ToString("O") : obj.ToString();
+                    var value = (obj is DateTime) ? ((DateTime)obj).ToUniversalTime().ToString("O") : obj.ToString();
 
                     package.Add(name, value);
                 }
             }
+
             return DocumentCreator.CreateDocument(package);
         }
 
         static string IndexBatch(string path, string connectionString, IDictionary<int, List<string>> packageFrameworks, int beginKey, int endKey)
         {
-            string folder = string.Format(@"{0}\index_{1}_{2}", path, beginKey, endKey);
+            var folder = string.Format(@"{0}\index_{1}_{2}", path, beginKey, endKey);
 
-            DirectoryInfo directoryInfo = new DirectoryInfo(folder);
+            var directoryInfo = new DirectoryInfo(folder);
             directoryInfo.Create();
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
 
-                string cmdText = @"
+                var cmdText = @"
                     SELECT
                         Packages.[Key]                          'key',
                         PackageRegistrations.Id                 'id',
@@ -91,22 +91,22 @@ namespace NuGet.Indexing
                     ORDER BY Packages.[Key]
                 ";
 
-                SqlCommand command = new SqlCommand(cmdText, connection);
+                var command = new SqlCommand(cmdText, connection);
                 command.CommandTimeout = (int)TimeSpan.FromMinutes(15).TotalSeconds;
                 command.Parameters.AddWithValue("BeginKey", beginKey);
                 command.Parameters.AddWithValue("EndKey", endKey);
 
-                SqlDataReader reader = command.ExecuteReader();
+                var reader = command.ExecuteReader();
 
-                int batch = 0;
+                var batch = 0;
 
-                SimpleFSDirectory directory = new SimpleFSDirectory(directoryInfo);
+                var directory = new SimpleFSDirectory(directoryInfo);
 
-                using (IndexWriter writer = DocumentCreator.CreateIndexWriter(directory, true))
+                using (var writer = DocumentCreator.CreateIndexWriter(directory, true))
                 {
                     while (reader.Read())
                     {
-                        Document document = CreateDocument(reader, packageFrameworks);
+                        var document = CreateDocument(reader, packageFrameworks);
 
                         writer.AddDocument(document);
 
@@ -129,9 +129,9 @@ namespace NuGet.Indexing
 
         static List<Tuple<int, int>> CalculateBatches(string connectionString)
         {
-            List<Tuple<int, int>> batches = new List<Tuple<int, int>>();
+            var batches = new List<Tuple<int, int>>();
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
 
@@ -143,24 +143,24 @@ namespace NuGet.Indexing
                     ORDER BY Packages.[Key]
                 ";
 
-                SqlCommand command = new SqlCommand(cmdText, connection);
+                var command = new SqlCommand(cmdText, connection);
                 command.CommandTimeout = (int)TimeSpan.FromMinutes(15).TotalSeconds;
 
-                SqlDataReader reader = command.ExecuteReader();
+                var reader = command.ExecuteReader();
 
-                List<int> l = new List<int>();
+                var list = new List<int>();
 
                 while (reader.Read())
                 {
-                    l.Add(reader.GetInt32(0));
+                    list.Add(reader.GetInt32(0));
                 }
 
                 int batch = 0;
 
-                int beginKey = l.First();
+                int beginKey = list.First();
                 int endKey = 0;
 
-                foreach (int x in l)
+                foreach (int x in list)
                 {
                     endKey = x;
 
@@ -182,16 +182,16 @@ namespace NuGet.Indexing
         {
             var result = new Dictionary<int, List<string>>();
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
 
-                string cmdText = @"SELECT Package_Key, TargetFramework FROM PackageFrameworks";
+                var cmdText = @"SELECT Package_Key, TargetFramework FROM PackageFrameworks";
 
-                SqlCommand command = new SqlCommand(cmdText, connection);
+                var command = new SqlCommand(cmdText, connection);
                 command.CommandTimeout = (int)TimeSpan.FromMinutes(15).TotalSeconds;
 
-                SqlDataReader reader = command.ExecuteReader();
+                var reader = command.ExecuteReader();
 
                 while (reader.Read())
                 {
@@ -235,7 +235,7 @@ namespace NuGet.Indexing
             stopwatch.Restart();
 
             var tasks = new List<Task<string>>();
-            foreach (Tuple<int, int> batch in batches)
+            foreach (var batch in batches)
             {
                 tasks.Add(Task.Run(() => { return IndexBatch(destinationPath + @"\batches", sourceConnectionString, packageFrameworks, batch.Item1, batch.Item2); }));
             }
@@ -257,12 +257,12 @@ namespace NuGet.Indexing
 
             using (var directory = new SimpleFSDirectory(new DirectoryInfo(destinationPath)))
             {
-                using (IndexWriter writer = DocumentCreator.CreateIndexWriter(directory, true))
+                using (var writer = DocumentCreator.CreateIndexWriter(directory, true))
                 {
                     writer.MergeFactor = LuceneConstants.MergeFactor;
                     writer.MaxMergeDocs = LuceneConstants.MaxMergeDocs;
 
-                    Lucene.Net.Store.Directory[] partitions = tasks.Select(t => new SimpleFSDirectory(new DirectoryInfo(t.Result))).ToArray();
+                    var partitions = tasks.Select(t => new SimpleFSDirectory(new DirectoryInfo(t.Result))).ToArray();
                     
                     writer.AddIndexesNoOptimize(partitions);
 
