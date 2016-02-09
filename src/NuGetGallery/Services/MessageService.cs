@@ -314,6 +314,35 @@ The {3} Team";
             }
         }
 
+        public void SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package)
+        {
+            if (!toUser.EmailAllowed)
+            {
+                return;
+            }
+            
+            const string subject = "[{0}] The user '{1}' has removed you as an owner of the package '{2}'.";
+
+            string body = @"The user '{0}' removed you as an owner of the package '{1}'.
+
+If this was done incorrectly, we'd recommend contacting '{0}' at '{2}'.
+
+Thanks,
+The {3} Team";
+            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, fromUser.EmailAddress, Config.GalleryOwner.DisplayName);
+            
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryOwner;
+                mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
+
+                mailMessage.To.Add(toUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
         public void SendCredentialRemovedNotice(User user, Credential removed)
         {
             SendCredentialChangeNotice(

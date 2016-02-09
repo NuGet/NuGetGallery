@@ -107,8 +107,15 @@ namespace NuGetGallery
             {
                 return new { success = false, message = "Owner not found" };
             }
+            var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (currentUser == null)
+            {
+                return new { success = false, message = "Current user not found" };
+            }
 
             _packageService.RemovePackageOwner(package, user);
+            _messageService.SendPackageOwnerRemovedNotice(currentUser, user, package);
+
             return new { success = true };
         }
 
