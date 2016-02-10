@@ -189,7 +189,7 @@
     <Compile Include="Extraction\JTokenExtensions.cs" />
     <Compile Include="Extraction\PackageEntityMetadataExtraction.cs" />
     <Compile Include="IConfiguration.cs" />
-    <Compile Include="LuceneConstants.cs" />
+    <Compile Include="NuGetMergePolicyApplyer.cs" />
     <Compile Include="OwnerAnalyzer.cs" />
     <Compile Include="Downloads.cs" />
     <Compile Include="DownloadLookup.cs" />

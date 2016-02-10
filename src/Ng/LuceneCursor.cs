@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Indexing;
 
 namespace Ng
 {
@@ -37,6 +38,8 @@ namespace Ng
                 IDictionary<string, string> commitUserData;
                 using (IndexWriter indexWriter = new IndexWriter(_directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.UNLIMITED))
                 {
+                    NuGetMergePolicyApplyer.ApplyTo(indexWriter);
+
                     commitUserData = indexWriter.GetReader().CommitUserData;
                 }
 
