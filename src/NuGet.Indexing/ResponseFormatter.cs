@@ -6,9 +6,7 @@ using Lucene.Net.Search;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace NuGet.Indexing
 {
@@ -67,11 +65,12 @@ namespace NuGet.Indexing
                 
                 string id = document.Get("Id");
 
-                string relativeAddress = UriFormatter.MakeRegistrationRelativeAddress(id);
+                var relativeAddress = UriFormatter.MakeRegistrationRelativeAddress(id);
+                var absoluteAddress = new Uri(baseAddress, relativeAddress).AbsoluteUri;
 
-                WriteProperty(jsonWriter, "@id", relativeAddress);
+                WriteProperty(jsonWriter, "@id", absoluteAddress);
                 WriteProperty(jsonWriter, "@type", "Package");
-                WriteProperty(jsonWriter, "registration", new Uri(baseAddress, relativeAddress).AbsoluteUri);
+                WriteProperty(jsonWriter, "registration", absoluteAddress);
 
                 WriteProperty(jsonWriter, "id", id);
 
@@ -85,7 +84,7 @@ namespace NuGet.Indexing
                 WriteDocumentValueAsArray(jsonWriter, "tags", document, "Tags");
                 WriteDocumentValueAsArray(jsonWriter, "authors", document, "Authors", true);
                 WriteProperty(jsonWriter, "totalDownloads", searcher.Versions[scoreDoc.Doc].VersionDetails.Select(item => item.Downloads).Sum());
-                WriteVersions(jsonWriter, id, includePrerelease, searcher.Versions[scoreDoc.Doc]);
+                WriteVersions(jsonWriter, baseAddress, id, includePrerelease, searcher.Versions[scoreDoc.Doc]);
 
                 if (includeExplanation)
                 {
@@ -99,7 +98,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        private static void WriteVersions(JsonWriter jsonWriter, string id, bool includePrerelease, VersionsHandler.VersionResult versionResult)
+        private static void WriteVersions(JsonWriter jsonWriter, Uri baseAddress, string id, bool includePrerelease, VersionsHandler.VersionResult versionResult)
         {
             jsonWriter.WritePropertyName("versions");
 
@@ -107,11 +106,14 @@ namespace NuGet.Indexing
 
             foreach (var item in includePrerelease ? versionResult.VersionDetails : versionResult.StableVersionDetails)
             {
+                var relativeAddress = UriFormatter.MakePackageRelativeAddress(id, item.Version);
+                var absoluteAddress = new Uri(baseAddress, relativeAddress).AbsoluteUri;
+
                 jsonWriter.WriteStartObject();
 
                 WriteProperty(jsonWriter, "version", item.Version);
                 WriteProperty(jsonWriter, "downloads", item.Downloads);
-                WriteProperty(jsonWriter, "@id", UriFormatter.MakePackageRelativeAddress(id, item.Version));
+                WriteProperty(jsonWriter, "@id", absoluteAddress);
 
                 jsonWriter.WriteEndObject();
             }
