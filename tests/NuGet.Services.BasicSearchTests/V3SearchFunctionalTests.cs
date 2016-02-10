@@ -107,7 +107,10 @@ namespace NuGet.Services.BasicSearchTests
             };
             var expectedPath = Path.Combine("Data", "V3SearchFunctionalTests.ReturnsCorrectSchema.json");
             var expectedJsonText = File.ReadAllText(expectedPath);
-            var expected = JsonConvert.DeserializeObject<JObject>(expectedJsonText);
+            var expected = JsonConvert.DeserializeObject<JObject>(expectedJsonText, new JsonSerializerSettings
+            {
+                DateParseHandling = DateParseHandling.DateTimeOffset
+            });
             var before = DateTimeOffset.UtcNow;
 
             using (var app = await StartedWebApp.StartAsync(packages))

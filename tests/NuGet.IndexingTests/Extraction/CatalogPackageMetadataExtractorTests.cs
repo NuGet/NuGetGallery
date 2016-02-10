@@ -298,7 +298,10 @@ namespace NuGet.IndexingTests.Extraction
         private static JObject CatalogEntry(object obj)
         {
             var json = JsonConvert.SerializeObject(obj);
-            return JsonConvert.DeserializeObject<JObject>(json);
+            return JsonConvert.DeserializeObject<JObject>(json, new JsonSerializerSettings
+            {
+                DateParseHandling = DateParseHandling.DateTimeOffset
+            });
         }
     }
 }
