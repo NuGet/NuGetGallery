@@ -510,8 +510,7 @@ namespace NuGetGallery
                 user.PasswordResetToken,
                 new { forgot = forgotPassword });
             MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
-
-            TempData["Email"] = user.EmailAddress;
+            
             return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
         }
     }
