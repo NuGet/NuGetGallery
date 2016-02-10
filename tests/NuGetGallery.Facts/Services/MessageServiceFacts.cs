@@ -358,6 +358,40 @@ namespace NuGetGallery
             }
         }
 
+        public class TheSendPackageOwnerRemovedNoticeMethod
+        {
+            [Fact]
+            public void SendsPackageOwnerRemovedNotice()
+            {
+                var to = new User { Username = "Noob", EmailAddress = "old-owner@example.com", EmailAllowed = true };
+                var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+
+                var messageService = new TestableMessageService();
+                messageService.SendPackageOwnerRemovedNotice(from, to, package);
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal("old-owner@example.com", message.To[0].Address);
+                Assert.Equal(TestGalleryOwner.Address, message.From.Address);
+                Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
+                Assert.Contains("The user 'Existing' has removed you as an owner of the package 'CoolStuff'.", message.Subject);
+                Assert.Contains("The user 'Existing' removed you as an owner of the package 'CoolStuff'", message.Body);
+            }
+
+            [Fact]
+            public void DoesNotSendRemovedNoticeIfUserDoesNotAllowEmails()
+            {
+                var to = new User { Username = "Noob", EmailAddress = "old-owner@example.com", EmailAllowed = false };
+                var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+
+                var messageService = new TestableMessageService();
+                messageService.SendPackageOwnerRemovedNotice(from, to, package);
+
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
         public class TheSendResetPasswordInstructionsMethod
         {
             [Fact]
