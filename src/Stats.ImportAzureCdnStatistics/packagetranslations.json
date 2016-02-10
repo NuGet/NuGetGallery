@@ -41,6 +41,18 @@
       "incorrectpackageversionpattern": "2015.(.*)",
       "correctedpackageid": "fakexrmeasy.2015",
       "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "2016.(.*)",
+      "correctedpackageid": "fakexrmeasy.2016",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "2017.(.*)",
+      "correctedpackageid": "fakexrmeasy.2017",
+      "correctedpackageversionpattern": "$1"
     }
   ]
 }
