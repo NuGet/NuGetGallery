@@ -160,7 +160,7 @@ namespace NuGet.Indexing
                 var ownersHandler = new OwnersHandler(owners);
                 var versionsHandler = new VersionsHandler(downloads);
 
-                // The point of the IndexReaderProcess is to allow us to loop of the IndexReader fewer times.
+                // The point of the IndexReaderProcessor is to allow us to loop of the IndexReader fewer times.
                 // Looping over the reader, accessing the Document and then accessing the fields inside the Document are not
                 // inexpensive operations especially when you are going to do that for every Document in the index.
 
