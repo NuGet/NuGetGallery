@@ -72,7 +72,24 @@ namespace NuGet.Indexing
                     return;
                 }
 
-                _metadata[destination ?? source] = (string)value;
+                _metadata[destination ?? source] = JTokenToString(value);
+            }
+
+            private string JTokenToString(JToken value)
+            {
+                if (value == null)
+                {
+                    return null;
+                }
+
+                if (value.Type == JTokenType.Date)
+                {
+                    return value.Value<DateTimeOffset>().ToString("o");
+                }
+                else
+                {
+                    return (string)value;
+                }
             }
 
             private void AddStringArray(string source, string destination = null)
@@ -83,7 +100,7 @@ namespace NuGet.Indexing
                     return;
                 }
 
-                string joined = string.Join(" ", value.Select(t => (string)t));
+                string joined = string.Join(" ", value.Select(JTokenToString));
                 _metadata[destination ?? source] = joined;
             }
 

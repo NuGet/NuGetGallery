@@ -197,7 +197,7 @@ namespace NuGet.Indexing
                 }
 
                 string lastEdited;
-                if (package.TryGetValue("lastEdited", out lastEdited))
+                if (package.TryGetValue("lastEdited", out lastEdited) && lastEdited != "01/01/0001 00:00:00")
                 {
                     AddField(document, "OriginalLastEdited", lastEdited, Field.Index.NOT_ANALYZED);
                 }
