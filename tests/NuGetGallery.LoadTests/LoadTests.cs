@@ -167,10 +167,12 @@ namespace NuGetGallery.LoadTests
         [TestCategory("P0Tests")]
         public async Task ApiV2BaseUrlTest()
         {
-            string expectedText = @"<atom:title>Packages</atom:title>";
+            string expectedText1 = @"<atom:title>Packages</atom:title>";
+            string expectedText2 = @"<atom:title type=""text"">Packages</atom:title>";
             var odataHelper = new ODataHelper();
-            bool containsResponseText = await odataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl, expectedText);
-            Assert.IsTrue(containsResponseText);
+            bool containsResponseText1 = await odataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl, expectedText1);
+            bool containsResponseText2 = await odataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl, expectedText2);
+            Assert.IsTrue(containsResponseText1 || containsResponseText2);
         }
 
         [TestMethod]
