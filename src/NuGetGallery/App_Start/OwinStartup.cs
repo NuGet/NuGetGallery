@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Http;
 using System.Web.Mvc;
 using Elmah;
 using Microsoft.ApplicationInsights;
@@ -41,7 +42,7 @@ namespace NuGetGallery
             ServicePointManager.Expect100Continue = false;
 
             // Register IoC
-            app.UseAutofacInjection();
+            app.UseAutofacInjection(GlobalConfiguration.Configuration);
             var dependencyResolver = DependencyResolver.Current;
 
             // Register Elmah
