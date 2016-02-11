@@ -16,9 +16,9 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="request">Current request.</param>
         /// <returns><c>null</c> if not to be determined.</returns>
-        public static CultureInfo DetermineClientLocale(this HttpRequest request)
+        public static CultureInfo DetermineClientCulture(this HttpRequest request)
         {
-            return DetermineClientLocale(new HttpRequestWrapper(request));
+            return DetermineClientCulture(new HttpRequestWrapper(request));
         }
         
         /// <summary>
@@ -26,7 +26,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="request">Current request.</param>
         /// <returns><c>null</c> if not to be determined.</returns>
-        public static CultureInfo DetermineClientLocale(this HttpRequestBase request)
+        public static CultureInfo DetermineClientCulture(this HttpRequestBase request)
         {
             if (request == null)
             {

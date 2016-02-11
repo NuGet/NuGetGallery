@@ -126,6 +126,15 @@
       <HintPath>..\..\packages\Autofac.Owin.3.1.0\lib\net45\Autofac.Integration.Owin.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Autofac.Integration.WebApi, Version=3.4.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Autofac.WebApi2.3.4.0\lib\net45\Autofac.Integration.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="DynamicData.EFCodeFirstProvider, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\DynamicData.EFCodeFirstProvider.0.3.0.0\lib\net40\DynamicData.EFCodeFirstProvider.dll</HintPath>
+    </Reference>
     <Reference Include="Elmah, Version=1.2.14706.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\elmah.corelibrary.1.2.2\lib\Elmah.dll</HintPath>
@@ -296,6 +305,10 @@
       <HintPath>..\..\packages\Microsoft.AspNet.Identity.Core.1.0.0\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.AspNet.WebApi.MessageHandlers.Compression, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.MessageHandlers.Compression.1.3.0\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\Microsoft.AspNet.WebApi.MessageHandlers.Compression.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="Microsoft.Data.Edm, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -401,29 +414,33 @@
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NuGet.Common">
+      <HintPath>..\..\packages\NuGet.Common.3.4.0-beta-583\lib\net45\NuGet.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NuGet.Frameworks, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Frameworks.3.4.0-beta-515\lib\net45\NuGet.Frameworks.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Frameworks.3.4.0-beta-583\lib\net45\NuGet.Frameworks.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Logging, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Logging.3.4.0-beta-515\lib\net45\NuGet.Logging.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Logging.3.4.0-beta-583\lib\net45\NuGet.Logging.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Packaging.3.4.0-beta-515\lib\net45\NuGet.Packaging.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.3.4.0-beta-583\lib\net45\NuGet.Packaging.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging.Core, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Packaging.Core.3.4.0-beta-515\lib\net45\NuGet.Packaging.Core.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.Core.3.4.0-beta-583\lib\net45\NuGet.Packaging.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging.Core.Types, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Packaging.Core.Types.3.4.0-beta-515\lib\net45\NuGet.Packaging.Core.Types.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.Core.Types.3.4.0-beta-583\lib\net45\NuGet.Packaging.Core.Types.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Services.Platform.Client, Version=3.0.29.0, Culture=neutral, processorArchitecture=MSIL">
@@ -433,7 +450,7 @@
     </Reference>
     <Reference Include="NuGet.Versioning, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Versioning.3.4.0-beta-515\lib\net45\NuGet.Versioning.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Versioning.3.4.0-beta-583\lib\net45\NuGet.Versioning.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor, Version=0.5.4237.2641, Culture=neutral, processorArchitecture=MSIL">
@@ -466,23 +483,45 @@
       <HintPath>..\..\packages\RouteMagic.1.1.3\lib\net40\RouteMagic.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Extensions, Version=2.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Extensions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System.Net.Http.Primitives, Version=4.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Primitives.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Http.OData, Version=5.5.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.OData.5.5.1\lib\net45\System.Web.Http.OData.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.3\lib\net45\System.Web.Http.WebHost.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WebApi.OutputCache.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Strathweb.CacheOutput.WebApi2.0.9.0\lib\net45\WebApi.OutputCache.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WebApi.OutputCache.V2, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Strathweb.CacheOutput.WebApi2.0.9.0\lib\net45\WebApi.OutputCache.V2.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
@@ -583,6 +622,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\NuGetODataV2CuratedFeedConfig.cs" />
+    <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
+    <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
+    <Compile Include="App_Start\NuGetODataConfig.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
@@ -603,6 +647,9 @@
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Controllers\ODataV1FeedController.cs" />
+    <Compile Include="Controllers\ODataV2CuratedFeedController.cs" />
+    <Compile Include="Controllers\ODataV2FeedController.cs" />
     <Compile Include="Diagnostics\PerfCounters.cs" />
     <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
@@ -637,9 +684,11 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
-    <Compile Include="DataServices\NormalizeVersionInterceptor.cs" />
-    <Compile Include="DataServices\RewriteBaseUrlMessageInspector.cs" />
-    <Compile Include="DataServices\SearchHijacker.cs" />
+    <Compile Include="Infrastructure\QueryInterceptorExtensions.cs" />
+    <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
+    <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
+    <Compile Include="OData\QueryInterceptors\NormalizeVersionInterceptor.cs" />
+    <Compile Include="OData\SearchService\SearchHijacker.cs" />
     <Compile Include="Diagnostics\AuthenticationGlimpseTab.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsGlimpseTab.cs" />
@@ -663,6 +712,7 @@
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\GlimpseServiceLocator.cs" />
     <Compile Include="Configuration\StorageType.cs" />
+    <Content Include="bin\NuGetGallery.dll.config" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
     <Compile Include="Areas\Admin\Controllers\HomeController.cs" />
@@ -898,34 +948,19 @@
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
-    <Compile Include="DataServices\ODataRemoveVersionSorter.cs" />
-    <Compile Include="DataServices\CountInterceptor.cs">
+    <Compile Include="OData\QueryInterceptors\ODataRemoveVersionSorter.cs" />
+    <Compile Include="OData\QueryInterceptors\CountInterceptor.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataServices\DisregardODataInterceptor.cs" />
-    <Compile Include="DataServices\SearchAdaptor.cs" />
-    <Compile Include="DataServices\V2CuratedFeed.svc.cs">
-      <DependentUpon>V2CuratedFeed.svc</DependentUpon>
-    </Compile>
-    <Compile Include="DataServices\V1FeedPackage.cs">
+    <Compile Include="OData\QueryInterceptors\DisregardODataInterceptor.cs" />
+    <Compile Include="OData\SearchService\SearchAdaptor.cs" />
+    <Compile Include="OData\V1FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataServices\V1Feed.svc.cs">
-      <DependentUpon>V1Feed.svc</DependentUpon>
+    <Compile Include="OData\PackageExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataServices\FeedContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DataServices\FeedServiceBase.cs" />
-    <Compile Include="DataServices\PackageExtensions.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DataServices\V2Feed.svc.cs">
-      <DependentUpon>V2Feed.svc</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DataServices\V2FeedPackage.cs">
+    <Compile Include="OData\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
@@ -1211,6 +1246,16 @@
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
+    <Compile Include="OData\Conventions\ActionCountRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\ControllerAliasingODataRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\CompositeKeyRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\EntitySetCountRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\MethodNameActionRoutingConvention.cs" />
+    <Compile Include="OData\NuGetODataController.cs" />
+    <Compile Include="OData\Routing\CountODataPathHandler.cs" />
+    <Compile Include="OData\Routing\CountPathSegment.cs" />
+    <Compile Include="OData\Serializers\NuGetEntityTypeSerializer.cs" />
+    <Compile Include="OData\Serializers\CustomSerializerProvider.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\TagBasedPackageCurator.cs" />
@@ -1225,6 +1270,9 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
+    <Compile Include="WebApi\PlainTextResult.cs" />
+    <Compile Include="WebApi\QueryResult.cs" />
+    <Compile Include="WebApi\QueryResultExtensions.cs" />
     <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -1548,9 +1596,6 @@
     <Content Include="Content\SyntaxHighlighter\shThemeRDark.css" />
     <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.css" />
     <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.min.css" />
-    <Content Include="DataServices\V2CuratedFeed.svc" />
-    <Content Include="DataServices\V1Feed.svc" />
-    <Content Include="DataServices\V2Feed.svc" />
     <Content Include="Public\Error.html" />
     <Content Include="Public\favicon.ico" />
     <Content Include="Public\opensearch.xml" />

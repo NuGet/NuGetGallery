@@ -1,4 +1,4 @@
-﻿# Copyright (c) Andre N. Klingsheim. See https://nwebsec.codeplex.com/license for license information.
+# Copyright (c) Andre N. Klingsheim. See https://nwebsec.codeplex.com/license for license information.
 
 param([bool]$allowReboot = $false)
 
