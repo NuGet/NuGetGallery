@@ -53,6 +53,24 @@
       "incorrectpackageversionpattern": "2017.(.*)",
       "correctedpackageid": "fakexrmeasy.2017",
       "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "trackableentities.ef",
+      "incorrectpackageversionpattern": "5.(.*)",
+      "correctedpackageid": "trackableentities.ef.5",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "trackableentities.ef",
+      "incorrectpackageversionpattern": "6.(.*)",
+      "correctedpackageid": "trackableentities.ef.6",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "trackableentities.ef",
+      "incorrectpackageversionpattern": "7.(.*)",
+      "correctedpackageid": "trackableentities.ef.7",
+      "correctedpackageversionpattern": "$1"
     }
   ]
 }
