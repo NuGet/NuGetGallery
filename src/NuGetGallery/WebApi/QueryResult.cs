@@ -23,6 +23,7 @@ namespace NuGetGallery.WebApi
         {
             HandleNullPropagation = HandleNullPropagationOption.False,
             EnsureStableOrdering = true,
+            EnableConstantParameterization = false
         };
     }
 

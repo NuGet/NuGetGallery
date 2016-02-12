@@ -82,7 +82,9 @@ namespace NuGetGallery.OData
             // For relevance search, Lucene returns us a paged/sorted list. OData tries to apply default ordering and Take / Skip on top of this.
             // It also tries to filter to latest versions, but the search service already did that!
             // We avoid it by yanking these expressions out of out the tree.
-            return result.Data.InterceptWith(new DisregardODataInterceptor());
+            return result.Data
+                .InterceptWith(new CountInterceptor(result.Hits))
+                .InterceptWith(new DisregardODataInterceptor());
         }
 
         public static async Task<IQueryable<Package>> FindByIdAndVersionCore(
@@ -95,14 +97,16 @@ namespace NuGetGallery.OData
         {
             SearchFilter searchFilter;
             // We can only use Lucene if:
-            //  a) We are looking for the latest version of a package OR the Index contains all versions of each package
+            //  a) The Index contains all versions of each package
             //  b) The sort order is something Lucene can handle
-            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, out searchFilter))
+            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, searchService.ContainsAllVersions, out searchFilter))
             {
                 var searchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\"", id);
                 if (!string.IsNullOrEmpty(version))
                 {
                     searchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\" AND Version:\"{1}\"", id, version);
+
+                    searchFilter.Take = 1; // only one result is needed in this case
                 }
 
                 searchFilter.SearchTerm = searchTerm;
@@ -132,7 +136,7 @@ namespace NuGetGallery.OData
             // We can only use Lucene if:
             //  a) We are looking for the latest version of a package OR the Index contains all versions of each package
             //  b) The sort order is something Lucene can handle
-            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, out searchFilter))
+            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, false, out searchFilter))
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
@@ -152,7 +156,7 @@ namespace NuGetGallery.OData
             return packages.Search(searchTerm);
         }
 
-        private static bool TryReadSearchFilter(bool allVersionsInIndex, string url, out SearchFilter searchFilter)
+        private static bool TryReadSearchFilter(bool allVersionsInIndex, string url, bool ignoreLatestVersionFilter, out SearchFilter searchFilter)
         {
             if (url == null)
             {
@@ -196,13 +200,13 @@ namespace NuGetGallery.OData
             string filter;
             if (queryTerms.TryGetValue("$filter", out filter))
             {
-                if (!(filter.Equals("IsLatestVersion", StringComparison.Ordinal) || filter.Equals("IsAbsoluteLatestVersion", StringComparison.Ordinal)))
+                if (!ignoreLatestVersionFilter && !(filter.Equals("IsLatestVersion", StringComparison.Ordinal) || filter.Equals("IsAbsoluteLatestVersion", StringComparison.Ordinal)))
                 {
                     searchFilter = null;
                     return false;
                 }
             }
-            else if(!allVersionsInIndex)
+            else if (!allVersionsInIndex)
             {
                 searchFilter = null;
                 return false;
@@ -222,7 +226,7 @@ namespace NuGetGallery.OData
             if (queryTerms.TryGetValue("$top", out topStr))
             {
                 int top;
-                if(int.TryParse(topStr, out top))
+                if (int.TryParse(topStr, out top))
                 {
                     searchFilter.Take = Math.Min(top, MaxPageSize);
                 }

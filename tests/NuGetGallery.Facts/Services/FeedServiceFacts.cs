@@ -12,6 +12,7 @@ using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
 using Moq;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;
 using NuGetGallery.TestUtils.Infrastructure;
 using NuGetGallery.WebApi;
@@ -397,7 +398,6 @@ namespace NuGetGallery
 
         public class TheV2Feed
         {
-
             public class ThePackagesCollection
             {
                 [Theory]
@@ -405,7 +405,7 @@ namespace NuGetGallery
                 [InlineData("Id eq 'Bar'", 1, 1, new[] { "Bar" }, new[] { "1.0.0" })]
                 [InlineData("Id eq 'Bar' and IsPrerelease eq true", 100, 2, new[] { "Bar", "Bar" }, new[] { "2.0.1-a" , "2.0.1-b" })]
                 [InlineData("Id eq 'Bar' or Id eq 'Foo'", 100, 6, new[] { "Foo", "Foo", "Bar", "Bar", "Bar", "Bar" }, new[] { "1.0.0", "1.0.1-a", "1.0.0", "2.0.0", "2.0.1-a", "2.0.1-b" })]
-                public void V2FeedPackagesReturnsCollection(string filter, int top, int expectedNumberOfPackages, string[] expectedIds, string[] expectedVersions)
+                public async Task V2FeedPackagesReturnsCollection(string filter, int top, int expectedNumberOfPackages, string[] expectedIds, string[] expectedVersions)
                 {
                     // Arrange
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
@@ -423,7 +423,7 @@ namespace NuGetGallery
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages?$filter=" + filter + "&$top=" + top);
 
                     // Act
-                    var result = v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request))
+                    var result = (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request)))
                         .ExpectQueryResult<V2FeedPackage>()
                         .GetInnerResult()
                         .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
@@ -441,12 +441,90 @@ namespace NuGetGallery
                 }
 
                 [Theory]
+                [InlineData("Id eq 'Foo'")]
+                [InlineData("(Id eq 'Foo')")]
+                [InlineData("Id eq 'Bar' and Version eq '1.0.0'")]
+                public async Task V2FeedPackagesUsesSearchHijackForIdOrIdVersionQueries(string filter)
+                {
+                    // Arrange
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
+                    searchService.CallBase = true;
+                    searchService.Setup(s => s.RawSearch(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)))
+                            .Verifiable("Hijack was not performed.");
+
+                    string rawUrl = "https://localhost:8081/api/v2/Packages?$filter=" + filter + "&$top=10&$orderby=DownloadCount desc";
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, rawUrl);
+                    v2Service.RawUrl = rawUrl;
+
+                    // Act
+                    var result = (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request)))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
+
+                    // Assert
+                    Assert.NotNull(result);
+                    searchService.Verify();
+                }
+
+                [Theory]
+                [InlineData("Id eq 'Bar' and IsPrerelease eq true")]
+                [InlineData("Id eq 'Bar' or Id eq 'Foo'")]
+                [InlineData("(Id eq 'Foo' and Version eq '1.0.0') or (Id eq 'Bar' and Version eq '1.0.0')")]
+                [InlineData("Id eq 'NotBar' and true")]
+                [InlineData("true")]
+                public async Task V2FeedPackagesDoesNotUseSearchHijackForFunkyQueries(string filter)
+                {
+                    // Arrange
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    bool called = false;
+                    var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
+                    searchService.CallBase = true;
+                    searchService.Setup(s => s.RawSearch(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)))
+                            .Callback(() => called = true);
+
+                    string rawUrl = "https://localhost:8081/api/v2/Packages?$filter=" + filter + "&$top=10";
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, rawUrl);
+                    v2Service.RawUrl = rawUrl;
+
+                    // Act
+                    var result = (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request)))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
+
+                    // Assert
+                    Assert.NotNull(result);
+                    Assert.False(called); // Hijack was performed and it should not have been.
+                    searchService.Verify();
+                }
+
+                [Theory]
                 [InlineData("Id eq 'Foo'", 100, 2)]
                 [InlineData("Id eq 'Bar'", 1, 1)]
                 [InlineData("Id eq 'Bar' and IsPrerelease eq true", 100, 2)]
                 [InlineData("Id eq 'Bar' or Id eq 'Foo'", 100, 6)]
                 [InlineData("Id eq 'NotBar'", 100, 0)]
-                public void V2FeedPackagesCountReturnsCorrectCount(string filter, int top, int expectedNumberOfPackages)
+                public async Task V2FeedPackagesCountReturnsCorrectCount(string filter, int top, int expectedNumberOfPackages)
                 {
                     // Arrange
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
@@ -464,7 +542,7 @@ namespace NuGetGallery
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages/$count?$filter=" + filter + "&$top=" + top);
 
                     // Act
-                    var result = v2Service.GetCount(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request))
+                    var result = (await v2Service.GetCount(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request)))
                         .ExpectQueryResult<V2FeedPackage>()
                         .GetInnerResult()
                         .ExpectResult<PlainTextResult>();
@@ -474,9 +552,9 @@ namespace NuGetGallery
                 }
 
                 [Fact]
-                public void V2FeedPackagesCountReturnsCorrectCountForDeletedPackages()
+                public async Task V2FeedPackagesCountReturnsCorrectCountForDeletedPackages()
                 {
-                    V2FeedPackagesCountReturnsCorrectCount("Id eq 'Baz'", 100, 0);
+                    await V2FeedPackagesCountReturnsCorrectCount("Id eq 'Baz'", 100, 0);
                 }
 
                 [Theory]
@@ -547,7 +625,7 @@ namespace NuGetGallery
 
                 [Theory]
                 [InlineData("Id eq 'Baz'")]
-                public void V2FeedPackagesCollectionDoesNotContainDeletedPackages(string filter)
+                public async Task V2FeedPackagesCollectionDoesNotContainDeletedPackages(string filter)
                 {
                     // Arrange
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
@@ -565,7 +643,7 @@ namespace NuGetGallery
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages?$filter=" + filter);
 
                     // Act
-                    var result = v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request))
+                    var result = (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request)))
                         .ExpectQueryResult<V2FeedPackage>()
                         .GetInnerResult()
                         .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
