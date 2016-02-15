@@ -8,12 +8,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
-using NuGet;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.AsyncFileUpload;
@@ -342,7 +342,7 @@ namespace NuGetGallery
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
         }
-
+        
         public virtual async Task<ActionResult> ListPackages(string q, int page = 1)
         {
             if (page < 1)
@@ -351,6 +351,16 @@ namespace NuGetGallery
             }
 
             q = (q ?? string.Empty).Trim();
+
+            // We are not going to SQL here anyway, but our request logs do show some attempts to SQL injection.
+            // The below code just fails out those requests early.
+            if (q.ToLowerInvariant().Contains("char(") 
+                || q.ToLowerInvariant().Contains("union select") 
+                || q.ToLowerInvariant().Contains("/*") 
+                || q.ToLowerInvariant().Contains("--"))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
 
             SearchResults results;
 
