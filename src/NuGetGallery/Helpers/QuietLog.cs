@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Web;
 using Elmah;
 using Microsoft.ApplicationInsights;
@@ -11,6 +12,31 @@ namespace NuGetGallery
     internal static class QuietLog
     {
         public static void LogHandledException(Exception e)
+        {
+            var aggregateExceptionId = Guid.NewGuid().ToString();
+
+            var aggregateException = e as AggregateException;
+            if (aggregateException != null)
+            {
+                LogHandledExceptionCore(aggregateException, aggregateExceptionId);
+
+                foreach (var innerException in aggregateException.InnerExceptions)
+                {
+                    LogHandledExceptionCore(innerException, aggregateExceptionId);
+                }
+            }
+            else
+            {
+                LogHandledExceptionCore(e, aggregateExceptionId);
+
+                if (e.InnerException != null)
+                {
+                    LogHandledExceptionCore(e.InnerException, aggregateExceptionId);
+                }
+            }
+        }
+
+        private static void LogHandledExceptionCore(Exception e, string aggregateExceptionId)
         {
             try
             {
@@ -25,7 +51,10 @@ namespace NuGetGallery
 
                 // send exception to AppInsights
                 var telemetryClient = new TelemetryClient();
-                telemetryClient.TrackException(e);
+                telemetryClient.TrackException(e, new Dictionary<string, string>
+                {
+                    { "aggregateExceptionId", aggregateExceptionId }
+                });
             }
             catch
             {
