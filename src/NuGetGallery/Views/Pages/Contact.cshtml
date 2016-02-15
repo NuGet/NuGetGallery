@@ -1,4 +1,6 @@
-﻿@{
+﻿@using NuGetGallery.ViewModels
+@model ContactSupportViewModel
+@{
     ViewBag.Title = "Contact Us";
 }
 <article class="contact">
@@ -41,10 +43,39 @@
         No need to contact support. Create a new user and transfer ownership of your packages to it.
     </p>
 
-    <h3>Talk to the NuGet development team and wider NuGet community</h3>
-    <p>
-        Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>
-    </p>
+    @if (User.Identity.IsAuthenticated)
+    {
+        <h3>The above doesn't help? Get in touch with us using the form below</h3>
+        <p>
+            A member of our Support team will be in touch with you soon.
+        </p>
+        using (Html.BeginForm())
+        {
+            <div class="form-field">
+                @Html.LabelFor(m => m.SubjectLine)
+                @Html.TextAreaFor(m => m.SubjectLine, 1, 50, null)
+            </div>
+            <div class="form-field">
+                @Html.LabelFor(m => m.Message)
+                @Html.TextAreaFor(m => m.Message, 10, 50, null)
+                @Html.ValidationMessageFor(m => m.Message, null, new { id = "contact-support-message" })
+            </div>
+            <div class="form-field">
+                @Html.CheckBoxFor(m => m.CopySender)
+                @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
+            </div>
+            <input id="form-submit" type="submit" value="Contact" title="Contact Support" />
+        }
+    }
+    else
+    {
+        <h3>Talk to the NuGet development team and wider NuGet community</h3>
+        <p>
+            Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>
+        </p>
+
+        <h3>The above doesn't help? @Html.ActionLink("Sign In", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" }) to contact Support</h3>
+    }  
 </article>
 
 @section BottomScripts {

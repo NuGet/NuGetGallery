@@ -10,6 +10,7 @@ using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -379,6 +380,35 @@ The {3} Team";
                 Config.GalleryOwner.DisplayName,
                 name);
             SendSupportMessage(user, body, subject);
+        }
+
+        public void SendContactSupportEmail(ContactSupportRequest request)
+        {
+            string subject = string.Format("Support Request (Reason: {0})", request.SubjectLine);
+
+            string body = string.Format(@"
+**Email:** {0} ({1})
+
+**Reason:**
+{2}
+
+**Message:**
+{3}
+", request.RequestingUser.Username, request.RequestingUser.EmailAddress, request.SubjectLine, request.Message);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryOwner;
+                mailMessage.ReplyToList.Add(request.FromAddress);
+                mailMessage.To.Add(Config.GalleryOwner);
+                if (request.CopySender)
+                {
+                    mailMessage.CC.Add(request.FromAddress);
+                }
+                SendMessage(mailMessage);
+            }
         }
 
         private void SendSupportMessage(User user, string body, string subject)
