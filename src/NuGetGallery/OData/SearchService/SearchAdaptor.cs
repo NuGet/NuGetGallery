@@ -283,11 +283,16 @@ namespace NuGetGallery.OData
         {
             if (!totalResultCount.HasValue || totalResultCount.Value <= MaxPageSize || totalResultCount.Value == 0)
             {
-                return null; // no need for a next link if there are no additional results
+                return null; // no need for a next link if there are no additional results on this page
             }
            
             var skipCount = (options.Skip != null ? options.Skip.Value : 0) + Math.Min(totalResultCount.Value, (settings.PageSize != null ? settings.PageSize.Value : SearchAdaptor.MaxPageSize));
-            
+
+            if (totalResultCount.Value <= skipCount)
+            {
+                return null; // no need for a next link if there are no additional results in the result set
+            }
+
             var queryBuilder = new StringBuilder();
             
             var queryParametersCollection = new RouteValueDictionary(queryParameters);

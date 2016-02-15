@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
+using Glimpse.AspNet.Tab;
 using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Lucene;

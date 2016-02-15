@@ -204,7 +204,7 @@ namespace NuGetGallery.Controllers
                 {
                     // The nuget.exe 2.x list command does not like the next link at the bottom when a $top is passed.
                     // Strip it of for backward compatibility.
-                    if (o.Top == null || o.Top.Value >= resultCount.Value)
+                    if (o.Top == null || (resultCount.HasValue && o.Top.Value >= resultCount.Value))
                     {
                         return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s);
                     }
