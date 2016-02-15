@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGetGallery.Services;
+using NuGetGallery.ViewModels;
 using System;
 using System.Linq;
 using System.Net;
@@ -13,11 +15,13 @@ namespace NuGetGallery
         : AppController
     {
         public IContentService ContentService { get; protected set; }
+        public IMessageService MessageService { get; protected set; }
 
         protected PagesController() { }
-        public PagesController(IContentService contentService)
+        public PagesController(IContentService contentService, IMessageService messageService)
         {
             ContentService = contentService;
+            MessageService = messageService;
         }
 
         // This will let you add 'static' cshtml pages to the site under View/Pages or Branding/Views/Pages
@@ -39,6 +43,31 @@ namespace NuGetGallery
 
         public virtual ActionResult Contact()
         {
+            return View();
+        }
+
+        [Authorize]
+        [HttpPost]
+        public virtual ActionResult Contact(ContactSupportViewModel contactForm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
+            User user = GetCurrentUser();
+            var request = new ContactSupportRequest
+            {
+                CopySender = contactForm.CopySender,
+                Message = contactForm.Message,
+                SubjectLine = contactForm.SubjectLine,
+                FromAddress = user.ToMailAddress(),
+                RequestingUser = user
+            };
+            MessageService.SendContactSupportEmail(request);
+
+            ModelState.Clear();
+            TempData["Message"] = "Your message has been sent to support. We'll be in contact with you shortly.";
             return View();
         }
 

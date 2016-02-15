@@ -1306,6 +1306,7 @@
     <Compile Include="Services\AppActivatorException.cs" />
     <Compile Include="Services\CloudDownloadCountService.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
+    <Compile Include="Services\ContactSupportRequest.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
@@ -1360,6 +1361,7 @@
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="Services\EditPackageService.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
+    <Compile Include="ViewModels\ContactSupportViewModel.cs" />
     <Compile Include="ViewModels\DeletePackageViewModel.cs" />
     <Compile Include="ViewModels\LogOnViewModel.cs" />
     <Compile Include="ViewModels\ReportPackageReason.cs" />
