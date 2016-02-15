@@ -168,8 +168,8 @@ namespace Ng
             }
 
             IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), create, IndexWriter.MaxFieldLength.UNLIMITED);
-            indexWriter.MergeFactor = LuceneConstants.MergeFactor;
-            indexWriter.MaxMergeDocs = LuceneConstants.MaxMergeDocs;
+
+            NuGetMergePolicyApplyer.ApplyTo(indexWriter);
 
             indexWriter.SetSimilarity(new CustomSimilarity());
 

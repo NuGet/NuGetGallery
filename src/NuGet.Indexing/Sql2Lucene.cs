@@ -259,8 +259,7 @@ namespace NuGet.Indexing
             {
                 using (var writer = DocumentCreator.CreateIndexWriter(directory, true))
                 {
-                    writer.MergeFactor = LuceneConstants.MergeFactor;
-                    writer.MaxMergeDocs = LuceneConstants.MaxMergeDocs;
+                    NuGetMergePolicyApplyer.ApplyTo(writer);
 
                     var partitions = tasks.Select(t => new SimpleFSDirectory(new DirectoryInfo(t.Result))).ToArray();
                     
