@@ -200,10 +200,10 @@ namespace NuGetGallery.WebApi
                         {
                             // For projections we have to craft the result with a proper type hint
                             // to make the OData XML serializers like the collection result.
-                            var firstElement = projectedQueryResults.FirstOrDefault();
-                            if (firstElement != null)
+                            var elementType = projectedQueryResults.GetType().GenericTypeArguments.FirstOrDefault();
+                            if (elementType != null)
                             {
-                                return ProjectedNegotiatedContentResult(projectedQueryResults, firstElement.GetType());
+                                return ProjectedNegotiatedContentResult(projectedQueryResults, elementType);
                             }
                             return NegotiatedContentResult(projectedQueryResults);
                         }
@@ -275,9 +275,10 @@ namespace NuGetGallery.WebApi
 
         private IHttpActionResult ProjectedNegotiatedContentResult<TResponseModel>(TResponseModel content, Type projectedType)
         {
-            Type resultType = typeof(OkNegotiatedContentResult<>)
+            var resultType = typeof(OkNegotiatedContentResult<>)
                 .MakeGenericType(typeof(IQueryable<>)
                 .MakeGenericType(projectedType));
+
             return Activator.CreateInstance(resultType, content, _controller) as IHttpActionResult;
         }
     }
