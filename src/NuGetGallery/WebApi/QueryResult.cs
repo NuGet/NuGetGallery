@@ -90,6 +90,7 @@ namespace NuGetGallery.WebApi
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public IHttpActionResult GetInnerResult()
         {
             IQueryable queryResults = null;
