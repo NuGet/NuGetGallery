@@ -36,7 +36,7 @@ namespace NuGet.Services.Search.Client
         {
             try
             {
-                await DiscoverEndpointsAsync().ConfigureAwait(false);
+                await DiscoverEndpointsAsync();
             }
             catch (NullReferenceException)
             {
@@ -82,7 +82,7 @@ namespace NuGet.Services.Search.Client
             if (performServiceIndexDocumentUpdate)
             {
                 // Fetch the service index document if we're the one to do the update
-                await DiscoverEndpointsCoreAsync().ConfigureAwait(false);
+                await DiscoverEndpointsCoreAsync();
             }
             else if (_serviceIndexDocument == null && _serviceIndexDocumentUpdating)
             {
@@ -92,7 +92,7 @@ namespace NuGet.Services.Search.Client
                 int timeToWaitBeforeCheckingInMilliseconds = 200;
                 while (_serviceIndexDocument == null && _serviceIndexDocumentUpdating && timeWaitedForUpdateInMilliseconds < 5000)
                 {
-                    await Task.Delay(TimeSpan.FromMilliseconds(timeToWaitBeforeCheckingInMilliseconds)).ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromMilliseconds(timeToWaitBeforeCheckingInMilliseconds));
                     timeWaitedForUpdateInMilliseconds += timeToWaitBeforeCheckingInMilliseconds;
                 }
             }
@@ -113,7 +113,7 @@ namespace NuGet.Services.Search.Client
                     {
                         _serviceIndexDocumentUpdating = false;
                     }
-                }).ConfigureAwait(false);
+                });
         }
 
         class ServiceIndexDocument

@@ -93,6 +93,19 @@ namespace NuGetGallery.Controllers
             {
                 packages = await SearchAdaptor.FindByIdAndVersionCore(
                     _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
+
+                // If intercepted, create a paged queryresult
+                if (packages.IsQueryTranslator())
+                {
+                    // Add explicit Take() needed to limit search hijack result set size if $top is specified
+                    var totalHits = packages.LongCount();
+                    var pagedQueryable = packages
+                        .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
+                        .ToV1FeedPackageQuery(GetSiteRoot());
+
+                    return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
+                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
+                }
             }
             catch (Exception ex)
             {

@@ -17,10 +17,16 @@ namespace NuGetGallery.TestUtils.Infrastructure
 {
     public static class FeedServiceHelpers
     {
-        public static HttpContextBase GetMockContext(bool isSecure = false)
+        public static HttpContextBase GetMockContext(bool isSecure = false, string rawUrl = "")
         {
             var httpRequest = new Mock<HttpRequestBase>();
             httpRequest.Setup(s => s.IsSecureConnection).Returns(isSecure);
+
+            if (!string.IsNullOrEmpty(rawUrl))
+            {
+                httpRequest.SetupGet(r => r.RawUrl).Returns(rawUrl);
+            }
+
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(s => s.Request).Returns(httpRequest.Object);
 

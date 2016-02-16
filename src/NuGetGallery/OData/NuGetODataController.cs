@@ -2,9 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.OData;
@@ -35,8 +33,8 @@ namespace NuGetGallery.OData
                     return new HttpContextWrapper(httpContext);
                 }
 
-                var httpContextWrapper = context as HttpContextWrapper;
-                return httpContextWrapper;
+                var httpContextBase = context as HttpContextBase;
+                return httpContextBase;
             }
 
             return null;
