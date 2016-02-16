@@ -106,6 +106,19 @@ namespace NuGetGallery.Controllers
             {
                 packages = await SearchAdaptor.FindByIdAndVersionCore(
                     _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: curatedFeed);
+
+                // If intercepted, create a paged queryresult
+                if (packages.IsQueryTranslator())
+                {
+                    // Add explicit Take() needed to limit search hijack result set size if $top is specified
+                    var totalHits = packages.LongCount();
+                    var pagedQueryable = packages
+                        .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
+                        .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+
+                    return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
+                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
+                }
             }
             catch (Exception ex)
             {
@@ -188,7 +201,15 @@ namespace NuGetGallery.Controllers
                     .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s));
+                {
+                    // The nuget.exe 2.x list command does not like the next link at the bottom when a $top is passed.
+                    // Strip it of for backward compatibility.
+                    if (o.Top == null || (resultCount.HasValue && o.Top.Value >= resultCount.Value))
+                    {
+                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s);
+                    }
+                    return null;
+                });
             }
 
             // If not, just let OData handle things

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
@@ -19,6 +18,7 @@ using QueryInterceptor;
 using WebApi.OutputCache.V2;
 using NuGet.Versioning;
 using NuGet.Frameworks;
+using NuGetGallery.Infrastructure.Lucene;
 
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
@@ -47,25 +47,56 @@ namespace NuGetGallery.Controllers
         [HttpGet]
         [HttpPost]
         [CacheOutput(NoCache = true)]
-        public IHttpActionResult Get(ODataQueryOptions<V2FeedPackage> options)
+        public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options)
         {
-            var queryable = _packagesRepository
+            // Setup the search
+            var packages = _packagesRepository
                 .GetAll()
                 .Where(p => !p.Deleted)
-                .UseSearchService(_searchService, null, _configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
                 .WithoutVersionSort()
-                .ToV2FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
                 .InterceptWith(new NormalizeVersionInterceptor());
 
+            // Try the search service
+            try
+            {
+                HijackableQueryParameters hijackableQueryParameters = null;
+                if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && _searchService is ExternalSearchService)
+                {
+                    packages = await SearchAdaptor.FindByIdAndVersionCore(
+                        _searchService, GetTraditionalHttpContext().Request, packages,
+                        hijackableQueryParameters.Id, hijackableQueryParameters.Version, curatedFeed: null);
+
+                    // If intercepted, create a paged queryresult
+                    if (packages.IsQueryTranslator())
+                    {
+                        // Add explicit Take() needed to limit search hijack result set size if $top is specified
+                        var totalHits = packages.LongCount();
+                        var pagedQueryable = packages
+                            .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
+                            .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+
+                        return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
+                           SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, null, o, s));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
+                // We don't want to break package restores. We do want to know if this happens, so here goes:
+                QuietLog.LogHandledException(ex);
+            }
+
+            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
             return QueryResult(options, queryable, MaxPageSize);
         }
 
         // /api/v2/Packages/$count
         [HttpGet]
         [CacheOutput(NoCache = true)]
-        public IHttpActionResult GetCount(ODataQueryOptions<V2FeedPackage> options)
+        public async Task<IHttpActionResult> GetCount(ODataQueryOptions<V2FeedPackage> options)
         {
-            return Get(options).FormattedAsCountResult<V2FeedPackage>();
+            return (await Get(options)).FormattedAsCountResult<V2FeedPackage>();
         }
 
         // /api/v2/Packages(Id=,Version=)
@@ -102,6 +133,19 @@ namespace NuGetGallery.Controllers
             {
                 packages = await SearchAdaptor.FindByIdAndVersionCore(
                     _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
+
+                // If intercepted, create a paged queryresult
+                if (packages.IsQueryTranslator())
+                {
+                    // Add explicit Take() needed to limit search hijack result set size if $top is specified
+                    var totalHits = packages.LongCount();
+                    var pagedQueryable = packages
+                        .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
+                        .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+
+                    return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
+                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
+                }
             }
             catch (Exception ex)
             {
@@ -181,7 +225,15 @@ namespace NuGetGallery.Controllers
                     .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
                 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s));
+                {
+                    // The nuget.exe 2.x list command does not like the next link at the bottom when a $top is passed.
+                    // Strip it of for backward compatibility.
+                    if (o.Top == null || (resultCount.HasValue && o.Top.Value >= resultCount.Value))
+                    {
+                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new {searchTerm, targetFramework, includePrerelease}, o, s);
+                    }
+                    return null;
+                });
             }
 
             // If not, just let OData handle things

@@ -41,6 +41,11 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         public bool ContainsAllVersions { get { return true; } }
 
+        public ExternalSearchService()
+        {
+            // used for testing
+        }
+
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
         {
             ServiceUri = config.ServiceDiscoveryUri;
@@ -85,12 +90,12 @@ namespace NuGetGallery.Infrastructure.Lucene
             return _exists;
         }
 
-        public Task<SearchResults> RawSearch(SearchFilter filter)
+        public virtual Task<SearchResults> RawSearch(SearchFilter filter)
         {
             return SearchCore(filter, raw: true);
         }
 
-        public Task<SearchResults> Search(SearchFilter filter)
+        public virtual Task<SearchResults> Search(SearchFilter filter)
         {
             return SearchCore(filter, raw: false);
         }

@@ -17,8 +17,14 @@ namespace NuGetGallery.TestUtils.Infrastructure
         {
         }
 
+        public string RawUrl { get; set; }
+
         protected override HttpContextBase GetTraditionalHttpContext()
         {
+            if (!string.IsNullOrEmpty(RawUrl))
+            {
+                return FeedServiceHelpers.GetMockContext(RawUrl.StartsWith("https"), RawUrl);
+            }
             return FeedServiceHelpers.GetMockContext();
         }
 
