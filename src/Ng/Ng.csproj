@@ -227,8 +227,6 @@
     <None Include="App.config" />
     <None Include="Ng.nuspec" />
     <None Include="packages.config" />
-    <None Include="Scripts\ApiAppsCatalog2LuceneV3.cmd" />
-    <None Include="Scripts\ApiAppsCatalog2RegistrationV3.cmd" />
     <None Include="Scripts\Catalog2LuceneV3-Reg1-Secondary.cmd" />
     <None Include="Scripts\Catalog2LuceneV3-Reg1.cmd" />
     <None Include="Scripts\Catalog2LuceneV3.cmd" />
