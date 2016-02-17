@@ -31,7 +31,7 @@ namespace NuGetGallery
         public IAppConfiguration Config { get; protected set; }
         public AuthenticationService AuthService { get; protected set; }
 
-        public void ReportAbuse(ReportPackageRequest request, int supportRequestID = -1)
+        public void ReportAbuse(ReportPackageRequest request)
         {
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, Config);
@@ -56,14 +56,11 @@ namespace NuGetGallery
 **Message:**
 {Message}
 
-
-**SupportRequestLink:**
-{SupportRequestLink}
 ";
 
 
             var body = new StringBuilder();
-            body.Append(request.FillIn(bodyTemplate, Config, supportRequestID));
+            body.Append(request.FillIn(bodyTemplate, Config));
             body.AppendFormat(CultureInfo.InvariantCulture, @"
 
 *Message sent from {0}*", Config.GalleryOwner.DisplayName);
@@ -86,7 +83,7 @@ namespace NuGetGallery
             }
         }
 
-        public void ReportMyPackage(ReportPackageRequest request, int supportRequestID = -1)
+        public void ReportMyPackage(ReportPackageRequest request)
         {
             string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, Config);
@@ -107,12 +104,10 @@ namespace NuGetGallery
 **Message:**
 {Message}
 
-**Support Request Link:**
-{SupportRequestLink}
 ";
 
             var body = new StringBuilder();
-            body.Append(request.FillIn(bodyTemplate, Config, supportRequestID));
+            body.Append(request.FillIn(bodyTemplate, Config));
             body.AppendFormat(CultureInfo.InvariantCulture, @"
 
 *Message sent from {0}*", Config.GalleryOwner.DisplayName);
@@ -327,7 +322,7 @@ The {3} Team";
             {
                 return;
             }
-            
+
             const string subject = "[{0}] The user '{1}' has removed you as an owner of the package '{2}'.";
 
             string body = @"The user '{0}' removed you as an owner of the package '{1}'.
@@ -337,7 +332,7 @@ If this was done incorrectly, we'd recommend contacting '{0}' at '{2}'.
 Thanks,
 The {3} Team";
             body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, fromUser.EmailAddress, Config.GalleryOwner.DisplayName);
-            
+
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);

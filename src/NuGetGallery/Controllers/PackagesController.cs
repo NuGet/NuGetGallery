@@ -378,7 +378,7 @@ namespace NuGetGallery
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
         }
-        
+
         public virtual async Task<ActionResult> ListPackages(string q, int page = 1)
         {
             if (page < 1)
@@ -390,9 +390,9 @@ namespace NuGetGallery
 
             // We are not going to SQL here anyway, but our request logs do show some attempts to SQL injection.
             // The below code just fails out those requests early.
-            if (q.ToLowerInvariant().Contains("char(") 
-                || q.ToLowerInvariant().Contains("union select") 
-                || q.ToLowerInvariant().Contains("/*") 
+            if (q.ToLowerInvariant().Contains("char(")
+                || q.ToLowerInvariant().Contains("union select")
+                || q.ToLowerInvariant().Contains("/*")
                 || q.ToLowerInvariant().Contains("--"))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -637,9 +637,9 @@ namespace NuGetGallery
                 Signature = reportForm.Signature
             };
 
-            var supportRequestId = await AddNewSupportRequest($"Support Request for '{package.PackageRegistration.Id}' version {package.Version}", package, user, reportForm);
+            await AddNewSupportRequest($"Support Request for '{package.PackageRegistration.Id}' version {package.Version}", package, user, reportForm);
 
-            _messageService.ReportAbuse(request, supportRequestId);
+            _messageService.ReportAbuse(request);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
@@ -680,9 +680,9 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender
             };
 
-            var supportRequestId = await AddNewSupportRequest($"Owner Support Request for '{package.PackageRegistration.Id}' version {package.Version}", package, user, reportForm);
+            await AddNewSupportRequest($"Owner Support Request for '{package.PackageRegistration.Id}' version {package.Version}", package, user, reportForm);
 
-            _messageService.ReportMyPackage(request, supportRequestId);
+            _messageService.ReportMyPackage(request);
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
@@ -1077,7 +1077,7 @@ namespace NuGetGallery
                     VersionTitle = packageMetadata.Title,
                 }
             };
-            
+
             return View(model);
         }
 
@@ -1148,7 +1148,7 @@ namespace NuGetGallery
 
                 // update relevant database tables
                 try
-                { 
+                {
                     package = _packageService.CreatePackage(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
                     Debug.Assert(package.PackageRegistration != null);
                 }

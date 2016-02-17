@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -607,7 +606,7 @@ namespace NuGetGallery
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger"), -1));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -639,7 +638,7 @@ namespace NuGetGallery
                                  && r.Package == package
                                  && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
                                  && r.Message == "Mordor took my finger."
-                                 && r.AlreadyContactedOwners), -1));
+                                 && r.AlreadyContactedOwners)));
             }
 
             [Fact]
@@ -647,7 +646,7 @@ namespace NuGetGallery
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger"), -1));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
                 var user = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 1 };
                 var package = new Package
                     {
@@ -678,7 +677,7 @@ namespace NuGetGallery
                             r => r.Message == "Mordor took my finger"
                                  && r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.FromAddress.DisplayName == "Frodo"
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)), -1));
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent))));
             }
 
             [Fact]
@@ -709,7 +708,7 @@ namespace NuGetGallery
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger"), -1));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -741,7 +740,7 @@ namespace NuGetGallery
                                  && r.Package == package
                                  && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
                                  && r.Message == "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;."
-                                 && r.AlreadyContactedOwners), -1));
+                                 && r.AlreadyContactedOwners)));
             }
         }
 
@@ -785,7 +784,7 @@ namespace NuGetGallery
                 ReportPackageRequest reportRequest = null;
                 var messageService = new Mock<IMessageService>();
                 messageService
-                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>(), It.IsAny<int>()))
+                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>()))
                     .Callback<ReportPackageRequest, int>((r, sr) => reportRequest = r);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
@@ -1039,7 +1038,7 @@ namespace NuGetGallery
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 var fakeUploadFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.42");
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
-              
+
                 var controller = CreateController(
                     uploadFileService: fakeUploadFileService,
                     fakeNuGetPackage: fakeUploadFileStream);
@@ -1259,7 +1258,7 @@ namespace NuGetGallery
 
                         })
                 };
-             
+
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 var fakeUploadFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0", packageDependencyGroups: dependencyGroups);
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
