@@ -115,6 +115,12 @@ namespace NuGetGallery
                 auther.Startup(config, app);
             }
 
+            // Attach correlator
+            HttpConfiguration httpConfig = new HttpConfiguration();
+
+            var correlatorHnd = new Correlator.Handlers.ClientCorrelationHandler { InitializeIfEmpty = true, TraceCorrelation = true };
+            httpConfig.MessageHandlers.Add(correlatorHnd);
+
             // Catch unobserved exceptions from threads before they cause IIS to crash:
             TaskScheduler.UnobservedTaskException += (sender, exArgs) =>
             {

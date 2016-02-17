@@ -18,6 +18,7 @@ using QueryInterceptor;
 using WebApi.OutputCache.V2;
 using NuGet.Versioning;
 using NuGet.Frameworks;
+using NuGet.Services.Search.Client.Correlation;
 using NuGetGallery.Infrastructure.Lucene;
 
 // ReSharper disable once CheckNamespace
@@ -60,10 +61,14 @@ namespace NuGetGallery.Controllers
             try
             {
                 HijackableQueryParameters hijackableQueryParameters = null;
-                if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && _searchService is ExternalSearchService)
+                var externalSearchService = _searchService as ExternalSearchService;
+                if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && externalSearchService != null)
                 {
+                    // Propogate correlation id from the client request
+                    externalSearchService.CorrelationIdProvider = new CorrelationIdProvider(Request);
+
                     packages = await SearchAdaptor.FindByIdAndVersionCore(
-                        _searchService, GetTraditionalHttpContext().Request, packages,
+                        externalSearchService, GetTraditionalHttpContext().Request, packages,
                         hijackableQueryParameters.Id, hijackableQueryParameters.Version, curatedFeed: null);
 
                     // If intercepted, create a paged queryresult
