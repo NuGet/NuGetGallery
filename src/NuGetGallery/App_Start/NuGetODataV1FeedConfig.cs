@@ -40,11 +40,11 @@ namespace NuGetGallery
 
             // Add OData routes
             config.Routes.MapODataServiceRoute("api-v1-odata1", "api/v1/FeedService.svc", model,
-                new CountODataPathHandler(), conventions, new DefaultODataBatchHandler(GlobalConfiguration.DefaultServer));
+                new CountODataPathHandler(), conventions, new ODataServiceVersionHeaderPropagatingBatchHandler(GlobalConfiguration.DefaultServer));
             config.Routes.MapODataServiceRoute("api-v1-odata2", "api/v1", model, 
-                new CountODataPathHandler(), conventions, new DefaultODataBatchHandler(GlobalConfiguration.DefaultServer));
+                new CountODataPathHandler(), conventions, new ODataServiceVersionHeaderPropagatingBatchHandler(GlobalConfiguration.DefaultServer));
             config.Routes.MapODataServiceRoute("api-v1-odata3", "v1/FeedService.svc", model, 
-                new CountODataPathHandler(), conventions, new DefaultODataBatchHandler(GlobalConfiguration.DefaultServer));
+                new CountODataPathHandler(), conventions, new ODataServiceVersionHeaderPropagatingBatchHandler(GlobalConfiguration.DefaultServer));
         }
 
         public static IEdmModel GetEdmModel()
