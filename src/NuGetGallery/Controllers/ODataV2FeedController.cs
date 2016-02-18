@@ -1,6 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.Frameworks;
+using NuGet.Services.Search.Client.Correlation;
+using NuGet.Versioning;
+using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure;
+using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.OData;
+using NuGetGallery.OData.QueryInterceptors;
+using NuGetGallery.WebApi;
+using QueryInterceptor;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -9,17 +19,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
-using NuGetGallery.Configuration;
-using NuGetGallery.Infrastructure;
-using NuGetGallery.OData;
-using NuGetGallery.OData.QueryInterceptors;
-using NuGetGallery.WebApi;
-using QueryInterceptor;
 using WebApi.OutputCache.V2;
-using NuGet.Versioning;
-using NuGet.Frameworks;
-using NuGet.Services.Search.Client.Correlation;
-using NuGetGallery.Infrastructure.Lucene;
 
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
@@ -61,14 +61,12 @@ namespace NuGetGallery.Controllers
             try
             {
                 HijackableQueryParameters hijackableQueryParameters = null;
-                var externalSearchService = _searchService as ExternalSearchService;
-                if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && externalSearchService != null)
+                if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && _searchService is ExternalSearchService)
                 {
-                    // Propogate correlation id from the client request
-                    externalSearchService.CorrelationIdProvider = new CorrelationIdProvider(Request);
+                    SetCorrelation();
 
                     packages = await SearchAdaptor.FindByIdAndVersionCore(
-                        externalSearchService, GetTraditionalHttpContext().Request, packages,
+                        _searchService, GetTraditionalHttpContext().Request, packages,
                         hijackableQueryParameters.Id, hijackableQueryParameters.Version, curatedFeed: null);
 
                     // If intercepted, create a paged queryresult
@@ -136,6 +134,8 @@ namespace NuGetGallery.Controllers
             // try the search service
             try
             {
+                SetCorrelation();
+
                 packages = await SearchAdaptor.FindByIdAndVersionCore(
                     _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
 
@@ -217,6 +217,8 @@ namespace NuGetGallery.Controllers
                 .AsNoTracking();
 
             // todo: search hijack should take options instead of manually parsing query options
+            SetCorrelation();
+
             var query = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null);
 
@@ -381,6 +383,14 @@ namespace NuGetGallery.Controllers
                     .Select(g => g.OrderByDescending(p => NuGetVersion.Parse(p.Version)).First());
             }
             return updates;
+        }
+
+        private void SetCorrelation()
+        {
+            if (_searchService is ICorrelated)
+            {
+                ((ICorrelated)_searchService).CorrelationIdProvider = new CorrelationIdProvider(Request);
+            }
         }
     }
 }
