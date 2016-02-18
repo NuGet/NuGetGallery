@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
@@ -17,7 +18,7 @@ namespace NuGetGallery
         {
         }
 
-        public override void Curate(
+        public override async Task CurateAsync(
             Package galleryPackage,
             PackageArchiveReader nugetPackage,
             bool commitChanges)
@@ -31,7 +32,7 @@ namespace NuGetGallery
             var shouldBeIncluded = ShouldCuratePackage(curatedFeed, galleryPackage, nugetPackage);
             if (shouldBeIncluded)
             {
-                CuratedFeedService.CreatedCuratedPackage(
+                await CuratedFeedService.CreatedCuratedPackageAsync(
                     curatedFeed,
                     galleryPackage.PackageRegistration,
                     included: true,
@@ -41,13 +42,13 @@ namespace NuGetGallery
         }
 
         internal static bool ShouldCuratePackage(
-            CuratedFeed curatedFeed, 
+            CuratedFeed curatedFeed,
             Package galleryPackage,
             PackageArchiveReader packageArchiveReader)
         {
             var nuspec = packageArchiveReader.GetNuspecReader();
 
-            return 
+            return
                 // Must have min client version of null or <= 2.2
                 (nuspec.GetMinClientVersion() == null || nuspec.GetMinClientVersion() <= new NuGetVersion(2, 2, 0)) &&
 

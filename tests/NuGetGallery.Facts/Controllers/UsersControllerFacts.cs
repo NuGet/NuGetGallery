@@ -1,19 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
-using System.Security.Principal;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -104,7 +102,7 @@ namespace NuGetGallery
 
                 controller.ConfirmationRequiredPost();
 
-                // We use a catch-all route for unit tests so we can see the parameters 
+                // We use a catch-all route for unit tests so we can see the parameters
                 // are passed correctly.
                 Assert.Equal("https://nuget.local/account/confirm/theUsername/confirmation", sentConfirmationUrl);
                 Assert.Equal("to@example.com", sentToAddress.Address);
@@ -114,7 +112,7 @@ namespace NuGetGallery
         public class TheChangeEmailSubscriptionAction : TestContainer
         {
             [Fact]
-            public void UpdatesEmailAllowedSetting()
+            public async Task UpdatesEmailAllowedSetting()
             {
                 var user = new User("aUsername")
                 {
@@ -125,12 +123,13 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
                 GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailSubscription(user, false));
-                
-                var result = controller.ChangeEmailSubscription(false);
+                    .Setup(u => u.ChangeEmailSubscriptionAsync(user, false))
+                    .Returns(Task.CompletedTask);
+
+                var result = await controller.ChangeEmailSubscription(false);
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                GetMock<IUserService>().Verify(u => u.ChangeEmailSubscription(user, false));
+                GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(user, false));
             }
         }
 
@@ -431,7 +430,7 @@ namespace NuGetGallery
 
                 // act:
                 var result = await controller.Confirm("username", "the-token");
-                
+
                 // verify:
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.True(model.SuccessfulConfirmation);
@@ -461,7 +460,7 @@ namespace NuGetGallery
 
                 // act:
                 var result = await controller.Confirm("username", "faketoken");
-                
+
                 // verify:
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.False(model.SuccessfulConfirmation);
@@ -481,7 +480,7 @@ namespace NuGetGallery
                 var user = new User { Username = "the-username" };
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                
+
                 var result = await controller.GenerateApiKey();
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
@@ -744,7 +743,7 @@ namespace NuGetGallery
                 // Arrange
                 var user = Fakes.CreateUser("test");
                 user.EmailAddress = "confirmed@example.com";
-                
+
                 GetMock<AuthenticationService>()
                     .Setup(a => a.GeneratePasswordResetToken(user, It.IsAny<int>()))
                     .Callback<User, int>((u, _) => u.PasswordResetToken = "t0k3n")
@@ -813,7 +812,7 @@ namespace NuGetGallery
                 var user = Fakes.CreateUser("test",
                     cred,
                     CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
-                
+
                 GetMock<AuthenticationService>()
                     .Setup(a => a.RemoveCredential(user, cred))
                     .Completes()

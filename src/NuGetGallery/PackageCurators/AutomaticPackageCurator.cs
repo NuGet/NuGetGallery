@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Packaging;
 
 namespace NuGetGallery
@@ -16,11 +17,11 @@ namespace NuGetGallery
             CuratedFeedService = curatedFeedService;
         }
 
-        public abstract void Curate(
+        public abstract Task CurateAsync(
             Package galleryPackage,
             PackageArchiveReader nugetPackage,
             bool commitChanges);
-        
+
         protected static bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)
         {
             if (!galleryPackage.Dependencies.AnySafe())

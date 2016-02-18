@@ -62,12 +62,12 @@ namespace NuGetGallery
         public static void VerifyCommitted<T>(this Mock<IEntityRepository<T>> self)
             where T : class, IEntity, new()
         {
-            self.Verify(e => e.CommitChanges());
+            self.Verify(e => e.CommitChangesAsync());
         }
 
         public static void VerifyCommitted(this Mock<IEntitiesContext> self)
         {
-            self.Verify(e => e.SaveChanges());
+            self.Verify(e => e.SaveChangesAsync());
         }
 
         public static IReturnsResult<AuthenticationService> SetupAuth(this Mock<AuthenticationService> self, Credential cred, User user)

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -16,9 +17,9 @@ namespace NuGetGallery
             _entities = entities;
         }
 
-        public void CommitChanges()
+        public async Task CommitChangesAsync()
         {
-            _entities.SaveChanges();
+            await _entities.SaveChangesAsync();
         }
 
         public void DeleteOnCommit(T entity)

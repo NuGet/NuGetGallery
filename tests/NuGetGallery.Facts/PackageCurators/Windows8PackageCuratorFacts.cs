@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
 using Xunit;
@@ -41,19 +42,19 @@ namespace NuGetGallery.PackageCurators
     public class TheCurateMethod
     {
         [Fact]
-        public void WillNotIncludeThePackageWhenTheWindows8CuratedFeedDoesNotExist()
+        public async Task WillNotIncludeThePackageWhenTheWindows8CuratedFeedDoesNotExist()
         {
             var curator = TestableWindows8PackageCurator.Create(stubCuratedFeedService => {
                 stubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
             });
-                
+
             var package = CreateStubGalleryPackage();
             package.Tags = "winrt";
 
-            curator.Curate(package, null, commitChanges: true);
+            await curator.CurateAsync(package, null, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
-                stub => stub.CreatedCuratedPackage(
+                stub => stub.CreatedCuratedPackageAsync(
                     It.IsAny<CuratedFeed>(),
                     It.IsAny<PackageRegistration>(),
                     It.IsAny<bool>(),
@@ -72,16 +73,16 @@ namespace NuGetGallery.PackageCurators
         [InlineData("wIn8")]
         [InlineData("wInDows8")]
         [InlineData("wInJs")]
-        public void WillIncludeThePackageWhenItHasAcceptedTag(string tag)
+        public async Task WillIncludeThePackageWhenItHasAcceptedTag(string tag)
         {
             var curator = TestableWindows8PackageCurator.Create(null);
             var stubGalleryPackage = CreateStubGalleryPackage();
             stubGalleryPackage.Tags = "aTag " + tag + " aThirdTag";
 
-            curator.Curate(stubGalleryPackage, null, commitChanges: true);
+            await curator.CurateAsync(stubGalleryPackage, null, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
-                stub => stub.CreatedCuratedPackage(
+                stub => stub.CreatedCuratedPackageAsync(
                     It.IsAny<CuratedFeed>(),
                     It.IsAny<PackageRegistration>(),
                     It.IsAny<bool>(),
@@ -92,16 +93,16 @@ namespace NuGetGallery.PackageCurators
         }
 
         [Fact]
-        public void WillNotIncludeThePackageWhenNotTagged()
+        public async Task WillNotIncludeThePackageWhenNotTagged()
         {
             var curator = TestableWindows8PackageCurator.Create(null);
             var stubGalleryPackage = CreateStubGalleryPackage();
             stubGalleryPackage.Tags = "aTag notforwinrt aThirdTag";
 
-            curator.Curate(stubGalleryPackage, null, commitChanges: true);
+            await curator.CurateAsync(stubGalleryPackage, null, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
-                stub => stub.CreatedCuratedPackage(
+                stub => stub.CreatedCuratedPackageAsync(
                     It.IsAny<CuratedFeed>(),
                     It.IsAny<PackageRegistration>(),
                     It.IsAny<bool>(),
@@ -112,16 +113,16 @@ namespace NuGetGallery.PackageCurators
         }
 
         [Fact]
-        public void WillNotIncludeThePackageWhenTagsIsNull()
+        public async Task WillNotIncludeThePackageWhenTagsIsNull()
         {
             var curator = TestableWindows8PackageCurator.Create(null);
             var stubGalleryPackage = CreateStubGalleryPackage();
             stubGalleryPackage.Tags = null;
 
-            curator.Curate(stubGalleryPackage, null, commitChanges: true);
+            await curator.CurateAsync(stubGalleryPackage, null, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
-                stub => stub.CreatedCuratedPackage(
+                stub => stub.CreatedCuratedPackageAsync(
                     It.IsAny<CuratedFeed>(),
                     It.IsAny<PackageRegistration>(),
                     It.IsAny<bool>(),
@@ -132,7 +133,7 @@ namespace NuGetGallery.PackageCurators
         }
 
         [Fact]
-        public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsNotIncluded()
+        public async Task WillNotIncludeThePackageWhenItDependsOnAPackageThatIsNotIncluded()
         {
             var curator = TestableWindows8PackageCurator.Create(null);
 
@@ -140,10 +141,10 @@ namespace NuGetGallery.PackageCurators
             stubGalleryPackage.Tags = "win8";
             stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "NotACuratedPackage" });
 
-            curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
+            await curator.CurateAsync(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
-                stub => stub.CreatedCuratedPackage(
+                stub => stub.CreatedCuratedPackageAsync(
                     It.IsAny<CuratedFeed>(),
                     It.IsAny<PackageRegistration>(),
                     It.IsAny<bool>(),
@@ -153,7 +154,7 @@ namespace NuGetGallery.PackageCurators
         }
 
         [Fact]
-        public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsExcludedInTheFeed()
+        public async Task WillNotIncludeThePackageWhenItDependsOnAPackageThatIsExcludedInTheFeed()
         {
             var curator = TestableWindows8PackageCurator.Create(null);
             curator.StubCuratedFeed.Packages.Add(new CuratedPackage { AutomaticallyCurated = false, Included = false, PackageRegistration = new PackageRegistration { Id = "ManuallyExcludedPackage" } });
@@ -162,10 +163,10 @@ namespace NuGetGallery.PackageCurators
             stubGalleryPackage.Tags = "win8";
             stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "ManuallyExcludedPackage" });
 
-            curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
+            await curator.CurateAsync(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
-                stub => stub.CreatedCuratedPackage(
+                stub => stub.CreatedCuratedPackageAsync(
                     It.IsAny<CuratedFeed>(),
                     It.IsAny<PackageRegistration>(),
                     It.IsAny<bool>(),
@@ -175,17 +176,17 @@ namespace NuGetGallery.PackageCurators
         }
 
         [Fact]
-        public void WillIncludeThePackageUsingTheCuratedFeedKey()
+        public async Task WillIncludeThePackageUsingTheCuratedFeedKey()
         {
             var curator = TestableWindows8PackageCurator.Create(null);
             curator.StubCuratedFeed.Key = 42;
             var package = CreateStubGalleryPackage();
             package.Tags = "winrt";
 
-            curator.Curate(package, CreateStubNuGetPackageReader().Object, commitChanges: true);
+            await curator.CurateAsync(package, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
-                stub => stub.CreatedCuratedPackage(
+                stub => stub.CreatedCuratedPackageAsync(
                     curator.StubCuratedFeed,
                     It.IsAny<PackageRegistration>(),
                     It.IsAny<bool>(),
@@ -195,17 +196,17 @@ namespace NuGetGallery.PackageCurators
         }
 
         [Fact]
-        public void WillIncludeThePackageUsingThePackageRegistrationKey()
+        public async Task WillIncludeThePackageUsingThePackageRegistrationKey()
         {
             var curator = TestableWindows8PackageCurator.Create(null);
             var stubGalleryPackage = CreateStubGalleryPackage();
             stubGalleryPackage.PackageRegistration.Key = 42;
             stubGalleryPackage.Tags = "winrt";
 
-            curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
+            await curator.CurateAsync(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
-                stub => stub.CreatedCuratedPackage(
+                stub => stub.CreatedCuratedPackageAsync(
                     It.IsAny<CuratedFeed>(),
                     stubGalleryPackage.PackageRegistration,
                     It.IsAny<bool>(),
@@ -215,16 +216,16 @@ namespace NuGetGallery.PackageCurators
         }
 
         [Fact]
-        public void WillSetTheAutomaticBitWhenIncludingThePackage()
+        public async Task WillSetTheAutomaticBitWhenIncludingThePackage()
         {
             var curator = TestableWindows8PackageCurator.Create(null);
             var stubGalleryPackage = CreateStubGalleryPackage();
             stubGalleryPackage.Tags = "winrt";
 
-            curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
+            await curator.CurateAsync(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
             curator.StubCuratedFeedService.Verify(
-                stub => stub.CreatedCuratedPackage(
+                stub => stub.CreatedCuratedPackageAsync(
                     It.IsAny<CuratedFeed>(),
                     It.IsAny<PackageRegistration>(),
                     It.IsAny<bool>(),

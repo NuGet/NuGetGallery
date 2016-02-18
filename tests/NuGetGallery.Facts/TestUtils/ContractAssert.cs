@@ -1,9 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -20,6 +18,12 @@ namespace NuGetGallery
         public static void ThrowsArgNull(Action act, string paramName)
         {
             var argNullEx = Assert.Throws<ArgumentNullException>(() => act());
+            Assert.Equal(paramName, argNullEx.ParamName);
+        }
+
+        public static async Task ThrowsArgNullAsync(Func<Task> act, string paramName)
+        {
+            var argNullEx = await Assert.ThrowsAsync<ArgumentNullException>(async () => await act());
             Assert.Equal(paramName, argNullEx.ParamName);
         }
 

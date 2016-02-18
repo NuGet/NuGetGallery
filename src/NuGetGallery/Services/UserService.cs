@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -33,7 +34,7 @@ namespace NuGetGallery
             Auditing = auditing;
         }
 
-        public void ChangeEmailSubscription(User user, bool emailAllowed)
+        public async Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed)
         {
             if (user == null)
             {
@@ -41,7 +42,7 @@ namespace NuGetGallery
             }
 
             user.EmailAllowed = emailAllowed;
-            UserRepository.CommitChanges();
+            await UserRepository.CommitChangesAsync();
         }
 
         public virtual User FindByEmailAddress(string emailAddress)
@@ -97,7 +98,7 @@ namespace NuGetGallery
             await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.ChangeEmail, newEmailAddress));
 
             user.UpdateEmailAddress(newEmailAddress, Crypto.GenerateToken);
-            UserRepository.CommitChanges();
+            await UserRepository.CommitChangesAsync();
         }
 
         public async Task CancelChangeEmailAddress(User user)
@@ -105,7 +106,7 @@ namespace NuGetGallery
             await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.CancelChangeEmail, user.UnconfirmedEmailAddress));
 
             user.CancelChangeEmailAddress();
-            UserRepository.CommitChanges();
+            await UserRepository.CommitChangesAsync();
         }
 
         public async Task<bool> ConfirmEmailAddress(User user, string token)
@@ -135,7 +136,7 @@ namespace NuGetGallery
 
             user.ConfirmEmailAddress();
 
-            UserRepository.CommitChanges();
+            await UserRepository.CommitChangesAsync();
             return true;
         }
     }
