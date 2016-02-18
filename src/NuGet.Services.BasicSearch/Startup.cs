@@ -45,7 +45,10 @@ namespace NuGet.Services.BasicSearch
 
             _logger.LogInformation(LogMessages.AppStartup);
 
-            //  search test console
+            // correlate requests
+            app.Use(typeof(CorrelationIdMiddleware));
+
+            // search test console
             app.Use(async (context, next) =>
             {
                 if (string.Equals(context.Request.Path.Value, "/console", StringComparison.OrdinalIgnoreCase))
@@ -68,7 +71,7 @@ namespace NuGet.Services.BasicSearch
                 FileSystem = new EmbeddedResourceFileSystem(typeof(Startup).Assembly, "NuGet.Services.BasicSearch.Console")
             }));
 
-            //  start the service running - the Lucene index needs to be reopened regularly on a background thread
+            // start the service running - the Lucene index needs to be reopened regularly on a background thread
             var searchIndexRefresh = configuration.Get("Search.IndexRefresh") ?? "15";
             int seconds;
             if (!int.TryParse(searchIndexRefresh, out seconds))

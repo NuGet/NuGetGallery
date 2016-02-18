@@ -3,21 +3,17 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Indexing;
-using SerilogWeb.Classic.Enrichers;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Services.BasicSearch
 {
     public static class ResponseHelpers
     {
-        private static readonly string RequestIdItemName = typeof(HttpRequestIdEnricher).Name + "+RequestId";
-
         public static async Task WriteResponseAsync(IOwinContext context, HttpStatusCode statusCode, JToken content)
         {
             await WriteResponseAsync(context, statusCode, w => context.Response.Write(content.ToString()));
@@ -45,12 +41,6 @@ namespace NuGet.Services.BasicSearch
             context.Response.Headers.Add("Cache-Control", new[] { "no-cache" });
             context.Response.Headers.Add("Expires", new[] { "0" });
 
-            var currentHttpRequestId = GetCurrentHttpRequestId();
-            if (!string.IsNullOrEmpty(currentHttpRequestId))
-            {
-                context.Response.Headers.Add("X-HttpRequestId", new[] { currentHttpRequestId });
-            }
-
             var callback = context.Request.Query["callback"];
             if (string.IsNullOrEmpty(callback))
             {
@@ -74,7 +64,12 @@ namespace NuGet.Services.BasicSearch
         public static async Task WriteResponseAsync(IOwinContext context, Exception e, FrameworkLogger logger)
         {
             logger.LogError("Internal server error", e);
-            await WriteResponseAsync(context, HttpStatusCode.InternalServerError, JObject.FromObject(new { error = "Internal server error", httpRequestId = GetCurrentHttpRequestId() }));
+
+            await WriteResponseAsync(context, HttpStatusCode.InternalServerError, JObject.FromObject(new
+            {
+                error = "Internal server error",
+                httpRequestId = context.Get<string>(CorrelationIdMiddleware.CorrelationIdHeaderKey)
+            }));
         }
 
         private static void WriteToStream(Stream destination, Action<JsonWriter> writeContent)
@@ -87,22 +82,6 @@ namespace NuGet.Services.BasicSearch
                 jsonWriter.Flush();
                 streamWriter.Flush();
             }
-        }
-
-        private static string GetCurrentHttpRequestId()
-        {
-            if (HttpContext.Current != null)
-            {
-                var obj = HttpContext.Current.Items[RequestIdItemName];
-                if (obj == null)
-                {
-                    obj = Guid.NewGuid();
-                    HttpContext.Current.Items[RequestIdItemName] = obj;
-                }
-                return ((Guid)obj).ToString();
-            }
-
-            return null;
         }
     }
 }
