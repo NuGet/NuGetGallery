@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Data.Entity;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -46,14 +47,14 @@ namespace NuGetGallery
             return base.Set<T>();
         }
 
-        public override int SaveChanges()
+        public override async Task<int> SaveChangesAsync()
         {
             if (ReadOnly)
             {
                 throw new ReadOnlyModeException("Save changes unavailable: the gallery is currently in read only mode, with limited service. Please try again later.");
             }
 
-            return base.SaveChanges();
+            return await base.SaveChangesAsync();
         }
 
         public void DeleteOnCommit<T>(T entity) where T : class

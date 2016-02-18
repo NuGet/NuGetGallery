@@ -96,11 +96,11 @@ namespace NuGetGallery
                 _packageDeletesRepository.InsertOnCommit(packageDelete);
 
                 // Update latest versions
-                UpdateIsLatest(packageRegistrations);
+                await UpdateIsLatestAsync(packageRegistrations);
 
                 // Commit changes
-                _packageRepository.CommitChanges();
-                _packageDeletesRepository.CommitChanges();
+                await _packageRepository.CommitChangesAsync();
+                await _packageDeletesRepository.CommitChangesAsync();
                 transaction.Commit();
             }
             EntitiesConfiguration.SuspendExecutionStrategy = false;
@@ -148,10 +148,10 @@ namespace NuGetGallery
                 }
 
                 // Update latest versions
-                UpdateIsLatest(packageRegistrations);
+                await UpdateIsLatestAsync(packageRegistrations);
 
                 // Commit changes to package repository
-                _packageRepository.CommitChanges();
+                await _packageRepository.CommitChangesAsync();
 
                 // Remove package registrations that have no more packages?
                 if (deleteEmptyPackageRegistration)
@@ -172,13 +172,13 @@ namespace NuGetGallery
         {
             await database.ExecuteSqlCommandAsync(sql, parameters);
         }
-        
-        private void UpdateIsLatest(IEnumerable<PackageRegistration> packageRegistrations)
+
+        private async Task UpdateIsLatestAsync(IEnumerable<PackageRegistration> packageRegistrations)
         {
             // Update latest versions
             foreach (var packageRegistration in packageRegistrations)
             {
-                _packageService.UpdateIsLatest(packageRegistration, false);
+                await _packageService.UpdateIsLatestAsync(packageRegistration, false);
             }
         }
 

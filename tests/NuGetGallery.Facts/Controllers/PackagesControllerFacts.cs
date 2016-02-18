@@ -365,38 +365,38 @@ namespace NuGetGallery
         public class TheConfirmOwnerMethod
         {
             [Fact]
-            public void WithEmptyTokenReturnsHttpNotFound()
+            public async Task WithEmptyTokenReturnsHttpNotFound()
             {
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(new PackageRegistration());
                 var controller = CreateController(packageService: packageService);
                 controller.SetCurrentUser(new User { Username = "username" });
 
-                var result = controller.ConfirmOwner("foo", "username", "");
+                var result = await controller.ConfirmOwner("foo", "username", "");
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
             [Fact]
-            public void WithNonExistentPackageIdReturnsHttpNotFound()
+            public async Task WithNonExistentPackageIdReturnsHttpNotFound()
             {
                 // Arrange
                 var controller = CreateController();
                 controller.SetCurrentUser(new User { Username = "username" });
 
                 // Act
-                var result = controller.ConfirmOwner("foo", "username", "token");
+                var result = await controller.ConfirmOwner("foo", "username", "token");
 
                 // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
             [Fact]
-            public void WithIdentityNotMatchingUserInRequestReturnsViewWithMessage()
+            public async Task WithIdentityNotMatchingUserInRequestReturnsViewWithMessage()
             {
                 var controller = CreateController();
                 controller.SetCurrentUser("userA");
-                var result = controller.ConfirmOwner("foo", "userB", "token");
+                var result = await controller.ConfirmOwner("foo", "userB", "token");
 
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
                 Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
@@ -407,17 +407,17 @@ namespace NuGetGallery
             [InlineData(ConfirmOwnershipResult.Success)]
             [InlineData(ConfirmOwnershipResult.AlreadyOwner)]
             [InlineData(ConfirmOwnershipResult.Failure)]
-            public void AcceptsResultOfPackageServiceIfOtherwiseValid(ConfirmOwnershipResult confirmationResult)
+            public async Task AcceptsResultOfPackageServiceIfOtherwiseValid(ConfirmOwnershipResult confirmationResult)
             {
                 var package = new PackageRegistration { Id = "foo" };
                 var user = new User { Username = "username" };
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
-                packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(confirmationResult);
+                packageService.Setup(p => p.ConfirmPackageOwnerAsync(package, user, "token")).Returns(Task.FromResult(confirmationResult));
                 var controller = CreateController(packageService: packageService);
                 controller.SetCurrentUser(user);
 
-                var result = controller.ConfirmOwner("foo", "username", "token");
+                var result = await controller.ConfirmOwner("foo", "username", "token");
 
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
                 Assert.Equal(confirmationResult, model.Result);
@@ -515,7 +515,7 @@ namespace NuGetGallery
         public class TheEditMethod
         {
             [Fact]
-            public void UpdatesUnlistedIfSelected()
+            public async Task UpdatesUnlistedIfSelected()
             {
                 // Arrange
                 var package = new Package
@@ -527,9 +527,12 @@ namespace NuGetGallery
                 package.PackageRegistration.Owners.Add(new User("Frodo"));
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>(), It.IsAny<bool>())).Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>(), It.IsAny<bool>())).Verifiable();
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
+                packageService.Setup(svc => svc.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.MarkPackageUnlistedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(0)).Verifiable();
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true))
+                    .Returns(package).Verifiable();
 
                 var indexingService = new Mock<IIndexingService>();
 
@@ -538,7 +541,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = controller.Edit("Foo", "1.0", listed: false, urlFactory: p => @"~\Bar.cshtml");
+                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: p => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();
@@ -548,7 +551,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void UpdatesUnlistedIfNotSelected()
+            public async Task UpdatesUnlistedIfNotSelected()
             {
                 // Arrange
                 var package = new Package
@@ -560,9 +563,12 @@ namespace NuGetGallery
                 package.PackageRegistration.Owners.Add(new User("Frodo"));
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>(), It.IsAny<bool>())).Verifiable();
-                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>(), It.IsAny<bool>())).Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
+                packageService.Setup(svc => svc.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(0)).Verifiable();
+                packageService.Setup(svc => svc.MarkPackageUnlistedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true))
+                    .Returns(package).Verifiable();
 
                 var indexingService = new Mock<IIndexingService>();
 
@@ -571,7 +577,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = controller.Edit("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
+                var result = await controller.Edit("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();
@@ -1304,8 +1310,8 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(
+                    Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var controller = CreateController(
@@ -1316,7 +1322,7 @@ namespace NuGetGallery
 
                 await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
 
-                fakePackageService.Verify(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), TestUtility.FakeUser, false));
+                fakePackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), TestUtility.FakeUser, false));
                 fakeFileStream.Dispose();
             }
 
@@ -1330,7 +1336,8 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
                 var fakePackageService = new Mock<IPackageService>();
                 var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(fakePackage);
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(fakePackage));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var fakePackageFileService = new Mock<IPackageFileService>();
@@ -1347,7 +1354,7 @@ namespace NuGetGallery
                 await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
 
                 // Assert
-                fakePackageService.Verify(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), TestUtility.FakeUser, false));
+                fakePackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), TestUtility.FakeUser, false));
                 fakePackageFileService.Verify();
                 fakeFileStream.Dispose();
             }
@@ -1362,7 +1369,8 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
                 var fakePackageService = new Mock<IPackageService>();
                 var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(fakePackage);
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(fakePackage));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
                 var fakePackageFileService = new Mock<IPackageFileService>();
                 fakePackageFileService.Setup(x => x.SavePackageFileAsync(fakePackage, It.IsAny<Stream>())).Returns(Task.FromResult(0)).Verifiable();
@@ -1392,15 +1400,19 @@ namespace NuGetGallery
                 // Arrange
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 var fakeFileStream = new MemoryStream();
-                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
-                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.FromResult<Stream>(fakeFileStream));
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.CompletedTask);
                 var fakePackageService = new Mock<IPackageService>();
                 var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(fakePackage);
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(fakePackage));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var entitiesContext = new Mock<IEntitiesContext>();
-                entitiesContext.Setup(e => e.SaveChanges()).Verifiable();
+                entitiesContext.Setup(e => e.SaveChangesAsync())
+                    .Returns(Task.FromResult(0)).Verifiable();
 
                 var controller = CreateController(
                     packageService: fakePackageService,
@@ -1423,13 +1435,18 @@ namespace NuGetGallery
                 // Arrange
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 var fakeFileStream = new MemoryStream();
-                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
-                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.FromResult<Stream>(fakeFileStream));
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.CompletedTask);
                 var fakePackageService = new Mock<IPackageService>(MockBehavior.Strict);
                 var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false)).Returns(fakePackage);
-                fakePackageService.Setup(x => x.PublishPackage(fakePackage, false));
-                fakePackageService.Setup(x => x.MarkPackageUnlisted(fakePackage, false));
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                    .Returns(Task.FromResult(fakePackage));
+                fakePackageService.Setup(x => x.PublishPackageAsync(fakePackage, false))
+                    .Returns(Task.CompletedTask);
+                fakePackageService.Setup(x => x.MarkPackageUnlistedAsync(fakePackage, false))
+                    .Returns(Task.CompletedTask);
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var controller = CreateController(
@@ -1456,7 +1473,8 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
                 var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(fakePackage);
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(fakePackage));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var controller = CreateController(
@@ -1467,7 +1485,7 @@ namespace NuGetGallery
 
                 await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
 
-                fakePackageService.Verify(x => x.PublishPackage(fakePackage, false), Times.Once());
+                fakePackageService.Verify(x => x.PublishPackageAsync(fakePackage, false), Times.Once());
                 fakeFileStream.Dispose();
             }
 
@@ -1479,8 +1497,8 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var controller = CreateController(
@@ -1492,7 +1510,7 @@ namespace NuGetGallery
                 await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 fakePackageService.Verify(
-                    x => x.MarkPackageUnlisted(It.Is<Package>(p => p.PackageRegistration.Id == "theId" && p.Version == "theVersion"), It.IsAny<bool>()));
+                    x => x.MarkPackageUnlistedAsync(It.Is<Package>(p => p.PackageRegistration.Id == "theId" && p.Version == "theVersion"), It.IsAny<bool>()));
                 fakeFileStream.Dispose();
             }
 
@@ -1506,8 +1524,8 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var controller = CreateController(
@@ -1518,7 +1536,7 @@ namespace NuGetGallery
 
                 await controller.VerifyPackage(new VerifyPackageRequest() { Listed = listed.GetValueOrDefault(true), Edit = null });
 
-                fakePackageService.Verify(x => x.MarkPackageUnlisted(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
+                fakePackageService.Verify(x => x.MarkPackageUnlistedAsync(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
                 fakeFileStream.Dispose();
             }
 
@@ -1530,8 +1548,8 @@ namespace NuGetGallery
                 var fakeFileStream = new MemoryStream();
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),  It.IsAny<User>(), It.IsAny<bool>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),  It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var controller = CreateController(
@@ -1555,8 +1573,8 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),  It.IsAny<User>(), It.IsAny<bool>())).Returns(
-                    (new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),  It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var controller = CreateController(
@@ -1579,8 +1597,8 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),  It.IsAny<User>(), It.IsAny<bool>())).Returns(
-                    (new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),  It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var controller = CreateController(
@@ -1605,7 +1623,8 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
                 var fakePackageService = new Mock<IPackageService>();
                 var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),  It.IsAny<User>(), It.IsAny<bool>())).Returns(fakePackage);
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),  It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(fakePackage));
                 var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                 var fakeAutoCuratePackageCmd = new Mock<IAutomaticallyCuratePackageCommand>();
@@ -1618,7 +1637,7 @@ namespace NuGetGallery
 
                 await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
-                fakeAutoCuratePackageCmd.Verify(fake => fake.Execute(fakePackage, It.IsAny<PackageArchiveReader>(), false));
+                fakeAutoCuratePackageCmd.Verify(fake => fake.ExecuteAsync(fakePackage, It.IsAny<PackageArchiveReader>(), false));
             }
         }
 
@@ -1670,7 +1689,7 @@ namespace NuGetGallery
         public class TheSetLicenseReportVisibilityMethod
         {
             [Fact]
-            public void IndexingAndPackageServicesAreUpdated()
+            public async Task IndexingAndPackageServicesAreUpdated()
             {
                 // Arrange
                 var package = new Package
@@ -1682,9 +1701,12 @@ namespace NuGetGallery
                 package.PackageRegistration.Owners.Add(new User("Smeagol"));
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.SetLicenseReportVisibility(It.IsAny<Package>(), It.Is<bool>(t => t == true), It.IsAny<bool>())).Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.SetLicenseReportVisibility(It.IsAny<Package>(), It.Is<bool>(t => t == false), It.IsAny<bool>())).Verifiable();
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
+                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == true), It.IsAny<bool>()))
+                    .Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == false), It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask).Verifiable();
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true))
+                    .Returns(package).Verifiable();
 
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
@@ -1697,7 +1719,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = controller.SetLicenseReportVisibility("Foo", "1.0", visible: false, urlFactory: p => @"~\Bar.cshtml");
+                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: false, urlFactory: p => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();

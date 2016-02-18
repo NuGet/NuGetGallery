@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
@@ -50,30 +49,30 @@ namespace NuGetGallery
         public class TheDeleteCuratedPackageAction
         {
             [Fact]
-            public void WillReturn404IfTheCuratedFeedDoesNotExist()
+            public async Task WillReturn404IfTheCuratedFeedDoesNotExist()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
-                
-                var result = controller.DeleteCuratedPackage("aStrangeCuratedFeedName", "anId");
+
+                var result = await controller.DeleteCuratedPackage("aStrangeCuratedFeedName", "anId");
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
             [Fact]
-            public void WillReturn404IfTheCuratedPackageDoesNotExist()
+            public async Task WillReturn404IfTheCuratedPackageDoesNotExist()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
                 controller.StubCuratedFeed.Packages = new[] { new CuratedPackage { PackageRegistration = new PackageRegistration() } };
 
-                var result = controller.DeleteCuratedPackage("aFeedName", "aStrangeCuratedPackageId");
+                var result = await controller.DeleteCuratedPackage("aFeedName", "aStrangeCuratedPackageId");
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
             [Fact]
-            public void WillReturn403IfTheUserNotAManager()
+            public async Task WillReturn403IfTheUserNotAManager()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.Owner);
@@ -87,14 +86,14 @@ namespace NuGetGallery
                         PackageRegistrationKey = controller.StubPackageRegistration.Key,
                     });
 
-                var result = controller.DeleteCuratedPackage("aFeedName", "anId") as HttpStatusCodeResult;
+                var result = await controller.DeleteCuratedPackage("aFeedName", "anId") as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(403, result.StatusCode);
             }
 
             [Fact]
-            public void WillDeleteTheCuratedPackageWhenRequestIsValid()
+            public async Task WillDeleteTheCuratedPackageWhenRequestIsValid()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
@@ -111,14 +110,14 @@ namespace NuGetGallery
                 Assert.True(controller.EntitiesContext.CuratedPackages.Any
                     (cp => cp.PackageRegistration.Id == "anId"));
 
-                controller.DeleteCuratedPackage("aFeedName", "anId");
+                await controller.DeleteCuratedPackage("aFeedName", "anId");
 
                 Assert.False(controller.EntitiesContext.CuratedPackages.Any
                     (cp => cp.PackageRegistration.Id == "anId"));
             }
 
             [Fact]
-            public void WillReturn204AfterDeletingTheCuratedPackage()
+            public async Task WillReturn204AfterDeletingTheCuratedPackage()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
@@ -132,7 +131,7 @@ namespace NuGetGallery
                         PackageRegistrationKey = controller.StubPackageRegistration.Key,
                     });
 
-                var result = controller.DeleteCuratedPackage("aFeedName", "anId") as HttpStatusCodeResult;
+                var result = await controller.DeleteCuratedPackage("aFeedName", "anId") as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(204, result.StatusCode);
@@ -157,7 +156,7 @@ namespace NuGetGallery
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.Owner);
-                
+
                 var result = controller.GetCreateCuratedPackageForm("aFeedName") as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
@@ -181,30 +180,30 @@ namespace NuGetGallery
         public class ThePatchCuratedPackageAction
         {
             [Fact]
-            public void WillReturn404IfTheCuratedFeedDoesNotExist()
+            public async Task WillReturn404IfTheCuratedFeedDoesNotExist()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
-   
-                var result = controller.PatchCuratedPackage("aWrongFeedName", "anId", 
+
+                var result = await controller.PatchCuratedPackage("aWrongFeedName", "anId",
                     new ModifyCuratedPackageRequest());
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
             [Fact]
-            public void WillReturn404IfTheCuratedPackageDoesNotExist()
+            public async Task WillReturn404IfTheCuratedPackageDoesNotExist()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
 
-                var result = controller.PatchCuratedPackage("aFeedName", "aWrongId", new ModifyCuratedPackageRequest());
+                var result = await controller.PatchCuratedPackage("aFeedName", "aWrongId", new ModifyCuratedPackageRequest());
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
             [Fact]
-            public void WillReturn403IfNotAFeedManager()
+            public async Task WillReturn403IfNotAFeedManager()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.Owner);
@@ -217,7 +216,7 @@ namespace NuGetGallery
                         PackageRegistrationKey = controller.StubPackageRegistration.Key,
                     });
 
-                var result = controller.PatchCuratedPackage("aFeedName", "anId", 
+                var result = await controller.PatchCuratedPackage("aFeedName", "anId",
                         new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
@@ -225,7 +224,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillReturn400IfTheModelStateIsInvalid()
+            public async Task WillReturn400IfTheModelStateIsInvalid()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
@@ -239,9 +238,9 @@ namespace NuGetGallery
                     });
                 controller.ModelState.AddModelError("", "anError");
 
-                var result = controller.PatchCuratedPackage(
-                    "aFeedName", 
-                    "anId", 
+                var result = await controller.PatchCuratedPackage(
+                    "aFeedName",
+                    "anId",
                     new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
@@ -249,7 +248,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillModifyTheCuratedPackageWhenRequestIsValid()
+            public async Task WillModifyTheCuratedPackageWhenRequestIsValid()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
@@ -266,7 +265,7 @@ namespace NuGetGallery
                 Assert.False(controller.StubCuratedFeed.Packages.Any(
                     cp => cp.Included == false));
 
-                var result = controller.PatchCuratedPackage(
+                var result = await controller.PatchCuratedPackage(
                     "aFeedName",
                     "anId",
                     new ModifyCuratedPackageRequest { Included = false }) as HttpStatusCodeResult;
@@ -276,7 +275,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillReturn204AfterModifyingTheCuratedPackage()
+            public async Task WillReturn204AfterModifyingTheCuratedPackage()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
@@ -290,7 +289,7 @@ namespace NuGetGallery
                         Included = true,
                     });
 
-                var result = controller.PatchCuratedPackage("aFeedName", "anId", 
+                var result = await controller.PatchCuratedPackage("aFeedName", "anId",
                     new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
@@ -301,25 +300,25 @@ namespace NuGetGallery
         public class ThePostCuratedPackagesAction
         {
             [Fact]
-            public void WillReturn404IfTheCuratedFeedDoesNotExist()
+            public async Task WillReturn404IfTheCuratedFeedDoesNotExist()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
 
-                var result = controller.PostCuratedPackages(
-                    "aWrongFeedName", 
+                var result = await controller.PostCuratedPackages(
+                    "aWrongFeedName",
                     new CreateCuratedPackageRequest { PackageId = "AnId" });
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
             [Fact]
-            public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
+            public async Task WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.Owner);
 
-                var result = controller.PostCuratedPackages(
+                var result = await controller.PostCuratedPackages(
                     "aFeedName",
                     new CreateCuratedPackageRequest { PackageId = "AnId" })
                     as HttpStatusCodeResult;
@@ -329,14 +328,14 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillPushTheCuratedFeedNameIntoTheViewBagAndShowTheCreateCuratedPackageFormWithErrorsWhenModelStateIsInvalid()
+            public async Task WillPushTheCuratedFeedNameIntoTheViewBagAndShowTheCreateCuratedPackageFormWithErrorsWhenModelStateIsInvalid()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
                 controller.StubCuratedFeed.Name = "theCuratedFeedName";
                 controller.ModelState.AddModelError("", "anError");
 
-                var result = controller.PostCuratedPackages(
+                var result = await controller.PostCuratedPackages(
                     "theCuratedFeedName", new CreateCuratedPackageRequest()) as ViewResult;
 
                 Assert.NotNull(result);
@@ -345,12 +344,12 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillPushTheCuratedFeedNameIntoTheViewBagAndShowTheCreateCuratedPackageFormWithErrorsWhenThePackageIdDoesNotExist()
+            public async Task WillPushTheCuratedFeedNameIntoTheViewBagAndShowTheCreateCuratedPackageFormWithErrorsWhenThePackageIdDoesNotExist()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
 
-                var result = controller.PostCuratedPackages("aFeedName",
+                var result = await controller.PostCuratedPackages("aFeedName",
                     new CreateCuratedPackageRequest { PackageId = "aWrongId" }) as ViewResult;
 
                 Assert.NotNull(result);
@@ -360,12 +359,12 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillCreateTheCuratedPackage()
+            public async Task WillCreateTheCuratedPackage()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
 
-                controller.PostCuratedPackages(
+                await controller.PostCuratedPackages(
                     "aFeedName",
                     new CreateCuratedPackageRequest
                         {
@@ -381,13 +380,13 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillRedirectToTheCuratedFeedRouteAfterCreatingTheCuratedPackage()
+            public async Task WillRedirectToTheCuratedFeedRouteAfterCreatingTheCuratedPackage()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
 
-                var result = controller.PostCuratedPackages(
-                    "aFeedName", new CreateCuratedPackageRequest { PackageId = "anId" }) 
+                var result = await controller.PostCuratedPackages(
+                    "aFeedName", new CreateCuratedPackageRequest { PackageId = "anId" })
                     as RedirectToRouteResult;
 
                 Assert.NotNull(result);
@@ -395,19 +394,19 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillShowAnErrorWhenThePackageHasAlreadyBeenCurated()
+            public async Task WillShowAnErrorWhenThePackageHasAlreadyBeenCurated()
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.SetCurrentUser(Fakes.User);
                 controller.StubCuratedFeed.Packages.Add(
-                    new CuratedPackage { 
+                    new CuratedPackage {
                         CuratedFeed = controller.StubCuratedFeed,
                         CuratedFeedKey = controller.StubCuratedFeed.Key,
                         PackageRegistration = controller.StubPackageRegistration,
                         PackageRegistrationKey = controller.StubPackageRegistration.Key
                     });
 
-                var result = controller.PostCuratedPackages(
+                var result = await controller.PostCuratedPackages(
                     "aFeedName", new CreateCuratedPackageRequest { PackageId = "anId" })
                     as ViewResult;
 

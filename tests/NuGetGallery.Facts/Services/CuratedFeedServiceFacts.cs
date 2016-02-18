@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
@@ -22,9 +21,9 @@ namespace NuGetGallery.Services
 
                 StubCuratedPackage = new CuratedPackage
                 {
-                    Key = 0, 
-                    CuratedFeedKey = StubCuratedFeed.Key, 
-                    CuratedFeed = StubCuratedFeed, 
+                    Key = 0,
+                    CuratedFeedKey = StubCuratedFeed.Key,
+                    CuratedFeed = StubCuratedFeed,
                     PackageRegistration = StubPackageRegistration,
                     PackageRegistrationKey = StubPackageRegistration.Key
                 };
@@ -48,7 +47,7 @@ namespace NuGetGallery.Services
                 }
                 set
                 {
-                    _stubCuratedFeedRepository = value; 
+                    _stubCuratedFeedRepository = value;
                     CuratedFeedRepository = value.Object;
                 }
             }
@@ -76,34 +75,34 @@ namespace NuGetGallery.Services
         public class TheCreateCuratedPackageMethod
         {
             [Fact]
-            public void WillThrowWhenCuratedFeedDoesNotExist()
+            public async Task WillThrowWhenCuratedFeedDoesNotExist()
             {
                 var svc = new TestableCuratedFeedService();
 
-                Assert.Throws<ArgumentNullException>(
-                    () => svc.CreatedCuratedPackage(
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    async () => await svc.CreatedCuratedPackageAsync(
                         null,
                         svc.StubPackageRegistration));
             }
 
             [Fact]
-            public void WillThrowWhenPackageRegistrationDoesNotExist()
+            public async Task WillThrowWhenPackageRegistrationDoesNotExist()
             {
                 var svc = new TestableCuratedFeedService();
 
-                Assert.Throws<ArgumentNullException>(
-                    () => svc.CreatedCuratedPackage(
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    async () => await svc.CreatedCuratedPackageAsync(
                         svc.StubCuratedFeed,
                         null));
             }
 
             [Fact]
-            public void WillAddANewCuratedPackageToTheCuratedFeed()
+            public async Task WillAddANewCuratedPackageToTheCuratedFeed()
             {
                 var svc = new TestableCuratedFeedService();
                 svc.StubPackageRegistration.Key = 1066;
 
-                svc.CreatedCuratedPackage(
+                await svc.CreatedCuratedPackageAsync(
                     svc.StubCuratedFeed,
                     svc.StubPackageRegistration,
                     false,
@@ -118,11 +117,11 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public void WillSaveTheEntityChanges()
+            public async Task WillSaveTheEntityChanges()
             {
                 var svc = new TestableCuratedFeedService();
 
-                svc.CreatedCuratedPackage(
+                await svc.CreatedCuratedPackageAsync(
                     svc.StubCuratedFeed,
                     svc.StubPackageRegistration,
                     false,
@@ -130,16 +129,16 @@ namespace NuGetGallery.Services
                     "theNotes");
 
                 svc.StubCuratedPackageRepository.Verify(stub => stub.InsertOnCommit(It.IsAny<CuratedPackage>()));
-                svc.StubCuratedPackageRepository.Verify(stub => stub.CommitChanges());
+                svc.StubCuratedPackageRepository.Verify(stub => stub.CommitChangesAsync());
             }
 
             [Fact]
-            public void WillReturnTheCreatedCuratedPackage()
+            public async Task WillReturnTheCreatedCuratedPackage()
             {
                 var svc = new TestableCuratedFeedService();
                 svc.StubPackageRegistration.Key = 1066;
 
-                var curatedPackage = svc.CreatedCuratedPackage(
+                var curatedPackage = await svc.CreatedCuratedPackageAsync(
                     svc.StubCuratedFeed,
                     svc.StubPackageRegistration,
                     false,
@@ -157,79 +156,79 @@ namespace NuGetGallery.Services
         public class TheModifyCuratedPackageMethod
         {
             [Fact]
-            public void WillThrowWhenCuratedFeedDoesNotExist()
+            public async Task WillThrowWhenCuratedFeedDoesNotExist()
             {
                 var svc = new TestableCuratedFeedService();
 
-                Assert.Throws<InvalidOperationException>(
-                    () => svc.ModifyCuratedPackage(
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    async () => await svc.ModifyCuratedPackageAsync(
                         42,
                         0,
                         false));
             }
 
             [Fact]
-            public void WillThrowWhenCuratedPackageDoesNotExist()
+            public async Task WillThrowWhenCuratedPackageDoesNotExist()
             {
                 var svc = new TestableCuratedFeedService();
 
-                Assert.Throws<InvalidOperationException>(
-                    () => svc.ModifyCuratedPackage(
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    async () => await svc.ModifyCuratedPackageAsync(
                         0,
                         404,
                         false));
             }
 
             [Fact]
-            public void WillModifyAndSaveTheCuratedPackage()
+            public async Task WillModifyAndSaveTheCuratedPackage()
             {
                 var svc = new TestableCuratedFeedService();
 
-                svc.ModifyCuratedPackage(
+                await svc.ModifyCuratedPackageAsync(
                     0,
                     1066,
                     true);
 
                 Assert.True(svc.StubCuratedPackage.Included);
-                svc.StubCuratedPackageRepository.Verify(stub => stub.CommitChanges());
+                svc.StubCuratedPackageRepository.Verify(stub => stub.CommitChangesAsync());
             }
         }
 
         public class TheDeleteCuratedPackageMethod
         {
             [Fact]
-            public void WillThrowWhenCuratedFeedDoesNotExist()
+            public async Task WillThrowWhenCuratedFeedDoesNotExist()
             {
                 var svc = new TestableCuratedFeedService();
 
-                Assert.Throws<InvalidOperationException>(
-                    () => svc.DeleteCuratedPackage(
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    async () => await svc.DeleteCuratedPackageAsync(
                         42,
                         0));
             }
 
             [Fact]
-            public void WillThrowWhenCuratedPackageDoesNotExist()
+            public async Task WillThrowWhenCuratedPackageDoesNotExist()
             {
                 var svc = new TestableCuratedFeedService();
 
-                Assert.Throws<InvalidOperationException>(
-                    () => svc.DeleteCuratedPackage(
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    async () => await svc.DeleteCuratedPackageAsync(
                         0,
                         1066));
             }
 
             [Fact]
-            public void WillDeleteTheCuratedPackage()
+            public async Task WillDeleteTheCuratedPackage()
             {
                 var svc = new TestableCuratedFeedService();
 
-                svc.DeleteCuratedPackage(
+                await svc.DeleteCuratedPackageAsync(
                     0,
                     1066);
 
                 svc.StubCuratedPackageRepository.Verify(stub => stub.DeleteOnCommit(svc.StubCuratedPackage));
-                svc.StubCuratedPackageRepository.Verify(stub => stub.CommitChanges());
+                svc.StubCuratedPackageRepository.Verify(stub => stub.CommitChangesAsync());
             }
         }
     }
