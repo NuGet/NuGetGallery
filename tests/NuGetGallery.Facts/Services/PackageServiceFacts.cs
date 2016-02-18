@@ -84,7 +84,6 @@ namespace NuGetGallery
         private static IPackageService CreateService(
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<Package>> packageRepository = null,
-            Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null,
             Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Mock<IIndexingService> indexingService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
@@ -92,7 +91,6 @@ namespace NuGetGallery
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
-            packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
 
@@ -106,7 +104,6 @@ namespace NuGetGallery
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
-                packageStatsRepo.Object,
                 packageOwnerRequestRepo.Object,
                 indexingService.Object,
                 packageNamingConflictValidator);
@@ -119,67 +116,6 @@ namespace NuGetGallery
             }
 
             return packageService.Object;
-        }
-
-        public class TheAddDownloadStatisticsMethod
-        {
-            [Fact]
-            public void WillInsertNewRecordIntoTheStatisticsRepository()
-            {
-                var packageStatsRepo = new Mock<IEntityRepository<PackageStatistics>>();
-                var service = CreateService(packageStatsRepo: packageStatsRepo);
-                var package = new Package();
-
-                service.AddDownloadStatistics(
-                    new PackageStatistics
-                    {
-                        Package = package,
-                        IPAddress = "::1",
-                        UserAgent = "Unit Test",
-                        Operation = "Test Download",
-                    });
-
-                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package && p.UserAgent == "Unit Test")));
-                packageStatsRepo.Verify(x => x.CommitChanges());
-            }
-
-            [Fact]
-            public void WillIgnoreTheIpAddressForNow()
-            {
-                // Until we understand privacy implications of storing IP Addresses thoroughly,
-                // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
-
-                var packageStatsRepo = new Mock<IEntityRepository<PackageStatistics>>();
-                var service = CreateService(packageStatsRepo: packageStatsRepo);
-                var package = new Package();
-
-                service.AddDownloadStatistics(new PackageStatistics
-                {
-                    Package = package,
-                    IPAddress = "::1",
-                    UserAgent = "Unit Test",
-                });
-
-                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.IPAddress == "unknown")));
-                packageStatsRepo.Verify(x => x.CommitChanges());
-            }
-
-            [Fact]
-            public void WillAllowNullsForUserAgentAndUserHostAddress()
-            {
-                var packageStatsRepo = new Mock<IEntityRepository<PackageStatistics>>();
-                var service = CreateService(packageStatsRepo: packageStatsRepo);
-                var package = new Package();
-
-                service.AddDownloadStatistics(
-                    new PackageStatistics
-                    {
-                        Package = package,
-                    });
-
-                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package)));
-                packageStatsRepo.Verify(x => x.CommitChanges());
-            }
         }
 
         public class TheAddPackageOwnerMethod

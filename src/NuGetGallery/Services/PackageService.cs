@@ -18,20 +18,17 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
-        private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
-            IEntityRepository<PackageStatistics> packageStatsRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IIndexingService indexingService,
             IPackageNamingConflictValidator packageNamingConflictValidator)
         {
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
-            _packageStatsRepository = packageStatsRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _indexingService = indexingService;
             _packageNamingConflictValidator = packageNamingConflictValidator;
@@ -233,15 +230,6 @@ namespace NuGetGallery
             {
                 _packageRepository.CommitChanges();
             }
-        }
-
-        public void AddDownloadStatistics(PackageStatistics stats)
-        {
-            // IMPORTANT: Until we understand privacy implications of storing IP Addresses thoroughly,
-            // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
-            stats.IPAddress = "unknown";
-            _packageStatsRepository.InsertOnCommit(stats);
-            _packageStatsRepository.CommitChanges();
         }
 
         public void AddPackageOwner(PackageRegistration package, User user)
