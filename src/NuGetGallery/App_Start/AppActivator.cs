@@ -172,6 +172,15 @@ namespace NuGetGallery
             WebApiConfig.Register(GlobalConfiguration.Configuration);
             NuGetODataConfig.Register(GlobalConfiguration.Configuration);
 
+            // Attach correlator
+            var correlationHandler = new Correlator.Handlers.ClientCorrelationHandler
+            {
+                InitializeIfEmpty = true,
+                TraceCorrelation = true
+            };
+
+            GlobalConfiguration.Configuration.MessageHandlers.Add(correlationHandler);
+
             Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
             AreaRegistration.RegisterAllAreas();
 
