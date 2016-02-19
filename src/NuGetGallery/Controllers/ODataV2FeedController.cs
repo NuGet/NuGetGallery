@@ -174,8 +174,8 @@ namespace NuGetGallery.Controllers
         {
             switch (propertyName.ToLowerInvariant())
             {
-            case "id": return Ok(id);
-            case "version": return Ok(version);
+                case "id": return Ok(id);
+                case "version": return Ok(version);
             }
 
             return BadRequest("Querying property " + propertyName + " is not supported.");
