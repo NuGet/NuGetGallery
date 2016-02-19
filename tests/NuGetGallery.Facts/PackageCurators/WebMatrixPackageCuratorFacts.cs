@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
 using Xunit;
@@ -45,17 +46,17 @@ namespace NuGetGallery.PackageCurators
         public class TheCurateMethod
         {
             [Fact]
-            public void WillNotIncludeThePackageWhenTheWebMatrixCuratedFeedDoesNotExist()
+            public async Task WillNotIncludeThePackageWhenTheWebMatrixCuratedFeedDoesNotExist()
             {
                 var curator = TestableWebMatrixPackageCurator.Create(stubCuratedFeedService =>
                 {
                     stubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
                 });
 
-                curator.Curate(CreateStubGalleryPackage(), null, commitChanges: true);
+                await curator.CurateAsync(CreateStubGalleryPackage(), null, commitChanges: true);
 
                 curator.StubCuratedFeedService.Verify(
-                    stub => stub.CreatedCuratedPackage(
+                    stub => stub.CreatedCuratedPackageAsync(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -98,14 +99,14 @@ namespace NuGetGallery.PackageCurators
             }
 
             [Fact]
-            public void WillNotExamineTheNuGetPackageFilesWhenTaggedWithAspNetWebPages()
+            public async Task WillNotExamineTheNuGetPackageFilesWhenTaggedWithAspNetWebPages()
             {
                 var curator = TestableWebMatrixPackageCurator.Create(null);
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 var stubNuGetPackageReader = CreateStubNuGetPackageReader();
                 stubGalleryPackage.Tags = "aTag aspnetwebpages aThirdTag";
-                
-                curator.Curate(stubGalleryPackage, stubNuGetPackageReader.Object, commitChanges: true);
+
+                await curator.CurateAsync(stubGalleryPackage, stubNuGetPackageReader.Object, commitChanges: true);
 
                 // at most once - reading the NuSpec will call GetFiles() under the hood
                 stubNuGetPackageReader.Verify(stub => stub.GetFiles(), Times.AtMostOnce());
@@ -174,8 +175,8 @@ namespace NuGetGallery.PackageCurators
                 var stubFeed = new CuratedFeed();
                 var dependencyPackage = new CuratedPackage
                 {
-                    AutomaticallyCurated = false, 
-                    Included = false, 
+                    AutomaticallyCurated = false,
+                    Included = false,
                     PackageRegistration = new PackageRegistration { Id = "ManuallyExcludedPackage" }
                 };
                 stubFeed.Packages.Add(dependencyPackage);
@@ -217,7 +218,7 @@ namespace NuGetGallery.PackageCurators
                 var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 var stubNuGetPackage = CreateStubNuGetPackage(minClientVersion: "3.0.0");
-                
+
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
                     stubGalleryPackage,
@@ -247,15 +248,15 @@ namespace NuGetGallery.PackageCurators
             }
 
             [Fact]
-            public void WillIncludeThePackageUsingTheCuratedFeedKey()
+            public async Task WillIncludeThePackageUsingTheCuratedFeedKey()
             {
                 var curator = TestableWebMatrixPackageCurator.Create(null);
                 curator.StubCuratedFeed.Key = 42;
 
-                curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackageReader().Object, commitChanges: true);
+                await curator.CurateAsync(CreateStubGalleryPackage(), CreateStubNuGetPackageReader().Object, commitChanges: true);
 
                 curator.StubCuratedFeedService.Verify(
-                    stub => stub.CreatedCuratedPackage(
+                    stub => stub.CreatedCuratedPackageAsync(
                         curator.StubCuratedFeed,
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -265,16 +266,16 @@ namespace NuGetGallery.PackageCurators
             }
 
             [Fact]
-            public void WillIncludeThePackageUsingThePackageRegistrationKey()
+            public async Task WillIncludeThePackageUsingThePackageRegistrationKey()
             {
                 var curator = TestableWebMatrixPackageCurator.Create(null);
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.PackageRegistration.Key = 42;
 
-                curator.Curate(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
+                await curator.CurateAsync(stubGalleryPackage, CreateStubNuGetPackageReader().Object, commitChanges: true);
 
                 curator.StubCuratedFeedService.Verify(
-                    stub => stub.CreatedCuratedPackage(
+                    stub => stub.CreatedCuratedPackageAsync(
                         It.IsAny<CuratedFeed>(),
                         stubGalleryPackage.PackageRegistration,
                         It.IsAny<bool>(),
@@ -284,14 +285,14 @@ namespace NuGetGallery.PackageCurators
             }
 
             [Fact]
-            public void WillSetTheAutomaticBitWhenIncludingThePackage()
+            public async Task WillSetTheAutomaticBitWhenIncludingThePackage()
             {
                 var curator = TestableWebMatrixPackageCurator.Create(null);
 
-                curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackageReader().Object, commitChanges: true);
+                await curator.CurateAsync(CreateStubGalleryPackage(), CreateStubNuGetPackageReader().Object, commitChanges: true);
 
                 curator.StubCuratedFeedService.Verify(
-                    stub => stub.CreatedCuratedPackage(
+                    stub => stub.CreatedCuratedPackageAsync(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),

@@ -349,9 +349,9 @@ namespace NuGetGallery
                     Size = packageStream.Length,
                 };
 
-                var package = PackageService.CreatePackage(packageToPush, packageStreamMetadata, user, commitChanges: false);
-                AutoCuratePackage.Execute(package, packageToPush, commitChanges: false);
-                EntitiesContext.SaveChanges();
+                var package = await PackageService.CreatePackageAsync(packageToPush, packageStreamMetadata, user, commitChanges: false);
+                await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
+                await EntitiesContext.SaveChangesAsync();
 
                 using (Stream uploadStream = packageStream)
                 {
@@ -368,7 +368,7 @@ namespace NuGetGallery
         [RequireSsl]
         [ApiAuthorize]
         [ActionName("DeletePackageApi")]
-        public virtual ActionResult DeletePackage(string id, string version)
+        public virtual async Task<ActionResult> DeletePackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -380,11 +380,10 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             if (!package.IsOwner(user))
             {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
-            PackageService.MarkPackageUnlisted(package);
+            await PackageService.MarkPackageUnlistedAsync(package);
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
         }
@@ -393,7 +392,7 @@ namespace NuGetGallery
         [RequireSsl]
         [ApiAuthorize]
         [ActionName("PublishPackageApi")]
-        public virtual ActionResult PublishPackage(string id, string version)
+        public virtual async Task<ActionResult> PublishPackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -408,7 +407,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
             }
 
-            PackageService.MarkPackageListed(package);
+            await PackageService.MarkPackageListedAsync(package);
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
         }

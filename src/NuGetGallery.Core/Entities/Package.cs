@@ -28,8 +28,6 @@ namespace NuGetGallery
         public PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
 
-        public virtual ICollection<PackageStatistics> DownloadStatistics { get; set; }
-
         [Obsolete("Will be removed in a future iteration, for now is write-only")]
         public virtual ICollection<PackageAuthor> Authors { get; set; }
 

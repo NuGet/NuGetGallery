@@ -1,15 +1,15 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
     public interface ICuratedFeedService
     {
-        CuratedPackage CreatedCuratedPackage(
+        Task<CuratedPackage> CreatedCuratedPackageAsync(
             CuratedFeed curatedFeed,
             PackageRegistration packageRegistration,
             bool included = false,
@@ -17,11 +17,11 @@ namespace NuGetGallery
             string notes = null,
             bool commitChanges = true);
 
-        void DeleteCuratedPackage(
+        Task DeleteCuratedPackageAsync(
             int curatedFeedKey,
             int curatedPackageKey);
 
-        void ModifyCuratedPackage(
+        Task ModifyCuratedPackageAsync(
             int curatedFeedKey,
             int curatedPackageKey,
             bool included);

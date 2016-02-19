@@ -17,7 +17,6 @@ using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
-using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
@@ -49,35 +48,6 @@ namespace NuGetGallery
         private readonly EditPackageService _editPackageService;
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly ISupportRequestService _supportRequestService;
-        private readonly IMonitoringService _monitoringService;
-
-        public PackagesController(
-            IPackageService packageService,
-            IUploadFileService uploadFileService,
-            IMessageService messageService,
-            ISearchService searchService,
-            IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
-            IPackageFileService packageFileService,
-            IEntitiesContext entitiesContext,
-            IAppConfiguration config,
-            IIndexingService indexingService,
-            ICacheService cacheService,
-            EditPackageService editPackageService,
-            IPackageDeleteService packageDeleteService)
-        {
-            _packageService = packageService;
-            _uploadFileService = uploadFileService;
-            _messageService = messageService;
-            _searchService = searchService;
-            _autoCuratedPackageCmd = autoCuratedPackageCmd;
-            _packageFileService = packageFileService;
-            _entitiesContext = entitiesContext;
-            _config = config;
-            _indexingService = indexingService;
-            _cacheService = cacheService;
-            _editPackageService = editPackageService;
-            _packageDeleteService = packageDeleteService;
-        }
 
         public PackagesController(
             IPackageService packageService,
@@ -92,8 +62,7 @@ namespace NuGetGallery
             ICacheService cacheService,
             EditPackageService editPackageService,
             IPackageDeleteService packageDeleteService,
-            SupportRequestService supportRequestService,
-            PagerDutyService monitoringService)
+            ISupportRequestService supportRequestService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -108,7 +77,6 @@ namespace NuGetGallery
             _editPackageService = editPackageService;
             _packageDeleteService = packageDeleteService;
             _supportRequestService = supportRequestService;
-            _monitoringService = monitoringService;
         }
 
         [Authorize]
@@ -129,7 +97,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("undo pending edits")]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult UndoPendingEdits(string id, string version)
+        public virtual async Task<ActionResult> UndoPendingEdits(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -156,7 +124,7 @@ namespace NuGetGallery
                 try
                 {
                     _entitiesContext.DeleteOnCommit(result);
-                    _entitiesContext.SaveChanges();
+                    await _entitiesContext.SaveChangesAsync();
                     numOK += 1;
                 }
                 catch (DataException)
@@ -451,62 +419,6 @@ namespace NuGetGallery
             return View(viewModel);
         }
 
-        private async Task<int> AddNewSupportRequest(string subject, Package package, User user, ReportAbuseViewModel reportForm)
-        {
-            try
-            {
-                var newIssue = new Issue();
-                var primaryOnCall = await _monitoringService.GetPrimaryOnCall(_config);
-
-                //if primary on call is not yet configured in the Support Request DB yet, assign to unassigned
-                if (string.IsNullOrEmpty(primaryOnCall) || _supportRequestService.GetAdminKeyFromUsername(primaryOnCall) == -1)
-                {
-                    newIssue.AssignedTo = null;
-                }
-                else
-                {
-                    newIssue.AssignedToId = _supportRequestService.GetAdminKeyFromUsername(primaryOnCall);
-                }
-
-                newIssue.CreatedDate = DateTime.UtcNow;
-                newIssue.Details = reportForm.Message;
-                newIssue.IssueStatusId = IssueStatusKeys.New;
-                newIssue.IssueTitle = subject;
-
-                var loggedInUser = user != null ? user.Username : "Anonymous";
-                newIssue.CreatedBy = loggedInUser;
-
-                var ownerEmail = user != null ? user.EmailAddress : reportForm.Email;
-                newIssue.OwnerEmail = ownerEmail;
-                newIssue.PackageId = package.PackageRegistration.Id;
-                newIssue.PackageVersion = package.Version;
-                newIssue.Reason = EnumHelper.GetDescription(reportForm.Reason.Value);
-                newIssue.SiteRoot = _config.SiteRoot;
-                newIssue.UserKey = user?.Key;
-                newIssue.PackageRegistrationKey = package.PackageRegistrationKey;
-
-                await _supportRequestService.AddIssueAsync(newIssue);
-
-                return newIssue.Key;
-            }
-            catch (System.Data.SqlClient.SqlException)
-            {
-                var errorMessage = string.Format(CultureInfo.InvariantCulture,
-                                                    "Exception thrown while logging a support request into DB for {0}, {1} at {2}",
-                                                    package.PackageRegistration.Id,
-                                                    package.Version,
-                                                    DateTime.UtcNow);
-
-                await _monitoringService.TriggerIncident(_config, errorMessage);
-            }
-            catch (Exception e) //In case getting data from PagerDuty has failed
-            {
-                //Log to elmah
-                QuietLog.LogHandledException(e);
-            }
-            return -1;
-        }
-
         // NOTE: Intentionally NOT requiring authentication
         private static readonly ReportPackageReason[] ReportOtherPackageReasons = new[] {
             ReportPackageReason.IsFraudulent,
@@ -637,7 +549,11 @@ namespace NuGetGallery
                 Signature = reportForm.Signature
             };
 
-            await AddNewSupportRequest($"Support Request for '{package.PackageRegistration.Id}' version {package.Version}", package, user, reportForm);
+            var subject = $"Support Request for '{package.PackageRegistration.Id}' version {package.Version}";
+            var requestorEmailAddress = user != null ? user.EmailAddress : reportForm.Email;
+            var reason = EnumHelper.GetDescription(reportForm.Reason.Value);
+
+            await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, requestorEmailAddress, reason, user, package);
 
             _messageService.ReportAbuse(request);
 
@@ -680,7 +596,11 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender
             };
 
-            await AddNewSupportRequest($"Owner Support Request for '{package.PackageRegistration.Id}' version {package.Version}", package, user, reportForm);
+            var subject = $"Owner Support Request for '{package.PackageRegistration.Id}' version {package.Version}";
+            var requestorEmailAddress = user != null ? user.EmailAddress : reportForm.Email;
+            var reason = EnumHelper.GetDescription(reportForm.Reason.Value);
+
+            await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, requestorEmailAddress, reason, user, package);
 
             _messageService.ReportMyPackage(request);
 
@@ -855,10 +775,10 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("unlist a package")]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult UpdateListed(string id, string version, bool? listed)
+        public virtual async Task<ActionResult> UpdateListed(string id, string version, bool? listed)
         {
             // Edit does exactly the same thing that Delete used to do... REUSE ALL THE CODE!
-            return Edit(id, version, listed, Url.Package);
+            return await Edit(id, version, listed, Url.Package);
         }
 
         [Authorize]
@@ -897,7 +817,7 @@ namespace NuGetGallery
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("edit a package")]
-        public virtual ActionResult Edit(string id, string version, EditPackageRequest formData, string returnUrl)
+        public virtual async Task<ActionResult> Edit(string id, string version, EditPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -922,7 +842,7 @@ namespace NuGetGallery
                 try
                 {
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
-                    _entitiesContext.SaveChanges();
+                    await _entitiesContext.SaveChangesAsync();
                 }
                 catch (EntityException ex)
                 {
@@ -951,7 +871,7 @@ namespace NuGetGallery
 
         [Authorize]
         [RequiresAccountConfirmation("accept ownership of a package")]
-        public virtual ActionResult ConfirmOwner(string id, string username, string token)
+        public virtual async Task<ActionResult> ConfirmOwner(string id, string username, string token)
         {
             if (String.IsNullOrEmpty(token))
             {
@@ -974,7 +894,7 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
-            ConfirmOwnershipResult result = _packageService.ConfirmPackageOwner(package, user, token);
+            ConfirmOwnershipResult result = await _packageService.ConfirmPackageOwnerAsync(package, user, token);
 
             var model = new PackageOwnerConfirmationModel
             {
@@ -985,7 +905,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        internal virtual ActionResult Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)
+        internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -1001,12 +921,12 @@ namespace NuGetGallery
             if (!(listed ?? false))
             {
                 action = "unlisted";
-                _packageService.MarkPackageUnlisted(package);
+                await _packageService.MarkPackageUnlistedAsync(package);
             }
             else
             {
                 action = "listed";
-                _packageService.MarkPackageListed(package);
+                await _packageService.MarkPackageListedAsync(package);
             }
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture,
@@ -1149,7 +1069,7 @@ namespace NuGetGallery
                 // update relevant database tables
                 try
                 {
-                    package = _packageService.CreatePackage(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
+                    package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
                     Debug.Assert(package.PackageRegistration != null);
                 }
                 catch (EntityException ex)
@@ -1158,7 +1078,7 @@ namespace NuGetGallery
                     return Redirect(Url.UploadPackage());
                 }
 
-                _packageService.PublishPackage(package, commitChanges: false);
+                await _packageService.PublishPackageAsync(package, commitChanges: false);
 
                 if (pendEdit)
                 {
@@ -1168,17 +1088,17 @@ namespace NuGetGallery
 
                 if (!formData.Listed)
                 {
-                    _packageService.MarkPackageUnlisted(package, commitChanges: false);
+                    await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
                 }
 
-                _autoCuratedPackageCmd.Execute(package, nugetPackage, commitChanges: false);
+                await _autoCuratedPackageCmd.ExecuteAsync(package, nugetPackage, commitChanges: false);
 
                 // save package to blob storage
                 uploadFile.Position = 0;
                 await _packageFileService.SavePackageFileAsync(package, uploadFile.AsSeekableStream());
 
                 // commit all changes to database as an atomic transaction
-                _entitiesContext.SaveChanges();
+                await _entitiesContext.SaveChangesAsync();
 
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();
@@ -1247,12 +1167,12 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult SetLicenseReportVisibility(string id, string version, bool visible)
+        public virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible)
         {
-            return SetLicenseReportVisibility(id, version, visible, Url.Package);
+            return await SetLicenseReportVisibility(id, version, visible, Url.Package);
         }
 
-        internal virtual ActionResult SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, string> urlFactory)
+        internal virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, string> urlFactory)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -1264,7 +1184,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
-            _packageService.SetLicenseReportVisibility(package, visible);
+            await _packageService.SetLicenseReportVisibilityAsync(package, visible);
 
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture,

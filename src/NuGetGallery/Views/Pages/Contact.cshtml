@@ -1,4 +1,6 @@
-﻿@{
+﻿@using NuGetGallery.ViewModels
+@model ContactSupportViewModel
+@{
     ViewBag.Title = "Contact Us";
 }
 <article class="contact">
@@ -11,7 +13,7 @@
 
     <h3>Having problems using a specific package?</h3>
     <p>
-        If you're having trouble installing a specific package, try contacting the owner of that package first. 
+        If you're having trouble installing a specific package, try contacting the owner of that package first.
         You can reach them using the "Contact Owners" link on the package details page.
     </p>
 
@@ -25,26 +27,53 @@
     <p>
         Before reaching out to NuGet support, check out the <a href="http://docs.nuget.org/consume/nuget-faq#managing-packages-in-nuget.org">FAQ</a>.
     </p>
-    
+
     <h3>Found a bug in NuGet or the website NuGet.org?</h3>
     <p>
-        If you're having trouble with the <strong>NuGet.org Website</strong>, 
+        If you're having trouble with the <strong>NuGet.org Website</strong>,
         file a bug on the NuGet Gallery <a href="https://github.com/NuGet/NuGetGallery/issues">Issue Tracker</a>.
     </p>
     <p>
         If you're having trouble with the <strong>NuGet client tools</strong> (the Visual Studio extension, NuGet.exe command line tool, etc.),
         file a bug on the NuGet Client <a href="https://github.com/NuGet/Home/issues">Issue Tracker</a>
     </p>
-    
+
     <h3>Want to change your NuGet.org username?</h3>
     <p>
         No need to contact support. Create a new user and transfer ownership of your packages to it.
     </p>
 
-    <h3>Talk to the NuGet development team and wider NuGet community</h3>
-    <p>
-        Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>
-    </p>
+    @if (User.Identity.IsAuthenticated)
+    {
+        <h3>The above doesn't help? Get in touch with us using the form below</h3>
+        <p>
+            A member of our Support team will be in touch with you soon.
+        </p>
+        using (Html.BeginForm())
+        {
+            <div class="form-field">
+                @Html.LabelFor(m => m.SubjectLine)
+                @Html.TextAreaFor(m => m.SubjectLine, 1, 50, null)
+            </div>
+            <div class="form-field">
+                @Html.LabelFor(m => m.Message)
+                @Html.TextAreaFor(m => m.Message, 10, 50, null)
+                @Html.ValidationMessageFor(m => m.Message, null, new { id = "contact-support-message" })
+            </div>
+            <div class="form-field">
+                @Html.CheckBoxFor(m => m.CopySender)
+                @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
+            </div>
+            <input id="form-submit" type="submit" value="Contact" title="Contact Support" />
+        }
+    }
+    else
+    {
+        <h3>The above doesn't help? @Html.ActionLink("Sign In", "LogOn", new {controller = "Authentication", ReturnUrl = "/policies/Contact"}) to contact Support</h3>
+        <p>
+            Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>
+        </p>
+    }
 </article>
 
 @section BottomScripts {
@@ -53,7 +82,7 @@
             var part1 = "support";
             var part2 = "nuget.org";
             var part3 = "email us";
-            var link = $("<a>").attr("href", "mailto:" + part1 + "@@" + part2).text(part3);
+            var link = $("<a>").attr("href", "mailto:" + part1 + "@@" + part2 + "?subject=[NuGetGallery] Need help with my account").text(part3);
             $("#emailUs").append(link);
         });
     </script>

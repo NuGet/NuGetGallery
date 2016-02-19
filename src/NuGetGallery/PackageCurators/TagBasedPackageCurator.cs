@@ -4,13 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Packaging;
 
 namespace NuGetGallery
 {
     public abstract class TagBasedPackageCurator : AutomaticPackageCurator
     {
-        protected TagBasedPackageCurator(ICuratedFeedService curatedFeedService) 
+        protected TagBasedPackageCurator(ICuratedFeedService curatedFeedService)
             : base(curatedFeedService)
         {
         }
@@ -25,7 +26,7 @@ namespace NuGetGallery
         /// </summary>
         protected abstract string CuratedFeedName { get; }
 
-        public override void Curate(Package galleryPackage, PackageArchiveReader nugetPackage, bool commitChanges)
+        public override async Task CurateAsync(Package galleryPackage, PackageArchiveReader nugetPackage, bool commitChanges)
         {
             // Make sure the target feed exists
             CuratedFeed feed = CuratedFeedService.GetFeedByName(CuratedFeedName, includePackages: true);
@@ -41,9 +42,9 @@ namespace NuGetGallery
                     // But now we need to ensure that the package's dependencies are also curated
                     if (DependenciesAreCurated(galleryPackage, feed))
                     {
-                        CuratedFeedService.CreatedCuratedPackage(
-                            feed, 
-                            galleryPackage.PackageRegistration, 
+                        await CuratedFeedService.CreatedCuratedPackageAsync(
+                            feed,
+                            galleryPackage.PackageRegistration,
                             automaticallyCurated: true,
                             commitChanges: commitChanges);
                     }

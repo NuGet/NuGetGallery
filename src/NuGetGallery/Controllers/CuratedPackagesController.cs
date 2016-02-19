@@ -4,6 +4,7 @@
 using System.Linq;
 using System.Web.Mvc;
 using System.Data.Entity;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -45,7 +46,7 @@ namespace NuGetGallery
 
         [ActionName("CuratedPackage")]
         [HttpDelete]
-        public virtual ActionResult DeleteCuratedPackage(
+        public virtual async Task<ActionResult> DeleteCuratedPackage(
             string curatedFeedName,
             string curatedPackageId)
         {
@@ -66,7 +67,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403);
             }
 
-            CuratedFeedService.DeleteCuratedPackage(
+            await CuratedFeedService.DeleteCuratedPackageAsync(
                 curatedFeed.Key,
                 curatedPackage.Key);
 
@@ -75,7 +76,7 @@ namespace NuGetGallery
 
         [ActionName("CuratedPackage")]
         [AcceptVerbs("patch")]
-        public virtual ActionResult PatchCuratedPackage(
+        public virtual async Task<ActionResult> PatchCuratedPackage(
             string curatedFeedName,
             string curatedPackageId,
             ModifyCuratedPackageRequest request)
@@ -102,7 +103,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(400);
             }
 
-            CuratedFeedService.ModifyCuratedPackage(
+            await CuratedFeedService.ModifyCuratedPackageAsync(
                 curatedFeed.Key,
                 curatedPackage.Key,
                 request.Included);
@@ -112,7 +113,7 @@ namespace NuGetGallery
 
         [ActionName("CuratedPackages")]
         [HttpPost]
-        public virtual ActionResult PostCuratedPackages(
+        public virtual async Task<ActionResult> PostCuratedPackages(
             string curatedFeedName,
             CreateCuratedPackageRequest request)
         {
@@ -151,7 +152,7 @@ namespace NuGetGallery
                 return View("CreateCuratedPackageForm");
             }
 
-            CuratedFeedService.CreatedCuratedPackage(
+            await CuratedFeedService.CreatedCuratedPackageAsync(
                 curatedFeed,
                 packageRegistration,
                 included: true,

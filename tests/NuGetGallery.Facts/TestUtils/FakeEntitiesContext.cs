@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace NuGetGallery
@@ -85,10 +86,10 @@ namespace NuGetGallery
             }
         }
 
-        public int SaveChanges()
+        public Task<int> SaveChangesAsync()
         {
             areChangesSaved = true;
-            return 0;
+            return Task.FromResult(0);
         }
 
         public IDbSet<T> Set<T>() where T : class

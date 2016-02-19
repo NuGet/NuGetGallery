@@ -104,12 +104,15 @@ namespace NuGetGallery.Controllers
             // try the search service
             try
             {
-                packages = await SearchAdaptor.FindByIdAndVersionCore(
+                var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                     _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: curatedFeed);
 
                 // If intercepted, create a paged queryresult
-                if (packages.IsQueryTranslator())
+                if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                 {
+                    // Packages provided by search service
+                    packages = searchAdaptorResult.Packages;
+
                     // Add explicit Take() needed to limit search hijack result set size if $top is specified
                     var totalHits = packages.LongCount();
                     var pagedQueryable = packages
@@ -188,11 +191,14 @@ namespace NuGetGallery.Controllers
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
-            var query = await SearchAdaptor.SearchCore(
+            var searchAdaptorResult = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: curatedFeed);
-            
-            // If intercepted by SearchAdaptor, create a paged queryresult
-            if (query.IsQueryTranslator())
+
+            // Packages provided by search service (even when not hijacked)
+            var query = searchAdaptorResult.Packages;
+
+            // If intercepted, create a paged queryresult
+            if (searchAdaptorResult.ResultsAreProvidedBySearchService)
             {
                 // Add explicit Take() needed to limit search hijack result set size if $top is specified
                 var totalHits = query.LongCount();

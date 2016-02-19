@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
@@ -18,20 +19,17 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
-        private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
-            IEntityRepository<PackageStatistics> packageStatsRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IIndexingService indexingService,
             IPackageNamingConflictValidator packageNamingConflictValidator)
         {
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
-            _packageStatsRepository = packageStatsRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _indexingService = indexingService;
             _packageNamingConflictValidator = packageNamingConflictValidator;
@@ -52,7 +50,7 @@ namespace NuGetGallery
             }
         }
 
-        public Package CreatePackage(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
+        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
         {
             var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
@@ -64,18 +62,18 @@ namespace NuGetGallery
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
             packageRegistration.Packages.Add(package);
-            UpdateIsLatest(packageRegistration, false);
+            await UpdateIsLatestAsync(packageRegistration, false);
 
             if (commitChanges)
             {
-                _packageRegistrationRepository.CommitChanges();
+                await _packageRegistrationRepository.CommitChangesAsync();
                 NotifyIndexingService();
             }
 
             return package;
         }
 
-       public virtual PackageRegistration FindPackageRegistrationById(string id)
+        public virtual PackageRegistration FindPackageRegistrationById(string id)
         {
             if (id == null)
             {
@@ -94,9 +92,9 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(id));
             }
 
-            // Optimization: Everytime we look at a package we almost always want to see 
-            // all the other packages with the same ID via the PackageRegistration property. 
-            // This resulted in a gnarly query. 
+            // Optimization: Everytime we look at a package we almost always want to see
+            // all the other packages with the same ID via the PackageRegistration property.
+            // This resulted in a gnarly query.
             // Instead, we can always query for all packages with the ID.
             IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
                 .Include(p => p.LicenseReports)
@@ -145,14 +143,14 @@ namespace NuGetGallery
             // but show you the latest version (potentially latest UNLISTED version) otherwise.
 
             IQueryable<Package> latestStablePackageVersions = _packageRepository.GetAll()
-                .Where(p => 
+                .Where(p =>
                     p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
                     && p.IsLatestStable)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 
             var latestPackageVersions = _packageRepository.GetAll()
-                .Where(p => 
+                .Where(p =>
                     p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
                     && p.IsLatest)
                 .Include(p => p.PackageRegistration)
@@ -205,7 +203,7 @@ namespace NuGetGallery
             return dependents.Select(d => d.Package);
         }
 
-        public void PublishPackage(string id, string version, bool commitChanges = true)
+        public async Task PublishPackageAsync(string id, string version, bool commitChanges = true)
         {
             var package = FindPackageByIdAndVersion(id, version);
 
@@ -214,10 +212,10 @@ namespace NuGetGallery
                 throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
             }
 
-            PublishPackage(package, commitChanges);
+            await PublishPackageAsync(package, commitChanges);
         }
 
-        public void PublishPackage(Package package, bool commitChanges = true)
+        public async Task PublishPackageAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
             {
@@ -227,37 +225,28 @@ namespace NuGetGallery
             package.Published = DateTime.UtcNow;
             package.Listed = true;
 
-            UpdateIsLatest(package.PackageRegistration, false);
+            await UpdateIsLatestAsync(package.PackageRegistration, false);
 
             if (commitChanges)
             {
-                _packageRepository.CommitChanges();
+                await _packageRepository.CommitChangesAsync();
             }
         }
 
-        public void AddDownloadStatistics(PackageStatistics stats)
-        {
-            // IMPORTANT: Until we understand privacy implications of storing IP Addresses thoroughly,
-            // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
-            stats.IPAddress = "unknown";
-            _packageStatsRepository.InsertOnCommit(stats);
-            _packageStatsRepository.CommitChanges();
-        }
-
-        public void AddPackageOwner(PackageRegistration package, User user)
+        public async Task AddPackageOwnerAsync(PackageRegistration package, User user)
         {
             package.Owners.Add(user);
-            _packageRepository.CommitChanges();
+            await _packageRepository.CommitChangesAsync();
 
             var request = FindExistingPackageOwnerRequest(package, user);
             if (request != null)
             {
                 _packageOwnerRequestRepository.DeleteOnCommit(request);
-                _packageOwnerRequestRepository.CommitChanges();
+                await _packageOwnerRequestRepository.CommitChangesAsync();
             }
         }
 
-        public void RemovePackageOwner(PackageRegistration package, User user)
+        public async Task RemovePackageOwnerAsync(PackageRegistration package, User user)
         {
             if (package.Owners.Count == 1 && user == package.Owners.Single())
             {
@@ -268,15 +257,15 @@ namespace NuGetGallery
             if (pendingOwner != null)
             {
                 _packageOwnerRequestRepository.DeleteOnCommit(pendingOwner);
-                _packageOwnerRequestRepository.CommitChanges();
+                await _packageOwnerRequestRepository.CommitChangesAsync();
                 return;
             }
 
             package.Owners.Remove(user);
-            _packageRepository.CommitChanges();
+            await _packageRepository.CommitChangesAsync();
         }
 
-        public void MarkPackageListed(Package package, bool commitChanges = true)
+        public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
             {
@@ -301,15 +290,15 @@ namespace NuGetGallery
             package.LastUpdated = DateTime.UtcNow;
             package.LastEdited = DateTime.UtcNow;
 
-            UpdateIsLatest(package.PackageRegistration, false);
+            await UpdateIsLatestAsync(package.PackageRegistration, false);
 
             if (commitChanges)
             {
-                _packageRepository.CommitChanges();
+                await _packageRepository.CommitChangesAsync();
             }
         }
 
-        public void MarkPackageUnlisted(Package package, bool commitChanges = true)
+        public async Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
             {
@@ -326,16 +315,16 @@ namespace NuGetGallery
 
             if (package.IsLatest || package.IsLatestStable)
             {
-                UpdateIsLatest(package.PackageRegistration, false);
+                await UpdateIsLatestAsync(package.PackageRegistration, false);
             }
 
             if (commitChanges)
             {
-                _packageRepository.CommitChanges();
+                await _packageRepository.CommitChangesAsync();
             }
         }
 
-        public PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner)
+        public async Task<PackageOwnerRequest> CreatePackageOwnerRequestAsync(PackageRegistration package, User currentOwner, User newOwner)
         {
             var existingRequest = FindExistingPackageOwnerRequest(package, newOwner);
             if (existingRequest != null)
@@ -344,20 +333,20 @@ namespace NuGetGallery
             }
 
             var newRequest = new PackageOwnerRequest
-                {
-                    PackageRegistrationKey = package.Key,
-                    RequestingOwnerKey = currentOwner.Key,
-                    NewOwnerKey = newOwner.Key,
-                    ConfirmationCode = CryptographyService.GenerateToken(),
-                    RequestDate = DateTime.UtcNow
-                };
+            {
+                PackageRegistrationKey = package.Key,
+                RequestingOwnerKey = currentOwner.Key,
+                NewOwnerKey = newOwner.Key,
+                ConfirmationCode = CryptographyService.GenerateToken(),
+                RequestDate = DateTime.UtcNow
+            };
 
             _packageOwnerRequestRepository.InsertOnCommit(newRequest);
-            _packageOwnerRequestRepository.CommitChanges();
+            await _packageOwnerRequestRepository.CommitChangesAsync();
             return newRequest;
         }
 
-        public ConfirmOwnershipResult ConfirmPackageOwner(PackageRegistration package, User pendingOwner, string token)
+        public async Task<ConfirmOwnershipResult> ConfirmPackageOwnerAsync(PackageRegistration package, User pendingOwner, string token)
         {
             if (package == null)
             {
@@ -382,7 +371,7 @@ namespace NuGetGallery
             var request = FindExistingPackageOwnerRequest(package, pendingOwner);
             if (request != null && request.ConfirmationCode == token)
             {
-                AddPackageOwner(package, pendingOwner);
+                await AddPackageOwnerAsync(package, pendingOwner);
                 return ConfirmOwnershipResult.Success;
             }
 
@@ -427,10 +416,10 @@ namespace NuGetGallery
                 throw new EntityException(
                     "A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
             }
-            
+
             package = new Package
             {
-                // Version must always be the exact string from the nuspec, which ToString will return to us. 
+                // Version must always be the exact string from the nuspec, which ToString will return to us.
                 // However, we do also store a normalized copy for looking up later.
                 Version = packageMetadata.Version.ToString(),
                 NormalizedVersion = packageMetadata.Version.ToNormalizedString(),
@@ -564,7 +553,7 @@ namespace NuGetGallery
             if (packageMetadata.GetDependencyGroups() != null)
             {
                 var packageDependencies = packageMetadata.GetDependencyGroups().ToList();
-    
+
                 foreach (var dependency in packageDependencies.SelectMany(s => s.Packages))
                 {
                     // NuGet.Core compatibility - dependency package id can not be > 128 characters
@@ -587,7 +576,7 @@ namespace NuGetGallery
                 }
             }
         }
-        
+
         private static void ValidateSupportedFrameworks(string[] supportedFrameworks)
         {
             // Frameworks within the portable profile are not allowed to have profiles themselves.
@@ -596,7 +585,7 @@ namespace NuGetGallery
                 !string.IsNullOrEmpty(fx)
                 && fx.StartsWith("portable-", StringComparison.OrdinalIgnoreCase)
                 && fx.Split('-').Length > 2);
-            
+
             if (invalidPortableFramework != null)
             {
                 throw new EntityException(
@@ -612,14 +601,14 @@ namespace NuGetGallery
             }
         }
 
-        public void UpdateIsLatest(PackageRegistration packageRegistration, bool commitChanges = true)
+        public async Task UpdateIsLatestAsync(PackageRegistration packageRegistration, bool commitChanges = true)
         {
             if (!packageRegistration.Packages.Any())
             {
                 return;
             }
 
-            // TODO: improve setting the latest bit; this is horrible. Trigger maybe? 
+            // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
             foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
             {
                 pv.IsLatest = false;
@@ -637,7 +626,7 @@ namespace NuGetGallery
 
                 if (latestPackage.IsPrerelease)
                 {
-                    // If the newest uploaded package is a prerelease package, we need to find an older package that is 
+                    // If the newest uploaded package is a prerelease package, we need to find an older package that is
                     // a release version and set it to IsLatest.
                     var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
                     if (latestReleasePackage != null)
@@ -649,14 +638,14 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    // Only release versions are marked as IsLatestStable. 
+                    // Only release versions are marked as IsLatestStable.
                     latestPackage.IsLatestStable = true;
                 }
             }
 
             if (commitChanges)
             {
-                _packageRepository.CommitChanges();
+                await _packageRepository.CommitChangesAsync();
             }
         }
 
@@ -688,7 +677,7 @@ namespace NuGetGallery
         }
 
 
-        public void SetLicenseReportVisibility(Package package, bool visible, bool commitChanges = true)
+        public async Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true)
         {
             if (package == null)
             {
@@ -697,9 +686,9 @@ namespace NuGetGallery
             package.HideLicenseReport = !visible;
             if (commitChanges)
             {
-                _packageRepository.CommitChanges();
+                await _packageRepository.CommitChangesAsync();
             }
-            _packageRepository.CommitChanges();
+            await _packageRepository.CommitChangesAsync();
         }
     }
 }

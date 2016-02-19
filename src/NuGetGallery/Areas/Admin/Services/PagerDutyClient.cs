@@ -7,27 +7,38 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin
 {
-    public class PagerDutyService : IMonitoringService
+    // todo: move this out of the gallery code base...
+    internal sealed class PagerDutyClient
     {
-        public async Task<string> GetPrimaryOnCall(IAppConfiguration appConfiguration)
+        private const string _triggerIncidentUrl = "https://events.pagerduty.com/generic/2010-04-15/create_event.json";
+        private readonly string _apiKey;
+        private readonly string _serviceKey;
+        private readonly string _onCallUrl;
+
+        internal PagerDutyClient(string accountName, string apiKey, string serviceKey)
+        {
+            _apiKey = apiKey;
+            _serviceKey = serviceKey;
+
+            // Configure defaults
+            _onCallUrl = string.Format(CultureInfo.InvariantCulture, "https://{0}.pagerduty.com/api/v1/users/on_call", accountName);
+        }
+
+        public async Task<string> GetPrimaryOnCallAsync()
         {
             var username = string.Empty;
             try
             {
-                var pagerDutyApiKey = appConfiguration.PagerDutyAPIKey;
-                var pagerDutyOnCallUrl = appConfiguration.PagerDutyOnCallURL;
-
                 string response;
-                using (var httpClient = new HttpClient()) //("URL/create_event.json");
+                using (var httpClient = new HttpClient())
                 {
-                    var token = "Token token=" + pagerDutyApiKey;
+                    var token = "Token token=" + _apiKey;
                     httpClient.DefaultRequestHeaders.Add("Authorization", token);
 
-                    response = await httpClient.GetStringAsync(pagerDutyOnCallUrl);
+                    response = await httpClient.GetStringAsync(_onCallUrl);
                 }
 
 
@@ -45,7 +56,7 @@ namespace NuGetGallery.Areas.Admin
                             var length = email.IndexOf("@", 0, StringComparison.OrdinalIgnoreCase);
                             username = email.Substring(0, length);
 
-                            //Find the primary that is not nugetcore
+                            // Find the primary that is not nugetcore
                             if (!username.Equals("nugetcore", StringComparison.OrdinalIgnoreCase))
                             {
                                 break;
@@ -61,22 +72,18 @@ namespace NuGetGallery.Areas.Admin
             return username;
         }
 
-        public async Task TriggerIncident(IAppConfiguration appConfiguration, string errorMessage)
+        public async Task TriggerIncidentAsync(string errorMessage)
         {
             try
             {
-                var pagerDutyApiKey = appConfiguration.PagerDutyAPIKey;
-                var pagerDutyServiceKey = appConfiguration.PagerDutyServiceKey;
-                var pagerDutyIncidentTriggerUrl = appConfiguration.PagerDutyIncidentTriggerURL;
-
                 using (var httpClient = new HttpClient())
                 {
-                    var token = "Token token=" + pagerDutyApiKey;
+                    var token = "Token token=" + _apiKey;
                     httpClient.DefaultRequestHeaders.Add("Authorization", token);
 
                     var obj = new JObject
                     {
-                        { "service_key", pagerDutyServiceKey },
+                        { "service_key", _serviceKey },
                         { "event_type", "trigger" },
                         { "description", errorMessage }
                     };
@@ -84,7 +91,7 @@ namespace NuGetGallery.Areas.Admin
                     var content = new StringContent(obj.ToString());
                     content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-                    var response = await httpClient.PostAsync(pagerDutyIncidentTriggerUrl, content);
+                    var response = await httpClient.PostAsync(_triggerIncidentUrl, content);
                     response.EnsureSuccessStatusCode();
                 }
             }
