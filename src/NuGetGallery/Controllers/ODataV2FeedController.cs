@@ -9,15 +9,16 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
+using NuGet.Frameworks;
+using NuGet.Services.Search.Client.Correlation;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
 using QueryInterceptor;
 using WebApi.OutputCache.V2;
-using NuGet.Versioning;
-using NuGet.Frameworks;
-using NuGetGallery.Infrastructure.Lucene;
 
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
@@ -61,6 +62,7 @@ namespace NuGetGallery.Controllers
                 HijackableQueryParameters hijackableQueryParameters = null;
                 if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && _searchService is ExternalSearchService)
                 {
+                    SetCorrelation();
                     var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                         _searchService, GetTraditionalHttpContext().Request, packages,
                         hijackableQueryParameters.Id, hijackableQueryParameters.Version, curatedFeed: null);
@@ -133,6 +135,7 @@ namespace NuGetGallery.Controllers
             // try the search service
             try
             {
+                SetCorrelation();
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                     _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
 
@@ -217,6 +220,7 @@ namespace NuGetGallery.Controllers
                 .AsNoTracking();
 
             // todo: search hijack should take options instead of manually parsing query options
+            SetCorrelation();
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null);
 
@@ -238,7 +242,7 @@ namespace NuGetGallery.Controllers
                     // Strip it of for backward compatibility.
                     if (o.Top == null || (resultCount.HasValue && o.Top.Value >= resultCount.Value))
                     {
-                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new {searchTerm, targetFramework, includePrerelease}, o, s);
+                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s);
                     }
                     return null;
                 });
@@ -384,6 +388,14 @@ namespace NuGetGallery.Controllers
                     .Select(g => g.OrderByDescending(p => NuGetVersion.Parse(p.Version)).First());
             }
             return updates;
+        }
+
+        private void SetCorrelation()
+        {
+            if (_searchService is ICorrelated)
+            {
+                ((ICorrelated)_searchService).CorrelationIdProvider = new CorrelationIdProvider(Request);
+            }
         }
     }
 }

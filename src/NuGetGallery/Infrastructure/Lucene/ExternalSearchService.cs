@@ -11,12 +11,13 @@ using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Search.Client;
+using NuGet.Services.Search.Client.Correlation;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Infrastructure.Lucene
 {
-    public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
+    public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService, ICorrelated
     {
         public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
 
@@ -313,6 +314,12 @@ namespace NuGetGallery.Infrastructure.Lucene
         public void RegisterBackgroundJobs(IList<WebBackgrounder.IJob> jobs, IAppConfiguration configuration)
         {
             // No background jobs to register!
+        }
+
+        public CorrelationIdProvider CorrelationIdProvider
+        {
+            get { return _client.CorrelationIdProvider; }
+            set { _client.CorrelationIdProvider = value; }
         }
     }
 }
