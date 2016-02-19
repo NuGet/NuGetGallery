@@ -196,7 +196,7 @@ namespace NuGetGallery.OData
                 }
             }
 
-            // We'll only use the index if we the query searches for latest / latest-stable packages
+            // We'll only use the index if we the query searches for latest / latest-stable packages *or* the index contains all versions
             string filter;
             if (queryTerms.TryGetValue("$filter", out filter))
             {
@@ -211,7 +211,7 @@ namespace NuGetGallery.OData
                 searchFilter = null;
                 return false;
             }
-
+            
             string skipStr;
             if (queryTerms.TryGetValue("$skip", out skipStr))
             {
@@ -228,7 +228,7 @@ namespace NuGetGallery.OData
                 int top;
                 if (int.TryParse(topStr, out top))
                 {
-                    searchFilter.Take = Math.Min(top, MaxPageSize);
+                    searchFilter.Take = Math.Max(top, MaxPageSize);
                 }
             }
 

@@ -120,6 +120,11 @@ namespace NuGetGallery.WebApi
                     queryResults = queryOptions.OrderBy.ApplyTo(queryResults, _querySettings);
                 }
 
+                if (queryOptions.Top != null)
+                {
+                    queryResults = queryOptions.Top.ApplyTo(queryResults, _querySettings);
+                }
+
                 // Remove options that would further limit the resultset.
                 queryOptions = null;
             }
