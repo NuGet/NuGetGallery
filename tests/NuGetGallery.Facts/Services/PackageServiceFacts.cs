@@ -943,30 +943,6 @@ namespace NuGetGallery
 
                 Assert.Empty(package.SupportedFrameworks);
             }
-
-            [Fact]
-            private async Task WillThrowIfSupportedFrameworksContainsPortableFrameworkWithProfile()
-            {
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
-                {
-                    mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                    mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageArchiveReader>())).Returns(
-                        new[]
-                        {
-                            NuGetFramework.Parse("portable-net+win+wpa+wp+sl+net-cf+netmf+MonoAndroid+MonoTouch+Xamarin.iOS")
-                        });
-                });
-
-                var nugetPackage = CreateNuGetPackage();
-                var currentUser = new User();
-
-                // Act
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser));
-
-                // Assert
-                Assert.Contains("Frameworks within the portable profile are not allowed to have profiles themselves.", ex.Message);
-            }
         }
 
         public class TheCreatePackageOwnerRequestMethod
