@@ -154,6 +154,11 @@ namespace NuGetGallery.Configuration
         bool AutoUpdateSearchIndex { get; set; }
 
         /// <summary>
+        /// Gets a string containing the PagerDuty account name.
+        /// </summary>
+        string PagerDutyAccountName { get; set; }
+
+        /// <summary>
         /// Gets a string containing the PagerDuty API key.
         /// </summary>
         // ReSharper disable once InconsistentNaming
@@ -164,17 +169,5 @@ namespace NuGetGallery.Configuration
         /// </summary>
         // ReSharper disable once InconsistentNaming
         string PagerDutyServiceKey { get; set; }
-
-        /// <summary>
-        /// Gets a string containing the PagerDuty incident trigger URL.
-        /// </summary>
-        // ReSharper disable once InconsistentNaming
-        string PagerDutyIncidentTriggerURL { get; set; }
-
-        /// <summary>
-        /// Gets a string containing the PagerDuty On-Call URL.
-        /// </summary>
-        // ReSharper disable once InconsistentNaming
-        string PagerDutyOnCallURL { get; set; }
     }
 }

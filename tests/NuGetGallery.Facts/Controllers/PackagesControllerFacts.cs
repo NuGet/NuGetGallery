@@ -20,6 +20,7 @@ using NuGetGallery.Packaging;
 using Xunit;
 using NuGet.Versioning;
 using NuGet.Frameworks;
+using NuGetGallery.Areas.Admin;
 
 namespace NuGetGallery
 {
@@ -40,7 +41,8 @@ namespace NuGetGallery
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<IIndexingService> indexingService = null,
             Mock<ICacheService> cacheService = null,
-            Mock<IPackageDeleteService> packageDeleteService = null)
+            Mock<IPackageDeleteService> packageDeleteService = null,
+            Mock<ISupportRequestService> supportRequestService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -71,6 +73,8 @@ namespace NuGetGallery
 
             packageDeleteService = packageDeleteService ?? new Mock<IPackageDeleteService>();
 
+            supportRequestService = supportRequestService ?? new Mock<ISupportRequestService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -83,7 +87,9 @@ namespace NuGetGallery
                 indexingService.Object,
                 cacheService.Object,
                 editPackageService.Object,
-                packageDeleteService.Object);
+                packageDeleteService.Object,
+                supportRequestService.Object);
+
             controller.CallBase = true;
             controller.Object.OwinContext = Fakes.CreateOwinContext();
 

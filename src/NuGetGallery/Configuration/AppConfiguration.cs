@@ -166,6 +166,11 @@ namespace NuGetGallery.Configuration
         public bool AutoUpdateSearchIndex { get; set; }
 
         /// <summary>
+        /// Gets a string containing the PagerDuty account name.
+        /// </summary>
+        public string PagerDutyAccountName { get; set; }
+
+        /// <summary>
         /// Gets a string containing the PagerDuty API key.
         /// </summary>
         public string PagerDutyAPIKey { get; set; }
@@ -174,15 +179,5 @@ namespace NuGetGallery.Configuration
         /// Gets a string containing the PagerDuty Service key.
         /// </summary>
         public string PagerDutyServiceKey { get; set; }
-
-        /// <summary>
-        /// Gets a string containing the PagerDuty incident trigger URL.
-        /// </summary>
-        public string PagerDutyIncidentTriggerURL { get; set; }
-
-        /// <summary>
-        /// Gets a string containing the PagerDuty On-Call URL.
-        /// </summary>
-        public string PagerDutyOnCallURL { get; set; }
     }
 }

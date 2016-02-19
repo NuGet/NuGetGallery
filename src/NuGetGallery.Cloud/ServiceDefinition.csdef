@@ -31,10 +31,9 @@
       <Setting name="Gallery.MetricsServiceUri" />
       <Setting name="Gallery.AutoUpdateSearchIndex" />
       <Setting name="Gallery.CollectPerfLogs" />
+      <Setting name="Gallery.PagerDutyAccountName" />
       <Setting name="Gallery.PagerDutyAPIKey" />
       <Setting name="Gallery.PagerDutyServiceKey" />
-      <Setting name="Gallery.PagerDutyOnCallURL" />
-      <Setting name="Gallery.PagerDutyIncidentTriggerURL" />
       <Setting name="Auth.MicrosoftAccount.Enabled" />
       <Setting name="Auth.MicrosoftAccount.ClientId" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" />

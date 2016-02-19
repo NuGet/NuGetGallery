@@ -28,11 +28,9 @@ namespace NuGetGallery.Areas.Admin.Models
         [DataType(DataType.Url)]
         public string SiteRoot { get; set; }
 
-        [Required(ErrorMessage = "Please provide the package Id")]
         [StringLength(300)]
         public string PackageId { get; set; }
 
-        [Required(ErrorMessage = "Please provide the package version")]
         [StringLength(300)]
         public string PackageVersion { get; set; }
 

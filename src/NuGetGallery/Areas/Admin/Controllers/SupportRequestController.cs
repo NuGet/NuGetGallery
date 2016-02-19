@@ -25,9 +25,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Formatting = Formatting.None
         };
 
-        public SupportRequestController(ISupportRequestDbContext context)
+        public SupportRequestController(ISupportRequestService supportRequestService)
         {
-            _supportRequestService = new SupportRequestService(context);
+            _supportRequestService = supportRequestService;
         }
 
         public ViewResult Admins()

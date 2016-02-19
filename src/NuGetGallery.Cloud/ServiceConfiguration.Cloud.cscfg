@@ -32,11 +32,10 @@
       <Setting name="Auth.MicrosoftAccount.Enabled" value="false" />
       <Setting name="Auth.MicrosoftAccount.ClientId" value="" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" value="" />
+      <Setting name="Gallery.PagerDutyAccountName" value="" />
       <Setting name="Gallery.PagerDutyAPIKey" value="" />
       <Setting name="Gallery.PagerDutyServiceKey" value="" />
-      <Setting name="Gallery.PagerDutyOnCallURL" value="https://nuget.pagerduty.com/api/v1/users/on_call" />
-      <Setting name="Gallery.PagerDutyIncidentTriggerURL" value="https://events.pagerduty.com/generic/2010-04-15/create_event.json" />
-      
+
       <!-- *************** -->
       <!-- STABLE SETTINGS -->
       <!-- *************** -->

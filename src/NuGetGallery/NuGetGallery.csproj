@@ -654,6 +654,10 @@
     <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.Designer.cs">
       <DependentUpon>201602111647053_SupportRequestDbModel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Migrations\201602191039005_PackageInfoIsOptional.cs" />
+    <Compile Include="Areas\Admin\Migrations\201602191039005_PackageInfoIsOptional.Designer.cs">
+      <DependentUpon>201602191039005_PackageInfoIsOptional.cs</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Models\IssueStatusKeys.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
     <Compile Include="Areas\Admin\Models\Admin.cs" />
@@ -662,9 +666,8 @@
     <Compile Include="Areas\Admin\Models\IssueStatus.cs" />
     <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
-    <Compile Include="Areas\Admin\Services\IMonitoringService.cs" />
     <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
-    <Compile Include="Areas\Admin\Services\PagerDutyService.cs" />
+    <Compile Include="Areas\Admin\Services\PagerDutyClient.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminsViewModel.cs" />
@@ -1655,6 +1658,9 @@
     <Content Include="Public\opensearch.xml" />
     <EmbeddedResource Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.resx">
       <DependentUpon>201602111647053_SupportRequestDbModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Areas\Admin\Migrations\201602191039005_PackageInfoIsOptional.resx">
+      <DependentUpon>201602191039005_PackageInfoIsOptional.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />

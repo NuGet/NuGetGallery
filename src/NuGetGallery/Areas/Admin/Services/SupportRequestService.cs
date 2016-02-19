@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin
 {
@@ -13,11 +15,18 @@ namespace NuGetGallery.Areas.Admin
         : ISupportRequestService
     {
         private readonly ISupportRequestDbContext _supportRequestDbContext;
+        private readonly PagerDutyClient _pagerDutyClient;
+        private readonly string _siteRoot;
         private const string _unassignedAdmin = "unassigned";
 
-        public SupportRequestService(ISupportRequestDbContext supportRequestDbContext)
+        public SupportRequestService(
+            ISupportRequestDbContext supportRequestDbContext,
+            IAppConfiguration config)
         {
             _supportRequestDbContext = supportRequestDbContext;
+            _siteRoot = config.SiteRoot;
+
+            _pagerDutyClient = new PagerDutyClient(config.PagerDutyAccountName, config.PagerDutyAPIKey, config.PagerDutyServiceKey);
         }
 
         public IReadOnlyCollection<Models.Admin> GetAllAdmins()
@@ -171,7 +180,63 @@ namespace NuGetGallery.Areas.Admin
             }
         }
 
-        public async Task AddIssueAsync(Issue issue)
+        public async Task AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
+            User user, Package package = null)
+        {
+            var loggedInUser = user?.Username ?? "Anonymous";
+
+            try
+            {
+                var newIssue = new Issue();
+
+                // If primary on-call person is not yet configured in the Support Request DB, assign to 'unassigned'.
+                var primaryOnCall = await _pagerDutyClient.GetPrimaryOnCallAsync();
+                if (string.IsNullOrEmpty(primaryOnCall) || GetAdminKeyFromUsername(primaryOnCall) == -1)
+                {
+                    newIssue.AssignedTo = null;
+                }
+                else
+                {
+                    newIssue.AssignedToId = GetAdminKeyFromUsername(primaryOnCall);
+                }
+
+                newIssue.CreatedDate = DateTime.UtcNow;
+                newIssue.Details = message;
+                newIssue.IssueStatusId = IssueStatusKeys.New;
+                newIssue.IssueTitle = subject;
+
+                newIssue.CreatedBy = loggedInUser;
+                newIssue.OwnerEmail = requestorEmailAddress;
+                newIssue.PackageId = package?.PackageRegistration.Id;
+                newIssue.PackageVersion = package?.Version;
+                newIssue.Reason = reason;
+                newIssue.SiteRoot = _siteRoot;
+                newIssue.UserKey = user?.Key;
+                newIssue.PackageRegistrationKey = package?.PackageRegistrationKey;
+
+                await AddIssueAsync(newIssue);
+            }
+            catch (SqlException sqlException)
+            {
+                QuietLog.LogHandledException(sqlException);
+
+                var packageInfo = "N/A";
+                if (package != null)
+                {
+                    packageInfo = $"{package.PackageRegistration.Id} v{package.Version}";
+                }
+
+                var errorMessage = $"Error while submitting support request at {DateTime.UtcNow}. User requesting support = {loggedInUser}. Support reason = {reason ?? "N/A"}. Package info = {packageInfo}";
+
+                await _pagerDutyClient.TriggerIncidentAsync(errorMessage);
+            }
+            catch (Exception e) //In case getting data from PagerDuty has failed
+            {
+                QuietLog.LogHandledException(e);
+            }
+        }
+
+        private async Task AddIssueAsync(Issue issue)
         {
             _supportRequestDbContext.Issues.Add(issue);
 

@@ -50,8 +50,7 @@ namespace NuGetGallery
                 }
 
                 // send exception to AppInsights
-                var telemetryClient = new TelemetryClient();
-                telemetryClient.TrackException(e, new Dictionary<string, string>
+                Telemetry.TrackException(e, new Dictionary<string, string>
                 {
                     { "aggregateExceptionId", aggregateExceptionId }
                 });

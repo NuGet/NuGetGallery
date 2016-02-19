@@ -131,11 +131,6 @@ namespace NuGetGallery
                 .As<ISupportRequestService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<PagerDutyService>()
-                .AsSelf()
-                .As<IMonitoringService>()
-                .InstancePerLifetimeScope();
-
             builder.RegisterType<UserService>()
                 .AsSelf()
                 .As<IUserService>()
