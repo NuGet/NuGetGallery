@@ -59,7 +59,7 @@ namespace NuGetGallery.Framework
             var updater = new ContainerBuilder();
             updater.RegisterType<TService>().AsImplementedInterfaces().AsSelf();
             updater.Update(Container);
-            
+
             return Get<TService>();
         }
 
@@ -76,14 +76,11 @@ namespace NuGetGallery.Framework
             updater.RegisterInstance(new EntityRepository<PackageOwnerRequest>(fakeContext))
                 .As<IEntityRepository<PackageOwnerRequest>>();
 
-            updater.RegisterInstance(new EntityRepository<PackageStatistics>(fakeContext))
-                .As<IEntityRepository<PackageStatistics>>();
-
             updater.RegisterInstance(new EntityRepository<PackageRegistration>(fakeContext))
                 .As<IEntityRepository<PackageRegistration>>();
 
             updater.Update(Container);
-            
+
             return fakeContext;
         }
 
@@ -109,7 +106,7 @@ namespace NuGetGallery.Framework
                     registerMock = true;
                 }
             }
-            
+
             if (registerMock || !Container.IsRegistered(typeof(T)))
             {
                 var mockInstance = (new Mock<T>() {CallBase = true}).Object;

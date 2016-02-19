@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
-using Glimpse.AspNet.Tab;
 using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Lucene;
@@ -210,16 +208,14 @@ namespace NuGetGallery
                                 PackageRegistration = packageRegistration,
                                 Version = "1.0.0",
                                 IsPrerelease = false,
-                                Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Listed = true
                             },
                         new Package
                             {
                                 PackageRegistration = packageRegistration,
                                 Version = "1.0.1-a",
                                 IsPrerelease = true,
-                                Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Listed = true
                             },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
@@ -262,8 +258,7 @@ namespace NuGetGallery
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = true,
-                                Deleted = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Deleted = true
                             },
                         new Package
                             {
@@ -271,8 +266,7 @@ namespace NuGetGallery
                                 Version = "1.1.0",
                                 IsPrerelease = false,
                                 Listed = true,
-                                Deleted = false,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Deleted = false
                             },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
@@ -317,16 +311,14 @@ namespace NuGetGallery
                                 PackageRegistration = packageRegistration,
                                 Version = "1.0.0",
                                 IsPrerelease = false,
-                                Listed = false,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Listed = false
                             },
                         new Package
                             {
                                 PackageRegistration = packageRegistration,
                                 Version = "1.0.1-a",
                                 IsPrerelease = true,
-                                Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Listed = true
                             },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
@@ -349,7 +341,7 @@ namespace NuGetGallery
                     Assert.Equal("1.0.0", result.First().Version);
                     Assert.Equal("https://localhost:8081/packages/Foo/1.0.0", result.First().GalleryDetailsUrl);
                 }
-                
+
                 [Fact]
                 public async Task V1FeedFindPackagesByIdDoesNotReturnDeletedPackages()
                 {
@@ -364,8 +356,7 @@ namespace NuGetGallery
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = false,
-                                Deleted = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Deleted = true
                             },
                         new Package
                             {
@@ -373,8 +364,7 @@ namespace NuGetGallery
                                 Version = "1.0.1",
                                 IsPrerelease = false,
                                 Listed = true,
-                                Deleted = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Deleted = true
                             },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
@@ -612,7 +602,7 @@ namespace NuGetGallery
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages(Id='" + expectedId + "', Version='" + expectedVersion + "')");
-                   
+
                     // Act
                     (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), expectedId, expectedVersion))
                         .ExpectResult<NotFoundResult>();
@@ -672,7 +662,6 @@ namespace NuGetGallery
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = false,
-                                DownloadStatistics = new List<PackageStatistics>(),
                                 FlattenedAuthors = string.Empty,
                                 Description = string.Empty,
                                 Summary = string.Empty,
@@ -684,7 +673,6 @@ namespace NuGetGallery
                                 Version = "1.0.1-a",
                                 IsPrerelease = true,
                                 Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>(),
                                 FlattenedAuthors = string.Empty,
                                 Description = string.Empty,
                                 Summary = string.Empty,
@@ -763,8 +751,7 @@ namespace NuGetGallery
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = false,
-                                Deleted = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Deleted = true
                             },
                         new Package
                             {
@@ -772,8 +759,7 @@ namespace NuGetGallery
                                 Version = "1.0.1",
                                 IsPrerelease = false,
                                 Listed = true,
-                                Deleted = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                Deleted = true
                             },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
@@ -879,7 +865,7 @@ namespace NuGetGallery
                     // Assert
                     Assert.Equal(expectedNumberOfPackages.ToString(), result.Content);
                 }
-                
+
                 [Fact]
                 public async Task V2FeedSearchCountDoesNotCountDeletedPackages()
                 {
@@ -910,11 +896,11 @@ namespace NuGetGallery
                     // Act
                     var result = v2Service.GetUpdates(
                         new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
-                        id, 
-                        version, 
-                        includePrerelease: false, 
-                        includeAllVersions: true, 
-                        targetFrameworks: null, 
+                        id,
+                        version,
+                        includePrerelease: false,
+                        includeAllVersions: true,
+                        targetFrameworks: null,
                         versionConstraints: null)
                         .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
 
@@ -946,10 +932,10 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
-                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), 
-                        "Foo|Qux", 
-                        "1.0.0|abcd", 
-                        includePrerelease: false, 
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        "Foo|Qux",
+                        "1.0.0|abcd",
+                        includePrerelease: false,
                         includeAllVersions: false,
                         targetFrameworks: null,
                         versionConstraints: null)
@@ -986,12 +972,12 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
-                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), 
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                         "Foo|Qux",
                         "1.0.0|0.9",
                         includePrerelease: false,
-                        includeAllVersions: true, 
-                        targetFrameworks: null, 
+                        includeAllVersions: true,
+                        targetFrameworks: null,
                         versionConstraints: null)
                         .ExpectQueryResult<V2FeedPackage>()
                         .GetInnerResult()
@@ -1476,12 +1462,12 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
-                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), 
-                        "Foo|Qux", 
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        "Foo|Qux",
                         "1.0|1.5",
-                        includePrerelease: false, 
-                        includeAllVersions: true, 
-                        targetFrameworks: "net40", 
+                        includePrerelease: false,
+                        includeAllVersions: true,
+                        targetFrameworks: "net40",
                         versionConstraints: null)
                         .ExpectQueryResult<V2FeedPackage>()
                         .GetInnerResult()
@@ -1554,12 +1540,12 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
-                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), 
-                        "Foo|Qux", 
-                        "1.0|1.5", 
-                        includePrerelease: true, 
-                        includeAllVersions: false, 
-                        targetFrameworks: "net40", 
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        "Foo|Qux",
+                        "1.0|1.5",
+                        includePrerelease: true,
+                        includeAllVersions: false,
+                        targetFrameworks: "net40",
                         versionConstraints: null)
                         .ExpectQueryResult<V2FeedPackage>()
                         .GetInnerResult()
@@ -1573,7 +1559,7 @@ namespace NuGetGallery
                 }
             }
         }
-        
+
         private static void AssertPackage(dynamic expected, V2FeedPackage package)
         {
             Assert.Equal(expected.Id, package.Id);

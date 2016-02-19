@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -48,7 +47,6 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     Version = "1.0.0",
                     IsPrerelease = false,
                     Listed = true,
-                    DownloadStatistics = new List<PackageStatistics>(),
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
                     FlattenedAuthors = "Test",
                     Description = "Foo",
@@ -61,7 +59,6 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     Version = "1.0.1-a",
                     IsPrerelease = true,
                     Listed = true,
-                    DownloadStatistics = new List<PackageStatistics>(),
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
                     FlattenedAuthors = "Test",
                     Description = "Foo",
@@ -74,7 +71,6 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     Version = "1.0.0",
                     IsPrerelease = false,
                     Listed = true,
-                    DownloadStatistics = new List<PackageStatistics>(),
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
                     FlattenedAuthors = "Test",
                     Description = "Bar",
@@ -87,7 +83,6 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     Version = "2.0.0",
                     IsPrerelease = false,
                     Listed = true,
-                    DownloadStatistics = new List<PackageStatistics>(),
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
                     FlattenedAuthors = "Test",
                     Description = "Bar",
@@ -100,7 +95,6 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     Version = "2.0.1-a",
                     IsPrerelease = true,
                     Listed = true,
-                    DownloadStatistics = new List<PackageStatistics>(),
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
                     FlattenedAuthors = "Test",
                     Description = "Bar",
@@ -113,7 +107,6 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     Version = "2.0.1-b",
                     IsPrerelease = true,
                     Listed = false,
-                    DownloadStatistics = new List<PackageStatistics>(),
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
                     FlattenedAuthors = "Test",
                     Description = "Bar",
@@ -127,7 +120,6 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     IsPrerelease = false,
                     Listed = false,
                     Deleted = true, // plot twist: this package is a soft-deleted one
-                    DownloadStatistics = new List<PackageStatistics>(),
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
                     FlattenedAuthors = "Test",
                     Description = "Baz",
