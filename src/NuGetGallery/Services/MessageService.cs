@@ -384,9 +384,9 @@ The {3} Team";
 
         public void SendContactSupportEmail(ContactSupportRequest request)
         {
-            string subject = string.Format("Support Request (Reason: {0})", request.SubjectLine);
+            string subject = string.Format(CultureInfo.CurrentCulture, "Support Request (Reason: {0})", request.SubjectLine);
 
-            string body = string.Format(@"
+            string body = string.Format(CultureInfo.CurrentCulture, @"
 **Email:** {0} ({1})
 
 **Reason:**

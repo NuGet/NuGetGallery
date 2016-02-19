@@ -24,7 +24,7 @@ namespace NuGetGallery.Areas.Admin
             _serviceKey = serviceKey;
 
             // Configure defaults
-            _onCallUrl = $"https://{accountName}.pagerduty.com/api/v1/users/on_call";
+            _onCallUrl = string.Format(CultureInfo.InvariantCulture, "https://{0}.pagerduty.com/api/v1/users/on_call", accountName);
         }
 
         public async Task<string> GetPrimaryOnCallAsync()
