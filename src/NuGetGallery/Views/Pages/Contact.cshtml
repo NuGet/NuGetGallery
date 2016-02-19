@@ -13,7 +13,7 @@
 
     <h3>Having problems using a specific package?</h3>
     <p>
-        If you're having trouble installing a specific package, try contacting the owner of that package first. 
+        If you're having trouble installing a specific package, try contacting the owner of that package first.
         You can reach them using the "Contact Owners" link on the package details page.
     </p>
 
@@ -27,17 +27,17 @@
     <p>
         Before reaching out to NuGet support, check out the <a href="http://docs.nuget.org/consume/nuget-faq#managing-packages-in-nuget.org">FAQ</a>.
     </p>
-    
+
     <h3>Found a bug in NuGet or the website NuGet.org?</h3>
     <p>
-        If you're having trouble with the <strong>NuGet.org Website</strong>, 
+        If you're having trouble with the <strong>NuGet.org Website</strong>,
         file a bug on the NuGet Gallery <a href="https://github.com/NuGet/NuGetGallery/issues">Issue Tracker</a>.
     </p>
     <p>
         If you're having trouble with the <strong>NuGet client tools</strong> (the Visual Studio extension, NuGet.exe command line tool, etc.),
         file a bug on the NuGet Client <a href="https://github.com/NuGet/Home/issues">Issue Tracker</a>
     </p>
-    
+
     <h3>Want to change your NuGet.org username?</h3>
     <p>
         No need to contact support. Create a new user and transfer ownership of your packages to it.
@@ -69,13 +69,11 @@
     }
     else
     {
-        <h3>Talk to the NuGet development team and wider NuGet community</h3>
+        <h3>The above doesn't help? @Html.ActionLink("Sign In", "LogOn", new {controller = "Authentication", ReturnUrl = "/policies/Contact"}) to contact Support</h3>
         <p>
             Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>
         </p>
-
-        <h3>The above doesn't help? @Html.ActionLink("Sign In", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" }) to contact Support</h3>
-    }  
+    }
 </article>
 
 @section BottomScripts {
@@ -84,7 +82,7 @@
             var part1 = "support";
             var part2 = "nuget.org";
             var part3 = "email us";
-            var link = $("<a>").attr("href", "mailto:" + part1 + "@@" + part2).text(part3);
+            var link = $("<a>").attr("href", "mailto:" + part1 + "@@" + part2 + "?subject=[NuGetGallery] Need help with my account").text(part3);
             $("#emailUs").append(link);
         });
     </script>
