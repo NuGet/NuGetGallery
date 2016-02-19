@@ -24,6 +24,8 @@ namespace NuGetGallery
             [InlineData("Windows 8.1", "win81")]
             [InlineData("Portable Class Library (.NETFramework 4.0, Silverlight 4.0, Windows 8.0, WindowsPhone 7.1)", "portable-net40+sl4+win8+wp71")]
             [InlineData("Portable Class Library (.NETFramework 4.5, Windows 8.0)", "portable-net45+win8")]
+            [InlineData("Portable Class Library (.NETFramework 4.0, Windows 8.0)", "portable40-net40+win8")]
+            [InlineData("Portable Class Library (.NETFramework 4.5, Windows 8.0)", "portable45-net45+win8")]
             public void CorrectlyConvertsShortNameToFriendlyName(string expected, string shortName)
             {
                 var fx = NuGetFramework.Parse(shortName);
@@ -38,6 +40,8 @@ namespace NuGetGallery
             [InlineData("Windows 8.1", "win81")]
             [InlineData("Portable Class Library", "portable-net40+sl4+win8+wp71")]
             [InlineData("Portable Class Library", "portable-net45+win8")]
+            [InlineData("Portable Class Library", "portable40-net45+win8")]
+            [InlineData("Portable Class Library", "portable45-net45+win8")]
             public void DoesNotRecurseWhenAllowRecurseProfileFalse(string expected, string shortName)
             {
                 var fx = NuGetFramework.Parse(shortName);
