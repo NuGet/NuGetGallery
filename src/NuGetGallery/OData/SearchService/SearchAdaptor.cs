@@ -52,13 +52,13 @@ namespace NuGetGallery.OData
             return searchFilter;
         }
 
-        public static async Task<IQueryable<Package>> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
+        private static async Task<IQueryable<Package>> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
             var result = await searchService.Search(searchFilter);
             return FormatResults(searchFilter, result);
         }
 
-        public static async Task<IQueryable<Package>> GetRawResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
+        private static async Task<IQueryable<Package>> GetRawResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
             var externalSearchService = searchService as ExternalSearchService;
             if (externalSearchService != null)
@@ -87,7 +87,7 @@ namespace NuGetGallery.OData
                 .InterceptWith(new DisregardODataInterceptor());
         }
 
-        public static async Task<IQueryable<Package>> FindByIdAndVersionCore(
+        public static async Task<SearchAdaptorResult> FindByIdAndVersionCore(
                    ISearchService searchService,
                    HttpRequestBase request,
                    IQueryable<Package> packages,
@@ -117,13 +117,13 @@ namespace NuGetGallery.OData
 
                 var results = await GetRawResultsFromSearchService(searchService, searchFilter);
 
-                return results;
+                return new SearchAdaptorResult(true, results);
             }
 
-            return packages;
+            return new SearchAdaptorResult(false, packages);
         }
 
-        public static async Task<IQueryable<Package>> SearchCore(
+        public static async Task<SearchAdaptorResult> SearchCore(
             ISearchService searchService,
             HttpRequestBase request,
             IQueryable<Package> packages, 
@@ -145,15 +145,15 @@ namespace NuGetGallery.OData
 
                 var results = await GetResultsFromSearchService(searchService, searchFilter);
 
-                return results;
+                return new SearchAdaptorResult(true, results);
             }
 
             if (!includePrerelease)
             {
                 packages = packages.Where(p => !p.IsPrerelease);
             }
-
-            return packages.Search(searchTerm);
+    
+            return new SearchAdaptorResult(false, packages.Search(searchTerm));
         }
 
         private static bool TryReadSearchFilter(bool allVersionsInIndex, string url, bool ignoreLatestVersionFilter, out SearchFilter searchFilter)

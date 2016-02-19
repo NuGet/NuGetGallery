@@ -709,7 +709,6 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
-    <Compile Include="Infrastructure\QueryInterceptorExtensions.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.Designer.cs">
       <DependentUpon>201602181939424_RemovePackageStatistics.cs</DependentUpon>
@@ -718,6 +717,7 @@
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
     <Compile Include="OData\QueryInterceptors\NormalizeVersionInterceptor.cs" />
+    <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
     <Compile Include="Diagnostics\AuthenticationGlimpseTab.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />

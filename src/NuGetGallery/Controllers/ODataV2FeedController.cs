@@ -10,7 +10,6 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using NuGetGallery.Configuration;
-using NuGetGallery.Infrastructure;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
@@ -62,13 +61,16 @@ namespace NuGetGallery.Controllers
                 HijackableQueryParameters hijackableQueryParameters = null;
                 if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && _searchService is ExternalSearchService)
                 {
-                    packages = await SearchAdaptor.FindByIdAndVersionCore(
+                    var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                         _searchService, GetTraditionalHttpContext().Request, packages,
                         hijackableQueryParameters.Id, hijackableQueryParameters.Version, curatedFeed: null);
 
                     // If intercepted, create a paged queryresult
-                    if (packages.IsQueryTranslator())
+                    if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                     {
+                        // Packages provided by search service
+                        packages = searchAdaptorResult.Packages;
+
                         // Add explicit Take() needed to limit search hijack result set size if $top is specified
                         var totalHits = packages.LongCount();
                         var pagedQueryable = packages
@@ -131,12 +133,15 @@ namespace NuGetGallery.Controllers
             // try the search service
             try
             {
-                packages = await SearchAdaptor.FindByIdAndVersionCore(
+                var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                     _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
 
                 // If intercepted, create a paged queryresult
-                if (packages.IsQueryTranslator())
+                if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                 {
+                    // Packages provided by search service
+                    packages = searchAdaptorResult.Packages;
+
                     // Add explicit Take() needed to limit search hijack result set size if $top is specified
                     var totalHits = packages.LongCount();
                     var pagedQueryable = packages
@@ -212,11 +217,14 @@ namespace NuGetGallery.Controllers
                 .AsNoTracking();
 
             // todo: search hijack should take options instead of manually parsing query options
-            var query = await SearchAdaptor.SearchCore(
+            var searchAdaptorResult = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null);
 
-            // If intercepted by SearchAdaptor, create a paged queryresult
-            if (query.IsQueryTranslator())
+            // Packages provided by search service (even when not hijacked)
+            var query = searchAdaptorResult.Packages;
+
+            // If intercepted, create a paged queryresult
+            if (searchAdaptorResult.ResultsAreProvidedBySearchService)
             {
                 // Add explicit Take() needed to limit search hijack result set size if $top is specified
                 var totalHits = query.LongCount();
