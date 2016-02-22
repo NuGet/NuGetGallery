@@ -79,6 +79,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains a duplicate dependency: {0} {1}.
+        /// </summary>
+        internal static string Manifest_DuplicateDependency {
+            get {
+                return ResourceManager.GetString("Manifest_DuplicateDependency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an ID that is too long. Package IDs can be no longer than 100 characters..
         /// </summary>
         internal static string Manifest_IdTooLong {
