@@ -401,7 +401,7 @@ form .async-upload-progress-advance {
     margin-bottom: 20px;
 }
 
-#report-abuse-message {
+#report-abuse-message, #contact-support-message {
     top: 4.6em;
 }
 

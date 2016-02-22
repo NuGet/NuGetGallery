@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using NuGet.Packaging;
+using NuGet.Versioning;
 
 namespace NuGetGallery.Packaging
 {
@@ -82,15 +83,32 @@ namespace NuGetGallery.Packaging
             var dependencyGroups = packageMetadata.GetDependencyGroups();
             if (dependencyGroups != null)
             {
-                foreach (var dependency in dependencyGroups.SelectMany(set => set.Packages))
+                foreach (var dependencyGroup in dependencyGroups)
                 {
-                    if (!PackageIdValidator.IsValidPackageId(dependency.Id))
+                    // Keep track of duplicates
+                    var dependencyIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                    // Verify package id's
+                    foreach (var dependency in dependencyGroup.Packages)
                     {
-                        yield return new ValidationResult(String.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.Manifest_InvalidDependency,
-                            dependency.Id,
-                            dependency.VersionRange));
+                        bool duplicate = !dependencyIds.Add(dependency.Id);
+                        if (duplicate)
+                        {
+                            yield return new ValidationResult(String.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.Manifest_DuplicateDependency,
+                                dependencyGroup.TargetFramework.GetShortFolderName(),
+                                dependency.Id));
+                        }
+
+                        if (!PackageIdValidator.IsValidPackageId(dependency.Id))
+                        {
+                            yield return new ValidationResult(String.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.Manifest_InvalidDependency,
+                                dependency.Id,
+                                dependency.VersionRange.OriginalString));
+                        }
                     }
                 }
             }

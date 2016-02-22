@@ -1,10 +1,11 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Web;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -25,7 +26,7 @@ namespace NuGetGallery
             CuratedPackageRepository = curatedPackageRepository;
         }
 
-        public CuratedPackage CreatedCuratedPackage(
+        public async Task<CuratedPackage> CreatedCuratedPackageAsync(
             CuratedFeed curatedFeed,
             PackageRegistration packageRegistration,
             bool included = false,
@@ -61,13 +62,13 @@ namespace NuGetGallery
 
             if (commitChanges)
             {
-                CuratedFeedRepository.CommitChanges();
+                await CuratedFeedRepository.CommitChangesAsync();
             }
 
             return curatedPackage;
         }
 
-        public void DeleteCuratedPackage(
+        public async Task DeleteCuratedPackageAsync(
             int curatedFeedKey,
             int curatedPackageKey)
         {
@@ -84,10 +85,10 @@ namespace NuGetGallery
             }
 
             CuratedPackageRepository.DeleteOnCommit(curatedPackage);
-            CuratedPackageRepository.CommitChanges();
+            await CuratedPackageRepository.CommitChangesAsync();
         }
 
-        public void ModifyCuratedPackage(
+        public async Task ModifyCuratedPackageAsync(
             int curatedFeedKey,
             int curatedPackageKey,
             bool included)
@@ -105,7 +106,7 @@ namespace NuGetGallery
             }
 
             curatedPackage.Included = included;
-            CuratedFeedRepository.CommitChanges();
+            await CuratedFeedRepository.CommitChangesAsync();
         }
 
         public CuratedFeed GetFeedByName(string name, bool includePackages)

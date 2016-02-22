@@ -9,16 +9,16 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
+using NuGet.Frameworks;
+using NuGet.Services.Search.Client.Correlation;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
-using NuGetGallery.Infrastructure;
+using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
 using QueryInterceptor;
 using WebApi.OutputCache.V2;
-using NuGet.Versioning;
-using NuGet.Frameworks;
-using NuGetGallery.Infrastructure.Lucene;
 
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
@@ -62,13 +62,17 @@ namespace NuGetGallery.Controllers
                 HijackableQueryParameters hijackableQueryParameters = null;
                 if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && _searchService is ExternalSearchService)
                 {
-                    packages = await SearchAdaptor.FindByIdAndVersionCore(
+                    SetCorrelation();
+                    var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                         _searchService, GetTraditionalHttpContext().Request, packages,
                         hijackableQueryParameters.Id, hijackableQueryParameters.Version, curatedFeed: null);
 
                     // If intercepted, create a paged queryresult
-                    if (packages.IsQueryTranslator())
+                    if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                     {
+                        // Packages provided by search service
+                        packages = searchAdaptorResult.Packages;
+
                         // Add explicit Take() needed to limit search hijack result set size if $top is specified
                         var totalHits = packages.LongCount();
                         var pagedQueryable = packages
@@ -131,12 +135,16 @@ namespace NuGetGallery.Controllers
             // try the search service
             try
             {
-                packages = await SearchAdaptor.FindByIdAndVersionCore(
+                SetCorrelation();
+                var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                     _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
 
                 // If intercepted, create a paged queryresult
-                if (packages.IsQueryTranslator())
+                if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                 {
+                    // Packages provided by search service
+                    packages = searchAdaptorResult.Packages;
+
                     // Add explicit Take() needed to limit search hijack result set size if $top is specified
                     var totalHits = packages.LongCount();
                     var pagedQueryable = packages
@@ -212,11 +220,15 @@ namespace NuGetGallery.Controllers
                 .AsNoTracking();
 
             // todo: search hijack should take options instead of manually parsing query options
-            var query = await SearchAdaptor.SearchCore(
+            SetCorrelation();
+            var searchAdaptorResult = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null);
 
-            // If intercepted by SearchAdaptor, create a paged queryresult
-            if (query.IsQueryTranslator())
+            // Packages provided by search service (even when not hijacked)
+            var query = searchAdaptorResult.Packages;
+
+            // If intercepted, create a paged queryresult
+            if (searchAdaptorResult.ResultsAreProvidedBySearchService)
             {
                 // Add explicit Take() needed to limit search hijack result set size if $top is specified
                 var totalHits = query.LongCount();
@@ -230,7 +242,7 @@ namespace NuGetGallery.Controllers
                     // Strip it of for backward compatibility.
                     if (o.Top == null || (resultCount.HasValue && o.Top.Value >= resultCount.Value))
                     {
-                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new {searchTerm, targetFramework, includePrerelease}, o, s);
+                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s);
                     }
                     return null;
                 });
@@ -376,6 +388,15 @@ namespace NuGetGallery.Controllers
                     .Select(g => g.OrderByDescending(p => NuGetVersion.Parse(p.Version)).First());
             }
             return updates;
+        }
+
+        private void SetCorrelation()
+        {
+            var correlatedSearchService = _searchService as ICorrelated;
+            if (correlatedSearchService != null)
+            {
+                correlatedSearchService.CorrelationIdProvider = new CorrelationIdProvider(Request);
+            }
         }
     }
 }

@@ -12,6 +12,7 @@
       <Setting name="Gallery.AzureStorageConnectionString" />
       <Setting name="Gallery.AzureStorageReadAccessGeoRedundant" />
       <Setting name="Gallery.SqlServer" />
+      <Setting name="Gallery.SupportRequestSqlServer" />
       <Setting name="Gallery.ConfirmEmailAddress" />
       <Setting name="Gallery.ReadOnlyMode" />
       <Setting name="Gallery.FeedOnlyMode" />
@@ -30,6 +31,9 @@
       <Setting name="Gallery.MetricsServiceUri" />
       <Setting name="Gallery.AutoUpdateSearchIndex" />
       <Setting name="Gallery.CollectPerfLogs" />
+      <Setting name="Gallery.PagerDutyAccountName" />
+      <Setting name="Gallery.PagerDutyAPIKey" />
+      <Setting name="Gallery.PagerDutyServiceKey" />
       <Setting name="Auth.MicrosoftAccount.Enabled" />
       <Setting name="Auth.MicrosoftAccount.ClientId" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" />

@@ -13,11 +13,13 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGetGallery.Areas.Admin;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery
 {
@@ -99,11 +101,6 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDependency>>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<EntityRepository<PackageStatistics>>()
-                .AsSelf()
-                .As<IEntityRepository<PackageStatistics>>()
-                .InstancePerLifetimeScope();
-
             builder.RegisterType<EntityRepository<PackageDelete>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageDelete>>()
@@ -124,11 +121,21 @@ namespace NuGetGallery
                 .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
+            builder.Register(c => new SupportRequestDbContext(configuration.Current.SqlConnectionStringSupportRequest))
+                .AsSelf()
+                .As<ISupportRequestDbContext>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SupportRequestService>()
+                .AsSelf()
+                .As<ISupportRequestService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<UserService>()
                 .AsSelf()
                 .As<IUserService>()
                 .InstancePerLifetimeScope();
-            
+
             builder.RegisterType<PackageNamingConflictValidator>()
                 .AsSelf()
                 .As<IPackageNamingConflictValidator>()
@@ -165,7 +172,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IStatusService>()
                 .InstancePerLifetimeScope();
-            
+
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                 {
@@ -220,7 +227,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IPrincipal>()
                 .InstancePerLifetimeScope();
-            
+
             switch (configuration.Current.StorageType)
             {
                 case StorageType.FileSystem:
@@ -271,7 +278,7 @@ namespace NuGetGallery
                 .As<IDiagnosticsService>()
                 .SingleInstance();
         }
-        
+
         private static void ConfigureSearch(ContainerBuilder builder, ConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri == null)
@@ -363,7 +370,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IFileStorageService>()
                 .SingleInstance();
-            
+
             // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
             builder.RegisterInstance(new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .AsSelf()

@@ -156,4 +156,7 @@
   <data name="StreamMustBeSeekable" xml:space="preserve">
     <value>Must be a seekable stream</value>
   </data>
+  <data name="Manifest_DuplicateDependency" xml:space="preserve">
+    <value>The package manifest contains a duplicate dependency: {0} {1}</value>
+  </data>
 </root>

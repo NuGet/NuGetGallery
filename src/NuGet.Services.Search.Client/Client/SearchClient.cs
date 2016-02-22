@@ -7,17 +7,32 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Correlator.Extensions;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Client;
+using NuGet.Services.Search.Client.Correlation;
 using NuGet.Services.Search.Models;
 
 namespace NuGet.Services.Search.Client
 {
-    public class SearchClient
+    public class SearchClient : ICorrelated
     {
         private readonly RetryingHttpClientWrapper _retryingHttpClientWrapper;
         private readonly ServiceDiscoveryClient _discoveryClient;
         private readonly string _resourceType;
+        private readonly HttpClient _httpClient;
+
+        private CorrelationIdProvider _correlationIdProvider;
+
+        public CorrelationIdProvider CorrelationIdProvider
+        {
+            get { return _correlationIdProvider; }
+            set
+            {
+                _correlationIdProvider = value;
+                _httpClient.EnsureCorrelationId(_correlationIdProvider.CorrelationId);
+            }
+        }
 
         /// <summary>
         /// Create a search service client from the specified base uri and credentials.
@@ -55,10 +70,11 @@ namespace NuGet.Services.Search.Client
                 handler = providedHandler;
             }
 
-            var httpClient = new HttpClient(handler, disposeHandler: true);
+            _httpClient = new HttpClient(handler, disposeHandler: true);
 
-            _retryingHttpClientWrapper = new RetryingHttpClientWrapper(httpClient, healthIndicatorStore);
-            _discoveryClient = new ServiceDiscoveryClient(httpClient, baseUri);
+            _retryingHttpClientWrapper = new RetryingHttpClientWrapper(_httpClient, healthIndicatorStore);
+            _discoveryClient = new ServiceDiscoveryClient(_httpClient, baseUri);
+            CorrelationIdProvider = new CorrelationIdProvider();
         }
 
         private static readonly Dictionary<SortOrder, string> SortNames = new Dictionary<SortOrder, string>

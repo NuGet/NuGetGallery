@@ -1,5 +1,4 @@
-﻿@using System.Reflection
-@{
+﻿@{
     ViewBag.Title = "Site Administration";
     ViewBag.Tab = "Admin";
 }
@@ -49,6 +48,17 @@
             </h2>
             <p>
                 Maintain the Lucene full-text search index.
+            </p>
+        </li>
+        <li>
+            <h2>
+                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "SupportRequest")">
+                <i class="icon-user action-menu-icon"></i>
+                <span class="action-menu-text">Support Requests</span>
+                </a>
+            </h2>
+            <p>
+                Handle support requests
             </p>
         </li>
         <li>

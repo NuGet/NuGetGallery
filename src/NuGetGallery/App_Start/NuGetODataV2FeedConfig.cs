@@ -40,7 +40,7 @@ namespace NuGetGallery
 
             // Add OData routes
             config.Routes.MapODataServiceRoute("api-v2-odata", "api/v2", model, new CountODataPathHandler(), conventions,
-                new DefaultODataBatchHandler(GlobalConfiguration.DefaultServer));
+                new ODataServiceVersionHeaderPropagatingBatchHandler(GlobalConfiguration.DefaultServer));
         }
 
         public static IEdmModel GetEdmModel()

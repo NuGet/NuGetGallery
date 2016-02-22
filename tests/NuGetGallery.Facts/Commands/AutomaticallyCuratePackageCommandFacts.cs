@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
 using Xunit;
@@ -13,7 +14,7 @@ namespace NuGetGallery.Commands
         public class TheExecuteMethod
         {
             [Fact]
-            public void WillCuratePackageUsingAllPackageCurators()
+            public async Task WillCuratePackageUsingAllPackageCurators()
             {
                 var firstStubCurator = new Mock<IAutomaticPackageCurator>();
                 var secondStubCurator = new Mock<IAutomaticPackageCurator>();
@@ -23,12 +24,11 @@ namespace NuGetGallery.Commands
                     firstStubCurator.Object,
                     secondStubCurator.Object
                 }, null);
-                
 
-                cmd.Execute(new Package(), new Mock<PackageArchiveReader>(TestPackage.CreateTestPackageStream("test", "1.0.0")).Object, commitChanges: true);
+                await cmd.ExecuteAsync(new Package(), new Mock<PackageArchiveReader>(TestPackage.CreateTestPackageStream("test", "1.0.0")).Object, commitChanges: true);
 
-                firstStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), true));
-                secondStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), true));
+                firstStubCurator.Verify(stub => stub.CurateAsync(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), true));
+                secondStubCurator.Verify(stub => stub.CurateAsync(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), true));
             }
         }
     }

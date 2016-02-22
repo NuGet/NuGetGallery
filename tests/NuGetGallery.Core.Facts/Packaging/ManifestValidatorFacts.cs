@@ -147,33 +147,6 @@ namespace NuGetGallery.Packaging
                   </metadata>
                 </package>";
 
-        private const string NuSpecDependencySetContainsInvalidVersion = @"<?xml version=""1.0""?>
-                <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
-                  <metadata>
-                    <id>packageA</id>
-                    <version>1.0.1-alpha</version>
-                    <title>Package A</title>
-                    <authors>ownera, ownerb</authors>
-                    <owners>ownera, ownerb</owners>
-                    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-                    <description>package A description.</description>
-                    <language>en-US</language>
-                    <references>
-                      <reference file=""a.dll"" />
-                    </references>
-                    <dependencies>
-                        <group targetFramework=""net40"">
-                          <dependency id=""a.b.c"" version=""1.0 alpha"" />
-                          <dependency id=""WebActivator"" version=""1.1.0"" />
-                          <dependency id=""PackageC"" version=""[1.1.0, 2.0.1)"" />
-                        </group>
-                        <group targetFramework=""wp8"">
-                          <dependency id=""jQuery"" />
-                        </group>
-                    </dependencies>
-                  </metadata>
-                </package>";
-
         private const string NuSpecDependencySetContainsEmptyTargetFramework = @"<?xml version=""1.0""?>
                 <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                   <metadata>
@@ -252,6 +225,28 @@ namespace NuGetGallery.Packaging
                   </metadata>
                 </package>";
 
+        private const string NuSpecFrameworkAssemblyReferenceContainsDuplicateDependency = @"<?xml version=""1.0""?>
+                <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                  <metadata>
+                    <id>packageA</id>
+                    <version>1.0.1-alpha</version>
+                    <title>Package A</title>
+                    <authors>ownera, ownerb</authors>
+                    <owners>ownera, ownerb</owners>
+                    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                    <description>package A description.</description>
+                    <language>en-US</language>
+                    <dependencies>
+                        <group targetFramework=""net40"">
+                          <dependency id=""SomeDependency"" version=""1.0.0-alpha1"" />
+                          <dependency id=""WebActivator"" version=""1.1.0"" />
+                          <dependency id=""PackageC"" version=""[1.1.0, 2.0.1)"" />
+                          <dependency id=""SomeDependency"" version=""1.0.2"" />
+                        </group>
+                    </dependencies>
+                  </metadata>
+                </package>";
+
         [Fact]
         public void ReturnsErrorIfIdNotPresent()
         {
@@ -308,22 +303,14 @@ namespace NuGetGallery.Packaging
             Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidVersion, "1 2 3") }, GetErrors(nuspecStream));
         }
 
-        [Fact(Skip = "Since NuspecReader filters out invalid dependency groups, do we need this test?")]
+        [Fact]
         public void ReturnsErrorIfDependencySetContainsInvalidId()
         {
             var nuspecStream = CreateNuspecStream(NuSpecDependencySetContainsInvalidId);
 
             Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidDependency, "a b c", "1.0") }, GetErrors(nuspecStream));
         }
-
-        [Fact(Skip = "Since NuspecReader filters out invalid dependency groups, do we need this test?")]
-        public void ReturnsErrorIfDependencySetContainsInvalidVersion()
-        {
-            var nuspecStream = CreateNuspecStream(NuSpecDependencySetContainsInvalidVersion);
-            
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidDependency, "a.b.c", "1.0 alpha") }, GetErrors(nuspecStream));
-        }
-
+        
         [Fact]
         public void NoErrorIfDependencySetContainsEmptyTargetFramework()
         {
@@ -331,13 +318,13 @@ namespace NuGetGallery.Packaging
             
             Assert.Equal(GetErrors(nuspecStream).Length, 0);
         }
-
-        [Fact(Skip = "Since NuspecReader filters out invalid dependency groups, do we need this test?")]
-        public void ReturnsErrorIfDependencySetContainsInvalidTargetFramework()
+        
+        [Fact]
+        public void ReturnsErrorIfDependencySetContainsDuplicateDependency()
         {
-            var nuspecStream = CreateNuspecStream(NuSpecDependencySetContainsInvalidTargetFramework);
+            var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsDuplicateDependency);
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidTargetFramework, "net40-client-full-awesome-unicorns") }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(Strings.Manifest_DuplicateDependency, "net40", "SomeDependency") }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -346,14 +333,6 @@ namespace NuGetGallery.Packaging
             var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsEmptyTargetFramework);
             
             Assert.Equal(GetErrors(nuspecStream).Length, 0);
-        }
-
-        [Fact(Skip = "Since NuspecReader filters out invalid target frameworks, do we need this test?")]
-        public void ReturnsErrorIfFrameworkAssemblyReferenceContainsInvalidTargetFramework()
-        {
-            var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsInvalidTargetFramework);
-            
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidTargetFramework, "net40-client-full-awesome-unicorns") }, GetErrors(nuspecStream));
         }
 
         private string[] GetErrors(Stream nuspecStream)

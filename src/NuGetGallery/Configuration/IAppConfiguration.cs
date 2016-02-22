@@ -109,6 +109,11 @@ namespace NuGetGallery.Configuration
         string SqlConnectionString { get; set; }
 
         /// <summary>
+        /// Gets the SQL Connection string used to connect to the database for support requests
+        /// </summary>
+        string SqlConnectionStringSupportRequest { get; set; }
+
+        /// <summary>
         /// Gets the host name of the Azure CDN being used
         /// </summary>
         string AzureCdnHost { get; set; }
@@ -147,5 +152,22 @@ namespace NuGetGallery.Configuration
         /// Gets a boolean indicating if the search index should be updated automatically in the background
         /// </summary>
         bool AutoUpdateSearchIndex { get; set; }
+
+        /// <summary>
+        /// Gets a string containing the PagerDuty account name.
+        /// </summary>
+        string PagerDutyAccountName { get; set; }
+
+        /// <summary>
+        /// Gets a string containing the PagerDuty API key.
+        /// </summary>
+        // ReSharper disable once InconsistentNaming
+        string PagerDutyAPIKey { get; set; }
+
+        /// <summary>
+        /// Gets a string containing the PagerDuty Service key.
+        /// </summary>
+        // ReSharper disable once InconsistentNaming
+        string PagerDutyServiceKey { get; set; }
     }
 }

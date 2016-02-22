@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using MvcHaack.Ajax;
 
@@ -56,7 +57,7 @@ namespace NuGetGallery
             return owners.Union(pending);
         }
 
-        public object AddPackageOwner(string id, string username)
+        public async Task<object> AddPackageOwner(string id, string username)
         {
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
@@ -78,7 +79,7 @@ namespace NuGetGallery
             }
 
             var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
-            var ownerRequest = _packageService.CreatePackageOwnerRequest(package, currentUser, user);
+            var ownerRequest = await _packageService.CreatePackageOwnerRequestAsync(package, currentUser, user);
 
             var confirmationUrl = Url.ConfirmationUrl(
                 "ConfirmOwner",
@@ -91,7 +92,7 @@ namespace NuGetGallery
             return new { success = true, name = user.Username, pending = true };
         }
 
-        public object RemovePackageOwner(string id, string username)
+        public async Task<object> RemovePackageOwner(string id, string username)
         {
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
@@ -113,7 +114,7 @@ namespace NuGetGallery
                 return new { success = false, message = "Current user not found" };
             }
 
-            _packageService.RemovePackageOwner(package, user);
+            await _packageService.RemovePackageOwnerAsync(package, user);
             _messageService.SendPackageOwnerRemovedNotice(currentUser, user, package);
 
             return new { success = true };

@@ -90,8 +90,11 @@ namespace NuGetGallery.WebApi
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public IHttpActionResult GetInnerResult()
         {
+            IQueryable queryResults = null;
+
             // If we're counting, don't set the max page size
             if (FormatAsCountResult)
             {
@@ -102,14 +105,36 @@ namespace NuGetGallery.WebApi
             var queryOptions = _queryOptions;
 
             // If the result is already paged, it has already been queried as well.
-            // Remove options that would further limit the resultset.
+            // Make sure we only apply the options that are allowed at this stage.
             if (_isPagedResult && _generateNextLink != null && _totalResults.HasValue)
             {
+                queryResults = _queryable.ToList().AsQueryable();
+
+                if (queryOptions.Filter != null)
+                {
+                    queryResults = queryOptions.Filter.ApplyTo(queryResults, _querySettings);
+                }
+
+                if (queryOptions.OrderBy != null)
+                {
+                    queryResults = queryOptions.OrderBy.ApplyTo(queryResults, _querySettings);
+                }
+
+                if (queryOptions.Top != null)
+                {
+                    queryResults = queryOptions.Top.ApplyTo(queryResults, _querySettings);
+                }
+
+                // Remove options that would further limit the resultset.
                 queryOptions = null;
             }
+            else
+            {
+                // Apply the query as-is
+                queryResults = ExecuteQuery(_queryable, queryOptions);
+            }
 
-            // Apply the query
-            var queryResults = ExecuteQuery(_queryable, queryOptions);
+            // Determine the resulting query
             var modelQueryResults = queryResults as IQueryable<TModel>; // cast succeeds if querying on model
             var projectedQueryResults = queryResults as IQueryable<IEdmEntityObject>; // cast succeeds in case of projection
             if (queryResults == null)

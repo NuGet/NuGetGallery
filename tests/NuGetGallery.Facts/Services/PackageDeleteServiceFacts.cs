@@ -139,7 +139,7 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, reason, signature);
 
                 packageDeletesRepo.Verify(x => x.InsertOnCommit(It.Is<PackageDelete>(p => p.Packages.Contains(package) && p.DeletedBy == user && p.Reason == reason && p.Signature == signature)));
-                packageDeletesRepo.Verify(x => x.CommitChanges());
+                packageDeletesRepo.Verify(x => x.CommitChangesAsync());
             }
 
             [Fact]
@@ -156,9 +156,9 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
                 Assert.True(package.Deleted);
-                packageRepository.Verify(x => x.CommitChanges());
+                packageRepository.Verify(x => x.CommitChangesAsync());
                 packageDeleteRepository.Verify(x => x.InsertOnCommit(It.IsAny<PackageDelete>()));
-                packageDeleteRepository.Verify(x => x.CommitChanges());
+                packageDeleteRepository.Verify(x => x.CommitChangesAsync());
             }
 
             [Fact]
@@ -173,7 +173,7 @@ namespace NuGetGallery
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
-                packageService.Verify(x => x.UpdateIsLatest(packageRegistration, false));
+                packageService.Verify(x => x.UpdateIsLatestAsync(packageRegistration, false));
             }
 
             [Fact]
@@ -274,7 +274,7 @@ namespace NuGetGallery
 
                 Assert.DoesNotContain(package, packageRegistration.Packages);
                 packageRepository.Verify(x => x.DeleteOnCommit(package));
-                packageRepository.Verify(x => x.CommitChanges());
+                packageRepository.Verify(x => x.CommitChangesAsync());
                 Mock.Get(service).Verify();
             }
 
@@ -306,7 +306,7 @@ namespace NuGetGallery
                 Assert.Equal(0, packageRegistration.Packages.Count);
                 Assert.DoesNotContain(package, packageRegistration.Packages);
                 packageRepository.Verify(x => x.DeleteOnCommit(package));
-                packageRepository.Verify(x => x.CommitChanges());
+                packageRepository.Verify(x => x.CommitChangesAsync());
                 Assert.False(ranDeleteQuery);
                 Mock.Get(service).Verify();
             }
@@ -338,7 +338,7 @@ namespace NuGetGallery
                 Assert.Equal(0, packageRegistration.Packages.Count);
                 Assert.DoesNotContain(package, packageRegistration.Packages);
                 packageRepository.Verify(x => x.DeleteOnCommit(package));
-                packageRepository.Verify(x => x.CommitChanges());
+                packageRepository.Verify(x => x.CommitChangesAsync());
                 Mock.Get(service).Verify();
             }
 
@@ -354,7 +354,7 @@ namespace NuGetGallery
 
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
-                packageService.Verify(x => x.UpdateIsLatest(packageRegistration, false));
+                packageService.Verify(x => x.UpdateIsLatestAsync(packageRegistration, false));
             }
 
             [Fact]

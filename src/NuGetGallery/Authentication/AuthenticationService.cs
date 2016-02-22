@@ -159,7 +159,7 @@ namespace NuGetGallery.Authentication
             await Auditing.SaveAuditRecord(new UserAuditRecord(newUser, UserAuditAction.Registered));
 
             Entities.Users.Add(newUser);
-            Entities.SaveChanges();
+            await Entities.SaveChangesAsync();
 
             return new AuthenticatedUser(newUser, credential);
         }
@@ -188,7 +188,7 @@ namespace NuGetGallery.Authentication
         public virtual async Task ReplaceCredential(User user, Credential credential)
         {
             await ReplaceCredentialInternal(user, credential);
-            Entities.SaveChanges();
+            await Entities.SaveChangesAsync();
         }
 
         public virtual async Task<Credential> ResetPasswordWithToken(string username, string token, string newPassword)
@@ -214,7 +214,7 @@ namespace NuGetGallery.Authentication
                 await ReplaceCredentialInternal(user, cred);
                 user.PasswordResetToken = null;
                 user.PasswordResetTokenExpirationDate = null;
-                Entities.SaveChanges();
+                await Entities.SaveChangesAsync();
                 return cred;
             }
 
@@ -268,8 +268,7 @@ namespace NuGetGallery.Authentication
 
             await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RequestedPasswordReset));
 
-            Entities.SaveChanges();
-            return;
+            await Entities.SaveChangesAsync();
         }
 
         public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword)
@@ -286,7 +285,7 @@ namespace NuGetGallery.Authentication
             // Replace/Set password credential
             var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
             await ReplaceCredentialInternal(user, cred);
-            Entities.SaveChanges();
+            await Entities.SaveChangesAsync();
             return true;
         }
 
@@ -315,7 +314,7 @@ namespace NuGetGallery.Authentication
         {
             await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.AddedCredential, credential));
             user.Credentials.Add(credential);
-            Entities.SaveChanges();
+            await Entities.SaveChangesAsync();
         }
 
         public virtual CredentialViewModel DescribeCredential(Credential credential)
@@ -347,7 +346,7 @@ namespace NuGetGallery.Authentication
             await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RemovedCredential, cred));
             user.Credentials.Remove(cred);
             Entities.Credentials.Remove(cred);
-            Entities.SaveChanges();
+            await Entities.SaveChangesAsync();
         }
 
         public async virtual Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)
@@ -602,7 +601,7 @@ namespace NuGetGallery.Authentication
             }
 
             // Save changes, if any
-            Entities.SaveChanges();
+            await Entities.SaveChangesAsync();
         }
     }
 

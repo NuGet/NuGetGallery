@@ -89,7 +89,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ChangeEmailSubscription(bool subscribe)
+        public virtual async Task<ActionResult> ChangeEmailSubscription(bool subscribe)
         {
             var user = GetCurrentUser();
             if (user == null)
@@ -97,7 +97,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            UserService.ChangeEmailSubscription(user, subscribe);
+            await UserService.ChangeEmailSubscriptionAsync(user, subscribe);
             TempData["Message"] = Strings.EmailPreferencesUpdated;
             return RedirectToAction("Account");
         }
@@ -202,9 +202,9 @@ namespace NuGetGallery
                 ModelState.AddModelError("", ex.Message);
                 return View(model);
             }
-            
+
             ViewBag.ResetTokenValid = credential != null;
-            
+
             if (!ViewBag.ResetTokenValid)
             {
                 ModelState.AddModelError("", Strings.InvalidOrExpiredPasswordResetToken);
@@ -510,7 +510,7 @@ namespace NuGetGallery
                 user.PasswordResetToken,
                 new { forgot = forgotPassword });
             MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
-            
+
             return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
         }
     }

@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
+using Newtonsoft.Json;
 
 namespace NuGetGallery.Helpers
 {
@@ -64,6 +65,19 @@ namespace NuGetGallery.Helpers
             }
 
             return str;
+        }
+
+        public static IHtmlString ToJson(this HtmlHelper html, object item)
+        {
+            var serializerSettings = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                StringEscapeHandling = StringEscapeHandling.EscapeHtml,
+                Formatting = Formatting.None
+            };
+
+            var json = JsonConvert.SerializeObject(item, serializerSettings);
+            return html.Raw(json);
         }
     }
 }

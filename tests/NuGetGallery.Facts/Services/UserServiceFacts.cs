@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using Xunit;
-using Xunit.Extensions;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Auditing;
@@ -35,7 +35,7 @@ namespace NuGetGallery
             return new Credential(
                 type: CredentialTypes.Password.Pbkdf2,
                 value: CryptographyService.GenerateSaltedHash(
-                    password, 
+                    password,
                     Constants.PBKDF2HashAlgorithmId));
         }
 
@@ -255,9 +255,9 @@ namespace NuGetGallery
             [InlineData(null)]
             public async Task DoesNotModifyConfirmationTokenWhenUnconfirmedEmailAddressNotChanged(string confirmedEmailAddress)
             {
-                var user = new User { 
+                var user = new User {
                     EmailAddress = confirmedEmailAddress,
-                    UnconfirmedEmailAddress = "old@example.com", 
+                    UnconfirmedEmailAddress = "old@example.com",
                     EmailConfirmationToken = "pending-token" };
                 var service = new TestableUserServiceWithDBFaking
                 {
@@ -361,9 +361,9 @@ namespace NuGetGallery
 
 
         public class TheUpdateProfileMethod
-        {   
+        {
             [Fact]
-            public void SavesEmailAllowedSetting()
+            public async Task SavesEmailAllowedSetting()
             {
                 var user = new User { EmailAddress = "old@example.org", EmailAllowed = true };
                 var service = new TestableUserService();
@@ -371,19 +371,19 @@ namespace NuGetGallery
                        .Setup(r => r.GetAll())
                        .Returns(new[] { user }.AsQueryable());
 
-                service.ChangeEmailSubscription(user, false);
+                await service.ChangeEmailSubscriptionAsync(user, false);
 
                 Assert.Equal(false, user.EmailAllowed);
                 service.MockUserRepository
-                       .Verify(r => r.CommitChanges());
+                       .Verify(r => r.CommitChangesAsync());
             }
 
             [Fact]
-            public void ThrowsArgumentExceptionForNullUser()
+            public async Task ThrowsArgumentExceptionForNullUser()
             {
                 var service = new TestableUserService();
 
-                ContractAssert.ThrowsArgNull(() => service.ChangeEmailSubscription(null, emailAllowed: true), "user");
+                await ContractAssert.ThrowsArgNullAsync(async () => await service.ChangeEmailSubscriptionAsync(null, emailAllowed: true), "user");
             }
         }
 
@@ -410,7 +410,7 @@ namespace NuGetGallery
             public Mock<IAppConfiguration> MockConfig { get; protected set; }
 
             public FakeEntitiesContext FakeEntitiesContext { get; set; }
-            
+
             public IEnumerable<User> Users
             {
                 set
@@ -418,7 +418,7 @@ namespace NuGetGallery
                     foreach (User u in value) FakeEntitiesContext.Set<User>().Add(u);
                 }
             }
-            
+
             public TestableUserServiceWithDBFaking()
             {
                 Config = (MockConfig = new Mock<IAppConfiguration>()).Object;

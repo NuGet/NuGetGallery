@@ -10,6 +10,7 @@ using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -55,6 +56,7 @@ namespace NuGetGallery
 
 **Message:**
 {Message}
+
 ";
 
 
@@ -102,6 +104,7 @@ namespace NuGetGallery
 
 **Message:**
 {Message}
+
 ";
 
             var body = new StringBuilder();
@@ -320,7 +323,7 @@ The {3} Team";
             {
                 return;
             }
-            
+
             const string subject = "[{0}] The user '{1}' has removed you as an owner of the package '{2}'.";
 
             string body = @"The user '{0}' removed you as an owner of the package '{1}'.
@@ -330,7 +333,7 @@ If this was done incorrectly, we'd recommend contacting '{0}' at '{2}'.
 Thanks,
 The {3} Team";
             body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, fromUser.EmailAddress, Config.GalleryOwner.DisplayName);
-            
+
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
@@ -377,6 +380,35 @@ The {3} Team";
                 Config.GalleryOwner.DisplayName,
                 name);
             SendSupportMessage(user, body, subject);
+        }
+
+        public void SendContactSupportEmail(ContactSupportRequest request)
+        {
+            string subject = string.Format(CultureInfo.CurrentCulture, "Support Request (Reason: {0})", request.SubjectLine);
+
+            string body = string.Format(CultureInfo.CurrentCulture, @"
+**Email:** {0} ({1})
+
+**Reason:**
+{2}
+
+**Message:**
+{3}
+", request.RequestingUser.Username, request.RequestingUser.EmailAddress, request.SubjectLine, request.Message);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryOwner;
+                mailMessage.ReplyToList.Add(request.FromAddress);
+                mailMessage.To.Add(Config.GalleryOwner);
+                if (request.CopySender)
+                {
+                    mailMessage.CC.Add(request.FromAddress);
+                }
+                SendMessage(mailMessage);
+            }
         }
 
         private void SendSupportMessage(User user, string body, string subject)
