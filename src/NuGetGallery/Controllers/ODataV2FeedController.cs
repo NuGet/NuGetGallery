@@ -392,9 +392,10 @@ namespace NuGetGallery.Controllers
 
         private void SetCorrelation()
         {
-            if (_searchService is ICorrelated)
+            var correlatedSearchService = _searchService as ICorrelated;
+            if (correlatedSearchService != null)
             {
-                ((ICorrelated)_searchService).CorrelationIdProvider = new CorrelationIdProvider(Request);
+                correlatedSearchService.CorrelationIdProvider = new CorrelationIdProvider(Request);
             }
         }
     }

@@ -45,6 +45,14 @@ namespace NuGetGallery.Infrastructure.Lucene
         public ExternalSearchService()
         {
             // used for testing
+            if (_healthIndicatorStore == null)
+            {
+                _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger());
+            }
+            if (_client == null)
+            {
+                _client = new SearchClient(ServiceUri, "SearchGalleryQueryService/3.0.0-rc", null, _healthIndicatorStore, new TracingHttpHandler(Trace));
+            }
         }
 
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
@@ -318,8 +326,22 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         public CorrelationIdProvider CorrelationIdProvider
         {
-            get { return _client.CorrelationIdProvider; }
-            set { _client.CorrelationIdProvider = value; }
+            get
+            {
+                if (_client != null)
+                {
+                    return _client.CorrelationIdProvider;
+                }
+
+                return null;
+            }
+            set
+            {
+                if (_client != null)
+                {
+                    _client.CorrelationIdProvider = value;
+                }
+            }
         }
     }
 }
