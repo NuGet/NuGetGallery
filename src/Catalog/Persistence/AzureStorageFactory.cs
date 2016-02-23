@@ -48,6 +48,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 BaseAddress = newAddress;
             }
         }
+
+        public bool CompressContent
+        {
+            get;
+            set;
+        }
+
         public override Storage Create(string name = null)
         {
             string path = (_path == null) ? name : _path + name;
@@ -61,7 +68,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            return new AzureStorage(_account, _containerName, path, newBase) { Verbose = Verbose };
+            return new AzureStorage(_account, _containerName, path, newBase) { Verbose = Verbose, CompressContent = CompressContent };
         }
     }
 }

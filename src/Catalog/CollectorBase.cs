@@ -27,7 +27,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public async Task<bool> Run(CancellationToken cancellationToken)
         {
-            return await Run(MemoryCursor.Min, MemoryCursor.Max, cancellationToken);
+            return await Run(MemoryCursor.CreateMin(), MemoryCursor.CreateMax(), cancellationToken);
         }
 
         public async Task<bool> Run(DateTime front, DateTime back, CancellationToken cancellationToken)

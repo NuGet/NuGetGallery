@@ -8,8 +8,12 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class MemoryCursor : ReadWriteCursor
     {
-        public static MemoryCursor Min = new MemoryCursor(DateTime.MinValue.ToUniversalTime());
-        public static MemoryCursor Max = new MemoryCursor(DateTime.MaxValue.ToUniversalTime());
+        public static DateTime MinValue = DateTime.MinValue.ToUniversalTime();
+
+        public static DateTime MaxValue = DateTime.MinValue.ToUniversalTime();
+
+        public static MemoryCursor CreateMin() { return new MemoryCursor(MinValue); }
+        public static MemoryCursor CreateMax() { return new MemoryCursor(MaxValue); }
 
         public MemoryCursor(DateTime value)
         {
