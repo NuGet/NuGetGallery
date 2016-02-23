@@ -248,8 +248,13 @@ namespace NuGet.Indexing
             _logger.LogInformation("NuGetSearcherManager.Warm");
             var stopwatch = Stopwatch.StartNew();
 
-            // Warmup search
+            // Warmup search (query all documents)
             searcher.Search(new MatchAllDocsQuery(), 1);
+
+            // Warmup search (query for a specific term with rankings)
+            var query = NuGetQuery.MakeQuery("newtonsoft.json");
+            var boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
+            searcher.Search(boostedQuery, 5);
 
             stopwatch.Stop();
             _logger.LogInformation("NuGetSearcherManager.Warm completed in {IndexSearcherWarmDuration} seconds.",
