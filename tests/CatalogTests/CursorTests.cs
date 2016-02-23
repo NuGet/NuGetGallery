@@ -176,9 +176,9 @@ namespace CatalogTests
             string path = @"c:\data\site\cursor";
             Storage storage = new FileStorage(baseAddress, path);
 
-            DurableCursor front = new DurableCursor(new Uri("http://localhost:8000/cursor/front.json"), storage, MemoryCursor.Min.Value);
+            DurableCursor front = new DurableCursor(new Uri("http://localhost:8000/cursor/front.json"), storage, MemoryCursor.MinValue);
             //DurableCursor back = new DurableCursor(new Uri("http://localhost:8000/cursor/back.json"), storage);
-            MemoryCursor back = MemoryCursor.Max;
+            MemoryCursor back = MemoryCursor.CreateMax();
 
             bool didWork = await collector.Run(front, back, CancellationToken.None);
 
@@ -210,14 +210,14 @@ namespace CatalogTests
             TestCollector collectorA = new TestCollector("A", new Uri("http://localhost:8000/cursor/index.json"), handlerFunc);
             TestCollector collectorB = new TestCollector("B", new Uri("http://localhost:8000/cursor/index.json"), handlerFunc);
 
-            MemoryCursor initial = MemoryCursor.Max;
+            MemoryCursor initial = MemoryCursor.CreateMax();
 
             string baseAddress = "http://localhost:8000/cursor";
             string path = @"c:\data\site\cursor";
             Storage storage = new FileStorage(baseAddress, path);
 
-            DurableCursor cursorA = new DurableCursor(new Uri("http://localhost:8000/cursor/cursorA.json"), storage, MemoryCursor.Min.Value);
-            DurableCursor cursorB = new DurableCursor(new Uri("http://localhost:8000/cursor/cursorB.json"), storage, MemoryCursor.Min.Value);
+            DurableCursor cursorA = new DurableCursor(new Uri("http://localhost:8000/cursor/cursorA.json"), storage, MemoryCursor.MinValue);
+            DurableCursor cursorB = new DurableCursor(new Uri("http://localhost:8000/cursor/cursorB.json"), storage, MemoryCursor.MinValue);
 
             Console.WriteLine("check catalog...");
 
@@ -226,7 +226,7 @@ namespace CatalogTests
             do
             {
                 run = false;
-                run |= await collectorA.Run(cursorA, MemoryCursor.Max, CancellationToken.None);
+                run |= await collectorA.Run(cursorA, MemoryCursor.CreateMax(), CancellationToken.None);
                 run |= await collectorB.Run(cursorB, cursorA, CancellationToken.None);
             }
             while (run);
@@ -238,7 +238,7 @@ namespace CatalogTests
             do
             {
                 run = false;
-                run |= await collectorA.Run(cursorA, MemoryCursor.Max, CancellationToken.None);
+                run |= await collectorA.Run(cursorA, MemoryCursor.CreateMax(), CancellationToken.None);
                 run |= await collectorB.Run(cursorB, cursorA, CancellationToken.None);
             }
             while (run);

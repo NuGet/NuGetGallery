@@ -29,8 +29,8 @@ namespace Ng
             };
 
             Storage storage = storageFactory.Create();
-            ReadWriteCursor front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.Min.Value);
-            ReadCursor back = MemoryCursor.Max;
+            ReadWriteCursor front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
 
             while (true)
             {

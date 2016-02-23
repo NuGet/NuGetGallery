@@ -187,6 +187,46 @@ namespace Ng
             return value;
         }
 
+        public static StorageFactory CreateCompressedStorageFactory(IDictionary<string, string> arguments, bool verbose)
+        {
+            Uri storageBaseAddress = null;
+            string storageBaseAddressStr;
+            if (arguments.TryGetValue("-compressedStorageBaseAddress", out storageBaseAddressStr))
+            {
+                storageBaseAddressStr = storageBaseAddressStr.TrimEnd('/') + "/";
+
+                storageBaseAddress = new Uri(storageBaseAddressStr);
+            }
+
+            string storageAccountName;
+            if (!arguments.TryGetValue("-compressedStorageAccountName", out storageAccountName))
+            {
+                TraceRequiredArgument("-compressedStorageAccountName");
+                return null;
+            }
+
+            string storageKeyValue;
+            if (!arguments.TryGetValue("-compressedStorageKeyValue", out storageKeyValue))
+            {
+                TraceRequiredArgument("-compressedStorageKeyValue");
+                return null;
+            }
+
+            string storageContainer;
+            if (!arguments.TryGetValue("-compressedStorageContainer", out storageContainer))
+            {
+                TraceRequiredArgument("-compressedStorageContainer");
+                return null;
+            }
+
+            string storagePath = null;
+            arguments.TryGetValue("-compressedStoragePath", out storagePath);
+
+            StorageCredentials credentials = new StorageCredentials(storageAccountName, storageKeyValue);
+            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            return new AzureStorageFactory(account, storageContainer, storagePath, storageBaseAddress) { Verbose = verbose, CompressContent = true };
+        }
+
         public static StorageFactory CreateStorageFactory(IDictionary<string, string> arguments, bool verbose)
         {
             Uri storageBaseAddress = null;

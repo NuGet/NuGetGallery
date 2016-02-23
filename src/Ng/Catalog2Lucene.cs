@@ -18,9 +18,9 @@ namespace Ng
 
             CommitCollector collector = new SearchIndexFromCatalogCollector(new Uri(source), directory, catalogBaseAddress, handlerFunc);
 
-            ReadWriteCursor front = new LuceneCursor(directory, MemoryCursor.Min.Value);
+            ReadWriteCursor front = new LuceneCursor(directory, MemoryCursor.MinValue);
             
-            ReadCursor back = (registration == null) ? (ReadCursor)MemoryCursor.Max : new HttpReadCursor(new Uri(registration), handlerFunc);
+            ReadCursor back = (registration == null) ? (ReadCursor)MemoryCursor.CreateMax() : new HttpReadCursor(new Uri(registration), handlerFunc);
 
             while (true)
             {

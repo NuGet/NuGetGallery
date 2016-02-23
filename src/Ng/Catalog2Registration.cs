@@ -22,6 +22,47 @@ namespace Ng
             _logger = loggerFactory.CreateLogger<Catalog2Registration>();
         }
 
+        public async Task Loop(string source, StorageFactory compressedStorageFactory, StorageFactory storageFactory, string contentBaseAddress, bool unlistShouldDelete, bool verbose, int interval, CancellationToken cancellationToken)
+        {
+            //  First the gzip compressed registration blobs
+
+            CommitCollector compressedCollector = new RegistrationCollector(new Uri(source), compressedStorageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
+            {
+                ContentBaseAddress = contentBaseAddress == null ? null : new Uri(contentBaseAddress),
+                UnlistShouldDelete = unlistShouldDelete
+            };
+
+            Storage compressedStorage = compressedStorageFactory.Create();
+            ReadWriteCursor compressedFront = new DurableCursor(compressedStorage.ResolveUri("cursor.json"), compressedStorage, MemoryCursor.MinValue);
+            ReadCursor compressedBack = MemoryCursor.CreateMax();
+
+            //  Second the non-compressed registration blobs
+
+            CommitCollector collector = new RegistrationCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
+            {
+                ContentBaseAddress = contentBaseAddress == null ? null : new Uri(contentBaseAddress),
+                UnlistShouldDelete = unlistShouldDelete
+            };
+
+            Storage storage = storageFactory.Create();
+            ReadWriteCursor front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
+
+            //  Note the "back" of the uncompressed registration blobs is the same as the gzip compressed blobs - when they've run they arrive at the same point 
+
+            while (true)
+            {
+                bool run = false;
+                do
+                {
+                    run |= await compressedCollector.Run(compressedFront, compressedBack, cancellationToken);
+                    run |= await collector.Run(front, compressedBack, cancellationToken);
+                }
+                while (run);
+
+                Thread.Sleep(interval * 1000);
+            }
+        }
+
         public async Task Loop(string source, StorageFactory storageFactory, string contentBaseAddress, bool unlistShouldDelete, bool verbose, int interval, CancellationToken cancellationToken)
         {
             CommitCollector collector = new RegistrationCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
@@ -31,15 +72,15 @@ namespace Ng
             };
 
             Storage storage = storageFactory.Create();
-            ReadWriteCursor front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.Min.Value);
-            ReadCursor back = MemoryCursor.Max;
+            ReadWriteCursor front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
 
             while (true)
             {
                 bool run = false;
                 do
                 {
-                    run = await collector.Run(front, back, cancellationToken);
+                    run |= await collector.Run(front, back, cancellationToken);
                 }
                 while (run);
 
@@ -83,6 +124,8 @@ namespace Ng
                 return;
             }
 
+            StorageFactory compressedStorageFactory = CommandHelpers.CreateCompressedStorageFactory(arguments, verbose);
+
             if (verbose)
             {
                 Trace.Listeners.Add(new ConsoleTraceListener());
@@ -91,7 +134,14 @@ namespace Ng
 
             Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2} seconds", source, storageFactory, interval);
 
-            Loop(source, storageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
+            if (compressedStorageFactory != null)
+            {
+                Loop(source, compressedStorageFactory, storageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
+            }
+            else
+            {
+                Loop(source, storageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
+            }
         }
     }
 }

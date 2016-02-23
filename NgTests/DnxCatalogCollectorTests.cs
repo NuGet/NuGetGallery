@@ -41,8 +41,8 @@ namespace NgTests
             {
                 ContentBaseAddress = new Uri("http://tempuri.org/packages")
             };
-            ReadWriteCursor front = new DurableCursor(catalogToDnxStorage.ResolveUri("cursor.json"), catalogToDnxStorage, MemoryCursor.Min.Value);
-            ReadCursor back = MemoryCursor.Max;
+            ReadWriteCursor front = new DurableCursor(catalogToDnxStorage.ResolveUri("cursor.json"), catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
 
             // Act
             await target.Run(front, back, CancellationToken.None);
