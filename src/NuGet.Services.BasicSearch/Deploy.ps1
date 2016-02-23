@@ -1,6 +1,7 @@
 $OctopusAzureModulePath = "C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ServiceManagement\Azure\Azure.psd1"
 Import-Module $OctopusAzureModulePath
 Write-Host "Imported Azure SDK PowerShell Module from $OctopusAzureModulePath" 
+Select-AzureSubscription -NoDefault
 
 Write-Host "Before getting subscriptions, clear folder %appdata%\Windows Azure Powershell\*"
 $azureps = $env:APPDATA + '\Windows Azure Powershell\*'
@@ -36,8 +37,6 @@ Write-Host "Azure subscription was set successfully using the certificate obtain
 Select-AzureSubscription -Default -SubscriptionName $AzureSubscriptionName
 Write-Host "Current SubscriptionName" $AzureSubscriptionName
 Write-Host "Selected default azure subscription. Publishing azure website..."
-
-Get-AzureWebsite
 
 Publish-AzureWebsiteProject -Name $AzureWebsiteName -Package $WebPackagePath -Slot staging
 Write-Host "Published azure website successfully."
