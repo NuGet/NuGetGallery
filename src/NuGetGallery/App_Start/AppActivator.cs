@@ -17,6 +17,7 @@ using Elmah;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.Search.Client.Correlation;
 using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -173,13 +174,7 @@ namespace NuGetGallery
             NuGetODataConfig.Register(GlobalConfiguration.Configuration);
 
             // Attach correlator
-            var correlationHandler = new Correlator.Handlers.ClientCorrelationHandler
-            {
-                InitializeIfEmpty = true,
-                TraceCorrelation = true
-            };
-
-            GlobalConfiguration.Configuration.MessageHandlers.Add(correlationHandler);
+            GlobalConfiguration.Configuration.MessageHandlers.Add(new WebApiCorrelationHandler());
 
             Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
             AreaRegistration.RegisterAllAreas();
