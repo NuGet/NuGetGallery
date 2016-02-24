@@ -30,7 +30,7 @@ namespace NuGet.Services.BasicSearch
         public void Configuration(IAppBuilder app, IConfiguration configuration, Directory directory, ILoader loader)
         {
             // create an ILoggerFactory
-            var loggerConfiguration = Logging.CreateDefaultLoggerConfiguration()
+            var loggerConfiguration = Logging.CreateDefaultLoggerConfiguration(withConsoleLogger: false)
                 .Enrich.With<HttpRequestIdEnricher>()
                 .Enrich.With<HttpRequestTraceIdEnricher>()
                 .Enrich.With<HttpRequestTypeEnricher>()
