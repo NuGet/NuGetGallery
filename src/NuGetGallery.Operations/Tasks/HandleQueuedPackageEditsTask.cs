@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.WindowsAzure.Storage.Blob;
+using NuGet.Services.Gallery;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery.Operations.Tasks

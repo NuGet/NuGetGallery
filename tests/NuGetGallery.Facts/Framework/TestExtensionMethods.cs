@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
+using NuGet.Services.Gallery;
 
 namespace NuGetGallery
 {
@@ -18,6 +19,7 @@ namespace NuGetGallery
         /// does NOT use AppController.GetCurrentUser()! In those cases, use
         /// TestExtensionMethods.SetCurrentUser(AppController, User) instead.
         /// </summary>
+        /// <param name="self"></param>
         /// <param name="name"></param>
         public static void SetCurrentUser(this AppController self, string name)
         {

@@ -3,6 +3,7 @@
 
 using NuGetGallery.Services;
 using System.Net.Mail;
+using NuGet.Services.Gallery;
 
 namespace NuGetGallery
 {

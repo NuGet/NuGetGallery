@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,10 +17,10 @@ namespace NuGetGallery.Packaging
     {
         /// <summary>
         /// Given the nupkg file as a read-write stream with random access (e.g. MemoryStream),
-        /// This will replace the .nuspec file with a new .nuspec generated from 
+        /// This will replace the .nuspec file with a new .nuspec generated from
         /// a) the old .nuspec file
         /// b) supplied edits
-        /// 
+        ///
         /// This function leaves readWriteStream open.
         /// </summary>
         public static void RewriteNupkgManifest(Stream readWriteStream, IEnumerable<Action<ManifestEdit>> edits)
@@ -66,7 +67,7 @@ namespace NuGetGallery.Packaging
                     Summary = ReadFromMetadata(metadataNode, "summary"),
                     Tags = ReadFromMetadata(metadataNode, "tags")
                 };
-                
+
                 // Perform edits
                 foreach (var edit in edits)
                 {
@@ -85,7 +86,7 @@ namespace NuGetGallery.Packaging
                 WriteToMetadata(metadataNode, "requireLicenseAcceptance", editableManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
                 WriteToMetadata(metadataNode, "summary", editableManifestElements.Summary);
                 WriteToMetadata(metadataNode, "tags", editableManifestElements.Tags);
-                
+
                 // Update the package stream
                 using (var newManifestStream = new MemoryStream())
                 {

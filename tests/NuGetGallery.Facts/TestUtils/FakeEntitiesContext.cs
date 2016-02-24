@@ -5,13 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Threading.Tasks;
+using NuGet.Services.Gallery;
 using Xunit;
 
 namespace NuGetGallery
 {
     public class FakeEntitiesContext : IEntitiesContext
     {
-        private readonly Dictionary<Type, object> dbSets = new Dictionary<Type,object>();
+        private readonly Dictionary<Type, object> _dbSets = new Dictionary<Type,object>();
         private bool _areChangesSaved;
 
         public IDbSet<CuratedFeed> CuratedFeeds
@@ -94,12 +95,12 @@ namespace NuGetGallery
 
         public IDbSet<T> Set<T>() where T : class
         {
-            if (!dbSets.ContainsKey(typeof(T)))
+            if (!_dbSets.ContainsKey(typeof(T)))
             {
-                dbSets.Add(typeof(T), new FakeDbSet<T>(this));
+                _dbSets.Add(typeof(T), new FakeDbSet<T>(this));
             }
 
-            return (IDbSet<T>)(dbSets[typeof(T)]);
+            return (IDbSet<T>)(_dbSets[typeof(T)]);
         }
 
         public void DeleteOnCommit<T>(T entity) where T : class

@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
+using NuGet.Services.Gallery;
 using Xunit;
 
 namespace NuGetGallery

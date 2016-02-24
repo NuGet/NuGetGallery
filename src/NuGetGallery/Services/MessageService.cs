@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
+using NuGet.Services.Gallery;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Services;

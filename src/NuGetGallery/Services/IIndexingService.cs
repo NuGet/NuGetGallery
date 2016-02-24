@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NuGet.Services.Gallery;
 using NuGetGallery.Configuration;
 using WebBackgrounder;
 namespace NuGetGallery

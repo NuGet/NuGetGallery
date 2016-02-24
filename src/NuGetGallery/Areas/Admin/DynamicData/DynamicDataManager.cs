@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Web.DynamicData;
 using System.Web.Routing;
 using Microsoft.AspNet.DynamicData.ModelProviders;
+using NuGet.Services.Gallery;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.DynamicData

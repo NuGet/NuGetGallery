@@ -3,6 +3,7 @@
 
 using System.Data.Entity.Migrations;
 using System.Linq;
+using NuGet.Services.Gallery;
 
 namespace NuGetGallery.Migrations
 {

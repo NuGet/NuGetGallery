@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using NuGet.Services.Gallery;
 using NuGetGallery.OData.QueryInterceptors;
 using Xunit;
 

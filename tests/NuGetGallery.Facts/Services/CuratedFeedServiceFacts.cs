@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
+using NuGet.Services.Gallery;
 using Xunit;
 
 namespace NuGetGallery.Services

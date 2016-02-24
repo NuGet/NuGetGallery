@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.Owin;
 using Moq;
+using NuGet.Services.Gallery;
 using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;

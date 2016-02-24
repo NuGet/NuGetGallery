@@ -11,7 +11,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Versioning;
-using NuGetGallery.Auditing;
+using NuGet.Services.Auditing;
+using NuGet.Services.Gallery;
 
 namespace NuGetGallery
 {

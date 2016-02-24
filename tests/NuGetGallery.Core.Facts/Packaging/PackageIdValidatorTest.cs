@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGet.Services.Gallery;
 using Xunit;
 
 namespace NuGetGallery.Packaging
@@ -89,7 +90,7 @@ namespace NuGetGallery.Packaging
             }
 
             Assert.NotNull(thrownException);
-            Assert.Equal("Id must not exceed " + CoreConstants.MaxPackageIdLength + " characters.", thrownException.Message);
+            Assert.Equal("Id must not exceed " + PackageRegistration.MaxPackageIdLength + " characters.", thrownException.Message);
         }
     }
 }

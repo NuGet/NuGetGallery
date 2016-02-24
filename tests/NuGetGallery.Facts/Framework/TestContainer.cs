@@ -8,6 +8,7 @@ using System.Web.Routing;
 using Autofac;
 using Microsoft.Owin;
 using Moq;
+using NuGet.Services.Gallery;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Framework

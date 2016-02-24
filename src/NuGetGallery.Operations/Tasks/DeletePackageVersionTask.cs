@@ -5,7 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
-using NuGetGallery.Auditing;
+using NuGet.Services.Auditing;
 using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations

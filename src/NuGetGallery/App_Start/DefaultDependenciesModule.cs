@@ -12,9 +12,9 @@ using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Elmah;
-using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGetGallery.Areas.Admin;
-using NuGetGallery.Auditing;
+using NuGet.Services.Auditing;
+using NuGet.Services.Gallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
@@ -396,19 +396,7 @@ namespace NuGetGallery
                 .As<IStatisticsService>()
                 .SingleInstance();
 
-            string instanceId;
-            try
-            {
-                instanceId = RoleEnvironment.CurrentRoleInstance.Id;
-            }
-            catch
-            {
-                instanceId = Environment.MachineName;
-            }
-
-            var localIp = AuditActor.GetLocalIP().Result;
-
-            builder.RegisterInstance(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, CloudAuditingService.AspNetActorThunk))
+            builder.RegisterInstance(new CloudAuditingService(configuration.Current.AzureStorageConnectionString, CloudAuditingService.AspNetActorThunk))
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();

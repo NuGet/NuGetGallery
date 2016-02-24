@@ -61,15 +61,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to write audit record: &apos;{0}&apos;. Record already exists..
-        /// </summary>
-        internal static string CloudAuditingService_DuplicateAuditRecord {
-            get {
-                return ResourceManager.GetString("CloudAuditingService_DuplicateAuditRecord", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No handler for the {0} command is registered..
         /// </summary>
         internal static string CommandExecutor_UnhandledCommand {

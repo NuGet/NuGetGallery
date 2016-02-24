@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Web;
 using Lucene.Net.Documents;
+using NuGet.Services.Gallery;
 
 namespace NuGetGallery
 {

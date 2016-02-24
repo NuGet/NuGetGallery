@@ -11,6 +11,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
+using NuGet.Services.Gallery;
 using NuGet.Services.Search.Models;
 using NuGetGallery.Helpers;
 

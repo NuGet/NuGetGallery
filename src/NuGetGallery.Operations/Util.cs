@@ -14,7 +14,7 @@ using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NLog;
-using NuGetGallery.Auditing;
+using NuGet.Services.Auditing;
 using NuGetGallery.Operations.Model;
 
 namespace NuGetGallery.Operations
@@ -364,8 +364,6 @@ namespace NuGetGallery.Operations
         {
             string localIP = await AuditActor.GetLocalIP();
             CloudAuditingService audit = new CloudAuditingService(
-                Environment.MachineName,
-                localIP,
                 storage.CreateCloudBlobClient().GetContainerReference("auditing"),
                 onBehalfOfThunk: null);
             return await audit.SaveAuditRecord(auditRecord);

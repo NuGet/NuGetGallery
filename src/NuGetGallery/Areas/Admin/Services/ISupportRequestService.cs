@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NuGet.Services.Gallery;
 using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery.Areas.Admin

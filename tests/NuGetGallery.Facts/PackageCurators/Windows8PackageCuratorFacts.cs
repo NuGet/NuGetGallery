@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
+using NuGet.Services.Gallery;
 using Xunit;
 
 namespace NuGetGallery.PackageCurators

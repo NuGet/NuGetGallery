@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Services.Gallery;
 using Xunit;
 
 namespace NuGetGallery.OData.Interceptors

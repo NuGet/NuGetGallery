@@ -13,6 +13,7 @@ using System.Web.Routing;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Services.Gallery;
 using NuGet.Versioning;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;

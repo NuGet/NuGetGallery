@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Services.Gallery;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 

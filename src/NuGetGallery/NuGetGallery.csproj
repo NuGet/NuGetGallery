@@ -1840,6 +1840,18 @@
     <Folder Include="Areas\Admin\Views\Shared\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Auditing\NuGet.Services.Auditing.csproj">
+      <Project>{76b39d4c-cdb5-43bc-9986-673c3c271080}</Project>
+      <Name>NuGet.Services.Auditing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Gallery.EntitiesContext\NuGet.Services.Gallery.EntitiesContext.csproj">
+      <Project>{dc6807a4-378a-46f3-805b-507b8059b6eb}</Project>
+      <Name>NuGet.Services.Gallery.EntitiesContext</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Gallery.Entities\NuGet.Services.Gallery.Entities.csproj">
+      <Project>{0439b5ce-aa48-4757-9692-fc521ae84fbf}</Project>
+      <Name>NuGet.Services.Gallery.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
       <Project>{6931c2ee-e081-4518-9798-d34d83b35bf6}</Project>
       <Name>NuGet.Services.Search.Client</Name>

@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Packaging;
+using NuGet.Services.Gallery;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery

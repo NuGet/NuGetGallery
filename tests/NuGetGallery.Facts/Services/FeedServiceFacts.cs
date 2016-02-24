@@ -10,6 +10,7 @@ using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
 using Moq;
+using NuGet.Services.Gallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;

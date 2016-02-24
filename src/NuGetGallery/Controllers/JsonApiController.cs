@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Services.Gallery;
 
 namespace NuGetGallery
 {

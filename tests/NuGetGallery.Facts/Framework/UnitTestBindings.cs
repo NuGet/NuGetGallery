@@ -6,7 +6,8 @@ using System.Web;
 using Autofac;
 using Microsoft.Owin;
 using Moq;
-using NuGetGallery.Auditing;
+using NuGet.Services.Auditing;
+using NuGet.Services.Gallery;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Framework

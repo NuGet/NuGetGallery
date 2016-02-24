@@ -3,6 +3,7 @@
 
 using System;
 using System.Web.Mvc;
+using NuGet.Services.Gallery;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Views
