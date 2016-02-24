@@ -17,7 +17,7 @@ using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Infrastructure.Lucene
 {
-    public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService, ICorrelated
+    public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
     {
         public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
 
@@ -49,9 +49,10 @@ namespace NuGetGallery.Infrastructure.Lucene
             {
                 _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger());
             }
+
             if (_client == null)
             {
-                _client = new SearchClient(ServiceUri, "SearchGalleryQueryService/3.0.0-rc", null, _healthIndicatorStore, new TracingHttpHandler(Trace));
+                _client = new SearchClient(ServiceUri, "SearchGalleryQueryService/3.0.0-rc", null, _healthIndicatorStore, new TracingHttpHandler(Trace), new CorrelatingHttpClientHandler());
             }
         }
 
@@ -86,9 +87,10 @@ namespace NuGetGallery.Infrastructure.Lucene
             {
                 _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new AppInsightsHealthIndicatorLogger());
             }
+
             if (_client == null)
             {
-                _client = new SearchClient(ServiceUri, config.SearchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace));
+                _client = new SearchClient(ServiceUri, config.SearchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace), new CorrelatingHttpClientHandler());
             }
         }
 
@@ -322,26 +324,6 @@ namespace NuGetGallery.Infrastructure.Lucene
         public void RegisterBackgroundJobs(IList<WebBackgrounder.IJob> jobs, IAppConfiguration configuration)
         {
             // No background jobs to register!
-        }
-
-        public CorrelationIdProvider CorrelationIdProvider
-        {
-            get
-            {
-                if (_client != null)
-                {
-                    return _client.CorrelationIdProvider;
-                }
-
-                return null;
-            }
-            set
-            {
-                if (_client != null)
-                {
-                    _client.CorrelationIdProvider = value;
-                }
-            }
         }
     }
 }
