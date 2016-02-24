@@ -10,8 +10,8 @@
 <h2>Current Owners</h2>
 <ul id="package-owner-list" data-bind="foreach: owners">
     <li>
-        <span data-bind="text: name"></span> <em data-bind="visible: current">(that&#8217;s you!)</em> 
-        <em data-bind="visible: pending">(pending approval)</em> 
+        <span data-bind="text: name"></span> <em data-bind="visible: current">(that&#8217;s you!)</em>
+        <em data-bind="visible: pending">(pending approval)</em>
         <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current, click: $root.removeOwner">Remove</a>
     </li>
 </ul>
@@ -26,11 +26,12 @@
 </p>
 @using (Html.BeginForm())
 {
+    @Html.AntiForgeryToken()
     <fieldset class="form">
         <legend>Add Owner</legend>
         <div class="form-field">
             <label for="newOwnerUserName">Username</label>
-            <input type="text" name="newOwnerUserName" data-bind="value: newOwnerUsername" />
+            <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername" />
         </div>
         <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: addOwner" />
     </fieldset>
@@ -38,11 +39,10 @@
 
 @section bottomScripts {
     <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
-    <script src="@Url.Content("~/json/JsonApi?json")"></script>
     <script>
-        $(function() {
+        $(function () {
             //TODO Move this to its own script file when we set up QUnit tests
-            var failHandler = function(jqXHR, textStatus, errorThrown)  {
+            var failHandler = function (jqXHR, textStatus, errorThrown) {
                 alert('An unexpected error occurred! "' + errorThrown + '"');
             };
 
@@ -62,7 +62,7 @@
 
                     var existingOwner = ko.utils.arrayFirst(
                         viewModel.owners(),
-                        function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });                    
+                        function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });
 
                     if (existingOwner) {
                         viewModel.message("The user '" + newUsername + "' is already an owner or pending owner of this package.");
@@ -70,13 +70,22 @@
                     }
 
                     var ownerInputModel =
-                        {
-                            username: newUsername,
-                            id: viewModel.package.id
-                        };
+                    {
+                        username: newUsername,
+                        id: viewModel.package.id
+                    };
 
-                    $mvc.JsonApi.AddPackageOwner(ownerInputModel)
-                        .done(function(data) {
+                    var headers = { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
+
+                    $.ajax({
+                        url: '@Url.Action("AddPackageOwner", "JsonApi")',
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        headers: headers,
+                        data: window.JSON.stringify(ownerInputModel),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
                             if (data.success) {
                                 var newOwner = new Owner(data.name, /* pending */ true, data.current);
                                 viewModel.owners.push(newOwner);
@@ -90,14 +99,23 @@
                             else {
                                 viewModel.message(data.message);
                             }
-                        })
-                        .fail(failHandler);
+                        }
+                    })
+                    .error(failHandler);
                 },
 
-                removeOwner: function(item) {
+                removeOwner: function (item) {
                     var package = viewModel.package;
-                    $mvc.JsonApi.RemovePackageOwner({ id: package.id, username: item.name() })
-                        .done(function(data) {
+                    var headers = { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
+
+                    $.ajax({
+                        url: '@Url.Action("RemovePackageOwner", "JsonApi")?id=' + package.id + '&username=' + item.name(),
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        headers: headers,
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
                             if (data.success) {
                                 viewModel.owners.remove(item);
 
@@ -106,17 +124,26 @@
                             } else {
                                 viewModel.message(data.message);
                             }
-                        }).fail(failHandler);
+                        }
+                    })
+                    .error(failHandler);
                 }
             };
+
             ko.applyBindings(viewModel);
 
             // Load initial owners.
-            $mvc.JsonApi.GetPackageOwners(viewModel.package)
-                .done(function(data) {
-                    viewModel.owners($.map(data, function(item) { return new Owner(item.name, item.pending, item.current); }));
-                })
-                .fail(failHandler);
+            $.ajax({
+                url: '@Url.Action("GetPackageOwners", "JsonApi")?id=' + viewModel.package.id,
+                cache: false,
+                dataType: 'json',
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.pending, item.current); }));
+                }
+            })
+            .error(failHandler);
 
             function Owner(name, pending, current) {
                 this.name = ko.observable(name);

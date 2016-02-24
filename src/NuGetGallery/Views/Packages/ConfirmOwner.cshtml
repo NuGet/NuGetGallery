@@ -9,7 +9,7 @@
 {
     case ConfirmOwnershipResult.Success:
         <p>
-            You are now an owner of the 
+            You are now an owner of the
             '<strong><a href="@Url.Package(@Model.PackageId)" title="The @Model.PackageId package">@Model.PackageId</a></strong>' package.
         </p>
         break;
@@ -33,17 +33,9 @@
             Could not confirm package ownership for '@Model.PackageId'.
         </p>
         <p>
-            Make sure you clicked on the confirmation URL in the email we sent. 
-            It&#8217;s also possible that the existing owner revoked the 
+            Make sure you clicked on the confirmation URL in the email we sent.
+            It&#8217;s also possible that the existing owner revoked the
             request to add you as an owner.
         </p>
         break;
 }
-
-
-
-
-
-
-
-
