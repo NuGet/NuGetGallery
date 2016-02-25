@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
@@ -13,6 +14,7 @@ using NuGet.Frameworks;
 using NuGet.Services.Search.Client.Correlation;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryInterceptors;
@@ -62,7 +64,6 @@ namespace NuGetGallery.Controllers
                 HijackableQueryParameters hijackableQueryParameters = null;
                 if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && _searchService is ExternalSearchService)
                 {
-                    SetCorrelation();
                     var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                         _searchService, GetTraditionalHttpContext().Request, packages,
                         hijackableQueryParameters.Id, hijackableQueryParameters.Version, curatedFeed: null);
@@ -135,7 +136,6 @@ namespace NuGetGallery.Controllers
             // try the search service
             try
             {
-                SetCorrelation();
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                     _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
 
@@ -220,7 +220,6 @@ namespace NuGetGallery.Controllers
                 .AsNoTracking();
 
             // todo: search hijack should take options instead of manually parsing query options
-            SetCorrelation();
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null);
 
@@ -388,15 +387,6 @@ namespace NuGetGallery.Controllers
                     .Select(g => g.OrderByDescending(p => NuGetVersion.Parse(p.Version)).First());
             }
             return updates;
-        }
-
-        private void SetCorrelation()
-        {
-            var correlatedSearchService = _searchService as ICorrelated;
-            if (correlatedSearchService != null)
-            {
-                correlatedSearchService.CorrelationIdProvider = new CorrelationIdProvider(Request);
-            }
         }
     }
 }
