@@ -98,7 +98,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                     using (GZipStream compressionStream = new GZipStream(destinationStream, CompressionMode.Compress, true))
                     {
-                        stream.CopyTo(compressionStream);
+                        await stream.CopyToAsync(compressionStream);
                     }
 
                     destinationStream.Seek(0, SeekOrigin.Begin);

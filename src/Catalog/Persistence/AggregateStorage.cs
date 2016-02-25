@@ -10,14 +10,19 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AggregateStorage : Storage
     {
+        public delegate StorageContent WriteSecondaryStorageContentInterceptor(Uri primaryResourceUri, Uri secondaryResourceUri, StorageContent content);
+
         private readonly Storage _primaryStorage;
         private readonly Storage[] _secondaryStorage;
+        private readonly WriteSecondaryStorageContentInterceptor _writeSecondaryStorageContentInterceptor;
 
-        public AggregateStorage(Uri baseAddress, Storage primaryStorage, Storage[] secondaryStorage)
+        public AggregateStorage(Uri baseAddress, Storage primaryStorage, Storage[] secondaryStorage,
+            WriteSecondaryStorageContentInterceptor writeSecondaryStorageContentInterceptor)
             : base(baseAddress)
         {
             _primaryStorage = primaryStorage;
             _secondaryStorage = secondaryStorage;
+            _writeSecondaryStorageContentInterceptor = writeSecondaryStorageContentInterceptor;
 
             BaseAddress = _primaryStorage.BaseAddress;
         }
@@ -29,11 +34,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             foreach (var storage in _secondaryStorage)
             {
-                var secondaryResourceUri = resourceUri.ToString()
-                    .Replace(_primaryStorage.BaseAddress.ToString(), storage.BaseAddress.ToString());
+                var secondaryResourceUri = new Uri(resourceUri.ToString()
+                    .Replace(_primaryStorage.BaseAddress.ToString(), storage.BaseAddress.ToString()));
 
-                // todo replace URL in resource URI + content
-                tasks.Add(storage.Save(new Uri(secondaryResourceUri), content, cancellationToken));
+                var secondaryContent = content;
+                if (_writeSecondaryStorageContentInterceptor != null)
+                {
+                    secondaryContent = _writeSecondaryStorageContentInterceptor(resourceUri, secondaryResourceUri, content);
+                }
+
+                tasks.Add(storage.Save(secondaryResourceUri, secondaryContent, cancellationToken));
             }
 
             return Task.WhenAll(tasks);
@@ -51,11 +61,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             foreach (var storage in _secondaryStorage)
             {
-                var secondaryResourceUri = resourceUri.ToString()
-                    .Replace(_primaryStorage.BaseAddress.ToString(), storage.BaseAddress.ToString());
-                
-                // todo replace URL in resource URI
-                tasks.Add(storage.Delete(new Uri(secondaryResourceUri), cancellationToken));
+                var secondaryResourceUri = new Uri(resourceUri.ToString()
+                    .Replace(_primaryStorage.BaseAddress.ToString(), storage.BaseAddress.ToString()));
+
+                tasks.Add(storage.Delete(secondaryResourceUri, cancellationToken));
             }
 
             return Task.WhenAll(tasks);

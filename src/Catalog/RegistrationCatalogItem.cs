@@ -42,7 +42,7 @@ namespace NuGet.Services.Metadata.Catalog
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(GetPublishedDate().ToString("O"), Schema.DataTypes.DateTime));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Listed), graph.CreateLiteralNode(_listed.ToString(), Schema.DataTypes.Boolean));
             JObject frame = context.GetJsonLdContext("context.Package.json", Schema.DataTypes.Package);
-            return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
+            return new JTokenStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
 
         public override Uri GetItemType()

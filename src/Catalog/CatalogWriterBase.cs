@@ -155,7 +155,7 @@ namespace NuGet.Services.Metadata.Catalog
         protected virtual StorageContent CreateIndexContent(IGraph graph, Uri type)
         {
             JObject frame = Context.GetJsonLdContext("context.Container.json", type);
-            return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
+            return new JTokenStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
 
         protected async Task SaveIndexResource(Uri resourceUri, Uri typeUri, Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> entries, Uri parent, IGraph extra, Uri[] additionalResourceTypes , CancellationToken cancellationToken)

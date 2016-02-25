@@ -122,6 +122,7 @@
     <Compile Include="Persistence\AggregateStorageFactory.cs" />
     <Compile Include="Persistence\IStorage.cs" />
     <Compile Include="Persistence\IStorageFactory.cs" />
+    <Compile Include="Persistence\JTokenStorageContent.cs" />
     <Compile Include="Pipeline\CommitDetailsStage.cs" />
     <Compile Include="Pipeline\GraphPackageMetadata.cs" />
     <Compile Include="Pipeline\NuspecStage.cs" />
