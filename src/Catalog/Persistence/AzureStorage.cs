@@ -15,14 +15,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorage : Storage
     {
-        CloudBlobDirectory _directory;
+        private readonly CloudBlobDirectory _directory;
 
         public AzureStorage(CloudStorageAccount account, string containerName, string path, Uri baseAddress)
             : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path), baseAddress)
         {
         }
 
-        AzureStorage(CloudBlobDirectory directory, Uri baseAddress)
+        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress)
             : base(baseAddress ?? GetDirectoryUri(directory))
         {
             _directory = directory;

@@ -118,6 +118,8 @@
     <Compile Include="DeleteCatalogItem.cs" />
     <Compile Include="Helpers\GraphHelpers.cs" />
     <Compile Include="NupkgMetadata.cs" />
+    <Compile Include="Persistence\AggregateStorage.cs" />
+    <Compile Include="Persistence\AggregateStorageFactory.cs" />
     <Compile Include="Persistence\IStorage.cs" />
     <Compile Include="Persistence\IStorageFactory.cs" />
     <Compile Include="Pipeline\CommitDetailsStage.cs" />

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Microsoft.WindowsAzure.Storage;
 using System;
 
@@ -27,7 +28,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (baseAddress == null)
             {
-
                 Uri blobEndpoint = new UriBuilder(account.BlobEndpoint)
                 {
                     Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.

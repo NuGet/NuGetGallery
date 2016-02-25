@@ -64,6 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AggregateStorageTests.cs" />
     <Compile Include="DnxCatalogCollectorTests.cs" />
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="Infrastructure\MemoryStorage.cs" />
