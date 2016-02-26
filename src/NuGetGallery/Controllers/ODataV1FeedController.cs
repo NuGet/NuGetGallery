@@ -16,7 +16,7 @@ using WebApi.OutputCache.V2;
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
 {
-    public class ODataV1FeedController 
+    public class ODataV1FeedController
         : NuGetODataController
     {
         private const int MaxPageSize = SearchAdaptor.MaxPageSize;
@@ -26,8 +26,8 @@ namespace NuGetGallery.Controllers
         private readonly ISearchService _searchService;
 
         public ODataV1FeedController(
-            IEntityRepository<Package> packagesRepository, 
-            ConfigurationService configurationService, 
+            IEntityRepository<Package> packagesRepository,
+            ConfigurationService configurationService,
             ISearchService searchService)
             : base(configurationService)
         {
@@ -101,6 +101,12 @@ namespace NuGetGallery.Controllers
 
                     // Add explicit Take() needed to limit search hijack result set size if $top is specified
                     var totalHits = packages.LongCount();
+
+                    if (return404NotFoundWhenNoResults && totalHits == 0)
+                    {
+                        return NotFound();
+                    }
+
                     var pagedQueryable = packages
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
                         .ToV1FeedPackageQuery(GetSiteRoot());
@@ -144,7 +150,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Search(
             ODataQueryOptions<V1FeedPackage> options,
-            [FromODataUri]string searchTerm = "", 
+            [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "")
         {
             // Handle OData-style |-separated list of frameworks.
@@ -163,7 +169,7 @@ namespace NuGetGallery.Controllers
                     targetFramework = targetFrameworkList[0];
                 }
             }
-            
+
             // Peform actual search
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
@@ -201,7 +207,7 @@ namespace NuGetGallery.Controllers
         [HttpGet]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> SearchCount(
-            ODataQueryOptions<V1FeedPackage> options, 
+            ODataQueryOptions<V1FeedPackage> options,
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "")
         {

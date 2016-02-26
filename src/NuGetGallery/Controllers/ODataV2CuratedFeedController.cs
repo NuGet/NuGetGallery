@@ -8,7 +8,6 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using NuGetGallery.Configuration;
-using NuGetGallery.Infrastructure;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
@@ -18,7 +17,7 @@ using WebApi.OutputCache.V2;
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
 {
-    public class ODataV2CuratedFeedController 
+    public class ODataV2CuratedFeedController
         : NuGetODataController
     {
         private const int MaxPageSize = 40;
@@ -66,7 +65,7 @@ namespace NuGetGallery.Controllers
         {
             return Get(options, curatedFeedName).FormattedAsCountResult<V2FeedPackage>();
         }
-        
+
         // /api/v2/curated-feed/curatedFeedName/Packages(Id=,Version=)
         [HttpGet]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
@@ -115,6 +114,12 @@ namespace NuGetGallery.Controllers
 
                     // Add explicit Take() needed to limit search hijack result set size if $top is specified
                     var totalHits = packages.LongCount();
+
+                    if (return404NotFoundWhenNoResults && totalHits == 0)
+                    {
+                        return NotFound();
+                    }
+
                     var pagedQueryable = packages
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
                         .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
@@ -160,7 +165,7 @@ namespace NuGetGallery.Controllers
             ODataQueryOptions<V2FeedPackage> options,
             string curatedFeedName,
             [FromODataUri]string searchTerm = "",
-            [FromODataUri]string targetFramework = "", 
+            [FromODataUri]string targetFramework = "",
             [FromODataUri]bool includePrerelease = false)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
@@ -228,9 +233,9 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> SearchCount(
             ODataQueryOptions<V2FeedPackage> options,
-            string curatedFeedName, 
-            [FromODataUri]string searchTerm = "", 
-            [FromODataUri]string targetFramework = "", 
+            string curatedFeedName,
+            [FromODataUri]string searchTerm = "",
+            [FromODataUri]string targetFramework = "",
             [FromODataUri]bool includePrerelease = false)
         {
             var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease);
