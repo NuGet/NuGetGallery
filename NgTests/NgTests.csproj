@@ -38,8 +38,8 @@
       <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.1.0.0-rc1-final\lib\net451\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -65,6 +65,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AggregateStorageTests.cs" />
+    <Compile Include="Data\Registrations.cs" />
+    <Compile Include="Data\TestRegistrationEntries.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TestRegistrationEntries.resx</DependentUpon>
+    </Compile>
     <Compile Include="DnxCatalogCollectorTests.cs" />
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="Infrastructure\MemoryStorage.cs" />
@@ -114,6 +120,10 @@
     <EmbeddedResource Include="Data\TestCatalogEntries.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TestCatalogEntries.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\TestRegistrationEntries.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestRegistrationEntries.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

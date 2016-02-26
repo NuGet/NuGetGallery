@@ -17,7 +17,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
         }
 
-
         public AggregateStorageFactory(StorageFactory primaryStorageFactory, StorageFactory[] secondaryStorageFactories,
             AggregateStorage.WriteSecondaryStorageContentInterceptor writeSecondaryStorageContentInterceptor)
         { 

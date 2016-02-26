@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Ng;
+using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
@@ -100,6 +102,61 @@ namespace NgTests
             Assert.Null(content3);
         }
 
+        [Fact]
+        public async Task CorrectlyReplacesRegistrationBaseUrlsInSecondaryStorage()
+        {
+            // Arrange
+            var storageToReplay = Registrations.CreateTestRegistrations();
+            var storage1 = new MemoryStorage(storageToReplay.BaseAddress);
+            var storage2 = new MemoryStorage(new Uri("http://tempuri.org/secondone"));
+            var storage3 = new MemoryStorage(new Uri("http://tempuri.org/thirdone"));
+
+            var secondaryStorageBaseUrlRewriter = new SecondaryStorageBaseUrlRewriter(new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>(storage1.BaseAddress.ToString(), storage2.BaseAddress.ToString() ),
+                new KeyValuePair<string, string>(storage1.BaseAddress.ToString(), storage3.BaseAddress.ToString() )
+            });
+
+            var aggregateStorageFactory = CreateWithInterceptor(secondaryStorageBaseUrlRewriter.Rewrite, storage1, storage2, storage3);
+            var aggregateStorage = aggregateStorageFactory.Create();
+
+            var storage1BaseAddress = storage1.BaseAddress.ToString();
+            var storage2BaseAddress = storage2.BaseAddress.ToString();
+            var storage3BaseAddress = storage3.BaseAddress.ToString();
+
+            // Act
+            foreach (var content in storageToReplay.Content)
+            {
+                await aggregateStorage.Save(content.Key, content.Value, CancellationToken.None);
+            }
+
+            // Assert
+            Assert.Equal(storageToReplay.Content.Count, storage1.Content.Count);
+            Assert.Equal(storageToReplay.Content.Count, storage2.Content.Count);
+            Assert.Equal(storageToReplay.Content.Count, storage3.Content.Count);
+
+            foreach (var content in storage1.Content)
+            {
+                AssertContentDoesNotContain(content.Value, storage1BaseAddress);
+                AssertContentDoesNotContain(content.Value, storage2BaseAddress);
+                AssertContentDoesNotContain(content.Value, storage3BaseAddress);
+            }
+
+            foreach (var content in storage2.Content)
+            {
+                AssertContentDoesNotContain(content.Value, storage1BaseAddress);
+                AssertContentDoesNotContain(content.Value, storage2BaseAddress);
+                AssertContentDoesNotContain(content.Value, storage3BaseAddress);
+            }
+
+            foreach (var content in storage3.Content)
+            {
+                AssertContentDoesNotContain(content.Value, storage1BaseAddress);
+                AssertContentDoesNotContain(content.Value, storage2BaseAddress);
+                AssertContentDoesNotContain(content.Value, storage3BaseAddress);
+            }
+        }
+
         protected AggregateStorageFactory Create(MemoryStorage primaryStorage, MemoryStorage secondaryStorage, params MemoryStorage[] storages)
         {
             var storageFactories = new List<StorageFactory>();
@@ -112,6 +169,20 @@ namespace NgTests
             }
 
             return new AggregateStorageFactory(storageFactories.First(), storageFactories.Skip(1).ToArray());
+        }
+
+        protected AggregateStorageFactory CreateWithInterceptor(AggregateStorage.WriteSecondaryStorageContentInterceptor interceptor, MemoryStorage primaryStorage, MemoryStorage secondaryStorage, params MemoryStorage[] storages)
+        {
+            var storageFactories = new List<StorageFactory>();
+            storageFactories.Add(new TestStorageFactory(name => primaryStorage.WithName(name)));
+            storageFactories.Add(new TestStorageFactory(name => secondaryStorage.WithName(name)));
+
+            foreach (var storage in storages)
+            {
+                storageFactories.Add(new TestStorageFactory(name => storage.WithName(name)));
+            }
+
+            return new AggregateStorageFactory(storageFactories.First(), storageFactories.Skip(1).ToArray(), interceptor);
         }
 
         protected void AssertUriAndContentExists(MemoryStorage storage, Uri uri, string expectedContent)
@@ -127,6 +198,13 @@ namespace NgTests
             var value = storage.Content.FirstOrDefault(pair => pair.Key == uri);
 
             Assert.Null(value.Key);
+        }
+
+        protected void AssertContentDoesNotContain(StorageContent content, string value)
+        {
+            var contentValue = content.GetContentString();
+
+            Assert.DoesNotContain(contentValue, value, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

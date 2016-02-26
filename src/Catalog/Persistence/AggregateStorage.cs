@@ -10,12 +10,17 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AggregateStorage : Storage
     {
-        public delegate StorageContent WriteSecondaryStorageContentInterceptor(Uri primaryResourceUri, Uri secondaryResourceUri, StorageContent content);
+        public delegate StorageContent WriteSecondaryStorageContentInterceptor(
+            Uri primaryStorageBaseUri, 
+            Uri primaryResourceUri, 
+            Uri secondaryStorageBaseUri,
+            Uri secondaryResourceUri, 
+            StorageContent content);
 
         private readonly Storage _primaryStorage;
         private readonly Storage[] _secondaryStorage;
         private readonly WriteSecondaryStorageContentInterceptor _writeSecondaryStorageContentInterceptor;
-
+        
         public AggregateStorage(Uri baseAddress, Storage primaryStorage, Storage[] secondaryStorage,
             WriteSecondaryStorageContentInterceptor writeSecondaryStorageContentInterceptor)
             : base(baseAddress)
@@ -23,7 +28,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _primaryStorage = primaryStorage;
             _secondaryStorage = secondaryStorage;
             _writeSecondaryStorageContentInterceptor = writeSecondaryStorageContentInterceptor;
-
+        
             BaseAddress = _primaryStorage.BaseAddress;
         }
         
@@ -40,7 +45,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 var secondaryContent = content;
                 if (_writeSecondaryStorageContentInterceptor != null)
                 {
-                    secondaryContent = _writeSecondaryStorageContentInterceptor(resourceUri, secondaryResourceUri, content);
+                    secondaryContent = _writeSecondaryStorageContentInterceptor(
+                        _primaryStorage.BaseAddress, 
+                        resourceUri, 
+                        storage.BaseAddress, 
+                        secondaryResourceUri, content);
                 }
 
                 tasks.Add(storage.Save(secondaryResourceUri, secondaryContent, cancellationToken));

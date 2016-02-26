@@ -7,12 +7,9 @@ using NuGet.Services.Metadata.Catalog.Registration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace Ng
 {
@@ -98,65 +95,22 @@ namespace Ng
 
             if (compressedStorageFactory != null)
             {
-                Loop(source, new AggregateStorageFactory(storageFactory, new [] { compressedStorageFactory }, SecondaryStorageContentInterceptor), contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
+                var secondaryStorageBaseUrlRewriter = new SecondaryStorageBaseUrlRewriter(new List<KeyValuePair<string, string>>
+                {
+                    // always rewrite storage root url in seconary
+                    new KeyValuePair<string, string>(storageFactory.BaseAddress.ToString(), compressedStorageFactory.BaseAddress.ToString())
+                });
+
+                var aggregateStorageFactory = new AggregateStorageFactory(
+                    storageFactory,
+                    new[] { compressedStorageFactory },
+                    secondaryStorageBaseUrlRewriter.Rewrite);
+
+                Loop(source, aggregateStorageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
             }
             else
             {
                 Loop(source, storageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
-            }
-        }
-
-        private StorageContent SecondaryStorageContentInterceptor(Uri primaryResourceUri, Uri secondaryResourceUri, StorageContent content)
-        {
-            var jTokenStorageContent = content as JTokenStorageContent;
-            if (jTokenStorageContent != null)
-            {
-                var token = jTokenStorageContent.Content.DeepClone();
-
-                if (primaryResourceUri.ToString().EndsWith("/index.json"))
-                {
-                    InterceptRegistrationIndex(primaryResourceUri, secondaryResourceUri, token);
-                }
-                else
-                {
-                    InterceptRegistrationPackage(primaryResourceUri, secondaryResourceUri, token);
-                }
-
-                return new JTokenStorageContent(token, content.ContentType, content.CacheControl);
-            }
-
-            return content;
-        }
-
-        private void InterceptRegistrationPackage(Uri primaryResourceUri, Uri secondaryResourceUri, JToken content)
-        {
-            var tokens = content.SelectTokens("@id")
-                .Union(content.SelectTokens("registration"))
-                .ToArray();
-
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                tokens[i].Replace(
-                    ((string)tokens[i]).Replace(primaryResourceUri.ToString(), secondaryResourceUri.ToString()));
-            }
-        }
-
-        private void InterceptRegistrationIndex(Uri primaryResourceUri, Uri secondaryResourceUri, JToken content)
-        {
-            var tokens = content.SelectTokens("@id")
-                .Union(content.SelectTokens("items[*].@id"))
-                .Union(content.SelectTokens("items[*].catalogEntry.@id"))
-                .Union(content.SelectTokens("items[*].registration"))
-                .Union(content.SelectTokens("items[*].parent"))
-                .Union(content.SelectTokens("items.items[*].@id"))
-                .Union(content.SelectTokens("items.items[*].catalogEntry.@id"))
-                .Union(content.SelectTokens("items.items[*].registration"))
-                .ToArray();
-
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                tokens[i].Replace(
-                    ((string)tokens[i]).Replace(primaryResourceUri.ToString(), secondaryResourceUri.ToString()));
             }
         }
     }
