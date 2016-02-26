@@ -32,7 +32,19 @@ namespace Ng.Json
             "items[*].items[*].registration",
             
             // Replace in {version}.json:
-            "items[*].items[*].catalogEntry.dependencyGroups[*].dependencies[*].registration"
+            "items[*].items[*].catalogEntry.dependencyGroups[*].dependencies[*].registration",
+
+            // Replace in page/*/{version}.json:
+            "parent", 
+
+            // Replace in page/*/{version}.json:
+            "items[*].@id",  
+
+            // Replace in page/*/{version}.json:
+            "items[*].registration",
+            
+            // Replace in page/*/{version}.json:
+            "items[*].catalogEntry.dependencyGroups[*].dependencies[*].registration"
         };
         
         public RegistrationBaseUrlRewritingJsonReader(JTokenReader innerReader, List<KeyValuePair<string, string>> replacements) 
