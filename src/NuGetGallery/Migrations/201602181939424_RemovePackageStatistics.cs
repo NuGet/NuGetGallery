@@ -6,6 +6,7 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
+            DropForeignKey("GallerySettings", "DownloadStatsLastAggregatedId", "PackageStatistics");
             DropForeignKey("dbo.PackageStatistics", "PackageKey", "dbo.Packages");
             DropIndex("dbo.PackageStatistics", new[] { "PackageKey" });
             DropTable("dbo.PackageStatistics");
@@ -29,6 +30,7 @@ namespace NuGetGallery.Migrations
 
             CreateIndex("dbo.PackageStatistics", "PackageKey");
             AddForeignKey("dbo.PackageStatistics", "PackageKey", "dbo.Packages", "Key", cascadeDelete: true);
+            AddForeignKey("GallerySettings", "DownloadStatsLastAggregatedId", "PackageStatistics", "Key", cascadeDelete: true);
         }
     }
 }
