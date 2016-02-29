@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Dapper;
 using NuGetGallery.Operations.Infrastructure;
 
@@ -28,20 +26,20 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
             MERGE INTO Credentials dest
             USING @creds src
                 ON src.UserKey = dest.UserKey AND src.Type = dest.Type
-            WHEN NOT MATCHED THEN 
+            WHEN NOT MATCHED THEN
                 INSERT(UserKey, Type, Value)
                 VALUES(src.UserKey, src.Type, src.Value)
-            OUTPUT 
-                $action AS 'Action', 
-                inserted.UserKey, 
-                inserted.Type, 
+            OUTPUT
+                $action AS 'Action',
+                inserted.UserKey,
+                inserted.Type,
                 inserted.Value
                 INTO @results;
 
             SELECT COUNT(*) FROM @results
 ";
 
-        private Dictionary<string, string> _hashAlgorithmToCredType = new Dictionary<string, string>() {
+        private readonly Dictionary<string, string> _hashAlgorithmToCredType = new Dictionary<string, string> {
             {Constants.PBKDF2HashAlgorithmId, CredentialTypes.Password.Pbkdf2},
             {Constants.Sha1HashAlgorithmId, CredentialTypes.Password.Sha1}
         };
@@ -86,7 +84,7 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                 {
                     // Update the DB
                     var updatedRowCount = c.Execute(
-                        WhatIf ? WhatIfQuery : CommitQuery, 
+                        WhatIf ? WhatIfQuery : CommitQuery,
                         new TableValuedParameter("@creds", "Temp_PopulateCredentialsInputType", dt));
 
                     Log.Info("Inserted {0} credential records", updatedRowCount);

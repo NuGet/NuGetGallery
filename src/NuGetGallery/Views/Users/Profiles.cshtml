@@ -57,7 +57,7 @@ else if (Model.ShowAllPackages)
                 </div>
                 <div class="main">
                     <h1><a href="@Url.Package(package.Id)">@package.Title</a> <small>Latest version: @package.Version</small></h1>
-                
+
                     <p>
                         @if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 350)
                         {
@@ -83,6 +83,6 @@ else if (Model.ShowAllPackages)
 
 @if (Model.ShowAllPackages == false)
 {
-    @ViewHelpers.PreviousNextPager(Model.Pager)    
+    @ViewHelpers.PreviousNextPager(Model.Pager)
 }
 

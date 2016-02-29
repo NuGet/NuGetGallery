@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -21,15 +22,15 @@ namespace NuGetGallery.Operations.Tasks
         public override void ExecuteCommand()
         {
             //Get all the failed edits.
-            var connectionString = ConnectionString.ConnectionString;           
+            var connectionString = ConnectionString.ConnectionString;
             var entitiesContext = new EntitiesContext(connectionString, readOnly: true);
             var failedEdits = entitiesContext.Set<PackageEdit>()
                 .Where(pe => pe.TriedCount == 3).Include(pe => pe.Package).Include(pe => pe.Package.PackageRegistration);
 
-         
+
             //For each ofthe failed edit, send out a support request mail.
             foreach (PackageEdit edit in failedEdits)
-            { 
+            {
                 Log.Info(
                "Sending support request for  '{0}'",
                edit.Package.PackageRegistration.Id);
@@ -51,7 +52,7 @@ namespace NuGetGallery.Operations.Tasks
                 catch (Exception e)
                 {
                     Log.Error("Creating support request for package {0} failed with error {1}", edit.Package.PackageRegistration.Id, e.Message);
-                }                
+                }
             }
         }
     }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Linq;
-using System.Collections.Generic;
+
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -50,7 +48,7 @@ namespace NuGetGallery.ViewModels
             {
                 HideLicenseReport = true,
                 LicenseNames = "l1",
-                LicenseReportUrl = "url" 
+                LicenseReportUrl = "url"
             };
             var packageViewModel = new PackageViewModel(package);
             Assert.NotNull(packageViewModel.LicenseNames);
@@ -63,7 +61,7 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 HideLicenseReport = false,
-                LicenseReportUrl = "url" 
+                LicenseReportUrl = "url"
             };
             var packageViewModel = new PackageViewModel(package);
             Assert.NotNull(packageViewModel.LicenseReportUrl);
@@ -75,7 +73,7 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 HideLicenseReport = false,
-                LicenseNames = "l1" 
+                LicenseNames = "l1"
             };
             var packageViewModel = new PackageViewModel(package);
             Assert.NotNull(packageViewModel.LicenseNames);

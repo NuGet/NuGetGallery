@@ -1,19 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
-using System.Web.Mvc;
-using Moq;
-using Xunit;
 using System.Net.Mail;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using Microsoft.Owin;
+using Moq;
 using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
-using Microsoft.Owin;
-using System.Threading.Tasks;
-using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration;
-using System.Security.Claims;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using Xunit;
 
 namespace NuGetGallery.Controllers
 {
@@ -42,7 +41,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 EnableAllAuthenticators(Get<AuthenticationService>());
                 var controller = GetController<AuthenticationController>();
-                
+
                 // Act
                 var result = controller.LogOn("/foo");
 
@@ -61,7 +60,7 @@ namespace NuGetGallery.Controllers
             public void WillLogTheUserOff()
             {
                 var controller = GetController<AuthenticationController>();
-                
+
                 controller.LogOff("theReturnUrl");
 
                 var revoke = controller.OwinContext.Authentication.AuthenticationResponseRevoke;
@@ -73,7 +72,7 @@ namespace NuGetGallery.Controllers
             public void WillRedirectToTheReturnUrl()
             {
                 var controller = GetController<AuthenticationController>();
-                
+
                 var result = controller.LogOff("theReturnUrl");
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
             }
@@ -126,7 +125,7 @@ namespace NuGetGallery.Controllers
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState["SignIn"].Errors[0].ErrorMessage);
             }
-            
+
             [Fact]
             public async Task CanLogTheUserOnWithUserName()
             {
@@ -146,7 +145,7 @@ namespace NuGetGallery.Controllers
                 var result = await controller.SignIn(
                     new LogOnViewModel(
                         new SignInViewModel(
-                            authUser.User.Username, 
+                            authUser.User.Username,
                             "thePassword")),
                     "theReturnUrl", linkingAccount: false);
 
@@ -174,7 +173,7 @@ namespace NuGetGallery.Controllers
                 var result = await controller.SignIn(
                     new LogOnViewModel(
                         new SignInViewModel(
-                            "confirmed@example.com", 
+                            "confirmed@example.com",
                             "thePassword")),
                     "theReturnUrl", linkingAccount: false);
 
@@ -202,7 +201,7 @@ namespace NuGetGallery.Controllers
                 var result = await controller.SignIn(
                     new LogOnViewModel(
                         new SignInViewModel(
-                            "confirmed@example.com", 
+                            "confirmed@example.com",
                             "thePassword")),
                     "theReturnUrl", linkingAccount: false);
 
@@ -218,7 +217,7 @@ namespace NuGetGallery.Controllers
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { EmailAddress = "confirmed@example.com" },
                     new Credential() { Type = "Foo" });
-                
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
                     .CompletesWith(authUser);
@@ -233,7 +232,7 @@ namespace NuGetGallery.Controllers
                 var result = await controller.SignIn(
                     new LogOnViewModel(
                         new SignInViewModel(
-                            authUser.User.Username, 
+                            authUser.User.Username,
                             "thePassword")),
                     "theReturnUrl", linkingAccount: true);
 
@@ -336,17 +335,17 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var authUser = new AuthenticatedUser(
-                    new User("theUsername") { 
-                        UnconfirmedEmailAddress = "unconfirmed@example.com", 
-                        EmailConfirmationToken = "t0k3n" 
-                    }, 
+                    new User("theUsername") {
+                        UnconfirmedEmailAddress = "unconfirmed@example.com",
+                        EmailConfirmationToken = "t0k3n"
+                    },
                     new Credential());
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
                     .CompletesWith(authUser);
-                
+
                 var controller = GetController<AuthenticationController>();
-                
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.CreateSession(controller.OwinContext, authUser.User))
                     .Verifiable();
@@ -424,7 +423,7 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var authUser = new AuthenticatedUser(new User("theUsername"), new Credential());
-                
+
                 GetMock<AuthenticationService>(); // Force AuthenticationService to be mocked even though it's concrete
                 var controller = GetController<AuthenticationController>();
 
@@ -463,10 +462,10 @@ namespace NuGetGallery.Controllers
                     {
                         UnconfirmedEmailAddress = "unconfirmed@example.com",
                         EmailConfirmationToken = "t0k3n"
-                    }, 
+                    },
                     new Credential());
                 var externalCred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
-                
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred))
                     .CompletesWith(authUser);
@@ -580,11 +579,11 @@ namespace NuGetGallery.Controllers
                 var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
-                
+
                 GetMock<AuthenticationService>(); // Force a mock to be created
-                
+
                 var controller = GetController<AuthenticationController>();
-                
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
@@ -621,7 +620,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
                     {
-                        ExternalIdentity = new ClaimsIdentity(new[] { 
+                        ExternalIdentity = new ClaimsIdentity(new[] {
                             new Claim(ClaimTypes.Name, "Joe Bloggs")
                         }),
                         Authenticator = msAuther
@@ -655,7 +654,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
                     {
-                        ExternalIdentity = new ClaimsIdentity(new[] { 
+                        ExternalIdentity = new ClaimsIdentity(new[] {
                             new Claim(ClaimTypes.Email, "blorg@example.com")
                         }),
                         Authenticator = msAuther
@@ -691,7 +690,7 @@ namespace NuGetGallery.Controllers
                     .Returns(existingUser);
 
                 var controller = GetController<AuthenticationController>();
-                
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()

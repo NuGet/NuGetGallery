@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -24,7 +25,7 @@ namespace NuGetGallery.Operations.Tasks
             // 1) Backup all old NUPKGS
             // 2) Generate all new NUPKGs (in place), and tell gallery the edit is completed
             var connectionString = ConnectionString.ConnectionString;
-            
+
             // We group edits together by their package key and process them together - this is a read-only operation
             var entitiesContext = new EntitiesContext(connectionString, readOnly: true);
             var editsPerPackage = entitiesContext.Set<PackageEdit>()
@@ -72,7 +73,7 @@ namespace NuGetGallery.Operations.Tasks
             var latestPackageBlob = packagesContainer.GetBlockBlobReference(latestPackageFileName);
 
             var edits = new List<Action<ManifestEdit>>
-            { 
+            {
                 (m) => { m.Authors = edit.Authors; },
                 (m) => { m.Copyright = edit.Copyright; },
                 (m) => { m.Description = edit.Description; },
@@ -173,7 +174,7 @@ namespace NuGetGallery.Operations.Tasks
                             catch (Exception e2)
                             {
                                 // If blob rollback fails it is not be the end of the world
-                                // - the package metadata mismatches the edit now, 
+                                // - the package metadata mismatches the edit now,
                                 // but there should still an edit in the queue, waiting to be rerun and put everything back in synch.
                                 Log.Error("(error) - rolling back the package blob to its previous snapshot failed.");
                                 Log.ErrorException("(exception)", e2);
@@ -251,4 +252,4 @@ namespace NuGetGallery.Operations.Tasks
             }
         }
     }
-} 
+}

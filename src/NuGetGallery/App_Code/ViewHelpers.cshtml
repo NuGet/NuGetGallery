@@ -74,7 +74,7 @@
             <li>
                 @OwnerGravatar(owner, size, url, showName)
             </li>
-        }  
+        }
     </ul>
 }
 
@@ -111,7 +111,7 @@
 @helper ReleaseMeta() {
     // Get Version info
     var ver = ApplicationVersionHelper.GetVersion();
-    
+
     if(ver.Present) {
         WriteMeta("branch", ver.Branch);
         WriteMeta("commit", ver.ShortCommit);
@@ -177,10 +177,10 @@
                     }
                 </text>
             }
-            
+
             if(!String.IsNullOrEmpty(ver.Branch)) {
                 <text>
-                    Built on 
+                    Built on
                     @if(ver.BranchUri != null) {
                         @:<a href="@ver.BranchUri.AbsoluteUri" title="View the branch.">@ver.Branch</a>.
                     } else {
@@ -188,14 +188,14 @@
                     }
                 </text>
             }
-            
+
             if(ver.BuildDateUtc != DateTime.MinValue) {
                 @: Built at <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToJavaScriptUTC()">@ver.BuildDateUtc.ToNuGetShortDateString()</span>.
             }
         } else {
             @:.
         }
-        
+
         @* A little quick-n-dirty code to display the current machine *@
         @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
         You are on @HostMachine.Name.

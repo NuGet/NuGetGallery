@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Web.Mvc;
 using Moq;
@@ -67,14 +68,14 @@ namespace NuGetGallery.Filters
 
             mockConfig.Setup(cfg => cfg.RequireSSL).Returns(true);
             mockConfig.Setup(cfg => cfg.SSLPort).Returns(port);
-            
+
             var attribute = new RequireSslAttribute()
             {
                 Configuration = mockConfig.Object
             };
 
             var context = mockAuthContext.Object;
-            
+
             // Act
             attribute.OnAuthorization(context);
 
@@ -110,7 +111,7 @@ namespace NuGetGallery.Filters
                 Configuration = mockConfig.Object
             };
 
-            // Act 
+            // Act
             attribute.OnAuthorization(context);
 
             // Assert

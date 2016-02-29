@@ -47,7 +47,7 @@ namespace NuGetGallery.Packaging
             // Assert
             Assert.False(isValid);
         }
-        
+
         [Theory]
         [InlineData("  Invalid  . Woo   .")]
         [InlineData("(/.__.)/ \\(.__.\\)")]

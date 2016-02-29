@@ -1,11 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
-using NuGetGallery.Packaging;
 using Xunit;
 
 namespace NuGetGallery
@@ -69,7 +67,7 @@ namespace NuGetGallery
             packageRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackage }.AsQueryable());
 
             var target = new PackageNamingConflictValidator(packageRegistrationRepository.Object, packageRepository.Object);
-            
+
             // Act
             var result = target.IdConflictsWithExistingPackageTitle(newPackageId);
 

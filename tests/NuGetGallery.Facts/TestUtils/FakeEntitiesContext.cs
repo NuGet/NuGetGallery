@@ -11,8 +11,8 @@ namespace NuGetGallery
 {
     public class FakeEntitiesContext : IEntitiesContext
     {
-        private Dictionary<Type, object> dbSets = new Dictionary<Type,object>();
-        private bool areChangesSaved;
+        private readonly Dictionary<Type, object> dbSets = new Dictionary<Type,object>();
+        private bool _areChangesSaved;
 
         public IDbSet<CuratedFeed> CuratedFeeds
         {
@@ -88,7 +88,7 @@ namespace NuGetGallery
 
         public Task<int> SaveChangesAsync()
         {
-            areChangesSaved = true;
+            _areChangesSaved = true;
             return Task.FromResult(0);
         }
 
@@ -109,7 +109,7 @@ namespace NuGetGallery
 
         public void VerifyCommitChanges()
         {
-            Assert.True(areChangesSaved, "SaveChanges() has not been called on the entity context.");
+            Assert.True(_areChangesSaved, "SaveChanges() has not been called on the entity context.");
         }
 
 

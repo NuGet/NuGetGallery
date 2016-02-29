@@ -16,8 +16,8 @@ else
     <h2>Manage package listing</h2>
 }
 <p>
-    Unlisting a package hides the package from search results and all NuGet commands, but packages 
-    are still available for download. For example, they can still be downloaded as dependencies to 
+    Unlisting a package hides the package from search results and all NuGet commands, but packages
+    are still available for download. For example, they can still be downloaded as dependencies to
     other packages.
 </p>
 
@@ -34,7 +34,7 @@ else
         </div>
 
         <p>
-            Unchecking this box means your package cannot be installed directly and it will 
+            Unchecking this box means your package cannot be installed directly and it will
             not show up in search results.
         </p>
 
@@ -65,7 +65,7 @@ else
     </p>
 }
 else
-{ 
+{
     <div class="danger-zone">
         <h2>Danger zone</h2>
 
@@ -75,10 +75,10 @@ else
             Deleting it may break a large number of development teams.
             If the package should be removed from search results but still be available for restore, consider unlisting the package instead.
         </p>
-        
+
         @using (Html.BeginForm("Delete", "Packages", FormMethod.Post, new { id = "delete-form" }))
         {
-            @Html.AntiForgeryToken()    
+            @Html.AntiForgeryToken()
             foreach (var p in Model.DeletePackagesRequest.Packages)
             {
                 <input type="hidden" name="DeletePackagesRequest.Packages[]" value="@p" />

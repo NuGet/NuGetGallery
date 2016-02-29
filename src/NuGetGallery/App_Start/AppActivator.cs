@@ -24,7 +24,6 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
-using Owin;
 using WebBackgrounder;
 using WebActivatorEx;
 
@@ -46,7 +45,7 @@ namespace NuGetGallery
 
             ViewEngines.Engines.Clear();
             ViewEngines.Engines.Add(CreateViewEngine());
-            
+
             GlimpsePreStart();
 
             try
