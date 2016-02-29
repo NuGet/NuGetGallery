@@ -2,19 +2,20 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
-    public class StringStorageContent : StorageContent
+    public class JTokenStorageContent : StorageContent
     {
-        public StringStorageContent(string content, string contentType = "", string cacheControl = "")
+        public JTokenStorageContent(JToken content, string contentType = "", string cacheControl = "")
         {
             Content = content;
             ContentType = contentType;
             CacheControl = cacheControl;
         }
 
-        public string Content
+        public JToken Content
         {
             get;
             set;
@@ -30,7 +31,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 Stream stream = new MemoryStream();
                 StreamWriter writer = new StreamWriter(stream);
-                writer.Write(Content);
+                writer.Write(Content.ToString(Newtonsoft.Json.Formatting.None, new Newtonsoft.Json.JsonConverter[0]));
                 writer.Flush();
                 stream.Seek(0, SeekOrigin.Begin);
                 return stream;

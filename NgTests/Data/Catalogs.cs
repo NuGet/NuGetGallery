@@ -35,8 +35,7 @@ namespace NgTests.Data
 
             return catalogStorage;
         }
-
-
+        
         public static MemoryStorage CreateTestCatalogWithThreePackagesAndDelete()
         {
             var catalogStorage = new MemoryStorage();

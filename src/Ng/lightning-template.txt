@@ -6,7 +6,7 @@ title [cursor]
 
 @echo starting
 
-start /w ng.exe lightning -command strike -indexFile [index] -cursorFile [cursor] -contentBaseAddress [contentbaseaddress] -storageAccount [storageaccount] -storageContainer [storagecontainer] -storageBaseAddress [storagebaseaddress] -verbose true
+start /w ng.exe lightning -command strike -indexFile [index] -cursorFile [cursor] -contentBaseAddress [contentbaseaddress] -storageAccount [storageaccount] -storageContainer [storagecontainer] -storageBaseAddress [storagebaseaddress] -compress [compress] -verbose true
 
 @echo finished
 

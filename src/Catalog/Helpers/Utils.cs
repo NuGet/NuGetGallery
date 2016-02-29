@@ -146,7 +146,7 @@ namespace NuGet.Services.Metadata.Catalog
             return writer.ToString();
         }
 
-        public static JToken CreateJson2(IGraph graph, JToken frame = null)
+        public static JToken CreateJson(IGraph graph, JToken frame = null)
         {
             System.IO.StringWriter writer = new System.IO.StringWriter();
             IRdfWriter rdfWriter = new JsonLdWriter();
@@ -166,28 +166,7 @@ namespace NuGet.Services.Metadata.Catalog
                 return JsonSort.OrderJson(compacted);
             }
         }
-
-        public static string CreateJson(IGraph graph, JToken frame = null)
-        {
-            System.IO.StringWriter writer = new System.IO.StringWriter();
-            IRdfWriter rdfWriter = new JsonLdWriter();
-            rdfWriter.Save(graph, writer);
-            writer.Flush();
-
-            if (frame == null)
-            {
-                return writer.ToString();
-            }
-            else
-            {
-                JToken flattened = JToken.Parse(writer.ToString());
-                JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
-                JObject compacted = JsonLdProcessor.Compact(framed, frame["@context"], new JsonLdOptions());
-
-                return compacted.ToString(Newtonsoft.Json.Formatting.None, new Newtonsoft.Json.JsonConverter[0]);
-            }
-        }
-
+        
         public static string CreateArrangedJson(IGraph graph, JToken frame = null)
         {
             System.IO.StringWriter writer = new System.IO.StringWriter();

@@ -142,7 +142,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         protected override StorageContent CreateIndexContent(IGraph graph, Uri type)
         {
             JObject frame = Context.GetJsonLdContext("context.Registration.json", type);
-            return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
+            return new JTokenStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,27 +15,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorage : Storage
     {
-        private CloudBlobDirectory _directory;
-
-        public AzureStorage(CloudStorageAccount account, string containerName)
-            : this(account, containerName, String.Empty) { }
+        private readonly CloudBlobDirectory _directory;
 
         public AzureStorage(CloudStorageAccount account, string containerName, string path, Uri baseAddress)
             : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path), baseAddress)
         {
         }
 
-        public AzureStorage(CloudStorageAccount account, string containerName, string path)
-            : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path))
-        {
-        }
-
-        public AzureStorage(CloudBlobDirectory directory)
-            : this(directory, GetDirectoryUri(directory))
-        {
-        }
-
-        public AzureStorage(CloudBlobDirectory directory, Uri baseAddress)
+        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress)
             : base(baseAddress ?? GetDirectoryUri(directory))
         {
             _directory = directory;
@@ -50,6 +38,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
 
             ResetStatistics();
+        }
+
+        public bool CompressContent
+        {
+            get;
+            set;
         }
 
         static Uri GetDirectoryUri(CloudBlobDirectory directory)
@@ -95,9 +89,28 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             blob.Properties.ContentType = content.ContentType;
             blob.Properties.CacheControl = content.CacheControl;
 
-            using (Stream stream = content.GetContentStream())
+            if (CompressContent)
             {
-                await blob.UploadFromStreamAsync(stream, cancellationToken);
+                blob.Properties.ContentEncoding = "gzip";
+                using (Stream stream = content.GetContentStream())
+                {
+                    MemoryStream destinationStream = new MemoryStream();
+
+                    using (GZipStream compressionStream = new GZipStream(destinationStream, CompressionMode.Compress, true))
+                    {
+                        await stream.CopyToAsync(compressionStream);
+                    }
+
+                    destinationStream.Seek(0, SeekOrigin.Begin);
+                    await blob.UploadFromStreamAsync(destinationStream, cancellationToken);
+                }
+            }
+            else
+            {
+                using (Stream stream = content.GetContentStream())
+                {
+                    await blob.UploadFromStreamAsync(stream, cancellationToken);
+                }
             }
         }
 
@@ -114,7 +127,31 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (blob.Exists())
             {
-                string content = await blob.DownloadTextAsync(cancellationToken);
+                MemoryStream originalStream = new MemoryStream();
+                await blob.DownloadToStreamAsync(originalStream, cancellationToken);
+
+                originalStream.Seek(0, SeekOrigin.Begin);
+
+                string content;
+
+                if (blob.Properties.ContentEncoding == "gzip")
+                {
+                    using (var uncompressedStream = new GZipStream(originalStream, CompressionMode.Decompress))
+                    {
+                        using (var reader = new StreamReader(uncompressedStream))
+                        {
+                            content = await reader.ReadToEndAsync();
+                        }
+                    }
+                }
+                else
+                {
+                    using (var reader = new StreamReader(originalStream))
+                    {
+                        content = await reader.ReadToEndAsync();
+                    }
+                }
+
                 return new StringStorageContent(content);
             }
 

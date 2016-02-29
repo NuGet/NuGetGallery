@@ -31,15 +31,15 @@ namespace Ng
             };
 
             Storage storage = storageFactory.Create();
-            ReadWriteCursor front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.Min.Value);
-            ReadCursor back = MemoryCursor.Max;
+            ReadWriteCursor front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
 
             while (true)
             {
                 bool run = false;
                 do
                 {
-                    run = await collector.Run(front, back, cancellationToken);
+                    run |= await collector.Run(front, back, cancellationToken);
                 }
                 while (run);
 
@@ -83,6 +83,8 @@ namespace Ng
                 return;
             }
 
+            StorageFactory compressedStorageFactory = CommandHelpers.CreateCompressedStorageFactory(arguments, verbose);
+
             if (verbose)
             {
                 Trace.Listeners.Add(new ConsoleTraceListener());
@@ -91,7 +93,25 @@ namespace Ng
 
             Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2} seconds", source, storageFactory, interval);
 
-            Loop(source, storageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
+            if (compressedStorageFactory != null)
+            {
+                var secondaryStorageBaseUrlRewriter = new SecondaryStorageBaseUrlRewriter(new List<KeyValuePair<string, string>>
+                {
+                    // always rewrite storage root url in seconary
+                    new KeyValuePair<string, string>(storageFactory.BaseAddress.ToString(), compressedStorageFactory.BaseAddress.ToString())
+                });
+
+                var aggregateStorageFactory = new AggregateStorageFactory(
+                    storageFactory,
+                    new[] { compressedStorageFactory },
+                    secondaryStorageBaseUrlRewriter.Rewrite);
+
+                Loop(source, aggregateStorageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
+            }
+            else
+            {
+                Loop(source, storageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
+            }
         }
     }
 }

@@ -237,7 +237,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             // now the commit has happened the graphPersistence.Graph should contain all the data
 
             JObject frame = (new CatalogContext()).GetJsonLdContext("context.Registration.json", graphPersistence.TypeUri);
-            StorageContent content = new StringStorageContent(Utils.CreateJson(graphPersistence.Graph, frame), "application/json", "no-store");
+            StorageContent content = new JTokenStorageContent(Utils.CreateJson(graphPersistence.Graph, frame), "application/json", "no-store");
             await storage.Save(graphPersistence.ResourceUri, content, cancellationToken);
         }
 

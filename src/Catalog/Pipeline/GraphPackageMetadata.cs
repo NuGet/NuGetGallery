@@ -27,7 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Pipeline
 
         public override JToken ToContent(JObject frame = null)
         {
-            return Utils.CreateJson2(Graph, frame);
+            return Utils.CreateJson(Graph, frame);
         }
     }
 }
