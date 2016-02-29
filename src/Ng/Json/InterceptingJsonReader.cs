@@ -38,7 +38,7 @@ namespace Ng.Json
                     .Replace("[*]", @"\[\d+\]")
                     .Replace(".", @"\.");
 
-                expression = new Regex("^" + pattern);
+                expression = new Regex("^" + pattern + "$");
 
                 CachedRegexes.TryAdd(jsonPath, expression);
             }
