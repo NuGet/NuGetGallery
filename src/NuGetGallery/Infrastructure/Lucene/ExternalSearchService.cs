@@ -301,7 +301,8 @@ namespace NuGetGallery.Infrastructure.Lucene
                 LicenseUrl = doc.Value<string>("LicenseUrl"),
                 LicenseNames = doc.Value<string>("LicenseNames"),
                 LicenseReportUrl = doc.Value<string>("LicenseReportUrl"),
-                HideLicenseReport = doc.Value<bool>("HideLicenseReport")
+                HideLicenseReport = doc.Value<bool>("HideLicenseReport"),
+                Listed = doc.Value<bool>("Listed")
             };
         }
 
