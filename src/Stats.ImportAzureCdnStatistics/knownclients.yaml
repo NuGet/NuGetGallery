@@ -35,6 +35,10 @@
   - regex: '(NuGet Command Line)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet Command Line'
 
+  # NuGet xplat CLI
+  - regex: '(NuGet xplat)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Cross-Platform Command Line'
+
   # NuGet Core
   - regex: '(NuGet Core)/?(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet'

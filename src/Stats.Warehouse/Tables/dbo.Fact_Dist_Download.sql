@@ -45,3 +45,7 @@ CREATE NONCLUSTERED INDEX [Fact_Dist_Download_NCI_Client]
     ON [dbo].[Fact_Dist_Download] ([Dimension_Client_Id])
 	INCLUDE ([Fact_UserAgent_Id]) WITH (ONLINE = ON)
 GO
+CREATE NONCLUSTERED INDEX [Fact_Dist_Download_NCI_Client_Time]
+    ON [dbo].[Fact_Dist_Download] ([Dimension_Client_Id] ASC, [Timestamp] ASC)
+    INCLUDE ([Dimension_Tool_Id], [DownloadCount])
+GO
