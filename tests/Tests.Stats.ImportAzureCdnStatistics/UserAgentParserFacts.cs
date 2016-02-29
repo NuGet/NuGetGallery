@@ -22,6 +22,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
 
             [Theory]
             [InlineData("NuGet Command Line/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "NuGet Command Line", "1", "2", "3")]
+            [InlineData("NuGet xplat/3.4.0 (Microsoft Windows NT 6.2.9200.0)", "NuGet Cross-Platform Command Line", "3", "4", "0")]
             [InlineData("NuGet VS PowerShell Console/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "NuGet VS PowerShell Console", "1", "2", "3")]
             [InlineData("NuGet VS Packages Dialog/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "NuGet VS Packages Dialog - Solution", "1", "2", "3")]
             [InlineData("NuGet Add Package Dialog/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "NuGet Add Package Dialog", "1", "2", "3")]
