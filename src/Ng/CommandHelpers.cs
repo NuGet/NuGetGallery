@@ -137,6 +137,17 @@ namespace Ng
             return verbose;
         }
 
+        public static bool GetBool(IDictionary<string, string> arguments, string argumentName, bool defaultValue)
+        {
+            string argumentValue;
+            if (!arguments.TryGetValue("-" + argumentName, out argumentValue))
+            {
+                return defaultValue;
+            }
+
+            return string.IsNullOrEmpty(argumentValue) ? defaultValue : argumentValue.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+        }
+
         public static int GetInterval(IDictionary<string, string> arguments)
         {
             const int DefaultInterval = 3; // seconds
