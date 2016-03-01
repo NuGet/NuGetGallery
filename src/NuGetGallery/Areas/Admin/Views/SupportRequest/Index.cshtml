@@ -153,6 +153,10 @@
                 </div>
             </div>
 
+            <div style="display:none;" data-bind="visible: filteredIssues().length == 0">
+                <p>No support requests found.</p>
+            </div>
+
             <div data-bind="visible: filteredIssues().length > 0">
                 <ul class="pager">
                     <li class="previous" data-bind="visible: hasPreviousPage()">
