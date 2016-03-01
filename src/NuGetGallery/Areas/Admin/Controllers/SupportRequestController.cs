@@ -18,6 +18,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public class SupportRequestController
         : AdminControllerBase
     {
+        private const int _defaultTakeCount = 30;
         private readonly ISupportRequestService _supportRequestService;
         private readonly JsonSerializerSettings _defaultJsonSerializerSettings = new JsonSerializerSettings
         {
@@ -120,7 +121,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
-        public ActionResult Filter(int pageNumber = 1, int take = 5, int? assignedToId = null, int? issueStatusId = null, string reason = null)
+        public ActionResult Filter(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
         {
             if (pageNumber <= 0)
             {
@@ -129,7 +130,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             if (take < 1)
             {
-                take = 5;
+                take = _defaultTakeCount;
             }
 
             var issues = GetSupportRequests(pageNumber, take, assignedToId, reason, issueStatusId).Take(take).ToList();
@@ -156,7 +157,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult Index(int pageNumber = 1, int take = 5, int? assignedToId = null, int? issueStatusId = null, string reason = null)
+        public ActionResult Index(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
         {
             if (pageNumber <= 0)
             {
@@ -165,7 +166,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             if (take < 1)
             {
-                take = 5;
+                take = _defaultTakeCount;
             }
 
             var galleryUserName = GetLoggedInUser();
@@ -231,7 +232,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             else return 2;
         }
 
-        private List<SupportRequestViewModel> GetSupportRequests(int pageNumber = 1, int take = 5, int? assignedTo = null, string reason = null, int? issueStatusId = null)
+        private List<SupportRequestViewModel> GetSupportRequests(int pageNumber = 1, int take = _defaultTakeCount, int? assignedTo = null, string reason = null, int? issueStatusId = null)
         {
             if (pageNumber <= 0)
             {
@@ -240,7 +241,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             if (take < 1)
             {
-                take = 5;
+                take = _defaultTakeCount;
             }
 
             var skip = (pageNumber - 1) * take;
