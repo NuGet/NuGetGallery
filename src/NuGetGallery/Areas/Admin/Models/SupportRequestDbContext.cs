@@ -7,9 +7,15 @@ using System.Threading.Tasks;
 namespace NuGetGallery.Areas.Admin.Models
 {
     [DbConfigurationType(typeof(EntitiesConfiguration))]
-    public partial class SupportRequestDbContext
+    public class SupportRequestDbContext
         : DbContext, ISupportRequestDbContext
     {
+        static SupportRequestDbContext()
+        {
+            // Don't run migrations, ever!
+            Database.SetInitializer<SupportRequestDbContext>(null);
+        }
+
         /// <summary>
         /// The NuGet Gallery code should not use this constructor.
         /// </summary>
