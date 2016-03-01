@@ -8,7 +8,7 @@
     <p>
         <strong>NOTE: </strong>Download statistics displayed on this page reflect the actual package downloads from the NuGet.org site. This is an indicator of usage. However,
         many package installs, particularly those of widely depended upon packages, will actually be done from a client machine's local NuGet cache, as a result these numbers should
-        not be taken as exact usage. 
+        not be taken as exact usage.
     </p>
 </section>
 
@@ -28,7 +28,7 @@
                 foreach (var item in Model.DownloadPackagesSummary)
                 {
                     index++;
-                    
+
                     <tr>
                         <td class="statistics-rank">@index</td>
                         <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
@@ -57,7 +57,7 @@
                 foreach (var item in Model.DownloadPackageVersionsSummary)
                 {
                     index++;
-                    
+
                     <tr>
                         <td class="statistics-rank">@index</td>
                         <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>

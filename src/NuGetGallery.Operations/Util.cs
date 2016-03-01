@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -12,8 +13,6 @@ using System.Web;
 using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using NLog;
 using NuGetGallery.Auditing;
 using NuGetGallery.Operations.Model;
@@ -25,18 +24,6 @@ namespace NuGetGallery.Operations
         public const byte CopyingState = 7;
         public const byte OnlineState = 0;
 
-        private static JsonSerializerSettings _auditRecordSerializerSettings = new JsonSerializerSettings()
-        {
-            DateFormatHandling = DateFormatHandling.IsoDateFormat,
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-            DefaultValueHandling = DefaultValueHandling.Include,
-            Formatting = Formatting.Indented,
-            MaxDepth = 10,
-            MissingMemberHandling = MissingMemberHandling.Ignore,
-            NullValueHandling = NullValueHandling.Include,
-            TypeNameHandling = TypeNameHandling.None
-        };
-        
         public static bool BackupIsInProgress(SqlExecutor dbExecutor, string backupPrefix)
         {
             return dbExecutor.Query<Db>(

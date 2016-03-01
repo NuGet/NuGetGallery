@@ -1,15 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
-using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -46,7 +44,7 @@ namespace NuGetGallery
             public CuratedFeed StubCuratedFeed { get; set; }
             public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
             public Mock<ISearchService> StubSearchService { get; private set; }
-            
+
             protected internal override T GetService<T>()
             {
                 if (typeof(T) == typeof(ICuratedFeedService))
@@ -87,7 +85,7 @@ namespace NuGetGallery
             public void WillPassTheCuratedFeedNameToTheView()
             {
                 var controller = new TestableCuratedFeedsController();
-                
+
                 var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
@@ -98,7 +96,7 @@ namespace NuGetGallery
             public void WillPassTheCuratedFeedManagersToTheView()
             {
                 var controller = new TestableCuratedFeedsController();
-                
+
                 var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
@@ -194,7 +192,7 @@ namespace NuGetGallery
                             Key = 89932,
                         }
                     },
-                    Owners = new [] 
+                    Owners = new []
                     {
                         new User
                         {

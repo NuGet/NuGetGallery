@@ -239,7 +239,7 @@
                     this.reasonFilter = ko.observable();
                     this.pageNumber = ko.observable(1);
                     this.maxPageNumber = ko.observable(1);
-                    this.take = ko.observable(5);
+                    this.take = ko.observable(30);
 
                     this.hasPreviousPage = ko.computed(function () {
                         return $self.pageNumber() > 1;

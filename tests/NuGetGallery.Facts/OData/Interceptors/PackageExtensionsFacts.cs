@@ -16,7 +16,7 @@ namespace NuGetGallery.OData.Interceptors
             public void MapsBasicPackagePropertiesCorrectly()
             {
                 // Arrange
-                var packages = new List<Package>()
+                var packages = new List<Package>
                 {
                     CreateFakeBasePackage()
                 }.AsQueryable();
@@ -65,7 +65,7 @@ namespace NuGetGallery.OData.Interceptors
             public void InjectsGalleryUrlsCorrectly()
             {
                 // Arrange
-                var packages = new List<Package>()
+                var packages = new List<Package>
                 {
                     CreateFakeBasePackage()
                 }.AsQueryable();
@@ -88,7 +88,7 @@ namespace NuGetGallery.OData.Interceptors
                 // Arrange
                 var package = CreateFakeBasePackage();
                 package.Listed = false;
-                var packages = new List<Package>()
+                var packages = new List<Package>
                 {
                     package
                 }.AsQueryable();
@@ -108,7 +108,7 @@ namespace NuGetGallery.OData.Interceptors
             public void ReturnsNullLicenseReportInfoIfFeatureDisabled()
             {
                 // Arrange
-                var packages = new List<Package>()
+                var packages = new List<Package>
                 {
                     CreateFakeBasePackage()
                 }.AsQueryable();
@@ -133,7 +133,7 @@ namespace NuGetGallery.OData.Interceptors
         {
             return new Package()
             {
-                PackageRegistration = new PackageRegistration()
+                PackageRegistration = new PackageRegistration
                 {
                     Id = "Hitchhikers.Guide",
                     DownloadCount = 420000

@@ -63,7 +63,7 @@ namespace NuGetGallery
         {
             public PackageAuditRecord LastAuditRecord { get; set; }
 
-            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, AuditingService auditingService) 
+            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, AuditingService auditingService)
                 : base(packageRepository, packageDeletesRepository, entitiesContext, packageService, indexingService, packageFileService, auditingService)
             {
             }
@@ -246,7 +246,7 @@ namespace NuGetGallery
                 var user = new User("test");
 
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
-                
+
                 entitiesContext.Verify(x => x.SetCommandTimeout(300));
                 Mock.Get(service).Verify();
             }

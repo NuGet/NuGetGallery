@@ -9,7 +9,7 @@ namespace NuGetGallery.Views
 {
     public abstract class NuGetViewBase : WebViewPage
     {
-        private Lazy<NuGetContext> _nugetContext;
+        private readonly Lazy<NuGetContext> _nugetContext;
 
         public NuGetContext NuGetContext
         {
@@ -47,7 +47,7 @@ namespace NuGetGallery.Views
 
     public abstract class NuGetViewBase<T> : WebViewPage<T>
     {
-        private Lazy<NuGetContext> _nugetContext;
+        private readonly Lazy<NuGetContext> _nugetContext;
 
         public NuGetContext NuGetContext
         {

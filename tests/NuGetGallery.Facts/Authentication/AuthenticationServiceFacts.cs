@@ -1,16 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using Moq;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication.Providers;
@@ -149,7 +148,7 @@ namespace NuGetGallery.Authentication
                 var service = Get<AuthenticationService>();
                 var cred = Fakes.User.Credentials.Single(
                     c => String.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
-                
+
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
                 var result = service.Authenticate(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value)));
@@ -202,7 +201,7 @@ namespace NuGetGallery.Authentication
             [Fact]
             public async Task GivenASHA1AndAPBKDF2PasswordItAuthenticatesUserAndRemovesTheSHA1Password()
             {
-                var user = Fakes.CreateUser("tempUser", 
+                var user = Fakes.CreateUser("tempUser",
                     CredentialBuilder.CreateSha1Password("thePassword"),
                     CredentialBuilder.CreatePbkdf2Password("thePassword"));
                 var service = Get<AuthenticationService>();
@@ -226,7 +225,7 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 var service = Get<AuthenticationService>();
                 var context = Fakes.CreateOwinContext();
-                
+
                 var passwordCred = Fakes.Admin.Credentials.SingleOrDefault(
                     c => String.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase));
 
@@ -302,7 +301,7 @@ namespace NuGetGallery.Authentication
                         "newUser",
                         Fakes.User.EmailAddress,
                         CredentialBuilder.CreatePbkdf2Password("thePassword")));
-                
+
                 // Assert
                 Assert.Equal(String.Format(Strings.EmailAddressBeingUsed, Fakes.User.EmailAddress), ex.Message);
             }
@@ -421,7 +420,7 @@ namespace NuGetGallery.Authentication
                     CredentialBuilder.CreatePbkdf2Password("thePassword"));
 
                 // Assert
-                Assert.True(auth.Auditing.WroteRecord<UserAuditRecord>(ar => 
+                Assert.True(auth.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == UserAuditAction.Registered &&
                     ar.Username == "newUser"));
             }
@@ -434,7 +433,7 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
-                
+
                 // Act
                 var ex = await AssertEx.Throws<InvalidOperationException>(() =>
                     service.ReplaceCredential("definitelyNotARealUser", new Credential()));
@@ -535,7 +534,7 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange
                 var authService = Get<AuthenticationService>();
-                
+
                 // Act
                 var result = await authService.ResetPasswordWithToken("definitelyAFakeUser", "some-token", "new-password");
 
@@ -784,7 +783,7 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 var user = Fakes.CreateUser("test", CredentialBuilder.CreatePbkdf2Password(Fakes.Password));
                 var authService = Get<AuthenticationService>();
-                
+
                 // Act
                 bool result = await authService.ChangePassword(user, "not-the-right-password!", "new-password!");
 
@@ -804,7 +803,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(result);
-                
+
                 Credential _;
                 Assert.True(AuthenticationService.ValidatePasswordCredential(user.Credentials, "new-password!", out _));
             }
@@ -908,7 +907,7 @@ namespace NuGetGallery.Authentication
                 await authService.AddCredential(user, cred);
 
                 // Assert
-                Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar => 
+                Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == UserAuditAction.AddedCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
@@ -1030,7 +1029,7 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
                 var context = Fakes.CreateOwinContext();
                 authThunk.Attach(context);
-                
+
                 // Act
                 var result = await authService.ReadExternalLoginCredential(context);
 

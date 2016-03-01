@@ -88,7 +88,7 @@ namespace NuGetGallery.Filters
 
             var requestContext = new RequestContext(httpContext.Object, new RouteData());
             var urlHelper = new UrlHelper(requestContext, routeCollection);
-            
+
             var controller = new TestableAppController { Url = urlHelper };
             controller.ControllerContext = new ControllerContext(requestContext, controller);
             var mockActionContext = new Mock<ActionExecutingContext>(MockBehavior.Strict);

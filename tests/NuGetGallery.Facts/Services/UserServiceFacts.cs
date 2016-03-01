@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
-using Xunit;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Auditing;
-using System.Threading.Tasks;
+using Xunit;
 
 namespace NuGetGallery
 {

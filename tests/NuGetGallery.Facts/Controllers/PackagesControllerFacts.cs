@@ -11,16 +11,16 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Versioning;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
-using Xunit;
-using NuGet.Versioning;
-using NuGet.Frameworks;
 using NuGetGallery.Areas.Admin;
+using Xunit;
 
 namespace NuGetGallery
 {

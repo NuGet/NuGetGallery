@@ -14,7 +14,6 @@ namespace NuGetGallery.Services
         public class TestableCuratedFeedService : CuratedFeedService
         {
             public TestableCuratedFeedService()
-                : base()
             {
                 StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName" };
                 StubPackageRegistration = new PackageRegistration { Key = 1066, Id = "aPackageId" };

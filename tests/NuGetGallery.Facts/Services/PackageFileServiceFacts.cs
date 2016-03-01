@@ -68,7 +68,7 @@ namespace NuGetGallery
                 fileStorageSvc.VerifyAll();
             }
         }
-        
+
         public class TheCreateDownloadPackageActionResultMethod
         {
             [Fact]
@@ -170,7 +170,7 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), It.IsAny<string>()))
                     .CompletesWith(fakeResult);
-                
+
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
 
                 var result = await service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), CreatePackage()) as RedirectResult;
@@ -437,8 +437,8 @@ namespace NuGetGallery
             string version)
         {
             return string.Format(
-                Constants.PackageFileSavePathTemplate, 
-                id.ToLowerInvariant(), 
+                Constants.PackageFileSavePathTemplate,
+                id.ToLowerInvariant(),
                 NuGetVersionNormalizer.Normalize(version).ToLowerInvariant(), // No matter what ends up getting passed in, the version should be normalized
                 Constants.NuGetPackageFileExtension);
         }
