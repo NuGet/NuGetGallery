@@ -131,11 +131,12 @@ namespace NuGet.Services.BasicSearch
 
                     if (!(ResponseHelpers.ResponseBodyCache is NullResponseBodyCache))
                     {
+                        var hitRatio = ResponseHelpers.ResponseBodyCache.HitRatio;
+                        var totalRequests = ResponseHelpers.ResponseBodyCache.TotalRequests;
+
                         ResponseHelpers.ResponseBodyCache.Clear();
 
-                        _logger.LogInformation(LogMessages.ResponseCacheCleared, 
-                            ResponseHelpers.ResponseBodyCache.HitRatio,
-                            ResponseHelpers.ResponseBodyCache.TotalRequests);
+                        _logger.LogInformation(LogMessages.ResponseCacheCleared, hitRatio, totalRequests);
                     }
                 }
                 finally
