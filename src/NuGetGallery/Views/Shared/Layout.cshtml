@@ -10,15 +10,16 @@
             @(Config.Current.Brand)
             @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
 
+        <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon"/>
+        <link title="NuGet.org" type="application/opensearchdescription+xml" href="@Url.Content("~/opensearch.xml")" rel="search">
+
         @Styles.Render("~/Content/css")
         @Styles.Render("~/Content/font-awesome/css")
         <!--[if IE 7]>
         @Styles.Render("~/Content/font-awesome-ie7.min.css")
         <![endif]-->
 
-        <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
-
-        <link title="NuGet.org" type="application/opensearchdescription+xml" href="@Url.Content("~/opensearch.xml")" rel="search">
+        @RenderSection("TopStyles", required: false)
 
         @Scripts.Render("~/Scripts/modernizr")
         @ViewHelpers.AnalyticsScript()

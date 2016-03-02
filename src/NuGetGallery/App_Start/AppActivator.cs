@@ -165,6 +165,15 @@ namespace NuGetGallery
             var fontAwesomeBundle = new StyleBundle("~/Content/font-awesome/css");
             fontAwesomeBundle.Include("~/Content/font-awesome/font-awesome.css");
             BundleTable.Bundles.Add(fontAwesomeBundle);
+
+            // Support Requests admin area bundle
+            var supportRequestsBundle = new ScriptBundle("~/Scripts/supportrequests")
+                .Include("~/Scripts/jquery-ui-{version}.js")
+                .Include("~/Scripts/moment.js")
+                .Include("~/Scripts/knockout-2.2.1.js")
+                .Include("~/Scripts/knockout.mapping-latest.js")
+                .Include("~/Scripts/supportrequests.js");
+            BundleTable.Bundles.Add(supportRequestsBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)
@@ -219,9 +228,9 @@ namespace NuGetGallery
             {
                 var jobCoordinator = new NuGetJobCoordinator();
                 _jobManager = new JobManager(jobs, jobCoordinator)
-                    {
-                        RestartSchedulerOnFailure = true
-                    };
+                {
+                    RestartSchedulerOnFailure = true
+                };
                 _jobManager.Fail(e => ErrorLog.GetDefault(null).Log(new Error(e)));
                 _jobManager.Start();
             }
