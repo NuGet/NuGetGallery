@@ -314,7 +314,14 @@ namespace NuGetGallery.Areas.Admin
 
             if (issueStatusId.HasValue)
             {
-                queryable = queryable.Where(r => r.IssueStatusId == issueStatusId);
+                if (issueStatusId == IssueStatusKeys.Unresolved)
+                {
+                    queryable = queryable.Where(r => r.IssueStatusId < IssueStatusKeys.Resolved);
+                }
+                else
+                {
+                    queryable = queryable.Where(r => r.IssueStatusId == issueStatusId);
+                }
             }
 
             return queryable;

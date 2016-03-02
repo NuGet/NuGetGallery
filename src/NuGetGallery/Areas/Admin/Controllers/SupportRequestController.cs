@@ -304,6 +304,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 items.Add(item);
             }
 
+            items.Add(new SelectListItem { Text = "Unresolved", Value = IssueStatusKeys.Unresolved.ToString(CultureInfo.InvariantCulture) });
+
             return items;
         }
 
