@@ -13,6 +13,7 @@ using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.StaticFiles.Infrastructure;
 using NuGet.Indexing;
+using NuGet.Services.BasicSearch.Caching;
 using Owin;
 using SerilogWeb.Classic.Enrichers;
 
@@ -87,6 +88,17 @@ namespace NuGet.Services.BasicSearch
                 _timer = new Timer(ReopenCallback, 0, 0, seconds * 1000);
             }
 
+            // use response caching?
+            var enableResponseCaching = configuration.Get(
+                "Search.EnableResponseCaching",
+                defaultValue: false);
+            if (enableResponseCaching)
+            {
+                ResponseHelpers.SetResponseBodyCache(
+                    new MemoryCacheResponseBodyCache(
+                        TimeSpan.FromSeconds(seconds)));
+            }
+
             app.Run(InvokeAsync);
         }
 
@@ -116,6 +128,15 @@ namespace NuGet.Services.BasicSearch
 
                     _logger.LogInformation(LogMessages.SearchIndexReopenCompleted, stopwatch.Elapsed.TotalSeconds,
                         Thread.CurrentThread.ManagedThreadId);
+
+                    if (!(ResponseHelpers.ResponseBodyCache is NullResponseBodyCache))
+                    {
+                        ResponseHelpers.ResponseBodyCache.Clear();
+
+                        _logger.LogInformation(LogMessages.ResponseCacheCleared, 
+                            ResponseHelpers.ResponseBodyCache.HitRatio,
+                            ResponseHelpers.ResponseBodyCache.TotalRequests);
+                    }
                 }
                 finally
                 {
@@ -178,6 +199,9 @@ namespace NuGet.Services.BasicSearch
                             break;
                         case "/search/diag":
                             await ServiceEndpoints.Stats(context, _searcherManager);
+                            break;
+                        case "/cache/diag":
+                            await ServiceEndpoints.CacheStats(context);
                             break;
                         default:
                             context.Response.StatusCode = (int)HttpStatusCode.NotFound;

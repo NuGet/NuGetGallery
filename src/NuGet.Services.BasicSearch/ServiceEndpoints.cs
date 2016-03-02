@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
@@ -81,7 +82,8 @@ namespace NuGet.Services.BasicSearch
             await ResponseHelpers.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => ServiceInfoImpl.Rankings(jsonWriter, searcherManager));
+                jsonWriter => ServiceInfoImpl.Rankings(jsonWriter, searcherManager),
+                allowResponseCache: false);
         }
 
         public static async Task Stats(IOwinContext context, NuGetSearcherManager searcherManager)
@@ -89,7 +91,35 @@ namespace NuGet.Services.BasicSearch
             await ResponseHelpers.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => ServiceInfoImpl.Stats(jsonWriter, searcherManager));
+                jsonWriter => ServiceInfoImpl.Stats(jsonWriter, searcherManager),
+                allowResponseCache: false);
+        }
+
+        public static async Task CacheStats(IOwinContext context)
+        {
+            var totalRequests = ResponseHelpers.ResponseBodyCache.TotalRequests;
+            var totalCacheHits = ResponseHelpers.ResponseBodyCache.Hits;
+            var cacheHitRatio = ResponseHelpers.ResponseBodyCache.HitRatio;
+
+            await ResponseHelpers.WriteResponseAsync(
+                context,
+                HttpStatusCode.OK,
+                jsonWriter =>
+                {
+                    jsonWriter.WriteStartObject();
+
+                    jsonWriter.WritePropertyName("totalRequests");
+                    jsonWriter.WriteValue(totalRequests);
+
+                    jsonWriter.WritePropertyName("totalCacheHits");
+                    jsonWriter.WriteValue(totalCacheHits);
+
+                    jsonWriter.WritePropertyName("cacheHitRatio");
+                    jsonWriter.WriteValue(cacheHitRatio);
+
+                    jsonWriter.WriteEndObject();
+                },
+                allowResponseCache: false);
         }
 
         private static bool GetIncludeExplanation(IOwinContext context)
