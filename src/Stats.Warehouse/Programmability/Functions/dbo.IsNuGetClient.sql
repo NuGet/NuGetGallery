@@ -10,13 +10,15 @@ BEGIN
 		RETURN 0
 
 	IF	(
+			-- NuGet 3.0+
+			CHARINDEX('NuGet Cross-Platform Command Line', @ClientName) > 0
+		OR	CHARINDEX('NuGet Client V3', @ClientName) > 0
+
 			-- VS NuGet 2.8+
-			CHARINDEX('NuGet VS PowerShell Console', @ClientName) > 0
+		OR	CHARINDEX('NuGet VS PowerShell Console', @ClientName) > 0
 		OR	CHARINDEX('NuGet VS Packages Dialog - Solution', @ClientName) > 0
 		OR	CHARINDEX('NuGet VS Packages Dialog', @ClientName) > 0
-		OR	CHARINDEX('NuGet Client V3', @ClientName) > 0
 		OR	CHARINDEX('NuGet Shim', @ClientName) > 0
-		OR	CHARINDEX('NuGet xplat', @ClientName) > 0
 
 			-- VS NuGet (pre-2.8)
 		OR	CHARINDEX('NuGet Add Package Dialog', @ClientName) > 0
