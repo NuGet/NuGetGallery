@@ -61,7 +61,10 @@ namespace NuGet.Services.BasicSearch
                 WriteToStream(content, writeContent);
                 content.Position = 0;
 
-                ResponseBodyCache.Add(context.Request, content.ToArray());
+                if (allowResponseCache)
+                {
+                    ResponseBodyCache.Add(context.Request, content.ToArray());
+                }
 
                 content.Position = 0;
             }
