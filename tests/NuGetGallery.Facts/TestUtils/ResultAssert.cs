@@ -96,12 +96,12 @@ namespace NuGetGallery
 
         public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode)
         {
-            return IsStatusCode(result, (int)statusCode, description: null);
+            return IsStatusCode(result, (int)statusCode, description: null, ignoreEmptyDescription: true);
         }
 
         public static HttpStatusCodeResult IsStatusCode(ActionResult result, int statusCode)
         {
-            return IsStatusCode(result, statusCode, description: null);
+            return IsStatusCode(result, statusCode, description: null, ignoreEmptyDescription: true);
         }
 
         public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode, string description)
@@ -109,11 +109,16 @@ namespace NuGetGallery
             return IsStatusCode(result, (int)statusCode, description);
         }
 
-        public static HttpStatusCodeResult IsStatusCode(ActionResult result, int statusCode, string description)
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, int statusCode, string description, bool ignoreEmptyDescription = false)
         {
             var statusCodeResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
             Assert.Equal(statusCode, statusCodeResult.StatusCode);
-            Assert.Equal(description, statusCodeResult.StatusDescription);
+
+            if (!string.IsNullOrEmpty(description) || !ignoreEmptyDescription)
+            {
+                Assert.Equal(description, statusCodeResult.StatusDescription);
+            }
+
             return statusCodeResult;
         }
 

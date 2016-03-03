@@ -699,11 +699,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The NuGet package contains an invaid .nuspec file. The error encountered was:&apos;{0}&apos;. Correct the error and try again..
+        ///   Looks up a localized string similar to The NuGet package contains an invalid .nuspec file. The error encountered was:&apos;{0}&apos;. Correct the error and try again..
         /// </summary>
         public static string UploadPackage_InvalidNuspec {
             get {
                 return ResourceManager.GetString("UploadPackage_InvalidNuspec", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The NuGet is invalid. The error encountered was:&apos;{0}&apos;. Correct the error and try again..
+        /// </summary>
+        public static string UploadPackage_InvalidPackage {
+            get {
+                return ResourceManager.GetString("UploadPackage_InvalidPackage", resourceCulture);
             }
         }
         
