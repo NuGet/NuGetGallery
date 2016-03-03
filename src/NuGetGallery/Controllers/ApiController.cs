@@ -292,76 +292,87 @@ namespace NuGetGallery
             var user = GetCurrentUser();
 
             using (var packageStream = ReadPackageFromRequest())
-            using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
             {
-                NuspecReader nuspec = null;
                 try
                 {
-                    nuspec = packageToPush.GetNuspecReader();
-                }
-                catch (Exception ex)
-                {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.UploadPackage_InvalidNuspec,
-                        ex.Message));
-                }
-
-                if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
-                {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.UploadPackage_MinClientVersionOutOfRange,
-                        nuspec.GetMinClientVersion()));
-                }
-
-                // Ensure that the user can push packages for this partialId.
-                var packageRegistration = PackageService.FindPackageRegistrationById(nuspec.GetId());
-                if (packageRegistration != null)
-                {
-                    if (!packageRegistration.IsOwner(user))
+                    using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
                     {
-                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                    }
+                        NuspecReader nuspec = null;
+                        try
+                        {
+                            nuspec = packageToPush.GetNuspecReader();
+                        }
+                        catch (Exception ex)
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.UploadPackage_InvalidNuspec,
+                                ex.Message));
+                        }
 
-                    // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                    string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
-                    bool packageExists =
-                        packageRegistration.Packages.Any(
-                            p => String.Equals(
-                                p.NormalizedVersion,
-                                normalizedVersion,
-                                StringComparison.OrdinalIgnoreCase));
+                        if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.UploadPackage_MinClientVersionOutOfRange,
+                                nuspec.GetMinClientVersion()));
+                        }
 
-                    if (packageExists)
-                    {
-                        return new HttpStatusCodeWithBodyResult(
-                            HttpStatusCode.Conflict,
-                            String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                          nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe()));
+                        // Ensure that the user can push packages for this partialId.
+                        var packageRegistration = PackageService.FindPackageRegistrationById(nuspec.GetId());
+                        if (packageRegistration != null)
+                        {
+                            if (!packageRegistration.IsOwner(user))
+                            {
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                            }
+
+                            // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
+                            string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
+                            bool packageExists =
+                                packageRegistration.Packages.Any(
+                                    p => String.Equals(
+                                        p.NormalizedVersion,
+                                        normalizedVersion,
+                                        StringComparison.OrdinalIgnoreCase));
+
+                            if (packageExists)
+                            {
+                                return new HttpStatusCodeWithBodyResult(
+                                    HttpStatusCode.Conflict,
+                                    String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
+                                        nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe()));
+                            }
+                        }
+
+                        var packageStreamMetadata = new PackageStreamMetadata
+                        {
+                            HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                            Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
+                            Size = packageStream.Length,
+                        };
+
+                        var package = await PackageService.CreatePackageAsync(packageToPush, packageStreamMetadata, user, commitChanges: false);
+                        await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
+                        await EntitiesContext.SaveChangesAsync();
+
+                        using (Stream uploadStream = packageStream)
+                        {
+                            uploadStream.Position = 0;
+                            await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
+                            IndexingService.UpdatePackage(package);
+                        }
+
+                        return new HttpStatusCodeResult(HttpStatusCode.Created);
                     }
                 }
-
-                var packageStreamMetadata = new PackageStreamMetadata
+                catch (InvalidDataException ex)
                 {
-                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
-                    Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
-                    Size = packageStream.Length,
-                };
-
-                var package = await PackageService.CreatePackageAsync(packageToPush, packageStreamMetadata, user, commitChanges: false);
-                await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
-                await EntitiesContext.SaveChangesAsync();
-
-                using (Stream uploadStream = packageStream)
-                {
-                    uploadStream.Position = 0;
-                    await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
-                    IndexingService.UpdatePackage(package);
+                    return new HttpStatusCodeWithBodyResult(
+                        HttpStatusCode.BadRequest,
+                        string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_InvalidPackage, ex.Message));
                 }
             }
-
-            return new HttpStatusCodeResult(HttpStatusCode.Created);
         }
 
         [HttpDelete]
