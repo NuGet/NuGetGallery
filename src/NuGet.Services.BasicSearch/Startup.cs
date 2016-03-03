@@ -27,6 +27,7 @@ namespace NuGet.Services.BasicSearch
         private Timer _timer;
         private NuGetSearcherManager _searcherManager;
         private int _gate;
+        private ResponseWriter _responseWriter;
 
         public void Configuration(IAppBuilder app, IConfiguration configuration, Directory directory, ILoader loader)
         {
@@ -94,9 +95,13 @@ namespace NuGet.Services.BasicSearch
                 defaultValue: false);
             if (enableResponseCaching)
             {
-                ResponseHelpers.SetResponseBodyCache(
-                    new MemoryCacheResponseBodyCache(
-                        TimeSpan.FromSeconds(seconds)));
+                _responseWriter = new ResponseWriter(
+                    new MemoryCacheResponseBodyCache(TimeSpan.FromSeconds(seconds)));
+            }
+            else
+            {
+                _responseWriter = new ResponseWriter(
+                    new NullResponseBodyCache());
             }
 
             app.Run(InvokeAsync);
@@ -129,12 +134,12 @@ namespace NuGet.Services.BasicSearch
                     _logger.LogInformation(LogMessages.SearchIndexReopenCompleted, stopwatch.Elapsed.TotalSeconds,
                         Thread.CurrentThread.ManagedThreadId);
 
-                    if (!(ResponseHelpers.ResponseBodyCache is NullResponseBodyCache))
+                    if (!(_responseWriter.ResponseBodyCache is NullResponseBodyCache))
                     {
-                        var hitRatio = ResponseHelpers.ResponseBodyCache.HitRatio;
-                        var totalRequests = ResponseHelpers.ResponseBodyCache.TotalRequests;
+                        var hitRatio = _responseWriter.ResponseBodyCache.HitRatio;
+                        var totalRequests = _responseWriter.ResponseBodyCache.TotalRequests;
 
-                        ResponseHelpers.ResponseBodyCache.Clear();
+                        _responseWriter.ResponseBodyCache.Clear();
 
                         _logger.LogInformation(LogMessages.ResponseCacheCleared, hitRatio, totalRequests);
                     }
@@ -184,25 +189,25 @@ namespace NuGet.Services.BasicSearch
                             await context.Response.WriteAsync("READY");
                             break;
                         case "/find":
-                            await ServiceEndpoints.FindAsync(context, _searcherManager);
+                            await ServiceEndpoints.FindAsync(context, _searcherManager, _responseWriter);
                             break;
                         case "/query":
-                            await ServiceEndpoints.V3SearchAsync(context, _searcherManager);
+                            await ServiceEndpoints.V3SearchAsync(context, _searcherManager, _responseWriter);
                             break;
                         case "/autocomplete":
-                            await ServiceEndpoints.AutoCompleteAsync(context, _searcherManager);
+                            await ServiceEndpoints.AutoCompleteAsync(context, _searcherManager, _responseWriter);
                             break;
                         case "/search/query":
-                            await ServiceEndpoints.V2SearchAsync(context, _searcherManager);
+                            await ServiceEndpoints.V2SearchAsync(context, _searcherManager, _responseWriter);
                             break;
                         case "/rankings":
-                            await ServiceEndpoints.RankingsAsync(context, _searcherManager);
+                            await ServiceEndpoints.RankingsAsync(context, _searcherManager, _responseWriter);
                             break;
                         case "/search/diag":
-                            await ServiceEndpoints.Stats(context, _searcherManager);
+                            await ServiceEndpoints.Stats(context, _searcherManager, _responseWriter);
                             break;
                         case "/cache/diag":
-                            await ServiceEndpoints.CacheStats(context);
+                            await ServiceEndpoints.CacheStats(context, _responseWriter);
                             break;
                         default:
                             context.Response.StatusCode = (int)HttpStatusCode.NotFound;
@@ -213,11 +218,11 @@ namespace NuGet.Services.BasicSearch
             }
             catch (ClientException e)
             {
-                await ResponseHelpers.WriteResponseAsync(context, e);
+                await _responseWriter.WriteResponseAsync(context, e);
             }
             catch (Exception e)
             {
-                await ResponseHelpers.WriteResponseAsync(context, e, _logger);
+                await _responseWriter.WriteResponseAsync(context, e, _logger);
             }
         }
     }

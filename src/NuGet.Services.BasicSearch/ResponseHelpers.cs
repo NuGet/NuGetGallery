@@ -16,14 +16,9 @@ using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Services.BasicSearch
 {
-    public static class ResponseHelpers
+    public class ResponseWriter
     {
-        static ResponseHelpers()
-        {
-            ResponseBodyCache = new NullResponseBodyCache();
-        }
-
-        public static void SetResponseBodyCache(IResponseBodyCache responseBodyCache)
+        public ResponseWriter(IResponseBodyCache responseBodyCache)
         {
             if (responseBodyCache == null)
             {
@@ -32,15 +27,15 @@ namespace NuGet.Services.BasicSearch
 
             ResponseBodyCache = responseBodyCache;
         }
+        
+        public IResponseBodyCache ResponseBodyCache { get; private set; }
 
-        public static IResponseBodyCache ResponseBodyCache { get; private set; }
-
-        public static async Task WriteResponseAsync(IOwinContext context, HttpStatusCode statusCode, JToken content)
+        public async Task WriteResponseAsync(IOwinContext context, HttpStatusCode statusCode, JToken content)
         {
             await WriteResponseAsync(context, statusCode, w => context.Response.Write(content.ToString()));
         }
 
-        public static async Task WriteResponseAsync(IOwinContext context, HttpStatusCode statusCode, Action<JsonWriter> writeContent, bool allowResponseCache = true)
+        public async Task WriteResponseAsync(IOwinContext context, HttpStatusCode statusCode, Action<JsonWriter> writeContent, bool allowResponseCache = true)
         {
             bool fromCache = false;
             MemoryStream content;
@@ -99,12 +94,12 @@ namespace NuGet.Services.BasicSearch
             }
         }
 
-        public static async Task WriteResponseAsync(IOwinContext context, ClientException e)
+        public async Task WriteResponseAsync(IOwinContext context, ClientException e)
         {
             await WriteResponseAsync(context, e.StatusCode, e.Content);
         }
 
-        public static async Task WriteResponseAsync(IOwinContext context, Exception e, FrameworkLogger logger)
+        public async Task WriteResponseAsync(IOwinContext context, Exception e, FrameworkLogger logger)
         {
             logger.LogError("Internal server error", e);
 
@@ -115,7 +110,7 @@ namespace NuGet.Services.BasicSearch
             }));
         }
 
-        private static void WriteToStream(Stream destination, Action<JsonWriter> writeContent)
+        private void WriteToStream(Stream destination, Action<JsonWriter> writeContent)
         {
             using (var streamWriter = new StreamWriter(destination, new UTF8Encoding(false), 4096, true))
             using (var jsonWriter = new JsonTextWriter(streamWriter))
