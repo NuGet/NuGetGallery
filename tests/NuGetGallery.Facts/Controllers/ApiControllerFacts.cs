@@ -98,6 +98,31 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task CreatePackageWillReturn400IfPackageIsInvalid()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(user);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Returns(Task.CompletedTask).Verifiable();
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                byte[] data = new byte[100];
+                controller.SetupPackageFromInputStream(new MemoryStream(data));
+
+                // Act
+                ActionResult result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+
+            [Fact]
             public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.042");

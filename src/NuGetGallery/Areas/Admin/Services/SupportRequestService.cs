@@ -50,9 +50,9 @@ namespace NuGetGallery.Areas.Admin
             return _supportRequestDbContext.Histories.Where(h => h.IssueId == id).ToList();
         }
 
-        public IReadOnlyCollection<Issue> GetIssues(int ? assignedTo = null, string reason = null, int? issueStatusId = null)
+        public IReadOnlyCollection<Issue> GetIssues(int ? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
         {
-            var queryable = GetFilteredIssuesQueryable(assignedTo, reason, issueStatusId);
+            var queryable = GetFilteredIssuesQueryable(assignedTo, reason, issueStatusId, galleryUsername);
 
             return queryable.ToList();
         }
@@ -292,7 +292,7 @@ namespace NuGetGallery.Areas.Admin
             return issue?.Name;
         }
 
-        private IQueryable<Issue> GetFilteredIssuesQueryable(int? assignedTo = null, string reason = null, int? issueStatusId = null)
+        private IQueryable<Issue> GetFilteredIssuesQueryable(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
         {
             IQueryable<Issue> queryable = _supportRequestDbContext.Issues;
 
@@ -314,10 +314,35 @@ namespace NuGetGallery.Areas.Admin
 
             if (issueStatusId.HasValue)
             {
-                queryable = queryable.Where(r => r.IssueStatusId == issueStatusId);
+                if (issueStatusId == IssueStatusKeys.Unresolved)
+                {
+                    queryable = queryable.Where(r => r.IssueStatusId < IssueStatusKeys.Resolved);
+                }
+                else
+                {
+                    queryable = queryable.Where(r => r.IssueStatusId == issueStatusId);
+                }
             }
 
-            return queryable;
+            // show current admin issues first,
+            // then sort by issue status, showing new first, then working, then waiting for customer, then resolved,
+            // then sort by creation time descending
+            IOrderedQueryable<Issue> orderedQueryable;
+            if (!string.IsNullOrEmpty(galleryUsername))
+            {
+                orderedQueryable = queryable
+                    .OrderByDescending(i => i.AssignedTo.GalleryUsername == galleryUsername)
+                    .ThenBy(i => i.IssueStatusId == IssueStatusKeys.New ? 1 : (i.IssueStatusId == IssueStatusKeys.Working ? 2 : (i.IssueStatusId == IssueStatusKeys.WaitingForCustomer ? 3 : 4)))
+                    .ThenByDescending(i => i.CreatedDate);
+            }
+            else
+            {
+                orderedQueryable = queryable
+                    .OrderBy(i => i.IssueStatusId == IssueStatusKeys.New ? 1 : (i.IssueStatusId == IssueStatusKeys.Working ? 2 : (i.IssueStatusId == IssueStatusKeys.WaitingForCustomer ? 3 : 4)))
+                    .ThenByDescending(i => i.CreatedDate);
+            }
+
+            return orderedQueryable;
         }
 
         private Models.Admin GetAdminByKey(int key)

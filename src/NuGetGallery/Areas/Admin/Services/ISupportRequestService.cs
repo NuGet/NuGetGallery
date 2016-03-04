@@ -27,8 +27,11 @@ namespace NuGetGallery.Areas.Admin
         /// Filter on IssueStatus. <code>null</code> means any value.
         /// Default value is <code>null</code>.
         /// </param>
+        /// <param name="galleryUsername">
+        /// Allows ordering by gallery username, showing issues matching the provided value first.
+        /// </param>
         /// <returns>Returns a <see cref="IReadOnlyCollection{Issue}"/> that matches the provided filter parameters.</returns>
-        IReadOnlyCollection<Issue> GetIssues(int? assignedTo = null, string reason = null, int? issueStatusId = null);
+        IReadOnlyCollection<Issue> GetIssues(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null);
 
         Task AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
             User user, Package package = null);
