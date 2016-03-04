@@ -116,6 +116,8 @@
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CommitMetadata.cs" />
     <Compile Include="DeleteCatalogItem.cs" />
+    <Compile Include="Dnx\DnxCatalogCollector.cs" />
+    <Compile Include="Dnx\DnxMaker.cs" />
     <Compile Include="Helpers\GraphHelpers.cs" />
     <Compile Include="NupkgMetadata.cs" />
     <Compile Include="Persistence\AggregateStorage.cs" />
