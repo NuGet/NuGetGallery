@@ -138,4 +138,7 @@
   <data name="SearchIndexReopenStarted" xml:space="preserve">
     <value>Beginning to reopen the search index on thread ID {ThreadId}</value>
   </data>
+  <data name="ResponseCacheCleared" xml:space="preserve">
+    <value>Response cache cleared. Previous hit ratio: {HitRatio} over {TotalRequests} requests</value>
+  </data>
 </root>

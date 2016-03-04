@@ -10,7 +10,7 @@ namespace NuGet.Services.BasicSearch
 {
     public class ServiceEndpoints
     {
-        public static async Task V3SearchAsync(IOwinContext context, NuGetSearcherManager searcherManager)
+        public static async Task V3SearchAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
         {
             var skip = GetSkip(context);
             var take = GetTake(context);
@@ -21,13 +21,13 @@ namespace NuGet.Services.BasicSearch
             var feed = context.Request.Query["feed"];
             var scheme = context.Request.Uri.Scheme;
 
-            await ResponseHelpers.WriteResponseAsync(
+            await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
                 jsonWriter => ServiceImpl.Search(jsonWriter, searcherManager, scheme, q, includePrerelease, skip, take, feed, includeExplanation));
         }
 
-        public static async Task AutoCompleteAsync(IOwinContext context, NuGetSearcherManager searcherManager)
+        public static async Task AutoCompleteAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
         {
             var skip = GetSkip(context);
             var take = GetTake(context);
@@ -41,24 +41,24 @@ namespace NuGet.Services.BasicSearch
                 q = string.Empty;
             }
 
-            await ResponseHelpers.WriteResponseAsync(
+            await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
                 jsonWriter => ServiceImpl.AutoComplete(jsonWriter, searcherManager, q, id, includePrerelease, skip, take, includeExplanation));
         }
 
-        public static async Task FindAsync(IOwinContext context, NuGetSearcherManager searcherManager)
+        public static async Task FindAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
         {
             var id = context.Request.Query["id"] ?? string.Empty;
             var scheme = context.Request.Uri.Scheme;
 
-            await ResponseHelpers.WriteResponseAsync(
+            await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
                 jsonWriter => ServiceImpl.Find(jsonWriter, searcherManager, id, scheme));
         }
 
-        public static async Task V2SearchAsync(IOwinContext context, NuGetSearcherManager searcherManager)
+        public static async Task V2SearchAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
         {
             var skip = GetSkip(context);
             var take = GetTake(context);
@@ -70,26 +70,55 @@ namespace NuGet.Services.BasicSearch
             var sortBy = context.Request.Query["sortBy"] ?? string.Empty;
             var feed = context.Request.Query["feed"];
 
-            await ResponseHelpers.WriteResponseAsync(
+            await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
                 jsonWriter => GalleryServiceImpl.Search(jsonWriter, searcherManager, q, countOnly, includePrerelease, sortBy, skip, take, feed, ignoreFilter));
         }
 
-        public static async Task RankingsAsync(IOwinContext context, NuGetSearcherManager searcherManager)
+        public static async Task RankingsAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
         {
-            await ResponseHelpers.WriteResponseAsync(
+            await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => ServiceInfoImpl.Rankings(jsonWriter, searcherManager));
+                jsonWriter => ServiceInfoImpl.Rankings(jsonWriter, searcherManager),
+                allowResponseCache: false);
         }
 
-        public static async Task Stats(IOwinContext context, NuGetSearcherManager searcherManager)
+        public static async Task Stats(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
         {
-            await ResponseHelpers.WriteResponseAsync(
+            await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => ServiceInfoImpl.Stats(jsonWriter, searcherManager));
+                jsonWriter => ServiceInfoImpl.Stats(jsonWriter, searcherManager),
+                allowResponseCache: false);
+        }
+
+        public static async Task CacheStats(IOwinContext context, ResponseWriter responseWriter)
+        {
+            var totalRequests = responseWriter.ResponseBodyCache.TotalRequests;
+            var totalCacheHits = responseWriter.ResponseBodyCache.Hits;
+            var cacheHitRatio = responseWriter.ResponseBodyCache.HitRatio;
+
+            await responseWriter.WriteResponseAsync(
+                context,
+                HttpStatusCode.OK,
+                jsonWriter =>
+                {
+                    jsonWriter.WriteStartObject();
+
+                    jsonWriter.WritePropertyName("totalRequests");
+                    jsonWriter.WriteValue(totalRequests);
+
+                    jsonWriter.WritePropertyName("totalCacheHits");
+                    jsonWriter.WriteValue(totalCacheHits);
+
+                    jsonWriter.WritePropertyName("cacheHitRatio");
+                    jsonWriter.WriteValue(cacheHitRatio);
+
+                    jsonWriter.WriteEndObject();
+                },
+                allowResponseCache: false);
         }
 
         private static bool GetIncludeExplanation(IOwinContext context)

@@ -178,6 +178,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitSetCollector.cs" />
+    <Compile Include="ConfigurationExtensions.cs" />
     <Compile Include="DownloadRankings.cs" />
     <Compile Include="Extraction\CatalogNuspecReader.cs" />
     <Compile Include="Extraction\CatalogPackageMetadataExtraction.cs" />

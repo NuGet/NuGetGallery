@@ -183,6 +183,7 @@
     <Reference Include="System.Collections.Concurrent" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Spatial, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
@@ -201,6 +202,7 @@
     <EmbeddedResource Include="LogMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>LogMessages.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\PublishProfiles\nuget-int-0-v3search - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\nuget-int-0-v3search - Web Deploy.pubxml" />
@@ -224,12 +226,15 @@
   <ItemGroup>
     <Compile Include="ConfigurationService.cs" />
     <Compile Include="CorrelationIdMiddleware.cs" />
+    <Compile Include="Caching\IResponseBodyCache.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="LogMessages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>LogMessages.resx</DependentUpon>
     </Compile>
+    <Compile Include="Caching\MemoryCacheResponseBodyCache.cs" />
+    <Compile Include="Caching\NullResponseBodyCache.cs" />
     <Compile Include="ResponseHelpers.cs" />
     <Compile Include="ServiceEndpoints.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
