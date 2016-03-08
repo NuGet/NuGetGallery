@@ -13,6 +13,7 @@ using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
 using Microsoft.Data.OData;
+using Microsoft.Data.OData.Query;
 
 namespace NuGetGallery.WebApi
 {
@@ -115,7 +116,14 @@ namespace NuGetGallery.WebApi
                     queryResults = queryOptions.Filter.ApplyTo(queryResults, _querySettings);
                 }
 
-                if (queryOptions.OrderBy != null)
+                if (queryOptions.OrderBy != null
+                    && !(
+                        // Only ordering by properties is supported for non-primitive collections.
+                        // Expressions are not supported.
+                        queryOptions.OrderBy.OrderByClause.ItemType.Definition.TypeKind != Microsoft.Data.Edm.EdmTypeKind.Primitive
+                        && queryOptions.OrderBy.OrderByClause.Expression.Kind != QueryNodeKind.None
+                        )
+                    )
                 {
                     queryResults = queryOptions.OrderBy.ApplyTo(queryResults, _querySettings);
                 }
