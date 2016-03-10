@@ -88,6 +88,12 @@ function SupportRequestsViewModel(editUrl, filterUrl, historyUrl) {
                 primary: 'ui-icon-clock'
             }
         });
+        $('a.contactButton').button(
+        {
+            icons: {
+                primary: 'ui-icon-mail-closed'
+            }
+        });
     }
 
     this.updateSupportRequest = function () {
@@ -158,6 +164,11 @@ function SupportRequestsViewModel(editUrl, filterUrl, historyUrl) {
         $self.editSupportRequestDialog.dialog('option', 'title', 'Edit SR-' + supportRequestViewModel.Issue.Key);
         $self.editSupportRequestDialog.dialog('open');
         return false;
+    };
+
+    this.generateContactUserUrl = function (supportRequestViewModel) {
+        return 'mailto:' + supportRequestViewModel.UserEmail
+            + '?subject=[NuGet.org Support] ' + supportRequestViewModel.Issue.IssueTitle;
     };
 
     this.showHistory = function (supportRequestViewModel) {

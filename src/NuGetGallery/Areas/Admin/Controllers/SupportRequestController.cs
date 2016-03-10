@@ -20,15 +20,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
     {
         private const int _defaultTakeCount = 30;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly IUserService _userService;
+
         private readonly JsonSerializerSettings _defaultJsonSerializerSettings = new JsonSerializerSettings
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Formatting = Formatting.None
         };
 
-        public SupportRequestController(ISupportRequestService supportRequestService)
+        public SupportRequestController(
+            ISupportRequestService supportRequestService,
+            IUserService userService)
         {
             _supportRequestService = supportRequestService;
+            _userService = userService;
         }
 
         public ViewResult Admins()
@@ -121,7 +126,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
-        public ActionResult Filter(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
+        public async Task<ActionResult> Filter(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
         {
             if (pageNumber <= 0)
             {
@@ -133,7 +138,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 take = _defaultTakeCount;
             }
 
-            var issues = GetSupportRequests(pageNumber, take, assignedToId, reason, issueStatusId).Take(take).ToList();
+            var issues = (await GetSupportRequestsAsync(pageNumber, take, assignedToId, reason, issueStatusId)).Take(take).ToList();
             var totalCount = _supportRequestService.GetIssueCount(assignedToId, reason, issueStatusId);
 
             int maxPage;
@@ -157,7 +162,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult Index(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
+        public async Task<ActionResult> Index(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
         {
             if (pageNumber <= 0)
             {
@@ -190,7 +195,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 viewModel.MaxPage = totalCount / take + 1;
             }
 
-            var issues = GetSupportRequests(pageNumber, take, assignedToId, reason, issueStatusId);
+            var issues = await GetSupportRequestsAsync(pageNumber, take, assignedToId, reason, issueStatusId);
 
             viewModel.Issues.AddRange(issues);
 
@@ -204,7 +209,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return Json(historyEntries, JsonRequestBehavior.AllowGet);
         }
 
-        private List<SupportRequestViewModel> GetSupportRequests(int pageNumber = 1, int take = _defaultTakeCount, int? assignedTo = null, string reason = null, int? issueStatusId = null)
+        private async Task<List<SupportRequestViewModel>> GetSupportRequestsAsync(int pageNumber = 1, int take = _defaultTakeCount, int? assignedTo = null, string reason = null, int? issueStatusId = null)
         {
             if (pageNumber <= 0)
             {
@@ -228,15 +233,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             pagedIssues = pagedIssues.Take(take);
 
+            var enumerable = pagedIssues as IList<Issue> ?? pagedIssues.ToList();
+            var distinctUserKeys = enumerable.Select(i => i.UserKey).Where(i => i.HasValue).Select(i => i.Value).Distinct();
+            var userEmails = await _userService.GetEmailAddressesForUserKeysAsync(distinctUserKeys);
+
             var results = new List<SupportRequestViewModel>();
 
-            foreach (var issue in pagedIssues)
+            foreach (var issue in enumerable)
             {
                 var viewModel = new SupportRequestViewModel();
                 viewModel.AssignedTo = issue.AssignedToId;
                 viewModel.AssignedToGalleryUsername = issue.AssignedTo?.GalleryUsername;
                 viewModel.IssueStatusId = issue.IssueStatusId;
                 viewModel.IssueStatusName = issue.IssueStatus.Name;
+                viewModel.UserEmail = issue.UserKey.HasValue ? userEmails[issue.UserKey.Value] : string.Empty;
                 viewModel.Issue = issue;
                 viewModel.Issue.SiteRoot = VerifyAndFixTrailingSlash(viewModel.Issue.SiteRoot);
 

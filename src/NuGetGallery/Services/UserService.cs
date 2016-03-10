@@ -109,6 +109,15 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
         }
 
+        public async Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IEnumerable<int> distinctUserKeys)
+        {
+            var results = await UserRepository.GetAll()
+                .Where(u => distinctUserKeys.Contains(u.Key))
+                .ToDictionaryAsync(u => u.Key, u => u.EmailAddress);
+
+            return results;
+        }
+
         public async Task<bool> ConfirmEmailAddress(User user, string token)
         {
             if (user == null)

@@ -23,5 +23,7 @@ namespace NuGetGallery
         Task ChangeEmailAddress(User user, string newEmailAddress);
 
         Task CancelChangeEmailAddress(User user);
+
+        Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IEnumerable<int> distinctUserKeys);
     }
 }
