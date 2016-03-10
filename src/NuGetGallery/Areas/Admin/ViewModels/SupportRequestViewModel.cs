@@ -11,6 +11,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public string AssignedToGalleryUsername { get; set; }
         public string IssueStatusName { get; set; }
         public Issue Issue { get; set; }
+        public string UserEmail { get; set; }
 
         // Editable fields
         public int? AssignedTo { get; set; }

@@ -133,6 +133,7 @@
                         <div class="pull-right">
                             <a class="historyButton" data-bind="click: $parent.showHistory" title="Click to view history for this issue.">History</a>
                             <a class="editButton" href="#" data-bind="click: $parent.editSupportRequest" title="Click to edit this issue.">Edit</a>
+                            <a class="contactButton" href="#" data-bind="attr: { href: $parent.generateContactUserUrl($data) }" title="Click to contact the issue reporter.">Email</a>
                         </div>
                         <p class="bold" data-bind="text: Issue.IssueTitle, click: $parent.editSupportRequest"></p>
                         <p>

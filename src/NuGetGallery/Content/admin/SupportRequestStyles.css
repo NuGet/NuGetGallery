@@ -56,7 +56,7 @@
     width: 100%;
 }
 
-.historyButton {
+.historyButton, .editButton {
     margin-right: 5px;
 }
 
