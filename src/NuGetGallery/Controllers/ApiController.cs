@@ -23,14 +23,6 @@ namespace NuGetGallery
     public partial class ApiController
         : AppController
     {
-        private const string IdKey = "id";
-        private const string VersionKey = "version";
-        private const string IpAddressKey = "ipAddress";
-        private const string UserAgentKey = "userAgent";
-        private const string OperationKey = "operation";
-        private const string DependentPackageKey = "dependentPackage";
-        private const string ProjectGuidsKey = "projectGuids";
-
         private readonly IAppConfiguration _config;
 
         public IEntitiesContext EntitiesContext { get; set; }
@@ -151,20 +143,6 @@ namespace NuGetGallery
             return await PackageFileService.CreateDownloadPackageActionResultAsync(
                 HttpContext.Request.Url,
                 id, version);
-        }
-
-        private static JObject GetJObject(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
-        {
-            var jObject = new JObject();
-            jObject.Add(IdKey, id);
-            jObject.Add(VersionKey, version);
-            if (!String.IsNullOrEmpty(ipAddress)) jObject.Add(IpAddressKey, ipAddress);
-            if (!String.IsNullOrEmpty(userAgent)) jObject.Add(UserAgentKey, userAgent);
-            if (!String.IsNullOrEmpty(operation)) jObject.Add(OperationKey, operation);
-            if (!String.IsNullOrEmpty(dependentPackage)) jObject.Add(DependentPackageKey, dependentPackage);
-            if (!String.IsNullOrEmpty(projectGuids)) jObject.Add(ProjectGuidsKey, projectGuids);
-
-            return jObject;
         }
 
         [HttpGet]
