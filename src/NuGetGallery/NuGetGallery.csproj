@@ -712,6 +712,10 @@
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.Designer.cs">
       <DependentUpon>201602181939424_RemovePackageStatistics.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201603111230347_RemoveSqlDownloadStatsAggregation.cs" />
+    <Compile Include="Migrations\201603111230347_RemoveSqlDownloadStatsAggregation.Designer.cs">
+      <DependentUpon>201603111230347_RemoveSqlDownloadStatsAggregation.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1034,7 +1038,6 @@
     <Compile Include="Infrastructure\Lucene\LuceneCommon.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneIndexingJob.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneIndexingService.cs" />
-    <Compile Include="Infrastructure\Jobs\UpdateStatisticsJob.cs" />
     <Compile Include="Infrastructure\Lucene\PerFieldAnalyzer.cs" />
     <Compile Include="Infrastructure\Lucene\NuGetSearchTerm.cs" />
     <Compile Include="Infrastructure\TracingHttpHandler.cs" />
@@ -1659,7 +1662,6 @@
       <DependentUpon>201602191039005_PackageInfoIsOptional.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
-    <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="Public\robots.txt" />
     <Content Include="Content\font\fontawesome-webfont.eot" />
@@ -1790,6 +1792,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201602181939424_RemovePackageStatistics.resx">
       <DependentUpon>201602181939424_RemovePackageStatistics.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201603111230347_RemoveSqlDownloadStatsAggregation.resx">
+      <DependentUpon>201603111230347_RemoveSqlDownloadStatsAggregation.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

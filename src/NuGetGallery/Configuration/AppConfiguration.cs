@@ -10,8 +10,6 @@ namespace NuGetGallery.Configuration
 {
     public class AppConfiguration : IAppConfiguration
     {
-        public bool HasWorker { get; set; }
-
         [DefaultValue("Development")]
         public string Environment { get; set; }
 
