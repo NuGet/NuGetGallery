@@ -36,7 +36,7 @@ website for the NuGet client. For information about the NuGet project, visit the
  5. Run the following command in the Package Manager Console:
  
     ```
-    Update-Database -StartUpProjectName NuGetGallery
+    Update-Database -StartUpProjectName NuGetGallery -ConfigurationTypeName MigrationsConfiguration
     ```
 If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
 
