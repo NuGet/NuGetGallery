@@ -8,11 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
@@ -34,10 +30,6 @@ namespace NuGetGallery
         private const string OperationKey = "operation";
         private const string DependentPackageKey = "dependentPackage";
         private const string ProjectGuidsKey = "projectGuids";
-        private const string MetricsDownloadEventMethod = "/DownloadEvent";
-        private const string ContentTypeJson = "application/json";
-
-        private static readonly HttpClient HttpClient = new HttpClient();
 
         private readonly IAppConfiguration _config;
 
@@ -156,25 +148,6 @@ namespace NuGetGallery
 
             }
 
-            // If metrics service is specified we post the data to it asynchronously. Else we skip stats.
-            if (_config != null && _config.MetricsServiceUri != null)
-            {
-                try
-                {
-                    var userHostAddress = Request.UserHostAddress;
-                    var userAgent = Request.UserAgent;
-                    var operation = Request.Headers["NuGet-Operation"];
-                    var dependentPackage = Request.Headers["NuGet-DependentPackage"];
-                    var projectGuids = Request.Headers["NuGet-ProjectGuids"];
-
-                    HostingEnvironment.QueueBackgroundWorkItem(cancellationToken => PostDownloadStatistics(id, version, userHostAddress, userAgent, operation, dependentPackage, projectGuids, cancellationToken));
-                }
-                catch (Exception ex)
-                {
-                    QuietLog.LogHandledException(ex);
-                }
-            }
-
             return await PackageFileService.CreateDownloadPackageActionResultAsync(
                 HttpContext.Request.Url,
                 id, version);
@@ -193,34 +166,6 @@ namespace NuGetGallery
 
             return jObject;
         }
-
-        private async Task PostDownloadStatistics(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids, CancellationToken cancellationToken)
-        {
-            if (_config == null || _config.MetricsServiceUri == null || cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-
-            try
-            {
-                var jObject = GetJObject(id, version, ipAddress, userAgent, operation, dependentPackage, projectGuids);
-
-                await HttpClient.PostAsync(new Uri(_config.MetricsServiceUri, MetricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, ContentTypeJson), cancellationToken);
-            }
-            catch (WebException ex)
-            {
-                QuietLog.LogHandledException(ex);
-            }
-            catch (AggregateException ex)
-            {
-                QuietLog.LogHandledException(ex.InnerException ?? ex);
-            }
-            catch (TaskCanceledException)
-            {
-                // noop
-            }
-        }
-
 
         [HttpGet]
         [ActionName("GetNuGetExeApi")]
