@@ -23,7 +23,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
-using NuGetGallery.Jobs;
 using WebBackgrounder;
 using WebActivatorEx;
 
@@ -201,13 +200,7 @@ namespace NuGetGallery
             {
                 indexer.RegisterBackgroundJobs(jobs, configuration);
             }
-            if (!configuration.HasWorker)
-            {
-                jobs.Add(
-                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5),
-                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false),
-                        timeout: TimeSpan.FromMinutes(5)));
-            }
+
             if (configuration.CollectPerfLogs)
             {
                 jobs.Add(CreateLogFlushJob());

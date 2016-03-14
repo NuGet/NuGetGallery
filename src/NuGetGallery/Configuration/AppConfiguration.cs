@@ -10,8 +10,6 @@ namespace NuGetGallery.Configuration
 {
     public class AppConfiguration : IAppConfiguration
     {
-        public bool HasWorker { get; set; }
-
         [DefaultValue("Development")]
         public string Environment { get; set; }
 
@@ -51,11 +49,6 @@ namespace NuGetGallery.Configuration
         /// Gets the @type for the Autocomplete endpoint
         /// </summary>
         public string AutocompleteServiceResourceType { get; set; }
-
-        /// <summary>
-        /// Gets the URI to the metrics service
-        /// </summary>
-        public Uri MetricsServiceUri { get; set; }
 
         /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed

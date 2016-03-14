@@ -1,6 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGetGallery.Configuration;
+
 using System;
 using System.Data.Entity;
 using System.Diagnostics.CodeAnalysis;
@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -24,7 +25,7 @@ namespace NuGetGallery
         private const string Available = "Available";
         private const string Unavailable = "Unavailable";
         private const string Unconfigured = "Unconfigured";
-        private const string StatusMessageFormat = "NuGet Gallery instance {5} is {0}. SQL is {1}. Storage is {2}. Search service is {3}. Metrics service is {4}";
+        private const string StatusMessageFormat = "NuGet Gallery instance {4} is {0}. SQL is {1}. Storage is {2}. Search service is {3}.";
 
         private const string TestSqlQuery = "SELECT TOP(1) [Key] FROM GallerySettings WITH (NOLOCK)";
 
@@ -44,13 +45,11 @@ namespace NuGetGallery
             bool sqlAzureAvailable =  IsSqlAzureAvailable();
             bool? storageAvailable = await IsAzureStorageAvailable();
             bool? searchServiceAvailable = await IsSearchServiceAvailable();
-            bool? metricsServiceAvailable = await IsMetricsServiceAvailable();
 
             bool galleryServiceAvailable =
                 sqlAzureAvailable
                 && (!storageAvailable.HasValue || storageAvailable.Value) // null == true for this condition.
-                && (!searchServiceAvailable.HasValue || searchServiceAvailable.Value)
-                && (!metricsServiceAvailable.HasValue || metricsServiceAvailable.Value);
+                && (!searchServiceAvailable.HasValue || searchServiceAvailable.Value);
 
             return new HttpStatusCodeWithBodyResult(AvailabilityStatusCode(galleryServiceAvailable),
                 String.Format(CultureInfo.InvariantCulture,
@@ -59,7 +58,6 @@ namespace NuGetGallery
                     AvailabilityMessage(sqlAzureAvailable),
                     AvailabilityMessage(storageAvailable),
                     AvailabilityMessage(searchServiceAvailable),
-                    AvailabilityMessage(metricsServiceAvailable),
                     HostMachine.Name));
         }
 
@@ -115,16 +113,6 @@ namespace NuGetGallery
             }
 
             return await IsGetSuccessful(_config.ServiceDiscoveryUri);
-        }
-
-        private async Task<bool?> IsMetricsServiceAvailable()
-        {
-            if (_config == null || _config.MetricsServiceUri == null)
-            {
-                return null;
-            }
-
-            return await IsGetSuccessful(_config.MetricsServiceUri);
         }
 
         private async Task<bool> IsGetSuccessful(Uri uri)
