@@ -160,6 +160,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The version string is invalid..
+        /// </summary>
+        internal static string PackageMetadata_SetPropertiesFromMetadata_VersionStringInvalid {
+            get {
+                return ResourceManager.GetString("PackageMetadata_SetPropertiesFromMetadata_VersionStringInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The version string &apos;{0}&apos; is invalid..
+        /// </summary>
+        internal static string PackageMetadata_VersionStringInvalid {
+            get {
+                return ResourceManager.GetString("PackageMetadata_VersionStringInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Must be a readable stream.
         /// </summary>
         internal static string StreamMustBeReadable {

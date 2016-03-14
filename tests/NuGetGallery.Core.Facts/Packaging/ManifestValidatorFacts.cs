@@ -57,11 +57,26 @@ namespace NuGetGallery.Packaging
                       </metadata>
                     </package>";
 
-        private const string NuSpecVersionInvalid = @"<?xml version=""1.0""?>
+        private const string NuSpecVersionInvalid1 = @"<?xml version=""1.0""?>
                     <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                       <metadata>
                         <id>valid</id>
                         <version>1 2 3</version>
+                        <title>Package A</title>
+                        <authors>ownera, ownerb</authors>
+                        <owners>ownera, ownerb</owners>
+                        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                        <description>package A description.</description>
+                        <language>en-US</language>
+                        <dependencies />
+                      </metadata>
+                    </package>";
+
+        private const string NuSpecVersionInvalid2 = @"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>valid</id>
+                        <version>2</version>
                         <title>Package A</title>
                         <authors>ownera, ownerb</authors>
                         <owners>ownera, ownerb</owners>
@@ -296,13 +311,21 @@ namespace NuGetGallery.Packaging
         }
 
         [Fact]
-        public void ReturnsErrorIfVersionInvalid()
+        public void ReturnsErrorIfVersionInvalid1()
         {
-            var nuspecStream = CreateNuspecStream(NuSpecVersionInvalid);
+            var nuspecStream = CreateNuspecStream(NuSpecVersionInvalid1);
 
             Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidVersion, "1 2 3") }, GetErrors(nuspecStream));
         }
 
+        [Fact]
+        public void ReturnsErrorIfVersionInvalid2()
+        {
+            var nuspecStream = CreateNuspecStream(NuSpecVersionInvalid2);
+
+            Assert.Equal(new[] { "The version string '2' is invalid." }, GetErrors(nuspecStream));
+        }
+        
         [Fact]
         public void ReturnsErrorIfDependencySetContainsInvalidId()
         {
