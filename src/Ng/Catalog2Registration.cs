@@ -39,7 +39,7 @@ namespace Ng
                 bool run = false;
                 do
                 {
-                    run |= await collector.Run(front, back, cancellationToken);
+                    run = await collector.Run(front, back, cancellationToken);
                 }
                 while (run);
 
