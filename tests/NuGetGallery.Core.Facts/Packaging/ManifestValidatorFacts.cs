@@ -315,7 +315,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecVersionInvalid1);
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidVersion, "1 2 3") }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { "The version string '1 2 3' is invalid." }, GetErrors(nuspecStream));
         }
 
         [Fact]
