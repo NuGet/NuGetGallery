@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -294,7 +295,7 @@ namespace NuGetGallery.Areas.Admin
 
         private IQueryable<Issue> GetFilteredIssuesQueryable(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
         {
-            IQueryable<Issue> queryable = _supportRequestDbContext.Issues;
+            IQueryable<Issue> queryable = _supportRequestDbContext.Issues.Include(i => i.HistoryEntries);
 
             if (assignedTo.HasValue && assignedTo.Value != -1)
             {
