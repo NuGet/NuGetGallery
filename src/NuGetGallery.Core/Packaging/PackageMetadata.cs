@@ -32,9 +32,15 @@ namespace NuGetGallery.Packaging
         private void SetPropertiesFromMetadata()
         {
             Id = GetValue("id", string.Empty);
-            
+
+            var versionString = GetValue("version", string.Empty);
+            if (versionString.IndexOf('.') < 0)
+            {
+                throw new FormatException(string.Format(Strings.PackageMetadata_VersionStringInvalid, versionString));
+            }
+
             NuGetVersion nugetVersion;
-            if (NuGetVersion.TryParse(GetValue("version", string.Empty), out nugetVersion))
+            if (NuGetVersion.TryParse(versionString, out nugetVersion))
             {
                 Version = nugetVersion;
             }

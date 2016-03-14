@@ -159,4 +159,10 @@
   <data name="Manifest_DuplicateDependency" xml:space="preserve">
     <value>The package manifest contains a duplicate dependency: {0} {1}</value>
   </data>
+  <data name="PackageMetadata_SetPropertiesFromMetadata_VersionStringInvalid" xml:space="preserve">
+    <value>The version string is invalid.</value>
+  </data>
+  <data name="PackageMetadata_VersionStringInvalid" xml:space="preserve">
+    <value>The version string '{0}' is invalid.</value>
+  </data>
 </root>
