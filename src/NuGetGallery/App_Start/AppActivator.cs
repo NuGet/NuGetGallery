@@ -166,6 +166,11 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(fontAwesomeBundle);
 
             // Support Requests admin area bundle
+            var supportRequestStylesBundle = new StyleBundle("~/Content/supportrequests")
+                .Include("~/Content/themes/custom/jquery-ui-1.10.3.custom.css")
+                .Include("~/Content/admin/SupportRequestStyles.css");
+            BundleTable.Bundles.Add(supportRequestStylesBundle);
+
             var supportRequestsBundle = new ScriptBundle("~/Scripts/supportrequests")
                 .Include("~/Scripts/jquery-ui-{version}.js")
                 .Include("~/Scripts/moment.js")
