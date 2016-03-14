@@ -24,6 +24,6 @@ namespace NuGetGallery
 
         Task CancelChangeEmailAddress(User user);
 
-        Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IEnumerable<int> distinctUserKeys);
+        Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys);
     }
 }

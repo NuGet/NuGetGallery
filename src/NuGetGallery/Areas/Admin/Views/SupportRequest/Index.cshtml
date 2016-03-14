@@ -123,10 +123,10 @@
             </div>
 
             <div style="display: none;" data-bind="visible: filteredIssues().length > 0, foreach: filteredIssues()">
-                <div class="supportrequest" data-bind="id: 'sr-' + Issue.Key">
+                <div class="supportrequest" data-bind="id: 'sr-' + Key">
                     <div class="side">
-                        <p class="sr-issue-id" data-bind="text: '#SR-' + Issue.Key"></p>
-                        <p data-bind="text: '&diams; ' + Issue.IssueStatus.Name, attr: { style: $parent.getStyleForIssueStatus($data) }"></p>
+                        <p class="sr-issue-id" data-bind="text: '#SR-' + Key"></p>
+                        <p data-bind="text: '&diams; ' + IssueStatusName, attr: { style: $parent.getStyleForIssueStatus($data) }"></p>
                     </div>
                     <div class="sr-issue">
                         <div class="pull-right">
@@ -134,20 +134,20 @@
                             <a class="editButton" href="#" data-bind="click: $parent.editSupportRequest" title="Click to edit this issue.">Edit</a>
                             <a class="contactButton" href="#" data-bind="attr: { href: $parent.generateContactUserUrl($data) }" title="Click to contact the issue reporter.">Email</a>
                         </div>
-                        <p class="bold" data-bind="text: Issue.IssueTitle, click: $parent.editSupportRequest"></p>
+                        <p class="bold" data-bind="text: IssueTitle, click: $parent.editSupportRequest"></p>
                         <p>
-                            Created by <a data-bind="text: Issue.CreatedBy, attr: { href: $parent.generateUserProfileUrl($data) }"></a> on <span data-bind="text: Issue.CreatedDate"></span>.<br/>
-                            <span data-bind="visible: Issue.AssignedTo !== null">
-                                Assigned to <span class="bold" data-bind="text: Issue.AssignedTo ? Issue.AssignedTo.GalleryUsername : ''"></span>.
+                            Created by <a data-bind="text: CreatedBy, attr: { href: $parent.generateUserProfileUrl($data) }"></a> on <span data-bind="text: CreatedDate"></span>.<br/>
+                            <span data-bind="visible: AssignedTo !== null">
+                                Assigned to <span class="bold" data-bind="text: AssignedToGalleryUsername ? AssignedToGalleryUsername : ''"></span>.
                             </span>
-                            <span data-bind="visible: Issue.AssignedTo === null" style="color: #ff0000">Not assigned!</span>
+                            <span data-bind="visible: AssignedTo === null" style="color: #ff0000">Not assigned!</span>
                         </p>
                         <p>
-                            <span class="italic" data-bind="html: Issue.Details"></span>
+                            <span class="italic" data-bind="html: Details"></span>
                         </p>
                         <p class="sr-issue-reason">
                             <span class="ui-icon ui-icon-tag"></span>
-                            <span data-bind="text: Issue.Reason"></span>
+                            <span data-bind="text: Reason"></span>
                         </p>
                     </div>
                 </div>

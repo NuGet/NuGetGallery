@@ -234,21 +234,17 @@ namespace NuGetGallery.Areas.Admin.Controllers
             pagedIssues = pagedIssues.Take(take);
 
             var enumerable = pagedIssues as IList<Issue> ?? pagedIssues.ToList();
-            var distinctUserKeys = enumerable.Select(i => i.UserKey).Where(i => i.HasValue).Select(i => i.Value).Distinct();
+            var distinctUserKeys = enumerable.Select(i => i.UserKey).Where(i => i.HasValue).Select(i => i.Value).Distinct().ToList();
             var userEmails = await _userService.GetEmailAddressesForUserKeysAsync(distinctUserKeys);
 
             var results = new List<SupportRequestViewModel>();
 
             foreach (var issue in enumerable)
             {
-                var viewModel = new SupportRequestViewModel();
-                viewModel.AssignedTo = issue.AssignedToId;
+                var viewModel = new SupportRequestViewModel(issue);
                 viewModel.AssignedToGalleryUsername = issue.AssignedTo?.GalleryUsername;
-                viewModel.IssueStatusId = issue.IssueStatusId;
                 viewModel.IssueStatusName = issue.IssueStatus.Name;
                 viewModel.UserEmail = issue.UserKey.HasValue ? userEmails[issue.UserKey.Value] : string.Empty;
-                viewModel.Issue = issue;
-                viewModel.Issue.SiteRoot = VerifyAndFixTrailingSlash(viewModel.Issue.SiteRoot);
 
                 results.Add(viewModel);
             }
@@ -259,16 +255,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private string GetLoggedInUser()
         {
             return User.Identity.Name;
-        }
-
-        private static string VerifyAndFixTrailingSlash(string url)
-        {
-            var result = url;
-            if (!string.IsNullOrEmpty(url) && url.Substring(url.Length - 1, 1) != "/")
-            {
-                result = string.Concat(url, "/");
-            }
-            return result;
         }
 
         private List<SelectListItem> GetListOfIssueStatuses(int? selectedIssueKey = -1)

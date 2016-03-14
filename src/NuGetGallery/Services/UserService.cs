@@ -48,11 +48,11 @@ namespace NuGetGallery
         public virtual User FindByEmailAddress(string emailAddress)
         {
             var allMatches = UserRepository.GetAll()
-				.Include(u => u.Credentials)
+                .Include(u => u.Credentials)
                 .Include(u => u.Roles)
                 .Where(u => u.EmailAddress == emailAddress)
-				.Take(2)
-				.ToList();
+                .Take(2)
+                .ToList();
 
             if (allMatches.Count == 1)
             {
@@ -109,10 +109,11 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
         }
 
-        public async Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IEnumerable<int> distinctUserKeys)
+        public async Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys)
         {
             var results = await UserRepository.GetAll()
                 .Where(u => distinctUserKeys.Contains(u.Key))
+                .Select(u => new { u.Key, u.EmailAddress })
                 .ToDictionaryAsync(u => u.Key, u => u.EmailAddress);
 
             return results;
