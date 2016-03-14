@@ -223,7 +223,7 @@ namespace NuGetGallery.Packaging
                   </metadata>
                 </package>";
 
-        private const string NuSpecFrameworkAssemblyReferenceContainsInvalidTargetFramework = @"<?xml version=""1.0""?>
+        private const string NuSpecFrameworkAssemblyReferenceContainsUnsupportedTargetFramework = @"<?xml version=""1.0""?>
                 <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                   <metadata>
                     <id>packageA</id>
@@ -235,7 +235,7 @@ namespace NuGetGallery.Packaging
                     <description>package A description.</description>
                     <language>en-US</language>
                     <frameworkAssemblies>
-                      <frameworkAssembly assemblyName=""System.ServiceModel"" targetFramework=""net40-client-full-awesome-unicorns"" />
+                      <frameworkAssembly assemblyName=""System.ServiceModel"" targetFramework=""Unsupported0.0"" />
                     </frameworkAssemblies>
                   </metadata>
                 </package>";
@@ -341,7 +341,15 @@ namespace NuGetGallery.Packaging
             
             Assert.Equal(GetErrors(nuspecStream).Length, 0);
         }
-        
+
+        [Fact]
+        public void ReturnsErrorIfDependencySetContainsUnsupportedTargetFramework()
+        {
+            var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsUnsupportedTargetFramework);
+
+            Assert.Equal(new[] { String.Format(Strings.Manifest_TargetFrameworkNotSupported, "Unsupported,Version=v0.0") }, GetErrors(nuspecStream));
+        }
+
         [Fact]
         public void ReturnsErrorIfDependencySetContainsDuplicateDependency()
         {

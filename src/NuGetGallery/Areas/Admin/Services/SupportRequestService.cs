@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,7 +51,7 @@ namespace NuGetGallery.Areas.Admin
             return _supportRequestDbContext.Histories.Where(h => h.IssueId == id).ToList();
         }
 
-        public IReadOnlyCollection<Issue> GetIssues(int ? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
+        public IReadOnlyCollection<Issue> GetIssues(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
         {
             var queryable = GetFilteredIssuesQueryable(assignedTo, reason, issueStatusId, galleryUsername);
 
@@ -133,11 +134,27 @@ namespace NuGetGallery.Areas.Admin
                 if (currentIssue.AssignedToId != assignedToId)
                 {
                     var previousAssignedUsername = currentIssue.AssignedTo?.GalleryUsername ?? "unassigned";
-                    var newAssignedUsername = assignedToId.HasValue ? GetAdminByKey(assignedToId.Value).GalleryUsername : "unassigned";
+                    string newAssignedUsername;
+                    if (assignedToId.HasValue)
+                    {
+                        var admin = GetAdminByKey(assignedToId.Value);
+                        if (admin == null)
+                        {
+                            newAssignedUsername = "unassigned";
+                        }
+                        else
+                        {
+                            newAssignedUsername = admin.GalleryUsername;
+                            currentIssue.AssignedToId = assignedToId;
+                        }
+                    }
+                    else
+                    {
+                        newAssignedUsername = "unassigned";
+                    }
 
                     comments += $"Reassigned issue from '{previousAssignedUsername}' to '{newAssignedUsername}'.\r\n";
 
-                    currentIssue.AssignedToId = assignedToId;
                     currentIssue.AssignedTo = null;
 
                     changesDetected = true;
@@ -169,7 +186,7 @@ namespace NuGetGallery.Areas.Admin
                     {
                         IssueId = issueId,
                         EditedBy = editedBy,
-                        AssignedToId = assignedToId,
+                        AssignedToId = assignedToId == -1 ? null : assignedToId,
                         EntryDate = DateTime.UtcNow,
                         IssueStatusId = issueStatusId,
                         Comments = comments
@@ -294,7 +311,10 @@ namespace NuGetGallery.Areas.Admin
 
         private IQueryable<Issue> GetFilteredIssuesQueryable(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
         {
-            IQueryable<Issue> queryable = _supportRequestDbContext.Issues;
+            IQueryable<Issue> queryable = _supportRequestDbContext.Issues
+                .Include(i => i.HistoryEntries)
+                .Include(i => i.IssueStatus)
+                .Include(i => i.AssignedTo);
 
             if (assignedTo.HasValue && assignedTo.Value != -1)
             {

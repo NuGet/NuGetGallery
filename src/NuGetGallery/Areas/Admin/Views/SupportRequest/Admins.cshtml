@@ -6,8 +6,7 @@
 }
 
 @section TopScripts{
-    <link href="~/Content/themes/custom/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" />
-    <link href="~/Content/admin/SupportRequestStyles.css" rel="stylesheet" />
+    @Styles.Render("~/Content/supportrequests")
 }
 
 <section>
@@ -111,10 +110,7 @@
 </section>
 
 @section BottomScripts{
-    <script src="~/Scripts/jquery-ui-1.10.3.min.js"></script>
-    <script src="~/Scripts/moment.min.js"></script>
-    <script src="~/Scripts/knockout-2.2.1.js"></script>
-    <script src="~/Scripts/knockout.mapping-latest.js"></script>
+    @Scripts.Render("~/Scripts/supportrequests")
 
     <script type="text/javascript">
         $(function () {

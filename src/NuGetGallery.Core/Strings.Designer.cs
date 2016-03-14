@@ -160,6 +160,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The target framework {0} is not supported..
+        /// </summary>
+        internal static string Manifest_TargetFrameworkNotSupported {
+            get {
+                return ResourceManager.GetString("Manifest_TargetFrameworkNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The version string is invalid..
         /// </summary>
         internal static string PackageMetadata_SetPropertiesFromMetadata_VersionStringInvalid {
