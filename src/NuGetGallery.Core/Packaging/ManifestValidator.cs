@@ -79,6 +79,23 @@ namespace NuGetGallery.Packaging
                     version));
             }
 
+            // Check framework reference groups
+            var frameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
+            if (frameworkReferenceGroups != null)
+            {
+                foreach (var frameworkReferenceGroup in frameworkReferenceGroups)
+                {
+                    var isUnsupportedFramework = frameworkReferenceGroup?.TargetFramework?.IsUnsupported;
+                    if (isUnsupportedFramework.HasValue && isUnsupportedFramework.Value)
+                    {
+                        yield return new ValidationResult(String.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.Manifest_TargetFrameworkNotSupported,
+                            frameworkReferenceGroup?.TargetFramework?.ToString()));
+                    }
+                }
+            }
+
             // Check dependency groups
             var dependencyGroups = packageMetadata.GetDependencyGroups();
             if (dependencyGroups != null)
