@@ -155,31 +155,6 @@
       <HintPath>..\..\packages\entityframework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Glimpse.Ado, Version=1.7.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.Ado.1.7.3\lib\net45\Glimpse.Ado.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Glimpse.AspNet, Version=1.9.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.AspNet.1.9.2\lib\net45\Glimpse.AspNet.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Glimpse.Core, Version=1.8.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.1.8.6\lib\net45\Glimpse.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Glimpse.EF6, Version=1.6.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.EF6.1.6.5\lib\net45\Glimpse.EF6.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Glimpse.Mvc5, Version=1.5.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.Mvc5.1.5.3\lib\net45\Glimpse.Mvc5.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
@@ -726,9 +701,6 @@
     <Compile Include="OData\QueryInterceptors\NormalizeVersionInterceptor.cs" />
     <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
-    <Compile Include="Diagnostics\AuthenticationGlimpseTab.cs" />
-    <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
-    <Compile Include="Diagnostics\DiagnosticsGlimpseTab.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\PerfEvent.cs" />
     <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
@@ -736,7 +708,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Extensions\HttpRequestExtensions.cs" />
-    <Compile Include="GlimpseSecurityPolicy.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
     <Compile Include="Helpers\AppInsightsHealthIndicatorLogger.cs" />
     <Compile Include="Helpers\Telemetry.cs" />
@@ -747,7 +718,6 @@
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
-    <Compile Include="Diagnostics\GlimpseServiceLocator.cs" />
     <Compile Include="Configuration\StorageType.cs" />
     <Content Include="bin\NuGetGallery.dll.config" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
@@ -998,7 +968,6 @@
     <Compile Include="OData\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
     <Compile Include="Filters\ApiAuthorizeAttribute.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />

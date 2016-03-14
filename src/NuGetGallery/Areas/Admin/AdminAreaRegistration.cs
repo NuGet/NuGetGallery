@@ -22,7 +22,6 @@ namespace NuGetGallery.Areas.Admin
             var config = DependencyResolver.Current.GetService<IAppConfiguration>();
 
             context.Routes.Ignore("Admin/Errors.axd/{*pathInfo}"); // ELMAH owns this root
-            context.Routes.Ignore("Admin/Glimpse/{*pathInfo}"); // Glimpse owns this root
             DynamicDataManager.Register(context.Routes, "Admin/Database", config);
 
             context.MapRoute(
