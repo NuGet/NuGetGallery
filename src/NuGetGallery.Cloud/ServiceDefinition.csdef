@@ -25,7 +25,6 @@
       <Setting name="Gallery.AzureCdnHost" />
       <Setting name="Gallery.LuceneIndexLocation" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
-      <Setting name="Gallery.HasWorker" />
       <Setting name="Gallery.ServiceDiscoveryUri" />
       <Setting name="Gallery.SearchServiceResourceType" />
       <Setting name="Gallery.MetricsServiceUri" />

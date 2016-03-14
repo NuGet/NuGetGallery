@@ -320,7 +320,6 @@
     <Compile Include="Tasks\DataManagement\NormalizePackageFilesTask.cs" />
     <Compile Include="Tasks\DataManagement\NormalizePackageVersionsTask.cs" />
     <Compile Include="Tasks\DataManagement\PopulateCredentialsTask.cs" />
-    <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
     <Compile Include="Tasks\DeleteOldWarehouseBackupsTask.cs" />
@@ -354,7 +353,6 @@
     <Compile Include="PackageComparer.cs" />
     <Compile Include="PackageRegistration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tasks\PurgePackageStatisticsTask.cs" />
     <Compile Include="Tasks\ReplacePackageFileTask.cs" />
     <Compile Include="Tasks\CopyDatabaseBackupTask.cs" />
     <Compile Include="Tasks\ReplicatePackageStatisticsTask.cs" />

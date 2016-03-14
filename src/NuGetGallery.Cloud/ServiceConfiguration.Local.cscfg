@@ -43,7 +43,6 @@
       <!-- SmtpUri is expected to be of the format: smtps://username:password@host:port. Note that if username contains an "@", you need to URI Encode it! -->
       <Setting name="Gallery.Brand" value="NuGet Gallery" />
       <Setting name="Gallery.SmtpUri" value="" />
-      <Setting name="Gallery.HasWorker" value="true" />
       <Setting name="Gallery.RequireSSL" value="true" />
       <Setting name="Gallery.StorageType" value="AzureStorage" />
       <Setting name="Gallery.LuceneIndexLocation" value="Temp" />

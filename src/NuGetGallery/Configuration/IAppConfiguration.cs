@@ -9,11 +9,6 @@ namespace NuGetGallery.Configuration
     public interface IAppConfiguration
     {
         /// <summary>
-        /// Gets a boolean inidicating if this environment provides a background worker.
-        /// </summary>
-        bool HasWorker { get; set; }
-
-        /// <summary>
         /// Gets the location in which the Lucene Index is stored
         /// </summary>
         LuceneIndexLocation LuceneIndexLocation { get; set; }
