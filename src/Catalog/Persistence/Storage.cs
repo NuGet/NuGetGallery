@@ -158,16 +158,20 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected string GetName(Uri uri)
         {
-            string address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
+            var address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
             if (!address.EndsWith("/"))
             {
                 address += "/";
             }
-            string s = uri.ToString();
+            var uriString = uri.ToString();
 
             int baseAddressLength = address.Length;
 
-            string name = s.Substring(baseAddressLength);
+            var name = uriString.Substring(baseAddressLength);
+            if (name.Contains("#"))
+            {
+                name = name.Substring(0, name.IndexOf("#"));
+            }
             return name;
         }
 
