@@ -78,6 +78,14 @@ namespace NuGetGallery.Packaging
                     Strings.Manifest_InvalidVersion,
                     version));
             }
+            if (packageMetadata.Version.IsSemVer200())
+            {
+
+                yield return new ValidationResult(String.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.Manifest_InvalidVersionSemVer200,
+                    packageMetadata.Version));
+            }
 
             // Check framework reference groups
             var frameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();

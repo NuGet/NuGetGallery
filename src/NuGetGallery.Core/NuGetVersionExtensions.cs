@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using NuGet.Versioning;
 
 namespace NuGetGallery
@@ -25,6 +26,11 @@ namespace NuGetGallery
         public static string ToNormalizedStringSafe(this NuGetVersion self)
         {
             return self != null ? self.ToNormalizedString() : String.Empty;
+        }
+
+        public static bool IsSemVer200(this NuGetVersion self)
+        {
+            return self.ReleaseLabels.Count() > 1 || self.HasMetadata;
         }
     }
 }
