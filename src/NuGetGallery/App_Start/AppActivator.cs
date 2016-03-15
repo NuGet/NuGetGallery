@@ -23,7 +23,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
-using NuGetGallery.Jobs;
 using WebBackgrounder;
 using WebActivatorEx;
 
@@ -167,6 +166,11 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(fontAwesomeBundle);
 
             // Support Requests admin area bundle
+            var supportRequestStylesBundle = new StyleBundle("~/Content/supportrequests")
+                .Include("~/Content/themes/custom/jquery-ui-1.10.3.custom.css")
+                .Include("~/Content/admin/SupportRequestStyles.css");
+            BundleTable.Bundles.Add(supportRequestStylesBundle);
+
             var supportRequestsBundle = new ScriptBundle("~/Scripts/supportrequests")
                 .Include("~/Scripts/jquery-ui-{version}.js")
                 .Include("~/Scripts/moment.js")
@@ -201,13 +205,7 @@ namespace NuGetGallery
             {
                 indexer.RegisterBackgroundJobs(jobs, configuration);
             }
-            if (!configuration.HasWorker)
-            {
-                jobs.Add(
-                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5),
-                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false),
-                        timeout: TimeSpan.FromMinutes(5)));
-            }
+
             if (configuration.CollectPerfLogs)
             {
                 jobs.Add(CreateLogFlushJob());

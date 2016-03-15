@@ -151,11 +151,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The version &apos;{0}&apos; is not supported. The NuGet Gallery currently does not support Semantic Version 2.0..
+        /// </summary>
+        internal static string Manifest_InvalidVersionSemVer200 {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidVersionSemVer200", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package manifest is missing the Id field.
         /// </summary>
         internal static string Manifest_MissingId {
             get {
                 return ResourceManager.GetString("Manifest_MissingId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The target framework {0} is not supported..
+        /// </summary>
+        internal static string Manifest_TargetFrameworkNotSupported {
+            get {
+                return ResourceManager.GetString("Manifest_TargetFrameworkNotSupported", resourceCulture);
             }
         }
         

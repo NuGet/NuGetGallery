@@ -9,11 +9,6 @@ namespace NuGetGallery.Configuration
     public interface IAppConfiguration
     {
         /// <summary>
-        /// Gets a boolean inidicating if this environment provides a background worker.
-        /// </summary>
-        bool HasWorker { get; set; }
-
-        /// <summary>
         /// Gets the location in which the Lucene Index is stored
         /// </summary>
         LuceneIndexLocation LuceneIndexLocation { get; set; }
@@ -57,11 +52,6 @@ namespace NuGetGallery.Configuration
         /// Gets the @type for the Autocomplete endpoint
         /// </summary>
         string AutocompleteServiceResourceType { get; set; }
-
-        /// <summary>
-        /// Gets the URI to the metrics service
-        /// </summary>
-        Uri MetricsServiceUri { get; set; }
 
         /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed

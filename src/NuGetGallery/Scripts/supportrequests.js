@@ -153,22 +153,22 @@ function SupportRequestsViewModel(editUrl, filterUrl, historyUrl) {
     this.editSupportRequest = function (supportRequestViewModel) {
 
         var editViewModel = new EditViewModel($self.editUrl);
-        editViewModel.issue = supportRequestViewModel.Issue;
+        editViewModel.issue = supportRequestViewModel;
         editViewModel.assignedToChoices = $self.assignedToChoices;
         editViewModel.issueStatusChoices = $self.issueStatusChoices;
-        editViewModel.editAssignedToId = supportRequestViewModel.Issue.AssignedToId;
-        editViewModel.editIssueStatusId = supportRequestViewModel.Issue.IssueStatusId;
+        editViewModel.editAssignedToId = supportRequestViewModel.AssignedTo;
+        editViewModel.editIssueStatusId = supportRequestViewModel.IssueStatusId;
 
         ko.applyBindings(editViewModel, $self.editSupportRequestForm);
 
-        $self.editSupportRequestDialog.dialog('option', 'title', 'Edit SR-' + supportRequestViewModel.Issue.Key);
+        $self.editSupportRequestDialog.dialog('option', 'title', 'Edit SR-' + supportRequestViewModel.Key);
         $self.editSupportRequestDialog.dialog('open');
         return false;
     };
 
     this.generateContactUserUrl = function (supportRequestViewModel) {
         return 'mailto:' + supportRequestViewModel.UserEmail
-            + '?subject=[NuGet.org Support] ' + supportRequestViewModel.Issue.IssueTitle;
+            + '?subject=[NuGet.org Support] ' + supportRequestViewModel.IssueTitle;
     };
 
     this.showHistory = function (supportRequestViewModel) {
@@ -183,10 +183,10 @@ function SupportRequestsViewModel(editUrl, filterUrl, historyUrl) {
             success: function (data) {
 
                 var historyViewModel = ko.dataFor($self.historyTableCtrl);
-                historyViewModel.issue(supportRequestViewModel.Issue);
+                historyViewModel.issue(supportRequestViewModel);
                 historyViewModel.historyEntries(data);
 
-                $self.historyDialog.dialog('option', 'title', 'History for SR-' + supportRequestViewModel.Issue.Key);
+                $self.historyDialog.dialog('option', 'title', 'History for SR-' + supportRequestViewModel.Key);
                 $self.historyDialog.dialog('open');
             }
         })
@@ -198,21 +198,21 @@ function SupportRequestsViewModel(editUrl, filterUrl, historyUrl) {
     };
 
     this.generateUserProfileUrl = function (supportRequestViewModel) {
-        if (supportRequestViewModel.Issue.CreatedBy.toUpperCase !== 'ANONYMOUS') {
-            return supportRequestViewModel.Issue.SiteRoot + 'Profiles/' + supportRequestViewModel.Issue.CreatedBy;
+        if (supportRequestViewModel.CreatedBy.toUpperCase !== 'ANONYMOUS') {
+            return supportRequestViewModel.SiteRoot + 'Profiles/' + supportRequestViewModel.CreatedBy;
         }
         return '#';
     }
 
     this.generateHistoryUrl = function (supportRequestViewModel) {
-        return $self.historyUrl + '?id=' + supportRequestViewModel.Issue.Key;
+        return $self.historyUrl + '?id=' + supportRequestViewModel.Key;
     }
 
     this.getStyleForIssueStatus = function (supportRequestViewModel) {
-        if (supportRequestViewModel.Issue.IssueStatus.Name.toUpperCase() === 'NEW') {
+        if (supportRequestViewModel.IssueStatusName.toUpperCase() === 'NEW') {
             return 'color: #FF1F19; style: bold;';
         }
-        else if (supportRequestViewModel.Issue.IssueStatus.Name.toUpperCase() === 'RESOLVED') {
+        else if (supportRequestViewModel.IssueStatusName.toUpperCase() === 'RESOLVED') {
             return 'color: #09B25B; style: bold;';
         }
         else {

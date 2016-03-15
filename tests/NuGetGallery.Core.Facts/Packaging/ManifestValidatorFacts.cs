@@ -87,6 +87,21 @@ namespace NuGetGallery.Packaging
                       </metadata>
                     </package>";
 
+        private const string NuSpecSemVer200 = @"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>valid</id>
+                        <version>2.0.0+123</version>
+                        <title>Package A</title>
+                        <authors>ownera, ownerb</authors>
+                        <owners>ownera, ownerb</owners>
+                        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                        <description>package A description.</description>
+                        <language>en-US</language>
+                        <dependencies />
+                      </metadata>
+                    </package>";
+
         private const string NuSpecIconUrlInvalid = @"<?xml version=""1.0""?>
                     <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                       <metadata>
@@ -223,7 +238,7 @@ namespace NuGetGallery.Packaging
                   </metadata>
                 </package>";
 
-        private const string NuSpecFrameworkAssemblyReferenceContainsInvalidTargetFramework = @"<?xml version=""1.0""?>
+        private const string NuSpecFrameworkAssemblyReferenceContainsUnsupportedTargetFramework = @"<?xml version=""1.0""?>
                 <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                   <metadata>
                     <id>packageA</id>
@@ -235,7 +250,7 @@ namespace NuGetGallery.Packaging
                     <description>package A description.</description>
                     <language>en-US</language>
                     <frameworkAssemblies>
-                      <frameworkAssembly assemblyName=""System.ServiceModel"" targetFramework=""net40-client-full-awesome-unicorns"" />
+                      <frameworkAssembly assemblyName=""System.ServiceModel"" targetFramework=""Unsupported0.0"" />
                     </frameworkAssemblies>
                   </metadata>
                 </package>";
@@ -325,7 +340,15 @@ namespace NuGetGallery.Packaging
 
             Assert.Equal(new[] { "The version string '2' is invalid." }, GetErrors(nuspecStream));
         }
-        
+
+        [Fact]
+        public void ReturnsErrorIfVersionIsSemVer200()
+        {
+            var nuspecStream = CreateNuspecStream(NuSpecSemVer200);
+
+            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidVersionSemVer200, "2.0.0+123") }, GetErrors(nuspecStream));
+        }
+
         [Fact]
         public void ReturnsErrorIfDependencySetContainsInvalidId()
         {
@@ -341,7 +364,15 @@ namespace NuGetGallery.Packaging
             
             Assert.Equal(GetErrors(nuspecStream).Length, 0);
         }
-        
+
+        [Fact]
+        public void ReturnsErrorIfDependencySetContainsUnsupportedTargetFramework()
+        {
+            var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsUnsupportedTargetFramework);
+
+            Assert.Equal(new[] { String.Format(Strings.Manifest_TargetFrameworkNotSupported, "Unsupported,Version=v0.0") }, GetErrors(nuspecStream));
+        }
+
         [Fact]
         public void ReturnsErrorIfDependencySetContainsDuplicateDependency()
         {

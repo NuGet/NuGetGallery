@@ -28,7 +28,6 @@
       <Setting name="Gallery.SiteRoot" value="nuget.localtest.me" />
       <Setting name="Gallery.ServiceDiscoveryUri" value="https://api.nuget.org/v3/index.json" />
       <Setting name="Gallery.SearchServiceResourceType" value="SearchGalleryQueryService/3.0.0-rc" />
-      <Setting name="Gallery.MetricsServiceUri" value="" />
       <Setting name="Auth.MicrosoftAccount.Enabled" value="false" />
       <Setting name="Auth.MicrosoftAccount.ClientId" value="" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" value="" />
@@ -43,7 +42,6 @@
       <!-- SmtpUri is expected to be of the format: smtps://username:password@host:port. Note that if username contains an "@", you need to URI Encode it! -->
       <Setting name="Gallery.Brand" value="NuGet Gallery" />
       <Setting name="Gallery.SmtpUri" value="" />
-      <Setting name="Gallery.HasWorker" value="true" />
       <Setting name="Gallery.RequireSSL" value="true" />
       <Setting name="Gallery.StorageType" value="AzureStorage" />
       <Setting name="Gallery.LuceneIndexLocation" value="Temp" />

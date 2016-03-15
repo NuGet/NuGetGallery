@@ -165,4 +165,10 @@
   <data name="PackageMetadata_VersionStringInvalid" xml:space="preserve">
     <value>The version string '{0}' is invalid.</value>
   </data>
+  <data name="Manifest_TargetFrameworkNotSupported" xml:space="preserve">
+    <value>The target framework {0} is not supported.</value>
+  </data>
+  <data name="Manifest_InvalidVersionSemVer200" xml:space="preserve">
+    <value>The version '{0}' is not supported. The NuGet Gallery currently does not support Semantic Version 2.0.</value>
+  </data>
 </root>
