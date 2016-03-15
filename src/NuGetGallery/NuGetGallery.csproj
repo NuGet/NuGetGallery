@@ -716,6 +716,10 @@
     <Compile Include="Migrations\201603111230347_RemoveSqlDownloadStatsAggregation.Designer.cs">
       <DependentUpon>201603111230347_RemoveSqlDownloadStatsAggregation.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201603151731262_AddIndexForPackageDeletes.cs" />
+    <Compile Include="Migrations\201603151731262_AddIndexForPackageDeletes.Designer.cs">
+      <DependentUpon>201603151731262_AddIndexForPackageDeletes.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1795,6 +1799,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201603111230347_RemoveSqlDownloadStatsAggregation.resx">
       <DependentUpon>201603111230347_RemoveSqlDownloadStatsAggregation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201603151731262_AddIndexForPackageDeletes.resx">
+      <DependentUpon>201603151731262_AddIndexForPackageDeletes.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
