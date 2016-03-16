@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery
 {

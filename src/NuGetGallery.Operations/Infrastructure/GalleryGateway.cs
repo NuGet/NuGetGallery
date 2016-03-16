@@ -5,6 +5,7 @@ using System.Data.Entity.Migrations;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Migrations;
 
 namespace NuGetGallery.Infrastructure

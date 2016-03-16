@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     public class Role
         : IEntity

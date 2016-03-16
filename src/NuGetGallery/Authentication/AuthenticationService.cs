@@ -12,6 +12,7 @@ using System.Web.Mvc;
 using Microsoft.Owin;
 using NuGet.Services.Auditing;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;

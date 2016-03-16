@@ -16,6 +16,7 @@ using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;

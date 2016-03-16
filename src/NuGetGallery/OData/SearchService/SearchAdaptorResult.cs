@@ -3,6 +3,7 @@
 
 using System.Linq;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery.OData
 {

@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 

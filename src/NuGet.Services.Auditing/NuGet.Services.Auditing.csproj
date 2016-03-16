@@ -59,6 +59,11 @@
     <Compile Include="PackageAuditAction.cs" />
     <Compile Include="PackageAuditRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="UserAuditAction.cs" />
     <Compile Include="UserAuditRecord.cs" />
   </ItemGroup>
@@ -71,6 +76,12 @@
       <Project>{0439b5ce-aa48-4757-9692-fc521ae84fbf}</Project>
       <Name>NuGet.Services.Gallery.Entities</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

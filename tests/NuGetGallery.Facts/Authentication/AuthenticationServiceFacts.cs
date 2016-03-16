@@ -13,6 +13,7 @@ using Microsoft.Owin;
 using Moq;
 using NuGet.Services.Auditing;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Configuration;

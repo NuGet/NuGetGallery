@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     public class User
         : IEntity

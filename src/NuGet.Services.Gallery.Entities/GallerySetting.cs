@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     // These guys are no longer referenced by code, but they are still referenced by
     // UpdateLicenseReportsTask in NuGet.Gallery.Operations, so need to be part of the data model.

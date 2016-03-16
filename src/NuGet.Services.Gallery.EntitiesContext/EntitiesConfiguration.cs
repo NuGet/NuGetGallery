@@ -6,7 +6,7 @@ using System.Data.Entity.Infrastructure;
 using System.Data.Entity.SqlServer;
 using System.Runtime.Remoting.Messaging;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     public class EntitiesConfiguration
         : DbConfiguration

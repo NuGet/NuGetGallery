@@ -11,6 +11,7 @@ using System.Web;
 using System.Web.Http.OData.Query;
 using System.Web.Routing;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGet.Services.Search.Models;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData.QueryInterceptors;

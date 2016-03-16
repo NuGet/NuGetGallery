@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using NuGet.Versioning;
 using NuGet.Services.Auditing;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery
 {

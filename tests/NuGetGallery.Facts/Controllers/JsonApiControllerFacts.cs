@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Framework;
 using Xunit;
 

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery
 {

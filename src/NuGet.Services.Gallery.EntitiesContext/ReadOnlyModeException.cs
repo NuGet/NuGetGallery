@@ -3,7 +3,7 @@
 
 using System;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     [Serializable]
     public class ReadOnlyModeException

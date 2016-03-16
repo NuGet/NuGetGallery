@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using Xunit;
 
 namespace NuGetGallery.PackageCurators

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using Dapper;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Operations.Infrastructure;
 
 namespace NuGetGallery.Operations.Tasks.DataManagement

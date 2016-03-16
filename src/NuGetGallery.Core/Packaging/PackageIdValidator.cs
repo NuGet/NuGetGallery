@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery.Packaging
 {

@@ -9,6 +9,7 @@ using System.Web;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
+using NuGet.Services.Auditing.Properties;
 
 namespace NuGet.Services.Auditing
 {
@@ -151,7 +152,7 @@ namespace NuGet.Services.Auditing
                     // Blob already existed!
                     throw new InvalidOperationException(String.Format(
                         CultureInfo.CurrentCulture,
-                        "Unable to write audit record: '{0}'. Record already exists.",
+                        Resources.CloudAuditingService_DuplicateAuditRecord,
                         fullPath));
                 }
                 throw;

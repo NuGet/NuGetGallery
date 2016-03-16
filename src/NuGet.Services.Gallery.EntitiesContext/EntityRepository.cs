@@ -4,7 +4,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     public class EntityRepository<T>
         : IEntityRepository<T>

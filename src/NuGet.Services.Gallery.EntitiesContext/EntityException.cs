@@ -4,7 +4,7 @@
 using System;
 using System.Globalization;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     [Serializable]
     public class EntityException

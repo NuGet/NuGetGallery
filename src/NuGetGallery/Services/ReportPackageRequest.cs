@@ -6,6 +6,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Web.Mvc;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery

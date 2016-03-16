@@ -9,6 +9,7 @@ using Moq;
 using Moq.Language;
 using Moq.Language.Flow;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Authentication;
 using Xunit;
 

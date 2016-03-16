@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using WebBackgrounder;

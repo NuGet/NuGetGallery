@@ -3,6 +3,7 @@
 
 using System.Data;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using Xunit;
 
 namespace NuGetGallery.Entities

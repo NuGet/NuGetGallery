@@ -3,6 +3,7 @@
 
 using System.Web;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Controllers;
 

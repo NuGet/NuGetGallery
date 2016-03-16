@@ -9,6 +9,7 @@ using Autofac;
 using Microsoft.Owin;
 using Moq;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Framework

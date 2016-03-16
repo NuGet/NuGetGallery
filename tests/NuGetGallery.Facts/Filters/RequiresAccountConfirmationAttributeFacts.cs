@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using Xunit;
 
 namespace NuGetGallery.Filters

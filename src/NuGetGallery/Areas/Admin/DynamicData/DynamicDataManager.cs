@@ -8,6 +8,7 @@ using System.Web.DynamicData;
 using System.Web.Routing;
 using Microsoft.AspNet.DynamicData.ModelProviders;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.DynamicData

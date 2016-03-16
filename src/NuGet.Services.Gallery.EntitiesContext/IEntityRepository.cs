@@ -4,7 +4,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     public interface IEntityRepository<T>
         where T : class, IEntity, new()

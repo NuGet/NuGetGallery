@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using Microsoft.Owin;
 using Moq;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;

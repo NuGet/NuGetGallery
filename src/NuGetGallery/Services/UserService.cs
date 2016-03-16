@@ -10,6 +10,7 @@ using NuGetGallery.Configuration;
 using NuGet.Services.Auditing;
 using System.Threading.Tasks;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery
 {

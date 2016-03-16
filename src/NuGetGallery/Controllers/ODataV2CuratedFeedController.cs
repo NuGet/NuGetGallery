@@ -8,6 +8,7 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryInterceptors;

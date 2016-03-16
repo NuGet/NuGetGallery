@@ -4,7 +4,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     /// <summary>
     /// This records the OLD metadata of a particular package, before an edit was applied.

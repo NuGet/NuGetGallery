@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery
 {

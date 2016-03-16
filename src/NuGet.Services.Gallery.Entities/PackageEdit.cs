@@ -4,7 +4,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     /// <summary>
     /// This is a pending package metadata edit, where a user has decided to redescribe a package and have the nupkg regenerated.

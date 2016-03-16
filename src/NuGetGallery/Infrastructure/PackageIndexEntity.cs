@@ -7,6 +7,7 @@ using System.Linq;
 using System.Web;
 using Lucene.Net.Documents;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery
 {

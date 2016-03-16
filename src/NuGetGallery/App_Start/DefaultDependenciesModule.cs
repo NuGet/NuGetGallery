@@ -15,6 +15,7 @@ using Elmah;
 using NuGetGallery.Areas.Admin;
 using NuGet.Services.Auditing;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;

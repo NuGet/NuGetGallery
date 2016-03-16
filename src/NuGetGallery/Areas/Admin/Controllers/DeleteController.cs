@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.ViewModels;
 

@@ -4,7 +4,7 @@
 using System.Data.Entity;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Gallery
+namespace NuGet.Services.Gallery.Entities
 {
     public interface IEntitiesContext
     {

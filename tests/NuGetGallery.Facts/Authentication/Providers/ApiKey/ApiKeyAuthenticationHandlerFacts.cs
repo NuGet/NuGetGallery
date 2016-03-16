@@ -8,6 +8,7 @@ using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Moq;
 using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Framework;
 using Xunit;
 
