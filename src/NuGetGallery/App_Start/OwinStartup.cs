@@ -12,7 +12,6 @@ using System.Web.Mvc;
 using Elmah;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -65,7 +64,7 @@ namespace NuGetGallery
                 var instrumentationSamplingPercentage = config.Current.AppInsightsSamplingPercentage;
                 if (instrumentationSamplingPercentage > 0 && instrumentationSamplingPercentage < 100)
                 {
-                    var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.GetTelemetryProcessorChainBuilder();
+                    var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
                     telemetryProcessorChainBuilder.UseSampling(instrumentationSamplingPercentage);
                     telemetryProcessorChainBuilder.Build();
                 }
