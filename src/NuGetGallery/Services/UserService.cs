@@ -7,8 +7,10 @@ using System.Data.Entity;
 using System.Linq;
 using Crypto = NuGetGallery.CryptographyService;
 using NuGetGallery.Configuration;
-using NuGetGallery.Auditing;
+using NuGet.Services.Auditing;
 using System.Threading.Tasks;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery
 {

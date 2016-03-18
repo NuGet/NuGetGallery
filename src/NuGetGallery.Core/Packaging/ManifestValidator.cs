@@ -8,7 +8,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using NuGet.Packaging;
-using NuGet.Versioning;
 
 namespace NuGetGallery.Packaging
 {
@@ -16,7 +15,7 @@ namespace NuGetGallery.Packaging
     {
         // Copy-pasta from NuGet: src/Core/Utility/PackageIdValidator.cs because that constant is internal :(
         public static readonly int MaxPackageIdLength = 100;
-        
+
         public static IEnumerable<ValidationResult> Validate(Stream nuspecStream, out NuspecReader nuspecReader)
         {
             try
@@ -62,7 +61,7 @@ namespace NuGetGallery.Packaging
             // Check URL properties
             foreach (var result in CheckUrls(
                 packageMetadata.GetValueFromMetadata("IconUrl"),
-                packageMetadata.GetValueFromMetadata("ProjectUrl"), 
+                packageMetadata.GetValueFromMetadata("ProjectUrl"),
                 packageMetadata.GetValueFromMetadata("LicenseUrl")))
             {
                 yield return result;

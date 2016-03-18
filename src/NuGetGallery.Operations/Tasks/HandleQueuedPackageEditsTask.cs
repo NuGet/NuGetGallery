@@ -9,6 +9,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.WindowsAzure.Storage.Blob;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery.Operations.Tasks

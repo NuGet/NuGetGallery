@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
-using NuGetGallery.Auditing;
+using NuGet.Services.Auditing;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using Xunit;
 
 namespace NuGetGallery

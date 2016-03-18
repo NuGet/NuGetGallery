@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery
 {

@@ -8,6 +8,8 @@ using System.Security.Claims;
 using System.Security.Principal;
 using Microsoft.Owin;
 using Moq;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery.Framework
 {

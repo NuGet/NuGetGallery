@@ -4,6 +4,8 @@
 using System;
 using System.Data.Entity;
 using System.Linq;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.OData.QueryInterceptors;
 using QueryInterceptor;
 

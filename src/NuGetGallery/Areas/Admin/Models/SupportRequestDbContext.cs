@@ -3,6 +3,8 @@
 
 using System.Data.Entity;
 using System.Threading.Tasks;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 
 namespace NuGetGallery.Areas.Admin.Models
 {

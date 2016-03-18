@@ -37,63 +37,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\entityframework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\entityframework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.Edm, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Data.Edm.5.6.5-beta\lib\net40\Microsoft.Data.Edm.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.OData, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Data.OData.5.6.5-beta\lib\net40\Microsoft.Data.OData.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Data.Services.Client.5.6.5-beta\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\WindowsAzure.Storage.4.3.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NuGet.Common, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Common.3.4.0-beta-632\lib\net45\NuGet.Common.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="NuGet.Frameworks, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Frameworks.3.4.0-beta-632\lib\net45\NuGet.Frameworks.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NuGet.Logging, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Logging.3.4.0-beta-632\lib\net45\NuGet.Logging.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -118,64 +64,15 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Spatial, Version=5.6.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\System.Spatial.5.6.5-beta\lib\net40\System.Spatial.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Auditing\AuditEntry.cs" />
-    <Compile Include="Auditing\AuditActor.cs" />
-    <Compile Include="Auditing\AuditingService.cs" />
-    <Compile Include="Auditing\AuditRecord.cs" />
-    <Compile Include="Auditing\CloudAuditingService.cs" />
-    <Compile Include="Auditing\PackageAuditRecord.cs" />
-    <Compile Include="Auditing\UserAuditRecord.cs" />
-    <Compile Include="CoreConstants.cs" />
-    <Compile Include="CredentialTypes.cs" />
-    <Compile Include="Completion.cs" />
     <Compile Include="DisposableAction.cs" />
-    <Compile Include="Entities\Credential.cs" />
-    <Compile Include="Entities\CuratedFeed.cs" />
-    <Compile Include="Entities\CuratedPackage.cs" />
-    <Compile Include="Entities\PackageDelete.cs" />
-    <Compile Include="Entities\EmailMessage.cs" />
-    <Compile Include="Entities\EntitiesConfiguration.cs" />
-    <Compile Include="Entities\EntitiesContext.cs" />
-    <Compile Include="Entities\EntityException.cs" />
-    <Compile Include="Entities\Interception\ObjectMaterializedInterception.cs" />
-    <Compile Include="Entities\Interception\ObjectMaterializedInterceptingDbContext.cs" />
-    <Compile Include="Entities\EntityRepository.cs" />
-    <Compile Include="Entities\GallerySetting.cs" />
-    <Compile Include="Entities\IEntitiesContext.cs" />
-    <Compile Include="Entities\IEntity.cs" />
-    <Compile Include="Entities\Interception\IObjectMaterializedInterceptor.cs" />
-    <Compile Include="Entities\IEntityRepository.cs" />
-    <Compile Include="Entities\Package.cs" />
-    <Compile Include="Entities\PackageAuthor.cs" />
-    <Compile Include="Entities\PackageDependency.cs" />
-    <Compile Include="Entities\PackageEdit.cs" />
-    <Compile Include="Entities\PackageFramework.cs" />
-    <Compile Include="Entities\PackageHistory.cs" />
-    <Compile Include="Entities\PackageLicense.cs" />
-    <Compile Include="Entities\PackageLicenseReport.cs" />
-    <Compile Include="Entities\PackageOwnerRequest.cs" />
-    <Compile Include="Entities\PackageRegistration.cs" />
-    <Compile Include="Entities\ReadOnlyModeException.cs" />
-    <Compile Include="Entities\Role.cs" />
-    <Compile Include="Entities\User.cs" />
-    <Compile Include="PackageReaderCoreExtensions.cs" />
+    <Compile Include="NuGetVersionNormalizer.cs" />
+    <Compile Include="PackageArchiveReaderExtensions.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />
     <Compile Include="Packaging\ManifestEdit.cs" />
     <Compile Include="Packaging\ManifestValidator.cs" />
@@ -203,6 +100,12 @@
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Gallery.Entities\NuGet.Services.Gallery.Entities.csproj">
+      <Project>{0439b5ce-aa48-4757-9692-fc521ae84fbf}</Project>
+      <Name>NuGet.Services.Gallery.Entities</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

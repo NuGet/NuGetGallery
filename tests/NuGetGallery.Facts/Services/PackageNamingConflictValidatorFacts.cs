@@ -4,6 +4,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using Xunit;
 
 namespace NuGetGallery

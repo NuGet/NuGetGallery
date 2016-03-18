@@ -13,6 +13,8 @@ using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;

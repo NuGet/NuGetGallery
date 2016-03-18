@@ -9,6 +9,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGet.Services.Search.Client;
 using NuGetGallery.Configuration;
 

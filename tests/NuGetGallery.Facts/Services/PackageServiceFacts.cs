@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
@@ -665,7 +667,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", PackageRegistration.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
@@ -761,7 +763,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", PackageRegistration.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]

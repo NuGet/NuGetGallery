@@ -17,7 +17,7 @@ namespace NuGetGallery.Packaging
 
         public PackageMetadata(
             Dictionary<string, string> metadata,
-            IEnumerable<PackageDependencyGroup> dependencyGroups, 
+            IEnumerable<PackageDependencyGroup> dependencyGroups,
             IEnumerable<FrameworkSpecificGroup> frameworkGroups,
             NuGetVersion minClientVersion)
         {

@@ -155,6 +155,10 @@
     <Compile Include="Packaging\NupkgRewriterFacts.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Services.Gallery.Entities\NuGet.Services.Gallery.Entities.csproj">
+      <Project>{0439b5ce-aa48-4757-9692-fc521ae84fbf}</Project>
+      <Name>NuGet.Services.Gallery.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>

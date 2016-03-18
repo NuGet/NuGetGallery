@@ -7,7 +7,9 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
 using Moq;
-using NuGetGallery.Auditing;
+using NuGet.Services.Auditing;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using Xunit;
 
 namespace NuGetGallery

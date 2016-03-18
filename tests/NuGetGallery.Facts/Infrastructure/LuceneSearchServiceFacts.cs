@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Lucene.Net.Store;
 using Moq;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.OData;
 using Xunit;
 

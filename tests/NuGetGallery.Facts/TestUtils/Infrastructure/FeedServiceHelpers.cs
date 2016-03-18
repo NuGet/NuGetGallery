@@ -9,6 +9,8 @@ using System.Web.Http;
 using System.Web.Http.Dependencies;
 using System.Web.Http.Routing;
 using Moq;
+using NuGet.Services.Gallery;
+using NuGet.Services.Gallery.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Controllers;
 
