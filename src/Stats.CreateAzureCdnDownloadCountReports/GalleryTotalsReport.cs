@@ -17,8 +17,8 @@ namespace Stats.CreateAzureCdnDownloadCountReports
     {
         private const string WarehouseStoredProcedureName = "[dbo].[SelectTotalDownloadCounts]";
         private const string GalleryQuery = @"SELECT
-                    (SELECT COUNT([Key]) FROM PackageRegistrations pr WITH (NOLOCK)
-                            WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.Deleted = 0)) AS UniquePackages,
+                    (SELECT COUNT(DISTINCT [PackageRegistrationKey]) FROM Packages p WITH (NOLOCK) 
+                            WHERE p.Listed = 1 AND p.Deleted = 0) AS UniquePackages,
                     (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1 AND Deleted = 0) AS TotalPackages";
         internal const string ReportName = "stats-totals.json";
 
