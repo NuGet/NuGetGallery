@@ -355,7 +355,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tasks\ReplacePackageFileTask.cs" />
     <Compile Include="Tasks\CopyDatabaseBackupTask.cs" />
-    <Compile Include="Tasks\ReplicatePackageStatisticsTask.cs" />
     <Compile Include="Tasks\RestoreDatabaseTask.cs" />
     <Compile Include="Tasks\RestorePackagesTask.cs" />
     <Compile Include="Tasks\RunMigrationsTask.cs" />
