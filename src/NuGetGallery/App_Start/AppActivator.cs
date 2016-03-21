@@ -14,7 +14,6 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
-using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Search.Client.Correlation;
@@ -44,8 +43,6 @@ namespace NuGetGallery
 
             ViewEngines.Engines.Clear();
             ViewEngines.Engines.Add(CreateViewEngine());
-
-            GlimpsePreStart();
 
             try
             {
@@ -106,11 +103,6 @@ namespace NuGetGallery
             };
 
             return ret;
-        }
-
-        private static void GlimpsePreStart()
-        {
-            DynamicModuleUtility.RegisterModule(typeof(Glimpse.AspNet.HttpModule));
         }
 
         private static void CloudPreStart()
