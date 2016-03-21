@@ -7,6 +7,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Web.Http.OData.Query;
+using Microsoft.Data.Edm;
+using Microsoft.Data.OData.Query;
 using NuGetGallery.WebApi;
 
 namespace NuGetGallery.OData
@@ -27,6 +29,19 @@ namespace NuGetGallery.OData
 
         public static bool IsHijackable(ODataQueryOptions<V2FeedPackage> options, out HijackableQueryParameters hijackable)
         {
+            if (options.Filter?.FilterClause != null
+                && options.Filter.FilterClause.Expression.Kind == QueryNodeKind.SingleValueFunctionCall
+                && options.Filter.FilterClause.ItemType.Definition.TypeKind == EdmTypeKind.Entity)
+            {
+                var functionCallExpression = (SingleValueFunctionCallNode) options.Filter.FilterClause.Expression;
+                if (string.Equals(functionCallExpression.Name, "substringof", StringComparison.OrdinalIgnoreCase))
+                {
+                    // The 'substringof' function cannot be applied to an enumeration-typed argument
+                    hijackable = null;
+                    return false;
+                }
+            }
+
             // Build expression (this works around all internal classes in the OData library - all we want is an expression tree)
             var expression = options.ApplyTo(EmptyQueryable, QueryResultDefaults.DefaultQuerySettings).Expression;
 
@@ -77,7 +92,7 @@ namespace NuGetGallery.OData
             hijackable = null;
             return false;
         }
-        
+
         private static IEnumerable<Tuple<Target, string>> ExtractComparison(MethodCallExpression outerWhere)
         {
             // We expect to see an expression that looks like this:
@@ -90,7 +105,7 @@ namespace NuGetGallery.OData
 
             // p => <constant> == p.<property>
             // OR: p => <constant> == p.<property> && <constant> == p.<property>
-            var lambda = arg as LambdaExpression; 
+            var lambda = arg as LambdaExpression;
             if (lambda.Body.NodeType == ExpressionType.AndAlso)
             {
                 var binExpr = lambda.Body as BinaryExpression;

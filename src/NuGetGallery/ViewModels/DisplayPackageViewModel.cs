@@ -29,6 +29,12 @@ namespace NuGetGallery
             }
             DownloadCount = package.DownloadCount;
             LastEdited = package.LastEdited;
+
+            // calculate the number of days since the package was created
+            // round to the nearest integer, with a min value of 1
+            // divide the total download count by this number
+            TotalDaysSinceCreated = Convert.ToInt32(Math.Max(1, Math.Round((DateTime.UtcNow - package.Created).TotalDays)));
+            DownloadsPerDay = TotalDownloadCount / TotalDaysSinceCreated;
         }
 
         public void SetPendingMetadata(PackageEdit pendingMetadata)
@@ -60,6 +66,8 @@ namespace NuGetGallery
         public bool HasPendingMetadata { get; private set; }
         public bool IsLastEditFailed { get; private set; }
         public DateTime? LastEdited { get; set; }
+        public int DownloadsPerDay { get; private set; }
+        public int TotalDaysSinceCreated { get; private set; }
 
         public bool HasNewerPrerelease
         {

@@ -135,9 +135,6 @@ namespace NuGetGallery
                         "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
                     await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
-                        "DELETE ps FROM PackageStatistics ps JOIN Packages p ON p.[Key] = ps.PackageKey WHERE p.[Key] = @key",
-                        new SqlParameter("@key", package.Key));
-                    await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
                         "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
 

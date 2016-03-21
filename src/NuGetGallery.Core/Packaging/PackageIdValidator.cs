@@ -18,6 +18,11 @@ namespace NuGetGallery.Packaging
                 throw new ArgumentNullException(nameof(packageId));
             }
 
+            if (String.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
             return IdRegex.IsMatch(packageId);
         }
 
