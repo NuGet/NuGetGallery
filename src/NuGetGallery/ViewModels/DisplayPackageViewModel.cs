@@ -11,30 +11,38 @@ namespace NuGetGallery
 {
     public class DisplayPackageViewModel : ListPackageItemViewModel
     {
-        public DisplayPackageViewModel(Package package)
-            : this(package, false)
+        public DisplayPackageViewModel(Package package, IOrderedEnumerable<Package> packageHistory)
+            : this(package, packageHistory, false)
         {
         }
 
-        public DisplayPackageViewModel(Package package, bool isVersionHistory)
+        public DisplayPackageViewModel(Package package, IOrderedEnumerable<Package> packageHistory, bool isVersionHistory)
             : base(package)
         {
             Copyright = package.Copyright;
+
             if (!isVersionHistory)
             {
                 Dependencies = new DependencySetsViewModel(package.Dependencies);
-                PackageVersions = from p in package.PackageRegistration.Packages.ToList()
-                                  orderby new NuGetVersion(p.Version) descending
-                                  select new DisplayPackageViewModel(p, isVersionHistory: true);
+                PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, packageHistory, isVersionHistory: true));
             }
+
             DownloadCount = package.DownloadCount;
             LastEdited = package.LastEdited;
 
-            // calculate the number of days since the package was created
-            // round to the nearest integer, with a min value of 1
-            // divide the total download count by this number
-            TotalDaysSinceCreated = Convert.ToInt32(Math.Max(1, Math.Round((DateTime.UtcNow - package.Created).TotalDays)));
-            DownloadsPerDay = TotalDownloadCount / TotalDaysSinceCreated;
+            if (!isVersionHistory && packageHistory.Any())
+            {
+                // calculate the number of days since the package registration was created
+                // round to the nearest integer, with a min value of 1
+                // divide the total download count by this number
+                TotalDaysSinceCreated = Convert.ToInt32(Math.Max(1, Math.Round((DateTime.UtcNow - packageHistory.Last().Created).TotalDays)));
+                DownloadsPerDay = TotalDownloadCount / TotalDaysSinceCreated; // for the package
+            }
+            else
+            {
+                TotalDaysSinceCreated = 0;
+                DownloadsPerDay = 0;
+            }
         }
 
         public void SetPendingMetadata(PackageEdit pendingMetadata)
