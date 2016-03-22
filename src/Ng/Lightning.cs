@@ -413,7 +413,7 @@ namespace Ng
 
         private static Task ProcessGraphsAsync(string packageId, IDictionary<string, IGraph> sortedGraphs, StorageFactory storageFactory, string contentBaseAddress)
         {
-            return RegistrationMaker.Process(new RegistrationKey(packageId), sortedGraphs, storageFactory, new Uri(contentBaseAddress), 64, 128, false, CancellationToken.None);
+            return RegistrationMaker.Process(new RegistrationKey(packageId), sortedGraphs, storageFactory, new Uri(contentBaseAddress), 64, 128, CancellationToken.None);
         }
     }
 }

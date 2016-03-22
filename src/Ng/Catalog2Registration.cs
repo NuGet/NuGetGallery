@@ -26,8 +26,9 @@ namespace Ng
         {
             CommitCollector collector = new RegistrationCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
             {
-                ContentBaseAddress = contentBaseAddress == null ? null : new Uri(contentBaseAddress),
-                UnlistShouldDelete = unlistShouldDelete
+                ContentBaseAddress = contentBaseAddress == null 
+                    ? null 
+                    : new Uri(contentBaseAddress)
             };
 
             Storage storage = storageFactory.Create();

@@ -6,7 +6,6 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Linq;
 using VDS.RDF;
-using VDS.RDF.Writing;
 using VDS.RDF.Query;
 using System.Globalization;
 
@@ -14,30 +13,37 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationMakerCatalogItem : CatalogItem
     {
-        Uri _catalogUri;
-        IGraph _catalogItem;
-        Uri _itemAddress;
-        Uri _packageContentBaseAddress;
-        Uri _packageContentAddress;
-        Uri _registrationBaseAddress;
-        Uri _registrationAddress;
-        DateTime _publishedDate;
-        Boolean _listed;
+        private readonly Uri _catalogUri;
+        private readonly IGraph _catalogItem;
+        private Uri _itemAddress;
+        private readonly Uri _packageContentBaseAddress;
+        private Uri _packageContentAddress;
+        private readonly Uri _registrationBaseAddress;
+        private Uri _registrationAddress;
+        private DateTime _publishedDate;
+        private bool _listed;
+        private readonly bool _isExistingItem;
 
-        public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, Uri packageContentBaseAddress = null)
+        public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, bool isExistingItem, Uri packageContentBaseAddress = null)
         {
             _catalogUri = catalogUri;
             _catalogItem = catalogItem;
             _packageContentBaseAddress = packageContentBaseAddress;
             _registrationBaseAddress = registrationBaseAddress;
+            _isExistingItem = isExistingItem;
         }
 
         public override StorageContent CreateContent(CatalogContext context)
         {
+            if (_isExistingItem)
+            {
+                return null;
+            }
+
             IGraph graph = new Graph();
             INode subject = graph.CreateUriNode(GetItemAddress());
 
-            INode catalogEntry = graph.CreateUriNode(_catalogUri);
+            graph.CreateUriNode(_catalogUri);
 
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Package));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Permalink));
@@ -101,6 +107,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
 
             _listed = (_publishedDate.Year == 1900) ? false : true;
+
             return _publishedDate;
 
         }

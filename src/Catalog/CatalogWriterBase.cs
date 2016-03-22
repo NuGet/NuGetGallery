@@ -5,6 +5,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -98,8 +99,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             int batchIndex = 0;
 
-            Task[] saveTasks = new Task[_batch.Count];
-
+            var saveTasks = new List<Task>();
             foreach (CatalogItem item in _batch)
             {
                 Uri resourceUri = null;
@@ -116,7 +116,12 @@ namespace NuGet.Services.Metadata.Catalog
 
                     if (content != null)
                     {
-                        saveTasks[batchIndex] = Storage.Save(resourceUri, content, cancellationToken);
+                        saveTasks.Add(
+                            Storage.Save(resourceUri, content, cancellationToken));
+                    }
+                    else
+                    {
+                        Trace.WriteLine(string.Format("Item did not return content or already exists. Skipping resource {0}.", resourceUri), "Debug");
                     }
 
                     IGraph pageContent = item.CreatePageContent(Context);

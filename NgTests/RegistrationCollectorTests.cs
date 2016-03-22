@@ -35,8 +35,7 @@ namespace NgTests
             // Setup collector
             var target = new RegistrationCollector(new Uri("http://tempuri.org/index.json"), catalogToRegistrationStorageFactory, () => mockServer)
             {
-                ContentBaseAddress = new Uri("http://tempuri.org/packages"),
-                UnlistShouldDelete = false
+                ContentBaseAddress = new Uri("http://tempuri.org/packages")
             };
             ReadWriteCursor front = new DurableCursor(catalogToRegistrationStorage.ResolveUri("cursor.json"), catalogToRegistrationStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();

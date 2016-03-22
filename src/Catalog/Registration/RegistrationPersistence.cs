@@ -105,7 +105,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             IGraph graph = SparqlHelpers.Construct(store, sparql.ToString());
 
-            resources.Add(RegistrationCatalogEntry.Promote(catalogEntry.AbsoluteUri, graph));
+            resources.Add(RegistrationCatalogEntry.Promote(catalogEntry.AbsoluteUri, graph, isExistingItem: true));
         }
 
         static async Task<IGraph> LoadCatalog(IStorage storage, Uri resourceUri, CancellationToken cancellationToken)
@@ -144,8 +144,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 graph.Merge(task.Result, false);
             }
 
-            await LoadCatalogItems(storage, graph, cancellationToken);
-
             return graph;
         }
 
@@ -155,59 +153,14 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             IGraph graph = Utils.CreateGraph(json);
             return graph;
         }
-
-        static async Task LoadCatalogItems(IStorage storage, IGraph graph, CancellationToken cancellationToken)
-        {
-            Trace.TraceInformation("RegistrationPersistence.LoadCatalogItems");
-
-            IList<Uri> itemUris = new List<Uri>();
-
-            IEnumerable<Triple> pages = graph.GetTriplesWithPredicateObject(graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.CatalogPage));
-
-            foreach (Triple page in pages)
-            {
-                IEnumerable<Triple> items = graph.GetTriplesWithSubjectPredicate(page.Subject, graph.CreateUriNode(Schema.Predicates.CatalogItem));
-
-                foreach (Triple item in items)
-                {
-                    itemUris.Add(((IUriNode)item.Object).Uri);
-                }
-            }
-
-            IList<Task<IGraph>> tasks = new List<Task<IGraph>>();
-
-            foreach (Uri itemUri in itemUris)
-            {
-                tasks.Add(LoadCatalogItem(storage, itemUri, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks.ToArray());
-
-            //TODO: if we have details at the package level and not inlined on a page we will merge them in here
-        }
-
-        static async Task<IGraph> LoadCatalogItem(IStorage storage, Uri itemUri, CancellationToken cancellationToken)
-        {
-            string json = await storage.LoadString(itemUri, cancellationToken);
-            IGraph graph = Utils.CreateGraph(json);
-            return graph;
-        }
-
+        
         //  Save implementation
 
         static async Task Save(IStorage storage, Uri registrationBaseAddress, IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> registration, int partitionSize, int packageCountThreshold, Uri contentBaseAddress, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.Save");
 
-            IDictionary<string, IGraph> items = new Dictionary<string, IGraph>();
-
-            foreach (RegistrationCatalogEntry value in registration.Values)
-            {
-                if (value != null)
-                {
-                    items.Add(value.ResourceUri, value.Graph);
-                }
-            }
+            var items = registration.Values.Where(v => v != null).ToList();
 
             if (items.Count == 0)
             {
@@ -224,7 +177,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
         }
 
-        static async Task SaveSmallRegistration(IStorage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
+        static async Task SaveSmallRegistration(IStorage storage, Uri registrationBaseAddress, IList<RegistrationCatalogEntry> items, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.SaveSmallRegistration");
 
@@ -241,7 +194,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             await storage.Save(graphPersistence.ResourceUri, content, cancellationToken);
         }
 
-        static async Task SaveLargeRegistration(IStorage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
+        static async Task SaveLargeRegistration(IStorage storage, Uri registrationBaseAddress, IList<RegistrationCatalogEntry> items, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.SaveLargeRegistration: registrationBaseAddress = {0} items: {1}", registrationBaseAddress, items.Count);
 
@@ -250,15 +203,15 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             await SaveRegistration(storage, registrationBaseAddress, items, cleanUpList, null, partitionSize, contentBaseAddress, cancellationToken);
         }
 
-        static async Task SaveRegistration(IStorage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
+        static async Task SaveRegistration(IStorage storage, Uri registrationBaseAddress, IList<RegistrationCatalogEntry> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.SaveRegistration: registrationBaseAddress = {0} items: {1}", registrationBaseAddress, items.Count);
 
             using (RegistrationMakerCatalogWriter writer = new RegistrationMakerCatalogWriter(storage, partitionSize, cleanUpList, graphPersistence))
             {
-                foreach (KeyValuePair<string, IGraph> item in items)
+                foreach (var item in items)
                 {
-                    writer.Add(new RegistrationMakerCatalogItem(new Uri(item.Key), item.Value, registrationBaseAddress, contentBaseAddress));
+                    writer.Add(new RegistrationMakerCatalogItem(new Uri(item.ResourceUri), item.Graph, registrationBaseAddress, item.IsExistingItem, contentBaseAddress));
                 }
                 await writer.Commit(DateTime.UtcNow, null, cancellationToken);
             }
