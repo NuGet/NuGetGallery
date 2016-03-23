@@ -22,7 +22,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private Uri _registrationAddress;
         private DateTime _publishedDate;
         private bool _listed;
-        private readonly bool _isExistingItem;
 
         public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, bool isExistingItem, Uri packageContentBaseAddress = null)
         {
@@ -30,16 +29,12 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _catalogItem = catalogItem;
             _packageContentBaseAddress = packageContentBaseAddress;
             _registrationBaseAddress = registrationBaseAddress;
-            _isExistingItem = isExistingItem;
+
+            IsExistingItem = isExistingItem;
         }
 
         public override StorageContent CreateContent(CatalogContext context)
         {
-            if (_isExistingItem)
-            {
-                return null;
-            }
-
             IGraph graph = new Graph();
             INode subject = graph.CreateUriNode(GetItemAddress());
 
@@ -57,6 +52,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             JObject frame = context.GetJsonLdContext("context.Package.json", Schema.DataTypes.Package);
             return new JTokenStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
+
+        public bool IsExistingItem { get; private set; }
 
         public override Uri GetItemType()
         {
@@ -109,7 +106,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _listed = (_publishedDate.Year == 1900) ? false : true;
 
             return _publishedDate;
-
         }
 
         Uri GetPackageContentAddress()

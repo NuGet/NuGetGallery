@@ -102,7 +102,7 @@ namespace NuGet.Services.Metadata.Catalog
             var saveTasks = new List<Task>();
             foreach (CatalogItem item in _batch)
             {
-                Uri resourceUri = null;
+                ResourceSaveOperation saveOperationForItem = null;
 
                 try
                 {
@@ -110,32 +110,27 @@ namespace NuGet.Services.Metadata.Catalog
                     item.CommitId = commitId;
                     item.BaseAddress = Storage.BaseAddress;
 
-                    StorageContent content = item.CreateContent(Context);
-
-                    resourceUri = item.GetItemAddress();
-
-                    if (content != null)
+                    saveOperationForItem = CreateSaveOperationForItem(Storage, Context, item, cancellationToken);
+                    if (saveOperationForItem.SaveTask != null)
                     {
-                        saveTasks.Add(
-                            Storage.Save(resourceUri, content, cancellationToken));
-                    }
-                    else
-                    {
-                        Trace.WriteLine(string.Format("Item did not return content or already exists. Skipping resource {0}.", resourceUri), "Debug");
+                        saveTasks.Add(saveOperationForItem.SaveTask);
                     }
 
                     IGraph pageContent = item.CreatePageContent(Context);
 
-                    if (!pageItems.TryAdd(resourceUri.AbsoluteUri, new CatalogItemSummary(item.GetItemType(), commitId, commitTimeStamp, null, pageContent)))
+                    if (!pageItems.TryAdd(saveOperationForItem.ResourceUri.AbsoluteUri, new CatalogItemSummary(item.GetItemType(), commitId, commitTimeStamp, null, pageContent)))
                     {
-                        throw new Exception("Duplicate page: " + resourceUri.AbsoluteUri);
+                        throw new Exception("Duplicate page: " + saveOperationForItem.ResourceUri.AbsoluteUri);
                     }
 
                     batchIndex++;
                 }
                 catch (Exception e)
                 {
-                    string msg = (resourceUri == null) ? string.Format("batch index: {0}", batchIndex) : string.Format("batch index: {0} resourceUri: {1}", batchIndex, resourceUri);
+                    string msg = (saveOperationForItem.ResourceUri == null) 
+                        ? string.Format("batch index: {0}", batchIndex)
+                        : string.Format("batch index: {0} resourceUri: {1}", batchIndex, saveOperationForItem.ResourceUri);
+
                     throw new Exception(msg, e);
                 }
             }
@@ -143,6 +138,25 @@ namespace NuGet.Services.Metadata.Catalog
             await Task.WhenAll(saveTasks);
 
             return pageItems;
+        }
+
+        protected virtual ResourceSaveOperation CreateSaveOperationForItem(IStorage storage, CatalogContext context, CatalogItem item, CancellationToken cancellationToken)
+        {
+            // This method decides what to do with the item.
+            // Standard method of operation: if content == null, don't do a thing. Else, write content.
+
+            var content = item.CreateContent(Context); // note: always do this first
+            var resourceUri = item.GetItemAddress();
+
+            var operation = new ResourceSaveOperation();
+            operation.ResourceUri = resourceUri;
+
+            if (content != null)
+            {
+                operation.SaveTask = storage.Save(resourceUri, content, cancellationToken);
+            }
+
+            return operation;
         }
 
         async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries, IGraph commitMetadata, CancellationToken cancellationToken)

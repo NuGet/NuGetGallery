@@ -5,9 +5,11 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Services.Metadata.Catalog.Registration;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -75,6 +77,34 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             return newPageEntries;
+        }
+
+        protected override ResourceSaveOperation CreateSaveOperationForItem(IStorage storage, CatalogContext context, CatalogItem item, CancellationToken cancellationToken)
+        {
+            // This method decides what to do with the item.
+            // If it's a RegistrationMakerCatalogItem and it already exists, then don't write content.
+            var registrationMakerCatalogItem = item as RegistrationMakerCatalogItem;
+            if (registrationMakerCatalogItem != null)
+            {
+                var content = item.CreateContent(Context); // note: always do this first
+                var resourceUri = item.GetItemAddress();
+
+                var saveOperation = new ResourceSaveOperation();
+                saveOperation.ResourceUri = resourceUri;
+
+                if (!registrationMakerCatalogItem.IsExistingItem && content != null)
+                {
+                    saveOperation.SaveTask = storage.Save(resourceUri, content, cancellationToken);
+                }
+                else
+                {
+                    Trace.WriteLine(string.Format("Resource {0} already exists. Skipping.", resourceUri), "Debug");
+                }
+
+                return saveOperation;
+            }
+
+            return base.CreateSaveOperationForItem(storage, context, item, cancellationToken);
         }
 
         async Task<IDictionary<string, CatalogItemSummary>> PartitionAndSavePages(Guid commitId, DateTime commitTimeStamp, SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions, CancellationToken cancellationToken)

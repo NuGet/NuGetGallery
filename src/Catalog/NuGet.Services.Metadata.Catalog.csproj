@@ -159,6 +159,7 @@
     <Compile Include="RegistrationCatalogItem.cs" />
     <Compile Include="RegistrationCatalogWriter.cs" />
     <Compile Include="ReindexCatalogItem.cs" />
+    <Compile Include="ResourceSaveOperation.cs" />
     <Compile Include="SortingCollector.cs" />
     <Compile Include="SortingGraphCollector.cs" />
     <Compile Include="StorageWriteLock.cs" />
