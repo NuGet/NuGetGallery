@@ -20,7 +20,7 @@ namespace Search.GenerateAuxiliaryData
         public SqlExportArguments(IDictionary<string, string> jobArgsDictionary, string defaultContainerName, string defaultName)
         {
             var connStrBldr = new SqlConnectionStringBuilder(
-                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SourceDatabase, EnvironmentVariableKeys.SqlGallery));
+                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
 
             ConnectionString = connStrBldr.ToString();
 
