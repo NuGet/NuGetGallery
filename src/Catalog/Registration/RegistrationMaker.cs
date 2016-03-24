@@ -12,7 +12,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public static class RegistrationMaker
     {
-        public static async Task Process(RegistrationKey registrationKey, IDictionary<string, IGraph> newItems, StorageFactory storageFactory, Uri contentBaseAddress, int partitionSize, int packageCountThreshold, bool unlistShouldDelete, CancellationToken cancellationToken)
+        public static async Task Process(RegistrationKey registrationKey, IDictionary<string, IGraph> newItems, StorageFactory storageFactory, Uri contentBaseAddress, int partitionSize, int packageCountThreshold, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationMaker.Process: registrationKey = {0} newItems: {1}", registrationKey, newItems.Count);
 
@@ -22,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             Trace.TraceInformation("RegistrationMaker.Process: existing = {0}", existing.Count);
 
-            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta = PromoteRegistrationKey(newItems, unlistShouldDelete);
+            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta = PromoteRegistrationKey(newItems);
 
             Trace.TraceInformation("RegistrationMaker.Process: delta = {0}", delta.Count);
             
@@ -33,12 +33,12 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             await registration.Save(resulting, cancellationToken);
         }
 
-        static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> PromoteRegistrationKey(IDictionary<string, IGraph> newItems, bool unlistShouldDelete)
+        static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> PromoteRegistrationKey(IDictionary<string, IGraph> newItems)
         {
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> promoted = new Dictionary<RegistrationEntryKey, RegistrationCatalogEntry>();
             foreach (var newItem in newItems)
             {
-                promoted.Add(RegistrationCatalogEntry.Promote(newItem.Key, newItem.Value, unlistShouldDelete));
+                promoted.Add(RegistrationCatalogEntry.Promote(newItem.Key, newItem.Value, isExistingItem: false));
             }
             return promoted;
         }

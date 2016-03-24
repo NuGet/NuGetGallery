@@ -28,7 +28,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         public Uri ContentBaseAddress { get; set; }
         public int PartitionSize { get; set; }
         public int PackageCountThreshold { get; set; }
-        public bool UnlistShouldDelete { get; set; }
 
         protected override Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs, CancellationToken cancellationToken)
         {
@@ -39,7 +38,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 ContentBaseAddress,
                 PartitionSize,
                 PackageCountThreshold,
-                UnlistShouldDelete, cancellationToken);
+                cancellationToken);
         }
     }
 }
