@@ -154,7 +154,7 @@ namespace Search.GenerateAuxiliaryData
                 result = SqlDataReader2Json(command.ExecuteReader(), col0, col1);
             }
 
-            await WriteReportAsync(args, result.ToString(Formatting.None));
+            await WriteToBlobAsync(args.DestinationContainer, result.ToString(Formatting.None), args.Name);
 
             return true;
         }
@@ -204,40 +204,6 @@ namespace Search.GenerateAuxiliaryData
             connStr.UserID = "########";
             connStr.Password = "########";
             return connStr.ToString();
-        }
-
-        public static async Task WriteReportAsync(SqlExportArguments args, string content)
-        {
-            if (!string.IsNullOrEmpty(args.OutputDirectory))
-            {
-                await WriteToFileAsync(args.OutputDirectory, content, args.Name);
-            }
-            else
-            {
-                await WriteToBlobAsync(args.DestinationContainer, content, args.Name);
-            }
-        }
-
-        public static async Task WriteToFileAsync(string outputDirectory, string content, string name)
-        {
-            string fullPath = Path.Combine(outputDirectory, name);
-            string parentDir = Path.GetDirectoryName(fullPath);
-            Trace.TraceInformation("Writing report to {0}", fullPath);
-
-            if (!Directory.Exists(parentDir))
-            {
-                Directory.CreateDirectory(parentDir);
-            }
-            if (File.Exists(fullPath))
-            {
-                File.Delete(fullPath);
-            }
-            using (var writer = new StreamWriter(File.OpenWrite(fullPath)))
-            {
-                await writer.WriteAsync(content);
-            }
-
-            Trace.TraceInformation("Wrote report to {0}", fullPath);
         }
 
         public static async Task WriteToBlobAsync(CloudBlobContainer container, string content, string name)
