@@ -50,8 +50,6 @@ namespace NuGet.Jobs
         public const string CursorBlob = "CursorBlob";
 
         //Arguments specific to CreateWarehouseReports job
-        public const string WarehouseStorageAccount = "WarehouseStorageAccount";
-        public const string WarehouseContainerName = "WarehouseContainerName";
         public const string WarehouseReportName = "WarehouseReportName";
 
         // Arguments specific to Search* jobs
