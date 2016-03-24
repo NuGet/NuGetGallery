@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Ng;
 using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
@@ -37,6 +36,9 @@ namespace NgTests
             {
                 ContentBaseAddress = new Uri("http://tempuri.org/packages")
             };
+
+            RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
+
             ReadWriteCursor front = new DurableCursor(catalogToRegistrationStorage.ResolveUri("cursor.json"), catalogToRegistrationStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
