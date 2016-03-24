@@ -107,7 +107,7 @@ namespace Search.GenerateAuxiliaryData
 
                 // Get project types
                 Trace.TraceInformation("Getting Project Types...");
-                var projectTypes = (await connection.QueryAsync<string>("SELECT ProjectTypes FROM Dimension_Project")).ToList();
+                var projectTypes = (await connection.QueryAsync<string>("SELECT ProjectType FROM Dimension_ProjectType")).ToList();
                 Trace.TraceInformation("Got {0} project types", projectTypes.Count);
 
                 // Gather data by project type
