@@ -94,6 +94,8 @@ namespace Ng
 
             Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2} seconds", source, storageFactory, interval);
 
+            RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
+
             if (compressedStorageFactory != null)
             {
                 var secondaryStorageBaseUrlRewriter = new SecondaryStorageBaseUrlRewriter(new List<KeyValuePair<string, string>>

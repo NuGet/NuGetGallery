@@ -47,18 +47,20 @@ namespace NuGet.Services.Metadata.Catalog
             bool isExistingPage;
             Uri pageUri = GetPageUri(pageEntries, itemEntries.Count, out isExistingPage);
 
+            var items = new Dictionary<string, CatalogItemSummary>(itemEntries);
+
             if (isExistingPage)
             {
                 IDictionary<string, CatalogItemSummary> existingItemEntries = await LoadIndexResource(pageUri, cancellationToken);
                 foreach (var entry in existingItemEntries)
                 {
-                    itemEntries.Add(entry);
+                    items.Add(entry.Key, entry.Value);
                 }
             }
 
-            await SaveIndexResource(pageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries, RootUri, null, null, cancellationToken);
+            await SaveIndexResource(pageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, items, RootUri, null, null, cancellationToken);
 
-            pageEntries[pageUri.AbsoluteUri] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries.Count);
+            pageEntries[pageUri.AbsoluteUri] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, items.Count);
 
             return pageEntries;
         }

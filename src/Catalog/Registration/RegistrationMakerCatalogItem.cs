@@ -23,6 +23,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private DateTime _publishedDate;
         private bool _listed;
 
+        // This should be set before class is instantiated
+        public static IPackagePathProvider PackagePathProvider = null;
+
         public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, bool isExistingItem, Uri packageContentBaseAddress = null)
         {
             _catalogUri = catalogUri;
@@ -110,6 +113,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         Uri GetPackageContentAddress()
         {
+            if (PackagePathProvider == null)
+            {
+                throw new NullReferenceException("PackagePathProvider should not be null");
+            }
+
             if (_packageContentAddress == null)
             {
                 INode subject = _catalogItem.CreateUriNode(_catalogUri);
@@ -123,7 +131,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 {
                     string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString().ToLowerInvariant();
                     string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString().ToLowerInvariant();
-                    string path = string.Format("packages/{0}.{1}.nupkg", id.ToLowerInvariant(), version.ToLowerInvariant());
+                    string path = PackagePathProvider.GetPackagePath(id, version);
                     _packageContentAddress = new Uri(_packageContentBaseAddress, path);
                 }
             }

@@ -397,7 +397,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        static IEnumerable<PackageEntry> GetEntries(ZipArchive package)
+        public static IEnumerable<PackageEntry> GetEntries(ZipArchive package)
         {
             IList<PackageEntry> result = new List<PackageEntry>();
 
@@ -424,7 +424,7 @@ namespace NuGet.Services.Metadata.Catalog
             return result;
         }
 
-        static NupkgMetadata GetNupkgMetadata(Stream stream)
+        public static NupkgMetadata GetNupkgMetadata(Stream stream)
         {
             var nupkgMetadata = new NupkgMetadata
             {

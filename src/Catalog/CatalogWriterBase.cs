@@ -57,12 +57,12 @@ namespace NuGet.Services.Metadata.Catalog
 
             _batch.Add(item);
         }
-        public Task Commit( IGraph commitMetadata, CancellationToken cancellationToken)
+        public Task<IEnumerable<Uri>> Commit(IGraph commitMetadata, CancellationToken cancellationToken)
         {
-            return Commit(DateTime.UtcNow, commitMetadata , cancellationToken);
+            return Commit(DateTime.UtcNow, commitMetadata, cancellationToken);
         }
 
-        public virtual async Task Commit(DateTime commitTimeStamp,  IGraph commitMetadata, CancellationToken cancellationToken)
+        public virtual async Task<IEnumerable<Uri>> Commit(DateTime commitTimeStamp, IGraph commitMetadata, CancellationToken cancellationToken)
         {
             if (!_open)
             {
@@ -71,7 +71,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             if (_batch.Count == 0)
             {
-                return;
+                return Enumerable.Empty<Uri>();
             }
 
             //  the commitId is only used for tracing and trouble shooting
@@ -91,6 +91,8 @@ namespace NuGet.Services.Metadata.Catalog
             await SaveRoot(commitId, commitTimeStamp, pageEntries, commitMetadata, cancellationToken);
 
             _batch.Clear();
+
+            return newItemEntries.Keys.Select(s => new Uri(s));
         }
 
         async Task<IDictionary<string, CatalogItemSummary>> SaveItems(Guid commitId, DateTime commitTimeStamp, CancellationToken cancellationToken)

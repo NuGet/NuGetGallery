@@ -155,6 +155,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 return new StringStorageContent(content);
             }
 
+            if (Verbose)
+            {
+                Trace.WriteLine(String.Format("Can't load '{0}'. Blob doesn't exist", resourceUri));
+            }
+
             return null;
         }
 

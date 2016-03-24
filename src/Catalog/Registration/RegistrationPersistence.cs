@@ -149,6 +149,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         static async Task<IGraph> LoadCatalogPage(IStorage storage, Uri pageUri, CancellationToken cancellationToken)
         {
+            Trace.TraceInformation("RegistrationPersistence.LoadCatalogPage: pageUri = {0}", pageUri);
             string json = await storage.LoadString(pageUri, cancellationToken);
             IGraph graph = Utils.CreateGraph(json);
             return graph;
