@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using NuGet.Versioning;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -22,8 +23,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[]
                 {
-                    new Package { Version = "1.0.0-alpha2", PackageRegistration = package.PackageRegistration }
-                    ,
+                    new Package { Version = "1.0.0-alpha2", PackageRegistration = package.PackageRegistration },
                     new Package { Version = "1.0.0", PackageRegistration = package.PackageRegistration },
                     new Package { Version = "1.0.0-alpha", PackageRegistration = package.PackageRegistration },
                     new Package { Version = "1.0.0-beta", PackageRegistration = package.PackageRegistration },
@@ -32,7 +32,8 @@ namespace NuGetGallery.ViewModels
                     new Package { Version = "1.0.10", PackageRegistration = package.PackageRegistration }
                 };
 
-            var packageVersions = new DisplayPackageViewModel(package).PackageVersions.ToList();
+            var packageVersions = new DisplayPackageViewModel(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
+                .PackageVersions.ToList();
 
             // Descending
             Assert.Equal("1.0.0-alpha", packageVersions[6].Version);

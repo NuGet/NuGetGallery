@@ -294,7 +294,11 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            var model = new DisplayPackageViewModel(package);
+
+            var packageHistory = package.PackageRegistration.Packages.ToList()
+                .OrderByDescending(p => new NuGetVersion(p.Version));
+
+            var model = new DisplayPackageViewModel(package, packageHistory);
 
             if (package.IsOwner(User))
             {

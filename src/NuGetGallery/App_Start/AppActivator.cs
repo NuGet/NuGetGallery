@@ -14,7 +14,6 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
-using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Search.Client.Correlation;
@@ -44,8 +43,6 @@ namespace NuGetGallery
 
             ViewEngines.Engines.Clear();
             ViewEngines.Engines.Add(CreateViewEngine());
-
-            GlimpsePreStart();
 
             try
             {
@@ -108,11 +105,6 @@ namespace NuGetGallery
             return ret;
         }
 
-        private static void GlimpsePreStart()
-        {
-            DynamicModuleUtility.RegisterModule(typeof(Glimpse.AspNet.HttpModule));
-        }
-
         private static void CloudPreStart()
         {
             Trace.Listeners.Add(new DiagnosticMonitorTraceListener());
@@ -166,8 +158,11 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(fontAwesomeBundle);
 
             // Support Requests admin area bundle
+            var jQueryUiStylesBundle = new StyleBundle("~/Content/themes/custom/jqueryui")
+                .Include("~/Content/themes/custom/jquery-ui-1.10.3.custom.css");
+            BundleTable.Bundles.Add(jQueryUiStylesBundle);
+
             var supportRequestStylesBundle = new StyleBundle("~/Content/supportrequests")
-                .Include("~/Content/themes/custom/jquery-ui-1.10.3.custom.css")
                 .Include("~/Content/admin/SupportRequestStyles.css");
             BundleTable.Bundles.Add(supportRequestStylesBundle);
 

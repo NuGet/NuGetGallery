@@ -3,13 +3,15 @@
 
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
     public class DeletePackageViewModel : DisplayPackageViewModel
     {
         public DeletePackageViewModel(Package package, ReportPackageReason[] reportOtherPackageReasons)
-            : base(package)
+            : base(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
         {
             DeletePackagesRequest = new DeletePackagesRequest
             {
