@@ -101,49 +101,6 @@ namespace CatalogTests
             Test3Async().Wait();
         }
 
-        public static async Task Test4Async()
-        {
-            StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg2/"), @"c:\data\site\reg2");
-
-            //StorageCredentials credentials = new StorageCredentials("", "");
-            //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            //StorageFactory storageFactory = new AzureStorageFactory(account, "reg38", "registration");
-
-            storageFactory.Verbose = true;
-
-            Uri index = new Uri("https://localhost:8000/dotnetrdf/index.json");
-            //Uri index = new Uri("https://localhost:8000/ordered/index.json");
-            //Uri index = new Uri("https://nugetjohtaylo.blob.core.windows.net/ver36/catalog/index.json");
-
-            Func<HttpMessageHandler> handlerFunc = () =>
-            {
-                return new FileSystemEmulatorHandler
-                {
-                    BaseAddress = new Uri("http://localhost:8000"),
-                    RootFolder = @"c:\data\site",
-                    InnerHandler = new HttpClientHandler()
-                };
-            };
-
-            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(index, storageFactory, handlerFunc);
-
-            collector.ContentBaseAddress = new Uri("http://az320820.vo.msecnd.net");
-
-            //collector.PackageCountThreshold = 50;
-            //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, 360, DateTimeKind.Utc));
-
-            await collector.Run(CancellationToken.None);
-
-            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount);
-        }
-
-        public static void Test4()
-        {
-            Console.WriteLine("CollectorTests.Test4");
-
-            Test4Async().Wait();
-        }
-
         public static async Task Test5Async()
         {
             Func<HttpMessageHandler> handlerFunc = () =>
