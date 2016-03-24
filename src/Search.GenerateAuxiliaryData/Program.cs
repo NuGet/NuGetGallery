@@ -3,11 +3,11 @@
 
 using NuGet.Jobs;
 
-namespace Search.GenerateOwners
+namespace Search.GenerateAuxiliaryData
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             JobRunner.Run(new Job(), args).Wait();
         }
