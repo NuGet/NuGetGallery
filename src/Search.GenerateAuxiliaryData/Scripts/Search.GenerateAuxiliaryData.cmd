@@ -9,7 +9,7 @@ cd bin
 
 	title #{Jobs.search.generateauxiliarydata.Title}
 
-    start /w search.generateauxiliarydata.exe -SourceDatabase "#{Jobs.search.generateauxiliarydata.SourceDatabase}" -verbose true -sleep #{Jobs.search.generateauxiliarydata.Sleep}
+    start /w search.generateauxiliarydata.exe -SourceDatabase "#{Jobs.search.generateauxiliarydata.SourceDatabase}" -PackageDatabase "#{Jobs.search.generateauxiliarydata.PackageDatabase}" -verbose true -sleep #{Jobs.search.generateauxiliarydata.Sleep}
 
 	echo "Finished #{Jobs.search.generateauxiliarydata.Title}"
 
