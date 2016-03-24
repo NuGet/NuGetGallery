@@ -118,7 +118,6 @@
     <Compile Include="DeleteCatalogItem.cs" />
     <Compile Include="Dnx\DnxCatalogCollector.cs" />
     <Compile Include="Dnx\DnxMaker.cs" />
-    <Compile Include="Helpers\GraphHelpers.cs" />
     <Compile Include="NupkgMetadata.cs" />
     <Compile Include="Persistence\AggregateStorage.cs" />
     <Compile Include="Persistence\AggregateStorageFactory.cs" />
@@ -157,7 +156,6 @@
     <Compile Include="HttpReadCursor.cs" />
     <Compile Include="NuspecCollector.cs" />
     <Compile Include="RegistrationCatalogCreator.cs" />
-    <Compile Include="RegistrationCatalogCollector.cs" />
     <Compile Include="RegistrationCatalogItem.cs" />
     <Compile Include="RegistrationCatalogWriter.cs" />
     <Compile Include="ReindexCatalogItem.cs" />
