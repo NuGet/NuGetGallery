@@ -1106,6 +1106,11 @@ namespace NuGetGallery
 
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();
+
+                _messageService.SendPackageAddedNotice(package,
+                    Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
+                    Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
+                    Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
             }
 
             // delete the uploaded binary in the Uploads container

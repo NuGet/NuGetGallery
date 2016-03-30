@@ -501,6 +501,103 @@ namespace NuGetGallery
             }
         }
 
+        public class TheSendPackageAddedNoticeMethod
+        {
+            [Fact]
+            public void WillSendEmailToAllOwners()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = "smangit",
+                    Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                    }
+                };
+                var package = new Package
+                {
+                    Version = "1.2.3",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(package);
+
+                // Act
+                var messageService = new TestableMessageService();
+                messageService.SendPackageAddedNotice(package, "http://dummy1", "http://dummy2", "http://dummy3");
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal("yung@example.com", message.To[0].Address);
+                Assert.Equal("flynt@example.com", message.To[1].Address);
+                Assert.Equal(TestGalleryOwner, message.From);
+                Assert.Contains("[Joe Shmoe] Package published - smangit 1.2.3", message.Subject);
+                Assert.Contains(
+                    "The package [smangit 1.2.3](http://dummy1) was just published on Joe Shmoe. If this was not intended, please [contact support](http://dummy2).", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailToOwnerThatOptsOut()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = "smangit",
+                    Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                    }
+                };
+                var package = new Package
+                {
+                    Version = "1.2.3",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(package);
+
+                // Act
+                var messageService = new TestableMessageService();
+                messageService.SendPackageAddedNotice(package, "http://dummy1", "http://dummy2", "http://dummy3");
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal("yung@example.com", message.To[0].Address);
+                Assert.Equal(1, message.To.Count);
+            }
+
+            [Fact]
+            public void WillNotAttemptToSendIfNoOwnersAllow()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = "smangit",
+                    Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = false },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                    }
+                };
+                var package = new Package
+                {
+                    Version = "1.2.3",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(package);
+
+                // Act
+                var messageService = new TestableMessageService();
+                messageService.SendPackageAddedNotice(package, "http://dummy1", "http://dummy2", "http://dummy3");
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
         public class TestableMessageService : MessageService
         {
             public Mock<AuthenticationService> MockAuthService { get; protected set; }
