@@ -708,7 +708,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The NuGet is invalid. The error encountered was:&apos;{0}&apos;. Correct the error and try again..
+        ///   Looks up a localized string similar to The NuGet package is invalid. The error encountered was:&apos;{0}&apos;. Correct the error and try again..
         /// </summary>
         public static string UploadPackage_InvalidPackage {
             get {
