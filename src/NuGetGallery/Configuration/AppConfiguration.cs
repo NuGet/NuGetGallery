@@ -172,5 +172,16 @@ namespace NuGetGallery.Configuration
         /// Gets a string containing the PagerDuty Service key.
         /// </summary>
         public string PagerDutyServiceKey { get; set; }
+
+        /// <summary>
+        /// Username used to connect to the GitHub API
+        /// </summary>
+        public string GithubUsername { get; set; }
+
+        /// <summary>
+        /// Password used to connect to the GitHub API
+        /// </summary>
+        public string GithubPassword { get; set; }
+
     }
 }

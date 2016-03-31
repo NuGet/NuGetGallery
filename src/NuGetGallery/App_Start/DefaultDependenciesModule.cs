@@ -277,6 +277,11 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDiagnosticsService>()
                 .SingleInstance();
+
+            builder.RegisterType<SourceRepoService>()
+                .AsSelf()
+                .As<ISourceRepoService>()
+                .SingleInstance();
         }
 
         private static void ConfigureSearch(ContainerBuilder builder, ConfigurationService configuration)

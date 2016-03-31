@@ -86,5 +86,7 @@ namespace NuGetGallery
         }
 
         public bool? IsIndexed { get; set; }
+
+        public SourceRepositoryViewModel SourceRepository { get; set; }
     }
 }

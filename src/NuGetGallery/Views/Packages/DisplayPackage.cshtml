@@ -65,6 +65,23 @@
             <p class="stat-number">@Model.LastUpdated.ToNuGetShortDateString()</p>
             <p class="stat-label">Last published</p>
         </div>
+
+        @if (null != Model.SourceRepository)
+        {
+            <div class="stat">
+                <p class="stat-number">@Model.SourceRepository.StarCount.ToNuGetNumberString()</p>
+                <p class="stat-label">Stars on GitHub</p>
+            </div>
+            <div class="stat">
+                <p class="stat-number">@Model.SourceRepository.ForkCount.ToNuGetNumberString()</p>
+                <p class="stat-label">Forks on GitHub</p>
+            </div>
+            <div class="stat">
+                <p class="stat-number">@Model.SourceRepository.OpenIssueCount.ToNuGetNumberString()</p>
+                <p class="stat-label">Open Issues on GitHub</p>
+            </div>
+        }
+
     </div>
     <nav>
         <ul>

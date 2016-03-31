@@ -424,6 +424,10 @@
       <HintPath>..\..\packages\NuGet.Versioning.3.4.0-beta-632\lib\net45\NuGet.Versioning.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Octokit">
+      <HintPath>..\..\packages\Octokit.0.19.0\lib\net45\Octokit.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="ODataNullPropagationVisitor, Version=0.5.4237.2641, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
@@ -1273,6 +1277,9 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
+    <Compile Include="Services\SourceRepoService.cs" />
+    <Compile Include="Services\ISourceRepoService.cs" />
+    <Compile Include="ViewModels\SourceRepositoryViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultExtensions.cs" />
