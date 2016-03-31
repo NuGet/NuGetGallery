@@ -517,3 +517,16 @@ li.signin-authprovider {
     color: #BBB;
     text-decoration: line-through;
 }
+
+.readme {
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    background-color: rgb(246, 246, 246);
+    border: solid 1px #dedede;
+    border-radius: 3px;
+    padding: 10px;
+}
+
+.anchor {
+    display:none;
+}

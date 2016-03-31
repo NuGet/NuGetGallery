@@ -60,9 +60,15 @@ namespace NuGetGallery
             var github = new GitHubClient(new ProductHeaderValue("NugetGallery"));
             github.Credentials = new Credentials(Config.GithubUsername, Config.GithubPassword);
 
-            var repository = await github.Repository.Get(owner, repo);
+            var repositoryTask = github.Repository.Get(owner, repo);
+            var readmeTask = github.Repository.Content.GetReadmeHtml(owner, repo);
 
-            if (null == repository) return null;
+            // run API queries in parallel
+            await Task.WhenAll(repositoryTask, readmeTask);
+
+            if (repositoryTask.IsFaulted) return null;
+
+            var repository = repositoryTask.Result;
 
             var result = new SourceRepositoryViewModel
             {
@@ -73,7 +79,9 @@ namespace NuGetGallery
                 StarCount = repository.StargazersCount,
                 ForkCount = repository.ForksCount,
                 OpenIssueCount = repository.OpenIssuesCount,
-                LastUpdated = repository.UpdatedAt
+                LastUpdated = repository.UpdatedAt,
+                URL = string.Format("https://github.com/{0}/{1}", owner, repo),
+                ReadmeHTML = readmeTask.Result 
             };
 
             return result;

@@ -10,7 +10,7 @@ namespace NuGetGallery
         public string AvatarUrl { get; set; }
         public string Owner { get; set; }
         public string Name { get; set; }
-        public string ReadmeMD { get; set; }
+        public string URL { get; set; }
         public string ReadmeHTML { get; set; }
         public string ProgrammingLanguage { get; set; }
         public int StarCount { get; set; }

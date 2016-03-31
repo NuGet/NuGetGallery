@@ -306,6 +306,15 @@
         <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
     }
 
+    @if (null != Model.SourceRepository && !String.IsNullOrWhiteSpace(Model.SourceRepository.ReadmeHTML))
+    {
+        <h3>Readme from GitHub <small><a href="@Model.SourceRepository.URL">Open in GitHub</a></small></h3>
+        <div class="readme">
+            @Html.Raw(Model.SourceRepository.ReadmeHTML)
+        </div>
+    }
+
+
     <h3>Owners</h3>
     @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)
     <div title="These authors' works form part of the package or its contents">
@@ -349,6 +358,8 @@
         <h3>Dependencies</h3>
         @Html.Partial("_PackageDependencies", Model.Dependencies)
     }
+
+
     <h3>Version History</h3>
     <table class="sexy-table">
         <thead>
