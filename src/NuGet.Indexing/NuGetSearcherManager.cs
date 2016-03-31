@@ -105,7 +105,7 @@ namespace NuGet.Indexing
                 searcherManager = new NuGetSearcherManager(
                     indexContainer,
                     loggerFactory.CreateLogger<NuGetSearcherManager>(),
-                    directory ?? new AzureDirectory(storageAccount, indexContainer),
+                    directory ?? new AzureDirectory(storageAccount, indexContainer, new RAMDirectory()),
                     loader ?? new StorageLoader(storageAccount, dataContainer, loggerFactory.CreateLogger<StorageLoader>()));
             }
 
