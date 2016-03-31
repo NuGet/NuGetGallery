@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
+using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
@@ -247,7 +248,8 @@ namespace NuGetGallery
                         {
                             if (!packageRegistration.IsOwner(user))
                             {
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden,
+                                    Strings.ApiKeyNotAuthorized);
                             }
 
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
@@ -275,7 +277,10 @@ namespace NuGetGallery
                             Size = packageStream.Length,
                         };
 
-                        var package = await PackageService.CreatePackageAsync(packageToPush, packageStreamMetadata, user, commitChanges: false);
+                        var package =
+                            await
+                                PackageService.CreatePackageAsync(packageToPush, packageStreamMetadata, user,
+                                    commitChanges: false);
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
                         await EntitiesContext.SaveChangesAsync();
 
@@ -289,13 +294,30 @@ namespace NuGetGallery
                         return new HttpStatusCodeResult(HttpStatusCode.Created);
                     }
                 }
+                catch (InvalidPackageException ex)
+                {
+                    return BadRequestForExceptionMessage(ex);
+                }
                 catch (InvalidDataException ex)
                 {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.BadRequest,
-                        string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_InvalidPackage, ex.Message));
+                    return BadRequestForExceptionMessage(ex);
+                }
+                catch (EntityException ex)
+                {
+                    return BadRequestForExceptionMessage(ex);
+                }
+                catch (FrameworkException ex)
+                {
+                    return BadRequestForExceptionMessage(ex);
                 }
             }
+        }
+
+        private static ActionResult BadRequestForExceptionMessage(Exception ex)
+        {
+            return new HttpStatusCodeWithBodyResult(
+                HttpStatusCode.BadRequest,
+                string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_InvalidPackage, ex.Message));
         }
 
         [HttpDelete]
