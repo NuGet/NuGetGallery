@@ -37,6 +37,7 @@ namespace NuGetGallery
         public IIndexingService IndexingService { get; set; }
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         public IStatusService StatusService { get; set; }
+        public IMessageService MessageService { get; set; }
 
         protected ApiController()
         {
@@ -53,6 +54,7 @@ namespace NuGetGallery
             ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
+            IMessageService messageService,
             IAppConfiguration config)
         {
             EntitiesContext = entitiesContext;
@@ -66,6 +68,7 @@ namespace NuGetGallery
             SearchService = searchService;
             AutoCuratePackage = autoCuratePackage;
             StatusService = statusService;
+            MessageService = messageService;
             _config = config;
         }
 
@@ -81,8 +84,9 @@ namespace NuGetGallery
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
             IStatisticsService statisticsService,
+            IMessageService messageService,
             IAppConfiguration config)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, config)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, config)
         {
             StatisticsService = statisticsService;
         }
@@ -290,6 +294,11 @@ namespace NuGetGallery
                             await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
                             IndexingService.UpdatePackage(package);
                         }
+
+                        MessageService.SendPackageAddedNotice(package,
+                            Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
+                            Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
+                            Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
 
                         return new HttpStatusCodeResult(HttpStatusCode.Created);
                     }
