@@ -256,6 +256,18 @@ namespace NuGet.Indexing
             var boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
             searcher.Search(boostedQuery, 5);
 
+            // Warmup search (with a sort so Lucene field caches are populated)
+            var sort1 = new Sort(new SortField("LastEditedDate", SortField.INT, reverse: true));
+            var sort2 = new Sort(new SortField("PublishedDate", SortField.INT, reverse: true));
+            var sort3 = new Sort(new SortField("SortableTitle", SortField.STRING, reverse: false));
+            var sort4 = new Sort(new SortField("SortableTitle", SortField.STRING, reverse: true));
+
+            searcher.Search(boostedQuery, null, 250, sort1);
+            searcher.Search(boostedQuery, null, 250, sort2);
+            searcher.Search(boostedQuery, null, 250, sort3);
+            searcher.Search(boostedQuery, null, 250, sort4);
+
+            // Done, we're warm.
             stopwatch.Stop();
             _logger.LogInformation("NuGetSearcherManager.Warm completed in {IndexSearcherWarmDuration} seconds.",
                 stopwatch.Elapsed.TotalSeconds);
