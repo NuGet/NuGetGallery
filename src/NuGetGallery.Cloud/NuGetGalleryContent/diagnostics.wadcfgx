@@ -32,7 +32,7 @@
         <WindowsEventLog scheduledTransferPeriod="PT1M">
           <DataSource name="System!*" />
         </WindowsEventLog>
-        <CrashDumps directoryQuotaPercentage="6">
+        <CrashDumps directoryQuotaPercentage="6" containerName="wad-crash-dumps">
           <CrashDumpConfiguration processName="WaIISHost.exe" />
           <CrashDumpConfiguration processName="WaWorkerHost.exe" />
           <CrashDumpConfiguration processName="w3wp.exe" />
