@@ -30,6 +30,7 @@ namespace NuGetGallery.Areas.Admin
         public async Task<string> GetPrimaryOnCallAsync()
         {
             var username = string.Empty;
+
             try
             {
                 string response;
@@ -41,34 +42,50 @@ namespace NuGetGallery.Areas.Admin
                     response = await httpClient.GetStringAsync(_onCallUrl);
                 }
 
-
                 if (!string.IsNullOrEmpty(response))
                 {
-                    var root = JObject.Parse(response);
-                    var users = (JArray)root["users"];
-
-                    foreach (var item in users)
-                    {
-                        var onCall = item["on_call"][0];
-                        if (Convert.ToInt32(onCall["level"], CultureInfo.InvariantCulture) == 1)
-                        {
-                            var email = item["email"].ToString();
-                            var length = email.IndexOf("@", 0, StringComparison.OrdinalIgnoreCase);
-                            username = email.Substring(0, length);
-
-                            // Find the primary that is not nugetcore
-                            if (!username.Equals("nugetcore", StringComparison.OrdinalIgnoreCase))
-                            {
-                                break;
-                            }
-                        }
-                    }
+                    username = GetEmailAliasFromOnCallUser(response, "PQP8V6O");
                 }
             }
             catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
             }
+
+            return username;
+        }
+
+        internal static string GetEmailAliasFromOnCallUser(string response, string policyId)
+        {
+            var username = string.Empty;
+
+            var root = JObject.Parse(response);
+            var users = (JArray)root["users"];
+
+            foreach (var item in users)
+            {
+                foreach (var onCall in item["on_call"])
+                {
+                    if (Convert.ToInt32(onCall["level"], CultureInfo.InvariantCulture) == 1)
+                    {
+                        var escalationPolicyId = onCall["escalation_policy"]["id"].Value<string>();
+                        if (string.Equals(escalationPolicyId, policyId, StringComparison.Ordinal))
+                        {
+                            var email = item["email"].ToString();
+                            var length = email.IndexOf("@", 0, StringComparison.OrdinalIgnoreCase);
+                            var alias = email.Substring(0, length);
+
+                            // Find the primary that is not nugetcore
+                            if (!alias.Equals("nugetcore", StringComparison.OrdinalIgnoreCase))
+                            {
+                                username = alias;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             return username;
         }
 
