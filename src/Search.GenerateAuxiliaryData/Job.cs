@@ -101,7 +101,7 @@ namespace Search.GenerateAuxiliaryData
                     await connection.QueryWithRetryAsync<SearchRankingEntry>(
                         _overallRankingsScript,
                         new { RankingCount = _rankingCount },
-                        commandTimeout: 120)
+                        commandTimeout: 600)
                         ).ToList();
                 Trace.TraceInformation("Gathered {0} rows of data.", searchRankingEntries.Count);
 
