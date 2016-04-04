@@ -56,7 +56,7 @@ namespace NuGetGallery
                 var user = Fakes.CreateUser(
                     "test",
                     CredentialBuilder.CreatePbkdf2Password("hunter2"),
-                    CredentialBuilder.CreateV1ApiKey(Guid.NewGuid()),
+                    CredentialBuilder.CreateV1ApiKey(Guid.NewGuid().ToString()),
                     CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);

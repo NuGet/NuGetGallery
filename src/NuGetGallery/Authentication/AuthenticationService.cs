@@ -136,8 +136,7 @@ namespace NuGetGallery.Authentication
                     throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
                 }
             }
-
-            var apiKey = Guid.NewGuid();
+            
             var newUser = new User(username)
             {
                 EmailAllowed = true,
@@ -147,7 +146,7 @@ namespace NuGetGallery.Authentication
             };
 
             // Add a credential for the password and the API Key
-            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey));
+            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(Guid.NewGuid().ToString()));
             newUser.Credentials.Add(credential);
 
             if (!_config.ConfirmEmailAddresses)

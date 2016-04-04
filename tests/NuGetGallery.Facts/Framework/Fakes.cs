@@ -20,7 +20,7 @@ namespace NuGetGallery.Framework
             EmailAddress = "confirmed1@example.com",
             Credentials = new List<Credential>() {
                 CredentialBuilder.CreatePbkdf2Password(Password),
-                CredentialBuilder.CreateV1ApiKey(Guid.Parse("519e180e-335c-491a-ac26-e83c4bd31d65"))
+                CredentialBuilder.CreateV1ApiKey("519e180e-335c-491a-ac26-e83c4bd31d65")
             }
         };
 
@@ -30,7 +30,7 @@ namespace NuGetGallery.Framework
             EmailAddress = "confirmed2@example.com",
             Credentials = new List<Credential>() {
                 CredentialBuilder.CreateSha1Password(Password),
-                CredentialBuilder.CreateV1ApiKey(Guid.Parse("b9704a41-4107-4cd2-bcfa-70d84e021ab2"))
+                CredentialBuilder.CreateV1ApiKey("b9704a41-4107-4cd2-bcfa-70d84e021ab2")
             }
         };
         public static readonly User Admin = new User("testAdmin") {
