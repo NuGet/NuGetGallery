@@ -135,7 +135,11 @@ namespace NuGetGallery.Infrastructure.Lucene
             if (result.IsSuccessStatusCode)
             {
                 var content = await result.ReadContent();
-                if (filter.CountOnly || content.TotalHits == 0)
+                if (content == null)
+                {
+                    results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable());
+                } 
+                else if (filter.CountOnly || content.TotalHits == 0)
                 {
                     results = new SearchResults(content.TotalHits, content.IndexTimestamp);
                 }
