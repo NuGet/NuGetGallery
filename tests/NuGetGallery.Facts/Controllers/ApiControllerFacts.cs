@@ -31,6 +31,7 @@ namespace NuGetGallery
         public Mock<IStatisticsService> MockStatisticsService { get; private set; }
         public Mock<IIndexingService> MockIndexingService { get; private set; }
         public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
+        public Mock<IMessageService> MockMessageService { get; private set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -50,6 +51,8 @@ namespace NuGetGallery
             MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
                 .Returns(Task.CompletedTask);
             PackageFileService = MockPackageFileService.Object;
+
+            MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
@@ -78,7 +81,12 @@ namespace NuGetGallery
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
                 var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "theId";
                 packageRegistration.Owners.Add(user);
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
 
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(user);
@@ -86,6 +94,8 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask).Verifiable();
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                    .Returns(Task.FromResult(package));
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
                 controller.SetupPackageFromInputStream(nuGetPackage);
@@ -95,6 +105,36 @@ namespace NuGetGallery
 
                 // Assert
                 controller.MockPackageFileService.Verify();
+            }
+
+            [Fact]
+            public async Task CreatePackageWillSendPackageAddedNotice()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "theId";
+                packageRegistration.Owners.Add(user);
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockMessageService.Setup(p => p.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Verifiable();
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                    .Returns(Task.FromResult(package));
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                await controller.CreatePackagePut();
+
+                // Assert
+                controller.MockMessageService.Verify();
             }
 
             [Fact]
