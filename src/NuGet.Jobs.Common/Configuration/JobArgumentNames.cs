@@ -19,7 +19,6 @@ namespace NuGet.Jobs
         public const string PackageDatabase = "PackageDatabase";
 
         // Storage Argument names
-        public const string TargetStorageAccount = "TargetStorageAccount";
         public const string TargetStoragePath = "TargetStoragePath";
 
         // Catalog argument names
@@ -61,7 +60,6 @@ namespace NuGet.Jobs
 
         //Other
         public const string CommandTimeOut = "CommandTimeOut";
-        public const string RankingCount = "RankingCount";
         public const string RetryCount = "RetryCount";
         public const string MaxManifestSize = "MaxManifestSize";
         public const string OutputDirectory = "OutputDirectory";
