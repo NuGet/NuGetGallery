@@ -10,8 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Dapper;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -22,20 +20,13 @@ namespace Search.GenerateAuxiliaryData
     internal class Job
         : JobBase
     {
-        private const int _defaultRankingCount = 250;
         private const string _defaultContainerName = "ng-search-data";
 
         private SqlExportArguments _curatedFeedArgs;
         private SqlExportArguments _ownersArgs;
-        private SqlConnectionStringBuilder _warehouseConnection;
-        private int? _rankingCount;
-        private CloudStorageAccount _destinationStorageAccount;
-        private CloudBlobContainer _destinationContainer;
         private string _destinationContainerName;
         private string _curatedFeedsSql;
         private string _ownersSql;
-        private string _overallRankingsScript;
-        private string _rankingByProjectTypeScript;
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
@@ -44,24 +35,10 @@ namespace Search.GenerateAuxiliaryData
 
             _curatedFeedsSql = GetEmbeddedSqlScript(executingAssembly, assemblyName, "SqlScripts.CuratedFeed.sql");
             _ownersSql = GetEmbeddedSqlScript(executingAssembly, assemblyName, "SqlScripts.Owners.sql");
-            _overallRankingsScript = GetEmbeddedSqlScript(executingAssembly, assemblyName, "SqlScripts.SearchRanking_Overall.sql");
-            _rankingByProjectTypeScript = GetEmbeddedSqlScript(executingAssembly, assemblyName, "SqlScripts.SearchRanking_ByProjectType.sql");
-
-            _warehouseConnection = new SqlConnectionStringBuilder(
-                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SourceDatabase));
-
-            _destinationStorageAccount = CloudStorageAccount.Parse(
-                JobConfigurationManager.GetArgument(jobArgsDictionary,
-                JobArgumentNames.TargetStorageAccount, EnvironmentVariableKeys.StoragePrimary));
 
             _destinationContainerName =
                 JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName)
                 ?? _defaultContainerName;
-
-            _destinationContainer = _destinationStorageAccount.CreateCloudBlobClient().GetContainerReference(_destinationContainerName);
-
-            var rankingCountString = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.RankingCount);
-            _rankingCount = string.IsNullOrEmpty(rankingCountString) ? _defaultRankingCount : Convert.ToInt32(rankingCountString);
 
             _curatedFeedArgs = new SqlExportArguments(jobArgsDictionary, _destinationContainerName, "curatedfeeds.json");
             _ownersArgs = new SqlExportArguments(jobArgsDictionary, _destinationContainerName, "owners.json");
@@ -77,9 +54,6 @@ namespace Search.GenerateAuxiliaryData
             // owners JSON
             result &= await RunSqlExportAsync(_ownersArgs, _ownersSql, "Id", "UserName");
 
-            // ranking JSON
-            result &= await GenerateRankingsJsonAsync();
-
             return result;
         }
 
@@ -87,56 +61,6 @@ namespace Search.GenerateAuxiliaryData
         {
             var stream = executingAssembly.GetManifestResourceStream(assemblyName + "." + resourceName);
             return new StreamReader(stream).ReadToEnd();
-        }
-
-        private async Task<bool> GenerateRankingsJsonAsync()
-        {
-            var report = new JObject();
-
-            using (var connection = await _warehouseConnection.ConnectTo())
-            {
-                // Gather overall rankings
-                Trace.TraceInformation("Gathering overall rankings...");
-                var searchRankingEntries = (
-                    await connection.QueryWithRetryAsync<SearchRankingEntry>(
-                        _overallRankingsScript,
-                        new { RankingCount = _rankingCount },
-                        commandTimeout: 600)
-                        ).ToList();
-                Trace.TraceInformation("Gathered {0} rows of data.", searchRankingEntries.Count);
-
-                // Get project types
-                Trace.TraceInformation("Getting Project Types...");
-                var projectTypes = (await connection.QueryAsync<string>("SELECT ProjectType FROM Dimension_ProjectType")).ToList();
-                Trace.TraceInformation("Got {0} project types", projectTypes.Count);
-
-                // Gather data by project type
-                Trace.TraceInformation("Gathering Project Type Rankings...");
-                report.Add("Rank", new JArray(searchRankingEntries.Select(e => e.PackageId)));
-
-                var count = 0;
-                foreach (var projectType in projectTypes)
-                {
-                    Trace.TraceInformation("Gathering Project Type Rankings for '{0}'...", projectType);
-
-                    var sqlParams = new { RankingCount = _rankingCount, ProjectGuid = projectType };
-                    var data = await connection.QueryWithRetryAsync<SearchRankingEntry>(_rankingByProjectTypeScript, sqlParams, commandTimeout: 120);
-                    var projectTypeRankingData = new JArray(data.Select(e => e.PackageId));
-
-                    report.Add(projectType, projectTypeRankingData);
-
-                    Trace.TraceInformation("Gathered {0} rows of data for project type '{1}'.", projectTypeRankingData.Count, projectType);
-
-                    count += projectTypeRankingData.Count;
-                }
-
-                Trace.TraceInformation("Gathered {0} rows of data for all project types.", count);
-            }
-
-            // Write the JSON blob
-            await WriteToBlobAsync(_destinationContainer, report.ToString(Formatting.Indented), "rankings.v1.json");
-
-            return true;
         }
 
         private static async Task<bool> RunSqlExportAsync(SqlExportArguments args, string sql, string col0, string col1)
