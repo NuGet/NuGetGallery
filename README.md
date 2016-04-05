@@ -65,13 +65,13 @@ Does it happen when you switch browsers. And so on.
 
 ## Submit a patch
 Before starting work on an issue, either create an issue or comment on an existing issue to ensure that we're all 
-communicating.
+communicating. We have a list of items that are [up for grabs](https://github.com/NuGet/NuGetGallery/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22) and you can start working on (but always ping us beforehand).
 
 To contribute to the gallery, make sure to create a fork first. Make your changes in the fork following 
 the Git Workflow. When you are done with your changes, send us a pull request.
 
 ## Copyright and License
-Copyright 2015 .NET Foundation
+Copyright .NET Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with 
 the License. You may obtain a copy of the License in the LICENSE file, or at:

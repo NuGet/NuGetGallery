@@ -4,11 +4,11 @@ namespace NuGetGallery.Migrations
 {
     using System.Data.Entity.Migrations;
     
-    public partial class AggregateStatistics_TotalDownloadCount : SqlResourceMigration
+    public partial class AggregateStatistics_TotalDownloadCount : DbMigration
     {
-        public AggregateStatistics_TotalDownloadCount()
-            : base("NuGetGallery.Infrastructure.AggregateStatistics.sql")
+        public override void Up()
         {
+            // This migration is now a no-op. The script it used to reference has been removed.
         }
     }
 }
