@@ -168,7 +168,8 @@ function SupportRequestsViewModel(editUrl, filterUrl, historyUrl) {
 
     this.generateContactUserUrl = function (supportRequestViewModel) {
         return 'mailto:' + supportRequestViewModel.UserEmail
-            + '?subject=[NuGet.org Support] ' + supportRequestViewModel.IssueTitle;
+            + '?subject=[NuGet.org Support] ' + supportRequestViewModel.IssueTitle
+            + '&CC=support@nuget.org';
     };
 
     this.showHistory = function (supportRequestViewModel) {
