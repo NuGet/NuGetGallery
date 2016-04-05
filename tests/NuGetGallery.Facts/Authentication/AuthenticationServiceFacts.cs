@@ -151,7 +151,7 @@ namespace NuGetGallery.Authentication
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result = service.Authenticate(CredentialBuilder.CreateV1ApiKey(cred.Value));
+                var result = service.Authenticate(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value)));
 
                 // Assert
                 Assert.NotNull(result);
@@ -169,10 +169,10 @@ namespace NuGetGallery.Authentication
                 cred.Key = 42;
                 var creds = entities.Set<Credential>();
                 creds.Add(cred);
-                creds.Add(CredentialBuilder.CreateV1ApiKey(cred.Value));
+                creds.Add(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value)));
 
                 // Act
-                var ex = Assert.Throws<InvalidOperationException>(() => service.Authenticate(CredentialBuilder.CreateV1ApiKey(cred.Value)));
+                var ex = Assert.Throws<InvalidOperationException>(() => service.Authenticate(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value))));
 
                 // Assert
                 Assert.Equal(String.Format(
@@ -941,7 +941,7 @@ namespace NuGetGallery.Authentication
             public void GivenATokenCredential_ItDescribesItCorrectly()
             {
                 // Arrange
-                var cred = CredentialBuilder.CreateV1ApiKey(Guid.NewGuid().ToString());
+                var cred = CredentialBuilder.CreateV1ApiKey(Guid.NewGuid());
                 var authService = Get<AuthenticationService>();
 
                 // Act

@@ -14,7 +14,12 @@ namespace NuGetGallery
     {
         public static Credential CreateV1ApiKey()
         {
-            return CreateV1ApiKey(Guid.NewGuid().ToString());
+            return CreateV1ApiKey(Guid.NewGuid());
+        }
+
+        public static Credential CreateV1ApiKey(Guid apiKey)
+        {
+            return CreateV1ApiKey(apiKey.ToString());
         }
 
         public static Credential CreatePbkdf2Password(string plaintextPassword)

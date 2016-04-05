@@ -453,10 +453,13 @@ namespace NuGetGallery
         {
             // Get the user
             var user = GetCurrentUser();
-            
+
+            // Generate an API Key
+            var apiKey = Guid.NewGuid();
+
             // Add/Replace the API Key credential, and save to the database
             TempData["Message"] = Strings.ApiKeyReset;
-            await AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(Guid.NewGuid().ToString()));
+            await AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
             return RedirectToAction("Account");
         }
 

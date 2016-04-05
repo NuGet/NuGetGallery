@@ -193,12 +193,12 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             public async Task GivenMatchingApiKey_ItReturnsTicketWithUserNameAndRoles()
             {
                 // Arrange
-                var apiKey = Guid.NewGuid().ToString();
+                Guid apiKey = Guid.NewGuid();
                 var user = new User() { Username = "theUser", EmailAddress = "confirmed@example.com" };
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
-                    apiKey.ToLowerInvariant());
+                    apiKey.ToString().ToLowerInvariant());
                 handler.MockAuth.SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey), user);
 
                 // Act
@@ -213,12 +213,12 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             public async Task GivenMatchingApiKey_ItSetsUserInOwinEnvironment()
             {
                 // Arrange
-                var apiKey = Guid.NewGuid().ToString();
+                Guid apiKey = Guid.NewGuid();
                 var user = new User() { Username = "theUser", EmailAddress = "confirmed@example.com" };
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
-                    apiKey.ToLowerInvariant());
+                    apiKey.ToString().ToLowerInvariant());
                 handler.MockAuth.SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey), user);
 
                 // Act
