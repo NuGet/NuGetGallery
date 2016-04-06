@@ -69,6 +69,11 @@ namespace NuGetGallery.Helpers
 
         public static IHtmlString ToJson(this HtmlHelper html, object item)
         {
+            if (item == null)
+            {
+                return html.Raw("{}");
+            }
+
             var serializerSettings = new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
