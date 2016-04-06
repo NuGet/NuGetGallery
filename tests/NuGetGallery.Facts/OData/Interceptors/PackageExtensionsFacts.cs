@@ -79,7 +79,7 @@ namespace NuGetGallery.OData.Interceptors
                 // Assert
                 var actual = projected.Single();
                 Assert.Equal("http://nuget.org/packages/Hitchhikers.Guide/4.2.0-harmless", actual.GalleryDetailsUrl);
-                Assert.Equal("http://nuget.org/package/ReportAbuse/Hitchhikers.Guide/4.2.0-harmless", actual.ReportAbuseUrl);
+                Assert.Equal("http://nuget.org/packages/Hitchhikers.Guide/4.2.0-harmless/ReportAbuse", actual.ReportAbuseUrl);
             }
 
             [Fact]
