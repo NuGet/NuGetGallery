@@ -452,6 +452,11 @@ The {3} Team";
                     MailSender.Send(senderCopy);
                 }
             }
+            catch (InvalidOperationException ex)
+            {
+                // Log but swallow the exception
+                QuietLog.LogHandledException(ex);
+            }
             catch (SmtpException ex)
             {
                 // Log but swallow the exception
