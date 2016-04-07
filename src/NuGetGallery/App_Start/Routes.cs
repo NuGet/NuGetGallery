@@ -430,12 +430,6 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
-                RouteName.ServiceAlert,
-                "api/v2/service-alert",
-                defaults: new { controller = "Api", action = "ServiceAlert" },
-                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
-
-            routes.MapRoute(
                 RouteName.Status,
                 "api/status",
                 new { controller = "Api", action = "StatusApi" });

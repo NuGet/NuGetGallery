@@ -1,18 +1,6 @@
 ﻿// Global utility script for NuGetGallery
 /// <reference path="jquery-1.6.4.js" />
 (function (window, $, undefined) {
-    function checkServiceStatus() {
-        $.get(app.root + 'api/v2/service-alert?cachebust=' + new Date().getTime())
-            .done(function (data) {
-                if (typeof data === 'string' && data.length > 0) {
-                    $('#service-alert').html(data).show();
-                }
-                else {
-                    $('#service-alert').hide().html();
-                }
-            }) // If this fails, just silently show no status.
-    }
-
     $(function () {
         // Export an object with global config data
         var app = $(document.documentElement).data();
@@ -21,9 +9,6 @@
         if (!app.root) {
             app.root = '';
         }
-
-        // Get the service status
-        checkServiceStatus();
 
         attachPlugins();
 
