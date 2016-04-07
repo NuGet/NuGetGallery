@@ -1787,7 +1787,6 @@
     <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
-    <Content Include="App_Data\Files\Content\Alert.md" />
     <Content Include="Areas\Admin\Views\Lucene\Index.cshtml">
       <SubType>Code</SubType>
     </Content>

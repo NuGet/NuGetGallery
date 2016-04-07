@@ -48,7 +48,6 @@ namespace NuGetGallery
         public const string StatisticsPackageDownloadsByVersion = "StatisticsPackageDownloadsByVersion";
         public const string StatisticsPackageDownloadsDetail = "StatisticsPackageDownloadsDetail";
         public const string StatisticsDownloadsApi = "StatisticsDownloadsApi";
-        public const string ServiceAlert = "ServiceAlert";
         public const string LegacyRegister = "LegacyRegister";
         public const string LegacyRegister2 = "LegacyRegister2";
         public const string PackageEnableLicenseReport = "EnableLicenseReport";
