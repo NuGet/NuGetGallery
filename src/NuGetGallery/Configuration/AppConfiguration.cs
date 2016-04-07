@@ -13,6 +13,9 @@ namespace NuGetGallery.Configuration
         [DefaultValue("Development")]
         public string Environment { get; set; }
 
+        [DefaultValue("")]
+        public string WarningBanner { get; set; }
+
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>

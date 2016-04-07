@@ -50,7 +50,6 @@ namespace NuGetGallery
         public static class ContentNames
         {
             public static readonly string Home = "Home";
-            public static readonly string Alert = "Alert";
             public static readonly string ReadOnly = "ReadOnly";
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";

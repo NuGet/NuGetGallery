@@ -28,7 +28,13 @@
         @ViewHelpers.InstrumentationScript()
     </head>
     <body class="s-noclickonce">
-        <div id="service-alert"></div>
+        @if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
+        {
+            <div id="service-alert">
+                <div class="banner-warning">@Config.Current.WarningBanner</div>
+            </div>
+        }
+
         <div id="outer-wrapper">
             <div id="content-wrapper">
                 <header class="main">
