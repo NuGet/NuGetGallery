@@ -27,25 +27,6 @@
         <meta name="robots" content="noindex">
     }
 }
-@section BottomScripts {
-    @* Facebook SDK *@
-    <div id="fb-root"></div>
-    <script>
-        (function (d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return;
-            js = d.createElement(s); js.id = id;
-            @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
-        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
-                                } else {
-        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-                                }
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));</script>
-
-    @* Twitter SDK *@
-    <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = "//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "twitter-wjs");</script>
-}
 @section SideColumn {
     <img class="logo" src="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon.png")';" />
     <div id="stats">
@@ -116,6 +97,18 @@
             }
         </ul>
     </nav>
+
+    <div class="stat">
+        <ul class="share-buttons">
+            @{
+                var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
+            }
+            <li><a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank" title="Share on Facebook"><i class="icon-facebook"></i></a></li>
+            <li><a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank" title="Tweet this package"><i class="icon-twitter"></i></a></li>
+        </ul>
+        <p class="stat-label">Share on Social Networks</p>
+    </div>
+
 
     @* ** FEATURE: License Reports ** *@
     @if (Config.Features.FriendlyLicenses || User.IsAdministrator())
@@ -273,12 +266,6 @@
         {
             <p>Requires NuGet @Model.MinClientVersion or higher.</p>
         }
-        <div id="socialbuttons" style="height: 60px; display: block;">
-            <div>
-                <a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a>
-            </div>
-            <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
-        </div>
     }
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))

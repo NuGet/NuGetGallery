@@ -1,6 +1,25 @@
 ﻿/* This CSS file contains elements specific to the SHARED LAYOUT [Layout.cshtml, TwoColumnLayout.cshtml etc] 
    that are used across the whole site */
 
+ul.share-buttons{
+  list-style: none;
+  padding: 0;
+}
+
+ul.share-buttons li{
+  display: inline;
+}
+
+ul.share-buttons a {
+    text-decoration: none;
+    margin-right: 8px;
+}
+
+ul.share-buttons i {
+    font-size: 1.6em;
+}
+
+
 /* Service Alert */
 
 #service-alert {
