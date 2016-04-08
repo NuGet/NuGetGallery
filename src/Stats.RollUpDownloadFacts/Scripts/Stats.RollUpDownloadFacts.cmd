@@ -9,7 +9,7 @@ cd bin
 
 	title #{Jobs.stats.rollupdownloadfacts.Title}
 
-    start /w stats.rollupdownloadfacts.exe -MinAgeInDays "#{Jobs.stats.rollupdownloadfacts.MinAgeInDays}" -verbose true -interval #{Jobs.stats.rollupdownloadfacts.Interval}
+    start /w stats.rollupdownloadfacts.exe -MinAgeInDays "#{Jobs.stats.rollupdownloadfacts.MinAgeInDays}" -StatisticsDatabase "#{Jobs.stats.rollupdownloadfacts.StatisticsDatabase}" -verbose true -interval #{Jobs.stats.rollupdownloadfacts.Interval}
 
 	echo "Finished #{Jobs.stats.rollupdownloadfacts.Title}"
 
