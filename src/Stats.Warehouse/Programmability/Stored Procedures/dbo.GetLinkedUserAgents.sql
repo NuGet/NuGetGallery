@@ -3,7 +3,7 @@
 	@UserAgentFilter VARCHAR(128) = NULL
 AS
 BEGIN
-	
+
 	IF @TargetClientName IS NULL
 		RETURN;
 
@@ -18,7 +18,7 @@ BEGIN
 	INSERT INTO		@tblClientDimensionIds
 	SELECT	[Id]
 	FROM	[dbo].[Dimension_Client] AS C (NOLOCK)
-	WHERE	C.[ClientName] IS NOT NULL 
+	WHERE	C.[ClientName] IS NOT NULL
 			AND ISNULL(C.[ClientName], '') = @TargetClientName
 
 	SELECT	DISTINCT UA.[UserAgent], UA.[Id], C.[Id]

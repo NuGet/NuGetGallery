@@ -126,5 +126,6 @@
     <Build Include="Views\dbo.View_Dist_ReleaseDate.sql" />
     <Build Include="Tables\dbo.Dimension_PackageSet.sql" />
     <Build Include="Tables\dbo.Fact_Package_PackageSet.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.RollUpDownloadFacts.sql" />
   </ItemGroup>
 </Project>

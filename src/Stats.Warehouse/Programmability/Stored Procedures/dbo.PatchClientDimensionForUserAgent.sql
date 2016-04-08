@@ -5,7 +5,7 @@
 AS
 BEGIN
 	SET NOCOUNT ON;
-	
+
 	IF @UserAgentId IS NOT NULL
 		BEGIN
 
