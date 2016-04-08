@@ -3,7 +3,7 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-	DECLARE @ReportGenerationTime DATETIME = GETDATE()
+	DECLARE @ReportGenerationTime DATETIME = GETUTCDATE()
 	DECLARE @Cursor DATETIME = (SELECT ISNULL(MAX([Position]), @ReportGenerationTime) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
 
 	SELECT	P.[PackageId],
