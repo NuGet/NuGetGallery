@@ -26,24 +26,24 @@
             <div style="display: none;" id="history-dialog">
                 <table id="history-table" class="sexy-table">
                     <thead>
-                    <tr>
-                        <th>When (UTC)</th>
-                        <th>Who</th>
-                        <th>What</th>
-                    </tr>
+                        <tr>
+                            <th>When (UTC)</th>
+                            <th>Who</th>
+                            <th>What</th>
+                        </tr>
                     </thead>
                     <tbody data-bind="foreach: historyEntries()">
-                    <tr>
-                        <td>
-                            <span data-bind="datetime: EntryDate"></span>
-                        </td>
-                        <td>
-                            <span data-bind="text: EditedBy"></span>
-                        </td>
-                        <td>
-                            <span data-bind="text: Comments"></span>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td>
+                                <span data-bind="datetime: EntryDate"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: EditedBy"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: Comments"></span>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -115,9 +115,9 @@
                                     optionsValue: 'Text',
                                     optionsCaption: '[Reason]'"></select>
 
-                            <br/>
+                            <br />
 
-                            <input type="submit" value="Filter" data-bind="click: applyFilter"/>
+                            <input type="submit" value="Filter" data-bind="click: applyFilter" />
                         </div>
                     </fieldset>
                 </form>
@@ -137,7 +137,9 @@
                         </div>
                         <p class="bold" data-bind="text: IssueTitle, click: $parent.editSupportRequest"></p>
                         <p>
-                            Created by <a data-bind="text: CreatedBy, attr: { href: $parent.generateUserProfileUrl($data) }"></a> on <span data-bind="text: CreatedDate"></span>.<br/>
+                            Created by <a data-bind="visible: CreatedBy !== 'Anonymous',text: CreatedBy, attr: { href: $parent.generateUserProfileUrl($data) }"></a>
+                            <span data-bind="visible: CreatedBy === 'Anonymous'">unauthenticated user</span>
+                            on <span data-bind="text: CreatedDate"></span>.<br />
                             <span data-bind="visible: AssignedTo !== null">
                                 Assigned to <span class="bold" data-bind="text: AssignedToGalleryUsername ? AssignedToGalleryUsername : ''"></span>.
                             </span>
