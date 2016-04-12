@@ -641,6 +641,7 @@
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminsViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />

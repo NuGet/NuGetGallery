@@ -9,9 +9,9 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     {
         public SupportRequestAdminsViewModel()
         {
-            Admins = new List<Models.Admin>();
+            Admins = new List<SupportRequestAdminViewModel>();
         }
 
-        public List<Models.Admin> Admins { get; set; }
+        public List<SupportRequestAdminViewModel> Admins { get; set; }
     }
 }

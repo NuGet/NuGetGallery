@@ -39,13 +39,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public ViewResult Admins()
         {
             var viewModel = new SupportRequestAdminsViewModel();
-            viewModel.Admins.AddRange(_supportRequestService.GetAllAdmins());
+            viewModel.Admins.AddRange(_supportRequestService.GetAllAdmins().Select(a => new SupportRequestAdminViewModel(a)));
             return View(viewModel);
         }
 
         public ActionResult GetAdmins()
         {
-            var admins = _supportRequestService.GetAllAdmins();
+            var admins = _supportRequestService.GetAllAdmins().Select(a => new SupportRequestAdminViewModel(a));
 
             var data = JsonConvert.SerializeObject(admins, _defaultJsonSerializerSettings);
             return Json(data, JsonRequestBehavior.AllowGet);
