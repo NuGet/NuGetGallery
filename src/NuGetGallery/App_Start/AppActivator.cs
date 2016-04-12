@@ -171,6 +171,7 @@ namespace NuGetGallery
                 .Include("~/Scripts/moment.js")
                 .Include("~/Scripts/knockout-2.2.1.js")
                 .Include("~/Scripts/knockout.mapping-latest.js")
+                .Include("~/Scripts/knockout-projections.js")
                 .Include("~/Scripts/supportrequests.js");
             BundleTable.Bundles.Add(supportRequestsBundle);
         }

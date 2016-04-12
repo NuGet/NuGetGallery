@@ -155,7 +155,10 @@ function SupportRequestsViewModel(editUrl, filterUrl, historyUrl) {
         var editViewModel = new EditViewModel($self.editUrl);
         editViewModel.issue = supportRequestViewModel;
         editViewModel.assignedToChoices = $self.assignedToChoices;
-        editViewModel.issueStatusChoices = $self.issueStatusChoices;
+        editViewModel.issueStatusChoices = $self.issueStatusChoices.filter(function (value) {
+            return value.Text !== 'Unresolved';
+        });
+
         editViewModel.editAssignedToId = supportRequestViewModel.AssignedTo;
         editViewModel.editIssueStatusId = supportRequestViewModel.IssueStatusId;
 
@@ -260,7 +263,7 @@ function SupportRequestsViewModel(editUrl, filterUrl, historyUrl) {
     };
 };
 
-$(function() {
+$(function () {
     ko.bindingHandlers.datetime = {
         update: function (element, valueAccessor) {
             var value = valueAccessor();
