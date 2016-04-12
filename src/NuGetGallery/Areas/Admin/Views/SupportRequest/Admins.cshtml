@@ -244,6 +244,7 @@
                         dataType: 'json',
                         success: function (data) {
                             $self.admins(JSON.parse(data));
+                            $self.styleButtons();
                         }
                     })
                     .error(function (jqXhr, textStatus, errorThrown) {
