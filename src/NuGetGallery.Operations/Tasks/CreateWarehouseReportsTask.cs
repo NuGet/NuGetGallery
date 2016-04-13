@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using NuGetGallery.Operations.Common;
@@ -19,9 +18,8 @@ namespace NuGetGallery.Operations
     public class CreateWarehouseReportsTask : DatabaseAndStorageTask
     {
         private const string JsonContentType = "application/json";
-        private const string PackageReportBaseName = "recentpopularity_";
         private const string NuGetClientVersion = "nugetclientversion";
-        private const string Last6Months = "last6months";
+        private const string Last6Weeks = "last6weeks";
         private const string RecentPopularity = "recentpopularity";
         private const string RecentPopularityDetail = "recentpopularitydetail";
         private const string PackageReportDetailBaseName = "recentpopularitydetail_";
@@ -36,7 +34,7 @@ namespace NuGetGallery.Operations
             CreateContainerIfNotExists();
 
             CreateReport_NuGetClientVersion();
-            CreateReport_Last6Months();
+            CreateReport_Last6Weeks();
             CreateReport_RecentPopularityDetail();
             CreateReport_RecentPopularity();
 
@@ -62,13 +60,13 @@ namespace NuGetGallery.Operations
             CreateBlob(NuGetClientVersion + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
 
-        private void CreateReport_Last6Months()
+        private void CreateReport_Last6Weeks()
         {
-            Log.Info("CreateReport_Last6Months");
+            Log.Info("CreateReport_Last6Weeks");
 
-            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_Last6Months.sql");
+            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_Last6Weeks.sql");
 
-            CreateBlob(Last6Months + ".json", JsonContentType, ReportHelpers.ToJson(report));
+            CreateBlob(Last6Weeks + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
 
         private void CreateReport_RecentPopularityDetail()
@@ -202,7 +200,7 @@ namespace NuGetGallery.Operations
                 WithRetry(() =>
                 {
                     CreatePackageReport(packageId.Item1);
-                    
+
                     ConfirmExport(packageId);
                 });
             });
@@ -246,7 +244,7 @@ namespace NuGetGallery.Operations
         {
             Log.Info($"CreatePackageReport for {packageId}");
 
-            // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
+            // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage
 
             string name = PackageReportDetailBaseName + packageId.ToLowerInvariant();
 
@@ -275,7 +273,7 @@ namespace NuGetGallery.Operations
             foreach (object[] row in data.Item2)
             {
                 string packageVersion = (string)row[0];
-                
+
                 JObject childReport;
                 JToken token;
                 if (items.TryGetValue(packageVersion, out token))
@@ -376,7 +374,7 @@ namespace NuGetGallery.Operations
         {
             Log.Info($"CreateEmptyPackageReport for {packageId}");
 
-            // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
+            // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage
 
             string name = PackageReportDetailBaseName + packageId.ToLowerInvariant();
 
@@ -498,9 +496,9 @@ namespace NuGetGallery.Operations
         {
             CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("stats");
-            
+
             container.CreateIfNotExists();  // this can throw if the container was just deleted a few seconds ago
-            
+
             container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
         }
 

@@ -40,9 +40,9 @@ namespace NuGetGallery
             get { return Enumerable.Empty<StatisticsNuGetUsageItem>(); }
         }
 
-        public IEnumerable<StatisticsMonthlyUsageItem> Last6Months
+        public IEnumerable<StatisticsWeeklyUsageItem> Last6Weeks
         {
-            get { return Enumerable.Empty<StatisticsMonthlyUsageItem>(); }
+            get { return Enumerable.Empty<StatisticsWeeklyUsageItem>(); }
         }
 
         public Task<StatisticsReportResult> LoadDownloadPackages()
@@ -60,7 +60,7 @@ namespace NuGetGallery
             return Task.FromResult(StatisticsReportResult.Failed);
         }
 
-        public Task<StatisticsReportResult> LoadLast6Months()
+        public Task<StatisticsReportResult> LoadLast6Weeks()
         {
             return Task.FromResult(StatisticsReportResult.Failed);
         }

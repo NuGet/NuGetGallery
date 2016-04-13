@@ -24,6 +24,6 @@ namespace NuGetGallery
         /// <summary>
         /// Downloads per month.
         /// </summary>
-        Last6Months
+        Last6Weeks
     };
 }

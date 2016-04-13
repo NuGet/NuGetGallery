@@ -1432,7 +1432,7 @@
     <Compile Include="ViewModels\DeletePackageViewModel.cs" />
     <Compile Include="ViewModels\LogOnViewModel.cs" />
     <Compile Include="ViewModels\ReportPackageReason.cs" />
-    <Compile Include="ViewModels\StatisticsMonthlyUsageItem.cs" />
+    <Compile Include="ViewModels\StatisticsWeeklyUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsNuGetUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsFact.cs" />
     <Compile Include="ViewModels\StatisticsPivot.cs" />

@@ -99,22 +99,22 @@
         </table>
     </div>
 }
-@if (Model.IsLast6MonthsAvailable)
+@if (Model.IsLast6WeeksAvailable)
 {
     <div class="statistics-layout" id="downloads-per-month">
-        <h1 class="statistics-report-title">Packages&nbsp;Downloaded&nbsp;Per&nbsp;Month</h1>
+        <h1 class="statistics-report-title">Downloaded&nbsp;Packages&nbsp;Per&nbsp;Week&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
         <table class="stats-table">
             <thead>
                 <tr>
-                    <th class="first">Month</th><th>Downloads</th>
+                    <th class="first">Week</th><th>Downloads</th>
                 </tr>
             </thead>
             <tbody>
             @{
-                foreach (var item in Model.Last6Months)
+                foreach (var item in Model.Last6Weeks)
                 {
                     <tr>
-                        <td>@Model.DisplayMonth(item.Year, item.MonthOfYear)</td>
+                        <td>@Model.DisplayWeek(item.Year, item.WeekOfYear)</td>
                         <td class="statistics-number">@Model.DisplayDownloads(item.Downloads)</td>
                     </tr>
                 }

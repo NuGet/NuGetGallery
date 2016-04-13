@@ -3,10 +3,10 @@
 
 namespace NuGetGallery
 {
-    public class StatisticsMonthlyUsageItem
+    public class StatisticsWeeklyUsageItem
     {
         public int Year { get; set; }
-        public int MonthOfYear { get; set; }
+        public int WeekOfYear { get; set; }
         public int Downloads { get; set; }
     }
 }

@@ -416,7 +416,7 @@
     <EmbeddedResource Include="Scripts\DownloadReport_ListInactive.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\DownloadReport_Last6Months.sql" />
+    <EmbeddedResource Include="Scripts\DownloadReport_Last6Weeks.sql" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\DownloadReport_NuGetClientVersion.sql" />

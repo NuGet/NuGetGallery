@@ -11,7 +11,6 @@ namespace NuGetGallery
     public class StatisticsPackagesViewModel
     {
         private DateTime? _lastUpdatedUtc;
-        private static readonly string[] _months = { string.Empty, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
         public StatisticsPackagesViewModel()
         {
@@ -27,7 +26,7 @@ namespace NuGetGallery
 
         public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion { get; set; }
 
-        public IEnumerable<StatisticsMonthlyUsageItem> Last6Months { get; set; }
+        public IEnumerable<StatisticsWeeklyUsageItem> Last6Weeks { get; set; }
 
         public StatisticsPackagesReport Report { get; private set; }
 
@@ -37,7 +36,7 @@ namespace NuGetGallery
 
         public bool IsNuGetClientVersionAvailable { get; set; }
 
-        public bool IsLast6MonthsAvailable { get; set; }
+        public bool IsLast6WeeksAvailable { get; set; }
 
         public int NuGetClientVersionTotalDownloads { get; private set; }
 
@@ -83,13 +82,13 @@ namespace NuGetGallery
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]
-        public string DisplayMonth(int year, int monthOfYear)
+        public string DisplayWeek(int year, int weekOfYear)
         {
-            if (monthOfYear < 1 || monthOfYear > 12)
+            if (weekOfYear < 1 || weekOfYear > 53)
             {
                 return string.Empty;
             }
-            return string.Format(CultureInfo.CurrentCulture, "{0} {1}", year, _months[monthOfYear]);
+            return string.Format(CultureInfo.CurrentCulture, "{0} wk {1}", year, weekOfYear);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]

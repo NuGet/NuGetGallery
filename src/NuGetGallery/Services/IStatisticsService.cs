@@ -13,12 +13,12 @@ namespace NuGetGallery
         IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll { get; }
         IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll { get; }
         IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion { get; }
-        IEnumerable<StatisticsMonthlyUsageItem> Last6Months { get; }
+        IEnumerable<StatisticsWeeklyUsageItem> Last6Weeks { get; }
 
         Task<StatisticsReportResult> LoadDownloadPackages();
         Task<StatisticsReportResult> LoadDownloadPackageVersions();
         Task<StatisticsReportResult> LoadNuGetClientVersion();
-        Task<StatisticsReportResult> LoadLast6Months();
+        Task<StatisticsReportResult> LoadLast6Weeks();
 
         Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId);
         Task<StatisticsPackagesReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion);

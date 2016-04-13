@@ -78,13 +78,13 @@ namespace NuGetGallery
                 new JObject
                 {
                     { "Year", 2012 },
-                    { "MonthOfYear", 11 },
+                    { "WeekOfYear", 41 },
                     { "Downloads", 5383767 }
                 },
                 new JObject
                 {
                     { "Year", 2012 },
-                    { "MonthOfYear", 12 },
+                    { "WeekOfYear", 42 },
                     { "Downloads", 5383767 }
                 }
             };
@@ -92,7 +92,7 @@ namespace NuGetGallery
             var fakePackageReport = report1.ToString();
             var fakePackageVersionReport = report2.ToString();
             var fakeNuGetClientVersion = report3.ToString();
-            var fakeLast6Months = report4.ToString();
+            var fakeLast6Weeks = report4.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -101,7 +101,7 @@ namespace NuGetGallery
             fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.MinValue)));
             fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, null)));
             fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.MinValue)));
-            fakeReportService.Setup(x => x.Load("last6months.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Months, updatedUtc)));
+            fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Weeks, updatedUtc)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -190,13 +190,13 @@ namespace NuGetGallery
                 new JObject
                 {
                     { "Year", 2012 },
-                    { "MonthOfYear", 11 },
+                    { "WeekOfYear", 11 },
                     { "Downloads", 5383767 }
                 },
                 new JObject
                 {
                     { "Year", 2012 },
-                    { "MonthOfYear", 12 },
+                    { "WeekOfYear", 12 },
                     { "Downloads", 5383767 }
                 }
             };
@@ -204,14 +204,14 @@ namespace NuGetGallery
             var fakePackageReport = report1.ToString();
             var fakePackageVersionReport = report2.ToString();
             var fakeNuGetClientVersion = report3.ToString();
-            var fakeLast6Months = report4.ToString();
+            var fakeLast6Weeks = report4.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
             fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.UtcNow)));
             fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
             fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.UtcNow)));
-            fakeReportService.Setup(x => x.Load("last6months.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Months, DateTime.UtcNow)));
+            fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Weeks, DateTime.UtcNow)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -353,7 +353,7 @@ namespace NuGetGallery
                         {
                             { "Version", "1.0" },
                             { "Downloads", 101 },
-                            { "Items", new JArray 
+                            { "Items", new JArray
                                 {
                                     new JObject
                                     {
@@ -436,7 +436,7 @@ namespace NuGetGallery
                         {
                             { "Version", "1.0" },
                             { "Downloads", 101 },
-                            { "Items", new JArray 
+                            { "Items", new JArray
                                 {
                                     new JObject
                                     {
@@ -576,14 +576,14 @@ namespace NuGetGallery
             }
 
             /// <summary>
-            /// When testing MVC controllers, OnActionExecuted and OnActionExecuting functions are not get called. 
+            /// When testing MVC controllers, OnActionExecuted and OnActionExecuting functions are not get called.
             /// Code from: http://www.codeproject.com/Articles/623793/OnActionExecuting-and-OnActionExecuted-in-MVC-unit (The Code Project Open License (CPOL))
             /// </summary>
             private async static Task<T> InvokeAction<T>(Expression<Func<Task<T>>> actionCall, Controller controller) where T : ActionResult
             {
                 var methodCall = (MethodCallExpression)actionCall.Body;
                 var method = methodCall.Method;
-           
+
                 ControllerDescriptor controllerDescriptor = new ReflectedControllerDescriptor(controller.GetType());
                 ActionDescriptor actionDescriptor =
                   new ReflectedActionDescriptor(method, method.Name, controllerDescriptor);

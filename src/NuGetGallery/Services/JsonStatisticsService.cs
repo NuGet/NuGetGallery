@@ -13,8 +13,7 @@ namespace NuGetGallery
 {
     public class JsonStatisticsService : IStatisticsService
     {
-        private const string RecentpopularityBlobNameFormat = "recentpopularity/{0}.json";
-        private const string RecentpopularityDetailBlobNameFormat = "recentpopularity/{0}{1}.json";
+        private const string _recentpopularityDetailBlobNameFormat = "recentpopularity/{0}{1}.json";
 
         private readonly IReportService _reportService;
         private List<StatisticsPackagesItemViewModel> _downloadPackagesSummary;
@@ -22,7 +21,7 @@ namespace NuGetGallery
         private List<StatisticsPackagesItemViewModel> _downloadPackagesAll;
         private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsAll;
         private List<StatisticsNuGetUsageItem> _nuGetClientVersion;
-        private List<StatisticsMonthlyUsageItem> _last6Months;
+        private List<StatisticsWeeklyUsageItem> _last6Weeks;
 
         public JsonStatisticsService(IReportService reportService)
         {
@@ -63,9 +62,9 @@ namespace NuGetGallery
             get { return _nuGetClientVersion ?? (_nuGetClientVersion = new List<StatisticsNuGetUsageItem>()); }
         }
 
-        public IEnumerable<StatisticsMonthlyUsageItem> Last6Months
+        public IEnumerable<StatisticsWeeklyUsageItem> Last6Weeks
         {
-            get { return _last6Months ?? (_last6Months = new List<StatisticsMonthlyUsageItem>()); }
+            get { return _last6Weeks ?? (_last6Weeks = new List<StatisticsWeeklyUsageItem>()); }
         }
 
         public async Task<StatisticsReportResult> LoadDownloadPackages()
@@ -187,11 +186,11 @@ namespace NuGetGallery
             }
         }
 
-        public async Task<StatisticsReportResult> LoadLast6Months()
+        public async Task<StatisticsReportResult> LoadLast6Weeks()
         {
             try
             {
-                var reportName = (StatisticsReportName.Last6Months + ".json").ToLowerInvariant();
+                var reportName = (StatisticsReportName.Last6Weeks + ".json").ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
                 if (reportContent == null)
                 {
@@ -199,16 +198,16 @@ namespace NuGetGallery
                 }
 
                 var array = JArray.Parse(reportContent.Content);
-                var statisticsMonthlyUsageItems = (List<StatisticsMonthlyUsageItem>)Last6Months;
+                var statisticsMonthlyUsageItems = (List<StatisticsWeeklyUsageItem>)Last6Weeks;
                 statisticsMonthlyUsageItems.Clear();
 
                 foreach (JObject item in array)
                 {
                     statisticsMonthlyUsageItems.Add(
-                        new StatisticsMonthlyUsageItem
+                        new StatisticsWeeklyUsageItem
                         {
                             Year = (int)item["Year"],
-                            MonthOfYear = (int)item["MonthOfYear"],
+                            WeekOfYear = (int)item["WeekOfYear"],
                             Downloads = (int)item["Downloads"]
                         });
                 }
@@ -231,7 +230,7 @@ namespace NuGetGallery
                     return null;
                 }
 
-                var reportName = string.Format(CultureInfo.CurrentCulture, RecentpopularityDetailBlobNameFormat,
+                var reportName = string.Format(CultureInfo.CurrentCulture, _recentpopularityDetailBlobNameFormat,
                     StatisticsReportName.RecentPopularityDetail_, packageId).ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
 
@@ -287,7 +286,7 @@ namespace NuGetGallery
                     return null;
                 }
 
-                var reportName = string.Format(CultureInfo.CurrentCulture, RecentpopularityDetailBlobNameFormat, 
+                var reportName = string.Format(CultureInfo.CurrentCulture, _recentpopularityDetailBlobNameFormat,
                     StatisticsReportName.RecentPopularityDetail_, packageId).ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
                 if (reportContent == null)

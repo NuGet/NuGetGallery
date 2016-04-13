@@ -40,7 +40,7 @@ namespace NuGetGallery
         {
             var stats = await _aggregateStatsService.GetAggregateStats();
 
-       
+
             return Json(
                 new
                 {
@@ -52,7 +52,7 @@ namespace NuGetGallery
                 JsonRequestBehavior.AllowGet);
         }
 
-      
+
 
         //
         // GET: /stats
@@ -68,7 +68,7 @@ namespace NuGetGallery
                 _statisticsService.LoadDownloadPackages(),
                 _statisticsService.LoadDownloadPackageVersions(),
                 _statisticsService.LoadNuGetClientVersion(),
-                _statisticsService.LoadLast6Months());
+                _statisticsService.LoadLast6Weeks());
 
             var model = new StatisticsPackagesViewModel
             {
@@ -78,8 +78,8 @@ namespace NuGetGallery
                 DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary,
                 IsNuGetClientVersionAvailable = availablity[2].Loaded,
                 NuGetClientVersion = _statisticsService.NuGetClientVersion,
-                IsLast6MonthsAvailable = availablity[3].Loaded,
-                Last6Months = _statisticsService.Last6Months,
+                IsLast6WeeksAvailable = availablity[3].Loaded,
+                Last6Weeks = _statisticsService.Last6Weeks,
                 LastUpdatedUtc = availablity
                     .Where(r => r.LastUpdatedUtc.HasValue)
                     .OrderByDescending(r => r.LastUpdatedUtc.Value)
