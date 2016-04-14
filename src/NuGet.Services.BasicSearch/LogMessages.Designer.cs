@@ -70,15 +70,6 @@ namespace NuGet.Services.BasicSearch {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Response cache cleared. Previous hit ratio: {HitRatio} over {TotalRequests} requests.
-        /// </summary>
-        internal static string ResponseCacheCleared {
-            get {
-                return ResourceManager.GetString("ResponseCacheCleared", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SearcherManager is not initialized.
         /// </summary>
         internal static string SearcherManagerNotInitialized {

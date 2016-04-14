@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using NuGet.Versioning;
@@ -11,8 +12,8 @@ namespace NuGet.Indexing
 {
     public class VersionsHandler : IIndexReaderProcessorHandler
     {
-        IDictionary<string, IDictionary<string, int>> _downloads;
-        IDictionary<string, List<RegistrationEntry>> _registrations;
+        private readonly IDictionary<string, IDictionary<string, int>> _downloads;
+        private IDictionary<string, List<RegistrationEntry>> _registrations;
 
         public VersionsHandler(IDictionary<string, IDictionary<string, int>> downloads)
         {
@@ -33,7 +34,7 @@ namespace NuGet.Indexing
             _registrations.Clear();
         }
 
-        public void Process(IndexReader indexReader, string readerName, int n, Document document, string id, NuGetVersion version)
+        public void Process(IndexReader indexReader, string readerName, int documentNumber, Document document, string id, NuGetVersion version)
         {
             if (id == null || version == null)
             {
@@ -47,14 +48,14 @@ namespace NuGet.Indexing
                 _registrations.Add(id, versions);
             }
 
-            versions.Add(new RegistrationEntry { DocumentId = n, Version = version });
+            versions.Add(new RegistrationEntry { DocumentId = documentNumber, Version = version, IsListed = GetListed(document) });
         }
 
-        void CreateResults()
+        private void CreateResults()
         {
             foreach (var registration in _registrations)
             {
-                IDictionary<string, int> downloadsByVersion = null;
+                IDictionary<string, int> downloadsByVersion;
                 _downloads.TryGetValue(registration.Key, out downloadsByVersion);
 
                 VersionResult versionResult = CreateVersionResult(registration.Key, registration.Value, downloadsByVersion);
@@ -66,13 +67,13 @@ namespace NuGet.Indexing
             }
         }
 
-        VersionResult CreateVersionResult(string id, List<RegistrationEntry> registrationEntries, IDictionary<string, int> downloadsByVersion)
+        private VersionResult CreateVersionResult(string id, List<RegistrationEntry> registrationEntries, IDictionary<string, int> downloadsByVersion)
         {
             VersionResult result = new VersionResult();
 
             foreach (var registrationEntry in registrationEntries.OrderBy(r => r.Version))
             {
-                string versionStr = registrationEntry.Version.ToNormalizedString();
+                string versionStr = String.Intern(registrationEntry.Version.ToNormalizedString());
 
                 int downloads = 0;
                 if (downloadsByVersion != null)
@@ -84,17 +85,25 @@ namespace NuGet.Indexing
                 {
                     Version = versionStr,
                     Downloads = downloads,
-                    IsStable = !registrationEntry.Version.IsPrerelease
+                    IsStable = !registrationEntry.Version.IsPrerelease,
+                    IsListed = registrationEntry.IsListed
                 });
             }
 
             return result;
         }
 
-        class RegistrationEntry
+        private static bool GetListed(Document document)
+        {
+            string listed = document.Get("Listed");
+            return (listed == null) ? false : listed.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private class RegistrationEntry
         {
             public int DocumentId { get; set; }
             public NuGetVersion Version { get; set; }
+            public bool IsListed { get; set; }
         }
 
         public class VersionResult
@@ -106,8 +115,16 @@ namespace NuGet.Indexing
 
             public List<VersionDetail> VersionDetails { get; private set; }
 
-            public IEnumerable<string> Versions { get { return VersionDetails.Select(v => v.Version); } }
-            public IEnumerable<string> StableVersions { get { return StableVersionDetails.Select(v => v.Version); } }
+            public IEnumerable<string> GetVersions(bool onlyListed)
+            {
+                return VersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.Version);
+            }
+
+            public IEnumerable<string> GetStableVersions(bool onlyListed)
+            {
+                return StableVersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.Version);
+            }
+
             public IEnumerable<VersionDetail> StableVersionDetails { get { return VersionDetails.Where(v => v.IsStable); } }
 
             public class VersionDetail
@@ -115,6 +132,7 @@ namespace NuGet.Indexing
                 public string Version { get; set; }
                 public int Downloads { get; set; }
                 public bool IsStable { get; set; }
+                public bool IsListed { get; set; }
             }
         }
     }

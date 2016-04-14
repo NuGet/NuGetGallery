@@ -11,11 +11,12 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
         {
         }
 
-        public PackageVersion(string id, string version, int downloads = 0)
+        public PackageVersion(string id, string version, int downloads = 0, bool listed = true)
         {
             Id = id;
             Version = version;
             Downloads = downloads;
+            Listed = listed;
         }
 
         public string Id { get; }
@@ -23,6 +24,8 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
         public string Version { get; }
 
         public int Downloads { get; }
+
+        public bool Listed { get; }
 
         public override bool Equals(object obj)
         {

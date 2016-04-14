@@ -51,7 +51,7 @@ namespace NuGet.Indexing
 
             while (jsonReader.Read() && jsonReader.TokenType == JsonToken.String)
             {
-                ranking.Add(jsonReader.Value.ToString(), n++);
+                ranking.Add(String.Intern(jsonReader.Value.ToString()), n++);
             }
 
             return ranking;

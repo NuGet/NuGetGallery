@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="NuGet.Services.BasicSearch.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2015-04.2.6">
+  <Role name="NuGet.Services.BasicSearch">
+    <Instances count="2" />
+    <ConfigurationSettings />
+    <Certificates />
+  </Role>
+</ServiceConfiguration>

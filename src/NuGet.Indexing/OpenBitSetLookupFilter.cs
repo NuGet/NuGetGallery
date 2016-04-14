@@ -21,13 +21,16 @@ namespace NuGet.Indexing
         {
             SegmentReader segmentReader = reader as SegmentReader;
 
-            string readerName = (segmentReader != null) ? segmentReader.SegmentName : string.Empty;
+            string readerName = segmentReader != null
+                ? segmentReader.SegmentName 
+                : string.Empty;
 
             OpenBitSet docIdSet;
             if (_bitSetLookup.TryGetValue(readerName, out docIdSet))
             {
                 return docIdSet;
             }
+
             return null;
         }
     }

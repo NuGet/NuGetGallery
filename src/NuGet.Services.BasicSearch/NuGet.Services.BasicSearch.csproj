@@ -226,20 +226,18 @@
   <ItemGroup>
     <Compile Include="ConfigurationService.cs" />
     <Compile Include="CorrelationIdMiddleware.cs" />
-    <Compile Include="Caching\IResponseBodyCache.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="LogMessages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>LogMessages.resx</DependentUpon>
     </Compile>
-    <Compile Include="Caching\MemoryCacheResponseBodyCache.cs" />
-    <Compile Include="Caching\NullResponseBodyCache.cs" />
     <Compile Include="ResponseHelpers.cs" />
     <Compile Include="ServiceEndpoints.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SafeRoleEnvironment.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="WebRole.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">

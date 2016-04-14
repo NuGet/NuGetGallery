@@ -22,9 +22,21 @@ namespace NuGet.Services.BasicSearchTests.Models
             return Data.FirstOrDefault(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
         }
 
+        public V2Package GetPackage(string id, string version)
+        {
+            return Data.FirstOrDefault(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase)
+                && (p.Version.Equals(version, StringComparison.OrdinalIgnoreCase) 
+                    || p.NormalizedVersion.Equals(version, StringComparison.OrdinalIgnoreCase)));
+        }
+
         public bool ContainsPackage(string id)
         {
             return GetPackage(id) != null;
+        }
+
+        public bool ContainsPackage(string id, string version)
+        {
+            return GetPackage(id, version) != null;
         }
 
         public string GetPackageVersion(string id)

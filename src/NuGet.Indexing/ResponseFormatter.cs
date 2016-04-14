@@ -104,13 +104,16 @@ namespace NuGet.Indexing
 
             jsonWriter.WriteStartArray();
 
-            foreach (var item in includePrerelease ? versionResult.VersionDetails : versionResult.StableVersionDetails)
+            var results = includePrerelease
+                ? versionResult.VersionDetails 
+                : versionResult.StableVersionDetails;
+
+            foreach (var item in results.Where(r => r.IsListed))
             {
                 var relativeAddress = UriFormatter.MakePackageRelativeAddress(id, item.Version);
                 var absoluteAddress = new Uri(baseAddress, relativeAddress).AbsoluteUri;
 
                 jsonWriter.WriteStartObject();
-
                 WriteProperty(jsonWriter, "version", item.Version);
                 WriteProperty(jsonWriter, "downloads", item.Downloads);
                 WriteProperty(jsonWriter, "@id", absoluteAddress);
@@ -185,7 +188,9 @@ namespace NuGet.Indexing
             {
                 ScoreDoc scoreDoc = topDocs.ScoreDocs[0];
 
-                var versions = includePrerelease ? searcher.Versions[scoreDoc.Doc].Versions : searcher.Versions[scoreDoc.Doc].StableVersions;
+                var versions = includePrerelease 
+                    ? searcher.Versions[scoreDoc.Doc].GetVersions(onlyListed: true) 
+                    : searcher.Versions[scoreDoc.Doc].GetStableVersions(onlyListed: true);
 
                 foreach (var version in versions)
                 {
@@ -268,17 +273,17 @@ namespace NuGet.Indexing
             WriteProperty(jsonWriter, "indexTimestamp", timestamp);
         }
 
-        private static void WriteRegistrationV2(JsonWriter jsonWriter, Document document, int downloadCount)
+        private static void WriteRegistrationV2(JsonWriter jsonWriter, string id, int downloadCount, IEnumerable<string> owners)
         {
             jsonWriter.WritePropertyName("PackageRegistration");
             jsonWriter.WriteStartObject();
             
-            WriteDocumentValue(jsonWriter, "Id", document, "Id");
+            WriteProperty(jsonWriter, "Id", id);
             WriteProperty(jsonWriter, "DownloadCount", downloadCount);
             
             jsonWriter.WritePropertyName("Owners");
             jsonWriter.WriteStartArray();
-            foreach (string owner in document.GetValues("Owner"))
+            foreach (string owner in owners)
             {
                 jsonWriter.WriteValue(owner);
             }
@@ -298,6 +303,7 @@ namespace NuGet.Indexing
                 ScoreDoc scoreDoc = topDocs.ScoreDocs[i];
                 Document document = searcher.Doc(scoreDoc.Doc);
 
+                string id = document.Get("Id");
                 string version = document.Get("Version");
 
                 Tuple<int, int> downloadCounts = NuGetIndexSearcher.GetDownloadCounts(searcher.Versions[scoreDoc.Doc], version);
@@ -306,7 +312,7 @@ namespace NuGet.Indexing
                 bool isLatestStable = searcher.LatestStableBitSet.Get(scoreDoc.Doc);
 
                 jsonWriter.WriteStartObject();
-                WriteRegistrationV2(jsonWriter, document, downloadCounts.Item1);
+                WriteRegistrationV2(jsonWriter, id, downloadCounts.Item1, NuGetIndexSearcher.GetOwners(searcher, id));
                 WriteDocumentValue(jsonWriter, "Version", document, "OriginalVersion");
                 WriteProperty(jsonWriter, "NormalizedVersion", version);
                 WriteDocumentValue(jsonWriter, "Title", document, "Title");
@@ -368,19 +374,33 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndObject();
         }
 
-        public static void WriteRankingsResult(JsonWriter jsonWriter, IDictionary<string, int> rankings)
+        public static void WriteRankingsResult(JsonWriter jsonWriter, RankingsHandler.RankingResult rankings)
         {
             jsonWriter.WriteStartObject();
             jsonWriter.WritePropertyName("rankings");
             jsonWriter.WriteStartArray();
-            foreach (var ranking in rankings)
+
+            var flattenedRankings = rankings.DocumentRankings
+                .SelectMany(r => r.Value)
+                .Where(r => r != null)
+                .OrderBy(r => r.Id);
+
+            string previousId = string.Empty;
+            foreach (var ranking in flattenedRankings)
             {
+                if (ranking.Id == previousId)
+                {
+                    continue;
+                }
+
                 jsonWriter.WriteStartObject();
                 jsonWriter.WritePropertyName("id");
-                jsonWriter.WriteValue(ranking.Key);
+                jsonWriter.WriteValue(ranking.Id);
                 jsonWriter.WritePropertyName("Rank");
-                jsonWriter.WriteValue(ranking.Value);
+                jsonWriter.WriteValue(ranking.Rank);
                 jsonWriter.WriteEndObject();
+
+                previousId = ranking.Id;
             }
             jsonWriter.WriteEndArray();
             jsonWriter.WriteEndObject();

@@ -10,86 +10,102 @@ namespace NuGet.Indexing
 {
     public class IndexReaderProcessor
     {
-        bool _skipDeletes;
-        List<IIndexReaderProcessorHandler> _handlers;
-        bool _enumerateSubReaders;
-
-        public IndexReaderProcessor(bool enumerateSubReaders, bool skipDeletes)
+        private class IndexReaderProcessorHandlerConfiguration
         {
-            _skipDeletes = skipDeletes;
-            _handlers = new List<IIndexReaderProcessorHandler>();
+            public IIndexReaderProcessorHandler Handler { get; set; }
+            public bool SkipDeletes { get; set; }
+            public bool RequiresPerSegmentDocumentNumber { get; set; }
+        }
+
+        private readonly List<IndexReaderProcessorHandlerConfiguration> _handlers;
+        private readonly bool _enumerateSubReaders;
+
+        public IndexReaderProcessor(bool enumerateSubReaders)
+        {
+            _handlers = new List<IndexReaderProcessorHandlerConfiguration>();
             _enumerateSubReaders = enumerateSubReaders;
         }
 
-        public void AddHandler(IIndexReaderProcessorHandler handler)
+        public void AddHandler(IIndexReaderProcessorHandler handler, bool skipDeletes, bool requiresPerSegmentDocumentNumber)
         {
-            _handlers.Add(handler);
+            _handlers.Add(new IndexReaderProcessorHandlerConfiguration
+            {
+                Handler = handler,
+                SkipDeletes = skipDeletes,
+                RequiresPerSegmentDocumentNumber = requiresPerSegmentDocumentNumber
+            });
         }
 
         public void Process(IndexReader indexReader)
         {
+            var perIndexDocumentNumber = 0;
+
             foreach (var handler in _handlers)
             {
-                handler.Begin(indexReader);
+                handler.Handler.Begin(indexReader);
             }
 
             if (_enumerateSubReaders && indexReader.GetSequentialSubReaders() != null)
             {
                 foreach (SegmentReader segmentReader in indexReader.GetSequentialSubReaders())
                 {
-                    ProcessReader(segmentReader, segmentReader.SegmentName);
+                    ProcessReader(segmentReader, segmentReader.SegmentName, ref perIndexDocumentNumber);
                 }
             }
             else
             {
-                ProcessReader(indexReader, string.Empty);
+                ProcessReader(indexReader, string.Empty, ref perIndexDocumentNumber);
             }
 
             foreach (var handler in _handlers)
             {
-                handler.End(indexReader);
+                handler.Handler.End(indexReader);
             }
         }
 
-        void ProcessReader(IndexReader indexReader, string readerName)
+        void ProcessReader(IndexReader indexReader, string readerName, ref int perIndexDocumentNumber)
         {
-            for (int n = 0; n < indexReader.MaxDoc; n++)
+            for (int perReaderDocumentNumber = 0; perReaderDocumentNumber < indexReader.MaxDoc; perReaderDocumentNumber++)
             {
-                if (indexReader.IsDeleted(n))
+                if (indexReader.IsDeleted(perReaderDocumentNumber))
                 {
-                    if (_skipDeletes)
-                    {
-                        continue;
-                    }
-
-                    ProcessDocument(indexReader, readerName, n, null);
+                    ProcessDocument(indexReader, readerName, perReaderDocumentNumber, perIndexDocumentNumber, null, isDelete: true);
                 }
                 else
                 {
-                    Document document = indexReader.Document(n);
-                    ProcessDocument(indexReader, readerName, n, document);
+                    Document document = indexReader.Document(perReaderDocumentNumber);
+                    ProcessDocument(indexReader, readerName, perReaderDocumentNumber, perIndexDocumentNumber, document, isDelete: false);
                 }
+
+                perIndexDocumentNumber++;
             }
         }
 
-        void ProcessDocument(IndexReader indexReader, string readerName, int n, Document document)
+        void ProcessDocument(IndexReader indexReader, string readerName, int perReaderDocumentNumber, int perIndexDocumentNumber, Document document, bool isDelete)
         {
             NuGetVersion version = document != null ? GetVersion(document) : null;
             string id = document != null ? GetId(document) : null;
 
             foreach (var handler in _handlers)
             {
-                handler.Process(indexReader, readerName, n, document, id, version);
+                if (isDelete && handler.SkipDeletes)
+                {
+                    continue;
+                }
+
+                handler.Handler.Process(indexReader, readerName, handler.RequiresPerSegmentDocumentNumber 
+                    ? perReaderDocumentNumber 
+                    : perIndexDocumentNumber, document, id, version);
             }
         }
 
-        static NuGetVersion GetVersion(Document document)
+        private static NuGetVersion GetVersion(Document document)
         {
             string version = document.Get("Version");
             return (version == null) ? null : new NuGetVersion(version);
         }
 
-        static string GetId(Document document)
+        private static string GetId(Document document)
         {
             string id = document.Get("Id");
             string ns = document.Get("Namespace");

@@ -17,12 +17,16 @@ namespace NuGet.Indexing
             var searcher = searcherManager.Get();
             try
             {
-                Query query = MakeSearchQuery(q, searcher.Rankings);
-                TopDocs topDocs;
+                Query query = MakeSearchQuery(q, searcher);
 
-                Filter filter = searcher.GetFilter(false, includePrerelease, feed);
+                Filter filter = null;
+                if (searcher.TryGetFilter(false, includePrerelease, feed, out filter))
+                {
+                    // Filter before running the query (make the search set smaller)
+                    query = new FilteredQuery(query, filter);
+                }
 
-                topDocs = searcher.Search(query, filter, skip + take);
+                TopDocs topDocs = searcher.Search(query, skip + take);
 
                 ResponseFormatter.WriteSearchResult(jsonWriter, searcher, scheme, topDocs, skip, take, includePrerelease, includeExplanation, query);
             }
@@ -37,18 +41,32 @@ namespace NuGet.Indexing
             var searcher = searcherManager.Get();
             try
             {
-                Filter filter = searcher.GetFilter(false, includePrerelease, null);
+                Filter filter = null;
 
                 if (q != null)
                 {
                     Query query = MakeAutoCompleteQuery(q, searcher.Rankings);
-                    TopDocs topDocs = searcher.Search(query, filter, skip + take);
+
+                    if (searcher.TryGetFilter(false, includePrerelease, null, out filter))
+                    {
+                        // Filter before running the query (make the search set smaller)
+                        query = new FilteredQuery(query, filter);
+                    }
+
+                    TopDocs topDocs = searcher.Search(query, skip + take);
                     ResponseFormatter.WriteAutoCompleteResult(jsonWriter, searcher, topDocs, skip, take, includeExplanation, query);
                 }
                 else
                 {
                     Query query = MakeAutoCompleteVersionQuery(id);
-                    TopDocs topDocs = searcher.Search(query, filter, 1);
+
+                    if (searcher.TryGetFilter(false, includePrerelease, null, out filter))
+                    {
+                        // Filter before running the query (make the search set smaller)
+                        query = new FilteredQuery(query, filter);
+                    }
+
+                    TopDocs topDocs = searcher.Search(query, 1);
                     ResponseFormatter.WriteAutoCompleteVersionResult(jsonWriter, searcher, includePrerelease, topDocs);
                 }
             }
@@ -73,12 +91,12 @@ namespace NuGet.Indexing
             }
         }
 
-        private static Query MakeSearchQuery(string q, IDictionary<string, int> rankings)
+        private static Query MakeSearchQuery(string q, NuGetIndexSearcher searcher)
         {
             try
             {
-                Query query = NuGetQuery.MakeQuery(q);
-                Query boostedQuery = new RankingScoreQuery(query, rankings);
+                Query query = NuGetQuery.MakeQuery(q, searcher);
+                Query boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
                 return boostedQuery;
             }
             catch (ParseException)
@@ -87,7 +105,7 @@ namespace NuGet.Indexing
             }
         }
 
-        private static Query MakeAutoCompleteQuery(string q, IDictionary<string, int> rankings)
+        private static Query MakeAutoCompleteQuery(string q, RankingsHandler.RankingResult rankings)
         {
             if (string.IsNullOrEmpty(q))
             {

@@ -16,6 +16,11 @@ namespace NuGet.Indexing
     {
         public static Query MakeQuery(string q)
         {
+            return MakeQuery(q, null);
+        }
+
+        public static Query MakeQuery(string q, NuGetIndexSearcher searcher)
+        {
             var grouping = new Dictionary<string, HashSet<string>>();
             foreach (Clause clause in MakeClauses(Tokenize(q)))
             {
@@ -33,60 +38,99 @@ namespace NuGet.Indexing
                 return new MatchAllDocsQuery();
             }
 
-            return ConstructQuery(grouping);
+            return ConstructQuery(grouping, searcher);
         }
 
         // Lucene Query creation logic
 
-        static Query ConstructQuery(Dictionary<string, HashSet<string>> clauses)
+        private static Query ConstructQuery(Dictionary<string, HashSet<string>> clauses, NuGetIndexSearcher searcher)
         {
             Analyzer analyzer = new PackageAnalyzer();
 
-            BooleanQuery query = new BooleanQuery();
+            List<Filter> filters = new List<Filter>();
+
+            BooleanQuery booleanQuery = new BooleanQuery();
             foreach (var clause in clauses)
             {
                 switch (clause.Key.ToLowerInvariant())
                 {
                     case "id":
-                        IdClause(query, analyzer, clause.Value, Occur.MUST);
+                        IdClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "packageid":
-                        PackageIdClause(query, analyzer, clause.Value);
+                        PackageIdClause(booleanQuery, analyzer, clause.Value);
                         break;
                     case "version":
-                        VersionClause(query, analyzer, clause.Value, Occur.MUST);
+                        VersionClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "title":
-                        TitleClause(query, analyzer, clause.Value, Occur.MUST);
+                        TitleClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "description":
-                        DescriptionClause(query, analyzer, clause.Value, Occur.MUST);
+                        DescriptionClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "tag":
                     case "tags":
-                        TagClause(query, analyzer, clause.Value, Occur.MUST);
+                        TagClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "author":
                     case "authors":
-                        AuthorClause(query, analyzer, clause.Value, Occur.MUST);
+                        AuthorClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "summary":
-                        SummaryClause(query, analyzer, clause.Value, Occur.MUST);
+                        SummaryClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
                         break;
                     case "owner":
                     case "owners":
-                        OwnerClause(query, analyzer, clause.Value, Occur.MUST);
+                        if (searcher != null)
+                        {
+                            filters.AddRange(OwnerFilters(searcher.Owners, clause.Value));
+                        }
                         break;
                     default:
-                        AnyClause(query, analyzer, clause.Value);
+                        AnyClause(booleanQuery, analyzer, clause.Value);
+                        
+                        if (searcher != null)
+                        {
+                            var ownerFilters = OwnerFilters(searcher.Owners, clause.Value).ToList();
+                            if (ownerFilters.Any())
+                            {
+                                booleanQuery.Add(ConstructFilteredQuery(new MatchAllDocsQuery(), ownerFilters), Occur.SHOULD);
+                            }
+                        }
+                        
                         break;
                 }
+            }
+
+            // Determine if we have added any clauses - if not, match all docs
+            Query query = booleanQuery;
+            if (!booleanQuery.Clauses.Any())
+            {
+                query = new MatchAllDocsQuery();
+            }
+
+            // Any filters to add?
+            query = ConstructFilteredQuery(query, filters);
+
+            return query;
+        }
+
+        private static Query ConstructFilteredQuery(Query query, List<Filter> filters)
+        {
+            if (filters.Count == 1)
+            {
+                return new FilteredQuery(query, filters[0]);
+            }
+            else if (filters.Count > 1)
+            {
+                return new FilteredQuery(query, new ChainedFilter(filters.ToArray()));
             }
 
             return query;
         }
 
-        static Query ConstructClauseQuery(Analyzer analyzer, string field, IEnumerable<string> values, Occur occur = Occur.SHOULD, float queryBoost = 1.0f, float termBoost = 1.0f)
+        private static Query ConstructClauseQuery(Analyzer analyzer, string field, IEnumerable<string> values, Occur occur = Occur.SHOULD, float queryBoost = 1.0f, float termBoost = 1.0f)
         {
             BooleanQuery query = new BooleanQuery();
             foreach (string text in values)
@@ -99,7 +143,7 @@ namespace NuGet.Indexing
             return query;
         }
 
-        static void IdClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
+        private static void IdClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
             if (occur == Occur.MUST)
             {
@@ -117,17 +161,17 @@ namespace NuGet.Indexing
             }
         }
 
-        static void PackageIdClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        private static void PackageIdClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
         {
             query.Add(ConstructClauseQuery(analyzer, "Id", values), Occur.MUST);
         }
 
-        static void VersionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
+        private static void VersionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
             query.Add(ConstructClauseQuery(analyzer, "Version", values), occur);
         }
 
-        static void TitleClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
+        private static void TitleClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
             if (occur == Occur.MUST)
             {
@@ -143,31 +187,40 @@ namespace NuGet.Indexing
             }
         }
 
-        static void DescriptionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
+        private static void DescriptionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
             query.Add(ConstructClauseQuery(analyzer, "Description", values), occur);
         }
-        static void SummaryClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
+
+        private static void SummaryClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
             query.Add(ConstructClauseQuery(analyzer, "Summary", values), occur);
         }
 
-        static void TagClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
+        private static void TagClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
             query.Add(ConstructClauseQuery(analyzer, "Tags", values, Occur.SHOULD, 2.0f), occur);
         }
 
-        static void AuthorClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
+        private static void AuthorClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
             query.Add(ConstructClauseQuery(analyzer, "Authors", values), occur);
         }
 
-        static void OwnerClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
+        private static IEnumerable<Filter> OwnerFilters(
+            OwnersHandler.OwnersResult owners, 
+            HashSet<string> value)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Owner", values), occur);
+            foreach (var owner in value)
+            {
+                if (owners.KnownOwners.Contains(owner)) // don't filter if we have no such owner
+                {
+                    yield return new OwnersFilter(owners, owner);
+                }
+            }
         }
 
-        static void AnyClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
+        private static void AnyClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
         {
             IdClause(query, analyzer, values, Occur.SHOULD);
             VersionClause(query, analyzer, values, Occur.SHOULD);
@@ -176,7 +229,6 @@ namespace NuGet.Indexing
             SummaryClause(query, analyzer, values, Occur.SHOULD);
             TagClause(query, analyzer, values, Occur.SHOULD);
             AuthorClause(query, analyzer, values, Occur.SHOULD);
-            OwnerClause(query, analyzer, values, Occur.SHOULD);
         }
 
         static Query ExecuteAnalyzer(Analyzer analyzer, string field, string text)
@@ -314,6 +366,10 @@ namespace NuGet.Indexing
                 }
                 else if (token.Type == Token.TokenType.Value)
                 {
+                    if (token.Value.ToLowerInvariant() == "and" || token.Value.ToLowerInvariant() == "or")
+                    {
+                        continue;
+                    }
                     if (field != null)
                     {
                         yield return new Clause { Field = field, Text = token.Value };

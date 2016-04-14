@@ -16,8 +16,8 @@ namespace NuGet.Indexing
         IDictionary<string, OpenBitSet> _openBitSetLookup;
         IDictionary<string, Tuple<NuGetVersion, string, int>> _lookup;
 
-        bool _includeUnlisted;
-        bool _includePrerelease;
+        private readonly bool _includeUnlisted;
+        private readonly bool _includePrerelease;
 
         public LatestListedHandler(bool includeUnlisted, bool includePrerelease)
         {
@@ -58,7 +58,7 @@ namespace NuGet.Indexing
             Result = new OpenBitSetLookupFilter(_openBitSetLookup);
         }
 
-        public void Process(IndexReader indexReader, string readerName, int n, Document document, string id, NuGetVersion version)
+        public void Process(IndexReader indexReader, string readerName, int documentNumber, Document document, string id, NuGetVersion version)
         {
             if (id == null || version == null)
             {
@@ -67,10 +67,10 @@ namespace NuGet.Indexing
 
             bool isListed = GetListed(document);
 
-            Update(isListed, readerName, n, id, version);
+            Update(isListed, readerName, documentNumber, id, version);
         }
 
-        void Update(bool isListed, string readerName, int n, string id, NuGetVersion version)
+        private void Update(bool isListed, string readerName, int n, string id, NuGetVersion version)
         {
             if (isListed || _includeUnlisted)
             {
@@ -92,7 +92,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static bool GetListed(Document document)
+        private static bool GetListed(Document document)
         {
             string listed = document.Get("Listed");
             return (listed == null) ? false : listed.Equals("true", StringComparison.InvariantCultureIgnoreCase);

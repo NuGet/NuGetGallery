@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}"
 EndProject
@@ -39,6 +39,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.BasicSearchTests", "tests\NuGet.Services.BasicSearchTests\NuGet.Services.BasicSearchTests.csproj", "{AF189F05-EFC3-4A98-91C7-2AF1E4B8B131}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.IndexingTests", "tests\NuGet.IndexingTests\NuGet.IndexingTests.csproj", "{43665489-01F0-4F35-8A33-258F2231B2D8}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.BasicSearch.Cloud", "src\NuGet.Services.BasicSearch.Cloud\NuGet.Services.BasicSearch.Cloud.ccproj", "{658FC8A4-3150-48D7-94A5-B224F860831F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -192,6 +194,18 @@ Global
 		{43665489-01F0-4F35-8A33-258F2231B2D8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{43665489-01F0-4F35-8A33-258F2231B2D8}.Release|x64.ActiveCfg = Release|Any CPU
 		{43665489-01F0-4F35-8A33-258F2231B2D8}.Release|x64.Build.0 = Release|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Debug|x64.Build.0 = Debug|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Release|x64.ActiveCfg = Release|Any CPU
+		{658FC8A4-3150-48D7-94A5-B224F860831F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

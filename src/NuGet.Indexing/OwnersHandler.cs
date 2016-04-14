@@ -1,74 +1,91 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.Store;
 using NuGet.Versioning;
-using System.Collections.Generic;
 
 namespace NuGet.Indexing
 {
     public class OwnersHandler : IIndexReaderProcessorHandler
     {
-        Lucene.Net.Store.Directory _directory;
-        IndexWriter _writer;
-        IDictionary<string, HashSet<string>> _owners;
-        List<int> _deletes;
+        private readonly IDictionary<string, HashSet<string>> _owners;
+
+        private HashSet<string> _knownOwners; 
+        private IDictionary<string, IDictionary<string, DynamicDocIdSet>> _ownerTuples;
+
+        public OwnersResult Result { get; private set; }
 
         public OwnersHandler(IDictionary<string, HashSet<string>> owners)
         {
             _owners = owners;
-            _deletes = new List<int>();
         }
 
         public void Begin(IndexReader indexReader)
         {
-            _directory = new RAMDirectory();
-            _writer = new IndexWriter(_directory, new PackageAnalyzer(), IndexWriter.MaxFieldLength.UNLIMITED);
+            _knownOwners = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _ownerTuples = new Dictionary<string, IDictionary<string, DynamicDocIdSet>>();
+
+            if (indexReader.GetSequentialSubReaders() != null)
+            {
+                foreach (SegmentReader segmentReader in indexReader.GetSequentialSubReaders())
+                {
+                    _ownerTuples.Add(segmentReader.SegmentName, new Dictionary<string, DynamicDocIdSet>(StringComparer.OrdinalIgnoreCase));
+                }
+            }
+            else
+            {
+                _ownerTuples.Add(string.Empty, new Dictionary<string, DynamicDocIdSet>(StringComparer.OrdinalIgnoreCase));
+            }
         }
 
         public void End(IndexReader indexReader)
         {
-            _writer.Commit();
-            _writer.Dispose();
+            Result = new OwnersResult(_knownOwners, _owners, _ownerTuples);
         }
 
-        public void Process(IndexReader indexReader, string readerName, int n, Document document, string id, NuGetVersion version)
+        public void Process(IndexReader indexReader, string readerName, int documentNumber, Document document, string id, NuGetVersion version)
         {
-            Document newDocument = new Document();
-
             HashSet<string> registrationOwners;
             if (id != null && _owners.TryGetValue(id, out registrationOwners))
             {
                 foreach (string registrationOwner in registrationOwners)
                 {
-                    newDocument.Add(new Field("Owner", registrationOwner, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS));
+                    _knownOwners.Add(registrationOwner);
+
+                    DynamicDocIdSet ownerDocIdSet;
+                    if (_ownerTuples[readerName].TryGetValue(registrationOwner, out ownerDocIdSet))
+                    {
+                        ownerDocIdSet.DocIds.Add(documentNumber);
+                    }
+                    else
+                    {
+                        ownerDocIdSet = new DynamicDocIdSet();
+                        ownerDocIdSet.DocIds.Add(documentNumber);
+
+                        _ownerTuples[readerName].Add(registrationOwner, ownerDocIdSet);
+                    }
                 }
-            }
-            else
-            {
-                newDocument.Add(new Field("Owner", string.Empty, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS));
-            }
-
-            _writer.AddDocument(newDocument);
-
-            if (document == null)
-            {
-                _deletes.Add(n);
             }
         }
 
-        public IndexReader OpenReader()
+        public class OwnersResult
         {
-            IndexReader reader = IndexReader.Open(_directory, false);
-
-            foreach (int n in _deletes)
+            public OwnersResult(
+                HashSet<string> knownOwners,
+                IDictionary<string, HashSet<string>> packagesWithOwners, 
+                IDictionary<string, IDictionary<string, DynamicDocIdSet>> mappings)
             {
-                reader.DeleteDocument(n);
+                KnownOwners = knownOwners;
+                PackagesWithOwners = packagesWithOwners;
+                Mappings = mappings;
             }
 
-            return reader;
+            public HashSet<string> KnownOwners { get; private set; }
+            public IDictionary<string, HashSet<string>> PackagesWithOwners { get; private set; }
+            public IDictionary<string, IDictionary<string, DynamicDocIdSet>> Mappings { get; private set; }
         }
     }
 }

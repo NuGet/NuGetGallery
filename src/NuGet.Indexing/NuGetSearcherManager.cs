@@ -11,19 +11,30 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
     public class NuGetSearcherManager : SearcherManager<NuGetIndexSearcher>
     {
+        public static readonly TimeSpan AuxiliaryDataRefreshRate = TimeSpan.FromHours(1);
+
         private readonly ILoader _loader;
         private readonly FrameworkLogger _logger;
+        private readonly AzureDirectorySynchronizer _azureDirectorySynchronizer;
+
+        private DateTime _auxiliaryDataReloaded = DateTime.MinValue;
+        private readonly IDictionary<string, HashSet<string>> _owners = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDictionary<string, HashSet<string>> _curatedFeeds = new Dictionary<string, HashSet<string>>();
+        private readonly IDictionary<string, IDictionary<string, int>> _downloads = new Dictionary<string, IDictionary<string, int>>();
+        private IDictionary<string, int> _rankings;
 
         public NuGetSearcherManager(string indexName,
             FrameworkLogger logger,
             Lucene.Net.Store.Directory directory,
-            ILoader loader)
+            ILoader loader,
+            AzureDirectorySynchronizer azureDirectorySynchronizer)
             : base(directory)
         {
             if (logger == null)
@@ -37,6 +48,7 @@ namespace NuGet.Indexing
             RegistrationBaseAddress = new Dictionary<string, Uri>();
 
             _loader = loader;
+            _azureDirectorySynchronizer = azureDirectorySynchronizer;
         }
 
         public string IndexName { get; private set; }
@@ -82,7 +94,8 @@ namespace NuGet.Indexing
                     luceneDirectory,
                     loggerFactory.CreateLogger<NuGetSearcherManager>(),
                     directory ?? new SimpleFSDirectory(new DirectoryInfo(luceneDirectory)),
-                    loader ?? new FileLoader(dataDirectory));
+                    loader ?? new FileLoader(dataDirectory),
+                    azureDirectorySynchronizer: null);
             }
             else
             {
@@ -102,11 +115,21 @@ namespace NuGet.Indexing
                     dataContainer = "ng-search-data";
                 }
 
+                AzureDirectorySynchronizer azureDirectorySynchronizer = null;
+                if (directory == null)
+                {
+                    var sourceDirectory = new AzureDirectory(storageAccount, indexContainer);
+                    directory = new RAMDirectory(sourceDirectory); // initial copy from storage to RAM
+
+                    azureDirectorySynchronizer = new AzureDirectorySynchronizer(sourceDirectory, directory);
+                }
+
                 searcherManager = new NuGetSearcherManager(
                     indexContainer,
                     loggerFactory.CreateLogger<NuGetSearcherManager>(),
-                    directory ?? new AzureDirectory(storageAccount, indexContainer),
-                    loader ?? new StorageLoader(storageAccount, dataContainer, loggerFactory.CreateLogger<StorageLoader>()));
+                    directory,
+                    loader ?? new StorageLoader(storageAccount, dataContainer, loggerFactory.CreateLogger<StorageLoader>()),
+                    azureDirectorySynchronizer: azureDirectorySynchronizer);
             }
 
             string registrationBaseAddress = configuration.Get("Search.RegistrationBaseAddress");
@@ -117,20 +140,32 @@ namespace NuGet.Indexing
         }
 
         internal static ILoggerFactory LoggerFactory { get; private set; }
-
+        
         protected override IndexReader Reopen(IndexSearcher searcher)
         {
+            if (_azureDirectorySynchronizer != null)
+            {
+                try
+                {
+                    _azureDirectorySynchronizer.Sync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("NuGetSearcherManager.Reopen: failed to Sync from origin index.", ex);
+                }
+            }
+
             _logger.LogInformation("NuGetSearcherManager.Reopen: refreshing original IndexReader.");
 
             var stopwatch = Stopwatch.StartNew();
-            var indexReader = ((NuGetIndexSearcher)searcher).OriginalReader.Reopen();
+            var indexReader = searcher.IndexReader.Reopen();
             stopwatch.Stop();
 
             _logger.LogInformation("NuGetSearcherManager.Reopen: refreshed original IndexReader in {IndexReaderReopenDuration} seconds.", stopwatch.Elapsed.TotalSeconds);
 
             return indexReader;
         }
-
+        
         /// <summary>
         /// This function is called whenever the SearcherManager decides it must re-create the IndexSearcher
         /// the key point to understand is that the auxillary data structures (in-memory indexes, filters and other lookups)
@@ -145,53 +180,41 @@ namespace NuGet.Indexing
 
             try
             {
-                // (Re)load all the auxillary data
-                // Just to keep things simple we will reload everything every time. Currently these structures are relative small.
-
-                IDictionary<string, HashSet<string>> owners = IndexingUtils.Load("owners.json", _loader, _logger);
-                IDictionary<string, HashSet<string>> cruratedfeeds = IndexingUtils.Load("curatedfeeds.json", _loader, _logger);
-                IDictionary<string, IDictionary<string, int>> downloads = Downloads.Load("downloads.v1.json", _loader, _logger);
-                IDictionary<string, int> rankings = DownloadRankings.Load("rankings.v1.json", _loader, _logger);
-
-                // We want owners to be searchable so we need to have them in an IndexReader
-                // To solve this we write them into an in-memory Directory and then create a reader over that
-                // we can then combine this in-memory reader with the reader we have opened from storage
-
-                var ownersHandler = new OwnersHandler(owners);
-                var versionsHandler = new VersionsHandler(downloads);
+                // (Re)load all the auxilliary data (if needed)
+                try
+                {
+                    ReloadAuxiliaryDataIfExpired();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("NuGetSearcherManager.CreateSearcher: Error loading auxiliary data.", e);
+                    throw;
+                }
 
                 // The point of the IndexReaderProcessor is to allow us to loop of the IndexReader fewer times.
                 // Looping over the reader, accessing the Document and then accessing the fields inside the Document are not
                 // inexpensive operations especially when you are going to do that for every Document in the index.
+                var indexReaderProcessor = new IndexReaderProcessor(enumerateSubReaders: true);
 
-                IndexReaderProcessor auxillaryIndexProcessor = new IndexReaderProcessor(enumerateSubReaders: false, skipDeletes: false);
-                auxillaryIndexProcessor.AddHandler(ownersHandler);
-                auxillaryIndexProcessor.AddHandler(versionsHandler);
+                // We want to know about all package versions in the index (as they will be merged in V3 search result docs)
+                var versionsHandler = new VersionsHandler(_downloads);
+                indexReaderProcessor.AddHandler(versionsHandler, skipDeletes: false, requiresPerSegmentDocumentNumber: false);
 
-                auxillaryIndexProcessor.Process(reader);
+                // Package rankings will be precalculated
+                var rankingsHandler = new RankingsHandler(_rankings);
+                indexReaderProcessor.AddHandler(rankingsHandler, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
 
-                // These data structures are no longer needed as we now have the data in a format keyed on the docID
-
-                downloads.Clear();
-                owners.Clear();
-
-                // Create the in-memory reader and then combine with the storage reader using a ParallelReader
-
-                IndexReader ownersReader = ownersHandler.OpenReader();
-
-                _logger.LogInformation("OwnersReader {MaxDoc} (deletes: {NumDeletedDocs})", ownersReader.MaxDoc, ownersReader.NumDeletedDocs);
-                _logger.LogInformation("Original {MaxDoc} (deletes: {NumDeletedDocs})", reader.MaxDoc, reader.NumDeletedDocs);
-
-                ParallelReader combined = new ParallelReader(false);
-                combined.Add(reader);
-                combined.Add(ownersReader);
-
-                //Uncomment the following line to drop owners from the index...
-                //IndexReader combined = reader;
-
+                // We want to be able to filter based by owner, so let's build a mapping of
+                // owners and the Lucene document id's (per segment) for which they are the owner.
+                //
+                // Note that owners are not in the index as they can change along the way.
+                var ownersHandler = new OwnersHandler(_owners);
+                indexReaderProcessor.AddHandler(ownersHandler, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
+                
+                // We want to be able to filter on unlisted/prerelease, so let's prepare building those filters.
                 // Filters must be in terms of the structure of the underlying IndexReader. Specifically if the underlying
                 // reader is Segmented then the filter must be too. Theoretically Lucene should be able to store a cached version of the
-                // filter corresponding to each segment. We are not currently making use of that because we have introduced the ParallelReader
+                // filter corresponding to each segment. We are not currently making use of that.
 
                 // There are four flavors of Latest/Listed filter to reflect all the possible combinations.
 
@@ -200,46 +223,74 @@ namespace NuGet.Indexing
                 var h10 = new LatestListedHandler(includeUnlisted: true, includePrerelease: false);
                 var h11 = new LatestListedHandler(includeUnlisted: true, includePrerelease: true);
 
-                var curatedFeedHandler = new CuratedFeedHandler(cruratedfeeds);
+                indexReaderProcessor.AddHandler(h00, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
+                indexReaderProcessor.AddHandler(h01, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
+                indexReaderProcessor.AddHandler(h10, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
+                indexReaderProcessor.AddHandler(h11, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
 
-                IndexReaderProcessor filterCreationProcessor = new IndexReaderProcessor(enumerateSubReaders: true, skipDeletes: true);
-                filterCreationProcessor.AddHandler(h00);
-                filterCreationProcessor.AddHandler(h01);
-                filterCreationProcessor.AddHandler(h10);
-                filterCreationProcessor.AddHandler(h11);
-                filterCreationProcessor.AddHandler(curatedFeedHandler);
+                // We want to be able to filter on curated feeds as well
+                var curatedFeedHandler = new CuratedFeedHandler(_curatedFeeds);
+                indexReaderProcessor.AddHandler(curatedFeedHandler, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
 
-                filterCreationProcessor.Process(combined);
+                // Traverse the index and segments
+                try
+                {
+                    indexReaderProcessor.Process(reader);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("NuGetSearcherManager.CreateSearcher: Error processing index reader.", e);
+                    throw;
+                }
 
-                cruratedfeeds.Clear();
-
-                var latest = new Filter[][] { new Filter[] { h00.Result, h01.Result }, new Filter[] { h10.Result, h11.Result } };
-
-                var latestBitSet = BitSetCollector.CreateBitSet(combined, latest[0][1]);
-                var latestStableBitSet = BitSetCollector.CreateBitSet(combined, latest[0][0]);
-
+                // Set filters
+                var latest = new Filter[][]
+                {
+                    new Filter[] { h00.Result, h01.Result },
+                    new Filter[] { h10.Result, h11.Result }
+                };
+                
+                var latestBitSet = BitSetCollector.CreateBitSet(reader, latest[0][1]);
+                var latestStableBitSet = BitSetCollector.CreateBitSet(reader, latest[0][0]);
+                
+                // Done loading index
+                _logger.LogInformation("NuGetSearcherManager.CreateSearcher: Original {MaxDoc} (deletes: {NumDeletedDocs})", reader.MaxDoc, reader.NumDeletedDocs);
+                
                 // The point of having a specific subclass of the IndexSearcher is that we want to associate a bunch of auxilliary data along
                 // with that specific instance of the reader. The lifetimes are assocaited, hense the inheritance relationship.
 
-                _logger.LogInformation("About to create a new NuGetIndexSearcher");
-
+                _logger.LogInformation("NuGetSearcherManager.CreateSearcher: Creating a new NuGetIndexSearcher...");
+                
                 // Create a NuGetIndexSearcher
                 return new NuGetIndexSearcher(
                     this,
-                    combined,
                     reader,
                     reader.CommitUserData,
                     curatedFeedHandler.Result,
                     latest,
                     versionsHandler.Result,
-                    rankings,
+                    rankingsHandler.Result,
                     latestBitSet,
-                    latestStableBitSet);
+                    latestStableBitSet,
+                    ownersHandler.Result);
             }
             catch (Exception e)
             {
-                _logger.LogError("Internal server error", e);
+                _logger.LogError("NuGetSearcherManager.CreateSearcher: An error occurred.", e);
                 return null;
+            }
+        }
+        
+        private void ReloadAuxiliaryDataIfExpired()
+        {
+            if (_auxiliaryDataReloaded < DateTime.UtcNow - AuxiliaryDataRefreshRate)
+            {
+                IndexingUtils.Load("owners.json", _loader, _logger, _owners);
+                IndexingUtils.Load("curatedfeeds.json", _loader, _logger, _curatedFeeds);
+                Downloads.Load("downloads.v1.json", _loader, _logger, _downloads);
+                _rankings = DownloadRankings.Load("rankings.v1.json", _loader, _logger);
+
+                _auxiliaryDataReloaded = DateTime.UtcNow;
             }
         }
 
@@ -252,7 +303,7 @@ namespace NuGet.Indexing
             searcher.Search(new MatchAllDocsQuery(), 1);
 
             // Warmup search (query for a specific term with rankings)
-            var query = NuGetQuery.MakeQuery("newtonsoft.json");
+            var query = NuGetQuery.MakeQuery("newtonsoft.json", searcher);
             var boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
             searcher.Search(boostedQuery, 5);
 
@@ -262,14 +313,30 @@ namespace NuGet.Indexing
             var sort3 = new Sort(new SortField("SortableTitle", SortField.STRING, reverse: false));
             var sort4 = new Sort(new SortField("SortableTitle", SortField.STRING, reverse: true));
 
-            searcher.Search(boostedQuery, null, 250, sort1);
-            searcher.Search(boostedQuery, null, 250, sort2);
-            searcher.Search(boostedQuery, null, 250, sort3);
-            searcher.Search(boostedQuery, null, 250, sort4);
+            var topDocs1 = searcher.Search(boostedQuery, null, 250, sort1);
+            var topDocs2 = searcher.Search(boostedQuery, null, 250, sort2);
+            var topDocs3 = searcher.Search(boostedQuery, null, 250, sort3);
+            var topDocs4 = searcher.Search(boostedQuery, null, 250, sort4);
+
+            // Warmup field caches by fetching data from them
+            using (var writer = new JsonTextWriter(new StreamWriter(new MemoryStream())))
+            {
+                ResponseFormatter.WriteV2Result(writer, searcher, topDocs1, 0, 250);
+                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs1, 0, 250, false, false, boostedQuery);
+
+                ResponseFormatter.WriteV2Result(writer, searcher, topDocs2, 0, 250);
+                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs2, 0, 250, false, false, boostedQuery);
+
+                ResponseFormatter.WriteV2Result(writer, searcher, topDocs3, 0, 250);
+                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs3, 0, 250, false, false, boostedQuery);
+
+                ResponseFormatter.WriteV2Result(writer, searcher, topDocs4, 0, 250);
+                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs4, 0, 250, false, false, boostedQuery);
+            }
 
             // Done, we're warm.
             stopwatch.Stop();
-            _logger.LogInformation("NuGetSearcherManager.Warm completed in {IndexSearcherWarmDuration} seconds.",
+            _logger.LogInformation("NuGetSearcherManager.Warm: completed in {IndexSearcherWarmDuration} seconds.",
                 stopwatch.Elapsed.TotalSeconds);
         }
 

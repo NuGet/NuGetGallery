@@ -13,7 +13,6 @@ using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.StaticFiles.Infrastructure;
 using NuGet.Indexing;
-using NuGet.Services.BasicSearch.Caching;
 using Owin;
 using SerilogWeb.Classic.Enrichers;
 
@@ -85,30 +84,23 @@ namespace NuGet.Services.BasicSearch
 
             if (InitializeSearcherManager(configuration, directory, loader, loggerFactory))
             {
+                var intervalInMs = seconds * 1000;
+
                 _gate = 0;
-                _timer = new Timer(ReopenCallback, 0, 0, seconds * 1000);
+                _timer = new Timer(ReopenCallback, 0, intervalInMs, intervalInMs);
             }
 
-            // use response caching?
-            var enableResponseCaching = configuration.Get(
-                "Search.EnableResponseCaching",
-                defaultValue: false);
-            if (enableResponseCaching)
-            {
-                _responseWriter = new ResponseWriter(
-                    new MemoryCacheResponseBodyCache(TimeSpan.FromSeconds(seconds)));
-            }
-            else
-            {
-                _responseWriter = new ResponseWriter(
-                    new NullResponseBodyCache());
-            }
+            _responseWriter = new ResponseWriter();
 
             app.Run(InvokeAsync);
         }
 
         public void Configuration(IAppBuilder app)
         {
+            ServicePointManager.DefaultConnectionLimit = Int32.MaxValue;
+            ServicePointManager.Expect100Continue = false;
+            ServicePointManager.UseNagleAlgorithm = false;
+
             Configuration(app, new ConfigurationService(), null, null);
         }
 
@@ -133,16 +125,6 @@ namespace NuGet.Services.BasicSearch
 
                     _logger.LogInformation(LogMessages.SearchIndexReopenCompleted, stopwatch.Elapsed.TotalSeconds,
                         Thread.CurrentThread.ManagedThreadId);
-
-                    if (!(_responseWriter.ResponseBodyCache is NullResponseBodyCache))
-                    {
-                        var hitRatio = _responseWriter.ResponseBodyCache.HitRatio;
-                        var totalRequests = _responseWriter.ResponseBodyCache.TotalRequests;
-
-                        _responseWriter.ResponseBodyCache.Clear();
-
-                        _logger.LogInformation(LogMessages.ResponseCacheCleared, hitRatio, totalRequests);
-                    }
                 }
                 finally
                 {
@@ -159,6 +141,7 @@ namespace NuGet.Services.BasicSearch
         {
             try
             {
+                // TODO maballia retry opening when this fails the first time around
                 _searcherManager = NuGetSearcherManager.Create(configuration, loggerFactory, directory, loader);
                 _searcherManager.Open();
                 return true;
@@ -205,9 +188,6 @@ namespace NuGet.Services.BasicSearch
                             break;
                         case "/search/diag":
                             await ServiceEndpoints.Stats(context, _searcherManager, _responseWriter);
-                            break;
-                        case "/cache/diag":
-                            await ServiceEndpoints.CacheStats(context, _responseWriter);
                             break;
                         default:
                             context.Response.StatusCode = (int)HttpStatusCode.NotFound;

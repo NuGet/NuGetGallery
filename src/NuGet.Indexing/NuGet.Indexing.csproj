@@ -179,7 +179,9 @@
   <ItemGroup>
     <Compile Include="BitSetCollector.cs" />
     <Compile Include="ConfigurationExtensions.cs" />
+    <Compile Include="AzureDirectorySynchronizer.cs" />
     <Compile Include="DownloadRankings.cs" />
+    <Compile Include="DynamicDocIdSet.cs" />
     <Compile Include="Extraction\CatalogNuspecReader.cs" />
     <Compile Include="Extraction\CatalogPackageMetadataExtraction.cs" />
     <Compile Include="ChainedFilter.cs" />
@@ -202,8 +204,9 @@
     <Compile Include="IndexReaderProcessorHandler.cs" />
     <Compile Include="LatestListedHandler.cs" />
     <Compile Include="NuGetQuery.cs" />
-    <Compile Include="OwnersHandler.cs" />
     <Compile Include="Extraction\NupkgPackageMetadataExtraction.cs" />
+    <Compile Include="OwnersHandler.cs" />
+    <Compile Include="RankingsHandler.cs" />
     <Compile Include="ResponseFormatter.cs" />
     <Compile Include="Sql2Lucene.cs" />
     <Compile Include="StorageLoader.cs" />

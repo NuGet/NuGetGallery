@@ -43,6 +43,11 @@ namespace NuGet.Indexing
         }
 
         protected abstract IndexReader Reopen(IndexSearcher searcher);
+        
+        protected virtual bool RequiresNewSearcher(IndexReader newReader, IndexSearcher currentSearcher)
+        {
+            return newReader != currentSearcher.IndexReader;
+        }
 
         protected abstract TIndexSearcher CreateSearcher(IndexReader reader);
 
@@ -79,10 +84,9 @@ namespace NuGet.Indexing
                 TIndexSearcher searcher = Get();
                 try
                 {
-                    //var newReader = _currentSearcher.IndexReader.Reopen();
                     var newReader = Reopen(_currentSearcher);
-
-                    if (newReader != _currentSearcher.IndexReader)
+                    
+                    if (RequiresNewSearcher(newReader, _currentSearcher))
                     {
                         var newSearcher = CreateSearcher(newReader);
                         if (newSearcher != null)
