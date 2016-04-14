@@ -26,7 +26,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private static readonly IDictionary<string, string> _storedProcedures = new Dictionary<string, string>
         {
             {ReportNames.NuGetClientVersion, "[dbo].[DownloadReportNuGetClientVersion]" },
-            {ReportNames.Last6Months, "[dbo].[DownloadReportLast6Months]" },
+            {ReportNames.Last6Weeks, "[dbo].[DownloadReportLast6Weeks]" },
             {ReportNames.RecentPopularity, "[dbo].[DownloadReportRecentPopularity]" },
             {ReportNames.RecentPopularityDetail, "[dbo].[DownloadReportRecentPopularityDetail]" },
         };
@@ -75,7 +75,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
                     {
                         { new ReportBuilder(ReportNames.NuGetClientVersion), new ReportDataCollector(_storedProcedures[ReportNames.NuGetClientVersion], _statisticsDatabase) },
-                        { new ReportBuilder(ReportNames.Last6Months), new ReportDataCollector(_storedProcedures[ReportNames.Last6Months], _statisticsDatabase) },
+                        { new ReportBuilder(ReportNames.Last6Weeks), new ReportDataCollector(_storedProcedures[ReportNames.Last6Weeks], _statisticsDatabase) },
                         { new ReportBuilder(ReportNames.RecentPopularity), new ReportDataCollector(_storedProcedures[ReportNames.RecentPopularity], _statisticsDatabase) },
                         { new ReportBuilder(ReportNames.RecentPopularityDetail), new ReportDataCollector(_storedProcedures[ReportNames.RecentPopularityDetail], _statisticsDatabase) }
                     };
@@ -254,7 +254,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private static class ReportNames
         {
             public const string NuGetClientVersion = "nugetclientversion";
-            public const string Last6Months = "last6months";
+            public const string Last6Weeks = "last6weeks";
             public const string RecentPopularity = "recentpopularity";
             public const string RecentPopularityDetail = "recentpopularitydetail";
             public const string RecentPopularityDetailByPackageId = "recentpopularitydetailbypackageid";
