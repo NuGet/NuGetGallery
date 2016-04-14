@@ -5,9 +5,9 @@ After completing a new deployment on April 3rd, we published a [blog post](http:
 
 Thank you for your support,
 
-[Jeff Handley](http://twitter.com/jeffhandley) and the entire [NuGet team](http://twitter.com/nuget)
+[Jeff Handley](https://twitter.com/jeffhandley) and the entire [NuGet team](https://twitter.com/nuget)
 
 ## NuGet 2.8.1 Released
 NuGet 2.8.1 was released on April 2nd with Windows Phone 8.1 support. For Visual Studio 2010, Visual Studio 2012 and Visual Studio 2013, **upgrade now** using the Visual Studio Extension Manager.
 
-For details about the release, read the [release notes](http://docs.nuget.org/docs/release-notes/nuget-2.8.1).
+For details about the release, read the [release notes](https://docs.nuget.org/docs/release-notes/nuget-2.8.1).
