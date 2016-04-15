@@ -141,14 +141,26 @@ namespace NuGet.Services.BasicSearch
         {
             try
             {
-                // TODO maballia retry opening when this fails the first time around
-                _searcherManager = NuGetSearcherManager.Create(configuration, loggerFactory, directory, loader);
-                _searcherManager.Open();
+                Retry.Incremental(
+                    () =>
+                    {
+                        _searcherManager = NuGetSearcherManager.Create(configuration, loggerFactory, directory, loader);
+                        _searcherManager.Open();
+                    },
+                    shouldRetry: e =>
+                    {
+                        // retry on any exception (but log it)
+                        _logger.LogError("Startup: An error occurred initializing searcher manager. Going to retry...", e);
+                        return true;
+                    },
+                    maxRetries: 5,
+                    waitIncrement: TimeSpan.FromSeconds(1));
+                
                 return true;
             }
             catch (Exception e)
             {
-                _logger.LogError("Internal server error", e);
+                _logger.LogCritical("Startup: A critical error occurred initializing searcher manager. Number of retries exhausted.", e);
                 return false;
             }
         }

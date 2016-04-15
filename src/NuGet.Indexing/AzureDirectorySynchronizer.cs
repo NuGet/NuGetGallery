@@ -37,26 +37,23 @@ namespace NuGet.Indexing
 
         public void Sync()
         {
-            var maxRetries = 5;
-            for (int currentRetry = 0; currentRetry < maxRetries; currentRetry++)
-            {
-                try
+            Retry.Incremental(
+                () =>
                 {
                     UnidirectionalSync(SourceDirectory, DestinationDirectory);
-                    return;
-                }
-                catch (FileNotFoundException) // this can happen while the index is updating - retry in a few seconds
+                },
+                shouldRetry: e =>
                 {
-                    if (currentRetry < maxRetries)
+                    if (e is FileNotFoundException)
+                        // this can happen while the index is updating - retry in a few seconds
                     {
-                        Thread.Sleep(TimeSpan.FromSeconds(2 * (currentRetry + 1)));
+                        return true; // retry
                     }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
+
+                    return false;
+                },
+                maxRetries: 5,
+                waitIncrement: TimeSpan.FromSeconds(2));
         }
 
         private static void UnidirectionalSync(AzureDirectory sourceDirectory, Directory destinationDirectory)
