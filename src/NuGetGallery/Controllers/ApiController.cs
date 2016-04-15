@@ -15,7 +15,6 @@ using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
-using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 
@@ -24,8 +23,6 @@ namespace NuGetGallery
     public partial class ApiController
         : AppController
     {
-        private readonly IAppConfiguration _config;
-
         public IEntitiesContext EntitiesContext { get; set; }
         public INuGetExeDownloaderService NugetExeDownloaderService { get; set; }
         public IPackageFileService PackageFileService { get; set; }
@@ -54,8 +51,7 @@ namespace NuGetGallery
             ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
-            IMessageService messageService,
-            IAppConfiguration config)
+            IMessageService messageService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -69,7 +65,6 @@ namespace NuGetGallery
             AutoCuratePackage = autoCuratePackage;
             StatusService = statusService;
             MessageService = messageService;
-            _config = config;
         }
 
         public ApiController(
@@ -84,9 +79,8 @@ namespace NuGetGallery
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
             IStatisticsService statisticsService,
-            IMessageService messageService,
-            IAppConfiguration config)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, config)
+            IMessageService messageService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService)
         {
             StatisticsService = statisticsService;
         }
