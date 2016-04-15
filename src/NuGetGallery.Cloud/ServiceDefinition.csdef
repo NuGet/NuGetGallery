@@ -32,6 +32,7 @@
       <Setting name="Gallery.PagerDutyAccountName" />
       <Setting name="Gallery.PagerDutyAPIKey" />
       <Setting name="Gallery.PagerDutyServiceKey" />
+      <Setting name="Gallery.WarningBanner" />
       <Setting name="Auth.MicrosoftAccount.Enabled" />
       <Setting name="Auth.MicrosoftAccount.ClientId" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" />
