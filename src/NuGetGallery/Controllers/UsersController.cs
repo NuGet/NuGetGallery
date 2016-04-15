@@ -89,15 +89,18 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeEmailSubscription(bool subscribe)
+        public virtual async Task<ActionResult> ChangeEmailSubscription(bool? emailAllowed, bool? notifyPackagePushed)
         {
             var user = GetCurrentUser();
             if (user == null)
             {
                 return HttpNotFound();
             }
+            
+            await UserService.ChangeEmailSubscriptionAsync(user, 
+                emailAllowed.HasValue && emailAllowed.Value, 
+                notifyPackagePushed.HasValue && notifyPackagePushed.Value);
 
-            await UserService.ChangeEmailSubscriptionAsync(user, subscribe);
             TempData["Message"] = Strings.EmailPreferencesUpdated;
             return RedirectToAction("Account");
         }

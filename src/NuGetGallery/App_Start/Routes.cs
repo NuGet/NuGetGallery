@@ -233,16 +233,11 @@ namespace NuGetGallery
                 RouteName.ConfirmAccount,
                 "account/confirm/{username}/{token}",
                 new { controller = "Users", action = "Confirm" });
-
+            
             routes.MapRoute(
-                RouteName.SubscribeToEmails,
-                "account/subscribe",
-                new { controller = "Users", action = "ChangeEmailSubscription", subscribe = true });
-
-            routes.MapRoute(
-                RouteName.UnsubscribeFromEmails,
-                "account/unsubscribe",
-                new { controller = "Users", action = "ChangeEmailSubscription", subscribe = false });
+                RouteName.ChangeEmailSubscription,
+                "account/subscription/change",
+                new { controller = "Users", action = "ChangeEmailSubscription" });
 
             routes.MapRoute(
                 RouteName.Account,

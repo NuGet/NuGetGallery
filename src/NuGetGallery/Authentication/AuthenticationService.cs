@@ -143,6 +143,7 @@ namespace NuGetGallery.Authentication
                 EmailAllowed = true,
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
+                NotifyPackagePushed = true,
                 CreatedUtc = DateTime.UtcNow
             };
 

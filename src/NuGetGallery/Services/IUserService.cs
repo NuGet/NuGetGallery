@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public interface IUserService
     {
-        Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed);
+        Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed);
 
         User FindByEmailAddress(string emailAddress);
 

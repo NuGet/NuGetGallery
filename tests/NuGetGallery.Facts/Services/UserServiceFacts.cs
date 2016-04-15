@@ -363,17 +363,44 @@ namespace NuGetGallery
         public class TheUpdateProfileMethod
         {
             [Fact]
-            public async Task SavesEmailAllowedSetting()
+            public async Task SavesEmailSettings()
             {
-                var user = new User { EmailAddress = "old@example.org", EmailAllowed = true };
+                var user = new User { EmailAddress = "old@example.org", EmailAllowed = true, NotifyPackagePushed = true};
                 var service = new TestableUserService();
                 service.MockUserRepository
                        .Setup(r => r.GetAll())
                        .Returns(new[] { user }.AsQueryable());
-
-                await service.ChangeEmailSubscriptionAsync(user, false);
-
+                
+                // Disable notifications
+                await service.ChangeEmailSubscriptionAsync(user, false, false);
                 Assert.Equal(false, user.EmailAllowed);
+                Assert.Equal(false, user.NotifyPackagePushed);
+                
+                // Enable contact notifications
+                await service.ChangeEmailSubscriptionAsync(user, true, false);
+                Assert.Equal(true, user.EmailAllowed);
+                Assert.Equal(false, user.NotifyPackagePushed);
+
+                // Disable notifications
+                await service.ChangeEmailSubscriptionAsync(user, false, false);
+                Assert.Equal(false, user.EmailAllowed);
+                Assert.Equal(false, user.NotifyPackagePushed);
+
+                // Enable package pushed notifications
+                await service.ChangeEmailSubscriptionAsync(user, false, true);
+                Assert.Equal(false, user.EmailAllowed);
+                Assert.Equal(true, user.NotifyPackagePushed);
+
+                // Disable notifications
+                await service.ChangeEmailSubscriptionAsync(user, false, false);
+                Assert.Equal(false, user.EmailAllowed);
+                Assert.Equal(false, user.NotifyPackagePushed);
+
+                // Enable all notifications
+                await service.ChangeEmailSubscriptionAsync(user, true, true);
+                Assert.Equal(true, user.EmailAllowed);
+                Assert.Equal(true, user.NotifyPackagePushed);
+
                 service.MockUserRepository
                        .Verify(r => r.CommitChangesAsync());
             }
@@ -383,7 +410,7 @@ namespace NuGetGallery
             {
                 var service = new TestableUserService();
 
-                await ContractAssert.ThrowsArgNullAsync(async () => await service.ChangeEmailSubscriptionAsync(null, emailAllowed: true), "user");
+                await ContractAssert.ThrowsArgNullAsync(async () => await service.ChangeEmailSubscriptionAsync(null, emailAllowed: true, notifyPackagePushed: true), "user");
             }
         }
 

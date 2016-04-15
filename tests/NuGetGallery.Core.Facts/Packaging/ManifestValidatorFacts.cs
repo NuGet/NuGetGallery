@@ -277,6 +277,32 @@ namespace NuGetGallery.Packaging
                   </metadata>
                 </package>";
 
+        private const string NuSpecDependenciesContainsUnsupportedTargetFramework = @"<?xml version=""1.0""?>
+                <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                  <metadata>
+                    <id>packageA</id>
+                    <version>1.0.1-alpha</version>
+                    <title>Package A</title>
+                    <authors>ownera, ownerb</authors>
+                    <owners>ownera, ownerb</owners>
+                    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                    <description>package A description.</description>
+                    <language>en-US</language>
+                    <dependencies>
+                        <group targetFramework=""net40"">
+                          <dependency id=""SomeDependency"" version=""1.0.0-alpha1"" />
+                          <dependency id=""WebActivator"" version=""1.1.0"" />
+                          <dependency id=""PackageC"" version=""[1.1.0, 2.0.1)"" />
+                        </group>
+                        <group targetFramework=""Unsupported0.0"">
+                          <dependency id=""SomeDependency"" version=""1.0.0-alpha1"" />
+                          <dependency id=""WebActivator"" version=""1.1.0"" />
+                          <dependency id=""PackageC"" version=""[1.1.0, 2.0.1)"" />
+                        </group>
+                    </dependencies>
+                  </metadata>
+                </package>";
+
         [Fact]
         public void ReturnsErrorIfIdNotPresent()
         {
@@ -350,6 +376,14 @@ namespace NuGetGallery.Packaging
         }
 
         [Fact]
+        public void ReturnsErrorIfFrameworkAssemblyReferenceContainsUnsupportedTargetFramework()
+        {
+            var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsUnsupportedTargetFramework);
+
+            Assert.Equal(new[] { String.Format(Strings.Manifest_TargetFrameworkNotSupported, "Unsupported,Version=v0.0") }, GetErrors(nuspecStream));
+        }
+
+        [Fact]
         public void ReturnsErrorIfDependencySetContainsInvalidId()
         {
             var nuspecStream = CreateNuspecStream(NuSpecDependencySetContainsInvalidId);
@@ -368,7 +402,7 @@ namespace NuGetGallery.Packaging
         [Fact]
         public void ReturnsErrorIfDependencySetContainsUnsupportedTargetFramework()
         {
-            var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsUnsupportedTargetFramework);
+            var nuspecStream = CreateNuspecStream(NuSpecDependenciesContainsUnsupportedTargetFramework);
 
             Assert.Equal(new[] { String.Format(Strings.Manifest_TargetFrameworkNotSupported, "Unsupported,Version=v0.0") }, GetErrors(nuspecStream));
         }

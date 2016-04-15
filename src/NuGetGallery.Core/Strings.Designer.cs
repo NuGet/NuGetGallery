@@ -151,7 +151,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The version &apos;{0}&apos; is not supported. The NuGet Gallery currently does not support Semantic Version 2.0..
+        ///   Looks up a localized string similar to The version &apos;{0}&apos; is not supported. The NuGet Gallery currently does not currently support Semantic Version 2.0 as it would break older NuGet clients..
         /// </summary>
         internal static string Manifest_InvalidVersionSemVer200 {
             get {

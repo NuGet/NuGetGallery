@@ -212,35 +212,45 @@
     **************************@
     @AccordianBar(
         groupName: "editprofile",
-        title: (CurrentUser.EmailAllowed ? "Subscribed to Email Notifications" : "Not subscribed to Email Notifications (users can't contact you)"),
-        enabled: CurrentUser.EmailAllowed,
+        title: "Email Notifications",
+        enabled: true,
         actions: @<text>
-            @item.ExpandLink("More Info", "Less Info")
-            @using (Html.BeginForm(actionName: "ChangeEmailSubscription", controllerName: "Users", routeValues: new { subscribe = !CurrentUser.EmailAllowed }, method: FormMethod.Post, htmlAttributes: new { @class = "form-inline" }))
-            {
-                <fieldset class="form">
-                    <legend>Update Email Subscription</legend>
-                    @Html.AntiForgeryToken()
-                    <input type="submit" style="width: auto;"
-                           value="@(CurrentUser.EmailAllowed ? "Unsubscribe" : "Subscribe")"
-                           title="@(CurrentUser.EmailAllowed ? "Unsubscribe" : "Subscribe")" />
-                </fieldset>
-            }
+            @(CurrentUser.EmailAllowed ? "Users can contact you" : "Users can not contact you")
+            | @(CurrentUser.NotifyPackagePushed ? "Receiving package push notifications" : "Not receiving package push notifications")
+            @item.ExpandButton("Change", "Cancel")
         </text>,
         content: @<text>
+            @using (Html.BeginRouteForm(routeName: RouteName.ChangeEmailSubscription, method: FormMethod.Post, htmlAttributes: new { @class = "form-inline" }))
+            {
+                <fieldset class="form">
+                    <legend>Update Email Notifications</legend>
+                    @Html.AntiForgeryToken()
+                    <div class="form-field">
+                        <input name="emailAllowed" id="CurrentUser_EmailAllowed" type="checkbox" checked="@(CurrentUser.EmailAllowed)" value="true">
+                        <label class="checkbox" for="CurrentUser_EmailAllowed">Users can contact me through the <em>Contact Owners form</em></label>
+                        <p class="smaller">
+                            This subscription allows other registered users of the site to contact you
+                            about packages that you own using the <em>Contact Owners</em> form, or to request
+                            that you become an owner of their package. Unsubscribing means users cannot contact you for these reasons.
+                        </p>
+                    </div>
+                    <div class="form-field">
+                        <input name="notifyPackagePushed" id="CurrentUser_NotifyPackagePushed" type="checkbox" checked="@(CurrentUser.NotifyPackagePushed)" value="true">
+                        <label class="checkbox" for="CurrentUser_NotifyPackagePushed">Notify me when a package is pushed to @Config.Current.Brand using my account</label>
+                        <p class="smaller">
+                            This subscription will send a notification whenever a package is pushed using your account.
+                            We recommend to enable this subscription so that you can inspect whether a package was pushed intentional or not.
+                            Unsubscribing means no notification will be sent on push.
+                        </p>
+                    </div>
+                    <input type="submit" value="Save" title="Save changes to email notifications" />
+                </fieldset>
+            }
+
             <p>
-                You are <em>@(CurrentUser.EmailAllowed ? "" : "not")</em> subscribed to email notifications.
-                @if (!CurrentUser.EmailAllowed)
-                {
-                    @: However, we will still send important account management and security notices.
-                }
+                <br /> <strong>Note:</strong> We will <em>always</em> send important account management and security notices.
             </p>
-            <p>
-                <strong>Important:</strong> Subscribing allows other registered users of the site to contact you
-                about packages that you own using the <em>Contact Owners</em> form, or to request that you become an owner
-                of their package. Unsubscribing means users cannot contact you for these reasons.
-            </p>
-        </text>)
+            </text>)
 
     @**************************
         Profile Picture
