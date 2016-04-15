@@ -695,6 +695,10 @@
     <Compile Include="Migrations\201603151731262_AddIndexForPackageDeletes.Designer.cs">
       <DependentUpon>201603151731262_AddIndexForPackageDeletes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201604061724388_NotifyPackagePushed.cs" />
+    <Compile Include="Migrations\201604061724388_NotifyPackagePushed.Designer.cs">
+      <DependentUpon>201604061724388_NotifyPackagePushed.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1771,6 +1775,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201603151731262_AddIndexForPackageDeletes.resx">
       <DependentUpon>201603151731262_AddIndexForPackageDeletes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201604061724388_NotifyPackagePushed.resx">
+      <DependentUpon>201604061724388_NotifyPackagePushed.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

@@ -512,8 +512,8 @@ namespace NuGetGallery
                     Id = "smangit",
                     Owners = new[]
                     {
-                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                        new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                        new User { EmailAddress = "yung@example.com", NotifyPackagePushed = true },
+                        new User { EmailAddress = "flynt@example.com", NotifyPackagePushed = true }
                     }
                 };
                 var package = new Package
@@ -547,8 +547,8 @@ namespace NuGetGallery
                     Id = "smangit",
                     Owners = new[]
                     {
-                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                        new User { EmailAddress = "yung@example.com", NotifyPackagePushed = true },
+                        new User { EmailAddress = "flynt@example.com", NotifyPackagePushed = false }
                     }
                 };
                 var package = new Package

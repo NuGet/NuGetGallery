@@ -488,7 +488,7 @@ The {3} Team";
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryOwner;
 
-                AddOwnersToMailMessage(package.PackageRegistration, mailMessage);
+                AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
 
                 if (mailMessage.To.Any())
                 {
@@ -500,6 +500,14 @@ The {3} Team";
         private static void AddOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
         {
             foreach (var owner in packageRegistration.Owners.Where(o => o.EmailAllowed))
+            {
+                mailMessage.To.Add(owner.ToMailAddress());
+            }
+        }
+
+        private static void AddOwnersSubscribedToPackagePushedNotification(PackageRegistration packageRegistration, MailMessage mailMessage)
+        {
+            foreach (var owner in packageRegistration.Owners.Where(o => o.NotifyPackagePushed))
             {
                 mailMessage.To.Add(owner.ToMailAddress());
             }

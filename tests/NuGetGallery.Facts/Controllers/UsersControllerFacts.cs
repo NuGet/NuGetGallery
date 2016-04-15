@@ -123,13 +123,13 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
                 GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailSubscriptionAsync(user, false))
+                    .Setup(u => u.ChangeEmailSubscriptionAsync(user, false, true))
                     .Returns(Task.CompletedTask);
 
-                var result = await controller.ChangeEmailSubscription(false);
+                var result = await controller.ChangeEmailSubscription(false, true);
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(user, false));
+                GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(user, false, true));
             }
         }
 
