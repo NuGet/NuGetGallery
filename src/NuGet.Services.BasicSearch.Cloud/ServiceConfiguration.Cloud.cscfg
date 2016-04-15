@@ -2,7 +2,16 @@
 <ServiceConfiguration serviceName="NuGet.Services.BasicSearch.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2015-04.2.6">
   <Role name="NuGet.Services.BasicSearch">
     <Instances count="2" />
-    <ConfigurationSettings />
+    <ConfigurationSettings>
+      <Setting name="Storage.Primary" value="" />
+      <Setting name="Search.IndexContainer" value="" />
+      <Setting name="Search.DataContainer" value="" />
+      <Setting name="Search.IndexRefresh" value="300" />
+      <Setting name="Search.RegistrationBaseAddress" value="http://api.nuget.org/v3/registration0/" />
+      <Setting name="serilog-Elasticsearch.nodeUris" value="" />
+      <Setting name="serilog-Elasticsearch.username" value="" />
+      <Setting name="serilog-Elasticsearch.password" value="" />
+    </ConfigurationSettings>
     <Certificates />
   </Role>
 </ServiceConfiguration>

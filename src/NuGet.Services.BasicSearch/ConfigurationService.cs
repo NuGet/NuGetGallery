@@ -33,7 +33,8 @@ namespace NuGet.Services.BasicSearch
             {
                 if (SafeRoleEnvironment.IsAvailable)
                 {
-                    value = SafeRoleEnvironment.GetConfigurationSettingValue(key);
+                    var cloudKey = key.Replace(':', '-'); // no ':' supported in cloud services
+                    value = SafeRoleEnvironment.GetConfigurationSettingValue(cloudKey);
                     return true;
                 }
             }

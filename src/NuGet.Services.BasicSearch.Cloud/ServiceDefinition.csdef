@@ -13,6 +13,14 @@
       <Task commandLine="Startup.cmd" executionContext="elevated" taskType="simple" />
     </Startup>
     <ConfigurationSettings>
+      <Setting name="Storage.Primary" />
+      <Setting name="Search.IndexContainer" />
+      <Setting name="Search.DataContainer" />
+      <Setting name="Search.IndexRefresh" />
+      <Setting name="Search.RegistrationBaseAddress" />
+      <Setting name="serilog-Elasticsearch.nodeUris" />
+      <Setting name="serilog-Elasticsearch.username" />
+      <Setting name="serilog-Elasticsearch.password" />
     </ConfigurationSettings>
     <Endpoints>
       <InputEndpoint name="HttpEndpoint" protocol="http" port="80" />
