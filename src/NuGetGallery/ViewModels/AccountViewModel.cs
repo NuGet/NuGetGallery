@@ -44,7 +44,7 @@ namespace NuGetGallery
         [AllowHtml]
         public string NewPassword { get; set; }
     }
-
+    
     public class CredentialViewModel
     {
         public string Type { get; set; }

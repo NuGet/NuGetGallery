@@ -9,6 +9,7 @@ using Crypto = NuGetGallery.CryptographyService;
 using NuGetGallery.Configuration;
 using NuGetGallery.Auditing;
 using System.Threading.Tasks;
+using NuGetGallery.Migrations;
 
 namespace NuGetGallery
 {
@@ -34,7 +35,7 @@ namespace NuGetGallery
             Auditing = auditing;
         }
 
-        public async Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed)
+        public async Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed)
         {
             if (user == null)
             {
@@ -42,6 +43,7 @@ namespace NuGetGallery
             }
 
             user.EmailAllowed = emailAllowed;
+            user.NotifyPackagePushed = notifyPackagePushed;
             await UserRepository.CommitChangesAsync();
         }
 
