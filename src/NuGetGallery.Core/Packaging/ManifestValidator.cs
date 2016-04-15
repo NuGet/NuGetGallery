@@ -113,6 +113,16 @@ namespace NuGetGallery.Packaging
                     // Keep track of duplicates
                     var dependencyIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+                    // Verify frameworks
+                    var isUnsupportedFramework = dependencyGroup.TargetFramework?.IsUnsupported;
+                    if (isUnsupportedFramework.HasValue && isUnsupportedFramework.Value)
+                    {
+                        yield return new ValidationResult(String.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.Manifest_TargetFrameworkNotSupported,
+                            dependencyGroup.TargetFramework?.ToString()));
+                    }
+
                     // Verify package id's
                     foreach (var dependency in dependencyGroup.Packages)
                     {
