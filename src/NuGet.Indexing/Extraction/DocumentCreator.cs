@@ -27,14 +27,9 @@ namespace NuGet.Indexing
             return indexWriter;
         }
 
-        public static IDictionary<string, string> CreateCommitMetadata(DateTime commitTimeStamp, string description, string trace)
+        public static LuceneCommitMetadata CreateCommitMetadata(DateTime commitTimeStamp, string description, int count, string trace)
         {
-            IDictionary<string, string> commitMetadata = new Dictionary<string, string>();
-            commitMetadata.Add("commitTimeStamp", commitTimeStamp.ToString("O"));
-            commitMetadata.Add("commit-time-stamp", commitTimeStamp.ToString("O"));
-            commitMetadata.Add("description", description);
-            commitMetadata.Add("trace", trace);
-            return commitMetadata;
+            return new LuceneCommitMetadata(commitTimeStamp, description, count, trace);
         }
         
         public static Document CreateDocument(IDictionary<string, string> package)

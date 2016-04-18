@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -20,44 +21,79 @@ namespace Ng
 {
     public class SearchIndexFromCatalogCollector : CommitCollector
     {
-        private const string _packageTemplate = "{0}/{1}.json";
-
-        private readonly Lucene.Net.Store.Directory _directory;
         private readonly string _baseAddress;
+
+        private readonly IndexWriter _indexWriter;
+        private readonly bool _commitEachBatch;
         
+        private LuceneCommitMetadata _metadataForNextCommit;
 
-        static Dictionary<string, string> _frameworkNames = new Dictionary<string, string>();
-
-        public SearchIndexFromCatalogCollector(Uri index, Lucene.Net.Store.Directory directory, string baseAddress, Func<HttpMessageHandler> handlerFunc = null)
+        public SearchIndexFromCatalogCollector(Uri index, IndexWriter indexWriter, bool commitEachBatch, string baseAddress, Func<HttpMessageHandler> handlerFunc = null)
             : base(index, handlerFunc)
         {
-            _directory = directory;
+            _indexWriter = indexWriter;
+            _commitEachBatch = commitEachBatch;
             _baseAddress = baseAddress;
         }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
         {
             JObject catalogIndex = (_baseAddress != null) ? await client.GetJObjectAsync(Index, cancellationToken) : null;
             IEnumerable<JObject> catalogItems = await FetchCatalogItems(client, items, cancellationToken);
 
-            using (IndexWriter indexWriter = CreateIndexWriter(_directory))
+            var numDocs = _indexWriter.NumDocs();
+            Trace.TraceInformation("Index contains {0} documents.", _indexWriter.NumDocs());
+
+            ProcessCatalogIndex(_indexWriter, catalogIndex, _baseAddress);
+            ProcessCatalogItems(_indexWriter, catalogItems, _baseAddress);
+
+            var docsDifference = _indexWriter.NumDocs() - numDocs;
+
+            UpdateCommitMetadata(commitTimeStamp, docsDifference);
+
+            Trace.TraceInformation("Processed catalog items. Index now contains {0} documents. (total uncommitted {1}, batch {2})",
+                _indexWriter.NumDocs(), _metadataForNextCommit.Count, docsDifference);
+
+            if (_commitEachBatch || isLastBatch)
             {
-                Trace.TraceInformation("Index contains {0} documents", indexWriter.NumDocs());
-
-                ProcessCatalogIndex(indexWriter, catalogIndex, _baseAddress);
-                ProcessCatalogItems(indexWriter, catalogItems, _baseAddress);
-
-                indexWriter.ExpungeDeletes();
-
-                indexWriter.Commit(DocumentCreator.CreateCommitMetadata(commitTimeStamp, "from catalog", Guid.NewGuid().ToString()));
-
-                Trace.TraceInformation("COMMIT index contains {0} documents commitTimeStamp {1}", indexWriter.NumDocs(), commitTimeStamp.ToString("O"));
+               EnsureCommitted();
             }
 
             return true;
         }
 
-        static async Task<IEnumerable<JObject>> FetchCatalogItems(CollectorHttpClient client, IEnumerable<JToken> items, CancellationToken cancellationToken)
+        private void UpdateCommitMetadata(DateTime commitTimeStamp, int docsDifference)
+        {
+            var count = docsDifference;
+            if (_metadataForNextCommit != null)
+            {
+                // we want the total for the entire commit, so add to the number we already have
+                count += _metadataForNextCommit.Count; 
+            }
+
+            _metadataForNextCommit = DocumentCreator.CreateCommitMetadata(
+                commitTimeStamp, "from catalog", count, Guid.NewGuid().ToString());
+        }
+
+        public void EnsureCommitted()
+        {
+            if (_metadataForNextCommit == null)
+            {
+                // this means no changes have been made to the index - no need to commit
+                Trace.TraceInformation("SKIP COMMIT No changes. Index contains {0} documents.", _indexWriter.NumDocs());
+                return;
+            }
+            
+            _indexWriter.ExpungeDeletes();
+            _indexWriter.Commit(_metadataForNextCommit.ToDictionary());
+
+            Trace.TraceInformation("COMMIT index contains {0} documents. Metadata: commitTimeStamp {1}; change count {2}; trace {3}",
+                _indexWriter.NumDocs(), _metadataForNextCommit.CommitTimeStamp.ToString("O"), _metadataForNextCommit.Count, _metadataForNextCommit.Trace);
+
+            _metadataForNextCommit = null;
+        }
+
+        private static async Task<IEnumerable<JObject>> FetchCatalogItems(CollectorHttpClient client, IEnumerable<JToken> items, CancellationToken cancellationToken)
         {
             IList<Task<JObject>> tasks = new List<Task<JObject>>();
 
@@ -73,7 +109,7 @@ namespace Ng
             return tasks.Select(t => t.Result);
         }
 
-        static void ProcessCatalogIndex(IndexWriter indexWriter, JObject catalogIndex, string baseAddress)
+        private static void ProcessCatalogIndex(IndexWriter indexWriter, JObject catalogIndex, string baseAddress)
         {
             indexWriter.DeleteDocuments(new Term("@type", Schema.DataTypes.CatalogInfastructure.AbsoluteUri));
 
@@ -91,7 +127,7 @@ namespace Ng
             indexWriter.AddDocument(doc);
         }
 
-        static void ProcessCatalogItems(IndexWriter indexWriter, IEnumerable<JObject> catalogItems, string baseAddress)
+        private static void ProcessCatalogItems(IndexWriter indexWriter, IEnumerable<JObject> catalogItems, string baseAddress)
         {
             int count = 0;
 
@@ -120,7 +156,7 @@ namespace Ng
             Trace.TraceInformation("Processed {0} CatalogItems", count);
         }
 
-        static void NormalizeId(JObject catalogItem)
+        private static void NormalizeId(JObject catalogItem)
         {
             // for now, for apiapps, we have prepended the id in the catalog with the namespace, however we don't want this to impact the Lucene index
             JToken originalId = catalogItem["originalId"];
@@ -130,12 +166,12 @@ namespace Ng
             }
         }
 
-        static JToken GetContext(JObject catalogItem)
+        private static JToken GetContext(JObject catalogItem)
         {
             return catalogItem["@context"];
         }
 
-        static void ProcessPackageDetails(IndexWriter indexWriter, JObject catalogItem)
+        private static void ProcessPackageDetails(IndexWriter indexWriter, JObject catalogItem)
         {
             Trace.TraceInformation("ProcessPackageDetails");
 
@@ -146,37 +182,14 @@ namespace Ng
             indexWriter.AddDocument(document);
         }
 
-        static void ProcessPackageDelete(IndexWriter indexWriter, JObject catalogItem)
+        private static void ProcessPackageDelete(IndexWriter indexWriter, JObject catalogItem)
         {
             Trace.TraceInformation("ProcessPackageDelete");
 
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
         }
 
-        internal static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory)
-        {
-            bool create = !IndexReader.IndexExists(directory);
-
-            directory.EnsureOpen();
-
-            if (!create)
-            {
-                if (IndexWriter.IsLocked(directory))
-                {
-                    IndexWriter.Unlock(directory);
-                }
-            }
-
-            IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), create, IndexWriter.MaxFieldLength.UNLIMITED);
-
-            NuGetMergePolicyApplyer.ApplyTo(indexWriter);
-
-            indexWriter.SetSimilarity(new CustomSimilarity());
-
-            return indexWriter;
-        }
-
-        static Query CreateDeleteQuery(JObject catalogItem)
+        private static Query CreateDeleteQuery(JObject catalogItem)
         {
             string id = catalogItem["id"].ToString();
             string version = catalogItem["version"].ToString();
@@ -205,7 +218,7 @@ namespace Ng
             }
         }
 
-        static void Add(Document doc, string name, string value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
+        private static void Add(Document doc, string name, string value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
         {
             if (value == null)
             {
@@ -217,12 +230,12 @@ namespace Ng
             doc.Add(newField);
         }
 
-        static void Add(Document doc, string name, int value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
+        private static void Add(Document doc, string name, int value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
         {
             Add(doc, name, value.ToString(CultureInfo.InvariantCulture), store, index, termVector, boost);
         }
 
-        static float DetermineLanguageBoost(string id, string language)
+        private static float DetermineLanguageBoost(string id, string language)
         {
             if (!string.IsNullOrWhiteSpace(language))
             {
@@ -234,8 +247,8 @@ namespace Ng
             }
             return 1.0f;
         }
-        
-        static void AddStoragePaths(Document doc, IEnumerable<string> storagePaths, string baseAddress)
+
+        private static void AddStoragePaths(Document doc, IEnumerable<string> storagePaths, string baseAddress)
         {
             int len = baseAddress.Length;
             foreach (string storagePath in storagePaths)
@@ -248,26 +261,30 @@ namespace Ng
             }
         }
 
-        static IEnumerable<string> GetStoragePaths(JObject package)
+        private static IEnumerable<string> GetStoragePaths(JObject package)
         {
             IList<string> storagePaths = new List<string>();
             storagePaths.Add(package["@id"].ToString());
             storagePaths.Add(package["packageContent"].ToString());
+
             foreach (JObject entry in package["entries"])
             {
                 storagePaths.Add(entry["location"].ToString());
             }
+
             return storagePaths;
         }
 
-        static IEnumerable<string> GetCatalogStoragePaths(JObject index)
+        private static IEnumerable<string> GetCatalogStoragePaths(JObject index)
         {
             IList<string> storagePaths = new List<string>();
             storagePaths.Add(index["@id"].ToString());
+
             foreach (JObject page in index["items"])
             {
                 storagePaths.Add(page["@id"].ToString());
             }
+
             return storagePaths;
         }
     }

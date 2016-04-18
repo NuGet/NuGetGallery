@@ -16,7 +16,7 @@ namespace NuGet.Services.Metadata.Catalog.Test
         {
         }
 
-        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken)
+        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
         {
             Console.WriteLine("------------------------------------------------");
             Console.WriteLine("COMMIT: {0}", commitTimeStamp.ToString("O"));
@@ -28,6 +28,12 @@ namespace NuGet.Services.Metadata.Catalog.Test
             }
 
             Console.WriteLine("------------------------------------------------");
+
+            if (isLastBatch)
+            {
+                Console.WriteLine("(last batch)------------------------------------");
+            }
+
             return Task.FromResult(true);
         }
     }

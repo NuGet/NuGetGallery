@@ -186,6 +186,7 @@
     <Compile Include="ClientException.cs" />
     <Compile Include="CuratedFeedHandler.cs" />
     <Compile Include="Extraction\CatalogPackageReader.cs" />
+    <Compile Include="Extraction\LuceneCommitMetadata.cs" />
     <Compile Include="Extraction\DocumentCreator.cs" />
     <Compile Include="Extraction\JTokenExtensions.cs" />
     <Compile Include="Extraction\PackageEntityMetadataExtraction.cs" />

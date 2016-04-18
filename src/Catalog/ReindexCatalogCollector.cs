@@ -20,9 +20,8 @@ namespace NuGet.Services.Metadata.Catalog
             _storageFactory = storageFactory;
         }
 
-        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken)
+        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
         {
-
             return Task.FromResult(true);
         }
     }

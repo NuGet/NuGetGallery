@@ -20,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public bool Concurrent { get; set; }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
         {
             IDictionary<string, IList<JObject>> sortedItems = new Dictionary<string, IList<JObject>>();
 

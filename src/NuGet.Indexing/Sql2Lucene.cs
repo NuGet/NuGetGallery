@@ -270,7 +270,8 @@ namespace NuGet.Indexing
                         partition.Dispose();
                     }
 
-                    writer.Commit(DocumentCreator.CreateCommitMetadata(DateTime.UtcNow, "from SQL", Guid.NewGuid().ToString()));
+                    writer.Commit(DocumentCreator.CreateCommitMetadata(DateTime.UtcNow, "from SQL", writer.NumDocs(), Guid.NewGuid().ToString())
+                        .ToDictionary());
                 }
             }
 

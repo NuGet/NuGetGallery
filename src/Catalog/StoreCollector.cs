@@ -21,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog
             _types = types;
         }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
         {
             List<Task<IGraph>> tasks = new List<Task<IGraph>>();
 

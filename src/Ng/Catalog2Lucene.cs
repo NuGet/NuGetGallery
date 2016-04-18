@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Lucene.Net.Index;
+using NuGet.Indexing;
 
 namespace Ng
 {
@@ -16,23 +18,58 @@ namespace Ng
         {
             Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose, catalogBaseAddress, storageBaseAddress);
 
-            CommitCollector collector = new SearchIndexFromCatalogCollector(new Uri(source), directory, catalogBaseAddress, handlerFunc);
-
-            ReadWriteCursor front = new LuceneCursor(directory, MemoryCursor.MinValue);
-            
-            ReadCursor back = (registration == null) ? (ReadCursor)MemoryCursor.CreateMax() : new HttpReadCursor(new Uri(registration), handlerFunc);
-
             while (true)
             {
-                bool run = false;
-                do
+                using (var indexWriter = CreateIndexWriter(directory))
                 {
-                    run = await collector.Run(front, back, cancellationToken);
+                    var collector = new SearchIndexFromCatalogCollector(
+                        index: new Uri(source),
+                        indexWriter: indexWriter,
+                        commitEachBatch: false,
+                        baseAddress: catalogBaseAddress,
+                        handlerFunc : handlerFunc);
+
+                    ReadWriteCursor front = new LuceneCursor(indexWriter, MemoryCursor.MinValue);
+
+                    ReadCursor back = registration == null 
+                        ? (ReadCursor)MemoryCursor.CreateMax() 
+                        : new HttpReadCursor(new Uri(registration), handlerFunc);
+
+                    bool run = false;
+                    do
+                    {
+                        run = await collector.Run(front, back, cancellationToken);
+
+                        collector.EnsureCommitted(); // commit after each catalog page
+                    }
+                    while (run);
                 }
-                while (run);
 
                 Thread.Sleep(interval * 1000);
             }
+        }
+
+        internal static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory)
+        {
+            bool create = !IndexReader.IndexExists(directory);
+
+            directory.EnsureOpen();
+
+            if (!create)
+            {
+                if (IndexWriter.IsLocked(directory))
+                {
+                    IndexWriter.Unlock(directory);
+                }
+            }
+
+            IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), create, IndexWriter.MaxFieldLength.UNLIMITED);
+
+            NuGetMergePolicyApplyer.ApplyTo(indexWriter);
+
+            indexWriter.SetSimilarity(new CustomSimilarity());
+
+            return indexWriter;
         }
 
         static void PrintUsage()
