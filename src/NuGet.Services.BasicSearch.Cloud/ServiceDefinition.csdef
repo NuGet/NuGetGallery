@@ -18,9 +18,7 @@
       <Setting name="Search.DataContainer" />
       <Setting name="Search.IndexRefresh" />
       <Setting name="Search.RegistrationBaseAddress" />
-      <Setting name="serilog-Elasticsearch.nodeUris" />
-      <Setting name="serilog-Elasticsearch.username" />
-      <Setting name="serilog-Elasticsearch.password" />
+      <Setting name="serilog-ApplicationInsightsInstrumentationKey" />
     </ConfigurationSettings>
     <Endpoints>
       <InputEndpoint name="HttpEndpoint" protocol="http" port="80" />

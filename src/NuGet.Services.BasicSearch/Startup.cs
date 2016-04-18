@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Store;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.FileSystems;
@@ -39,15 +40,23 @@ namespace NuGet.Services.BasicSearch
                 .Enrich.With<HttpRequestUserAgentEnricher>()
                 .Enrich.With<HttpRequestRawUrlEnricher>();
 
-            var loggerFactory = Logging.CreateLoggerFactory(loggerConfiguration);
+            var loggerFactory = Logging.CreateLoggerFactory(
+                loggerConfiguration, configuration.Get("serilog:ApplicationInsightsInstrumentationKey"));
 
             // create a logger that is scoped to this class (only)
             _logger = loggerFactory.CreateLogger<Startup>();
+
+            // log system.diagnostics.trace to Serilog
+            Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
 
             _logger.LogInformation(LogMessages.AppStartup);
 
             // correlate requests
             app.Use(typeof(CorrelationIdMiddleware));
+
+            // configure appinsights
+            TelemetryConfiguration.Active.InstrumentationKey =
+                configuration.Get("serilog:ApplicationInsightsInstrumentationKey");
 
             // search test console
             app.Use(async (context, next) =>

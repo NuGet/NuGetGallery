@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Reflection;
 using System.Runtime.Remoting;
@@ -10,7 +9,6 @@ using System.Runtime.Remoting.Messaging;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using Serilog.Sinks.Elasticsearch;
 
 namespace NuGet.Services
 {
@@ -32,9 +30,7 @@ namespace NuGet.Services
 
         public static ILoggerFactory CreateLoggerFactory(
             LoggerConfiguration loggerConfiguration = null,
-            string elasticsearchEndpoint = null,
-            string elasticsearchUsername = null,
-            string elasticsearchPassword = null)
+            string applicationInsightsInstrumentationKey = null)
         {
             // setup Serilog
             if (loggerConfiguration == null)
@@ -42,48 +38,16 @@ namespace NuGet.Services
                 loggerConfiguration = CreateDefaultLoggerConfiguration(withConsoleLogger: true);
             }
 
-            if (string.IsNullOrEmpty(elasticsearchEndpoint))
+            if (string.IsNullOrEmpty(applicationInsightsInstrumentationKey))
             {
                 // fallback to config setting if available
-                elasticsearchEndpoint = ConfigurationManager.AppSettings["serilog:Elasticsearch.nodeUris"];
+                applicationInsightsInstrumentationKey = ConfigurationManager.AppSettings["serilog:ApplicationInsightsInstrumentationKey"];
             }
 
-            if (!string.IsNullOrEmpty(elasticsearchEndpoint))
+            if (!string.IsNullOrEmpty(applicationInsightsInstrumentationKey))
             {
-                var nodeUris = new List<Uri>();
-                foreach (var nodeUriValue in elasticsearchEndpoint.Split(';'))
-                {
-                    Uri nodeUri;
-                    if (Uri.TryCreate(nodeUriValue, UriKind.Absolute, out nodeUri)
-                        && !nodeUris.Contains(nodeUri))
-                    {
-                        nodeUris.Add(nodeUri);
-                    }
-                }
-
-                var elasticsearchOptions = new ElasticsearchSinkOptions(nodeUris);
-                elasticsearchOptions.AutoRegisterTemplate = true;
-
-                // authentication settings
-                if (elasticsearchUsername == null)
-                {
-                    elasticsearchUsername = ConfigurationManager.AppSettings["serilog:Elasticsearch.username"];
-                }
-
-                if (elasticsearchPassword == null)
-                {
-                    elasticsearchPassword = ConfigurationManager.AppSettings["serilog:Elasticsearch.password"];
-                }
-
-                if (!string.IsNullOrEmpty(elasticsearchUsername)
-                    && !string.IsNullOrEmpty(elasticsearchPassword))
-                {
-                    elasticsearchOptions.ModifyConnectionSettings =
-                        config => config.SetBasicAuthentication(elasticsearchUsername, elasticsearchPassword);
-                }
-
                 loggerConfiguration = loggerConfiguration
-                    .WriteTo.Elasticsearch(elasticsearchOptions);
+                    .WriteTo.ApplicationInsights(applicationInsightsInstrumentationKey);
             }
 
             Log.Logger = loggerConfiguration.CreateLogger();

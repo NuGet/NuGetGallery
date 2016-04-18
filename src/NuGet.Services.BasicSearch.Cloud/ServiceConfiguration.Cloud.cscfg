@@ -8,9 +8,7 @@
       <Setting name="Search.DataContainer" value="" />
       <Setting name="Search.IndexRefresh" value="300" />
       <Setting name="Search.RegistrationBaseAddress" value="http://api.nuget.org/v3/registration0/" />
-      <Setting name="serilog-Elasticsearch.nodeUris" value="" />
-      <Setting name="serilog-Elasticsearch.username" value="" />
-      <Setting name="serilog-Elasticsearch.password" value="" />
+      <Setting name="serilog-ApplicationInsightsInstrumentationKey" value="" />
     </ConfigurationSettings>
     <Certificates />
   </Role>

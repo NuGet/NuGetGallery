@@ -555,37 +555,15 @@ namespace Ng
             return path;
         }
 
-        public static string GetElasticsearchEndpoint(IDictionary<string, string> arguments)
+        public static string GetApplicationInsightsInstrumentationKey(IDictionary<string, string> arguments)
         {
             string endpoint;
-            if (arguments == null || !arguments.TryGetValue("-elasticsearchendpoint", out endpoint))
+            if (arguments == null || !arguments.TryGetValue("-instrumentationkey", out endpoint))
             {
                 return null;
             }
 
             return endpoint;
-        }
-
-        public static string GetElasticsearchUsername(IDictionary<string, string> arguments)
-        {
-            string value;
-            if (arguments == null || !arguments.TryGetValue("-elasticsearchusername", out value))
-            {
-                return null;
-            }
-
-            return value;
-        }
-
-        public static string GetElasticsearchPassword(IDictionary<string, string> arguments)
-        {
-            string value;
-            if (arguments == null || !arguments.TryGetValue("-elasticsearchpassword", out value))
-            {
-                return null;
-            }
-
-            return value;
         }
     }
 }

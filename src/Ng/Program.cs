@@ -29,10 +29,8 @@ namespace Ng
 
             // create an ILoggerFactory
             var arguments = CommandHelpers.GetArguments(args, 0);
-            var elasticsearchEndpoint = CommandHelpers.GetElasticsearchEndpoint(arguments);
-            var elasticsearchUsername = CommandHelpers.GetElasticsearchUsername(arguments);
-            var elasticsearchPassword = CommandHelpers.GetElasticsearchPassword(arguments);
-            var loggerFactory = Logging.CreateLoggerFactory(null, elasticsearchEndpoint, elasticsearchUsername, elasticsearchPassword);
+            var applicationInsightsInstrumentationKey = CommandHelpers.GetApplicationInsightsInstrumentationKey(arguments);
+            var loggerFactory = Logging.CreateLoggerFactory(null, applicationInsightsInstrumentationKey);
 
             // create a logger that is scoped to this class (only)
             _logger = loggerFactory.CreateLogger<Program>();
