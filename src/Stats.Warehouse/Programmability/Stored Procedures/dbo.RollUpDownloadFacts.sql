@@ -4,85 +4,84 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-	IF @MinAgeInDays IS NULL
-	BEGIN
-		SELECT	0 AS 'DeletedDownloadFacts',
-				0 AS 'DeletedProjectTypeLinks',
-				0 AS 'InsertedDownloadFacts',
-				0 AS 'TotalDownloadCount',
-				'Package Dimension Id cannot be null' AS 'ErrorMessage'
-
-		RETURN
-	END
-	ELSE
+	IF @MinAgeInDays IS NOT NULL
 	BEGIN
 
-		DECLARE @ExecutionResultsTable TABLE
-		(
-			[DeletedDownloadFacts] INT,
-			[DeletedProjectTypeLinks] INT,
-			[InsertedDownloadFacts] INT,
-			[TotalDownloadCount] INT,
-			[ErrorMessage] NVARCHAR(MAX)
-		)
-
-		DECLARE @DeletedProjectTypeRecords INT = 0
-		DECLARE @DeletedDownloadFactRecords INT = 0
-		DECLARE @InsertedRecords INT = 0
-		DECLARE @ErrorMessage NVARCHAR(MAX) = ''
+		DECLARE @MaxDimensionDateId INT = -1
 		DECLARE @Dimension_Package_Id INT
+		DECLARE @DownloadCount INT = 0
+		DECLARE @RecordCountToRemove INT = 0
+		DECLARE @CursorPosition INT = 0
+		DECLARE @TotalCursorPositions INT = 0
+		DECLARE @Msg NVARCHAR(MAX) = ''
 
-		DECLARE @DatesTable TABLE
+		DECLARE @PackageIdTable TABLE
 		(
-			[Id] INT NOT NULL PRIMARY KEY
+			[Id] INT NOT NULL PRIMARY KEY,
+			[RecordCountToRemove] INT NOT NULL
 		)
 
-		INSERT INTO @DatesTable
-		SELECT	[Id]
+		SELECT	@MaxDimensionDateId = MAX([Id])
 		FROM	[dbo].[Dimension_Date] (NOLOCK)
 		WHERE	[Date] IS NOT NULL
 			AND	[Date] < DATEADD(DAY, -@MinAgeInDays, GETUTCDATE())
-			AND [Id] >= (
-							SELECT	MIN([Dimension_Date_Id])
-							FROM	[dbo].[Fact_Download] (NOLOCK)
-							WHERE	[Dimension_Date_Id] <> -1
-						)
 
-		DECLARE @CursorPosition INT = 0
-		DECLARE @TotalCursorPositions INT = 0
+		SET @Msg = 'Fetched ' + CAST(@@rowcount AS VARCHAR) + ' dates.';
+		RAISERROR(@Msg, 0, 1) WITH NOWAIT;
 
-		SELECT	@TotalCursorPositions = COUNT(DISTINCT p.[Id])
-			FROM	[dbo].[Dimension_Package] AS p (NOLOCK)
-			INNER JOIN	[dbo].[Fact_Download] AS f (NOLOCK)
-			ON		f.[Dimension_Package_Id] = p.[Id]
-			WHERE	(f.[Dimension_Date_Id] IN (SELECT [Id] FROM @DatesTable));
+		INSERT INTO @PackageIdTable
+		SELECT	DISTINCT p.[Id],
+				COUNT(f.[Id]) 'RecordCountToRemove'
+		FROM	[dbo].[Dimension_Package] AS p (NOLOCK)
+		INNER JOIN	[dbo].[Fact_Download] AS f (NOLOCK)
+		ON		f.[Dimension_Package_Id] = p.[Id]
+		WHERE	f.[Dimension_Date_Id] <> -1
+			AND f.[Dimension_Date_Id] <= @MaxDimensionDateId
+		GROUP BY	p.[Id]
+		ORDER BY	RecordCountToRemove DESC;
+
+		SELECT	@TotalCursorPositions = COUNT(DISTINCT [Id])
+		FROM	@PackageIdTable;
+
+		SET @Msg = 'Fetched ' + CAST(@TotalCursorPositions AS VARCHAR) + ' package dimension IDs.';
+		RAISERROR(@Msg, 0, 1) WITH NOWAIT;
 
 		DECLARE PackageCursor CURSOR FOR
-			SELECT	DISTINCT p.[Id]
-			FROM	[dbo].[Dimension_Package] AS p (NOLOCK)
-			INNER JOIN	[dbo].[Fact_Download] AS f (NOLOCK)
-			ON		f.[Dimension_Package_Id] = p.[Id]
-			WHERE	(f.[Dimension_Date_Id] IN (SELECT [Id] FROM @DatesTable))
-			ORDER BY	p.[Id];
+			SELECT	[Id],
+					[RecordCountToRemove]
+			FROM	@PackageIdTable
+			ORDER BY	[RecordCountToRemove] DESC;
 
 		OPEN PackageCursor
 
 		FETCH NEXT FROM PackageCursor
-		INTO @Dimension_Package_Id
+		INTO @Dimension_Package_Id, @RecordCountToRemove
 
-		WHILE @@FETCH_STATUS = 0 AND @ErrorMessage = ''
+		WHILE @@FETCH_STATUS = 0
 		BEGIN
 
-			DECLARE @DownloadCount INT = 0
+			SET @CursorPosition = @CursorPosition + 1
+
+			DECLARE @ProgressPct FLOAT = ROUND((@CursorPosition / (@TotalCursorPositions * 1.0))* 100, 2)
+
+			SET @Msg = 'Cursor: ' + CAST(@CursorPosition AS VARCHAR) + '/' + CAST(@TotalCursorPositions AS VARCHAR) + ' [' + CAST(@ProgressPct AS VARCHAR) + ' pct.]';
+			RAISERROR(@Msg, 0, 1) WITH NOWAIT;
 
 			SELECT	@DownloadCount = SUM(f.[DownloadCount])
 			FROM	[dbo].[Fact_Download] AS f (NOLOCK)
-			WHERE	(f.[Dimension_Date_Id] = -1 OR f.[Dimension_Date_Id] IN (SELECT [Id] FROM @DatesTable))
+			WHERE	f.[Dimension_Date_Id] <= @MaxDimensionDateId
 				AND f.[Dimension_Package_Id] = @Dimension_Package_Id
+			GROUP BY	f.[Dimension_Package_Id]
+
+			SET @Msg = 'Package Dimension ID ' + CAST(@Dimension_Package_Id AS VARCHAR) + ': ' + CAST(@DownloadCount AS VARCHAR) + ' downloads, ' + CAST(@RecordCountToRemove AS VARCHAR) + ' records to be removed';
+			RAISERROR(@Msg, 0, 1) WITH NOWAIT
 
 			BEGIN TRANSACTION
 
 			BEGIN TRY
+
+				DECLARE @DeletedRecords INT = 0
+				DECLARE @InsertedRecords INT = 0
 
 				DELETE
 				FROM	[dbo].[Fact_Download_Dimension_ProjectType]
@@ -90,16 +89,24 @@ BEGIN
 														SELECT	[Id]
 														FROM	[dbo].[Fact_Download] (NOLOCK)
 														WHERE	[Dimension_Package_Id] = @Dimension_Package_Id
-															AND	[Dimension_Date_Id] IN	(SELECT [Id] FROM @DatesTable)
+															AND	[Dimension_Date_Id] <= @MaxDimensionDateId
 												)
-				SET @DeletedProjectTypeRecords = @DeletedProjectTypeRecords + @@rowcount
+				SET @DeletedRecords = @@rowcount
+
+				SET @Msg = 'Package Dimension ID ' + CAST(@Dimension_Package_Id AS VARCHAR) + ': Deleted ' + CAST(@DeletedRecords AS VARCHAR) + ' records from [dbo].[Fact_Download_Dimension_ProjectType]';
+				RAISERROR(@Msg, 0, 1) WITH NOWAIT
+
+				SET @DeletedRecords = 0
 
 				DELETE
 				FROM	[dbo].[Fact_Download]
 				WHERE	[Dimension_Package_Id] = @Dimension_Package_Id
-					AND	([Dimension_Date_Id] = -1 OR [Dimension_Date_Id] IN (SELECT [Id] FROM @DatesTable))
+					AND	[Dimension_Date_Id] <= @MaxDimensionDateId
 
-				SET @DeletedDownloadFactRecords = @DeletedDownloadFactRecords + @@rowcount
+				SET @DeletedRecords = @@rowcount
+
+				SET @Msg = 'Package Dimension ID ' + CAST(@Dimension_Package_Id AS VARCHAR) + ': Deleted ' + CAST(@DeletedRecords AS VARCHAR) + ' records from [dbo].[Fact_Download]';
+				RAISERROR(@Msg, 0, 1) WITH NOWAIT
 
 				INSERT INTO [dbo].[Fact_Download]
 				(
@@ -130,40 +137,26 @@ BEGIN
 					GETUTCDATE()
 				)
 
-				SET @InsertedRecords = @InsertedRecords + @@rowcount
+				SET @InsertedRecords = @@rowcount
+				SET @Msg = 'Package Dimension ID ' + CAST(@Dimension_Package_Id AS VARCHAR) + ': Inserted ' + CAST(@InsertedRecords AS VARCHAR) + ' record for ' + CAST(@DownloadCount AS VARCHAR) + ' downloads';
+				RAISERROR(@Msg, 0, 1) WITH NOWAIT
 
 				COMMIT TRANSACTION
 			END TRY
 			BEGIN CATCH
+				ROLLBACK TRANSACTION
 
-				SET @ErrorMessage = ERROR_MESSAGE()
-
-				IF @@TRANCOUNT > 0
-					ROLLBACK TRANSACTION
+				PRINT 'Package Dimension ID ' + CAST(@Dimension_Package_Id AS VARCHAR) + ': Rolled back transaction - ' + ERROR_MESSAGE();
 
 			END CATCH
 
 			FETCH NEXT FROM PackageCursor
-			INTO @Dimension_Package_Id
+			INTO @Dimension_Package_Id, @RecordCountToRemove
 		END
 
 		CLOSE PackageCursor;
 		DEALLOCATE PackageCursor;
 
-
-		INSERT INTO @ExecutionResultsTable
-		SELECT	@DeletedDownloadFactRecords	'DeletedDownloadFacts',
-				@DeletedProjectTypeRecords	'DeletedProjectTypeLinks',
-				@InsertedRecords			'InsertedDownloadFacts',
-				@DownloadCount				'TotalDownloadCount',
-				@ErrorMessage				'ErrorMessage'
-
-		SELECT	[DeletedDownloadFacts],
-				[DeletedProjectTypeLinks],
-				[InsertedDownloadFacts],
-				[TotalDownloadCount],
-				[ErrorMessage]
-		FROM @ExecutionResultsTable
-
+		PRINT 'FINISHED!';
 	END
 END
