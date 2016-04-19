@@ -106,6 +106,21 @@ namespace Stats.AzureCdnLogs.Common
             telemetryClient.Flush();
         }
 
+        public static void TrackRollUpMetric(string metricName, double value, string packageDimensionId)
+        {
+            if (!_initialized)
+            {
+                return;
+            }
+
+            var telemetryClient = new TelemetryClient();
+            var telemetry = new MetricTelemetry(metricName, value);
+            telemetry.Properties.Add("PackageDimensionId", packageDimensionId);
+
+            telemetryClient.TrackMetric(telemetry);
+            telemetryClient.Flush();
+        }
+
         public static void TrackReportProcessed(string reportName, string packageId = null)
         {
             if (!_initialized)
@@ -163,6 +178,13 @@ namespace Stats.AzureCdnLogs.Common
             telemetryClient.Flush();
 
             TrackException(sqlException, logFileName);
+        }
+
+        public static void TrackTrace(string message)
+        {
+            var telemetryClient = new TelemetryClient();
+            telemetryClient.TrackTrace(message);
+            telemetryClient.Flush();
         }
     }
 }
