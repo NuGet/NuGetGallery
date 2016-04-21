@@ -55,18 +55,6 @@ namespace NuGet.Indexing
         public OwnersHandler.OwnersResult Owners { get; private set; }
         public DateTime LastReopen { get; private set; }
 
-        public bool TryGetFilter(string curatedFeed, out Filter filter)
-        {
-            filter = null;
-
-            if (!string.IsNullOrEmpty(curatedFeed) && _curatedFeeds.TryGetValue(curatedFeed, out filter))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public bool TryGetFilter(bool includeUnlisted, bool includePrerelease, string curatedFeed, out Filter filter)
         {
             Filter visibilityFilter = _latest[includeUnlisted ? 1 : 0][includePrerelease ? 1 : 0];

@@ -35,27 +35,13 @@ namespace NuGet.Indexing
                 // Build the query
                 Query query = NuGetQuery.MakeQuery(q, searcher);
 
-                // The behavior below is incorrect when looking at the parameters for this method.
-                // One would expect the filters to be applied properly.
-                //
-                // We are *intentionally* doing it wrong here because our legacy V2 search service ignored
-                // these filters as well. The following URL's would yield the exact same result:
-                //   /search/query?q=Id:Antlr&prerelease=false&ignoreFilter=false
-                //   /search/query?q=Id:Antlr&prerelease=false&ignoreFilter=true
-                //   /search/query?q=Id:Antlr&prerelease=true&ignoreFilter=false
-                //   /search/query?q=Id:Antlr&prerelease=true&ignoreFilter=true
-                //
-                // If this behavior needs to be changed, this is the bit of code that will return
-                // the data you'd expect looking at the method parameters:
-                //   bool includeUnlisted = ignoreFilter;
-                //   includePrerelease = ignoreFilter || includePrerelease;
-                //   feed = ignoreFilter ? null : feed;
-                //   Filter filter = searcher.GetFilter(includeUnlisted, includePrerelease, feed);
-                //
-                // But hey, we'll do it the old V2 way instead and happily ignore the correct way.
+                // Build filter
+                bool includeUnlisted = ignoreFilter;
+                includePrerelease = ignoreFilter || includePrerelease;
+                feed = ignoreFilter ? null : feed;
 
                 Filter filter = null;
-                if (!ignoreFilter && searcher.TryGetFilter(feed, out filter))
+                if (!ignoreFilter && searcher.TryGetFilter(includeUnlisted, includePrerelease, feed, out filter))
                 {
                     // Filter before running the query (make the search set smaller)
                     query = new FilteredQuery(query, filter);
