@@ -8,12 +8,11 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet;
 
-namespace Stats.CreateAzureCdnDownloadCountReports
+namespace Stats.CreateAzureCdnWarehouseReports
 {
     public class DownloadCountReport
         : ReportBase
@@ -43,8 +42,6 @@ namespace Stats.CreateAzureCdnDownloadCountReports
 
             if (downloadData.Any())
             {
-                SemanticVersion semanticVersion = null;
-
                 // Group based on Package Id
                 var grouped = downloadData.GroupBy(p => p.PackageId);
                 var registrations = new JArray();
@@ -55,6 +52,7 @@ namespace Stats.CreateAzureCdnDownloadCountReports
                     foreach (var gv in group)
                     {
                         // downloads.v1.json should only contain normalized versions - ignore others
+                        SemanticVersion semanticVersion;
                         if (!string.IsNullOrEmpty(gv.PackageVersion)
                             && SemanticVersion.TryParse(gv.PackageVersion, out semanticVersion)
                             && gv.PackageVersion == semanticVersion.ToNormalizedString())
