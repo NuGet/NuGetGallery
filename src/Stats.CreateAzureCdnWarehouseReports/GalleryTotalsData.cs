@@ -4,7 +4,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace Stats.CreateAzureCdnDownloadCountReports
+namespace Stats.CreateAzureCdnWarehouseReports
 {
     public class GalleryTotalsData
     {

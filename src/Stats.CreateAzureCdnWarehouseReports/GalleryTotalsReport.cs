@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 
-namespace Stats.CreateAzureCdnDownloadCountReports
+namespace Stats.CreateAzureCdnWarehouseReports
 {
     public class GalleryTotalsReport
         : ReportBase
     {
         private const string WarehouseStoredProcedureName = "[dbo].[SelectTotalDownloadCounts]";
         private const string GalleryQuery = @"SELECT
-                    (SELECT COUNT(DISTINCT [PackageRegistrationKey]) FROM Packages p WITH (NOLOCK) 
+                    (SELECT COUNT(DISTINCT [PackageRegistrationKey]) FROM Packages p WITH (NOLOCK)
                             WHERE p.Listed = 1 AND p.Deleted = 0) AS UniquePackages,
                     (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1 AND Deleted = 0) AS TotalPackages";
         internal const string ReportName = "stats-totals.json";

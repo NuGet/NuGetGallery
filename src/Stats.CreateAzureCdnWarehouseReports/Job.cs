@@ -19,9 +19,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
     {
         private const string _recentPopularityDetailByPackageReportBaseName = "recentpopularitydetail_";
         private CloudStorageAccount _cloudStorageAccount;
-        private string _cloudStorageContainerName;
+        private CloudStorageAccount _dataStorageAccount;
+        private string _statisticsContainerName;
         private SqlConnectionStringBuilder _statisticsDatabase;
+        private SqlConnectionStringBuilder _galleryDatabase;
         private string _reportName;
+        private string[] _dataContainerNames;
 
         private static readonly IDictionary<string, string> _storedProcedures = new Dictionary<string, string>
         {
@@ -45,20 +48,34 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
                 var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
                 var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-                _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString);
+                var galleryDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SourceDatabase);
+                var dataStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
 
-                _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
-                _cloudStorageContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
+                _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString, JobArgumentNames.AzureCdnCloudStorageAccount);
+                _statisticsContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName), JobArgumentNames.AzureCdnCloudStorageContainerName);
+                _dataStorageAccount = ValidateAzureCloudStorageAccount(dataStorageAccountConnectionString, JobArgumentNames.DataStorageAccount);
                 _reportName = ValidateReportName(JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.WarehouseReportName));
+                _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
+                _galleryDatabase = new SqlConnectionStringBuilder(galleryDatabaseConnectionString);
 
-                return true;
+                var containerNames = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataContainerName)
+                        .Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var containerName in containerNames)
+                {
+                    ValidateAzureContainerName(containerName, JobArgumentNames.DataContainerName);
+                }
+
+                _dataContainerNames = containerNames;
             }
             catch (Exception exception)
             {
                 ApplicationInsights.TrackException(exception);
                 Trace.TraceError(exception.ToString());
+
+                return false;
             }
-            return false;
+
+            return true;
         }
 
         public override async Task<bool> Run()
@@ -66,7 +83,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             try
             {
                 var reportGenerationTime = DateTime.UtcNow;
-                var destinationContainer = _cloudStorageAccount.CreateCloudBlobClient().GetContainerReference(_cloudStorageContainerName);
+                var destinationContainer = _cloudStorageAccount.CreateCloudBlobClient().GetContainerReference(_statisticsContainerName);
                 Trace.TraceInformation("Generating reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
                 if (string.IsNullOrEmpty(_reportName))
@@ -99,6 +116,42 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 }
 
                 Trace.TraceInformation("Generated reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+
+                // totals reports
+                var stopwatch = Stopwatch.StartNew();
+
+                // build downloads.v1.json
+                var targets = new List<StorageContainerTarget>();
+                targets.Add(new StorageContainerTarget(_cloudStorageAccount, _statisticsContainerName));
+                foreach (var dataContainerName in _dataContainerNames)
+                {
+                    targets.Add(new StorageContainerTarget(_dataStorageAccount, dataContainerName));
+                }
+                var downloadCountReport = new DownloadCountReport(targets, _statisticsDatabase, _galleryDatabase);
+                await downloadCountReport.Run();
+
+                stopwatch.Stop();
+                ApplicationInsights.TrackMetric(DownloadCountReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsights.TrackReportProcessed(DownloadCountReport.ReportName);
+                stopwatch.Restart();
+
+                // build stats-totals.json
+                var galleryTotalsReport = new GalleryTotalsReport(_cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
+                await galleryTotalsReport.Run();
+
+                stopwatch.Stop();
+                ApplicationInsights.TrackMetric(GalleryTotalsReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsights.TrackReportProcessed(GalleryTotalsReport.ReportName);
+
+
+                // build tools.v1.json
+                var toolsReport = new DownloadsPerToolVersionReport(_cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
+                await toolsReport.Run();
+
+                stopwatch.Stop();
+                ApplicationInsights.TrackMetric(DownloadsPerToolVersionReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsights.TrackReportProcessed(DownloadsPerToolVersionReport.ReportName);
+                stopwatch.Restart();
 
                 return true;
             }
@@ -214,11 +267,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
              });
         }
 
-        private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
+        private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount, string parameterName)
         {
             if (string.IsNullOrEmpty(cloudStorageAccount))
             {
-                throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is not defined.");
+                throw new ArgumentException($"Job parameter {parameterName} is not defined.");
             }
 
             CloudStorageAccount account;
@@ -226,15 +279,17 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {
                 return account;
             }
-            throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
+
+            throw new ArgumentException($"Job parameter {parameterName} is invalid.");
         }
 
-        private static string ValidateAzureContainerName(string containerName)
+        private static string ValidateAzureContainerName(string containerName, string parameterName)
         {
             if (string.IsNullOrWhiteSpace(containerName))
             {
-                throw new ArgumentException("Job parameter for Azure Storage Container Name is not defined.");
+                throw new ArgumentException($"Job parameter {parameterName} is not defined.");
             }
+
             return containerName;
         }
 
@@ -244,10 +299,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {
                 return null;
             }
+
             if (!_storedProcedures.ContainsKey(reportName.ToLowerInvariant()))
             {
                 throw new ArgumentException("Job parameter ReportName contains unknown report name.");
             }
+
             return reportName;
         }
 

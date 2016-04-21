@@ -12,7 +12,7 @@ using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Stats.CreateAzureCdnDownloadCountReports
+namespace Stats.CreateAzureCdnWarehouseReports
 {
     public class DownloadsPerToolVersionReport
         : ReportBase

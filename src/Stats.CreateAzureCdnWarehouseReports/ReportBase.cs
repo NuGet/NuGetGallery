@@ -6,11 +6,10 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
-namespace Stats.CreateAzureCdnDownloadCountReports
+namespace Stats.CreateAzureCdnWarehouseReports
 {
     public abstract class ReportBase
     {

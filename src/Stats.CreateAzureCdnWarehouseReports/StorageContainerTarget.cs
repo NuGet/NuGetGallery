@@ -3,7 +3,7 @@
 
 using Microsoft.WindowsAzure.Storage;
 
-namespace Stats.CreateAzureCdnDownloadCountReports
+namespace Stats.CreateAzureCdnWarehouseReports
 {
     public class StorageContainerTarget
     {
