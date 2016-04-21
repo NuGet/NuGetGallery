@@ -15,6 +15,7 @@ namespace NuGet.Indexing
                 try
                 {
                     runLogic();
+                    return;
                 }
                 catch (Exception e)
                 {
