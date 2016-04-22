@@ -169,7 +169,9 @@ namespace Stats.ImportAzureCdnStatistics
                 var autoRenewLeaseThread = new Thread(
                     async () =>
                     {
+#if DEBUG
                         Trace.TraceInformation("Thread [{0}] started.", Thread.CurrentThread.ManagedThreadId);
+#endif
                         var blobUriString = blob.Uri.ToString();
                         try
                         {
@@ -179,8 +181,10 @@ namespace Stats.ImportAzureCdnStatistics
                                 // auto-renew lease when about to expire
                                 Thread.Sleep(_leaseExpirationThreshold);
 
+#if DEBUG
                                 Trace.TraceInformation("Thread [{0}] working.", Thread.CurrentThread.ManagedThreadId);
                                 Trace.TraceInformation("Beginning to renew lease for blob {0}.", blobUriString);
+#endif
 
                                 await blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId), cancellationToken);
 
@@ -189,14 +193,18 @@ namespace Stats.ImportAzureCdnStatistics
                         }
                         catch (TaskCanceledException)
                         {
-                            Trace.TraceWarning("Thread [{0}] cancelled.", Thread.CurrentThread.ManagedThreadId);
                             // No need to track
+#if DEBUG
+                            Trace.TraceWarning("Thread [{0}] cancelled.", Thread.CurrentThread.ManagedThreadId);
+#endif
                         }
                         catch
                         {
-                            Trace.TraceError("Thread [{0}] error.", Thread.CurrentThread.ManagedThreadId);
+#if DEBUG
                             // The blob could have been deleted in the meantime and this thread will be killed either way.
                             // No need to track in Application Insights.
+                            Trace.TraceError("Thread [{0}] error.", Thread.CurrentThread.ManagedThreadId);
+#endif
                         }
                     });
                 autoRenewLeaseThread.Start();
@@ -207,10 +215,14 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 if (_autoRenewLeaseThread != null)
                 {
+#if DEBUG
                     Trace.TraceInformation("Thread [{0}] disposing.", _autoRenewLeaseThread.ManagedThreadId);
+#endif
                     _cancellationTokenSource.Cancel(false);
                     _autoRenewLeaseThread.Join();
+#if DEBUG
                     Trace.TraceInformation("Thread [{0}] disposed.", _autoRenewLeaseThread.ManagedThreadId);
+#endif
                 }
             }
         }
