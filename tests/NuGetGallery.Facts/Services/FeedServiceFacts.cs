@@ -738,6 +738,32 @@ namespace NuGetGallery
                 }
 
                 [Fact]
+                public async Task V2FeedFindPackagesByIdDoesNotHitBackendWhenIdIsEmpty()
+                {
+                    // Arrange
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
+
+                    // Act
+                    var result = (await v2Service.FindPackagesById(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        ""))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
+
+                    // Assert
+                    repo.Verify(r => r.GetAll(), Times.Never);
+                    Assert.Equal(0, result.Count());
+                }
+
+                [Fact]
                 public async Task V2FeedFindPackagesByIdDoesNotReturnDeletedPackages()
                 {
                     // Arrange

@@ -421,31 +421,7 @@
             else
             {
                 <span id="key">@apiKey.Value</span>
-                <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
-                        width="110"
-                        height="14"
-                        class="s-reqflash"
-                        aria-hidden="true"
-                        role="presentation">
-                    <param name="movie" value="@Url.Content("~/Content/clippy.swf")">
-                    <param name="allowScriptAccess" value="always" />
-                    <param name="quality" value="high" />
-                    <param name="scale" value="noscale" />
-                    <param name="FlashVars" value="text=@apiKey.Value">
-                    <param name="bgcolor" value="#eff7fa">
-                    <embed src="@Url.Content("~/Content/clippy.swf")"
-                           width="110"
-                           height="14"
-                           aria-hidden="true"
-                           role="presentation"
-                           name="clippy"
-                           quality="high"
-                           allowscriptaccess="always"
-                           type="application/x-shockwave-flash"
-                           pluginspage="http://www.macromedia.com/go/getflashplayer"
-                           flashvars="text=@apiKey.Value"
-                           bgcolor="#eff7fa" />
-                </object>
+                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyToClipboard('@apiKey.Value', this)"><i class="icon-copy"></i></button>
             }
         </text>,
         actions: @<text>
@@ -495,35 +471,54 @@
                     <div id="account-apikeysample">
                         <div>
                             nuget.exe setApiKey @apiKey.Value
-                            <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
-                                    width="110"
-                                    height="14"
-                                    class="s-reqflash"
-                                    aria-hidden="true"
-                                    role="presentation">
-                                <param name="movie" value="@Url.Content("~/Content/clippy.swf")">
-                                <param name="allowScriptAccess" value="always" />
-                                <param name="quality" value="high" />
-                                <param name="scale" value="noscale" />
-                                <param name="FlashVars" value="text=nuget.exe setApiKey @apiKey.Value">
-                                <param name="bgcolor" value="#202020">
-                                <embed src="@Url.Content("~/Content/clippy.swf")"
-                                        width="110"
-                                        height="14"
-                                        aria-hidden="true"
-                                        role="presentation"
-                                        name="clippy"
-                                        quality="high"
-                                        allowscriptaccess="always"
-                                        type="application/x-shockwave-flash"
-                                        pluginspage="http://www.macromedia.com/go/getflashplayer"
-                                        flashvars="text=nuget.exe setApiKey @apiKey.Value"
-                                        bgcolor="#202020" />
-                            </object>
+                            <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyToClipboard('nuget.exe setApiKey @apiKey.Value', this)"><i class="icon-copy"></i></button>
                         </div>
                         <div>nuget.exe push MyPackage.1.0.nupkg</div>
                     </div>
                 </p>
             }
-        </text>)
-</ul>
+                  </text>)
+</ul> 
+
+
+@section bottomScripts {
+    <script>
+        function detectIE() {
+            var ua = window.navigator.userAgent;
+
+            var msie = ua.indexOf('MSIE ');
+            if (msie > 0) {
+                // IE 10 or older => return version number
+                return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+            }
+
+            var trident = ua.indexOf('Trident/');
+            if (trident > 0) {
+                // IE 11 => return version number
+                var rv = ua.indexOf('rv:');
+                return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+            }
+
+            // other browser or edge
+            return false;
+        }
+
+        // use execCommand copy and a dynamic textarea as source for the text
+        // requestingElement is used as the parent for the dynamic textarea, otherwise
+        // MS Edge might "jump" to the newly created item if you append it as child of the body
+        function copyToClipboard(text, requestingElement) {
+            if (detectIE()) {
+                window.clipboardData.setData('Text', text);
+            } else {
+                var textField = document.createElement('textarea');
+                textField.setAttribute('style', 'display: hidden');
+                textField.innerText = text;
+                requestingElement.appendChild(textField);
+                textField.select();
+                document.execCommand('copy');
+                textField.remove();
+            }
+            
+        }
+    </script>
+}
