@@ -41,6 +41,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.ReadOnlyMode
                 unsubscribeRequest.ExpectedHttpStatusCode = 503;
                 var unsubscribeRequestBody = new FormPostHttpBody();
                 unsubscribeRequestBody.FormPostParameters.Add("__RequestVerificationToken", Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+                unsubscribeRequestBody.FormPostParameters.Add("emailAllowed", "false");
                 unsubscribeRequest.Body = unsubscribeRequestBody;
 
                 // Check for read-only status.

@@ -27,7 +27,7 @@ namespace NuGetGallery.FunctionalTests
         private const string _webMatrixCuratedFeedUrlSuffix = "curated-feeds/webmatrix/";
         private const string _dotnetCuratedFeedUrlSuffix = "curated-feeds/microsoftdotnet/";
         private const string _accountPageUrlSuffix = "/account";
-        private const string _accountUnscribeUrlSuffix = "account/unsubscribe";
+        private const string _accountUnscribeUrlSuffix = "account/subscription/change";
         private const string _accountApiKeyResetUrlSuffix = "/account/GenerateApiKey";
         private const string _manageMyPackagesUrlSuffix = "/account/Packages";
         private const string _aboutPageUrlSuffix = "policies/About";
