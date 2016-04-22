@@ -81,6 +81,14 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, [FromODataUri]string id)
         {
+            if (string.IsNullOrEmpty(curatedFeedName) || string.IsNullOrEmpty(id))
+            {
+                var emptyResult = Enumerable.Empty<Package>().AsQueryable()
+                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+
+                return QueryResult(options, emptyResult, MaxPageSize);
+            }
+
             return await GetCore(options, curatedFeedName, id, version: null, return404NotFoundWhenNoResults: false);
         }
 
