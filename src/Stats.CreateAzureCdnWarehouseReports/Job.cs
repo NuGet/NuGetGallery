@@ -4,13 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Jobs;
-using Stats.AzureCdnLogs.Common;
+using NuGet.Services.Logging;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
@@ -25,6 +26,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private SqlConnectionStringBuilder _galleryDatabase;
         private string _reportName;
         private string[] _dataContainerNames;
+        private ILogger _logger;
 
         private static readonly IDictionary<string, string> _storedProcedures = new Dictionary<string, string>
         {
@@ -39,12 +41,16 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {ReportNames.RecentPopularityDetailByPackageId, "[dbo].[DownloadReportRecentPopularityDetailByPackage]" }
         };
 
+
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
             {
                 var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
                 ApplicationInsights.Initialize(instrumentationKey);
+
+                var loggerFactory = Logging.CreateLoggerFactory();
+                _logger = loggerFactory.CreateLogger<Job>();
 
                 var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
                 var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
@@ -69,8 +75,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
             catch (Exception exception)
             {
-                ApplicationInsights.TrackException(exception);
-                Trace.TraceError(exception.ToString());
+                _logger.LogError("Failed to initialize job!", exception);
 
                 return false;
             }
@@ -84,7 +89,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {
                 var reportGenerationTime = DateTime.UtcNow;
                 var destinationContainer = _cloudStorageAccount.CreateCloudBlobClient().GetContainerReference(_statisticsContainerName);
-                Trace.TraceInformation("Generating reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+
+                _logger.LogDebug("Generating reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
                 if (string.IsNullOrEmpty(_reportName))
                 {
@@ -100,7 +106,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     foreach (var reportGenerator in reportGenerators)
                     {
                         await ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value, reportGenerationTime);
-                        ApplicationInsights.TrackReportProcessed(reportGenerator.Key.ReportName + " report");
+                        ApplicationInsightsHelper.TrackReportProcessed(reportGenerator.Key.ReportName + " report");
                     }
 
                     await RebuildPackageReports(destinationContainer, reportGenerationTime);
@@ -115,7 +121,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     await ProcessReport(destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime);
                 }
 
-                Trace.TraceInformation("Generated reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+                _logger.LogInformation("Generated reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
                 // totals reports
                 var stopwatch = Stopwatch.StartNew();
@@ -131,8 +137,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 await downloadCountReport.Run();
 
                 stopwatch.Stop();
-                ApplicationInsights.TrackMetric(DownloadCountReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-                ApplicationInsights.TrackReportProcessed(DownloadCountReport.ReportName);
+                ApplicationInsightsHelper.TrackMetric(DownloadCountReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsightsHelper.TrackReportProcessed(DownloadCountReport.ReportName);
                 stopwatch.Restart();
 
                 // build stats-totals.json
@@ -140,8 +146,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 await galleryTotalsReport.Run();
 
                 stopwatch.Stop();
-                ApplicationInsights.TrackMetric(GalleryTotalsReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-                ApplicationInsights.TrackReportProcessed(GalleryTotalsReport.ReportName);
+                ApplicationInsightsHelper.TrackMetric(GalleryTotalsReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsightsHelper.TrackReportProcessed(GalleryTotalsReport.ReportName);
 
 
                 // build tools.v1.json
@@ -149,16 +155,16 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 await toolsReport.Run();
 
                 stopwatch.Stop();
-                ApplicationInsights.TrackMetric(DownloadsPerToolVersionReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-                ApplicationInsights.TrackReportProcessed(DownloadsPerToolVersionReport.ReportName);
+                ApplicationInsightsHelper.TrackMetric(DownloadsPerToolVersionReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsightsHelper.TrackReportProcessed(DownloadsPerToolVersionReport.ReportName);
                 stopwatch.Restart();
 
                 return true;
             }
             catch (Exception exception)
             {
-                Trace.TraceError(exception.ToString());
-                ApplicationInsights.TrackException(exception);
+                _logger.LogError("Job run failed!", exception);
+
                 return false;
             }
         }
@@ -193,7 +199,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 var reportBuilder = new RecentPopularityDetailByPackageReportBuilder(ReportNames.RecentPopularityDetailByPackageId, "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + packageId);
 
                 ProcessReport(destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
-                ApplicationInsights.TrackReportProcessed(reportBuilder.ReportName + " report", packageId);
+                ApplicationInsightsHelper.TrackReportProcessed(reportBuilder.ReportName + " report", packageId);
             });
 
             // once top 100 is processed, continue with the rest
@@ -222,7 +228,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                         {
                             ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value,
                                 reportGenerationTime, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
-                            ApplicationInsights.TrackReportProcessed(reportGenerator.Key.ReportName + " report",
+                            ApplicationInsightsHelper.TrackReportProcessed(reportGenerator.Key.ReportName + " report",
                                 dirtyPackageId.PackageId.ToLowerInvariant());
                         }
                     });
@@ -237,19 +243,19 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         private async Task CleanInactiveRecentPopularityDetailByPackageReports(CloudBlobContainer destinationContainer, DateTime reportGenerationTime)
         {
-            Trace.TraceInformation("Getting list of inactive packages.");
+            _logger.LogDebug("Getting list of inactive packages.");
             var packageIds = await ReportDataCollector.ListInactivePackageIdReports(_statisticsDatabase, reportGenerationTime);
-            Trace.TraceInformation("Found {0} inactive packages.", packageIds.Count);
+            _logger.LogInformation("Found {InactivePackageCount} inactive packages.", packageIds.Count);
 
             // Collect the list of reports
             var subContainer = "recentpopularity/";
-            Trace.TraceInformation("Collecting list of package detail reports");
+            _logger.LogDebug("Collecting list of package detail reports");
             var reports = destinationContainer.ListBlobs(subContainer + _recentPopularityDetailByPackageReportBaseName)
                     .OfType<CloudBlockBlob>()
                     .Select(b => b.Name);
 
             var reportSet = new HashSet<string>(reports);
-            Trace.TraceInformation("Collected {0} package detail reports", reportSet.Count);
+            _logger.LogInformation("Collected {PackageDetailReportCount} package detail reports", reportSet.Count);
 
             Parallel.ForEach(packageIds, new ParallelOptions { MaxDegreeOfParallelism = 8 }, async id =>
              {
@@ -258,11 +264,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
                  if (reportSet.Contains(blobName))
                  {
                      var blob = destinationContainer.GetBlockBlobReference(blobName);
-                     Trace.TraceInformation("{0}: Deleting empty report from {1}", reportName, blob.Uri.AbsoluteUri);
+                     _logger.LogDebug("{ReportName}: Deleting empty report from {BlobUri}", reportName, blob.Uri.AbsoluteUri);
 
                      await blob.DeleteIfExistsAsync();
 
-                     Trace.TraceInformation("{0}: Deleted empty report from {1}", reportName, blob.Uri.AbsoluteUri);
+                     _logger.LogInformation("{ReportName}: Deleted empty report from {BlobUri}", reportName, blob.Uri.AbsoluteUri);
                  }
              });
         }

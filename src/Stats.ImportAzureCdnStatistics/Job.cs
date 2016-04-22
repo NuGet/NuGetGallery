@@ -4,12 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs;
+using NuGet.Services.Logging;
 using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
@@ -22,11 +23,8 @@ namespace Stats.ImportAzureCdnStatistics
         private AzureCdnPlatform _azureCdnPlatform;
         private SqlConnectionStringBuilder _targetDatabase;
         private CloudStorageAccount _cloudStorageAccount;
-
-        public Job()
-            : base(JobEventSource.Log)
-        {
-        }
+        private ILoggerFactory _loggerFactory;
+        private ILogger _logger;
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
@@ -34,6 +32,9 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
                 ApplicationInsights.Initialize(instrumentationKey);
+
+                _loggerFactory = Logging.CreateLoggerFactory();
+                _logger = _loggerFactory.CreateLogger<Job>();
 
                 var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
                 var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
@@ -44,15 +45,15 @@ namespace Stats.ImportAzureCdnStatistics
                 _azureCdnAccountNumber = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
                 _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
                 _cloudStorageContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
-
-                return true;
             }
             catch (Exception exception)
             {
-                ApplicationInsights.TrackException(exception);
-                Trace.TraceError(exception.ToString());
+                _logger.LogCritical("Failed to initialize job!", exception);
+
+                return false;
             }
-            return false;
+
+            return true;
         }
 
         public override async Task<bool> Run()
@@ -66,7 +67,7 @@ namespace Stats.ImportAzureCdnStatistics
                 // Get the source blob container (containing compressed log files)
                 // and construct a log source (fetching raw logs from the source blob container)
                 var sourceBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName);
-                var blobLeaseManager = new LogFileProvider(sourceBlobContainer);
+                var blobLeaseManager = new LogFileProvider(sourceBlobContainer, _loggerFactory);
 
                 // Get the target blob container (for archiving decompressed log files)
                 var targetBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-archive");
@@ -76,7 +77,7 @@ namespace Stats.ImportAzureCdnStatistics
                 var deadLetterBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-deadletter");
 
                 // Create a parser
-                var logProcessor = new LogFileProcessor(targetBlobContainer, deadLetterBlobContainer, _targetDatabase);
+                var logProcessor = new LogFileProcessor(targetBlobContainer, deadLetterBlobContainer, _targetDatabase, _loggerFactory);
 
                 // Get the next to-be-processed raw log file using the cdn raw log file name prefix
                 var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);
@@ -90,14 +91,15 @@ namespace Stats.ImportAzureCdnStatistics
                     await logProcessor.ProcessLogFileAsync(leasedLogFile, packageStatisticsParser);
                     leasedLogFile.Dispose();
                 }
-
-                return true;
             }
             catch (Exception exception)
             {
-                Trace.TraceError(exception.ToString());
+                _logger.LogCritical("Job run failed!", exception);
+
                 return false;
             }
+
+            return true;
         }
 
         private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)

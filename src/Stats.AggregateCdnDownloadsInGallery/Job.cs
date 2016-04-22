@@ -5,19 +5,20 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
+using NuGet.Services.Logging;
 
 namespace Stats.AggregateCdnDownloadsInGallery
-{  
+{
     public class Job
         : JobBase
     {
-        private const string TempTableName = "#AggregateCdnDownloadsInGallery";
+        private const string _tempTableName = "#AggregateCdnDownloadsInGallery";
 
-        private const string CreateTempTable = @"
+        private const string _createTempTable = @"
             IF OBJECT_ID('tempdb.dbo.#AggregateCdnDownloadsInGallery', 'U') IS NOT NULL
                 DROP TABLE #AggregateCdnDownloadsInGallery
 
@@ -28,7 +29,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 [DownloadCount]             INT             NOT NULL,
             )";
 
-        private const string UpdateFromTempTable = @"
+        private const string _updateFromTempTable = @"
             -- Update Packages table
             UPDATE P SET P.[DownloadCount] = Stats.[DownloadCount]
             FROM [dbo].[Packages] AS P
@@ -47,66 +48,69 @@ namespace Stats.AggregateCdnDownloadsInGallery
             -- No more need for temp table
             DROP TABLE #AggregateCdnDownloadsInGallery";
 
-        private const string StoredProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
+        private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
         private SqlConnectionStringBuilder _statisticsDatabase;
         private SqlConnectionStringBuilder _destinationDatabase;
-
-        public Job()
-            : base(JobEventSource.Log)
-        {
-        }
+        private ILoggerFactory _loggerFactory;
+        private ILogger _logger;
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
             {
+                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
+                ApplicationInsights.Initialize(instrumentationKey);
+
+                _loggerFactory = Logging.CreateLoggerFactory();
+                _logger = _loggerFactory.CreateLogger<Job>();
+
                 var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
                 _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
 
                 var destinationDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DestinationDatabase);
                 _destinationDatabase = new SqlConnectionStringBuilder(destinationDatabaseConnectionString);
-
-                return true;
             }
             catch (Exception exception)
             {
-                Trace.TraceError(exception.ToString());
+                _logger.LogCritical("Failed to initialize job!", exception);
+
                 return false;
             }
+
+            return true;
         }
 
         public override async Task<bool> Run()
         {
             try
             {
-                Trace.TraceInformation("Updating Download Counts from {0}/{1} to {2}/{3}.", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _destinationDatabase.DataSource, _destinationDatabase.InitialCatalog);
-
                 // Gather download counts data from statistics warehouse
                 IReadOnlyCollection<DownloadCountData> downloadData;
-                Trace.TraceInformation("Gathering Download Counts from {0}/{1}...", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog);
+                _logger.LogDebug("Gathering Download Counts from {0}/{1}...", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog);
+
                 using (var statisticsDatabase = await _statisticsDatabase.ConnectTo())
                 using (var statisticsDatabaseTransaction = statisticsDatabase.BeginTransaction(IsolationLevel.Snapshot)) {
                     downloadData = (
                         await statisticsDatabase.QueryWithRetryAsync<DownloadCountData>(
-                            StoredProcedureName, 
-                            transaction: statisticsDatabaseTransaction, 
+                            _storedProcedureName,
+                            transaction: statisticsDatabaseTransaction,
                             commandType: CommandType.StoredProcedure,
                             commandTimeout: (int)TimeSpan.FromMinutes(15).TotalSeconds,
                             maxRetries: 3))
                         .ToList();
                 }
 
-                Trace.TraceInformation("Gathered {0} rows of data.", downloadData.Count);
+                _logger.LogInformation("Gathered {RecordCount} rows of data.", downloadData.Count);
 
                 if (downloadData.Any())
                 {
                     // Group based on Package Id
-                    var packageRegistrationGroups = downloadData.GroupBy(p => p.PackageId);
+                    var packageRegistrationGroups = downloadData.GroupBy(p => p.PackageId).ToList();
 
                     using (var destinationDatabase = await _destinationDatabase.ConnectTo())
                     {
                         // Fetch package registrations so we can match
-                        Trace.TraceInformation("Retrieving package registrations...");
+                        _logger.LogDebug("Retrieving package registrations...");
                         var packageRegistrationLookup = (
                             await destinationDatabase.QueryWithRetryAsync<PackageRegistrationData>(
                                 "SELECT [Key], LOWER([Id]) AS Id FROM [dbo].[PackageRegistrations]",
@@ -114,24 +118,24 @@ namespace Stats.AggregateCdnDownloadsInGallery
                                 maxRetries: 5))
                             .Where(item => !string.IsNullOrEmpty(item.Id))
                             .ToDictionary(item => item.Id, item => item.Key);
-                        Trace.TraceInformation("Retrieved package registrations.");
+                        _logger.LogInformation("Retrieved package registrations.");
 
                         // Create a temporary table
-                        Trace.TraceInformation("Creating temporary table...");
-                        await destinationDatabase.ExecuteAsync(CreateTempTable);
-                        
+                        _logger.LogDebug("Creating temporary table...");
+                        await destinationDatabase.ExecuteAsync(_createTempTable);
+
                         // Load temporary table
                         var aggregateCdnDownloadsInGalleryTable = new DataTable();
-                        var command = new SqlCommand("SELECT * FROM " + TempTableName, destinationDatabase);
+                        var command = new SqlCommand("SELECT * FROM " + _tempTableName, destinationDatabase);
                         command.CommandType = CommandType.Text;
                         command.CommandTimeout = (int)TimeSpan.FromMinutes(10).TotalSeconds;
                         var reader = await command.ExecuteReaderAsync();
                         aggregateCdnDownloadsInGalleryTable.Load(reader);
                         aggregateCdnDownloadsInGalleryTable.Rows.Clear();
-                        Trace.TraceInformation("Created temporary table.");
+                        _logger.LogInformation("Created temporary table.");
 
                         // Populate temporary table in memory
-                        Trace.TraceInformation("Populating temporary table in memory...");
+                        _logger.LogDebug("Populating temporary table in memory...");
                         foreach (var packageRegistrationGroup in packageRegistrationGroups)
                         {
                             // don't process empty package id's
@@ -139,7 +143,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                             {
                                 continue;
                             }
-                            
+
                             var packageId = packageRegistrationGroup.First().PackageId.ToLowerInvariant();
 
                             // Get package registration key
@@ -159,34 +163,37 @@ namespace Stats.AggregateCdnDownloadsInGallery
                                 aggregateCdnDownloadsInGalleryTable.Rows.Add(row);
                             }
                         }
-                        Trace.TraceInformation("Populated temporary table in memory. (" + aggregateCdnDownloadsInGalleryTable.Rows.Count + " rows)");
+                        _logger.LogInformation("Populated temporary table in memory. ({RecordCount} rows).", aggregateCdnDownloadsInGalleryTable.Rows.Count);
 
                         // Transfer to SQL database
-                        Trace.TraceInformation("Populating temporary table in database...");
+                        _logger.LogDebug("Populating temporary table in database...");
                         using (SqlBulkCopy bulkcopy = new SqlBulkCopy(destinationDatabase))
                         {
                             bulkcopy.BulkCopyTimeout = (int)TimeSpan.FromMinutes(30).TotalSeconds;
-                            bulkcopy.DestinationTableName = TempTableName;
+                            bulkcopy.DestinationTableName = _tempTableName;
                             bulkcopy.WriteToServer(aggregateCdnDownloadsInGalleryTable);
                             bulkcopy.Close();
                         }
-                        Trace.TraceInformation("Populated temporary table in database.");
+                        _logger.LogInformation("Populated temporary table in database.");
 
                         // Update counts in destination database
-                        Trace.TraceInformation("Updating destination database Download Counts... (" + packageRegistrationGroups.Count() + " package registrations to process)");
-                        await destinationDatabase.ExecuteAsync(UpdateFromTempTable, 
+                        _logger.LogDebug("Updating destination database Download Counts... ({RecordCount} package registrations to process).", packageRegistrationGroups.Count());
+
+                        await destinationDatabase.ExecuteAsync(_updateFromTempTable,
                             timeout: (int)TimeSpan.FromMinutes(30).TotalSeconds);
-                        Trace.TraceInformation("Updated destination database Download Counts.");
+
+                        _logger.LogInformation("Updated destination database Download Counts.");
                     }
                 }
-
-                return true;
             }
             catch (Exception exception)
             {
-                Trace.TraceError(exception.ToString());
+                _logger.LogCritical("Job run failed!", exception);
+
                 return false;
             }
+
+            return true;
         }
     }
 }

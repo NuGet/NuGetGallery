@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Dapper;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -10,7 +11,6 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NuGet.Jobs;
 
@@ -18,7 +18,7 @@ namespace ArchivePackages
 {
     public class Job : JobBase
     {
-        private JobEventSource JobEventSourceLog = JobEventSource.Log;
+        private readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
         private const string ContentTypeJson = "application/json";
         private const string DateTimeFormatSpecifier = "O";
         private const string CursorDateTimeKey = "cursorDateTime";
@@ -121,7 +121,7 @@ namespace ArchivePackages
             catch (StorageException ex)
             {
                 Trace.TraceError(ex.ToString());
-                return false;                
+                return false;
             }
 
             return true;
@@ -212,7 +212,7 @@ namespace ArchivePackages
                 JobEventSourceLog.StartingCopy(sourceBlob.Name, destBlob.Name);
                 //if (!WhatIf)
                 {
-                    await destBlob.StartCopyFromBlobAsync(sourceBlob);
+                    await destBlob.StartCopyAsync(sourceBlob);
                 }
                 JobEventSourceLog.StartedCopy(sourceBlob.Name, destBlob.Name);
             }

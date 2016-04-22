@@ -3,13 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Internal;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
 {
@@ -18,21 +20,33 @@ namespace Stats.ImportAzureCdnStatistics
         private const int _maxListBlobResultSegments = 30;
         private const int _maxLeasesPerJobRun = 3;
         private readonly TimeSpan _defaultLeaseTime = TimeSpan.FromSeconds(60);
-        private readonly JobEventSource _jobEventSource = JobEventSource.Log;
         private readonly CloudBlobContainer _container;
+        private readonly ILogger _logger;
 
-        public LogFileProvider(CloudBlobContainer container)
+        public LogFileProvider(CloudBlobContainer container, ILoggerFactory loggerFactory)
         {
+            if (container == null)
+            {
+                throw new ArgumentNullException(nameof(container));
+            }
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _container = container;
+            _logger = loggerFactory.CreateLogger<LogFileProvider>();
         }
 
         public async Task<IReadOnlyCollection<ILeasedLogFile>> LeaseNextLogFilesToBeProcessedAsync(string prefix)
         {
             try
             {
-                _jobEventSource.BeginningBlobListing(prefix);
+                _logger.LogDebug("Beginning blob listing using prefix {BlobPrefix}.", prefix);
+
                 var blobResultSegments = await _container.ListBlobsSegmentedAsync(prefix, true, BlobListingDetails.None, _maxListBlobResultSegments, null, null, null);
-                _jobEventSource.FinishingBlobListing(prefix);
+
+                _logger.LogInformation("Finishing blob listing using prefix {BlobPrefix}.", prefix);
 
                 var leasedFiles = new List<ILeasedLogFile>();
 
@@ -62,8 +76,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
             catch (Exception exception)
             {
-                _jobEventSource.FailedBlobListing(prefix);
-                ApplicationInsights.TrackException(exception);
+                _logger.LogError(new FormattedLogValues("Failed blob listing using prefix {BlobPrefix}.", prefix), exception);
             }
 
             return Enumerable.Empty<ILeasedLogFile>().ToList();
@@ -81,9 +94,11 @@ namespace Stats.ImportAzureCdnStatistics
                     return null;
                 }
 
-                _jobEventSource.BeginningAcquireLease(blobUriString);
-                leaseId = await blob.AcquireLeaseAsync(_defaultLeaseTime, null);
-                _jobEventSource.FinishedAcquireLease(blobUriString);
+                _logger.LogDebug("Beginning to acquire lease for blob {BlobUri}.", blobUriString);
+
+                leaseId = await blob.AcquireLeaseAsync(_defaultLeaseTime);
+
+                _logger.LogInformation("Finishing to acquire lease for blob {BlobUri}.", blobUriString);
             }
             catch (StorageException storageException)
             {
@@ -98,13 +113,13 @@ namespace Stats.ImportAzureCdnStatistics
                         if ((httpWebResponse.StatusCode == HttpStatusCode.Conflict
                             && httpWebResponse.StatusDescription == "There is already a lease present.") || httpWebResponse.StatusCode == HttpStatusCode.NotFound)
                         {
-                            _jobEventSource.FailedAcquireLease(blobUriString); // no need to report these in Application Insights
+                            _logger.LogDebug("Failed to acquire lease for blob {BlobUri}.", blobUriString); // no need to report these in Application Insights
                             return null;
                         }
                     }
                 }
-                _jobEventSource.FailedAcquireLease(blobUriString);
-                ApplicationInsights.TrackException(storageException);
+
+                _logger.LogError(new FormattedLogValues("Failed to acquire lease for blob {BlobUri}.", blobUriString), storageException);
 
                 throw;
             }
@@ -115,7 +130,6 @@ namespace Stats.ImportAzureCdnStatistics
         private class LeasedLogFile
             : ILeasedLogFile
         {
-            private readonly JobEventSource _jobEventSource = JobEventSource.Log;
             private readonly Thread _autoRenewLeaseThread;
             private readonly TimeSpan _leaseExpirationThreshold = TimeSpan.FromSeconds(40);
             private readonly CancellationTokenSource _cancellationTokenSource;
@@ -155,7 +169,9 @@ namespace Stats.ImportAzureCdnStatistics
                 var autoRenewLeaseThread = new Thread(
                     async () =>
                     {
-                        System.Diagnostics.Trace.TraceInformation("Thread [{0}] started.", Thread.CurrentThread.ManagedThreadId);
+#if DEBUG
+                        Trace.TraceInformation("Thread [{0}] started.", Thread.CurrentThread.ManagedThreadId);
+#endif
                         var blobUriString = blob.Uri.ToString();
                         try
                         {
@@ -164,23 +180,31 @@ namespace Stats.ImportAzureCdnStatistics
                             {
                                 // auto-renew lease when about to expire
                                 Thread.Sleep(_leaseExpirationThreshold);
-                                System.Diagnostics.Trace.TraceInformation("Thread [{0}] working.",
-                                    Thread.CurrentThread.ManagedThreadId);
-                                _jobEventSource.BeginningRenewLease(blobUriString);
+
+#if DEBUG
+                                Trace.TraceInformation("Thread [{0}] working.", Thread.CurrentThread.ManagedThreadId);
+                                Trace.TraceInformation("Beginning to renew lease for blob {0}.", blobUriString);
+#endif
+
                                 await blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId), cancellationToken);
-                                _jobEventSource.FinishedRenewLease(blobUriString);
+
+                                Trace.TraceInformation("Finished to renew lease for blob {0}.", blobUriString);
                             }
                         }
                         catch (TaskCanceledException)
                         {
-                            System.Diagnostics.Trace.TraceWarning("Thread [{0}] cancelled.", Thread.CurrentThread.ManagedThreadId);
                             // No need to track
+#if DEBUG
+                            Trace.TraceWarning("Thread [{0}] cancelled.", Thread.CurrentThread.ManagedThreadId);
+#endif
                         }
                         catch
                         {
-                            System.Diagnostics.Trace.TraceError("Thread [{0}] error.", Thread.CurrentThread.ManagedThreadId);
+#if DEBUG
                             // The blob could have been deleted in the meantime and this thread will be killed either way.
                             // No need to track in Application Insights.
+                            Trace.TraceError("Thread [{0}] error.", Thread.CurrentThread.ManagedThreadId);
+#endif
                         }
                     });
                 autoRenewLeaseThread.Start();
@@ -191,10 +215,14 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 if (_autoRenewLeaseThread != null)
                 {
-                    System.Diagnostics.Trace.TraceInformation("Thread [{0}] disposing.", _autoRenewLeaseThread.ManagedThreadId);
+#if DEBUG
+                    Trace.TraceInformation("Thread [{0}] disposing.", _autoRenewLeaseThread.ManagedThreadId);
+#endif
                     _cancellationTokenSource.Cancel(false);
                     _autoRenewLeaseThread.Join();
-                    System.Diagnostics.Trace.TraceInformation("Thread [{0}] disposed.", _autoRenewLeaseThread.ManagedThreadId);
+#if DEBUG
+                    Trace.TraceInformation("Thread [{0}] disposed.", _autoRenewLeaseThread.ManagedThreadId);
+#endif
                 }
             }
         }

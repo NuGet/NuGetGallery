@@ -7,7 +7,7 @@ set msbuild="%ProgramFiles(x86)%\MSBuild\14.0\bin\amd64\msbuild.exe"
 
 REM Package restore
 Powershell.exe -NoProfile -ExecutionPolicy ByPass -Command "& '%cd%\restoreNuGetExe.ps1'"
-tools\nuget.exe restore NuGet.Jobs.sln -OutputDirectory %cd%\packages -NonInteractive -source https://www.nuget.org/api/v2
+tools\nuget.exe restore NuGet.Jobs.sln -OutputDirectory %cd%\packages -NonInteractive -source "https://api.nuget.org/api/v3/index.json;https://www.myget.org/F/nugetbuild/api/v3/index.json"
 if not "%errorlevel%"=="0" goto failure
 
 REM Build
