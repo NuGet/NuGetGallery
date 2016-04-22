@@ -59,7 +59,7 @@ namespace Stats.ImportAzureCdnStatistics
                     transaction.Commit();
 
                     stopwatch.Stop();
-                    ApplicationInsights.TrackMetric("Insert facts duration (ms)", stopwatch.ElapsedMilliseconds, logFileName);
+                    ApplicationInsightsHelper.TrackMetric("Insert facts duration (ms)", stopwatch.ElapsedMilliseconds, logFileName);
                 }
                 catch (Exception exception)
                 {
@@ -68,7 +68,7 @@ namespace Stats.ImportAzureCdnStatistics
                         stopwatch.Stop();
                     }
 
-                    ApplicationInsights.TrackException(exception, logFileName);
+                    ApplicationInsightsHelper.TrackException(exception, logFileName);
                     transaction.Rollback();
                     throw;
                 }
@@ -143,7 +143,7 @@ namespace Stats.ImportAzureCdnStatistics
                         // This package id and version could not be 100% accurately parsed from the CDN Request URL,
                         // likely due to weird package ID which could be interpreted as a version string.
                         // Track it in Application Insights.
-                        ApplicationInsights.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key, logFileName);
+                        ApplicationInsightsHelper.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key, logFileName);
 
                         continue;
                     }
@@ -218,14 +218,14 @@ namespace Stats.ImportAzureCdnStatistics
                         
                         if (!factCreated)
                         {
-                            ApplicationInsights.TrackException(new Exception("Download fact not created."), logFileName, "Download fact not created. Element: " + JsonConvert.SerializeObject(element));
+                            ApplicationInsightsHelper.TrackException(new Exception("Download fact not created."), logFileName, "Download fact not created. Element: " + JsonConvert.SerializeObject(element));
                         }
                     }
                 }
             }
             stopwatch.Stop();
             Trace.Write("  DONE (" + factsToProjectTypesDataTable.Rows.Count + " facts to project type, " + factsDataTable.Rows.Count + " facts, " + stopwatch.ElapsedMilliseconds + "ms)");
-            ApplicationInsights.TrackMetric("Blob record count", factsDataTable.Rows.Count, logFileName);
+            ApplicationInsightsHelper.TrackMetric("Blob record count", factsDataTable.Rows.Count, logFileName);
 
             return new List<DataTable>
             {
@@ -298,7 +298,7 @@ namespace Stats.ImportAzureCdnStatistics
                         if (tool == null)
                         {
                             // Track it in Application Insights.
-                            ApplicationInsights.TrackToolNotFound(groupedByToolId.Key, toolVersion, fileName, logFileName);
+                            ApplicationInsightsHelper.TrackToolNotFound(groupedByToolId.Key, toolVersion, fileName, logFileName);
 
                             continue;
                         }
@@ -375,7 +375,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                     stopwatch.Stop();
                     _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
-                    ApplicationInsights.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
+                    ApplicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
 
                     return dimensions;
                 }
@@ -390,17 +390,17 @@ namespace Stats.ImportAzureCdnStatistics
                     if (e.Number == 1205)
                     {
                         Trace.TraceWarning("Deadlock, retrying...");
-                        ApplicationInsights.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
+                        ApplicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
                     }
                     else if (e.Number == -2)
                     {
                         Trace.TraceWarning("Timeout, retrying...");
-                        ApplicationInsights.TrackSqlException("SQL Timeout", e, logFileName, dimension);
+                        ApplicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
                     }
                     else if (e.Number == 2601)
                     {
                         Trace.TraceWarning("Duplicate key, retrying...");
-                        ApplicationInsights.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
+                        ApplicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
                     }
                     else
                     {
@@ -412,7 +412,7 @@ namespace Stats.ImportAzureCdnStatistics
                 catch (Exception exception)
                 {
                     _jobEventSource.FailedRetrieveDimension(dimension);
-                    ApplicationInsights.TrackException(exception, logFileName);
+                    ApplicationInsightsHelper.TrackException(exception, logFileName);
 
                     if (stopwatch.IsRunning)
                         stopwatch.Stop();
@@ -443,7 +443,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                     stopwatch.Stop();
                     _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
-                    ApplicationInsights.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
+                    ApplicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
 
                     return dimensions;
                 }
@@ -458,17 +458,17 @@ namespace Stats.ImportAzureCdnStatistics
                     if (e.Number == 1205)
                     {
                         Trace.TraceWarning("Deadlock, retrying...");
-                        ApplicationInsights.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
+                        ApplicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
                     }
                     else if (e.Number == -2)
                     {
                         Trace.TraceWarning("Timeout, retrying...");
-                        ApplicationInsights.TrackSqlException("SQL Timeout", e, logFileName, dimension);
+                        ApplicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
                     }
                     else if (e.Number == 2601)
                     {
                         Trace.TraceWarning("Duplicate key, retrying...");
-                        ApplicationInsights.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
+                        ApplicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
                     }
                     else
                     {
@@ -480,7 +480,7 @@ namespace Stats.ImportAzureCdnStatistics
                 catch (Exception exception)
                 {
                     _jobEventSource.FailedRetrieveDimension(dimension);
-                    ApplicationInsights.TrackException(exception, logFileName);
+                    ApplicationInsightsHelper.TrackException(exception, logFileName);
 
                     if (stopwatch.IsRunning)
                         stopwatch.Stop();

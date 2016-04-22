@@ -2,9 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -13,12 +12,22 @@ namespace Stats.CollectAzureCdnLogs.Blob
 {
     internal sealed class CloudBlobRawLogClient
     {
-        private readonly JobEventSource _jobEventSource;
+        private readonly ILogger _logger;
         private readonly CloudStorageAccount _cloudStorageAccount;
 
-        public CloudBlobRawLogClient(JobEventSource jobEventSource, CloudStorageAccount cloudStorageAccount)
+        public CloudBlobRawLogClient(ILoggerFactory loggerFactory, CloudStorageAccount cloudStorageAccount)
         {
-            _jobEventSource = jobEventSource;
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            if (cloudStorageAccount == null)
+            {
+                throw new ArgumentNullException(nameof(cloudStorageAccount));
+            }
+
+            _logger = loggerFactory.CreateLogger<CloudBlobRawLogClient>();
             _cloudStorageAccount = cloudStorageAccount;
         }
 
@@ -37,16 +46,16 @@ namespace Stats.CollectAzureCdnLogs.Blob
         {
             if (targetContainer == null)
             {
-                throw new ArgumentNullException("targetContainer");
+                throw new ArgumentNullException(nameof(targetContainer));
             }
             if (logFile == null)
             {
-                throw new ArgumentNullException("logFile");
+                throw new ArgumentNullException(nameof(logFile));
             }
 
             var blobName = logFile.Uri.ToString();
 
-            _jobEventSource.BeginningBlobUpload(blobName);
+            _logger.LogInformation("Beginning blob upload: '{BlobUri}'", blobName);
 
             var blob = targetContainer.GetBlockBlobReference(fileName);
             blob.Properties.ContentType = logFile.ContentType;
@@ -57,20 +66,23 @@ namespace Stats.CollectAzureCdnLogs.Blob
 
         public async Task<bool> CheckIfBlobExistsAsync(CloudBlobContainer targetContainer, RawLogFileInfo logFile)
         {
-            try
+            using (_logger.BeginScope("Checking if file '{FileName}' exists.", logFile.FileName))
             {
-                Trace.TraceInformation("Checking if file '{0}' exists.", logFile.FileName);
+                try
+                {
+                    var blob = targetContainer.GetBlockBlobReference(logFile.FileName);
+                    var exists = await blob.ExistsAsync();
 
-                var blob = targetContainer.GetBlockBlobReference(logFile.FileName);
-                bool exists = await blob.ExistsAsync();
+                    _logger.LogInformation("Finished checking if file '{FileName}' exists (exists = {FileExists}).", logFile.FileName, exists);
 
-                Trace.TraceInformation("Finished checking if file '{0}' exists (exists = {1}.", logFile.FileName, exists);
-                return exists;
+                    return exists;
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError("Failed to check if file exists.", exception);
+                }
             }
-            catch (Exception exception)
-            {
-                Trace.TraceError(exception.ToString());
-            }
+
             return false;
         }
     }

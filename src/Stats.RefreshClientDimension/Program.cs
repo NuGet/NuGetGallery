@@ -12,13 +12,13 @@ using Stats.ImportAzureCdnStatistics;
 
 namespace Stats.RefreshClientDimension
 {
-    class Program
+    public class Program
     {
         private static SqlConnectionStringBuilder _targetDatabase;
         private static string _targetClientName;
         private static string _userAgentFilter;
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             Trace.TraceInformation("Started...");
             var argsDictionary = ParseArgsDictionary(args);

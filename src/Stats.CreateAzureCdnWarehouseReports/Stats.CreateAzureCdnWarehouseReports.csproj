@@ -9,10 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Stats.CreateAzureCdnWarehouseReports</RootNamespace>
     <AssemblyName>Stats.CreateAzureCdnWarehouseReports</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -36,6 +37,10 @@
   <ItemGroup>
     <Reference Include="Bitrium.Http.Extensions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=43390f7aed073600, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Bitrium.Http.Extensions.1.1.0\lib\portable-net45+sl50\Bitrium.Http.Extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.ApplicationInsights, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.ApplicationInsights.2.1.0-beta3\lib\net45\Microsoft.ApplicationInsights.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -74,8 +79,8 @@
       <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=6.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\WindowsAzure.Storage.6.2.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\WindowsAzure.Storage.7.0.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -108,6 +113,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationInsightsHelper.cs" />
     <Compile Include="DirtyPackageId.cs" />
     <Compile Include="DownloadCountData.cs" />
     <Compile Include="DownloadCountReport.cs" />
@@ -135,6 +141,10 @@
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
       <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
       <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj">
+      <Project>{1823895d-6969-4368-a2b6-765c2488a215}</Project>
+      <Name>NuGet.Services.Logging</Name>
     </ProjectReference>
     <ProjectReference Include="..\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj">
       <Project>{F72C31A7-424D-48C6-924C-EBFD4BE0918B}</Project>

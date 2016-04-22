@@ -8,8 +8,9 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
-using Stats.AzureCdnLogs.Common;
+using NuGet.Services.Logging;
 
 namespace Stats.RollUpDownloadFacts
 {
@@ -21,6 +22,8 @@ namespace Stats.RollUpDownloadFacts
         private const string _endTemplateFactDownloadDeletion = " records from [dbo].[Fact_Download]";
         private static int _minAgeInDays = 90;
         private static SqlConnectionStringBuilder _targetDatabase;
+        private ILoggerFactory _loggerFactory;
+        private ILogger _logger;
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
@@ -28,6 +31,9 @@ namespace Stats.RollUpDownloadFacts
             {
                 var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
                 ApplicationInsights.Initialize(instrumentationKey);
+
+                _loggerFactory = Logging.CreateLoggerFactory();
+                _logger = _loggerFactory.CreateLogger<Job>();
 
                 var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
                 _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
@@ -39,8 +45,7 @@ namespace Stats.RollUpDownloadFacts
             }
             catch (Exception exception)
             {
-                Trace.TraceError(exception.ToString());
-                ApplicationInsights.TrackException(exception);
+                _logger.LogCritical("Job failed to initialize.", exception);
             }
 
             return false;
@@ -67,20 +72,20 @@ namespace Stats.RollUpDownloadFacts
             }
             catch (Exception exception)
             {
-                Trace.TraceError(exception.ToString());
-                ApplicationInsights.TrackException(exception);
+                _logger.LogCritical("Job run failed.", exception);
+
                 return false;
             }
         }
 
-        private static void OnSqlConnectionInfoMessage(object sender, SqlInfoMessageEventArgs e)
+        private void OnSqlConnectionInfoMessage(object sender, SqlInfoMessageEventArgs e)
         {
             if (string.IsNullOrEmpty(e.Message))
             {
                 return;
             }
 
-            ApplicationInsights.TrackTrace(e.Message);
+            _logger.LogInformation(e.Message);
 
             if (e.Message.StartsWith(_startTemplateRecordsDeletion) &&
                 e.Message.EndsWith(_endTemplateDimProjectTypeDeletion))
@@ -93,7 +98,7 @@ namespace Stats.RollUpDownloadFacts
                 var value = double.Parse(parts.Last());
                 var packageDimensionId = parts.First().Replace(":", string.Empty);
 
-                ApplicationInsights.TrackRollUpMetric("ProjectType Links Deleted", value, packageDimensionId);
+                ApplicationInsightsHelper.TrackRollUpMetric("ProjectType Links Deleted", value, packageDimensionId);
             }
             else if (e.Message.StartsWith(_startTemplateRecordsDeletion) &&
                      e.Message.EndsWith(_endTemplateFactDownloadDeletion))
@@ -106,10 +111,8 @@ namespace Stats.RollUpDownloadFacts
                 var value = double.Parse(parts.Last());
                 var packageDimensionId = parts.First().Replace(":", string.Empty);
 
-                ApplicationInsights.TrackRollUpMetric("Download Facts Deleted", value, packageDimensionId);
+                ApplicationInsightsHelper.TrackRollUpMetric("Download Facts Deleted", value, packageDimensionId);
             }
-
-            Trace.TraceInformation(e.Message);
         }
     }
 }

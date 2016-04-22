@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -102,7 +99,7 @@ namespace HandlePackageEdits
         {
             // Grab package edits
             IList<PackageEdit> edits;
-            Trace.TraceInformation(string.Format("Fetching queued edits from {0}/{1}", PackageDatabase.DataSource, PackageDatabase.InitialCatalog));
+            Trace.TraceInformation($"Fetching queued edits from {PackageDatabase.DataSource}/{PackageDatabase.InitialCatalog}");
             using (var connection = await PackageDatabase.ConnectTo())
             {
                 if (MaxTryCount.HasValue)
@@ -121,7 +118,7 @@ namespace HandlePackageEdits
                         .ToList();
                 }
             }
-            Trace.TraceInformation(string.Format("Fetched {2} queued edits from {0}/{1}", PackageDatabase.DataSource, PackageDatabase.InitialCatalog, edits.Count));
+            Trace.TraceInformation("Fetched {2} queued edits from {0}/{1}", PackageDatabase.DataSource, PackageDatabase.InitialCatalog, edits.Count);
 
             // Group by package and take just the most recent edit for each package
             edits = edits
@@ -133,7 +130,7 @@ namespace HandlePackageEdits
             // Process packages
             foreach (var edit in edits)
             {
-                Trace.TraceInformation(string.Format("Editing {0} {1}", edit.Id, edit.Version));
+                Trace.TraceInformation($"Editing {edit.Id} {edit.Version}");
                 Exception thrown = null;
                 try
                 {
@@ -145,7 +142,7 @@ namespace HandlePackageEdits
                 }
                 if (thrown != null)
                 {
-                    Trace.TraceInformation(string.Format("Error editing package {0} {1}: {2}", edit.Id, edit.Version, thrown.ToString()));
+                    Trace.TraceInformation($"Error editing package {edit.Id} {edit.Version}: {thrown.ToString()}");
 
                     using (var connection = await PackageDatabase.ConnectTo())
                     {
@@ -162,18 +159,19 @@ namespace HandlePackageEdits
                     }
 
                 }
-                Trace.TraceInformation(string.Format("Edited {0} {1}", edit.Id, edit.Version));
+                Trace.TraceInformation($"Edited {edit.Id} {edit.Version}");
             }
             return true;
         }
 
         private static readonly Regex ManifestSelector = new Regex(@"^[^/]*\.nuspec$", RegexOptions.IgnoreCase);
+
         private async Task ApplyEdit(PackageEdit edit)
         {
             // Download the original file
             string originalPath = null;
             TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetService", "HandlePackageEdits");
-                
+
             try
             {
                 string directory = Path.Combine(TempDirectory, edit.Id, edit.Version);
@@ -184,19 +182,19 @@ namespace HandlePackageEdits
                 originalPath = Path.Combine(directory, "original.nupkg");
                 var sourceBlob = SourceContainer.GetBlockBlobReference(
                     StorageHelpers.GetPackageBlobName(edit.Id, edit.Version));
-                Trace.TraceInformation(string.Format("Name is {0}, storage uri is {1}", sourceBlob.Name, sourceBlob.StorageUri));
-                Trace.TraceInformation(string.Format("Downloading original copy of {0} {1}", edit.Id, edit.Version));
+                Trace.TraceInformation($"Name is {sourceBlob.Name}, storage uri is {sourceBlob.StorageUri}");
+                Trace.TraceInformation($"Downloading original copy of {edit.Id} {edit.Version}");
                 await sourceBlob.DownloadToFileAsync(originalPath, FileMode.Create);
-                Trace.TraceInformation(string.Format("Downloaded original copy of {0} {1}", edit.Id, edit.Version));
+                Trace.TraceInformation($"Downloaded original copy of {edit.Id} {edit.Version}");
 
                 // Check that a backup exists
                 var backupBlob = BackupsContainer.GetBlockBlobReference(
                     StorageHelpers.GetPackageBackupBlobName(edit.Id, edit.Version, edit.Hash));
                 if (!await backupBlob.ExistsAsync())
                 {
-                    Trace.TraceInformation(string.Format("Backing up original copy of {0} {1}", edit.Id, edit.Version));
-                    await backupBlob.UploadFromFileAsync(originalPath, FileMode.Open);
-                    Trace.TraceInformation(string.Format("Backed up original copy of {0} {1}", edit.Id, edit.Version));
+                    Trace.TraceInformation($"Backing up original copy of {edit.Id} {edit.Version}");
+                    await backupBlob.UploadFromFileAsync(originalPath);
+                    Trace.TraceInformation($"Backed up original copy of {edit.Id} {edit.Version}");
                 }
 
                 // Load the zip file and find the manifest
@@ -228,7 +226,7 @@ namespace HandlePackageEdits
                     var manifestEntry = nuspecEntries.Single();
 
                     // Load the manifest with a constrained stream
-                    Trace.TraceInformation(string.Format("Rewriting package file for {0} {1}", edit.Id, edit.Version));
+                    Trace.TraceInformation($"Rewriting package file for {edit.Id} {edit.Version}");
                     Manifest manifest;
                     using (var manifestStream = manifestEntry.Open())
                     {
@@ -242,18 +240,18 @@ namespace HandlePackageEdits
                         manifestStream.SetLength(0);
                         manifest.Save(manifestStream);
                     }
-                    Trace.TraceInformation(string.Format("Rewrote package file for {0} {1}", edit.Id, edit.Version));
+                    Trace.TraceInformation($"Rewrote package file for {edit.Id} {edit.Version}");
                 }
 
                 // Snapshot the original blob
-                Trace.TraceInformation(string.Format("Snapshotting original blob for {0} {1} ({2}).", edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri));
+                Trace.TraceInformation($"Snapshotting original blob for {edit.Id} {edit.Version} ({sourceBlob.Uri.AbsoluteUri}).");
                 var sourceSnapshot = await sourceBlob.CreateSnapshotAsync();
-                Trace.TraceInformation(string.Format("Snapshotted original blob for {0} {1} ({2}).", edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri));
+                Trace.TraceInformation($"Snapshotted original blob for {edit.Id} {edit.Version} ({sourceBlob.Uri.AbsoluteUri}).");
 
                 // Upload the updated file
-                Trace.TraceInformation(string.Format("Uploading modified package file for {0} {1} to {2}", edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri));
-                await sourceBlob.UploadFromFileAsync(originalPath, FileMode.Open);
-                Trace.TraceInformation(string.Format("Uploaded modified package file for {0} {1} to {2}", edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri));
+                Trace.TraceInformation($"Uploading modified package file for {edit.Id} {edit.Version} to {sourceBlob.Uri.AbsoluteUri}");
+                await sourceBlob.UploadFromFileAsync(originalPath);
+                Trace.TraceInformation($"Uploaded modified package file for {edit.Id} {edit.Version} to {sourceBlob.Uri.AbsoluteUri}");
 
                 // Calculate new size and hash
                 string hash;
@@ -270,7 +268,7 @@ namespace HandlePackageEdits
                 // Update the database
                 try
                 {
-                    Trace.TraceInformation(string.Format("Updating package record for {0} {1}", edit.Id, edit.Version));
+                    Trace.TraceInformation($"Updating package record for {edit.Id} {edit.Version}");
                     using (var connection = await PackageDatabase.ConnectTo())
                     {
                         var parameters = new DynamicParameters(new
@@ -299,8 +297,8 @@ namespace HandlePackageEdits
                         var authors = edit.Authors.Split(',');
                         for (int i = 0; i < authors.Length; i++)
                         {
-                            loadAuthorsSql.Append("INSERT INTO [PackageAuthors]([PackageKey],[Name]) VALUES(@PackageKey, @Author" + i.ToString() + ")");
-                            parameters.Add("Author" + i.ToString(), authors[i]);
+                            loadAuthorsSql.Append("INSERT INTO [PackageAuthors]([PackageKey],[Name]) VALUES(@PackageKey, @Author" + i + ")");
+                            parameters.Add("Author" + i, authors[i]);
                         }
 
                         await connection.QueryAsync<int>(@"
@@ -357,11 +355,11 @@ namespace HandlePackageEdits
                                 WHERE   [Key] = @PackageKey
 
                                 -- Update Authors
-                                DELETE FROM [PackageAuthors] 
+                                DELETE FROM [PackageAuthors]
                                 WHERE PackageKey = @PackageKey
 
-                                " + loadAuthorsSql.ToString() + @"
-                            
+                                " + loadAuthorsSql + @"
+
                                 -- Clean this edit and all previous edits.
                                 DELETE FROM [PackageEdits]
                                 WHERE [PackageKey] = @PackageKey
@@ -369,21 +367,23 @@ namespace HandlePackageEdits
                             " +  "COMMIT TRANSACTION",
                             parameters);
                     }
-                    Trace.TraceInformation(string.Format("Updated package record for {0} {1}", edit.Id, edit.Version));
+                    Trace.TraceInformation($"Updated package record for {edit.Id} {edit.Version}");
                 }
                 catch (Exception)
                 {
                     // Error occurred while updaing database, roll back the blob to the snapshot
                     // Can't do "await" in a catch block, but this should be pretty quick since it just starts the copy
-                    Trace.TraceInformation(string.Format("Rolling back updated blob for {0} {1}. Copying snapshot {2} to {3}", edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri));
-                    sourceBlob.StartCopyFromBlob(sourceSnapshot);
-                    Trace.TraceInformation(string.Format("Rolled back updated blob for {0} {1}. Copying snapshot {2} to {3}", edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri));
+                    Trace.TraceInformation(
+                        $"Rolling back updated blob for {edit.Id} {edit.Version}. Copying snapshot {sourceSnapshot.Uri.AbsoluteUri} to {sourceBlob.Uri.AbsoluteUri}");
+                    sourceBlob.StartCopy(sourceSnapshot);
+                    Trace.TraceInformation(
+                        $"Rolled back updated blob for {edit.Id} {edit.Version}. Copying snapshot {sourceSnapshot.Uri.AbsoluteUri} to {sourceBlob.Uri.AbsoluteUri}");
                     throw;
                 }
 
-                Trace.TraceInformation(string.Format("Deleting snapshot blob {2} for {0} {1}.", edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri));
+                Trace.TraceInformation("Deleting snapshot blob {2} for {0} {1}.", edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
                 await sourceSnapshot.DeleteAsync();
-                Trace.TraceInformation(string.Format("Deleted snapshot blob {2} for {0} {1}.", edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri));
+                Trace.TraceInformation("Deleted snapshot blob {2} for {0} {1}.", edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
             }
             finally
             {

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -11,8 +10,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib;
 using ICSharpCode.SharpZipLib.GZip;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
+using NuGet.Services.Logging;
 using Stats.AzureCdnLogs.Common;
 using Stats.CollectAzureCdnLogs.Blob;
 using Stats.CollectAzureCdnLogs.Ftp;
@@ -22,7 +23,7 @@ namespace Stats.CollectAzureCdnLogs
     public class Job
          : JobBase
     {
-        private static readonly DateTime UnixTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly DateTime _unixTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         private Uri _ftpServerUri;
         private string _ftpUsername;
         private string _ftpPassword;
@@ -30,16 +31,19 @@ namespace Stats.CollectAzureCdnLogs
         private AzureCdnPlatform _azureCdnPlatform;
         private CloudStorageAccount _cloudStorageAccount;
         private string _cloudStorageContainerName;
-
-        public Job()
-            : base(JobEventSource.Log)
-        {
-        }
+        private ILoggerFactory _loggerFactory;
+        private ILogger _logger;
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
             {
+                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
+                ApplicationInsights.Initialize(instrumentationKey);
+
+                _loggerFactory = Logging.CreateLoggerFactory();
+                _logger = _loggerFactory.CreateLogger<Job>();
+
                 var ftpLogFolder = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUri);
                 var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
                 var cloudStorageAccount = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
@@ -51,14 +55,15 @@ namespace Stats.CollectAzureCdnLogs
                 _ftpServerUri = ValidateFtpUri(ftpLogFolder);
                 _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
                 _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccount);
-
-                return true;
             }
             catch (Exception ex)
             {
-                Trace.TraceError(ex.ToString());
+                _logger.LogCritical("Job failed to initialize!", ex);
+
+                return false;
             }
-            return false;
+
+            return true;
         }
 
         private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
@@ -126,11 +131,11 @@ namespace Stats.CollectAzureCdnLogs
         {
             try
             {
-                var ftpClient = new FtpRawLogClient(JobEventSource.Log, _ftpUsername, _ftpPassword);
-                var azureClient = new CloudBlobRawLogClient(JobEventSource.Log, _cloudStorageAccount);
+                var ftpClient = new FtpRawLogClient(_loggerFactory, _ftpUsername, _ftpPassword);
+                var azureClient = new CloudBlobRawLogClient(_loggerFactory, _cloudStorageAccount);
 
                 // Collect directory listing.
-                IEnumerable<RawLogFileInfo> rawLogFiles = await ftpClient.GetRawLogFiles(_ftpServerUri);
+                var rawLogFiles = await ftpClient.GetRawLogFiles(_ftpServerUri);
 
                 // Prepare cloud storage blob container.
                 var cloudBlobContainer = await azureClient.CreateContainerIfNotExistsAsync(_cloudStorageContainerName);
@@ -139,55 +144,59 @@ namespace Stats.CollectAzureCdnLogs
                 {
                     try
                     {
-                        // Only process the raw log files matching the target CDN platform and account number.
-                        if (_azureCdnPlatform == rawLogFile.AzureCdnPlatform && _azureCdnAccountNumber.Equals(rawLogFile.AzureCdnAccountNumber, StringComparison.InvariantCultureIgnoreCase))
+                        if (_azureCdnPlatform != rawLogFile.AzureCdnPlatform
+                            || !_azureCdnAccountNumber.Equals(rawLogFile.AzureCdnAccountNumber, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            bool alreadyUploaded = false;
-                            bool uploadSucceeded = false;
-                            Uri rawLogUri = rawLogFile.Uri;
+                            // Only process the raw log files matching the target CDN platform and account number.
+                            continue;
+                        }
 
-                            // Check if this is an already renamed file.
-                            if (rawLogFile.IsPendingDownload)
+                        var alreadyUploaded = false;
+                        var uploadSucceeded = false;
+                        var rawLogUri = rawLogFile.Uri;
+
+                        // Check if this is an already renamed file.
+                        if (rawLogFile.IsPendingDownload)
+                        {
+                            // Check if the file has already been uploaded to blob storage.
+                            alreadyUploaded = await azureClient.CheckIfBlobExistsAsync(cloudBlobContainer, rawLogFile);
+                        }
+                        else
+                        {
+                            // Rename the file on the origin to ensure we're not locking a file that still can be written to.
+                            rawLogUri = await ftpClient.RenameAsync(rawLogFile, rawLogFile.FileName + FileExtensions.Download);
+
+                            if (rawLogUri == null)
                             {
-                                // Check if the file has already been uploaded to blob storage.
-                                alreadyUploaded = await azureClient.CheckIfBlobExistsAsync(cloudBlobContainer, rawLogFile);
+                                // Failed to rename the file. Leave it and try again later.
+                                continue;
                             }
-                            else
+                        }
+
+                        if (!alreadyUploaded)
+                        {
+                            // open the raw log from FTP
+                            using (var rawLogStream = await ftpClient.OpenReadAsync(rawLogUri))
+                            using (var rawLogStreamInMemory = new MemoryStream())
                             {
-                                // Rename the file on the origin to ensure we're not locking a file that still can be written to.
-                                rawLogUri = await ftpClient.RenameAsync(rawLogFile, rawLogFile.FileName + FileExtensions.Download);
+                                // copy the raw, compressed stream to memory - FTP does not like reading line by line
+                                await rawLogStream.CopyToAsync(rawLogStreamInMemory);
+                                rawLogStreamInMemory.Position = 0;
 
-                                if (rawLogUri == null)
+                                // process the raw, compressed memory stream
+                                using (var rawGzipStream = new GZipInputStream(rawLogStreamInMemory))
                                 {
-                                    // Failed to rename the file. Leave it and try again later.
-                                    continue;
-                                }
-                            }
+                                    // ensure the .download suffix is trimmed away
+                                    var fileName = rawLogFile.FileName.Replace(".download", string.Empty);
 
-                            if (!alreadyUploaded)
-                            {
-                                // open the raw log from FTP
-                                using (var rawLogStream = await ftpClient.OpenReadAsync(rawLogUri))
-                                using (var rawLogStreamInMemory = new MemoryStream())
-                                {
-                                    // copy the raw, compressed stream to memory - FTP does not like reading line by line
-                                    await rawLogStream.CopyToAsync(rawLogStreamInMemory);
-                                    rawLogStreamInMemory.Position = 0;
-
-                                    // process the raw, compressed memory stream
-                                    using (var rawGzipStream = new GZipInputStream(rawLogStreamInMemory))
+                                    using (_logger.BeginScope("Started uploading file '{FileName}' to {BlobUri}.", fileName, rawLogFile.Uri.ToString()))
                                     {
                                         try
                                         {
-                                            // ensure the .download suffix is trimmed away
-                                            var fileName = rawLogFile.FileName.Replace(".download", string.Empty);
-
-                                            Trace.TraceInformation("Uploading file '{0}'.", fileName);
-                                            JobEventSource.Log.BeginningBlobUpload(rawLogFile.Uri.ToString());
-
                                             // open the resulting cleaned blob and stream modified entries
                                             // note the missing using() statement so that we can skip committing if an exception occurs
                                             var resultLogStream = await azureClient.OpenBlobForWriteAsync(cloudBlobContainer, rawLogFile, fileName);
+
                                             try
                                             {
                                                 using (var resultGzipStream = new GZipOutputStream(resultLogStream))
@@ -206,52 +215,50 @@ namespace Stats.CollectAzureCdnLogs
                                             }
                                             catch
                                             {
-                                                resultLogStream = null;
                                                 uploadSucceeded = false;
                                                 throw;
                                             }
 
-                                            Trace.TraceInformation("Finished uploading file '{0}' to '{1}'.", fileName, rawLogFile.Uri.AbsoluteUri);
-                                            JobEventSource.Log.FinishingBlobUpload(rawLogFile.Uri.ToString());
+                                            _logger.LogInformation("Finished uploading file.");
                                         }
                                         catch (Exception exception)
                                         {
-                                            Trace.TraceError(exception.ToString());
-                                            JobEventSource.Log.FailedToUploadFile(rawLogFile.Uri.ToString(), exception.ToString());
+                                            _logger.LogError("Failed to upload file.", exception);
                                         }
                                     }
                                 }
                             }
+                        }
 
-                            // Delete the renamed file from the origin.
-                            if (alreadyUploaded || uploadSucceeded)
-                            {
-                                await ftpClient.DeleteAsync(rawLogUri);
-                            }
+                        // Delete the renamed file from the origin.
+                        if (alreadyUploaded || uploadSucceeded)
+                        {
+                            await ftpClient.DeleteAsync(rawLogUri);
                         }
                     }
                     catch (UnknownAzureCdnPlatformException exception)
                     {
                         // Trace, but ignore the failing file. Other files should go through just fine.
-                        Trace.TraceWarning(exception.ToString());
+                        _logger.LogWarning("Unknown Azure CDN platform.", exception);
                     }
                     catch (InvalidRawLogFileNameException exception)
                     {
                         // Trace, but ignore the failing file. Other files should go through just fine.
-                        Trace.TraceWarning(exception.ToString());
+                        _logger.LogWarning("Invalid raw log filename.", exception);
                     }
                 }
-
-                return true;
             }
             catch (Exception exception)
             {
-                Trace.TraceError(exception.ToString());
+                _logger.LogCritical("Job run failed!", exception);
+
+                return false;
             }
-            return false;
+
+            return true;
         }
 
-        private static void ProcessLogStream(Stream sourceStream, Stream targetStream)
+        private void ProcessLogStream(Stream sourceStream, Stream targetStream)
         {
             // note: not using async/await pattern as underlying streams do not support async
             using (var sourceStreamReader = new StreamReader(sourceStream))
@@ -270,12 +277,14 @@ namespace Stats.CollectAzureCdnLogs
                             {
                                 targetStreamWriter.Write(logLine);
                             }
-                        } while (!sourceStreamReader.EndOfStream);
+                        }
+                        while (!sourceStreamReader.EndOfStream);
                     }
                     catch (SharpZipBaseException e)
                     {
                         // this raw log file may be corrupt...
-                        // todo: log this
+                        _logger.LogError("Error processing log stream.", e);
+
                         throw;
                     }
                 }
@@ -365,12 +374,12 @@ namespace Stats.CollectAzureCdnLogs
         {
             // Unix timestamp is seconds past epoch
             var secondsPastEpoch = double.Parse(unixTimestamp);
-            return UnixTimestamp + TimeSpan.FromSeconds(secondsPastEpoch);
+            return _unixTimestamp + TimeSpan.FromSeconds(secondsPastEpoch);
         }
 
         private static string ToUnixTimeStamp(DateTime dateTime)
         {
-            var secondsPastEpoch = (dateTime - UnixTimestamp).TotalSeconds;
+            var secondsPastEpoch = (dateTime - _unixTimestamp).TotalSeconds;
             return secondsPastEpoch.ToString(CultureInfo.InvariantCulture);
         }
     }

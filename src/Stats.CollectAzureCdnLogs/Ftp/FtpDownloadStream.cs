@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Stats.CollectAzureCdnLogs.Ftp
 {
@@ -27,7 +28,7 @@ namespace Stats.CollectAzureCdnLogs.Ftp
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            int attempts = 0;
+            var attempts = 0;
             while (attempts++ < 5)
             {
                 var uriString = _uri.ToString();
@@ -35,7 +36,7 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 {
                     _stream = await _client.StartOrResumeFtpDownload(_uri, _totalDone);
 
-                    _client.EventSource.FinishedDownload(uriString);
+                    _client.Logger.LogInformation("Finishing download from '{FtpBlobUri}'", uriString);
                 }
                 try
                 {
@@ -50,9 +51,10 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 {
                     CaughtException = ex;
 
-                    _client.EventSource.FailedToDownloadFile(uriString, ex.ToString());
+                    _client.Logger.LogError("Failed to download file.", ex);
 
-                    // Close ftp resources if possible. Set instances to null to force restart.
+                    // Close ftp resources if possible.
+                    // Set instances to null to force restart.
                     Close();
                 }
             }
@@ -69,7 +71,7 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 {
                     _stream = _client.StartOrResumeFtpDownload(_uri, _totalDone).Result;
 
-                    _client.EventSource.FinishedDownload(_uri.ToString());
+                    _client.Logger.LogInformation("Finishing download from '{FtpBlobUri}'", _uri);
                 }
                 try
                 {

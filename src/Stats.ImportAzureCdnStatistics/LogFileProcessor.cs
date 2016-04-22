@@ -81,7 +81,7 @@ namespace Stats.ImportAzureCdnStatistics
             var archivedBlob = targetContainer.GetBlockBlobReference(logFile.Blob.Name);
             if (!await archivedBlob.ExistsAsync())
             {
-                await archivedBlob.StartCopyFromBlobAsync(logFile.Blob);
+                await archivedBlob.StartCopyAsync(logFile.Blob);
 
                 archivedBlob = (CloudBlockBlob)await targetContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
 
@@ -165,7 +165,7 @@ namespace Stats.ImportAzureCdnStatistics
                 _jobEventSource.FinishingParseLog(blobUri, packageStatistics.Count);
 
                 stopwatch.Stop();
-                ApplicationInsights.TrackMetric("Blob parsing duration (ms)", stopwatch.ElapsedMilliseconds, blobName);
+                ApplicationInsightsHelper.TrackMetric("Blob parsing duration (ms)", stopwatch.ElapsedMilliseconds, blobName);
             }
             catch (Exception exception)
             {
@@ -175,7 +175,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 _jobEventSource.FailedParseLog(blobUri);
-                ApplicationInsights.TrackException(exception, blobName);
+                ApplicationInsightsHelper.TrackException(exception, blobName);
                 throw;
             }
             finally
@@ -226,7 +226,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                 _jobEventSource.FinishedOpenCompressedBlob(logFile.Uri);
 
-                ApplicationInsights.TrackMetric("Open compressed blob duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
+                ApplicationInsightsHelper.TrackMetric("Open compressed blob duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
 
                 // verify if the stream is gzipped or not
                 if (await IsGzipCompressed(memoryStream))
@@ -246,7 +246,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 _jobEventSource.FailedOpenCompressedBlob(logFile.Uri);
-                ApplicationInsights.TrackException(exception, logFile.Blob.Name);
+                ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                 throw;
             }
         }
@@ -261,7 +261,7 @@ namespace Stats.ImportAzureCdnStatistics
                 _jobEventSource.FinishingArchiveUpload(logFile.Uri);
 
                 stopwatch.Stop();
-                ApplicationInsights.TrackMetric("Blob archiving duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
+                ApplicationInsightsHelper.TrackMetric("Blob archiving duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
             }
             catch (Exception exception)
             {
@@ -271,7 +271,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 _jobEventSource.FailedArchiveUpload(logFile.Uri);
-                ApplicationInsights.TrackException(exception, logFile.Blob.Name);
+                ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                 throw;
             }
         }
@@ -290,7 +290,7 @@ namespace Stats.ImportAzureCdnStatistics
                 catch (Exception exception)
                 {
                     _jobEventSource.FailedDelete(logFile.Uri);
-                    ApplicationInsights.TrackException(exception, logFile.Blob.Name);
+                    ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                     throw;
                 }
             }

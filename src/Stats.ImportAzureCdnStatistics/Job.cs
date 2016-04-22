@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs;
+using NuGet.Services.Logging;
 using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
