@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;

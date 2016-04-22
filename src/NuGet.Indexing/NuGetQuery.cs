@@ -291,6 +291,7 @@ namespace NuGet.Indexing
             StringBuilder buf = new StringBuilder();
 
             int state = 0;
+            bool previousTokenIsKeyword = false;
 
             foreach (char ch in s)
             {
@@ -302,6 +303,7 @@ namespace NuGet.Indexing
                             if (buf.Length > 0)
                             {
                                 yield return new Token { Type = Token.TokenType.Value, Value = buf.ToString() };
+                                previousTokenIsKeyword = false;
                                 buf.Clear();
                             }
                         }
@@ -314,6 +316,7 @@ namespace NuGet.Indexing
                             if (buf.Length > 0)
                             {
                                 yield return new Token { Type = Token.TokenType.Keyword, Value = buf.ToString() };
+                                previousTokenIsKeyword = true;
                                 buf.Clear();
                             }
                         }
@@ -325,9 +328,10 @@ namespace NuGet.Indexing
                     case 1:
                         if (ch == '"')
                         {
-                            if (buf.Length > 0)
+                            if (buf.Length > 0 || previousTokenIsKeyword)
                             {
                                 yield return new Token { Type = Token.TokenType.Value, Value = buf.ToString() };
+                                previousTokenIsKeyword = false;
                                 buf.Clear();
                             }
                             state = 0;
@@ -343,6 +347,7 @@ namespace NuGet.Indexing
             if (buf.Length > 0)
             {
                 yield return new Token { Type = Token.TokenType.Value, Value = buf.ToString() };
+                previousTokenIsKeyword = false;
             }
 
             yield break;
