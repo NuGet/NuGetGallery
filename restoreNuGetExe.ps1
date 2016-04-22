@@ -1,4 +1,4 @@
-$sourceNugetExe = "https://nuget.org/nuget.exe"
+$sourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 $toolsFolder = "tools"
 $targetNugetExe = "$toolsFolder\nuget.exe"
 
