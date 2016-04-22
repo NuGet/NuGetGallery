@@ -5,11 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Internal;
 using Stats.AzureCdnLogs.Common;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Stats.ImportAzureCdnStatistics
 {
@@ -18,7 +19,7 @@ namespace Stats.ImportAzureCdnStatistics
         private const int _defaultCommandTimeout = 1800; // 30 minutes max
         private const int _maxRetryCount = 3;
         private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
-        private readonly JobEventSource _jobEventSource;
+        private readonly ILogger _logger;
         private readonly SqlConnectionStringBuilder _targetDatabase;
         private static IReadOnlyCollection<TimeDimension> _times;
         private static readonly IList<PackageDimension> _cachedPackageDimensions = new List<PackageDimension>();
@@ -30,15 +31,24 @@ namespace Stats.ImportAzureCdnStatistics
         private static readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedIpAddressFacts = new Dictionary<string, int>();
 
-        public Warehouse(JobEventSource jobEventSource, SqlConnectionStringBuilder targetDatabase)
+        public Warehouse(ILoggerFactory loggerFactory, SqlConnectionStringBuilder targetDatabase)
         {
-            _jobEventSource = jobEventSource;
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+            if (targetDatabase == null)
+            {
+                throw new ArgumentNullException(nameof(targetDatabase));
+            }
+
+            _logger = loggerFactory.CreateLogger<Warehouse>();
             _targetDatabase = targetDatabase;
         }
 
         internal async Task InsertDownloadFactsAsync(List<DataTable> downloadFactsDataTables, string logFileName)
         {
-            Trace.WriteLine("Inserting into facts table...");
+            _logger.LogDebug("Inserting into facts table...");
             var stopwatch = Stopwatch.StartNew();
 
             using (var connection = await _targetDatabase.ConnectTo())
@@ -68,13 +78,16 @@ namespace Stats.ImportAzureCdnStatistics
                         stopwatch.Stop();
                     }
 
+                    _logger.LogError("Failed to insert download facts for {LogFile}.", logFileName);
+
                     ApplicationInsightsHelper.TrackException(exception, logFileName);
+
                     transaction.Rollback();
                     throw;
                 }
             }
 
-            Trace.Write("  DONE");
+            _logger.LogDebug("  DONE");
         }
 
         public async Task<List<DataTable>> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData, string logFileName)
@@ -129,8 +142,7 @@ namespace Stats.ImportAzureCdnStatistics
                 logFileNameId = logFileNames[logFileName];
             }
 
-
-            Trace.WriteLine("Creating facts...");
+            _logger.LogDebug("Creating facts...");
             foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId, StringComparer.OrdinalIgnoreCase))
             {
                 var packagesForId = packages.Where(e => string.Equals(e.PackageId, groupedByPackageId.Key, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -148,12 +160,10 @@ namespace Stats.ImportAzureCdnStatistics
                         continue;
                     }
 
-                    int packageId = package.Id;
+                    var packageId = package.Id;
 
                     foreach (var element in groupedByPackageIdAndVersion)
                     {
-                        bool factCreated = false;
-
                         // required dimensions
                         var dateId = dates.First(e => e.Date.Equals(element.EdgeServerTimeDelivered.Date)).Id;
                         var timeId = _times.First(e => e.HourOfDay == element.EdgeServerTimeDelivered.Hour).Id;
@@ -198,7 +208,6 @@ namespace Stats.ImportAzureCdnStatistics
                         var dataRow = factsDataTable.NewRow();
                         var factId = FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
                         factsDataTable.Rows.Add(dataRow);
-                        factCreated = true;
 
                         // link project types
                         var elementProjectGuids = element.GetDistinctProjectGuids();
@@ -215,23 +224,18 @@ namespace Stats.ImportAzureCdnStatistics
                                 factsToProjectTypesDataTable.Rows.Add(factToProjectTypeRow);
                             }
                         }
-                        
-                        if (!factCreated)
-                        {
-                            ApplicationInsightsHelper.TrackException(new Exception("Download fact not created."), logFileName, "Download fact not created. Element: " + JsonConvert.SerializeObject(element));
-                        }
                     }
                 }
             }
             stopwatch.Stop();
-            Trace.Write("  DONE (" + factsToProjectTypesDataTable.Rows.Count + " facts to project type, " + factsDataTable.Rows.Count + " facts, " + stopwatch.ElapsedMilliseconds + "ms)");
+            _logger.LogDebug("  DONE (" + factsToProjectTypesDataTable.Rows.Count + " facts to project type, " + factsDataTable.Rows.Count + " facts, " + stopwatch.ElapsedMilliseconds + "ms)");
             ApplicationInsightsHelper.TrackMetric("Blob record count", factsDataTable.Rows.Count, logFileName);
 
             return new List<DataTable>
             {
                 factsToProjectTypesDataTable,
                 factsDataTable
-            }; 
+            };
         }
 
         public async Task<List<DataTable>> CreateAsync(IReadOnlyCollection<ToolStatistics> sourceData, string logFileName)
@@ -278,7 +282,7 @@ namespace Stats.ImportAzureCdnStatistics
                 logFileNameId = logFileNames[logFileName];
             }
 
-            Trace.WriteLine("Creating tools facts...");
+            _logger.LogDebug("Creating tools facts...");
 
             foreach (var groupedByToolId in sourceData.GroupBy(e => e.ToolId, StringComparer.OrdinalIgnoreCase))
             {
@@ -351,7 +355,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
 
             stopwatch.Stop();
-            Trace.Write("  DONE (" + dataTable.Rows.Count + " records, " + stopwatch.ElapsedMilliseconds + "ms)");
+            _logger.LogDebug("  DONE (" + dataTable.Rows.Count + " records, " + stopwatch.ElapsedMilliseconds + "ms)");
 
             return new List<DataTable> { dataTable };
         }
@@ -361,63 +365,67 @@ namespace Stats.ImportAzureCdnStatistics
             var stopwatch = Stopwatch.StartNew();
             var count = _maxRetryCount;
 
-            while (count > 0)
+            using (_logger.BeginScope("Getting dimension {Dimension} for log file {LogFile}", dimension, logFileName))
             {
-                try
+                while (count > 0)
                 {
-                    _jobEventSource.BeginningRetrieveDimension(dimension);
-
-                    IDictionary<string, int> dimensions;
-                    using (var connection = await _targetDatabase.ConnectTo())
+                    try
                     {
-                        dimensions = await retrieve(connection);
-                    }
+                        _logger.LogDebug("Beginning to retrieve dimension '{Dimension}'.", dimension);
 
-                    stopwatch.Stop();
-                    _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
-                    ApplicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
+                        IDictionary<string, int> dimensions;
+                        using (var connection = await _targetDatabase.ConnectTo())
+                        {
+                            dimensions = await retrieve(connection);
+                        }
 
-                    return dimensions;
-                }
-                catch (SqlException e)
-                {
-                    --count;
-                    if (count <= 0)
-                    {
-                        throw;
-                    }
-
-                    if (e.Number == 1205)
-                    {
-                        Trace.TraceWarning("Deadlock, retrying...");
-                        ApplicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
-                    }
-                    else if (e.Number == -2)
-                    {
-                        Trace.TraceWarning("Timeout, retrying...");
-                        ApplicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
-                    }
-                    else if (e.Number == 2601)
-                    {
-                        Trace.TraceWarning("Duplicate key, retrying...");
-                        ApplicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
-                    }
-                    else
-                    {
-                        throw;
-                    }
-
-                    Task.Delay(_retryDelay).Wait();
-                }
-                catch (Exception exception)
-                {
-                    _jobEventSource.FailedRetrieveDimension(dimension);
-                    ApplicationInsightsHelper.TrackException(exception, logFileName);
-
-                    if (stopwatch.IsRunning)
                         stopwatch.Stop();
 
-                    throw;
+                        _logger.LogInformation("Finished retrieving dimension '{Dimension}' ({RetrievedDimensionDuration} ms).", dimension, stopwatch.ElapsedMilliseconds);
+                        ApplicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
+
+                        return dimensions;
+                    }
+                    catch (SqlException e)
+                    {
+                        --count;
+                        if (count <= 0)
+                        {
+                            throw;
+                        }
+
+                        if (e.Number == 1205)
+                        {
+                            _logger.LogWarning("SQL Deadlock, retrying...");
+                            ApplicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
+                        }
+                        else if (e.Number == -2)
+                        {
+                            _logger.LogWarning("SQL Timeout, retrying...");
+                            ApplicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
+                        }
+                        else if (e.Number == 2601)
+                        {
+                            _logger.LogWarning("SQL Duplicate key, retrying...");
+                            ApplicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
+                        }
+                        else
+                        {
+                            throw;
+                        }
+
+                        Task.Delay(_retryDelay).Wait();
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.LogError(new FormattedLogValues("Failed to retrieve dimension '{Dimension}'.", dimension), exception);
+                        ApplicationInsightsHelper.TrackException(exception, logFileName);
+
+                        if (stopwatch.IsRunning)
+                            stopwatch.Stop();
+
+                        throw;
+                    }
                 }
             }
 
@@ -429,65 +437,70 @@ namespace Stats.ImportAzureCdnStatistics
             var stopwatch = Stopwatch.StartNew();
             var count = _maxRetryCount;
 
-            while (count > 0)
+            using (_logger.BeginScope("Getting dimension {Dimension} for log file {LogFile}", dimension, logFileName))
             {
-                try
+                while (count > 0)
                 {
-                    _jobEventSource.BeginningRetrieveDimension(dimension);
-
-                    IReadOnlyCollection<T> dimensions;
-                    using (var connection = await _targetDatabase.ConnectTo())
+                    try
                     {
-                        dimensions = await retrieve(connection);
-                    }
+                        _logger.LogDebug("Beginning to retrieve dimension '{Dimension}'.", dimension);
 
-                    stopwatch.Stop();
-                    _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
-                    ApplicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
+                        IReadOnlyCollection<T> dimensions;
+                        using (var connection = await _targetDatabase.ConnectTo())
+                        {
+                            dimensions = await retrieve(connection);
+                        }
 
-                    return dimensions;
-                }
-                catch (SqlException e)
-                {
-                    --count;
-                    if (count <= 0)
-                    {
-                        throw;
-                    }
-
-                    if (e.Number == 1205)
-                    {
-                        Trace.TraceWarning("Deadlock, retrying...");
-                        ApplicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
-                    }
-                    else if (e.Number == -2)
-                    {
-                        Trace.TraceWarning("Timeout, retrying...");
-                        ApplicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
-                    }
-                    else if (e.Number == 2601)
-                    {
-                        Trace.TraceWarning("Duplicate key, retrying...");
-                        ApplicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
-                    }
-                    else
-                    {
-                        throw;
-                    }
-
-                    Task.Delay(_retryDelay).Wait();
-                }
-                catch (Exception exception)
-                {
-                    _jobEventSource.FailedRetrieveDimension(dimension);
-                    ApplicationInsightsHelper.TrackException(exception, logFileName);
-
-                    if (stopwatch.IsRunning)
                         stopwatch.Stop();
 
-                    throw;
+                        _logger.LogInformation("Finished retrieving dimension '{Dimension}' ({RetrievedDimensionDuration} ms).", dimension, stopwatch.ElapsedMilliseconds);
+                        ApplicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
+
+                        return dimensions;
+                    }
+                    catch (SqlException e)
+                    {
+                        --count;
+                        if (count <= 0)
+                        {
+                            throw;
+                        }
+
+                        if (e.Number == 1205)
+                        {
+                            _logger.LogWarning("SQL Deadlock, retrying...");
+                            ApplicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
+                        }
+                        else if (e.Number == -2)
+                        {
+                            _logger.LogWarning("SQL Timeout, retrying...");
+                            ApplicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
+                        }
+                        else if (e.Number == 2601)
+                        {
+                            _logger.LogWarning("SQL Duplicate key, retrying...");
+                            ApplicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
+                        }
+                        else
+                        {
+                            throw;
+                        }
+
+                        Task.Delay(_retryDelay).Wait();
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.LogError(new FormattedLogValues("Failed to retrieve dimension '{Dimension}'.", dimension), exception);
+                        ApplicationInsightsHelper.TrackException(exception, logFileName);
+
+                        if (stopwatch.IsRunning)
+                            stopwatch.Stop();
+
+                        throw;
+                    }
                 }
             }
+
             return Enumerable.Empty<T>().ToList();
         }
 
@@ -640,7 +653,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             return results;
         }
-        
+
         private static async Task<IReadOnlyCollection<DateDimension>> RetrieveDateDimensions(SqlConnection connection, DateTime min, DateTime max)
         {
             var results = new List<DateDimension>();
@@ -1136,9 +1149,9 @@ namespace Stats.ImportAzureCdnStatistics
         private static DataTable CreateDataTable(IReadOnlyCollection<ToolDimension> toolDimensions)
         {
             var table = new DataTable();
-            table.Columns.Add("ToolId", typeof (string));
-            table.Columns.Add("ToolVersion", typeof (string));
-            table.Columns.Add("FileName", typeof (string));
+            table.Columns.Add("ToolId", typeof(string));
+            table.Columns.Add("ToolVersion", typeof(string));
+            table.Columns.Add("FileName", typeof(string));
 
             foreach (var toolDimension in toolDimensions)
             {
