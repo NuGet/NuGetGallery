@@ -42,11 +42,11 @@ function CreateOrUpdate()
     if(!(Test-Path $config))
     {
         throw "Missing Deployment Config File! Expected it at: $config. Check the NuDeployCodeRoot environment variable on your Tentacle!"
-    }
-
-    # Copy it over the current one
-    Write-Host "Copying $config to $OctopusAzureConfigurationFile"
-    Copy-Item $config $OctopusAzureConfigurationFile -Force
+    } else {
+	    # Copy it over the current one
+		Write-Host "Copying $config to $OctopusAzureConfigurationFile"
+		Copy-Item $config $OctopusAzureConfigurationFile -Force
+	}
 
     # Get the Current Deployment
     $deployment = Get-AzureDeployment -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -ErrorVariable a -ErrorAction silentlycontinue
