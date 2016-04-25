@@ -8,7 +8,7 @@ using Microsoft.ApplicationInsights.Extensibility;
 
 namespace NuGet.Services.Logging
 {
-    internal class TelemetryContextInitializer
+    public class TelemetryContextInitializer
         : ITelemetryInitializer
     {
         private readonly string _deviceId;
@@ -18,21 +18,62 @@ namespace NuGet.Services.Logging
 
         public TelemetryContextInitializer()
         {
-            _deviceId = Environment.MachineName;
-            _deviceOS = Environment.OSVersion.ToString();
+            try
+            {
+                _deviceId = Environment.MachineName;
 
-            var assemblyName = Assembly.GetEntryAssembly().GetName();
-            _cloudRoleName = assemblyName.Name;
-            _componentVersion = assemblyName.Version.ToString();
+                if (Environment.OSVersion != null)
+                {
+                    _deviceOS = Environment.OSVersion.ToString();
+                }
+
+                var entryAssembly = Assembly.GetEntryAssembly();
+                if (entryAssembly != null)
+                {
+                    var assemblyName = entryAssembly.GetName();
+
+                    _cloudRoleName = assemblyName.Name;
+
+                    if (assemblyName.Version != null)
+                    {
+                        _componentVersion = assemblyName.Version.ToString();
+                    }
+                }
+            }
+            catch
+            {
+                // Guess we won't have this additional metadata in our logs then...
+                // Prefer to have logs without this metadata rather than not having none :)
+            }
         }
 
         public void Initialize(ITelemetry telemetry)
         {
-            telemetry.Context.Device.Id = _deviceId;
-            telemetry.Context.Device.OperatingSystem = _deviceOS;
-            telemetry.Context.Cloud.RoleInstance = Environment.MachineName;
-            telemetry.Context.Cloud.RoleName = _cloudRoleName;
-            telemetry.Context.Component.Version = _componentVersion;
+            if (telemetry?.Context == null)
+            {
+                return;
+            }
+
+            if (_deviceId != null)
+            {
+                telemetry.Context.Device.Id = _deviceId;
+                telemetry.Context.Cloud.RoleInstance = _deviceId;
+            }
+
+            if (_deviceOS != null)
+            {
+                telemetry.Context.Device.OperatingSystem = _deviceOS;
+            }
+
+            if (_cloudRoleName != null)
+            {
+                telemetry.Context.Cloud.RoleName = _cloudRoleName;
+            }
+
+            if (_componentVersion != null)
+            {
+                telemetry.Context.Component.Version = _componentVersion;
+            }
         }
     }
 }

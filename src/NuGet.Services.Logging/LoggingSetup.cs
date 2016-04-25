@@ -10,22 +10,25 @@ using Serilog.Extensions.Logging;
 
 namespace NuGet.Services.Logging
 {
-    public static class Logging
+    public static class LoggingSetup
     {
-        public static LoggerConfiguration CreateDefaultLoggerConfiguration()
+        public static LoggerConfiguration CreateDefaultLoggerConfiguration(bool withConsoleLogger = false)
         {
-            var defaultLoggerConfiguration = new LoggerConfiguration()
+            var loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Enrich.With(new MachineNameEnricher());
 
-#if DEBUG
-            defaultLoggerConfiguration = defaultLoggerConfiguration.WriteTo.ColoredConsole();
-#endif
+            if (withConsoleLogger)
+            {
+                loggerConfiguration = loggerConfiguration.WriteTo.ColoredConsole();
+            }
 
-            return defaultLoggerConfiguration;
+            return loggerConfiguration;
         }
 
-        public static ILoggerFactory CreateLoggerFactory(LoggerConfiguration loggerConfiguration = null)
+        public static ILoggerFactory CreateLoggerFactory(
+            LoggerConfiguration loggerConfiguration = null,
+            LogEventLevel applicationInsightsMinimumLogEventLevel = LogEventLevel.Information)
         {
             // setup Serilog
             if (loggerConfiguration == null)
@@ -35,9 +38,9 @@ namespace NuGet.Services.Logging
 
             if (!string.IsNullOrEmpty(TelemetryConfiguration.Active.InstrumentationKey))
             {
-                loggerConfiguration = loggerConfiguration.WriteTo
-                    .ApplicationInsights(TelemetryConfiguration.Active.InstrumentationKey,
-                    restrictedToMinimumLevel: LogEventLevel.Information);
+                loggerConfiguration = loggerConfiguration.WriteTo.ApplicationInsights(
+                    TelemetryConfiguration.Active.InstrumentationKey,
+                    restrictedToMinimumLevel: applicationInsightsMinimumLogEventLevel);
             }
 
             Log.Logger = loggerConfiguration.CreateLogger();
