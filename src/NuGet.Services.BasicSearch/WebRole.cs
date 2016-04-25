@@ -18,7 +18,7 @@ namespace NuGet.Services.BasicSearch
         public override bool OnStart()
         {
             // Set local URL and ping self (make sure the app pool is warm before joining the load balancer)
-            _localUrl = string.Format("http://{0}:{1}",
+            _localUrl = string.Format("http://{0}:{1}/",
                 RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["HttpEndpoint"].IPEndpoint.Address,
                 RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["HttpEndpoint"].IPEndpoint.Port.ToString(CultureInfo.InvariantCulture));
             

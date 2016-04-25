@@ -101,8 +101,8 @@ namespace NuGet.Indexing
             }
 
             // we'll remove old files from both AzureDirectory's cache directory, as well as our destination directory
-            // (only when older than 1 hour - old files may still have active searches on them so we need a margin)
-            var referenceTimestamp = LuceneTimestampFromDateTime(DateTimeOffset.UtcNow.AddHours(-1));
+            // (only when older than 45 minutes - old files may still have active searches on them so we need a margin)
+            var referenceTimestamp = LuceneTimestampFromDateTime(DateTimeOffset.UtcNow.AddMinutes(-45));
 
             // remove old files from AzureDirectory cache directory
             RemoveOldFiles(sourceDirectory.CacheDirectory, sourceFiles, referenceTimestamp);
