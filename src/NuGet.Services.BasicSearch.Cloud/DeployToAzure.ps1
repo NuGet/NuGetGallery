@@ -44,6 +44,21 @@ function CreateOrUpdate()
 	    # Copy it over the current one
 		Write-Host "Copying $config to $OctopusAzureConfigurationFile"
 		Copy-Item $config $OctopusAzureConfigurationFile -Force
+	} 
+	else
+	{
+		# Try replacing the SSL certificate thumbprint
+		Write-Host "Replacing SSL configuration thumbprint(s) in $OctopusAzureConfigurationFile"
+		[xml]$configXml = Get-Content $OctopusAzureConfigurationFile
+
+		foreach ($Certificate in $configXml.ServiceConfiguration.Role.Certificates.Certificate) {
+			if ($OctopusParameters[$Certificate.name]) {
+				$Certificate.thumbprint = $OctopusParameters[$Certificate.name]
+			}
+		}
+
+		$fileObject = Get-ChildItem $OctopusAzureConfigurationFile
+		$configXml.Save($fileObject)
 	}
 
     # Get the Current Deployment
