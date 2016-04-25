@@ -5,6 +5,7 @@
       <Site name="Web">
         <Bindings>
           <Binding name="HttpEndpoint" endpointName="HttpEndpoint" />
+          <Binding name="HttpsEndpoint" endpointName="HttpsEndpoint" />
         </Bindings>
       </Site>
     </Sites>
@@ -23,11 +24,15 @@
     </ConfigurationSettings>
     <Endpoints>
       <InputEndpoint name="HttpEndpoint" protocol="http" port="80" />
+      <InputEndpoint name="HttpsEndpoint" protocol="https" port="443" certificate="WebsiteSsl" />
       <InstanceInputEndpoint name="InstanceHttp" protocol="tcp" localPort="80">
         <AllocatePublicPortFrom>
           <FixedPortRange min="8080" max="8100" />
         </AllocatePublicPortFrom>
       </InstanceInputEndpoint>
     </Endpoints>
+    <Certificates>
+      <Certificate name="WebsiteSsl" storeLocation="LocalMachine" storeName="My" />
+    </Certificates>
   </WebRole>
 </ServiceDefinition>

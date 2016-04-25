@@ -11,6 +11,8 @@
       <Setting name="serilog-ApplicationInsightsInstrumentationKey" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
     </ConfigurationSettings>
-    <Certificates />
+    <Certificates>
+      <Certificate name="WebsiteSsl" thumbprint="F8ACE24A36F93B006BFAF495F6C14FB827AC61A3" thumbprintAlgorithm="sha1" />
+    </Certificates>
   </Role>
 </ServiceConfiguration>
