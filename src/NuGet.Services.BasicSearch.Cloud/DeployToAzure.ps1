@@ -39,10 +39,8 @@ function CreateOrUpdate()
 
     # Locate the config file
     $config = Join-Path $env:NuDeployCode "Deployment\Config\$environment\$OctopusAzureServiceName.cscfg"
-    if(!(Test-Path $config))
+    if (Test-Path $config)
     {
-        throw "Missing Deployment Config File! Expected it at: $config. Check the NuDeployCodeRoot environment variable on your Tentacle!"
-    } else {
 	    # Copy it over the current one
 		Write-Host "Copying $config to $OctopusAzureConfigurationFile"
 		Copy-Item $config $OctopusAzureConfigurationFile -Force
