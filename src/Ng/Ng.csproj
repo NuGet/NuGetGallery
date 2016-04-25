@@ -162,7 +162,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Services.Logging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Logging.1.0.0-rc2\lib\net451\NuGet.Services.Logging.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Services.Logging.1.0.0-rc2-update2\lib\net451\NuGet.Services.Logging.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=3.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">

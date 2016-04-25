@@ -95,7 +95,7 @@ namespace NuGet.Indexing
         {
             try
             {
-                Query query = NuGetQuery.MakeQuery(q, searcher);
+                Query query = NuGetQuery.MakeQuery(q, searcher.Owners);
                 Query boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
                 return boostedQuery;
             }

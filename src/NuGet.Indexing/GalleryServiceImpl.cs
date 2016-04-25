@@ -33,7 +33,7 @@ namespace NuGet.Indexing
                 }
 
                 // Build the query
-                Query query = NuGetQuery.MakeQuery(q, searcher);
+                Query query = NuGetQuery.MakeQuery(q, searcher.Owners);
 
                 // Build filter
                 bool includeUnlisted = ignoreFilter;

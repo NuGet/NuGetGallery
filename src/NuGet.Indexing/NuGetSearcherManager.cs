@@ -303,7 +303,7 @@ namespace NuGet.Indexing
             searcher.Search(new MatchAllDocsQuery(), 1);
 
             // Warmup search (query for a specific term with rankings)
-            var query = NuGetQuery.MakeQuery("newtonsoft.json", searcher);
+            var query = NuGetQuery.MakeQuery("newtonsoft.json", searcher.Owners);
             var boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
             searcher.Search(boostedQuery, 5);
 

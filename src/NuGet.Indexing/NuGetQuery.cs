@@ -19,7 +19,7 @@ namespace NuGet.Indexing
             return MakeQuery(q, null);
         }
 
-        public static Query MakeQuery(string q, NuGetIndexSearcher searcher)
+        public static Query MakeQuery(string q, OwnersHandler.OwnersResult owners)
         {
             var grouping = new Dictionary<string, HashSet<string>>();
             foreach (Clause clause in MakeClauses(Tokenize(q)))
@@ -38,12 +38,12 @@ namespace NuGet.Indexing
                 return new MatchAllDocsQuery();
             }
 
-            return ConstructQuery(grouping, searcher);
+            return ConstructQuery(grouping, owners);
         }
 
         // Lucene Query creation logic
 
-        private static Query ConstructQuery(Dictionary<string, HashSet<string>> clauses, NuGetIndexSearcher searcher)
+        private static Query ConstructQuery(Dictionary<string, HashSet<string>> clauses, OwnersHandler.OwnersResult owners)
         {
             Analyzer analyzer = new PackageAnalyzer();
 
@@ -82,17 +82,17 @@ namespace NuGet.Indexing
                         break;
                     case "owner":
                     case "owners":
-                        if (searcher != null)
+                        if (owners != null)
                         {
-                            filters.AddRange(OwnerFilters(searcher.Owners, clause.Value));
+                            filters.AddRange(OwnerFilters(owners, clause.Value));
                         }
                         break;
                     default:
                         AnyClause(booleanQuery, analyzer, clause.Value);
                         
-                        if (searcher != null)
+                        if (owners != null)
                         {
-                            var ownerFilters = OwnerFilters(searcher.Owners, clause.Value).ToList();
+                            var ownerFilters = OwnerFilters(owners, clause.Value).ToList();
                             if (ownerFilters.Any())
                             {
                                 booleanQuery.Add(ConstructFilteredQuery(new MatchAllDocsQuery(), ownerFilters), Occur.SHOULD);
