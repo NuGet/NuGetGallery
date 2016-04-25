@@ -9,7 +9,7 @@ namespace NuGet.Indexing
     {
         public override TokenStream TokenStream(string fieldName, TextReader reader)
         {
-            return new LowerCaseFilter(new CamelCaseFilter(new DotTokenizer(reader)));
+            return new LowerCaseFilter(new ExpandAcronymsFilter(new CamelCaseFilter(new DotTokenizer(reader)), NuGetAcronymExpansionProvider.Instance));
         }
     }
 }

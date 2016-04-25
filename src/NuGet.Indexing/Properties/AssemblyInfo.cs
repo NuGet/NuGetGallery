@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTitle("NuGet.Indexing")]
 [assembly: AssemblyDescription("Lucene-based Search Indexing tools for NuGet")]
 [assembly: InternalsVisibleTo("NuGet.Indexing.Facts")]
+[assembly: InternalsVisibleTo("NuGet.IndexingTests")]
 
 [assembly: AssemblyCompany(".NET Foundation")]
 [assembly: AssemblyProduct("NuGet Services")]
