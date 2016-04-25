@@ -67,7 +67,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="SerilogTraceListener, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\SerilogTraceListener.1.0.7\lib\net45\SerilogTraceListener.dll</HintPath>
+      <HintPath>..\..\packages\SerilogTraceListener.1.0.15\lib\net45\SerilogTraceListener.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -78,7 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationInsights.cs" />
-    <Compile Include="Logging.cs" />
+    <Compile Include="LoggingSetup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TelemetryContextInitializer.cs" />
   </ItemGroup>
