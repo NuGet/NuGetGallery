@@ -3,16 +3,21 @@
   <PublicConfig>
     <WadCfg>
       <DiagnosticMonitorConfiguration overallQuotaInMB="4096">
-        <DiagnosticInfrastructureLogs scheduledTransferLogLevelFilter="Error" />
-        <Logs scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Error" />
+        <DiagnosticInfrastructureLogs scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Error" />
+        <Logs scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Verbose" />
         <Directories scheduledTransferPeriod="PT1M">
           <IISLogs containerName="wad-iis-logfiles" />
           <FailedRequestLogs containerName="wad-failedrequestlogs" />
+          <DataSources>
+            <DirectoryConfiguration containerName="ng-v2v3search-logs">
+              <LocalResource relativePath="." name="Logs" />
+            </DirectoryConfiguration>
+          </DataSources>
         </Directories>
         <WindowsEventLog scheduledTransferPeriod="PT1M">
           <DataSource name="Application!*" />
         </WindowsEventLog>
-        <CrashDumps containerName="wad-crashdumps" dumpType="Mini">
+        <CrashDumps containerName="wad-crash-dumps" directoryQuotaPercentage="6" dumpType="Full">
           <CrashDumpConfiguration processName="WaIISHost.exe" />
           <CrashDumpConfiguration processName="WaWorkerHost.exe" />
           <CrashDumpConfiguration processName="w3wp.exe" />
@@ -35,5 +40,5 @@
   <PrivateConfig>
     <StorageAccount name="" key="" endpoint="" />
   </PrivateConfig>
-  <IsEnabled>false</IsEnabled>
+  <IsEnabled>true</IsEnabled>
 </DiagnosticsConfiguration>

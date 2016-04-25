@@ -6,10 +6,12 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
+    <licenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/NuGet/NuGet.Services.Metadata</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
-    <copyright>Copyright 2014</copyright>
-    <tags>Tag1 Tag2</tags>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright .NET Foundation</copyright>
+    <tags>nuget services search catalog metadata collector</tags>
   </metadata>
 </package>

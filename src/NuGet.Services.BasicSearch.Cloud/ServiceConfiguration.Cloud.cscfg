@@ -9,6 +9,7 @@
       <Setting name="Search.IndexRefresh" value="300" />
       <Setting name="Search.RegistrationBaseAddress" value="http://api.nuget.org/v3/registration0/" />
       <Setting name="serilog-ApplicationInsightsInstrumentationKey" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
     </ConfigurationSettings>
     <Certificates />
   </Role>

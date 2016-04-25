@@ -32,6 +32,8 @@
   </PropertyGroup>
   <!-- Items for the project -->
   <ItemGroup>
+    <None Include="DeployToAzure.ps1" />
+    <None Include="NuGet.Services.BasicSearch.Cloud.nuspec" />
     <ServiceDefinition Include="ServiceDefinition.csdef" />
     <ServiceConfiguration Include="ServiceConfiguration.Local.cscfg" />
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
@@ -43,13 +45,12 @@
       <Private>True</Private>
       <RoleType>Web</RoleType>
       <RoleName>NuGet.Services.BasicSearch</RoleName>
-      <UpdateDiagnosticsConnectionStringOnPublish>False</UpdateDiagnosticsConnectionStringOnPublish>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NuGet.Services.BasicSearchContent\" />
     <Folder Include="NuGet.Services.BasicSearchContent\bin" />
-    <Folder Include="Profiles" />
   </ItemGroup>
   <ItemGroup>
     <DiagnosticsConfiguration Include="NuGet.Services.BasicSearchContent\diagnostics.wadcfgx" />

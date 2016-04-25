@@ -19,6 +19,7 @@
       <Setting name="Search.IndexRefresh" />
       <Setting name="Search.RegistrationBaseAddress" />
       <Setting name="serilog-ApplicationInsightsInstrumentationKey" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
     </ConfigurationSettings>
     <Endpoints>
       <InputEndpoint name="HttpEndpoint" protocol="http" port="80" />

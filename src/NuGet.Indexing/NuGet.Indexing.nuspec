@@ -6,12 +6,12 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
-    <licenseUrl>https://github.com/NuGet/NuGet.Services.Search/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/NuGet/NuGet.Services.Search</projectUrl>
+    <licenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/NuGet/NuGet.Services.Metadata</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes></releaseNotes>
-    <copyright>Copyright 2014 .NET Foundation</copyright>
+    <copyright>Copyright .NET Foundation</copyright>
     <tags>nuget services search index lucene</tags>
   </metadata>
 </package>
