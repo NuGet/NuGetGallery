@@ -6,7 +6,7 @@ if "%config%" == "" (
 
 set version=
 if not "%PackageVersion%" == "" (
-   set version=-Version %PackageVersion%-ci
+   set version=-Version %PackageVersion%
 ) else (
    set version=-Version 3.0.0-ci
 )
@@ -88,9 +88,9 @@ call :ExecuteCmd tools\nuget.exe pack "src\NuGet.Indexing\NuGet.Indexing.csproj"
 IF %ERRORLEVEL% NEQ 0 goto error
 
 mkdir artifacts\octopus
-call :ExecuteCmd tools\nuget.exe pack "src\Ng\Ng.csproj" -o artifacts\packages -p Configuration=%config% %version% -NoPackageAnalysis
+call :ExecuteCmd tools\nuget.exe pack "src\Ng\Ng.csproj" -o artifacts\octopus -p Configuration=%config% %version% -NoPackageAnalysis
 IF %ERRORLEVEL% NEQ 0 goto error
-call :ExecuteCmd tools\nuget.exe pack "src\NuGet.Services.BasicSearch.Cloud\NuGet.Services.BasicSearch.Cloud.nuspec" -o artifacts\packages -p Configuration=%config% %version% -NoPackageAnalysis
+call :ExecuteCmd tools\nuget.exe pack "src\NuGet.Services.BasicSearch.Cloud\NuGet.Services.BasicSearch.Cloud.nuspec" -o artifacts\octopus -p Configuration=%config% %version% -NoPackageAnalysis
 IF %ERRORLEVEL% NEQ 0 goto error
 if not "%TEAMCITY_VERSION%" == "" (
 	echo ##teamcity[blockClosed name='Package artifacts']
