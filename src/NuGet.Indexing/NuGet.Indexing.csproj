@@ -35,8 +35,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
@@ -162,7 +166,6 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
@@ -179,7 +182,10 @@
   <ItemGroup>
     <Compile Include="BitSetCollector.cs" />
     <Compile Include="ConfigurationExtensions.cs" />
+    <Compile Include="AzureDirectorySynchronizer.cs" />
     <Compile Include="DownloadRankings.cs" />
+    <Compile Include="DynamicDocIdSet.cs" />
+    <Compile Include="ExpandAcronymsFilter.cs" />
     <Compile Include="Extraction\CatalogNuspecReader.cs" />
     <Compile Include="Extraction\CatalogPackageMetadataExtraction.cs" />
     <Compile Include="ChainedFilter.cs" />
@@ -190,7 +196,9 @@
     <Compile Include="Extraction\DocumentCreator.cs" />
     <Compile Include="Extraction\JTokenExtensions.cs" />
     <Compile Include="Extraction\PackageEntityMetadataExtraction.cs" />
+    <Compile Include="IAcronymExpansionProvider.cs" />
     <Compile Include="IConfiguration.cs" />
+    <Compile Include="NuGetAcronymExpansionProvider.cs" />
     <Compile Include="NuGetMergePolicyApplyer.cs" />
     <Compile Include="OwnerAnalyzer.cs" />
     <Compile Include="Downloads.cs" />
@@ -203,11 +211,18 @@
     <Compile Include="IndexReaderProcessorHandler.cs" />
     <Compile Include="LatestListedHandler.cs" />
     <Compile Include="NuGetQuery.cs" />
-    <Compile Include="OwnersHandler.cs" />
     <Compile Include="Extraction\NupkgPackageMetadataExtraction.cs" />
+    <Compile Include="OwnersHandler.cs" />
+    <Compile Include="RankingsHandler.cs" />
     <Compile Include="ResponseFormatter.cs" />
+    <Compile Include="Retry.cs" />
     <Compile Include="Sql2Lucene.cs" />
     <Compile Include="StorageLoader.cs" />
+    <Compile Include="Properties\Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
     <Compile Include="UriFormatter.cs" />
     <Compile Include="IndexingUtils.cs" />
     <Compile Include="LatestVersionFilterFactory.cs" />
@@ -248,6 +263,12 @@
     <None Include="app.config" />
     <None Include="NuGet.Indexing.nuspec" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -249,6 +249,7 @@
     <EmbeddedResource Include="sparql\SelectDistinctDependency.rq" />
     <EmbeddedResource Include="sparql\ConstructCatalogEntryGraph.rq" />
     <EmbeddedResource Include="sparql\ConstructRegistrationPageContentGraph.rq" />
+    <None Include="NuGet.Services.Metadata.Catalog.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

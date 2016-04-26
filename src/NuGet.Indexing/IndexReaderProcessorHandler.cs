@@ -11,6 +11,6 @@ namespace NuGet.Indexing
     {
         void Begin(IndexReader indexReader);
         void End(IndexReader indexReader);
-        void Process(IndexReader indexReader, string readerName, int n, Document document, string id, NuGetVersion version);
+        void Process(IndexReader indexReader, string readerName, int documentNumber, Document document, string id, NuGetVersion version);
     }
 }

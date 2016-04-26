@@ -25,10 +25,22 @@ namespace NuGet.Services.BasicSearchTests.Models
         {
             return Data.FirstOrDefault(p => p.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
         }
-
+        
         public bool ContainsPackage(string id)
         {
             return GetPackage(id) != null;
+        }
+
+        public bool ContainsPackageVersion(string id, string version)
+        {
+            var package = GetPackage(id);
+
+            if (package != null)
+            {
+                return package.Versions.Any(v => String.Equals(v.Version, version, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return false;
         }
 
         public string GetPackageVersion(string id)

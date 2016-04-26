@@ -1,19 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Tokenattributes;
-using System;
 using System.Collections.Generic;
 
 namespace NuGet.Indexing
 {
     public class CamelCaseFilter : TokenFilter
     {
-        ITermAttribute _termAttribute;
-        IOffsetAttribute _offsetAttribute;
-        IPositionIncrementAttribute _positionIncrementAttribute;
+        private readonly ITermAttribute _termAttribute;
+        private readonly IOffsetAttribute _offsetAttribute;
+        private readonly IPositionIncrementAttribute _positionIncrementAttribute;
 
-        Queue<TokenAttributes> _queue = new Queue<TokenAttributes>();
+        private readonly Queue<TokenAttributes> _queue = new Queue<TokenAttributes>();
 
         public CamelCaseFilter(TokenStream stream)
             : base(stream)

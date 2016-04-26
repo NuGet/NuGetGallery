@@ -129,5 +129,29 @@ namespace NuGet.Services.BasicSearchTests
                 Assert.Equal(expected, actual);
             }
         }
+
+        [Fact]
+        public async Task DoesNotIncludeUnlistedVersions()
+        {
+            // Arrange
+            var packages = new[]
+            {
+                new PackageVersion("Antlr", "3.1.3.42154"),
+                new PackageVersion("Antlr", "3.4.1.9004-pre", listed: false)
+            };
+
+            using (var app = await StartedWebApp.StartAsync(packages))
+            {
+                string query = "Id:Antlr";
+
+                // Act
+                var withPrereleaseResponse = await app.Client.GetAsync(new V3SearchBuilder { Query = query, Prerelease = true }.RequestUri);
+                var withPrerelease = await withPrereleaseResponse.Content.ReadAsAsync<V3SearchResult>();
+                
+                // Assert
+                Assert.Equal("3.1.3.42154", withPrerelease.GetPackageVersion("Antlr"));           // the latest version is not prerelease
+                Assert.False(withPrerelease.ContainsPackageVersion("Antlr", "3.4.1.9004-pre"));   // the unlisted version is not in the result
+            }
+        }
     }
 }

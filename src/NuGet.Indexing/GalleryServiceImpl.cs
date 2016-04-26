@@ -10,7 +10,7 @@ namespace NuGet.Indexing
 {
     public class GalleryServiceImpl
     {
-        public static void Search(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string q, bool countOnly, bool includePrerelease, string sortBy, int skip, int take, string feed, bool ignoreFilter)
+        public static void Search(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string q, bool countOnly, bool includePrerelease, string sortBy, int skip, int take, string feed, bool ignoreFilter, bool luceneQuery)
         {
             if (jsonWriter == null)
             {
@@ -25,22 +25,35 @@ namespace NuGet.Indexing
             var searcher = searcherManager.Get();
             try
             {
+                // The old V2 search service would treat "id:" queries (~match) in the same way as it did "packageid:" (==match).
+                // If "id:" is in the query, replace it.
+                if (luceneQuery && !string.IsNullOrEmpty(q) && q.StartsWith("id:", StringComparison.OrdinalIgnoreCase))
+                {
+                    q = "packageid:" + q.Substring(3);
+                }
+
+                // Build the query
+                Query query = NuGetQuery.MakeQuery(q, searcher.Owners);
+
+                // Build filter
                 bool includeUnlisted = ignoreFilter;
                 includePrerelease = ignoreFilter || includePrerelease;
                 feed = ignoreFilter ? null : feed;
-                Filter filter = searcher.GetFilter(includeUnlisted, includePrerelease, feed);
 
-                Query query = NuGetQuery.MakeQuery(q);
-
+                Filter filter = null;
+                if (!ignoreFilter && searcher.TryGetFilter(includeUnlisted, includePrerelease, feed, out filter))
+                {
+                    // Filter before running the query (make the search set smaller)
+                    query = new FilteredQuery(query, filter);
+                }
+             
                 if (countOnly)
                 {
-                    DocumentCountImpl(jsonWriter, searcher, query, filter);
+                    DocumentCountImpl(jsonWriter, searcher, query);
                 }
                 else
                 {
-                    IDictionary<string, int> rankings = searcher.Rankings;
-
-                    ListDocumentsImpl(jsonWriter, searcher, query, rankings, filter, sortBy, skip, take, searcherManager);
+                    ListDocumentsImpl(jsonWriter, searcher, query, sortBy, skip, take, searcherManager);
                 }
             }
             finally
@@ -49,22 +62,22 @@ namespace NuGet.Indexing
             }
         }
 
-        private static void DocumentCountImpl(JsonWriter jsonWriter, IndexSearcher searcher, Query query, Filter filter)
+        private static void DocumentCountImpl(JsonWriter jsonWriter, IndexSearcher searcher, Query query)
         {
-            TopDocs topDocs = searcher.Search(query, filter, 1);
+            TopDocs topDocs = searcher.Search(query, 1);
             ResponseFormatter.WriteV2CountResult(jsonWriter, topDocs.TotalHits);
         }
 
-        private static void ListDocumentsImpl(JsonWriter jsonWriter, NuGetIndexSearcher searcher, Query query, IDictionary<string, int> rankings, Filter filter, string sortBy, int skip, int take, NuGetSearcherManager manager)
+        private static void ListDocumentsImpl(JsonWriter jsonWriter, NuGetIndexSearcher searcher, Query query, string sortBy, int skip, int take, NuGetSearcherManager manager)
         {
-            Query boostedQuery = new RankingScoreQuery(query, rankings);
+            Query boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
 
             int nDocs = skip + take;
             Sort sort = GetSort(sortBy);
 
-            TopDocs topDocs = (sort == null) ?
-                searcher.Search(boostedQuery, filter, nDocs) :
-                searcher.Search(boostedQuery, filter, nDocs, sort);
+            TopDocs topDocs = (sort == null)
+                ? searcher.Search(boostedQuery, nDocs)
+                : searcher.Search(boostedQuery, null, nDocs, sort);
 
             ResponseFormatter.WriteV2Result(jsonWriter, searcher, topDocs, skip, take);
         }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -26,7 +27,7 @@ namespace NuGet.IndexingTests
         [MemberData(nameof(MakesQueriesSupportingSupportedFieldsData))]
         public void MakesQueriesSupportingSupportedFields(string input, Query expected)
         {
-            // arrange, act
+            // act
             var actual = NuGetQuery.MakeQuery(input);
 
             // assert
@@ -34,7 +35,7 @@ namespace NuGet.IndexingTests
         }
 
         [Theory]
-        [MemberData("MakesQueriesSupportingFieldAliasesData")]
+        [MemberData(nameof(MakesQueriesSupportingFieldAliasesData))]
         public void MakesQueriesSupportingFieldAliases(string inputField, string expectedField)
         {
             // arrange
@@ -45,6 +46,24 @@ namespace NuGet.IndexingTests
 
             // assert
             Assert.Contains($"{expectedField}:dot", actual.ToString());
+        }
+
+        [Theory]
+        [MemberData(nameof(MakesFilteredQueriesSupportingFieldAliasesData))]
+        public void MakesFilteredQueriesSupportingFieldAliases(string inputField, string expectedField)
+        {
+            // arrange
+            var owners = CreateOwnersResult(new Dictionary<string, HashSet<string>>
+                {
+                    {  "dot", new HashSet<string> { "dot" } }
+                });
+            var queryText = $"{inputField}:dot";
+
+            // act
+            var actual = NuGetQuery.MakeQuery(queryText, owners);
+
+            // assert
+            Assert.Contains("filtered(*:*)->NuGet.Indexing.OwnersFilter", actual.ToString());
         }
 
         [Fact]
@@ -87,8 +106,7 @@ namespace NuGet.IndexingTests
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Description", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Summary", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { Clauses = { new BooleanClause(new TermQuery(new Term("Tags", "dot")), Occur.SHOULD) }, Boost = 2 }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Authors", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Owner", "dot")), Occur.SHOULD) }, Occur.SHOULD)
+                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Authors", "dot")), Occur.SHOULD) }, Occur.SHOULD)
             };
 
             // act
@@ -102,27 +120,57 @@ namespace NuGet.IndexingTests
         public void CanMixTermsWithAndWithoutFieldLabels()
         {
             // arrange
+            var owners = CreateOwnersResult(new Dictionary<string, HashSet<string>>
+                {
+                    {  "dot", new HashSet<string> { "microsoft" } }
+                });
+
             var queryText = "dot owner:Microsoft";
-            var expected = new BooleanQuery
-            {
-                new BooleanClause(new BooleanQuery { Clauses = { new BooleanClause(new TermQuery(new Term("Id", "dot")), Occur.SHOULD) }, Boost = 8 }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("ShingledId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("TokenizedId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Version", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Title", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Description", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Summary", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { Clauses = { new BooleanClause(new TermQuery(new Term("Tags", "dot")), Occur.SHOULD) }, Boost = 2 }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Authors", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Owner", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Owner", "microsoft")), Occur.SHOULD) }, Occur.MUST)
-            };
+            var expected = new FilteredQuery(
+                new BooleanQuery
+                {
+                    new BooleanClause(new BooleanQuery { Clauses = { new BooleanClause(new TermQuery(new Term("Id", "dot")), Occur.SHOULD) }, Boost = 8 }, Occur.SHOULD),
+                    new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("ShingledId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
+                    new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("TokenizedId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
+                    new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Version", "dot")), Occur.SHOULD) }, Occur.SHOULD),
+                    new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Title", "dot")), Occur.SHOULD) }, Occur.SHOULD),
+                    new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Description", "dot")), Occur.SHOULD) }, Occur.SHOULD),
+                    new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Summary", "dot")), Occur.SHOULD) }, Occur.SHOULD),
+                    new BooleanClause(new BooleanQuery { Clauses = { new BooleanClause(new TermQuery(new Term("Tags", "dot")), Occur.SHOULD) }, Boost = 2 }, Occur.SHOULD),
+                    new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Authors", "dot")), Occur.SHOULD) }, Occur.SHOULD)
+                },
+                new OwnersFilter(owners, "Microsoft"));
 
             // act
-            var actual = NuGetQuery.MakeQuery(queryText);
+            var actual = NuGetQuery.MakeQuery(queryText, owners);
 
             // assert
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected.ToString(), actual.ToString());
+        }
+
+        private OwnersHandler.OwnersResult CreateOwnersResult(Dictionary<string, HashSet<string>> originalPackagesWithOwners)
+        {
+            var knownOwners = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var packagesWithOwners = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            var mappings = new Dictionary<string, IDictionary<string, DynamicDocIdSet>>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "", new Dictionary<string, DynamicDocIdSet>(StringComparer.OrdinalIgnoreCase) }
+            };
+
+            foreach (var originalPackageWithOwners in originalPackagesWithOwners)
+            {
+                var originalOwners = new HashSet<string>();
+
+                foreach (var owner in originalPackageWithOwners.Value)
+                {
+                    knownOwners.Add(owner);
+                    originalOwners.Add(owner);
+                }
+
+                packagesWithOwners.Add(originalPackageWithOwners.Key, originalOwners);
+            }
+
+            return new OwnersHandler.OwnersResult(knownOwners, packagesWithOwners, mappings);
         }
 
         [Fact]
@@ -154,8 +202,7 @@ namespace NuGet.IndexingTests
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Description", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Summary", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { Clauses = { new BooleanClause(new TermQuery(new Term("Tags", "dot")), Occur.SHOULD) }, Boost = 2 }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Authors", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Owner", "dot")), Occur.SHOULD) }, Occur.SHOULD)
+                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Authors", "dot")), Occur.SHOULD) }, Occur.SHOULD)
             };
 
             // act
@@ -278,21 +325,7 @@ namespace NuGet.IndexingTests
 
                 // version
                 yield return GetSimpleFieldQuery("Version");
-
-                // owner
-                yield return new object[]
-                {
-                    "OWNER:\"ABC-DEF\" OWNER:GHI",
-                    new BooleanQuery
-                    {
-                        new BooleanClause(new BooleanQuery
-                        {
-                            new BooleanClause(new TermQuery(new Term("Owner", "abc-def")), Occur.SHOULD),
-                            new BooleanClause(new TermQuery(new Term("Owner", "ghi")), Occur.SHOULD)
-                        }, Occur.MUST)
-                    }
-                };
-
+                
                 // title
                 yield return new object[]
                 {
@@ -330,9 +363,6 @@ namespace NuGet.IndexingTests
 
                 // summary
                 yield return GetSimpleFieldQuery("Summary");
-
-                // owner
-                yield return GetSimpleFieldQuery("Owner");
             }
         }
 
@@ -350,8 +380,17 @@ namespace NuGet.IndexingTests
                 yield return new object[] { "author", "Authors" };
                 yield return new object[] { "authors", "Authors" };
                 yield return new object[] { "summary", "Summary" };
+            }
+        }
+
+        public static IEnumerable<object[]> MakesFilteredQueriesSupportingFieldAliasesData
+        {
+            get
+            {
                 yield return new object[] { "owner", "Owner" };
                 yield return new object[] { "owners", "Owner" };
+                yield return new object[] { "OWNER", "Owner" };
+                yield return new object[] { "OWNERS", "Owner" };
             }
         }
 

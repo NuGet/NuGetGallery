@@ -93,6 +93,8 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
                         $"Errors: {string.Join(", ", errors)}");
                 }
 
+                metadata["listed"] = version.Listed.ToString().ToLowerInvariant();
+
                 return metadata;
             }
         }

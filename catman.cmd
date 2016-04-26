@@ -1,1 +1,0 @@
-@%~dp0src\catman\bin\Debug\catman.exe %*

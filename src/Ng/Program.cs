@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
-using NuGet.Services;
+using NuGet.Services.Logging;
 
 namespace Ng
 {
@@ -27,14 +27,16 @@ namespace Ng
                 Debugger.Launch();
             }
 
-            // create an ILoggerFactory
+            // Get arguments
             var arguments = CommandHelpers.GetArguments(args, 0);
-            var elasticsearchEndpoint = CommandHelpers.GetElasticsearchEndpoint(arguments);
-            var elasticsearchUsername = CommandHelpers.GetElasticsearchUsername(arguments);
-            var elasticsearchPassword = CommandHelpers.GetElasticsearchPassword(arguments);
-            var loggerFactory = Logging.CreateLoggerFactory(null, elasticsearchEndpoint, elasticsearchUsername, elasticsearchPassword);
 
-            // create a logger that is scoped to this class (only)
+            // Configure ApplicationInsights
+            ApplicationInsights.Initialize(CommandHelpers.GetApplicationInsightsInstrumentationKey(arguments));
+
+            // Create an ILoggerFactory
+            var loggerFactory = LoggingSetup.CreateLoggerFactory();
+
+            // Create a logger that is scoped to this class (only)
             _logger = loggerFactory.CreateLogger<Program>();
 
             var cancellationTokenSource = new CancellationTokenSource();

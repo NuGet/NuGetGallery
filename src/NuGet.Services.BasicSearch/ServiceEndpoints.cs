@@ -70,10 +70,12 @@ namespace NuGet.Services.BasicSearch
             var sortBy = context.Request.Query["sortBy"] ?? string.Empty;
             var feed = context.Request.Query["feed"];
 
+            var luceneQuery = GetLuceneQuery(context);
+
             await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => GalleryServiceImpl.Search(jsonWriter, searcherManager, q, countOnly, includePrerelease, sortBy, skip, take, feed, ignoreFilter));
+                jsonWriter => GalleryServiceImpl.Search(jsonWriter, searcherManager, q, countOnly, includePrerelease, sortBy, skip, take, feed, ignoreFilter, luceneQuery));
         }
 
         public static async Task RankingsAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
@@ -81,8 +83,7 @@ namespace NuGet.Services.BasicSearch
             await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => ServiceInfoImpl.Rankings(jsonWriter, searcherManager),
-                allowResponseCache: false);
+                jsonWriter => ServiceInfoImpl.Rankings(jsonWriter, searcherManager));
         }
 
         public static async Task Stats(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
@@ -90,35 +91,7 @@ namespace NuGet.Services.BasicSearch
             await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => ServiceInfoImpl.Stats(jsonWriter, searcherManager),
-                allowResponseCache: false);
-        }
-
-        public static async Task CacheStats(IOwinContext context, ResponseWriter responseWriter)
-        {
-            var totalRequests = responseWriter.ResponseBodyCache.TotalRequests;
-            var totalCacheHits = responseWriter.ResponseBodyCache.Hits;
-            var cacheHitRatio = responseWriter.ResponseBodyCache.HitRatio;
-
-            await responseWriter.WriteResponseAsync(
-                context,
-                HttpStatusCode.OK,
-                jsonWriter =>
-                {
-                    jsonWriter.WriteStartObject();
-
-                    jsonWriter.WritePropertyName("totalRequests");
-                    jsonWriter.WriteValue(totalRequests);
-
-                    jsonWriter.WritePropertyName("totalCacheHits");
-                    jsonWriter.WriteValue(totalCacheHits);
-
-                    jsonWriter.WritePropertyName("cacheHitRatio");
-                    jsonWriter.WriteValue(cacheHitRatio);
-
-                    jsonWriter.WriteEndObject();
-                },
-                allowResponseCache: false);
+                jsonWriter => ServiceInfoImpl.Stats(jsonWriter, searcherManager));
         }
 
         private static bool GetIncludeExplanation(IOwinContext context)
@@ -141,6 +114,17 @@ namespace NuGet.Services.BasicSearch
             }
 
             return includePrerelease;
+        }
+
+        private static bool GetLuceneQuery(IOwinContext context)
+        {
+            bool luceneQuery;
+            if (!bool.TryParse(context.Request.Query["luceneQuery"], out luceneQuery))
+            {
+                luceneQuery = true; // defaults to true
+            }
+
+            return luceneQuery;
         }
 
         private static int GetTake(IOwinContext context)

@@ -19,7 +19,7 @@ namespace NuGet.Indexing
         {
             return searcher.IndexReader.Reopen();
         }
-
+        
         protected override IndexSearcher CreateSearcher(IndexReader reader)
         {
             return new IndexSearcher(reader);

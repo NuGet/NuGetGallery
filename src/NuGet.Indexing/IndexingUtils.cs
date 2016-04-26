@@ -14,13 +14,13 @@ namespace NuGet.Indexing
 {
     public static class IndexingUtils
     {
-        public static IDictionary<string, HashSet<string>> Load(string name, ILoader loader, FrameworkLogger logger)
+        public static void Load(string name, ILoader loader, FrameworkLogger logger, IDictionary<string, HashSet<string>> targetDictionary)
         {
             try
             {
                 using (var jsonReader = loader.GetReader(name))
                 {
-                    return CreateDictionary(jsonReader);
+                    UpdateDictionary(jsonReader, targetDictionary);
                 }
             }
             catch (Exception e)
@@ -31,13 +31,11 @@ namespace NuGet.Indexing
                 }
 
                 logger.LogError($"Unable to load {name}.", e);
-                return new Dictionary<string, HashSet<string>>();
             }
         }
 
-        public static IDictionary<string, HashSet<string>> CreateDictionary(JsonReader jsonReader)
+        public static void UpdateDictionary(JsonReader jsonReader, IDictionary<string, HashSet<string>> targetDictionary)
         {
-            var result = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
             jsonReader.Read();
 
             while (jsonReader.Read())
@@ -45,12 +43,11 @@ namespace NuGet.Indexing
                 if (jsonReader.TokenType == JsonToken.StartArray)
                 {
                     var record = (JArray)JToken.ReadFrom(jsonReader);
-                    var id = record[0].ToString();
-                    var data = new HashSet<string>(record[1].Select(t => t.ToString()), StringComparer.OrdinalIgnoreCase);
-                    result[id] = data;
+                    var id = String.Intern(record[0].ToString());
+                    var data = new HashSet<string>(record[1].Select(t => String.Intern(t.ToString())), StringComparer.OrdinalIgnoreCase);
+                    targetDictionary[id] = data;
                 }
             }
-            return result;
         }
 
         public static bool IsFatal(Exception e)
