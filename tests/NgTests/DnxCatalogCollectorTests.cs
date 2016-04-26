@@ -28,13 +28,13 @@ namespace NgTests
 
             var mockServer = new MockServerHttpClientHandler();
 
-            mockServer.SetAction("/", async request => new HttpResponseMessage(HttpStatusCode.OK));
+            mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
             await mockServer.AddStorage(catalogStorage);
 
-            mockServer.SetAction("/listedpackage.1.0.0.nupkg", async request => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) });
-            mockServer.SetAction("/listedpackage.1.0.1.nupkg", async request => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) });
-            mockServer.SetAction("/unlistedpackage.1.0.0.nupkg", async request => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) });
-            mockServer.SetAction("/otherpackage.1.0.0.nupkg", async request => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) });
+            mockServer.SetAction("/listedpackage.1.0.0.nupkg", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
+            mockServer.SetAction("/listedpackage.1.0.1.nupkg", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
+            mockServer.SetAction("/unlistedpackage.1.0.0.nupkg", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
+            mockServer.SetAction("/otherpackage.1.0.0.nupkg", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
 
             // Setup collector
             var target = new DnxCatalogCollector(new Uri("http://tempuri.org/index.json"), catalogToDnxStorageFactory, () => mockServer)
