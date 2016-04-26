@@ -200,6 +200,14 @@ namespace Ng
 
         public static StorageFactory CreateCompressedStorageFactory(IDictionary<string, string> arguments, bool verbose)
         {
+            string useCompressedStorage = "false";
+            arguments.TryGetValue("-useCompressedStorage", out useCompressedStorage);
+
+            if (useCompressedStorage != null && useCompressedStorage.Equals("false", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return null;
+            }
+
             Uri storageBaseAddress = null;
             string storageBaseAddressStr;
             if (arguments.TryGetValue("-compressedStorageBaseAddress", out storageBaseAddressStr))

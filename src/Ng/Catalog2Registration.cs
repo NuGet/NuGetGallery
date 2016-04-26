@@ -51,6 +51,7 @@ namespace Ng
         private static void PrintUsage()
         {
             Console.WriteLine("Usage: ng catalog2registration -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] [-interval <seconds>]");
+            Console.WriteLine("To compress data in a separate container, add: -useCompressedStorage [true|false] -compressedStorageBaseAddress <storage-base-address> -compressedStorageAccountName <azure-acc> -compressedStorageKeyValue <azure-key> -compressedstorageContainer <azure-container> -compressedStoragePath <path>");
         }
 
         public void Run(string[] args, CancellationToken cancellationToken)
