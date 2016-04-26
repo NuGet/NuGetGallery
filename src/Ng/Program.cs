@@ -34,7 +34,8 @@ namespace Ng
             ApplicationInsights.Initialize(CommandHelpers.GetApplicationInsightsInstrumentationKey(arguments));
 
             // Create an ILoggerFactory
-            var loggerFactory = LoggingSetup.CreateLoggerFactory();
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: true);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
 
             // Create a logger that is scoped to this class (only)
             _logger = loggerFactory.CreateLogger<Program>();
