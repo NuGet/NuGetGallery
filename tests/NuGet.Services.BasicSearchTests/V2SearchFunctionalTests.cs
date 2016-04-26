@@ -9,7 +9,7 @@ using Xunit;
 
 namespace NuGet.Services.BasicSearchTests
 {
-    public class V2SearcskiphFunctionalTests
+    public class V2SearchSkipFunctionalTests
     {
         [Fact]
         public async Task CanReturnEmptyResult()

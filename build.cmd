@@ -26,7 +26,7 @@ if not "%TEAMCITY_VERSION%" == "" (
 )
 echo.
 echo Running package restore...
-call :ExecuteCmd tools\nuget.exe restore NuGet.Services.Metadata.sln -OutputDirectory %cd%\packages -NonInteractive
+call :ExecuteCmd tools\nuget.exe restore NuGet.Services.Metadata.sln -OutputDirectory %cd%\packages -NonInteractive -ConfigFile .\NuGet.config
 IF %ERRORLEVEL% NEQ 0 goto error
 if not "%TEAMCITY_VERSION%" == "" (
 	echo ##teamcity[blockClosed name='Package restore']

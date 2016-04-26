@@ -6,6 +6,7 @@ using System.Threading;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 
 namespace NuGet.Indexing
 {
@@ -50,7 +51,8 @@ namespace NuGet.Indexing
             return GetFiles().Where(f => f.StartsWith(folder + "/", StringComparison.OrdinalIgnoreCase));
         }
 
-        public override IEnumerable<string> CopyFiles(string destination, IEnumerable<string> packageFiles, CancellationToken token)
+        public override IEnumerable<string> CopyFiles(string destination, IEnumerable<string> packageFiles, ExtractPackageFileDelegate extractFile,
+            CancellationToken token)
         {
             throw new NotImplementedException();
         }
