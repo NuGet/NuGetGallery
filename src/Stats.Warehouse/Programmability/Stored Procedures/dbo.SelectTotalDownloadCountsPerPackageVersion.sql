@@ -17,7 +17,7 @@ BEGIN
 	INNER JOIN	Dimension_Client AS C (NOLOCK)
 	ON			C.[Id] = F.[Dimension_Client_Id]
 
-	WHERE		F.[Timestamp] <= @Cursor
+	WHERE		(F.[Timestamp] <= @Cursor OR F.[Dimension_Date_Id] = -1)
 			AND C.ClientCategory NOT IN ('Crawler', 'Unknown')
 			AND NOT (C.ClientCategory = 'NuGet' AND CAST(ISNULL(C.[Major], '0') AS INT) > 10)
 
