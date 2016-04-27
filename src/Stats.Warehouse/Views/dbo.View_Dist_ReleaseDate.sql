@@ -7,6 +7,11 @@
 									THEN 1
 									ELSE 0
 								END,
+			'VersionAlias' =	CASE
+									WHEN CHARINDEX('-', Tool.[LowercasedToolVersion]) > 0
+									THEN 'latest-prerelease'
+									ELSE 'latest'
+								END,
 			ISNULL(MIN(D.[Date]), '1900-01-01') AS 'StartDate',
 			ISNULL(MIN(T.[HourOfDay]), 0) AS 'StartHour'
 	FROM	[dbo].[Dimension_Tool] AS Tool (NOLOCK)

@@ -947,7 +947,7 @@ namespace Stats.ImportAzureCdnStatistics
                 .Select(e => UserAgentFact.TrimUserAgent(e.UserAgent))
                 .ToList();
 
-            var results = new Dictionary<string, int>();
+            var results = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             if (!userAgents.Any())
             {
                 return results;
@@ -961,7 +961,7 @@ namespace Stats.ImportAzureCdnStatistics
                     var cachedUserAgentFactId = _cachedUserAgentFacts[userAgent];
                     results.Add(userAgent, cachedUserAgentFactId);
                 }
-                else
+                else if (!nonCachedUserAgents.Contains(userAgent))
                 {
                     nonCachedUserAgents.Add(userAgent);
                 }
@@ -969,7 +969,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             if (nonCachedUserAgents.Any())
             {
-                var parameterValue = UserAgentFactTableType.CreateDataTable(nonCachedUserAgents.Distinct().ToList());
+                var parameterValue = UserAgentFactTableType.CreateDataTable(nonCachedUserAgents.Distinct(StringComparer.OrdinalIgnoreCase).ToList());
 
                 var command = connection.CreateCommand();
                 command.CommandText = "[dbo].[EnsureUserAgentFactsExist]";
