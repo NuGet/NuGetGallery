@@ -12,12 +12,13 @@ BEGIN
 												SELECT	MAX([Timestamp])
 												FROM	[dbo].[Fact_Download] (NOLOCK)
 												WHERE	[Timestamp] < @ReportGenerationTime
+														AND [Dimension_Date_Id] <> -1
 											 )
 
 	-- query for dirty package id's
 	-- dirty = package id has registered new downloads between last known cursor position (exclusive) and cursor run-to position (inclusive)
 
-		SELECT	DISTINCT P.[PackageId], @CursorRunToPosition AS [CursorRunToPosition], SUM(ISNULL(F.[DownloadCount], 0)) AS PackageDownloadCount
+	SELECT	DISTINCT P.[PackageId], @CursorRunToPosition AS [CursorRunToPosition], SUM(ISNULL(F.[DownloadCount], 0)) AS PackageDownloadCount
 	FROM	[dbo].[Fact_Download] (NOLOCK) AS F
 
 	INNER JOIN	[dbo].[Dimension_Package] AS P (NOLOCK)
