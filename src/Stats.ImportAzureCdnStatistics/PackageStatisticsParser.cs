@@ -24,7 +24,7 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 return null;
             }
-            
+
             packageDefinition = _packageTranslator.TranslatePackageDefinition(packageDefinition);
 
             var statistic = new PackageStatistics();
