@@ -7,11 +7,10 @@ BEGIN
 	DECLARE @results TABLE
 	(
 		[Id]				INT				NOT NULL,
-		[UserAgent]         NVARCHAR(900)	NULL,
-		INDEX IX_Results NONCLUSTERED ([Id], [UserAgent])
+		[UserAgent]         NVARCHAR(2048)	NULL
 	)
 
-	DECLARE @UserAgent NVARCHAR(900)
+	DECLARE @UserAgent NVARCHAR(2048)
 
 	BEGIN TRY
 

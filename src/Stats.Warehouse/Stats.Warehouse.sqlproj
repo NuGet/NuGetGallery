@@ -128,5 +128,11 @@
     <Build Include="Tables\dbo.Fact_Package_PackageSet.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.RollUpDownloadFacts.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.DownloadReportLast6Weeks.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.CleanupPlatformDimension.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.CleanupFactIpAddress.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.CleanupFactUserAgent.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="StaticCodeAnalysis.SuppressMessages.xml" />
   </ItemGroup>
 </Project>
