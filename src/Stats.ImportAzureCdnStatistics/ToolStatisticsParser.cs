@@ -23,6 +23,14 @@ namespace Stats.ImportAzureCdnStatistics
 
         public static ToolStatistics GetToolStatisticsFromRequestUrl(string requestUrl, DateTime edgeServerTimeDelivered)
         {
+            // Filter out non-valid request paths
+            var lowerCaseRequestPath = requestUrl.ToLowerInvariant();
+            if (!lowerCaseRequestPath.EndsWith(".exe")
+                && !lowerCaseRequestPath.EndsWith(".vsix"))
+            {
+                return null;
+            }
+
             var matches = Regex.Matches(requestUrl, @"(http[s]?[:]//dist.nuget.org/[\w]*\/nugetdist.blob.core.windows.net/artifacts/)(?<toolId>[\w-]+)/(?<toolVersion>[a-zA-Z0-9.-]+)/(?<fileName>[\w.]+)");
             if (matches.Count == 1)
             {
