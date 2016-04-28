@@ -51,6 +51,11 @@ namespace NuGetGallery
             return View();
         }
 
+        public virtual ActionResult Downloads()
+        {
+            return Redirect("https://dist.nuget.org/index.html");
+        }
+
         [Authorize]
         [HttpPost]
         public virtual async Task<ActionResult> Contact(ContactSupportViewModel contactForm)
