@@ -66,7 +66,10 @@ namespace NuGetGallery.WebApi
 
             // todo: if we decide to no longer support projections
             //AllowedQueryOptions = AllowedQueryOptions.All & ~AllowedQugeteryOptions.Select
-            _validationSettings = new ODataValidationSettings();
+            _validationSettings = new ODataValidationSettings()
+            {
+                MaxNodeCount = 250
+            };
 
             _querySettings = new ODataQuerySettings(QueryResultDefaults.DefaultQuerySettings)
             {

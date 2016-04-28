@@ -326,6 +326,10 @@ namespace NuGetGallery
                     var searchFilter = SearchAdaptor.GetSearchFilter(
                             "id:\"" + package.PackageRegistration.Id + "\" AND version:\"" + package.Version + "\"",
                             1, null, SearchFilter.ODataSearchContext);
+
+                    searchFilter.IncludePrerelease = true;
+                    searchFilter.IncludeAllVersions = true;
+
                     var results = await externalSearchService.RawSearch(searchFilter);
 
                     isIndexed = results.Hits > 0;
