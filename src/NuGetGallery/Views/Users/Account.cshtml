@@ -471,9 +471,9 @@
                     <div id="account-apikeysample">
                         <div>
                             nuget.exe setApiKey @apiKey.Value
-                            <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyToClipboard('nuget.exe setApiKey @apiKey.Value', this)"><i class="icon-copy"></i></button>
+                            <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyToClipboard('nuget.exe setApiKey @apiKey.Value -Source http://nuget.org', this)"><i class="icon-copy"></i></button>
                         </div>
-                        <div>nuget.exe push MyPackage.1.0.nupkg</div>
+                        <div>nuget.exe push MyPackage.1.0.nupkg -Source http://nuget.org</div>
                     </div>
                 </p>
             }
