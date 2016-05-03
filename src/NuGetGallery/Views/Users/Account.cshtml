@@ -443,7 +443,7 @@
             {
                 <p>
                     Your API key provides you with a token that can identify you to the gallery. The
-                    <a href="http://nuget.codeplex.com/">NuGet</a> command-line utility allows you to
+                    <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a> command-line utility allows you to
                     submit a NuGet package to the gallery using your API key to authenticate.
                     To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
                 </p>
@@ -452,7 +452,7 @@
             {
                 <p>
                     An API key provides you with a token that can identify you to the gallery. The
-                    <a href="http://nuget.codeplex.com/">NuGet</a> command-line utility allows you to
+                    <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a> command-line utility allows you to
                     submit a NuGet package to the gallery using your API key to authenticate.
                 </p>
             }
@@ -462,7 +462,7 @@
                     Your API key provides you with a token that identifies you to the gallery.
                     Keep this a secret. You can always regenerate your key at any time (invalidating
                     previous keys) if your token is accidentally revealed. The
-                    <a href="http://nuget.codeplex.com/">NuGet</a> command-line utility allows you to
+                    <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a> command-line utility allows you to
                     submit a NuGet package to the gallery, and you would pass your token like this:
                 </p>
 
@@ -471,9 +471,9 @@
                     <div id="account-apikeysample">
                         <div>
                             nuget.exe setApiKey @apiKey.Value
-                            <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyToClipboard('nuget.exe setApiKey @apiKey.Value -Source http://nuget.org', this)"><i class="icon-copy"></i></button>
+                            <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyToClipboard('nuget.exe setApiKey @apiKey.Value -Source https://www.nuget.org/api/v2/package', this)"><i class="icon-copy"></i></button>
                         </div>
-                        <div>nuget.exe push MyPackage.1.0.nupkg -Source http://nuget.org</div>
+                        <div>nuget.exe push MyPackage.1.0.nupkg -Source https://www.nuget.org/api/v2/package</div>
                     </div>
                 </p>
             }
