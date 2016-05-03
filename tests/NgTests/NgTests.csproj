@@ -124,6 +124,7 @@
     <EmbeddedResource Include="Data\TestCatalogEntries.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TestCatalogEntries.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Data\TestRegistrationEntries.resx">
       <Generator>ResXFileCodeGenerator</Generator>
