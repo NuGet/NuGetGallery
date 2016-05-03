@@ -343,7 +343,7 @@ namespace NuGet.Indexing
                 WriteDocumentValue(jsonWriter, "HashAlgorithm", document, "PackageHashAlgorithm");
                 WriteProperty(jsonWriter, "PackageFileSize", int.Parse(document.Get("PackageSize") ?? "0"));
                 WriteDocumentValue(jsonWriter, "LicenseUrl", document, "LicenseUrl");
-                WriteProperty(jsonWriter, "RequiresLicenseAcceptance", bool.Parse(document.Get("RequiresLicenseAcceptance") ?? "true"));
+                WriteProperty(jsonWriter, "RequiresLicenseAcceptance", bool.Parse(document.Get("RequiresLicenseAcceptance") ?? "false"));
                 jsonWriter.WriteEndObject();
             }
 

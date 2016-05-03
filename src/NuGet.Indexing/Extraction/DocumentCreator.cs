@@ -237,7 +237,7 @@ namespace NuGet.Indexing
         static void AddRequiresLicenseAcceptance(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
-            if (package.TryGetValue("requiresLicenseAcceptance", out value))
+            if (package.TryGetValue("requireLicenseAcceptance", out value))
             {
                 bool requiresLicenseAcceptance;
                 if (bool.TryParse(value, out requiresLicenseAcceptance))
