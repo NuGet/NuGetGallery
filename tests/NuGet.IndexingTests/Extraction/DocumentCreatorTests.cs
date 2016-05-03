@@ -215,7 +215,7 @@ namespace NuGet.IndexingTests
                 yield return new[] { "listed", "Unable to parse 'listed' as Boolean.\r\n" };
                 yield return new[] { "published", "Unable to parse 'published' as DateTime.\r\n" };
                 yield return new[] { "lastEdited", "Unable to parse 'lastEdited' as DateTime.\r\n" };
-                yield return new[] { "requiresLicenseAcceptance", "Unable to parse 'requiresLicenseAcceptance' as Boolean.\r\n" };
+                yield return new[] { "requireLicenseAcceptance", "Unable to parse 'requiresLicenseAcceptance' as Boolean.\r\n" };
                 yield return new[] { "packageSize", "Unable to parse 'packageSize' as Int32.\r\n" };
             }
         }
@@ -233,7 +233,7 @@ namespace NuGet.IndexingTests
                 // not required but validated
                 { "lastEdited", new DateTime(2003, 3, 3, 0, 0, 0, DateTimeKind.Utc).ToString("O") },
                 { "packageSize", "1200" },
-                { "requiresLicenseAcceptance", "true" },
+                { "requireLicenseAcceptance", "true" },
 
                 // not required
                 { "originalVersion", "1.00.000" },
