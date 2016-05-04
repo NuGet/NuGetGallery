@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
+using NuGet.Packaging;
 using NuGet.Versioning;
 
 namespace NuGet.Indexing
@@ -125,43 +126,72 @@ namespace NuGet.Indexing
 
             private void AddFlattenedDependencies()
             {
-                var dependencies = _reader
-                    .GetPackageDependencies()
-                    .SelectMany(g => g.Packages.Select(p => new { g.TargetFramework, Package = p }));
-                
-                var builder = new StringBuilder();
-                foreach (var dependency in dependencies)
-                {
-                    if (builder.Length > 0)
-                    {
-                        builder.Append("|");
-                    }
+                var dependencyGroups = _reader.GetPackageDependencies().ToList();
 
-                    builder.Append(dependency.Package.Id);
-                    builder.Append(":");
-                    if (!dependency.Package.VersionRange.Equals(VersionRange.All))
+                var builder = new StringBuilder();
+                foreach (var dependencyGroup in dependencyGroups)
+                {
+                    if (dependencyGroup.Packages.Any())
                     {
-                        builder.Append(dependency.Package.VersionRange?.ToString("S", new VersionRangeFormatter()));
+                        // Add packages list
+                        foreach (var packageDependency in dependencyGroup.Packages)
+                        {
+                            AddFlattennedPackageDependency(dependencyGroup, packageDependency, builder);
+                        }
                     }
-                    
-                    if (!SpecialFrameworks.Contains(dependency.TargetFramework))
+                    else
                     {
-                        try
+                        // Add empty framework dependency
+                        if (builder.Length > 0)
                         {
-                            builder.Append(":");
-                            builder.Append(dependency.TargetFramework?.GetShortFolderName());
+                            builder.Append("|");
                         }
-                        catch (FrameworkException)
-                        {
-                            // ignoring FrameworkException on purpose - we don't want the job crashing
-                            // whenever someone uploads an unsupported framework
-                        }
+
+                        builder.Append(":");
+                        AddFlattenedFrameworkDependency(dependencyGroup, builder);
                     }
                 }
-
+                
                 if (builder.Length > 0)
                 {
                     _metadata["flattenedDependencies"] = builder.ToString();
+                }
+            }
+
+            private void AddFlattennedPackageDependency(
+                PackageDependencyGroup dependencyGroup, 
+                Packaging.Core.PackageDependency packageDependency,
+                StringBuilder builder)
+            {
+                if (builder.Length > 0)
+                {
+                    builder.Append("|");
+                }
+
+                builder.Append(packageDependency.Id);
+                builder.Append(":");
+                if (!packageDependency.VersionRange.Equals(VersionRange.All))
+                {
+                    builder.Append(packageDependency.VersionRange?.ToString("S", new VersionRangeFormatter()));
+                }
+
+                AddFlattenedFrameworkDependency(dependencyGroup, builder);
+            }
+
+            private void AddFlattenedFrameworkDependency(PackageDependencyGroup dependencyGroup, StringBuilder builder)
+            {
+                if (!SpecialFrameworks.Contains(dependencyGroup.TargetFramework))
+                {
+                    try
+                    {
+                        builder.Append(":");
+                        builder.Append(dependencyGroup.TargetFramework?.GetShortFolderName());
+                    }
+                    catch (FrameworkException)
+                    {
+                        // ignoring FrameworkException on purpose - we don't want the job crashing
+                        // whenever someone uploads an unsupported framework
+                    }
                 }
             }
 
