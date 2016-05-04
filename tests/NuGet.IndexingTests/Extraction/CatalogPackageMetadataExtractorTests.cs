@@ -209,6 +209,39 @@ namespace NuGet.IndexingTests.Extraction
                     "Newtonsoft.Json:4.5.11:net45|Microsoft.Data.OData:5.6.2:net40-client|Microsoft.Data.OData:5.6.2"
                 };
 
+                // multiple target frameworks without direct package dependencies
+                yield return new object[]
+                {
+                    new
+                    {
+                        dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[0],
+                                targetFramework = ".NETFramework4.5"
+                            },
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                },
+                                targetFramework = ".NETFramework4.0-client"
+                            },
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+
+                    },
+                    "::net45|Microsoft.Data.OData:5.6.2:net40-client|Microsoft.Data.OData:5.6.2"
+                };
+
                 // a single item
                 yield return new object[]
                 {
