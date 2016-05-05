@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CamelCaseFilterTests.cs" />
+    <Compile Include="DownloadsScoreProviderTests.cs" />
     <Compile Include="ExpandAcronymsFilterTests.cs" />
     <Compile Include="Extraction\CatalogPackageMetadataExtractorTests.cs" />
     <Compile Include="Extraction\DocumentCreatorTests.cs" />

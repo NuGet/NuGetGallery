@@ -21,7 +21,7 @@ namespace NuGet.Services.BasicSearch
             _localUrl = string.Format("http://{0}:{1}/",
                 RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["HttpEndpoint"].IPEndpoint.Address,
                 RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["HttpEndpoint"].IPEndpoint.Port.ToString(CultureInfo.InvariantCulture));
-            
+
             MakeRequest(_localUrl);
 
             return base.OnStart();

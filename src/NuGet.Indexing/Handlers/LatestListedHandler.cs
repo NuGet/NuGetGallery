@@ -27,6 +27,8 @@ namespace NuGet.Indexing
 
         public Filter Result { get; private set; }
 
+        public bool SkipDeletes => true;
+
         public void Begin(IndexReader indexReader)
         {
             _openBitSetLookup = new Dictionary<string, OpenBitSet>();
@@ -58,7 +60,13 @@ namespace NuGet.Indexing
             Result = new OpenBitSetLookupFilter(_openBitSetLookup);
         }
 
-        public void Process(IndexReader indexReader, string readerName, int documentNumber, Document document, string id, NuGetVersion version)
+        public void Process(IndexReader indexReader,
+            string readerName,
+            int perSegmentDocumentNumber,
+            int perIndexDocumentNumber,
+            Document document,
+            string id,
+            NuGetVersion version)
         {
             if (id == null || version == null)
             {
@@ -67,7 +75,7 @@ namespace NuGet.Indexing
 
             bool isListed = GetListed(document);
 
-            Update(isListed, readerName, documentNumber, id, version);
+            Update(isListed, readerName, perSegmentDocumentNumber, id, version);
         }
 
         private void Update(bool isListed, string readerName, int n, string id, NuGetVersion version)

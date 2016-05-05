@@ -1,23 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Lucene.Net.Documents;
-using Lucene.Net.Search;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lucene.Net.Documents;
+using Lucene.Net.Search;
+using Newtonsoft.Json;
 
 namespace NuGet.Indexing
 {
     public static class ResponseFormatter
     {
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //
         // V3 implementation - called directly from the integrated Visual Studio client
-        //
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         public static void WriteSearchResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, string scheme, TopDocs topDocs, int skip, int take, bool includePrerelease, bool includeExplanation, Query query)
         {
             Uri baseAddress = searcher.Manager.RegistrationBaseAddress[scheme];
@@ -39,13 +34,15 @@ namespace NuGet.Indexing
         private static void WriteContext(JsonWriter jsonWriter, Uri baseAddress)
         {
             jsonWriter.WritePropertyName("@context");
-        
+
             jsonWriter.WriteStartObject();
             WriteProperty(jsonWriter, "@vocab", "http://schema.nuget.org/schema#");
+
             if (baseAddress != null)
             {
                 WriteProperty(jsonWriter, "@base", baseAddress.AbsoluteUri);
             }
+
             jsonWriter.WriteEndObject();
         }
 
@@ -59,10 +56,10 @@ namespace NuGet.Indexing
             {
                 ScoreDoc scoreDoc = topDocs.ScoreDocs[i];
 
-                Document document = searcher.Doc(scoreDoc.Doc);               
+                Document document = searcher.Doc(scoreDoc.Doc);
 
                 jsonWriter.WriteStartObject();
-                
+
                 string id = document.Get("Id");
 
                 var relativeAddress = UriFormatter.MakeRegistrationRelativeAddress(id);
@@ -90,6 +87,7 @@ namespace NuGet.Indexing
                 {
                     Explanation explanation = searcher.Explain(query, scoreDoc.Doc);
                     WriteProperty(jsonWriter, "explanation", explanation.ToString());
+                    WriteProperty(jsonWriter, "score", scoreDoc.Score);
                 }
 
                 jsonWriter.WriteEndObject();
@@ -98,14 +96,18 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        private static void WriteVersions(JsonWriter jsonWriter, Uri baseAddress, string id, bool includePrerelease, VersionsHandler.VersionResult versionResult)
+        private static void WriteVersions(JsonWriter jsonWriter,
+            Uri baseAddress,
+            string id,
+            bool includePrerelease,
+            VersionResult versionResult)
         {
             jsonWriter.WritePropertyName("versions");
 
             jsonWriter.WriteStartArray();
 
             var results = includePrerelease
-                ? versionResult.VersionDetails 
+                ? versionResult.VersionDetails
                 : versionResult.StableVersionDetails;
 
             foreach (var item in results.Where(r => r.IsListed))
@@ -124,23 +126,18 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //
         // V3 auto-complete implementation - called from the Visual Studio "project.json editor"
-        //
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         public static void WriteAutoCompleteResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, bool includeExplanation, Query query)
         {
             jsonWriter.WriteStartObject();
             WriteInfo(jsonWriter, null, searcher, topDocs);
             WriteIds(jsonWriter, searcher, topDocs, skip, take);
-                    
+
             if (includeExplanation)
             {
                 WriteExplanations(jsonWriter, searcher, topDocs, skip, take, query);
             }
-                    
+
             jsonWriter.WriteEndObject();
         }
 
@@ -188,8 +185,8 @@ namespace NuGet.Indexing
             {
                 ScoreDoc scoreDoc = topDocs.ScoreDocs[0];
 
-                var versions = includePrerelease 
-                    ? searcher.Versions[scoreDoc.Doc].GetVersions(onlyListed: true) 
+                var versions = includePrerelease
+                    ? searcher.Versions[scoreDoc.Doc].GetVersions(onlyListed: true)
                     : searcher.Versions[scoreDoc.Doc].GetStableVersions(onlyListed: true);
 
                 foreach (var version in versions)
@@ -201,12 +198,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //
         // V3 find implementation
-        //
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         public static void WriteFindResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, string scheme, TopDocs topDocs)
         {
             Uri baseAddress = searcher.Manager.RegistrationBaseAddress[scheme];
@@ -220,7 +212,7 @@ namespace NuGet.Indexing
                 Document document = searcher.Doc(scoreDoc.Doc);
                 string id = document.Get("Id");
 
-                string relativeAddress = UriFormatter.MakeRegistrationRelativeAddress(id); 
+                string relativeAddress = UriFormatter.MakeRegistrationRelativeAddress(id);
 
                 WriteProperty(jsonWriter, "registration", new Uri(baseAddress, relativeAddress).AbsoluteUri);
             }
@@ -228,11 +220,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndObject();
         }
 
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //
         // V2 search implementation - called from the NuGet Gallery
-        //
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         public static void WriteV2Result(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
         {
             jsonWriter.WriteStartObject();
@@ -277,10 +265,10 @@ namespace NuGet.Indexing
         {
             jsonWriter.WritePropertyName("PackageRegistration");
             jsonWriter.WriteStartObject();
-            
+
             WriteProperty(jsonWriter, "Id", id);
             WriteProperty(jsonWriter, "DownloadCount", downloadCount);
-            
+
             jsonWriter.WritePropertyName("Owners");
             jsonWriter.WriteStartArray();
             foreach (string owner in owners)
@@ -288,7 +276,7 @@ namespace NuGet.Indexing
                 jsonWriter.WriteValue(owner);
             }
             jsonWriter.WriteEndArray();
-            
+
             jsonWriter.WriteEndObject();
         }
 
@@ -306,7 +294,7 @@ namespace NuGet.Indexing
                 string id = document.Get("Id");
                 string version = document.Get("Version");
 
-                Tuple<int, int> downloadCounts = NuGetIndexSearcher.GetDownloadCounts(searcher.Versions[scoreDoc.Doc], version);
+                Tuple<int, int> downloadCounts = NuGetIndexSearcher.DownloadCounts(searcher.Versions[scoreDoc.Doc], version);
 
                 bool isLatest = searcher.LatestBitSet.Get(scoreDoc.Doc);
                 bool isLatestStable = searcher.LatestStableBitSet.Get(scoreDoc.Doc);
@@ -350,12 +338,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //
         // Diagnostic responses
-        //
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         public static void WriteStatsResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher)
         {
             jsonWriter.WriteStartObject();
@@ -374,16 +357,13 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndObject();
         }
 
-        public static void WriteRankingsResult(JsonWriter jsonWriter, RankingsHandler.RankingResult rankings)
+        public static void WriteRankingsResult(JsonWriter jsonWriter, RankingResult rankings)
         {
             jsonWriter.WriteStartObject();
             jsonWriter.WritePropertyName("rankings");
             jsonWriter.WriteStartArray();
 
-            var flattenedRankings = rankings.DocumentRankings
-                .SelectMany(r => r.Value)
-                .Where(r => r != null)
-                .OrderBy(r => r.Id);
+            var flattenedRankings = rankings.DocumentRankings.Flatten();
 
             string previousId = string.Empty;
             foreach (var ranking in flattenedRankings)
@@ -406,12 +386,7 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndObject();
         }
 
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //
         // various generic helpers for building JSON results from Lucene Documents
-        //
-        // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         private static void WriteProperty<T>(JsonWriter jsonWriter, string propertyName, T value)
         {
             jsonWriter.WritePropertyName(propertyName);
@@ -441,7 +416,7 @@ namespace NuGet.Indexing
                 }
                 else
                 {
-                    foreach (var s in value.Split(new[]{' ', ','}, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (var s in value.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries))
                     {
                         jsonWriter.WriteValue(s);
                     }

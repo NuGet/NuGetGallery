@@ -1,14 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Tokenattributes;
-using Lucene.Net.Index;
-using Lucene.Net.Search;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Tokenattributes;
+using Lucene.Net.Index;
+using Lucene.Net.Search;
 
 namespace NuGet.Indexing
 {
@@ -19,7 +20,7 @@ namespace NuGet.Indexing
             return MakeQuery(q, null);
         }
 
-        public static Query MakeQuery(string q, OwnersHandler.OwnersResult owners)
+        public static Query MakeQuery(string q, OwnersResult owners)
         {
             var grouping = new Dictionary<string, HashSet<string>>();
             foreach (Clause clause in MakeClauses(Tokenize(q)))
@@ -43,7 +44,7 @@ namespace NuGet.Indexing
 
         // Lucene Query creation logic
 
-        private static Query ConstructQuery(Dictionary<string, HashSet<string>> clauses, OwnersHandler.OwnersResult owners)
+        private static Query ConstructQuery(Dictionary<string, HashSet<string>> clauses, OwnersResult owners)
         {
             Analyzer analyzer = new PackageAnalyzer();
 
@@ -89,7 +90,7 @@ namespace NuGet.Indexing
                         break;
                     default:
                         AnyClause(booleanQuery, analyzer, clause.Value);
-                        
+
                         if (owners != null)
                         {
                             var ownerFilters = OwnerFilters(owners, clause.Value).ToList();
@@ -98,7 +99,7 @@ namespace NuGet.Indexing
                                 booleanQuery.Add(ConstructFilteredQuery(new MatchAllDocsQuery(), ownerFilters), Occur.SHOULD);
                             }
                         }
-                        
+
                         break;
                 }
             }
@@ -208,7 +209,7 @@ namespace NuGet.Indexing
         }
 
         private static IEnumerable<Filter> OwnerFilters(
-            OwnersHandler.OwnersResult owners, 
+            OwnersResult owners,
             HashSet<string> value)
         {
             foreach (var owner in value)
@@ -279,14 +280,7 @@ namespace NuGet.Indexing
 
         // NuGet query tokenizing code
 
-        class Token
-        {
-            public enum TokenType { Value, Keyword }
-            public TokenType Type { get; set; }
-            public string Value { get; set; }
-        }
-
-        static IEnumerable<Token> Tokenize(string s)
+        private static IEnumerable<Token> Tokenize(string s)
         {
             StringBuilder buf = new StringBuilder();
 
@@ -353,12 +347,6 @@ namespace NuGet.Indexing
             yield break;
         }
 
-        class Clause
-        {
-            public string Field { get; set; }
-            public string Text { get; set; }
-        }
-
         static IEnumerable<Clause> MakeClauses(IEnumerable<Token> tokens)
         {
             string field = null;
@@ -388,6 +376,19 @@ namespace NuGet.Indexing
             }
 
             yield break;
+        }
+
+        private class Clause
+        {
+            public string Field { get; set; }
+            public string Text { get; set; }
+        }
+
+        private class Token
+        {
+            public enum TokenType { Value, Keyword }
+            public TokenType Type { get; set; }
+            public string Value { get; set; }
         }
     }
 }

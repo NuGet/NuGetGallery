@@ -141,6 +141,14 @@
     "universal windows platform"
   ],
 
+  "json.net" : [
+     "newtownsoft.json"
+  ],
+  
+  "jsonnet" : [
+     "newtownsoft.json"
+  ],
+
   "markdown": [
     "markdown"
   ],
@@ -157,5 +165,8 @@
     "ftp"
   ]
 }</value>
+  </data>
+  <data name="String1" xml:space="preserve">
+    <value />
   </data>
 </root>

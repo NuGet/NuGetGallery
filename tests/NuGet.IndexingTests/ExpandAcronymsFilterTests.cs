@@ -62,7 +62,7 @@ namespace NuGet.IndexingTests
                         new TokenAttributes("behaviors", 0, 13, 0)
                     }
                 };
-                
+
                 yield return new object[]
                 {
                     "uwpef",

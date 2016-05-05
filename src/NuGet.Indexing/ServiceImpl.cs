@@ -12,7 +12,15 @@ namespace NuGet.Indexing
 {
     public static class ServiceImpl
     {
-        public static void Search(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string scheme, string q, bool includePrerelease, int skip, int take, string feed, bool includeExplanation)
+        public static void Search(JsonWriter jsonWriter,
+            NuGetSearcherManager searcherManager,
+            string scheme,
+            string q,
+            bool includePrerelease,
+            int skip,
+            int take,
+            string feed,
+            bool includeExplanation)
         {
             var searcher = searcherManager.Get();
             try
@@ -45,7 +53,10 @@ namespace NuGet.Indexing
 
                 if (q != null)
                 {
-                    Query query = MakeAutoCompleteQuery(q, searcher.Rankings);
+                    Query query = MakeAutoCompleteQuery(q,
+                        searcher.DocIdMapping,
+                        searcher.Downloads,
+                        searcher.Rankings);
 
                     if (searcher.TryGetFilter(false, includePrerelease, null, out filter))
                     {
@@ -96,7 +107,11 @@ namespace NuGet.Indexing
             try
             {
                 Query query = NuGetQuery.MakeQuery(q, searcher.Owners);
-                Query boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
+                Query boostedQuery = new DownloadsBoostedQuery(query,
+                    searcher.DocIdMapping,
+                    searcher.Downloads,
+                    searcher.Rankings);
+
                 return boostedQuery;
             }
             catch (ParseException)
@@ -105,7 +120,10 @@ namespace NuGet.Indexing
             }
         }
 
-        private static Query MakeAutoCompleteQuery(string q, RankingsHandler.RankingResult rankings)
+        private static Query MakeAutoCompleteQuery(string q,
+            IReadOnlyDictionary<string, int[]> docIdMapping,
+            Downloads downloads,
+            RankingResult rankings)
         {
             if (string.IsNullOrEmpty(q))
             {
@@ -114,7 +132,11 @@ namespace NuGet.Indexing
 
             QueryParser queryParser = new QueryParser(Lucene.Net.Util.Version.LUCENE_30, "IdAutocomplete", new PackageAnalyzer());
             Query query = queryParser.Parse(q);
-            Query boostedQuery = new RankingScoreQuery(query, rankings, 2.0);
+            Query boostedQuery = new DownloadsBoostedQuery(query,
+                docIdMapping,
+                downloads,
+                rankings,
+                2.0);
 
             return boostedQuery;
         }

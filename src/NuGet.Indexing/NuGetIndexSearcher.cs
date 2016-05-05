@@ -1,13 +1,13 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace NuGet.Indexing
 {
@@ -17,15 +17,18 @@ namespace NuGet.Indexing
         private readonly Filter[][] _latest;
 
         public NuGetIndexSearcher(
-            NuGetSearcherManager manager, 
+            NuGetSearcherManager manager,
             IndexReader reader,
-            IDictionary<string, string> commitUserData, 
-            IDictionary<string, Filter> curatedFeeds, 
-            Filter[][] latest, VersionsHandler.VersionResult[] versions, 
-            RankingsHandler.RankingResult rankings, 
-            OpenBitSet latestBitSet, 
+            IDictionary<string, string> commitUserData,
+            IDictionary<string, Filter> curatedFeeds,
+            Filter[][] latest,
+            IReadOnlyDictionary<string, int[]> docIdMapping,
+            Downloads downloads,
+            VersionResult[] versions,
+            RankingResult rankings,
+            OpenBitSet latestBitSet,
             OpenBitSet latestStableBitSet,
-            OwnersHandler.OwnersResult owners)
+            OwnersResult owners)
             : base(reader)
         {
             Manager = manager;
@@ -36,8 +39,10 @@ namespace NuGet.Indexing
             {
                 _curatedFeeds.Add(curatedFeedsFilter.Key, new CachingWrapperFilter(curatedFeedsFilter.Value));
             }
-            
+
             _latest = latest;
+            DocIdMapping = docIdMapping;
+            Downloads = downloads;
             Versions = versions;
             Rankings = rankings;
             LatestBitSet = latestBitSet;
@@ -46,14 +51,16 @@ namespace NuGet.Indexing
             LastReopen = DateTime.UtcNow;
         }
 
-        public NuGetSearcherManager Manager { get; private set; }
-        public IDictionary<string, string> CommitUserData { get; private set; }
-        public VersionsHandler.VersionResult[] Versions { get; private set; }
-        public RankingsHandler.RankingResult Rankings { get; private set; }
-        public OpenBitSet LatestBitSet { get; private set; }
-        public OpenBitSet LatestStableBitSet { get; private set; }
-        public OwnersHandler.OwnersResult Owners { get; private set; }
-        public DateTime LastReopen { get; private set; }
+        public NuGetSearcherManager Manager { get; }
+        public IDictionary<string, string> CommitUserData { get; }
+        public Downloads Downloads { get; }
+        public VersionResult[] Versions { get; }
+        public RankingResult Rankings { get; }
+        public OpenBitSet LatestBitSet { get; }
+        public OpenBitSet LatestStableBitSet { get; }
+        public OwnersResult Owners { get; }
+        public DateTime LastReopen { get; }
+        public IReadOnlyDictionary<string, int[]> DocIdMapping { get; }
 
         public bool TryGetFilter(bool includeUnlisted, bool includePrerelease, string curatedFeed, out Filter filter)
         {
@@ -70,9 +77,16 @@ namespace NuGet.Indexing
             return true;
         }
 
-        public static Tuple<int, int> GetDownloadCounts(VersionsHandler.VersionResult versions, string version)
+        public static int TotalDownloadCounts(VersionResult versions)
         {
             int allVersions = versions.VersionDetails.Select(v => v.Downloads).Sum();
+
+            return allVersions;
+        }
+
+        public static Tuple<int, int> DownloadCounts(VersionResult versions, string version)
+        {
+            int allVersions = TotalDownloadCounts(versions);
 
             int thisVersion = versions.VersionDetails
                 .Where(v => v.Version.Equals(version, StringComparison.OrdinalIgnoreCase))

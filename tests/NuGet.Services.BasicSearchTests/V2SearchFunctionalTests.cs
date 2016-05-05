@@ -32,7 +32,7 @@ namespace NuGet.Services.BasicSearchTests
                 Assert.Empty(result.Data);
             }
         }
-        
+
         [Fact(Skip = "The old V2 search service always includes prerelease versions, even if the parameter is set to false.")]
         public async Task SupportsPrereleaseParameter()
         {

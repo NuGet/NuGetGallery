@@ -15,7 +15,7 @@ namespace NuGet.Services.BasicSearch
             var skip = GetSkip(context);
             var take = GetTake(context);
             var includePrerelease = GetIncludePrerelease(context);
-            var includeExplanation = GetIncludeExplanation(context);
+            bool includeExplanation = GetBool(context, nameof(includeExplanation));
 
             var q = context.Request.Query["q"] ?? string.Empty;
             var feed = context.Request.Query["feed"];
@@ -32,7 +32,7 @@ namespace NuGet.Services.BasicSearch
             var skip = GetSkip(context);
             var take = GetTake(context);
             var includePrerelease = GetIncludePrerelease(context);
-            var includeExplanation = GetIncludeExplanation(context);
+            bool explanation = GetBool(context, nameof(explanation));
 
             var q = context.Request.Query["q"];
             var id = context.Request.Query["id"];
@@ -44,7 +44,7 @@ namespace NuGet.Services.BasicSearch
             await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => ServiceImpl.AutoComplete(jsonWriter, searcherManager, q, id, includePrerelease, skip, take, includeExplanation));
+                jsonWriter => ServiceImpl.AutoComplete(jsonWriter, searcherManager, q, id, includePrerelease, skip, take, explanation));
         }
 
         public static async Task FindAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
@@ -94,15 +94,15 @@ namespace NuGet.Services.BasicSearch
                 jsonWriter => ServiceInfoImpl.Stats(jsonWriter, searcherManager));
         }
 
-        private static bool GetIncludeExplanation(IOwinContext context)
+        private static bool GetBool(IOwinContext context, string queryKey)
         {
-            bool includeExplanation;
-            if (!bool.TryParse(context.Request.Query["explanation"], out includeExplanation))
+            bool value;
+            if (!bool.TryParse(context.Request.Query[queryKey], out value))
             {
-                includeExplanation = false;
+                value = false;
             }
 
-            return includeExplanation;
+            return value;
         }
 
         private static bool GetIncludePrerelease(IOwinContext context)

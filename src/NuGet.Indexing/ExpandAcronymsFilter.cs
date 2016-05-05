@@ -20,7 +20,7 @@ namespace NuGet.Indexing
         private readonly HashSet<string> _recognizedTokens;
         private State _currentState;
 
-        public ExpandAcronymsFilter(TokenStream input, IAcronymExpansionProvider acronymExpansionProvider) 
+        public ExpandAcronymsFilter(TokenStream input, IAcronymExpansionProvider acronymExpansionProvider)
             : base(input)
         {
             _acronymExpansionProvider = acronymExpansionProvider;

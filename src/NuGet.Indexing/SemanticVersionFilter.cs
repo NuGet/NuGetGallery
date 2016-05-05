@@ -12,10 +12,10 @@ namespace NuGet.Indexing
 {
     public class OwnersFilter : Filter
     {
-        private readonly OwnersHandler.OwnersResult _owners;
+        private readonly OwnersResult _owners;
         private readonly string _owner;
 
-        public OwnersFilter(OwnersHandler.OwnersResult owners, string owner)
+        public OwnersFilter(OwnersResult owners, string owner)
         {
             _owners = owners;
             _owner = owner;

@@ -10,30 +10,19 @@ namespace NuGet.Indexing
 {
     public class IndexReaderProcessor
     {
-        private class IndexReaderProcessorHandlerConfiguration
-        {
-            public IIndexReaderProcessorHandler Handler { get; set; }
-            public bool SkipDeletes { get; set; }
-            public bool RequiresPerSegmentDocumentNumber { get; set; }
-        }
+        private readonly List<IIndexReaderProcessorHandler> _handlers =
+            new List<IIndexReaderProcessorHandler>();
 
-        private readonly List<IndexReaderProcessorHandlerConfiguration> _handlers;
         private readonly bool _enumerateSubReaders;
 
         public IndexReaderProcessor(bool enumerateSubReaders)
         {
-            _handlers = new List<IndexReaderProcessorHandlerConfiguration>();
             _enumerateSubReaders = enumerateSubReaders;
         }
 
-        public void AddHandler(IIndexReaderProcessorHandler handler, bool skipDeletes, bool requiresPerSegmentDocumentNumber)
+        public void AddHandler(IIndexReaderProcessorHandler handler)
         {
-            _handlers.Add(new IndexReaderProcessorHandlerConfiguration
-            {
-                Handler = handler,
-                SkipDeletes = skipDeletes,
-                RequiresPerSegmentDocumentNumber = requiresPerSegmentDocumentNumber
-            });
+            _handlers.Add(handler);
         }
 
         public void Process(IndexReader indexReader)
@@ -42,7 +31,7 @@ namespace NuGet.Indexing
 
             foreach (var handler in _handlers)
             {
-                handler.Handler.Begin(indexReader);
+                handler.Begin(indexReader);
             }
 
             if (_enumerateSubReaders && indexReader.GetSequentialSubReaders() != null)
@@ -59,7 +48,7 @@ namespace NuGet.Indexing
 
             foreach (var handler in _handlers)
             {
-                handler.Handler.End(indexReader);
+                handler.End(indexReader);
             }
         }
 
@@ -81,7 +70,12 @@ namespace NuGet.Indexing
             }
         }
 
-        void ProcessDocument(IndexReader indexReader, string readerName, int perReaderDocumentNumber, int perIndexDocumentNumber, Document document, bool isDelete)
+        void ProcessDocument(IndexReader indexReader,
+            string readerName,
+            int perReaderDocumentNumber,
+            int perIndexDocumentNumber,
+            Document document,
+            bool isDelete)
         {
             NuGetVersion version = document != null ? GetVersion(document) : null;
             string id = document != null ? GetId(document) : null;
@@ -93,9 +87,7 @@ namespace NuGet.Indexing
                     continue;
                 }
 
-                handler.Handler.Process(indexReader, readerName, handler.RequiresPerSegmentDocumentNumber 
-                    ? perReaderDocumentNumber 
-                    : perIndexDocumentNumber, document, id, version);
+                handler.Process(indexReader, readerName, perReaderDocumentNumber, perIndexDocumentNumber, document, id, version);
             }
         }
 

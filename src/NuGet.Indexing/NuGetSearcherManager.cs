@@ -1,15 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
@@ -27,8 +27,9 @@ namespace NuGet.Indexing
         private DateTime _auxiliaryDataReloaded = DateTime.MinValue;
         private readonly IDictionary<string, HashSet<string>> _owners = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
         private readonly IDictionary<string, HashSet<string>> _curatedFeeds = new Dictionary<string, HashSet<string>>();
-        private readonly IDictionary<string, IDictionary<string, int>> _downloads = new Dictionary<string, IDictionary<string, int>>();
-        private IDictionary<string, int> _rankings;
+        private readonly Downloads _downloads = new Downloads();
+        private readonly IReadOnlyDictionary<string, int[]> _docIdMapping;
+        private IReadOnlyDictionary<string, int> _rankings;
 
         public NuGetSearcherManager(string indexName,
             FrameworkLogger logger,
@@ -140,7 +141,7 @@ namespace NuGet.Indexing
         }
 
         internal static ILoggerFactory LoggerFactory { get; private set; }
-        
+
         protected override IndexReader Reopen(IndexSearcher searcher)
         {
             if (_azureDirectorySynchronizer != null)
@@ -165,15 +166,13 @@ namespace NuGet.Indexing
 
             return indexReader;
         }
-        
+
         /// <summary>
         /// This function is called whenever the SearcherManager decides it must re-create the IndexSearcher
         /// the key point to understand is that the auxillary data structures (in-memory indexes, filters and other lookups)
         /// absolutely must be kept in sync with the underlying IndexReader. This is because the shared key across
         /// all in-memory data is the Lucene docID and this can change following an index refresh.
         /// </summary>
-        /// <param name="reader"></param>
-        /// <returns></returns>
         protected override NuGetIndexSearcher CreateSearcher(IndexReader reader)
         {
             _logger.LogInformation("NuGetSearcherManager.CreateSearcher");
@@ -196,21 +195,27 @@ namespace NuGet.Indexing
                 // inexpensive operations especially when you are going to do that for every Document in the index.
                 var indexReaderProcessor = new IndexReaderProcessor(enumerateSubReaders: true);
 
+                var mappingHandler = new SegmentToMainReaderMappingHandler();
+                indexReaderProcessor.AddHandler(mappingHandler);
+
+                var downloadsMappingHandler = new DownloadDocIdMappingHandler(_downloads);
+                indexReaderProcessor.AddHandler(downloadsMappingHandler);
+
                 // We want to know about all package versions in the index (as they will be merged in V3 search result docs)
                 var versionsHandler = new VersionsHandler(_downloads);
-                indexReaderProcessor.AddHandler(versionsHandler, skipDeletes: false, requiresPerSegmentDocumentNumber: false);
+                indexReaderProcessor.AddHandler(versionsHandler);
 
                 // Package rankings will be precalculated
                 var rankingsHandler = new RankingsHandler(_rankings);
-                indexReaderProcessor.AddHandler(rankingsHandler, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
+                indexReaderProcessor.AddHandler(rankingsHandler);
 
                 // We want to be able to filter based by owner, so let's build a mapping of
                 // owners and the Lucene document id's (per segment) for which they are the owner.
                 //
                 // Note that owners are not in the index as they can change along the way.
                 var ownersHandler = new OwnersHandler(_owners);
-                indexReaderProcessor.AddHandler(ownersHandler, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
-                
+                indexReaderProcessor.AddHandler(ownersHandler);
+
                 // We want to be able to filter on unlisted/prerelease, so let's prepare building those filters.
                 // Filters must be in terms of the structure of the underlying IndexReader. Specifically if the underlying
                 // reader is Segmented then the filter must be too. Theoretically Lucene should be able to store a cached version of the
@@ -223,14 +228,14 @@ namespace NuGet.Indexing
                 var h10 = new LatestListedHandler(includeUnlisted: true, includePrerelease: false);
                 var h11 = new LatestListedHandler(includeUnlisted: true, includePrerelease: true);
 
-                indexReaderProcessor.AddHandler(h00, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
-                indexReaderProcessor.AddHandler(h01, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
-                indexReaderProcessor.AddHandler(h10, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
-                indexReaderProcessor.AddHandler(h11, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
+                indexReaderProcessor.AddHandler(h00);
+                indexReaderProcessor.AddHandler(h01);
+                indexReaderProcessor.AddHandler(h10);
+                indexReaderProcessor.AddHandler(h11);
 
                 // We want to be able to filter on curated feeds as well
                 var curatedFeedHandler = new CuratedFeedHandler(_curatedFeeds);
-                indexReaderProcessor.AddHandler(curatedFeedHandler, skipDeletes: true, requiresPerSegmentDocumentNumber: true);
+                indexReaderProcessor.AddHandler(curatedFeedHandler);
 
                 // Traverse the index and segments
                 try
@@ -249,18 +254,18 @@ namespace NuGet.Indexing
                     new Filter[] { h00.Result, h01.Result },
                     new Filter[] { h10.Result, h11.Result }
                 };
-                
+
                 var latestBitSet = BitSetCollector.CreateBitSet(reader, latest[0][1]);
                 var latestStableBitSet = BitSetCollector.CreateBitSet(reader, latest[0][0]);
-                
+
                 // Done loading index
                 _logger.LogInformation("NuGetSearcherManager.CreateSearcher: Original {MaxDoc} (deletes: {NumDeletedDocs})", reader.MaxDoc, reader.NumDeletedDocs);
-                
+
                 // The point of having a specific subclass of the IndexSearcher is that we want to associate a bunch of auxilliary data along
                 // with that specific instance of the reader. The lifetimes are assocaited, hense the inheritance relationship.
 
                 _logger.LogInformation("NuGetSearcherManager.CreateSearcher: Creating a new NuGetIndexSearcher...");
-                
+
                 // Create a NuGetIndexSearcher
                 return new NuGetIndexSearcher(
                     this,
@@ -268,6 +273,8 @@ namespace NuGet.Indexing
                     reader.CommitUserData,
                     curatedFeedHandler.Result,
                     latest,
+                    mappingHandler.Result,
+                    _downloads,
                     versionsHandler.Result,
                     rankingsHandler.Result,
                     latestBitSet,
@@ -280,14 +287,14 @@ namespace NuGet.Indexing
                 return null;
             }
         }
-        
+
         private void ReloadAuxiliaryDataIfExpired()
         {
             if (_auxiliaryDataReloaded < DateTime.UtcNow - AuxiliaryDataRefreshRate)
             {
                 IndexingUtils.Load("owners.json", _loader, _logger, _owners);
                 IndexingUtils.Load("curatedfeeds.json", _loader, _logger, _curatedFeeds);
-                Downloads.Load("downloads.v1.json", _loader, _logger, _downloads);
+                _downloads.Load("downloads.v1.json", _loader, _logger);
                 _rankings = DownloadRankings.Load("rankings.v1.json", _loader, _logger);
 
                 _auxiliaryDataReloaded = DateTime.UtcNow;
@@ -304,7 +311,11 @@ namespace NuGet.Indexing
 
             // Warmup search (query for a specific term with rankings)
             var query = NuGetQuery.MakeQuery("newtonsoft.json", searcher.Owners);
-            var boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
+            var boostedQuery = new DownloadsBoostedQuery(query,
+                searcher.DocIdMapping,
+                searcher.Downloads,
+                searcher.Rankings);
+
             searcher.Search(boostedQuery, 5);
 
             // Warmup search (with a sort so Lucene field caches are populated)
@@ -349,11 +360,13 @@ namespace NuGet.Indexing
             }
             else
             {
-                return new UriBuilder(original)
+                var builder = new UriBuilder(original)
                 {
                     Scheme = scheme,
                     Port = -1
-                }.Uri;
+                };
+
+                return builder.Uri;
             }
         }
     }

@@ -37,7 +37,7 @@ namespace NuGet.Services.BasicSearch
 
         public void Configuration(IAppBuilder app, IConfiguration configuration, Directory directory, ILoader loader)
         {
-            // Configure 
+            // Configure
             Logging.ApplicationInsights.Initialize(configuration.Get("serilog:ApplicationInsightsInstrumentationKey"));
 
             // Create telemetry sink
@@ -68,7 +68,7 @@ namespace NuGet.Services.BasicSearch
 
             // Add Application Insights
             app.Use(typeof(RequestTrackingMiddleware));
-            
+
             // Search test console
             app.Use(typeof(SearchConsoleMiddleware));
             app.UseStaticFiles(new StaticFileOptions(new SharedOptions
@@ -183,7 +183,7 @@ namespace NuGet.Services.BasicSearch
                     },
                     maxRetries: maxRetries,
                     waitIncrement: TimeSpan.FromSeconds(1));
-                
+
                 return true;
             }
             catch (Exception e)
@@ -208,9 +208,9 @@ namespace NuGet.Services.BasicSearch
                 if (searcher.CommitUserData.TryGetValue("commitTimeStamp", out temp))
                 {
                     var commitTimestamp = DateTimeOffset.Parse(temp, null, DateTimeStyles.AssumeUniversal);
-                    
+
                     searchTelemetryClient.TrackMetric(SearchTelemetryClient.MetricName.LuceneLoadLag,
-                        (searcher.LastReopen - commitTimestamp.UtcDateTime).TotalSeconds, 
+                        (searcher.LastReopen - commitTimestamp.UtcDateTime).TotalSeconds,
                         new Dictionary<string, string>()
                         {
                             { SearchTelemetryClient.MetricName.LuceneLastReopen, searcher.LastReopen.ToString("o") },

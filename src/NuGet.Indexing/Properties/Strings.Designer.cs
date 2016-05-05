@@ -84,6 +84,14 @@ namespace NuGet.Indexing.Properties {
         ///    &quot;universal windows platform&quot;
         ///  ],
         ///
+        ///  &quot;json.net&quot; : [
+        ///     &quot;newtownsoft.json&quot;
+        ///  ],
+        ///  
+        ///  &quot;jsonnet&quot; : [
+        ///     &quot;newtownsoft.json&quot;
+        ///  ],
+        ///
         ///  &quot;markdown&quot;: [
         ///    &quot;markdown&quot;
         ///  ],
@@ -104,6 +112,15 @@ namespace NuGet.Indexing.Properties {
         internal static string NuGetAcronymExpansions {
             get {
                 return ResourceManager.GetString("NuGetAcronymExpansions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string String1 {
+            get {
+                return ResourceManager.GetString("String1", resourceCulture);
             }
         }
     }
