@@ -23,9 +23,8 @@ namespace Stats.ImportAzureCdnStatistics
 
         private readonly CloudBlobContainer _targetContainer;
         private readonly CloudBlobContainer _deadLetterContainer;
-        private readonly SqlConnectionStringBuilder _targetDatabase;
-        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
+        private readonly Warehouse _warehouse;
 
         public LogFileProcessor(CloudBlobContainer targetContainer,
             CloudBlobContainer deadLetterContainer,
@@ -36,14 +35,17 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 throw new ArgumentNullException(nameof(targetContainer));
             }
+
             if (deadLetterContainer == null)
             {
                 throw new ArgumentNullException(nameof(deadLetterContainer));
             }
+
             if (targetDatabase == null)
             {
                 throw new ArgumentNullException(nameof(targetDatabase));
             }
+
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -51,9 +53,9 @@ namespace Stats.ImportAzureCdnStatistics
 
             _targetContainer = targetContainer;
             _deadLetterContainer = deadLetterContainer;
-            _targetDatabase = targetDatabase;
-            _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<Job>();
+
+            _warehouse = new Warehouse(loggerFactory, targetDatabase);
         }
 
         public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser)
@@ -70,18 +72,16 @@ namespace Stats.ImportAzureCdnStatistics
                 if (hasPackageStatistics || hasToolStatistics)
                 {
                     // replicate data to the statistics database
-                    var warehouse = new Warehouse(_loggerFactory, _targetDatabase);
-
                     if (hasPackageStatistics)
                     {
-                        var downloadFacts = await warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFile.Blob.Name);
-                        await warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
+                        var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFile.Blob.Name);
+                        await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
                     }
 
                     if (hasToolStatistics)
                     {
-                        var downloadFacts = await warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFile.Blob.Name);
-                        await warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
+                        var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFile.Blob.Name);
+                        await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
                     }
                 }
 

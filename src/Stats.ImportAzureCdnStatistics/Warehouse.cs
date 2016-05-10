@@ -21,15 +21,15 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
         private readonly ILogger _logger;
         private readonly SqlConnectionStringBuilder _targetDatabase;
-        private static IReadOnlyCollection<TimeDimension> _times;
-        private static readonly IList<PackageDimension> _cachedPackageDimensions = new List<PackageDimension>();
-        private static readonly IList<ToolDimension> _cachedToolDimensions = new List<ToolDimension>();
-        private static readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
-        private static readonly IDictionary<string, int> _cachedPlatformDimensions = new Dictionary<string, int>();
-        private static readonly IDictionary<string, int> _cachedOperationDimensions = new Dictionary<string, int>();
-        private static readonly IDictionary<string, int> _cachedProjectTypeDimensions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        private static readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
-        private static readonly IDictionary<string, int> _cachedIpAddressFacts = new Dictionary<string, int>();
+        private readonly IList<PackageDimension> _cachedPackageDimensions = new List<PackageDimension>();
+        private readonly IList<ToolDimension> _cachedToolDimensions = new List<ToolDimension>();
+        private readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
+        private readonly IDictionary<string, int> _cachedPlatformDimensions = new Dictionary<string, int>();
+        private readonly IDictionary<string, int> _cachedOperationDimensions = new Dictionary<string, int>();
+        private readonly IDictionary<string, int> _cachedProjectTypeDimensions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
+        private readonly IDictionary<string, int> _cachedIpAddressFacts = new Dictionary<string, int>();
+        private IReadOnlyCollection<TimeDimension> _times;
 
         public Warehouse(ILoggerFactory loggerFactory, SqlConnectionStringBuilder targetDatabase)
         {
@@ -37,6 +37,7 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
+
             if (targetDatabase == null)
             {
                 throw new ArgumentNullException(nameof(targetDatabase));
@@ -537,7 +538,7 @@ namespace Stats.ImportAzureCdnStatistics
             return id;
         }
 
-        private static async Task<IReadOnlyCollection<ToolDimension>> RetrieveToolDimensions(IReadOnlyCollection<ToolStatistics> sourceData, SqlConnection connection)
+        private async Task<IReadOnlyCollection<ToolDimension>> RetrieveToolDimensions(IReadOnlyCollection<ToolStatistics> sourceData, SqlConnection connection)
         {
             var tools = sourceData
                    .Select(e => new ToolDimension(e.ToolId, e.ToolVersion, e.FileName))
@@ -596,7 +597,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IReadOnlyCollection<PackageDimension>> RetrievePackageDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private async Task<IReadOnlyCollection<PackageDimension>> RetrievePackageDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             var packages = sourceData
                 .Select(e => new PackageDimension(e.PackageId, e.PackageVersion))
@@ -702,7 +703,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrieveOperationDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private async Task<IDictionary<string, int>> RetrieveOperationDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             var operations = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.Operation))
@@ -760,7 +761,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrieveProjectTypeDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private async Task<IDictionary<string, int>> RetrieveProjectTypeDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             var projectTypes = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.ProjectGuids))
@@ -816,7 +817,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrieveClientDimensions(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
+        private async Task<IDictionary<string, int>> RetrieveClientDimensions(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
         {
             var clientDimensions = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
@@ -877,7 +878,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrievePlatformDimensions(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
+        private async Task<IDictionary<string, int>> RetrievePlatformDimensions(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
         {
             var platformDimensions = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
@@ -938,7 +939,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrieveUserAgentFacts(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
+        private async Task<IDictionary<string, int>> RetrieveUserAgentFacts(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
         {
             var userAgents = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
@@ -1000,7 +1001,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrieveLogFileNameFacts(string logFileName, SqlConnection connection)
+        private async Task<IDictionary<string, int>> RetrieveLogFileNameFacts(string logFileName, SqlConnection connection)
         {
             var results = new Dictionary<string, int>();
 
@@ -1026,7 +1027,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrieveIpAddressesFacts(IReadOnlyCollection<ITrackEdgeServerIpAddress> sourceData, SqlConnection connection)
+        private async Task<IDictionary<string, int>> RetrieveIpAddressesFacts(IReadOnlyCollection<ITrackEdgeServerIpAddress> sourceData, SqlConnection connection)
         {
             var ipAddressFacts = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.EdgeServerIpAddress))
