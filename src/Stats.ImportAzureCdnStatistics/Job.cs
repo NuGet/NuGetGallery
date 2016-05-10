@@ -75,6 +75,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                 // Get the dead-letter table (corrupted or failed blobs will end up there)
                 var deadLetterBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-deadletter");
+                await deadLetterBlobContainer.CreateIfNotExistsAsync();
 
                 // Create a parser
                 var logProcessor = new LogFileProcessor(targetBlobContainer, deadLetterBlobContainer, _targetDatabase, _loggerFactory);

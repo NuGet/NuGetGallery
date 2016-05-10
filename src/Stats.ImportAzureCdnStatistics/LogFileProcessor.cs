@@ -77,6 +77,7 @@ namespace Stats.ImportAzureCdnStatistics
                         var downloadFacts = await warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFile.Blob.Name);
                         await warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
                     }
+
                     if (hasToolStatistics)
                     {
                         var downloadFacts = await warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFile.Blob.Name);
@@ -85,20 +86,15 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 await ArchiveBlobAsync(logFile);
-
-                // delete the blob from the 'to-be-processed' container
-                await DeleteSourceBlobAsync(logFile);
             }
             catch (Exception e)
             {
-                await _deadLetterContainer.CreateIfNotExistsAsync();
-
                 // copy the blob to a dead-letter container
                 await EnsureCopiedToContainerAsync(logFile, _deadLetterContainer, e);
-
-                // delete the blob from the 'to-be-processed' container
-                await DeleteSourceBlobAsync(logFile);
             }
+
+            // delete the blob from the 'to-be-processed' container
+            await DeleteSourceBlobAsync(logFile);
         }
 
         private static async Task EnsureCopiedToContainerAsync(ILeasedLogFile logFile, CloudBlobContainer targetContainer, Exception e = null)
