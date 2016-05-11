@@ -131,8 +131,14 @@
     <Build Include="Programmability\Stored Procedures\dbo.CleanupPlatformDimension.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.CleanupFactIpAddress.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.CleanupFactUserAgent.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.StoreLogFileAggregates.sql" />
+    <Build Include="Programmability\Types\dbo.LogFileAggregatesPackageDownloadsByDateTableType.sql" />
+    <Build Include="Tables\dbo.Agg_PackageDownloads_LogFile.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="StaticCodeAnalysis.SuppressMessages.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="Stats.Warehouse.refactorlog" />
   </ItemGroup>
 </Project>

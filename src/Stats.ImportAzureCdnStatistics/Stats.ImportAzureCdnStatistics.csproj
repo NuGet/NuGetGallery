@@ -137,6 +137,7 @@
   <ItemGroup>
     <Compile Include="ApplicationInsightsHelper.cs" />
     <Compile Include="Dimensions\IpAddressFact.cs" />
+    <Compile Include="LogFileAggregates.cs" />
     <Compile Include="PackageTranslator.cs" />
     <Compile Include="UserAgentFactTableType.cs" />
     <Compile Include="ClientDimensionTableType.cs" />

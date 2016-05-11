@@ -361,6 +361,39 @@ namespace Stats.ImportAzureCdnStatistics
             return new List<DataTable> { dataTable };
         }
 
+        public async Task StoreLogFileAggregatesAsync(LogFileAggregates logFileAggregates)
+        {
+            _logger.LogDebug("Storing log file aggregates...");
+
+            using (var connection = await _targetDatabase.ConnectTo())
+            {
+                try
+                {
+                    var command = connection.CreateCommand();
+                    command.CommandText = "[dbo].[StoreLogFileAggregates]";
+                    command.CommandTimeout = _defaultCommandTimeout;
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    var parameterValue = CreateDataTableForLogFileAggregatesPackageDownloadsByDate(logFileAggregates);
+                    var parameter = command.Parameters.AddWithValue("packageDownloadsByDate", parameterValue);
+                    parameter.SqlDbType = SqlDbType.Structured;
+                    parameter.TypeName = "[dbo].[LogFileAggregatesPackageDownloadsByDateTableType]";
+
+                    await command.ExecuteNonQueryAsync();
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError("Failed to insert log file aggregates for {LogFile}.", logFileAggregates.LogFileName);
+
+                    ApplicationInsightsHelper.TrackException(exception, logFileAggregates.LogFileName);
+
+                    throw;
+                }
+            }
+
+            _logger.LogDebug("  DONE");
+        }
+
         private async Task<IDictionary<string, int>> GetDimension(string dimension, string logFileName, Func<SqlConnection, Task<IDictionary<string, int>>> retrieve)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -1176,6 +1209,26 @@ namespace Stats.ImportAzureCdnStatistics
             row["LogFileName"] = logFileName;
 
             table.Rows.Add(row);
+
+            return table;
+        }
+
+        private static DataTable CreateDataTableForLogFileAggregatesPackageDownloadsByDate(LogFileAggregates logFileAggregates)
+        {
+            var table = new DataTable();
+            table.Columns.Add("LogFileName", typeof(string));
+            table.Columns.Add("Date_Dimension_Id", typeof(int));
+            table.Columns.Add("PackageDownloads", typeof(int));
+
+            foreach (var kvp in logFileAggregates.PackageDownloadsByDate)
+            {
+                var row = table.NewRow();
+                row["LogFileName"] = logFileAggregates.LogFileName;
+                row["Date_Dimension_Id"] = kvp.Key;
+                row["PackageDownloads"] = kvp.Value;
+
+                table.Rows.Add(row);
+            }
 
             return table;
         }

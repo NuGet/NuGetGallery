@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
@@ -61,7 +62,9 @@ namespace Stats.ImportAzureCdnStatistics
         public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser)
         {
             if (logFile == null)
+            {
                 return;
+            }
 
             try
             {
@@ -72,16 +75,45 @@ namespace Stats.ImportAzureCdnStatistics
                 if (hasPackageStatistics || hasToolStatistics)
                 {
                     // replicate data to the statistics database
+                    List<DataTable> downloadFacts = null;
+                    var logFileName = logFile.Blob.Name;
+
                     if (hasPackageStatistics)
                     {
-                        var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFile.Blob.Name);
-                        await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
+                        downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFileName);
                     }
 
                     if (hasToolStatistics)
                     {
-                        var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFile.Blob.Name);
-                        await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
+                        downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFileName);
+                    }
+
+                    if (downloadFacts != null)
+                    {
+                        // store facts recorded in this logfile
+                        await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
+
+                        // create aggregates for the logfile
+                        var logFileAggregates = new LogFileAggregates(logFileName);
+                        foreach (var table in downloadFacts)
+                        {
+                            if (string.Equals(table.TableName, "Fact_Download", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                // aggregate download counts by date
+                                var downloadsByDate =
+                                    table.AsEnumerable()
+                                        .GroupBy(e => e.Field<int>("Dimension_Date_Id"))
+                                        .Select(e => new KeyValuePair<int, int>(e.Key, e.Count()));
+
+                                foreach (var keyValuePair in downloadsByDate)
+                                {
+                                    logFileAggregates.PackageDownloadsByDate.Add(keyValuePair.Key, keyValuePair.Value);
+                                }
+                            }
+                        }
+
+                        // store aggregates for this logfile
+                        await _warehouse.StoreLogFileAggregatesAsync(logFileAggregates);
                     }
                 }
 
