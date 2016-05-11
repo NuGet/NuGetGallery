@@ -17,6 +17,7 @@ using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
+using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
 
 namespace NuGetGallery
 {

@@ -84,7 +84,7 @@ namespace NuGetGallery.Packaging
                 yield return new ValidationResult(String.Format(
                     CultureInfo.CurrentCulture,
                     Strings.Manifest_InvalidVersionSemVer200,
-                    packageMetadata.Version));
+                    packageMetadata.Version.ToFullString()));
             }
 
             // Check framework reference groups
