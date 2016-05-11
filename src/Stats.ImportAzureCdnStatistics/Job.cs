@@ -100,7 +100,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                     if (_aggregatesOnly)
                     {
-                        _blobLeaseManager.HoldMemLockOnBlob(leasedLogFile.Uri);
+                        _blobLeaseManager.TrackLastProcessedBlobUri(leasedLogFile.Uri);
                     }
 
                     leasedLogFile.Dispose();

@@ -22,7 +22,7 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly TimeSpan _defaultLeaseTime = TimeSpan.FromSeconds(60);
         private readonly CloudBlobContainer _container;
         private readonly ILogger _logger;
-        private HashSet<string> _memLocksOnBlobs;
+        private string _lastProcessedBlobUri;
 
         public LogFileProvider(CloudBlobContainer container, ILoggerFactory loggerFactory)
         {
@@ -62,9 +62,9 @@ namespace Stats.ImportAzureCdnStatistics
                     var blobName = logFile.Uri.Segments.Last();
                     var logFileBlob = _container.GetBlockBlobReference(blobName);
 
-                    if (_memLocksOnBlobs != null && _memLocksOnBlobs.Contains(logFileBlob.Uri.ToString()))
+                    if (_lastProcessedBlobUri != null && string.CompareOrdinal(_lastProcessedBlobUri, logFileBlob.Uri.ToString()) >= 0)
                     {
-                        // skip blobs we're locking in memory (typically when generating aggregate logfile info only)
+                        // skip blobs we already processed (when generating aggregate logfile info only)
                         continue;
                     }
 
@@ -234,17 +234,9 @@ namespace Stats.ImportAzureCdnStatistics
             }
         }
 
-        public void HoldMemLockOnBlob(string uri)
+        public void TrackLastProcessedBlobUri(string uri)
         {
-            if (_memLocksOnBlobs == null)
-            {
-                _memLocksOnBlobs = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            }
-
-            if (!_memLocksOnBlobs.Contains(uri))
-            {
-                _memLocksOnBlobs.Add(uri);
-            }
+            _lastProcessedBlobUri = uri;
         }
     }
 }
