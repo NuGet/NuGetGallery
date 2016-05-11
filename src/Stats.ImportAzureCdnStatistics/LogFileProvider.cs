@@ -22,6 +22,7 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly TimeSpan _defaultLeaseTime = TimeSpan.FromSeconds(60);
         private readonly CloudBlobContainer _container;
         private readonly ILogger _logger;
+        private HashSet<string> _memLocksOnBlobs;
 
         public LogFileProvider(CloudBlobContainer container, ILoggerFactory loggerFactory)
         {
@@ -60,6 +61,12 @@ namespace Stats.ImportAzureCdnStatistics
                     // Get the source blob
                     var blobName = logFile.Uri.Segments.Last();
                     var logFileBlob = _container.GetBlockBlobReference(blobName);
+
+                    if (_memLocksOnBlobs != null && _memLocksOnBlobs.Contains(logFileBlob.Uri.ToString()))
+                    {
+                        // skip blobs we're locking in memory (typically when generating aggregate logfile info only)
+                        continue;
+                    }
 
                     // try to acquire a lease on the blob
                     var leaseId = await TryAcquireLeaseAsync(logFileBlob);
@@ -224,6 +231,19 @@ namespace Stats.ImportAzureCdnStatistics
                     Trace.TraceInformation("Thread [{0}] disposed.", _autoRenewLeaseThread.ManagedThreadId);
 #endif
                 }
+            }
+        }
+
+        public void HoldMemLockOnBlob(string uri)
+        {
+            if (_memLocksOnBlobs == null)
+            {
+                _memLocksOnBlobs = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            }
+
+            if (!_memLocksOnBlobs.Contains(uri))
+            {
+                _memLocksOnBlobs.Add(uri);
             }
         }
     }

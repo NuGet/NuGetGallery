@@ -59,7 +59,7 @@ namespace Stats.ImportAzureCdnStatistics
             _warehouse = new Warehouse(loggerFactory, targetDatabase);
         }
 
-        public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser)
+        public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser, bool aggregatesOnly = false)
         {
             if (logFile == null)
             {
@@ -91,7 +91,10 @@ namespace Stats.ImportAzureCdnStatistics
                     if (downloadFacts != null)
                     {
                         // store facts recorded in this logfile
-                        await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
+                        if (!aggregatesOnly)
+                        {
+                            await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
+                        }
 
                         // create aggregates for the logfile
                         var logFileAggregates = new LogFileAggregates(logFileName);
@@ -108,6 +111,12 @@ namespace Stats.ImportAzureCdnStatistics
                                 foreach (var keyValuePair in downloadsByDate)
                                 {
                                     logFileAggregates.PackageDownloadsByDate.Add(keyValuePair.Key, keyValuePair.Value);
+
+#if DEBUG
+                                    _logger.LogInformation(
+                                        "{LogFile} contains {PackageDownloadCount} package downloads for date id {DimensionDateId}",
+                                        logFileName, keyValuePair.Value, keyValuePair.Key);
+#endif
                                 }
                             }
                         }
@@ -117,16 +126,25 @@ namespace Stats.ImportAzureCdnStatistics
                     }
                 }
 
-                await ArchiveBlobAsync(logFile);
+                if (!aggregatesOnly)
+                {
+                    await ArchiveBlobAsync(logFile);
+                }
             }
             catch (Exception e)
             {
-                // copy the blob to a dead-letter container
-                await EnsureCopiedToContainerAsync(logFile, _deadLetterContainer, e);
+                if (!aggregatesOnly)
+                {
+                    // copy the blob to a dead-letter container
+                    await EnsureCopiedToContainerAsync(logFile, _deadLetterContainer, e);
+                }
             }
 
-            // delete the blob from the 'to-be-processed' container
-            await DeleteSourceBlobAsync(logFile);
+            if (!aggregatesOnly)
+            {
+                // delete the blob from the 'to-be-processed' container
+                await DeleteSourceBlobAsync(logFile);
+            }
         }
 
         private static async Task EnsureCopiedToContainerAsync(ILeasedLogFile logFile, CloudBlobContainer targetContainer, Exception e = null)
