@@ -421,7 +421,7 @@
             else
             {
                 <span id="key">@apiKey.Value</span>
-                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyToClipboard('@apiKey.Value', this)"><i class="icon-copy"></i></button>
+                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><i class="icon-copy"></i></button>
             }
         </text>,
         actions: @<text>
@@ -471,7 +471,7 @@
                     <div id="account-apikeysample">
                         <div>
                             nuget.exe setApiKey @apiKey.Value
-                            <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyToClipboard('nuget.exe setApiKey @apiKey.Value -Source https://www.nuget.org/api/v2/package', this)"><i class="icon-copy"></i></button>
+                            <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('nuget.exe setApiKey @apiKey.Value -Source https://www.nuget.org/api/v2/package')"><i class="icon-copy"></i></button>
                         </div>
                         <div>nuget.exe push MyPackage.1.0.nupkg -Source https://www.nuget.org/api/v2/package</div>
                     </div>
@@ -503,22 +503,77 @@
             return false;
         }
 
-        // use execCommand copy and a dynamic textarea as source for the text
-        // requestingElement is used as the parent for the dynamic textarea, otherwise
-        // MS Edge might "jump" to the newly created item if you append it as child of the body
-        function copyToClipboard(text, requestingElement) {
+        // source: http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
+        // enhancement with special case for IEs, otherwise the temp textarea will be visible
+        function copyTextToClipboard(text) {
             if (detectIE()) {
-                window.clipboardData.setData('Text', text);
-            } else {
-                var textField = document.createElement('textarea');
-                textField.setAttribute('style', 'display: hidden');
-                textField.innerText = text;
-                requestingElement.appendChild(textField);
-                textField.select();
-                document.execCommand('copy');
-                textField.remove();
+                try {
+                    window.clipboardData.setData('Text', text);
+                    console.log('Copying text command via IE-setData');
+                } catch (err) {
+                    console.log('Oops, unable to copy via IE-setData');
+                }
             }
-            
+            else {
+
+                var textArea = document.createElement("textarea");
+
+                //
+                //  This styling is an extra step which is likely not required. 
+                //
+                // Why is it here? To ensure:
+                // 1. the element is able to have focus and selection.
+                // 2. if element was to flash render it has minimal visual impact.
+                // 3. less flakyness with selection and copying which might occur if
+                //    the textarea element is not visible.
+                //
+                // The likelihood is the element won't even render, not even a flash,
+                // so some of these are just precautions. 
+                // 
+                // However in IE the element
+                // is visible whilst the popup box asking the user for permission for
+                // the web page to copy to the clipboard. To prevent this, we are using 
+                // the detectIE workaround.
+
+                // Place in top-left corner of screen regardless of scroll position.
+                textArea.style.position = 'fixed';
+                textArea.style.top = 0;
+                textArea.style.left = 0;
+
+                // Ensure it has a small width and height. Setting to 1px / 1em
+                // doesn't work as this gives a negative w/h on some browsers.
+                textArea.style.width = '2em';
+                textArea.style.height = '2em';
+
+                // We don't need padding, reducing the size if it does flash render.
+                textArea.style.padding = 0;
+
+                // Clean up any borders.
+                textArea.style.border = 'none';
+                textArea.style.outline = 'none';
+                textArea.style.boxShadow = 'none';
+
+                // Avoid flash of white box if rendered for any reason.
+                textArea.style.background = 'transparent';
+
+
+                textArea.value = text;
+
+                document.body.appendChild(textArea);
+
+                textArea.select();
+
+                try {
+                    var successful = document.execCommand('copy');
+                    var msg = successful ? 'successful' : 'unsuccessful';
+                    console.log('Copying text command was ' + msg);
+                } catch (err) {
+                    console.log('Oops, unable to copy');
+                }
+
+                document.body.removeChild(textArea);
+            }
+
         }
     </script>
 }
