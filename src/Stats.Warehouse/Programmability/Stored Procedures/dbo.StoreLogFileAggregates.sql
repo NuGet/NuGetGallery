@@ -28,14 +28,8 @@ BEGIN
 					VALUES (@LogFileName, @Dimension_Date_Id, @PackageDownloads);
 			ELSE
 			BEGIN
-				DECLARE @tmp INT
-				SELECT	@tmp = [PackageDownloads]
-				FROM	[dbo].[Agg_PackageDownloads_LogFile] (NOLOCK)
-				WHERE	[LogFileName] = @LogFileName
-						AND [Dimension_Date_Id] = @Dimension_Date_Id
-
 				UPDATE	[dbo].[Agg_PackageDownloads_LogFile]
-				SET		[PackageDownloads] = @tmp + @PackageDownloads
+				SET		[PackageDownloads] = @PackageDownloads
 				WHERE	[LogFileName] = @LogFileName
 						AND [Dimension_Date_Id] = @Dimension_Date_Id
 			END
