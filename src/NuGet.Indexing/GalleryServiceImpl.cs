@@ -53,7 +53,7 @@ namespace NuGet.Indexing
                 }
                 else
                 {
-                    ListDocumentsImpl(jsonWriter, searcher, query, sortBy, skip, take, searcherManager);
+                    ListDocumentsImpl(jsonWriter, searcher, query, sortBy, skip, take);
                 }
             }
             finally
@@ -73,10 +73,13 @@ namespace NuGet.Indexing
             Query query,
             string sortBy,
             int skip,
-            int take,
-            NuGetSearcherManager manager)
+            int take)
         {
-            Query boostedQuery = new DownloadsBoostedQuery(query, searcher.DocIdMapping, searcher.Downloads, searcher.Rankings);
+            Query boostedQuery = new DownloadsBoostedQuery(query,
+                searcher.DocIdMapping,
+                searcher.Downloads,
+                searcher.Rankings,
+                searcher.QueryBoostingContext);
 
             int nDocs = skip + take;
             Sort sort = GetSort(sortBy);

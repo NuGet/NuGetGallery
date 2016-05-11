@@ -27,7 +27,7 @@ namespace NuGet.IndexingTests
         public void ValidateDownloadsFormula(int downloads, double expected)
         {
             // Validate the curve of the boost
-            double factor = DownloadsScoreProvider.DownloadScore(downloads);
+            double factor = DownloadsScoreProvider.DownloadScore(downloads, QueryBoostingContext.Default);
 
             factor = Math.Round(factor, 2);
 

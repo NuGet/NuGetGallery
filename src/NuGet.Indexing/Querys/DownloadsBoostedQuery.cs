@@ -16,6 +16,7 @@ namespace NuGet.Indexing
         private readonly Downloads _downloads;
         private readonly RankingResult _ranking;
         private readonly IReadOnlyDictionary<string, int[]> _docIdMapping;
+        private readonly QueryBoostingContext _context;
 
         public Query Query { get; }
 
@@ -23,6 +24,7 @@ namespace NuGet.Indexing
             IReadOnlyDictionary<string, int[]> docIdMapping,
             Downloads downloads,
             RankingResult ranking,
+            QueryBoostingContext context,
             double baseBoost = BaseBoostConstant)
             : base(query)
         {
@@ -30,13 +32,14 @@ namespace NuGet.Indexing
             _downloads = downloads;
             _baseBoost = baseBoost;
             _ranking = ranking;
+            _context = context;
 
             Query = query;
         }
 
         protected override CustomScoreProvider GetCustomScoreProvider(IndexReader reader)
         {
-            return new DownloadsScoreProvider(reader, _docIdMapping, _downloads, _ranking, _baseBoost);
+            return new DownloadsScoreProvider(reader, _docIdMapping, _downloads, _ranking, _context, _baseBoost);
         }
 
         public override string ToString()

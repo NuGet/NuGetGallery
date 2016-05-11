@@ -13,6 +13,7 @@ namespace NuGet.Indexing
         private readonly Downloads _downloads;
         private readonly RankingResult _ranking;
         private readonly IReadOnlyDictionary<string, int[]> _idMapping;
+        private readonly QueryBoostingContext _context;
 
         private readonly double _baseBoost;
 
@@ -22,6 +23,7 @@ namespace NuGet.Indexing
             IReadOnlyDictionary<string, int[]> idMapping,
             Downloads downloads,
             RankingResult ranking,
+            QueryBoostingContext context,
             double baseBoost)
             : base(reader)
         {
@@ -29,6 +31,7 @@ namespace NuGet.Indexing
             _downloads = downloads;
             _baseBoost = baseBoost;
             _ranking = ranking;
+            _context = context;
 
             // We need the reader name: Lucene *may* have multiple segments (which are smaller indices)
             // and RankingsHandler provides us with the per-segment document numbers.
@@ -70,19 +73,23 @@ namespace NuGet.Indexing
             // Package might not exist in the package table hence the ?.Total
             var totalDownloads = _downloads[indexId]?.Total ?? 0;
 
-            float downloadAdjuster = DownloadScore(totalDownloads);
+            float downloadAdjuster = DownloadScore(totalDownloads, _context);
 
             return downloadAdjuster;
         }
 
         public static float DownloadScore(long totalDownloads,
-            int factor = 20,
-            int minPackageThreshold = 1000)
+            QueryBoostingContext context)
         {
+            if (!context.BoostByDownloads)
+            {
+                return 1.0f;
+            }
+
             // Logarithmic scale for downloads counts, high downloads get slightly better result up to ~2
             // Packages below the threshold return 1.0
-            long adjustedCount = Math.Max(1, totalDownloads - minPackageThreshold);
-            double scoreAdjuster = Math.Log10(adjustedCount) / factor + 1;
+            long adjustedCount = Math.Max(1, totalDownloads - context.Threshold);
+            double scoreAdjuster = Math.Log10(adjustedCount) / context.Factor + 1;
 
             return (float)scoreAdjuster;
         }

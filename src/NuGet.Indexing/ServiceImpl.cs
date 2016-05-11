@@ -23,11 +23,13 @@ namespace NuGet.Indexing
             bool includeExplanation)
         {
             var searcher = searcherManager.Get();
+
             try
             {
                 Query query = MakeSearchQuery(q, searcher);
 
                 Filter filter = null;
+
                 if (searcher.TryGetFilter(false, includePrerelease, feed, out filter))
                 {
                     // Filter before running the query (make the search set smaller)
@@ -56,7 +58,8 @@ namespace NuGet.Indexing
                     Query query = MakeAutoCompleteQuery(q,
                         searcher.DocIdMapping,
                         searcher.Downloads,
-                        searcher.Rankings);
+                        searcher.Rankings,
+                        searcher.QueryBoostingContext);
 
                     if (searcher.TryGetFilter(false, includePrerelease, null, out filter))
                     {
@@ -110,7 +113,8 @@ namespace NuGet.Indexing
                 Query boostedQuery = new DownloadsBoostedQuery(query,
                     searcher.DocIdMapping,
                     searcher.Downloads,
-                    searcher.Rankings);
+                    searcher.Rankings,
+                    searcher.QueryBoostingContext);
 
                 return boostedQuery;
             }
@@ -123,19 +127,24 @@ namespace NuGet.Indexing
         private static Query MakeAutoCompleteQuery(string q,
             IReadOnlyDictionary<string, int[]> docIdMapping,
             Downloads downloads,
-            RankingResult rankings)
+            RankingResult rankings,
+            QueryBoostingContext context)
         {
             if (string.IsNullOrEmpty(q))
             {
                 return new MatchAllDocsQuery();
             }
 
-            QueryParser queryParser = new QueryParser(Lucene.Net.Util.Version.LUCENE_30, "IdAutocomplete", new PackageAnalyzer());
+            var queryParser = new QueryParser(Lucene.Net.Util.Version.LUCENE_30,
+                "IdAutocomplete",
+                new PackageAnalyzer());
+
             Query query = queryParser.Parse(q);
             Query boostedQuery = new DownloadsBoostedQuery(query,
                 docIdMapping,
                 downloads,
                 rankings,
+                context,
                 2.0);
 
             return boostedQuery;

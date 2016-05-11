@@ -28,8 +28,9 @@ namespace NuGet.Indexing
         private readonly IDictionary<string, HashSet<string>> _owners = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
         private readonly IDictionary<string, HashSet<string>> _curatedFeeds = new Dictionary<string, HashSet<string>>();
         private readonly Downloads _downloads = new Downloads();
-        private readonly IReadOnlyDictionary<string, int[]> _docIdMapping;
         private IReadOnlyDictionary<string, int> _rankings;
+
+        private QueryBoostingContext _queryBoostingContext = QueryBoostingContext.Default;
 
         public NuGetSearcherManager(string indexName,
             FrameworkLogger logger,
@@ -277,13 +278,14 @@ namespace NuGet.Indexing
                     _downloads,
                     versionsHandler.Result,
                     rankingsHandler.Result,
+                    _queryBoostingContext,
                     latestBitSet,
                     latestStableBitSet,
                     ownersHandler.Result);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                _logger.LogError("NuGetSearcherManager.CreateSearcher: An error occurred.", e);
+                _logger.LogError("NuGetSearcherManager.CreateSearcher: An error occurred.", ex);
                 return null;
             }
         }
@@ -296,6 +298,7 @@ namespace NuGet.Indexing
                 IndexingUtils.Load("curatedfeeds.json", _loader, _logger, _curatedFeeds);
                 _downloads.Load("downloads.v1.json", _loader, _logger);
                 _rankings = DownloadRankings.Load("rankings.v1.json", _loader, _logger);
+                _queryBoostingContext = QueryBoostingContext.Load("searchSettings.v1.json", _loader, _logger);
 
                 _auxiliaryDataReloaded = DateTime.UtcNow;
             }
@@ -311,10 +314,12 @@ namespace NuGet.Indexing
 
             // Warmup search (query for a specific term with rankings)
             var query = NuGetQuery.MakeQuery("newtonsoft.json", searcher.Owners);
+
             var boostedQuery = new DownloadsBoostedQuery(query,
                 searcher.DocIdMapping,
                 searcher.Downloads,
-                searcher.Rankings);
+                searcher.Rankings,
+                QueryBoostingContext.Default);
 
             searcher.Search(boostedQuery, 5);
 
@@ -367,6 +372,31 @@ namespace NuGet.Indexing
                 };
 
                 return builder.Uri;
+            }
+        }
+
+        private class Execute
+        {
+            private readonly List<Exception> _exceptions = new List<Exception>();
+
+            public void Catch(Action action)
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    _exceptions.Add(ex);
+                }
+            }
+
+            public void ThrowIfAnyFailed()
+            {
+                if (_exceptions.Count > 0)
+                {
+                    throw new AggregateException(_exceptions);
+                }
             }
         }
     }

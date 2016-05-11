@@ -26,7 +26,9 @@ namespace NuGet.Indexing
                 {
                     throw;
                 }
+
                 logger.LogInformation("Unable to load {0}. Exception Message : {1}", name, e.Message);
+
                 return new Dictionary<string, int>();
             }
         }

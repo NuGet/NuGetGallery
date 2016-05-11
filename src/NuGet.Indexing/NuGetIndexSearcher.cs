@@ -26,6 +26,7 @@ namespace NuGet.Indexing
             Downloads downloads,
             VersionResult[] versions,
             RankingResult rankings,
+            QueryBoostingContext context,
             OpenBitSet latestBitSet,
             OpenBitSet latestStableBitSet,
             OwnersResult owners)
@@ -48,6 +49,7 @@ namespace NuGet.Indexing
             LatestBitSet = latestBitSet;
             LatestStableBitSet = latestStableBitSet;
             Owners = owners;
+            QueryBoostingContext = context;
             LastReopen = DateTime.UtcNow;
         }
 
@@ -61,6 +63,7 @@ namespace NuGet.Indexing
         public OwnersResult Owners { get; }
         public DateTime LastReopen { get; }
         public IReadOnlyDictionary<string, int[]> DocIdMapping { get; }
+        public QueryBoostingContext QueryBoostingContext { get; }
 
         public bool TryGetFilter(bool includeUnlisted, bool includePrerelease, string curatedFeed, out Filter filter)
         {
