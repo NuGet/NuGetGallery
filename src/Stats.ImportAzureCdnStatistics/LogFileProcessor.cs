@@ -235,7 +235,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                 stopwatch.Stop();
 
-                _logger.LogDebug("Finished parsing blob {FtpBlobUri} ({RecordCount} records.", blobUri, packageStatistics.Count);
+                _logger.LogDebug("Finished parsing blob {FtpBlobUri} ({RecordCount} records).", blobUri, packageStatistics.Count);
                 ApplicationInsightsHelper.TrackMetric("Blob parsing duration (ms)", stopwatch.ElapsedMilliseconds, blobName);
             }
             catch (Exception exception)
