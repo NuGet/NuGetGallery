@@ -37,7 +37,8 @@ namespace Stats.ImportAzureCdnStatistics
                 var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
                 ApplicationInsights.Initialize(instrumentationKey);
 
-                _loggerFactory = LoggingSetup.CreateLoggerFactory();
+                var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(ConsoleLogOnly);
+                _loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
                 _logger = _loggerFactory.CreateLogger<Job>();
 
                 var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
