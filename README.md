@@ -9,7 +9,7 @@ website for the NuGet client. For information about the NuGet project, visit the
 ## Build and Run the Gallery in (arbitrary number) easy steps
 
 1. Prerequisites. Install these if you don't already have them:
- 1. Visual Studio 2015
+ 1. Visual Studio 2015 - Custom install so that you may also install Microsoft SQL Server Data Tools. This will provide the LocalDB that Windows Azure SDK requires.
  2. PowerShell 2.0 (comes with Windows 7+)
  3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
  4. [Windows Azure SDK](http://www.microsoft.com/windowsazure/sdk/) - Note that you may have to manually upgrade the ".Cloud" projects in the solution if a different SDK version is used.
@@ -22,6 +22,8 @@ website for the NuGet client. For information about the NuGet project, visit the
     cd NuGetGallery
     .\build
     ```
+    
+    You may have to add the directory containing msbuild.exe to your PATH variable, %programfiles(x86)%\MSBuild\14.0\Bin\amd64 on 64-bit machines.
 4. Set up the website in IIS Express!
  1. We highly recommend using IIS Express. Use the [Web Platform Installer](http://microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though). Make sure to at least once run IIS Express as an administrator.
  2. In an ADMIN powershell prompt, run the `.\tools\Enable-LocalTestMe.ps1` file. It allows non-admins to host websites at: `http(s)://nuget.localtest.me`, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on `localtest.me`, check out [readme.localtest.me](http://readme.localtest.me).
