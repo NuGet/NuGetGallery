@@ -67,7 +67,7 @@ namespace NuGet.Services.BasicSearch
             app.Use(typeof(CorrelationIdMiddleware));
 
             // Add Application Insights
-            app.Use(typeof(ApplicationInsightsMiddleware));
+            app.Use(typeof(RequestTrackingMiddleware));
             
             // Search test console
             app.Use(typeof(SearchConsoleMiddleware));
