@@ -228,11 +228,6 @@
     <Compile Include="Retry.cs" />
     <Compile Include="Sql2Lucene.cs" />
     <Compile Include="StorageLoader.cs" />
-    <Compile Include="Properties\Strings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Strings.resx</DependentUpon>
-    </Compile>
     <Compile Include="UriFormatter.cs" />
     <Compile Include="IndexingUtils.cs" />
     <Compile Include="LatestVersionFilterFactory.cs" />
@@ -274,14 +269,9 @@
     <None Include="app.config" />
     <None Include="NuGet.Indexing.nuspec" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\Acronyms.json" />
     <None Include="SampleFiles\rankings.v1.json" />
     <None Include="SampleFiles\searchSettings.v1.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Strings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
