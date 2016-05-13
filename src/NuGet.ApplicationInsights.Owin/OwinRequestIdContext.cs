@@ -11,18 +11,18 @@ namespace NuGet.ApplicationInsights.Owin
         {
             if (!string.IsNullOrEmpty(value))
             {
-                CallContext.LogicalSetData(ApplicationInsightsMiddleware.OwinRequestIdKey, value);
+                CallContext.LogicalSetData(RequestTrackingMiddleware.OwinRequestIdKey, value);
             }
         }
 
         public static string Get()
         {
-            return CallContext.LogicalGetData(ApplicationInsightsMiddleware.OwinRequestIdKey) as string;
+            return CallContext.LogicalGetData(RequestTrackingMiddleware.OwinRequestIdKey) as string;
         }
 
         public static void Clear()
         {
-            CallContext.LogicalSetData(ApplicationInsightsMiddleware.OwinRequestIdKey, null);
+            CallContext.LogicalSetData(RequestTrackingMiddleware.OwinRequestIdKey, null);
         }
     }
 }

@@ -11,19 +11,19 @@ using Microsoft.Owin;
 
 namespace NuGet.ApplicationInsights.Owin
 {
-    public class ApplicationInsightsMiddleware
+    public class RequestTrackingMiddleware
         : OwinMiddleware
     {
         public const string OwinRequestIdKey = "owin.RequestId";
 
         private readonly TelemetryClient _telemetryClient;
 
-        public ApplicationInsightsMiddleware(OwinMiddleware next)
+        public RequestTrackingMiddleware(OwinMiddleware next)
             : this(next, null)
         {
         }
 
-        public ApplicationInsightsMiddleware(OwinMiddleware next, TelemetryConfiguration telemetryConfiguration) 
+        public RequestTrackingMiddleware(OwinMiddleware next, TelemetryConfiguration telemetryConfiguration) 
             : base(next)
         {
             _telemetryClient = telemetryConfiguration == null 
@@ -54,9 +54,12 @@ namespace NuGet.ApplicationInsights.Owin
                     await Next.Invoke(context);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 requestFailed = true;
+
+                _telemetryClient.TrackException(ex);
+
                 throw;
             }
             finally
