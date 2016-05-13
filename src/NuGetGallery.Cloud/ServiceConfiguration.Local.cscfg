@@ -10,8 +10,8 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Gallery.AzureStorageConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Gallery.AzureStorageReadAccessGeoRedundant" value="false" />
-      <Setting name="Gallery.SqlServer" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
-      <Setting name="Gallery.SupportRequestSqlServer" value="Data Source=(LocalDB)\v11.0;Initial Catalog=SupportRequest;Integrated Security=SSPI" />
+      <Setting name="Gallery.SqlServer" value="Data Source=(LocalDB)\mssqllocaldb;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
+      <Setting name="Gallery.SupportRequestSqlServer" value="Data Source=(LocalDB)\mssqllocaldb;Initial Catalog=SupportRequest;Integrated Security=SSPI" />
       <!-- WARNING: This is an insecure default password. Change it before enabling remote desktop -->
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEG870pHsz0GPRZ18ZHEVMyMwDQYJKoZIhvcNAQEBBQAEggEABCvdlx/fjNaMh+I4tdArjlmC/KhsVISFYKP+Tppd4LJM4J67FUcgSnnZLp/fII7gvd0X7XHRjV9a9gTj15b3lexRXp36oDLiRpw9Ld0EbxNMB1CBPNDqYRlV8iZBLeER3KOq7b+6iUywx1TWRf3UtaIZYI1BU6XJXWlKKartrKFl7g1MV6T506xN5a2m+r9Wi9dTApOYx3mBl1ZICDPTQX5dMWP6aRslapdOcyp+cMAgNjdE0TW0jw5eVEY0m3PqxuSSI99xtXLcVYrz6H7K3C8lNoxR9BlL89XOBh2VGsrsNeDF80cwuZkLYkqL3koehilh6b+iIC74yjcNboPRajAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECCGRjuJpsHCYgBDKJqr9G6xa5kT1yQHFHx5Y" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2014-10-12T23:59:59.0000000-07:00" />
