@@ -9,12 +9,12 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Store;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.StaticFiles.Infrastructure;
+using NuGet.ApplicationInsights.Owin;
 using NuGet.Indexing;
 using NuGet.Services.Logging;
 using Owin;
@@ -38,7 +38,7 @@ namespace NuGet.Services.BasicSearch
         public void Configuration(IAppBuilder app, IConfiguration configuration, Directory directory, ILoader loader)
         {
             // Configure 
-            ApplicationInsights.Initialize(configuration.Get("serilog:ApplicationInsightsInstrumentationKey"));
+            Logging.ApplicationInsights.Initialize(configuration.Get("serilog:ApplicationInsightsInstrumentationKey"));
 
             // Create telemetry sink
             _searchTelemetryClient = new SearchTelemetryClient();
@@ -65,6 +65,9 @@ namespace NuGet.Services.BasicSearch
 
             // Correlate requests
             app.Use(typeof(CorrelationIdMiddleware));
+
+            // Add Application Insights
+            app.Use(typeof(ApplicationInsightsMiddleware));
             
             // Search test console
             app.Use(typeof(SearchConsoleMiddleware));
