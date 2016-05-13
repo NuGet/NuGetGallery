@@ -528,6 +528,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. One or more files, such as &apos;{0}&apos; have a date in the future..
+        /// </summary>
+        public static string PackageEntryFromTheFuture {
+            get {
+                return ResourceManager.GetString("PackageEntryFromTheFuture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
         /// </summary>
         public static string PackageExistsAndCannotBeModified {
