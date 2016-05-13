@@ -33,6 +33,15 @@ if(!$MakeCertPath) {
         $xArch = "x64"
     }
     $MakeCertPath = Join-Path $WinSDKDir "bin\$xArch\makecert.exe"
+    
+    # If registry scan finds wrong path, try the Azure extension's makecert
+    if(!(Test-Path $MakeCertPath)) {
+        if($xArch = "x64"){
+            $MakeCertPath = ${env:ProgramFiles(x86)}/"Microsoft Visual Studio 14.0\Common7\IDE\Extensions\Microsoft\Microsoft Azure Data Lake Tools for Visual Studio 2015\2.0.6000.0\CppSDK\SDK\bin\makecert.exe"
+        } else {
+            $MakeCertPath = ${env:ProgramFiles}/"Microsoft Visual Studio 14.0\Common7\IDE\Extensions\Microsoft\Microsoft Azure Data Lake Tools for Visual Studio 2015\2.0.6000.0\CppSDK\SDK\bin\makecert.exe"
+        }
+    }
 }
 
 if(!(Test-Path $MakeCertPath)) {
