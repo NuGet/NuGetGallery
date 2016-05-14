@@ -5,6 +5,13 @@ namespace NuGet.IndexingTests.TestSupport
 {
     public class TokenAttributes
     {
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="term">The value extracted.</param>
+        /// <param name="startOffset">Starting position of the token in the original input string, that was used to extract the term.</param>
+        /// <param name="endOffset">End position of the token in the original input string, that was used to extract the term.</param>
+        /// <param name="positionIncrement">Need to expand on the meaning of this.</param>
         public TokenAttributes(string term, int startOffset, int endOffset, int? positionIncrement = null)
         {
             Term = term;

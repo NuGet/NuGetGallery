@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Tokenattributes;
-using System.Collections.Generic;
 
 namespace NuGet.Indexing
 {
@@ -50,7 +52,7 @@ namespace NuGet.Indexing
             int positionIncrement = 0;
             string prev = string.Empty;
 
-            foreach (string subTerm in TokenizingHelper.CamelCaseSplit(term))
+            foreach (string subTerm in CamelCaseSplit(term))
             {
                 if (prev != string.Empty)
                 {
@@ -68,7 +70,7 @@ namespace NuGet.Indexing
                     }
                 }
 
-                if (subTerm != term)
+                if (subTerm != term && !subTerm.Any(c => Char.IsNumber(c)))
                 {
                     _queue.Enqueue(new TokenAttributes
                     {
@@ -92,6 +94,47 @@ namespace NuGet.Indexing
             }
 
             return false;
+        }
+
+        public static IEnumerable<string> CamelCaseSplit(string term)
+        {
+            if (term.Length == 0)
+            {
+                yield break;
+            }
+
+            if (term.Length == 1)
+            {
+                yield return term;
+                yield break;
+            }
+
+            int beginWordIndex = 0;
+            int length = 1;
+            bool lastIsUpper = Char.IsUpper(term[0]);
+            bool lastIsLetter = Char.IsLetter(term[0]);
+
+            for (int i = 1; i < term.Length; i++)
+            {
+                bool currentIsUpper = Char.IsUpper(term[i]);
+                bool currentIsLetter = Char.IsLetter(term[i]);
+                bool currentIsNumber = Char.IsNumber(term[i]);
+
+                if ((lastIsLetter && currentIsLetter) && (!lastIsUpper && currentIsUpper) ||
+                    (lastIsLetter == currentIsNumber))
+                {
+                    yield return term.Substring(beginWordIndex, length);
+                    length = 0;
+                    beginWordIndex = i;
+                }
+
+                length++;
+
+                lastIsUpper = currentIsUpper;
+                lastIsLetter = currentIsLetter;
+            }
+
+            yield return term.Substring(beginWordIndex, length);
         }
 
         private void SetAttributes(TokenAttributes next)
