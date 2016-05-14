@@ -48,6 +48,7 @@ namespace NuGetGallery
         private readonly EditPackageService _editPackageService;
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly ISourceRepoService _sourceRepoService;
 
         public PackagesController(
             IPackageService packageService,
@@ -62,7 +63,8 @@ namespace NuGetGallery
             ICacheService cacheService,
             EditPackageService editPackageService,
             IPackageDeleteService packageDeleteService,
-            ISupportRequestService supportRequestService)
+            ISupportRequestService supportRequestService,
+            ISourceRepoService sourceRepoService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -77,6 +79,7 @@ namespace NuGetGallery
             _editPackageService = editPackageService;
             _packageDeleteService = packageDeleteService;
             _supportRequestService = supportRequestService;
+            _sourceRepoService = sourceRepoService;
         }
 
         [Authorize]
@@ -299,6 +302,17 @@ namespace NuGetGallery
                 .OrderByDescending(p => new NuGetVersion(p.Version));
 
             var model = new DisplayPackageViewModel(package, packageHistory);
+
+            try
+            {
+                // attempt to load the optional repository information
+                model.SourceRepository = await _sourceRepoService.Load(package);
+            }
+            catch (Exception ex)
+            {
+                ex.Log();
+            }
+
 
             if (package.IsOwner(User))
             {

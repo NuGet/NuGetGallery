@@ -164,5 +164,15 @@ namespace NuGetGallery.Configuration
         /// </summary>
         // ReSharper disable once InconsistentNaming
         string PagerDutyServiceKey { get; set; }
+
+        /// <summary>
+        /// Username used to connect to the GitHub API
+        /// </summary>
+        string GithubUsername { get; set; }
+
+        /// <summary>
+        /// Password used to connect to the GitHub API
+        /// </summary>
+        string GithubPassword { get; set; }
     }
 }
