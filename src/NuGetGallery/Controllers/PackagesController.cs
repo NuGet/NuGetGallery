@@ -201,7 +201,7 @@ namespace NuGetGallery
                 using (var archive = new ZipArchive(uploadStream, ZipArchiveMode.Read, leaveOpen: true))
                 {
                     var entryInTheFuture = archive.Entries.FirstOrDefault(
-                        e => e.LastWriteTime > DateTimeOffset.UtcNow);
+                        e => e.LastWriteTime.UtcDateTime > DateTimeOffset.UtcNow);
 
                     if (entryInTheFuture != null)
                     {
