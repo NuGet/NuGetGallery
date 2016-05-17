@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
+using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
 
 namespace NuGetGallery
 {
@@ -217,6 +219,20 @@ namespace NuGetGallery
             {
                 try
                 {
+                    using (var archive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
+                    {
+                        var entryInTheFuture = archive.Entries.FirstOrDefault(
+                            e => e.LastWriteTime > DateTimeOffset.UtcNow);
+
+                        if (entryInTheFuture != null)
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                               CultureInfo.CurrentCulture,
+                               Strings.PackageEntryFromTheFuture,
+                               entryInTheFuture.Name));
+                        }
+                    }
+
                     using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
                     {
                         NuspecReader nuspec = null;

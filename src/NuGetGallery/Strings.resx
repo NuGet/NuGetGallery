@@ -368,4 +368,7 @@ The {2} Team</value>
   <data name="InvalidPortableFramework" xml:space="preserve">
     <value>The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.</value>
   </data>
+  <data name="PackageEntryFromTheFuture" xml:space="preserve">
+    <value>The package is invalid and cannot be uploaded. One or more files, such as '{0}' have a date in the future.</value>
+  </data>
 </root>

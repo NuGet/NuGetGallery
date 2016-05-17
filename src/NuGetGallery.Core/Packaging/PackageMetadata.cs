@@ -38,7 +38,7 @@ namespace NuGetGallery.Packaging
             {
                 throw new FormatException(string.Format(Strings.PackageMetadata_VersionStringInvalid, versionString));
             }
-
+            
             NuGetVersion nugetVersion;
             if (NuGetVersion.TryParse(versionString, out nugetVersion))
             {

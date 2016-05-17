@@ -7,9 +7,11 @@ using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
@@ -196,6 +198,22 @@ namespace NuGetGallery
 
             using (var uploadStream = uploadFile.InputStream)
             {
+                using (var archive = new ZipArchive(uploadStream, ZipArchiveMode.Read, leaveOpen: true))
+                {
+                    var entryInTheFuture = archive.Entries.FirstOrDefault(
+                        e => e.LastWriteTime > DateTimeOffset.UtcNow);
+
+                    if (entryInTheFuture != null)
+                    {
+                        ModelState.AddModelError(String.Empty, string.Format(
+                           CultureInfo.CurrentCulture,
+                           Strings.PackageEntryFromTheFuture,
+                           entryInTheFuture.Name));
+
+                        return View();
+                    }
+                }
+
                 PackageArchiveReader packageArchiveReader;
                 try
                 {
