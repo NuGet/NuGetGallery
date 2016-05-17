@@ -27,7 +27,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var settings = (from p in typeof(IAppConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                         where p.CanRead
                         select p)
-                       .ToDictionary(p => p.Name, p => Tuple.Create(p.PropertyType, p.GetValue(_config.Current)));
+                       .ToDictionary(p => p.Name, p =>
+                       {
+                           var propertyType = p.PropertyType;
+                           var propertyValue = p.GetValue(_config.Current);
+
+                           if (propertyValue != null && p.Name.ToLowerInvariant().Contains("connectionstring"))
+                           {
+                               propertyValue = new string('*', 10);
+                           }
+
+                           return Tuple.Create(propertyType, propertyValue);
+                       });
+
             var features = (from p in typeof(FeatureConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                             where p.CanRead
                             select new FeatureConfigViewModel(p, _config.Features))
