@@ -200,8 +200,10 @@ namespace NuGetGallery
             {
                 using (var archive = new ZipArchive(uploadStream, ZipArchiveMode.Read, leaveOpen: true))
                 {
+                    var reference = DateTime.UtcNow.AddDays(1); // allow "some" clock skew
+
                     var entryInTheFuture = archive.Entries.FirstOrDefault(
-                        e => e.LastWriteTime.UtcDateTime > DateTimeOffset.UtcNow);
+                        e => e.LastWriteTime.UtcDateTime > reference);
 
                     if (entryInTheFuture != null)
                     {
