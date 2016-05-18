@@ -51,7 +51,7 @@ namespace Stats.ImportAzureCdnStatistics
                 _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
                 _cloudStorageContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
 
-                _aggregatesOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, "AggregatesOnly");
+                _aggregatesOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.AggregatesOnly);
 
                 // construct a cloud blob client for the configured storage account
                 _cloudBlobClient = _cloudStorageAccount.CreateCloudBlobClient();
