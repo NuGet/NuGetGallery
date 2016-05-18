@@ -2,18 +2,56 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
-    public static class Downloads
+    public class Downloads
     {
-        public static void Load(string name, ILoader loader, FrameworkLogger logger, IDictionary<string, IDictionary<string, int>> targetDictionary)
+        private IDictionary<string, DownloadsByVersion> _downloads =
+            new Dictionary<string, DownloadsByVersion>(StringComparer.OrdinalIgnoreCase);
+
+        private IDictionary<int, DownloadsByVersion> _byDocId =
+            new Dictionary<int, DownloadsByVersion>();
+
+        public DownloadsByVersion this[string packageId]
+        {
+            get
+            {
+                DownloadsByVersion result = null;
+                _downloads.TryGetValue(packageId, out result);
+
+                return result;
+            }
+
+            set
+            {
+                _downloads[packageId] = value;
+            }
+        }
+
+        public DownloadsByVersion this[int docId]
+        {
+            get
+            {
+                DownloadsByVersion result = null;
+                _byDocId.TryGetValue(docId, out result);
+
+                return result;
+            }
+
+            set
+            {
+                _byDocId[docId] = value;
+            }
+        }
+
+        public void Load(string name, ILoader loader, FrameworkLogger logger)
         {
             // The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.
             // Sample.json : [["AutofacContrib.NSubstitute",["2.4.3.700",406],["2.5.0",137]],["Assman.Core",["2.0.7",138]]....
@@ -39,11 +77,11 @@ namespace NuGet.Indexing
                                     continue;
                                 }
 
-                                if (!targetDictionary.ContainsKey(id))
+                                if (!_downloads.ContainsKey(id))
                                 {
-                                    targetDictionary.Add(id, new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase));
+                                    _downloads.Add(id, new DownloadsByVersion());
                                 }
-                                var versions = targetDictionary[id];
+                                var versions = _downloads[id];
 
                                 foreach (JToken token in record)
                                 {

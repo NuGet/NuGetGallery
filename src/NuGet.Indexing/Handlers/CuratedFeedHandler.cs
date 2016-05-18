@@ -21,6 +21,8 @@ namespace NuGet.Indexing
             _feeds = feeds;
         }
 
+        public bool SkipDeletes => true;
+
         public IDictionary<string, Filter> Result { get; private set; }
 
         public void Begin(IndexReader indexReader)
@@ -59,13 +61,19 @@ namespace NuGet.Indexing
             }
         }
 
-        public void Process(IndexReader indexReader, string readerName, int documentNumber, Document document, string id, NuGetVersion version)
+        public void Process(IndexReader indexReader,
+            string readerName,
+            int perSegmentDocumentNumber,
+            int perIndexDocumentNumber,
+            Document document,
+            string id,
+            NuGetVersion version)
         {
             foreach (var feed in _feeds)
             {
                 if (feed.Value.Contains(id))
                 {
-                    _bitSetLookup[feed.Key][readerName].Set(documentNumber);
+                    _bitSetLookup[feed.Key][readerName].Set(perSegmentDocumentNumber);
                 }
             }
         }

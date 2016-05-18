@@ -273,6 +273,10 @@
     <Compile Include="WebRole.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj">
+      <Project>{717E9A81-75C5-418E-92ED-18CAC55BC345}</Project>
+      <Name>NuGet.ApplicationInsights.Owin</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
       <Project>{ddb34145-870f-42c3-9663-a9390cee1e35}</Project>
       <Name>NuGet.Indexing</Name>

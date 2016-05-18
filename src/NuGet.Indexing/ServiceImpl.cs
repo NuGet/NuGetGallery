@@ -12,14 +12,24 @@ namespace NuGet.Indexing
 {
     public static class ServiceImpl
     {
-        public static void Search(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string scheme, string q, bool includePrerelease, int skip, int take, string feed, bool includeExplanation)
+        public static void Search(JsonWriter jsonWriter,
+            NuGetSearcherManager searcherManager,
+            string scheme,
+            string q,
+            bool includePrerelease,
+            int skip,
+            int take,
+            string feed,
+            bool includeExplanation)
         {
             var searcher = searcherManager.Get();
+
             try
             {
                 Query query = MakeSearchQuery(q, searcher);
 
                 Filter filter = null;
+
                 if (searcher.TryGetFilter(false, includePrerelease, feed, out filter))
                 {
                     // Filter before running the query (make the search set smaller)
@@ -45,7 +55,11 @@ namespace NuGet.Indexing
 
                 if (q != null)
                 {
-                    Query query = MakeAutoCompleteQuery(q, searcher.Rankings);
+                    Query query = MakeAutoCompleteQuery(q,
+                        searcher.DocIdMapping,
+                        searcher.Downloads,
+                        searcher.Rankings,
+                        searcher.QueryBoostingContext);
 
                     if (searcher.TryGetFilter(false, includePrerelease, null, out filter))
                     {
@@ -96,7 +110,12 @@ namespace NuGet.Indexing
             try
             {
                 Query query = NuGetQuery.MakeQuery(q, searcher.Owners);
-                Query boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
+                Query boostedQuery = new DownloadsBoostedQuery(query,
+                    searcher.DocIdMapping,
+                    searcher.Downloads,
+                    searcher.Rankings,
+                    searcher.QueryBoostingContext);
+
                 return boostedQuery;
             }
             catch (ParseException)
@@ -105,16 +124,28 @@ namespace NuGet.Indexing
             }
         }
 
-        private static Query MakeAutoCompleteQuery(string q, RankingsHandler.RankingResult rankings)
+        private static Query MakeAutoCompleteQuery(string q,
+            IReadOnlyDictionary<string, int[]> docIdMapping,
+            Downloads downloads,
+            RankingResult rankings,
+            QueryBoostingContext context)
         {
             if (string.IsNullOrEmpty(q))
             {
                 return new MatchAllDocsQuery();
             }
 
-            QueryParser queryParser = new QueryParser(Lucene.Net.Util.Version.LUCENE_30, "IdAutocomplete", new PackageAnalyzer());
+            var queryParser = new QueryParser(Lucene.Net.Util.Version.LUCENE_30,
+                "IdAutocomplete",
+                new PackageAnalyzer());
+
             Query query = queryParser.Parse(q);
-            Query boostedQuery = new RankingScoreQuery(query, rankings, 2.0);
+            Query boostedQuery = new DownloadsBoostedQuery(query,
+                docIdMapping,
+                downloads,
+                rankings,
+                context,
+                2.0);
 
             return boostedQuery;
         }

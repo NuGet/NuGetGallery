@@ -128,7 +128,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Common, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Common.3.5.0-beta-1208\lib\net45\NuGet.Common.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Common.3.5.0-beta-final\lib\net45\NuGet.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Core, Version=2.8.60318.667, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -136,7 +136,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Frameworks, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Frameworks.3.5.0-beta-1208\lib\net45\NuGet.Frameworks.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Frameworks.3.5.0-beta-final\lib\net45\NuGet.Frameworks.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Logging, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -144,19 +144,19 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Packaging.3.5.0-beta-1208\lib\net45\NuGet.Packaging.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.3.5.0-beta-final\lib\net45\NuGet.Packaging.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Packaging.Core.3.5.0-beta-1208\lib\net45\NuGet.Packaging.Core.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.Core.3.5.0-beta-final\lib\net45\NuGet.Packaging.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging.Core.Types, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Packaging.Core.Types.3.5.0-beta-1208\lib\net45\NuGet.Packaging.Core.Types.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.Core.Types.3.5.0-beta-final\lib\net45\NuGet.Packaging.Core.Types.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Versioning.3.5.0-beta-1208\lib\net45\NuGet.Versioning.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Versioning.3.5.0-beta-final\lib\net45\NuGet.Versioning.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGetGallery.Core, Version=3.0.413.0, Culture=neutral, processorArchitecture=MSIL">
@@ -184,18 +184,21 @@
     <Compile Include="ConfigurationExtensions.cs" />
     <Compile Include="AzureDirectorySynchronizer.cs" />
     <Compile Include="DownloadRankings.cs" />
+    <Compile Include="DownloadsByVersion.cs" />
     <Compile Include="DynamicDocIdSet.cs" />
     <Compile Include="ExpandAcronymsFilter.cs" />
     <Compile Include="Extraction\CatalogNuspecReader.cs" />
     <Compile Include="Extraction\CatalogPackageMetadataExtraction.cs" />
     <Compile Include="ChainedFilter.cs" />
     <Compile Include="ClientException.cs" />
-    <Compile Include="CuratedFeedHandler.cs" />
+    <Compile Include="Handlers\CuratedFeedHandler.cs" />
     <Compile Include="Extraction\CatalogPackageReader.cs" />
     <Compile Include="Extraction\LuceneCommitMetadata.cs" />
     <Compile Include="Extraction\DocumentCreator.cs" />
     <Compile Include="Extraction\JTokenExtensions.cs" />
     <Compile Include="Extraction\PackageEntityMetadataExtraction.cs" />
+    <Compile Include="Handlers\DownloadDocIdMappingHandler.cs" />
+    <Compile Include="Handlers\SegmentToMainReaderMappingHandler.cs" />
     <Compile Include="IAcronymExpansionProvider.cs" />
     <Compile Include="IConfiguration.cs" />
     <Compile Include="NuGetAcronymExpansionProvider.cs" />
@@ -208,21 +211,23 @@
     <Compile Include="IdentifierAutocompleteAnalyzer.cs" />
     <Compile Include="ILoader.cs" />
     <Compile Include="IndexReaderProcessor.cs" />
-    <Compile Include="IndexReaderProcessorHandler.cs" />
-    <Compile Include="LatestListedHandler.cs" />
+    <Compile Include="Handlers\IIndexReaderProcessorHandler.cs" />
+    <Compile Include="Handlers\LatestListedHandler.cs" />
     <Compile Include="NuGetQuery.cs" />
     <Compile Include="Extraction\NupkgPackageMetadataExtraction.cs" />
-    <Compile Include="OwnersHandler.cs" />
-    <Compile Include="RankingsHandler.cs" />
+    <Compile Include="Handlers\OwnersHandler.cs" />
+    <Compile Include="OwnersResult.cs" />
+    <Compile Include="Querys\DownloadsBoostedQuery.cs" />
+    <Compile Include="Querys\DownloadsScoreProvider.cs" />
+    <Compile Include="Querys\QueryBoostingContext.cs" />
+    <Compile Include="Ranking.cs" />
+    <Compile Include="RankingBySegment.cs" />
+    <Compile Include="RankingResult.cs" />
+    <Compile Include="Handlers\RankingsHandler.cs" />
     <Compile Include="ResponseFormatter.cs" />
     <Compile Include="Retry.cs" />
     <Compile Include="Sql2Lucene.cs" />
     <Compile Include="StorageLoader.cs" />
-    <Compile Include="Properties\Strings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Strings.resx</DependentUpon>
-    </Compile>
     <Compile Include="UriFormatter.cs" />
     <Compile Include="IndexingUtils.cs" />
     <Compile Include="LatestVersionFilterFactory.cs" />
@@ -249,26 +254,24 @@
     <Compile Include="IdentifierKeywordAnalyzer.cs" />
     <Compile Include="KeyCollector.cs" />
     <Compile Include="PackageAnalyzer.cs" />
-    <Compile Include="RankingsScoreQuery.cs" />
     <Compile Include="SearcherManager.cs" />
     <Compile Include="SemanticVersionFilter.cs" />
     <Compile Include="ShingledIdentifierAnalyzer.cs" />
     <Compile Include="TagsAnalyzer.cs" />
     <Compile Include="TokenizingHelper.cs" />
     <Compile Include="VersionAnalyzer.cs" />
+    <Compile Include="VersionDetail.cs" />
     <Compile Include="VersionDownloads.cs" />
-    <Compile Include="VersionsHandler.cs" />
+    <Compile Include="VersionResult.cs" />
+    <Compile Include="Handlers\VersionsHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="NuGet.Indexing.nuspec" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Strings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Acronyms.json" />
+    <None Include="SampleFiles\rankings.v1.json" />
+    <None Include="SampleFiles\searchSettings.v1.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

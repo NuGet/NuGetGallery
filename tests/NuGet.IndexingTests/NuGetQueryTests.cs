@@ -148,7 +148,7 @@ namespace NuGet.IndexingTests
             Assert.Equal(expected.ToString(), actual.ToString());
         }
 
-        private OwnersHandler.OwnersResult CreateOwnersResult(Dictionary<string, HashSet<string>> originalPackagesWithOwners)
+        private OwnersResult CreateOwnersResult(Dictionary<string, HashSet<string>> originalPackagesWithOwners)
         {
             var knownOwners = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var packagesWithOwners = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
@@ -170,7 +170,7 @@ namespace NuGet.IndexingTests
                 packagesWithOwners.Add(originalPackageWithOwners.Key, originalOwners);
             }
 
-            return new OwnersHandler.OwnersResult(knownOwners, packagesWithOwners, mappings);
+            return new OwnersResult(knownOwners, packagesWithOwners, mappings);
         }
 
         [Fact]

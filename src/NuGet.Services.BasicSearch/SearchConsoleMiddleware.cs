@@ -10,7 +10,7 @@ namespace NuGet.Services.BasicSearch
     public class SearchConsoleMiddleware
         : OwinMiddleware
     {
-        public SearchConsoleMiddleware(OwinMiddleware next) 
+        public SearchConsoleMiddleware(OwinMiddleware next)
             : base(next)
         {
         }

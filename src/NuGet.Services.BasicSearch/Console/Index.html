@@ -26,6 +26,10 @@
                     <option value="true" selected>Apply Filter</option>
                     <option value="false">No Filter</option>
                 </select>
+                <select id="shortForm">
+                    <option value="true" selected>Suppress json</option>
+                    <option value="false">Show json</option>
+                </select>
             </div>
         </div>
     </div>
@@ -42,6 +46,8 @@
             alert("An error occurred!");
         });
 
+        var shortForm = $('#shortForm').val();
+
         var displayPackage = function (data, i, query) {
 
             var explanation = data[i].explanation;
@@ -51,13 +57,21 @@
             }
 
             var html = '<div class="package-entry">';
-            html += data[i]['@id'];
-            html += '<div>' + json2html(data[i]) + '</div>';
 
-            if (explanation) {
-                html += '<pre class="explanation">';
-                html += explanation;
-                html += '</pre>';
+            if (shortForm) {
+                html += "<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["totalDownloads"] + "</td><td>";
+                html += data[i]["score"] + "</td></tr>";
+            }
+            else {
+                html += data[i]['@id'];
+
+                html += '<div>' + json2html(data[i]) + '</div>';
+
+                if (explanation) {
+                    html += '<pre class="explanation">';
+                    html += explanation;
+                    html += '</pre>';
+                }
             }
 
             html += '</div>';
@@ -71,8 +85,16 @@
 
             html += '<p>Total: ' + result.totalHits + '</p>';
 
+            if (shortForm) {
+                html += "<table border=\"0\">";
+            }
+
             for (var i = 0; i < result.data.length; i += 1) {
                 html += displayPackage(result.data, i, query);
+            }
+
+            if (shortForm) {
+                html += "</table>";
             }
 
             $('#results-div').html(html);
@@ -93,7 +115,7 @@
                 filter: filter,
                 skip: 0,
                 take: 100,
-                explanation: true
+                includeExplanation: true
             };
 
             $('#results-div').html('<em>fetching results</em>');

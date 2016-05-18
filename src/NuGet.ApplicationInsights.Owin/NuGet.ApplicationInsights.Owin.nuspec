@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>NuGet.ApplicationInsights.Owin</id>
+    <version>$version$</version>
+    <title>NuGet.ApplicationInsights.Owin</title>
+    <authors>.Net Foundation</authors>
+    <owners>.Net Foundation</owners>
+    <licenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/NuGet/NuGet.Services.Metadata</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>OWIN Middleware that provides context to ApplicationInsights telemetry.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2016 .NET Foundation</copyright>
+    <tags>nuget application insights owin</tags>
+  </metadata>
+</package>

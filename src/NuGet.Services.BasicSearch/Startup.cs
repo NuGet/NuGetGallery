@@ -9,12 +9,12 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Store;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.StaticFiles.Infrastructure;
+using NuGet.ApplicationInsights.Owin;
 using NuGet.Indexing;
 using NuGet.Services.Logging;
 using Owin;
@@ -37,8 +37,8 @@ namespace NuGet.Services.BasicSearch
 
         public void Configuration(IAppBuilder app, IConfiguration configuration, Directory directory, ILoader loader)
         {
-            // Configure 
-            ApplicationInsights.Initialize(configuration.Get("serilog:ApplicationInsightsInstrumentationKey"));
+            // Configure
+            Logging.ApplicationInsights.Initialize(configuration.Get("serilog:ApplicationInsightsInstrumentationKey"));
 
             // Create telemetry sink
             _searchTelemetryClient = new SearchTelemetryClient();
@@ -65,7 +65,10 @@ namespace NuGet.Services.BasicSearch
 
             // Correlate requests
             app.Use(typeof(CorrelationIdMiddleware));
-            
+
+            // Add Application Insights
+            app.Use(typeof(RequestTrackingMiddleware));
+
             // Search test console
             app.Use(typeof(SearchConsoleMiddleware));
             app.UseStaticFiles(new StaticFileOptions(new SharedOptions
@@ -180,7 +183,7 @@ namespace NuGet.Services.BasicSearch
                     },
                     maxRetries: maxRetries,
                     waitIncrement: TimeSpan.FromSeconds(1));
-                
+
                 return true;
             }
             catch (Exception e)
@@ -205,9 +208,9 @@ namespace NuGet.Services.BasicSearch
                 if (searcher.CommitUserData.TryGetValue("commitTimeStamp", out temp))
                 {
                     var commitTimestamp = DateTimeOffset.Parse(temp, null, DateTimeStyles.AssumeUniversal);
-                    
+
                     searchTelemetryClient.TrackMetric(SearchTelemetryClient.MetricName.LuceneLoadLag,
-                        (searcher.LastReopen - commitTimestamp.UtcDateTime).TotalSeconds, 
+                        (searcher.LastReopen - commitTimestamp.UtcDateTime).TotalSeconds,
                         new Dictionary<string, string>()
                         {
                             { SearchTelemetryClient.MetricName.LuceneLastReopen, searcher.LastReopen.ToString("o") },

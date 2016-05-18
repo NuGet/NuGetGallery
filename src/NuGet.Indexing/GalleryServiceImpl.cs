@@ -46,14 +46,14 @@ namespace NuGet.Indexing
                     // Filter before running the query (make the search set smaller)
                     query = new FilteredQuery(query, filter);
                 }
-             
+
                 if (countOnly)
                 {
                     DocumentCountImpl(jsonWriter, searcher, query);
                 }
                 else
                 {
-                    ListDocumentsImpl(jsonWriter, searcher, query, sortBy, skip, take, searcherManager);
+                    ListDocumentsImpl(jsonWriter, searcher, query, sortBy, skip, take);
                 }
             }
             finally
@@ -68,9 +68,18 @@ namespace NuGet.Indexing
             ResponseFormatter.WriteV2CountResult(jsonWriter, topDocs.TotalHits);
         }
 
-        private static void ListDocumentsImpl(JsonWriter jsonWriter, NuGetIndexSearcher searcher, Query query, string sortBy, int skip, int take, NuGetSearcherManager manager)
+        private static void ListDocumentsImpl(JsonWriter jsonWriter,
+            NuGetIndexSearcher searcher,
+            Query query,
+            string sortBy,
+            int skip,
+            int take)
         {
-            Query boostedQuery = new RankingScoreQuery(query, searcher.Rankings);
+            Query boostedQuery = new DownloadsBoostedQuery(query,
+                searcher.DocIdMapping,
+                searcher.Downloads,
+                searcher.Rankings,
+                searcher.QueryBoostingContext);
 
             int nDocs = skip + take;
             Sort sort = GetSort(sortBy);

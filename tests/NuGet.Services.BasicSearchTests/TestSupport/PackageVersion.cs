@@ -7,10 +7,6 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
 {
     public class PackageVersion
     {
-        public PackageVersion()
-        {
-        }
-
         public PackageVersion(string id, string version, int downloads = 0, bool listed = true)
         {
             Id = id;
@@ -20,7 +16,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
         }
 
         public string Id { get; }
-        
+
         public string Version { get; }
 
         public int Downloads { get; }

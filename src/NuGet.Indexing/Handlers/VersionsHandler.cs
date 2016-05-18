@@ -2,25 +2,32 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using NuGet.Versioning;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace NuGet.Indexing
 {
     public class VersionsHandler : IIndexReaderProcessorHandler
     {
-        private readonly IDictionary<string, IDictionary<string, int>> _downloads;
+        private readonly Downloads _downloads;
         private IDictionary<string, List<RegistrationEntry>> _registrations;
 
-        public VersionsHandler(IDictionary<string, IDictionary<string, int>> downloads)
+        public VersionsHandler(Downloads downloads)
         {
+            if (downloads == null)
+            {
+                throw new ArgumentNullException(nameof(downloads));
+            }
+
             _downloads = downloads;
         }
 
         public VersionResult[] Result { get; private set; }
+
+        public bool SkipDeletes => false;
 
         public void Begin(IndexReader indexReader)
         {
@@ -34,8 +41,15 @@ namespace NuGet.Indexing
             _registrations.Clear();
         }
 
-        public void Process(IndexReader indexReader, string readerName, int documentNumber, Document document, string id, NuGetVersion version)
+        public void Process(IndexReader indexReader,
+            string readerName,
+            int perSegmentDocumentNumber,
+            int perIndexDocumentNumber,
+            Document document,
+            string id,
+            NuGetVersion version)
         {
+            // main index docid
             if (id == null || version == null)
             {
                 return;
@@ -48,15 +62,16 @@ namespace NuGet.Indexing
                 _registrations.Add(id, versions);
             }
 
-            versions.Add(new RegistrationEntry { DocumentId = documentNumber, Version = version, IsListed = GetListed(document) });
+            var entry = new RegistrationEntry(perIndexDocumentNumber, version, GetListed(document));
+
+            versions.Add(entry);
         }
 
         private void CreateResults()
         {
             foreach (var registration in _registrations)
             {
-                IDictionary<string, int> downloadsByVersion;
-                _downloads.TryGetValue(registration.Key, out downloadsByVersion);
+                var downloadsByVersion = _downloads[registration.Key];
 
                 VersionResult versionResult = CreateVersionResult(registration.Key, registration.Value, downloadsByVersion);
 
@@ -67,7 +82,7 @@ namespace NuGet.Indexing
             }
         }
 
-        private VersionResult CreateVersionResult(string id, List<RegistrationEntry> registrationEntries, IDictionary<string, int> downloadsByVersion)
+        private VersionResult CreateVersionResult(string id, List<RegistrationEntry> registrationEntries, DownloadsByVersion downloadsByVersion)
         {
             VersionResult result = new VersionResult();
 
@@ -78,10 +93,10 @@ namespace NuGet.Indexing
                 int downloads = 0;
                 if (downloadsByVersion != null)
                 {
-                    downloadsByVersion.TryGetValue(versionStr, out downloads);
+                    downloads = downloadsByVersion[versionStr];
                 }
 
-                result.VersionDetails.Add(new VersionResult.VersionDetail
+                result.VersionDetails.Add(new VersionDetail
                 {
                     Version = versionStr,
                     Downloads = downloads,
@@ -101,39 +116,16 @@ namespace NuGet.Indexing
 
         private class RegistrationEntry
         {
-            public int DocumentId { get; set; }
-            public NuGetVersion Version { get; set; }
-            public bool IsListed { get; set; }
-        }
-
-        public class VersionResult
-        {
-            public VersionResult()
+            public RegistrationEntry(int docId, NuGetVersion version, bool isListed)
             {
-                VersionDetails = new List<VersionDetail>();
+                DocumentId = docId;
+                Version = version;
+                IsListed = isListed;
             }
 
-            public List<VersionDetail> VersionDetails { get; private set; }
-
-            public IEnumerable<string> GetVersions(bool onlyListed)
-            {
-                return VersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.Version);
-            }
-
-            public IEnumerable<string> GetStableVersions(bool onlyListed)
-            {
-                return StableVersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.Version);
-            }
-
-            public IEnumerable<VersionDetail> StableVersionDetails { get { return VersionDetails.Where(v => v.IsStable); } }
-
-            public class VersionDetail
-            {
-                public string Version { get; set; }
-                public int Downloads { get; set; }
-                public bool IsStable { get; set; }
-                public bool IsListed { get; set; }
-            }
+            public int DocumentId { get; }
+            public NuGetVersion Version { get; }
+            public bool IsListed { get; }
         }
     }
 }

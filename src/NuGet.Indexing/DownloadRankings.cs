@@ -11,7 +11,7 @@ namespace NuGet.Indexing
 {
     public static class DownloadRankings
     {
-        public static IDictionary<string, int> Load(string name, ILoader loader, FrameworkLogger logger)
+        public static IReadOnlyDictionary<string, int> Load(string name, ILoader loader, FrameworkLogger logger)
         {
             try
             {
@@ -26,7 +26,9 @@ namespace NuGet.Indexing
                 {
                     throw;
                 }
+
                 logger.LogInformation("Unable to load {0}. Exception Message : {1}", name, e.Message);
+
                 return new Dictionary<string, int>();
             }
         }
@@ -40,13 +42,14 @@ namespace NuGet.Indexing
             }
         }
 
-        static IDictionary<string, int> CreateDictionary(JsonReader jsonReader)
+        static IReadOnlyDictionary<string, int> CreateDictionary(JsonReader jsonReader)
         {
             Read(jsonReader, JsonToken.StartObject);
             Read(jsonReader, JsonToken.PropertyName);
             Read(jsonReader, JsonToken.StartArray);
 
-            IDictionary<string, int> ranking = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var ranking = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
             int n = 1;
 
             while (jsonReader.Read() && jsonReader.TokenType == JsonToken.String)

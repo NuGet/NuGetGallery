@@ -62,7 +62,7 @@ namespace NuGet.IndexingTests
                         new TokenAttributes("behaviors", 0, 13, 0)
                     }
                 };
-                
+
                 yield return new object[]
                 {
                     "uwpef",
@@ -73,6 +73,17 @@ namespace NuGet.IndexingTests
                         new TokenAttributes("entity framework", 0, 5, 0),
                         new TokenAttributes("uwp", 0, 5, 0),
                         new TokenAttributes("universal windows platform", 0, 5, 0)
+                    }
+                };
+
+                yield return new object[]
+                {
+                    "mvc5",
+                    new[]
+                    {
+                        new TokenAttributes("mvc5", 0, 4, 1),
+                        new TokenAttributes("mvc", 0, 4, 0),
+                        new TokenAttributes("5", 0, 4, 0),
                     }
                 };
             }

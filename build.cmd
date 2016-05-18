@@ -86,6 +86,8 @@ call :ExecuteCmd tools\nuget.exe pack "src\Catalog\NuGet.Services.Metadata.Catal
 IF %ERRORLEVEL% NEQ 0 goto error
 call :ExecuteCmd tools\nuget.exe pack "src\NuGet.Indexing\NuGet.Indexing.csproj" -symbols -o artifacts\packages -p Configuration=%config% %version%
 IF %ERRORLEVEL% NEQ 0 goto error
+call :ExecuteCmd tools\nuget.exe pack "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj" -symbols -o artifacts\packages -p Configuration=%config% %version%
+IF %ERRORLEVEL% NEQ 0 goto error
 
 mkdir artifacts\octopus
 call :ExecuteCmd tools\nuget.exe pack "src\Ng\Ng.csproj" -o artifacts\octopus -p Configuration=%config% %version% -NoPackageAnalysis

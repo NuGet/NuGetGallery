@@ -13,7 +13,7 @@ namespace NuGet.Indexing
     {
         private readonly IDictionary<string, HashSet<string>> _owners;
 
-        private HashSet<string> _knownOwners; 
+        private HashSet<string> _knownOwners;
         private IDictionary<string, IDictionary<string, DynamicDocIdSet>> _ownerTuples;
 
         public OwnersResult Result { get; private set; }
@@ -22,6 +22,8 @@ namespace NuGet.Indexing
         {
             _owners = owners;
         }
+
+        public bool SkipDeletes => true;
 
         public void Begin(IndexReader indexReader)
         {
@@ -46,9 +48,16 @@ namespace NuGet.Indexing
             Result = new OwnersResult(_knownOwners, _owners, _ownerTuples);
         }
 
-        public void Process(IndexReader indexReader, string readerName, int documentNumber, Document document, string id, NuGetVersion version)
+        public void Process(IndexReader indexReader,
+            string readerName,
+            int perSegmentDocumentNumber,
+            int perIndexDocumentNumber,
+            Document document,
+            string id,
+            NuGetVersion version)
         {
             HashSet<string> registrationOwners;
+
             if (id != null && _owners.TryGetValue(id, out registrationOwners))
             {
                 foreach (string registrationOwner in registrationOwners)
@@ -58,34 +67,17 @@ namespace NuGet.Indexing
                     DynamicDocIdSet ownerDocIdSet;
                     if (_ownerTuples[readerName].TryGetValue(registrationOwner, out ownerDocIdSet))
                     {
-                        ownerDocIdSet.DocIds.Add(documentNumber);
+                        ownerDocIdSet.DocIds.Add(perSegmentDocumentNumber);
                     }
                     else
                     {
                         ownerDocIdSet = new DynamicDocIdSet();
-                        ownerDocIdSet.DocIds.Add(documentNumber);
+                        ownerDocIdSet.DocIds.Add(perSegmentDocumentNumber);
 
                         _ownerTuples[readerName].Add(registrationOwner, ownerDocIdSet);
                     }
                 }
             }
-        }
-
-        public class OwnersResult
-        {
-            public OwnersResult(
-                HashSet<string> knownOwners,
-                IDictionary<string, HashSet<string>> packagesWithOwners, 
-                IDictionary<string, IDictionary<string, DynamicDocIdSet>> mappings)
-            {
-                KnownOwners = knownOwners;
-                PackagesWithOwners = packagesWithOwners;
-                Mappings = mappings;
-            }
-
-            public HashSet<string> KnownOwners { get; private set; }
-            public IDictionary<string, HashSet<string>> PackagesWithOwners { get; private set; }
-            public IDictionary<string, IDictionary<string, DynamicDocIdSet>> Mappings { get; private set; }
         }
     }
 }

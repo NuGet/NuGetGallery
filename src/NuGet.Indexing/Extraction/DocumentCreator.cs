@@ -15,7 +15,7 @@ namespace NuGet.Indexing
     public static class DocumentCreator
     {
         const int MergeFactor = 10;        //  Define the size of a file in a level (exponentially) and the count of files that constitue a level
-        const int MaxMergeDocs = 7999;     //  Except never merge segments that have more docs than this 
+        const int MaxMergeDocs = 7999;     //  Except never merge segments that have more docs than this
 
         public static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory, bool create)
         {
@@ -31,7 +31,7 @@ namespace NuGet.Indexing
         {
             return new LuceneCommitMetadata(commitTimeStamp, description, count, trace);
         }
-        
+
         public static Document CreateDocument(IDictionary<string, string> package)
         {
             var errors = new List<string>();
@@ -162,10 +162,15 @@ namespace NuGet.Indexing
         static void AddSortableTitle(Document document, IDictionary<string, string> package)
         {
             string value;
-            if (package.TryGetValue("title", out value) || package.TryGetValue("id", out value))
+
+            package.TryGetValue("title", out value);
+
+            if (string.IsNullOrEmpty(value))
             {
-                AddField(document, "SortableTitle", (value ?? string.Empty).ToLower(), Field.Index.ANALYZED);
+                package.TryGetValue("id", out value);
             }
+            
+            AddField(document, "SortableTitle", (value ?? string.Empty).ToLower(), Field.Index.ANALYZED);
         }
 
         static void AddDates(Document document, IDictionary<string, string> package, List<string> errors)

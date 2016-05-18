@@ -54,7 +54,7 @@ namespace NuGet.Indexing
 
             public override int Advance(int target)
             {
-                while (_current < _docIds.Length && _docIds[_current] < target)
+                while (_current == -1 || _current < _docIds.Length && _docIds[_current] < target)
                 {
                     _current++;
                 }
