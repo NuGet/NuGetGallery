@@ -10,11 +10,14 @@ namespace Stats.ImportAzureCdnStatistics
         public LogFileAggregates(string logFileName)
         {
             LogFileName = logFileName;
-            PackageDownloadsByDate = new Dictionary<int, int>();
+            PackageDownloadsByDateDimensionId = new Dictionary<int, int>();
         }
 
         public string LogFileName { get; private set; }
 
-        public IDictionary<int, int> PackageDownloadsByDate { get; private set; }
+        /// <summary>
+        /// Contains date dimension id's linked to total package download counts for a given log file.
+        /// </summary>
+        public IDictionary<int, int> PackageDownloadsByDateDimensionId { get; private set; }
     }
 }

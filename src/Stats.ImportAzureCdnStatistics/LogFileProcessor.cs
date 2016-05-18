@@ -109,7 +109,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                                 foreach (var keyValuePair in downloadsByDate)
                                 {
-                                    logFileAggregates.PackageDownloadsByDate.Add(keyValuePair.Key, keyValuePair.Value);
+                                    logFileAggregates.PackageDownloadsByDateDimensionId.Add(keyValuePair.Key, keyValuePair.Value);
 
 #if DEBUG
                                     _logger.LogInformation(

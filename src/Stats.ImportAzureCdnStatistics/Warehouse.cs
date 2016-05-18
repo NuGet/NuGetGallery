@@ -1257,7 +1257,7 @@ namespace Stats.ImportAzureCdnStatistics
             table.Columns.Add("Date_Dimension_Id", typeof(int));
             table.Columns.Add("PackageDownloads", typeof(int));
 
-            foreach (var kvp in logFileAggregates.PackageDownloadsByDate)
+            foreach (var kvp in logFileAggregates.PackageDownloadsByDateDimensionId)
             {
                 var row = table.NewRow();
                 row["LogFileName"] = logFileAggregates.LogFileName;
