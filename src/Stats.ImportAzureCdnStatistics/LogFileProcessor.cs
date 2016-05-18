@@ -111,11 +111,9 @@ namespace Stats.ImportAzureCdnStatistics
                                 {
                                     logFileAggregates.PackageDownloadsByDateDimensionId.Add(keyValuePair.Key, keyValuePair.Value);
 
-#if DEBUG
                                     _logger.LogInformation(
                                         "{LogFile} contains {PackageDownloadCount} package downloads for date id {DimensionDateId}",
                                         logFileName, keyValuePair.Value, keyValuePair.Key);
-#endif
                                 }
                             }
                         }
@@ -132,6 +130,8 @@ namespace Stats.ImportAzureCdnStatistics
             }
             catch (Exception e)
             {
+                _logger.LogError(new FormattedLogValues("Unable to process {LogFile}", logFile.Uri), e);
+
                 if (!aggregatesOnly)
                 {
                     // copy the blob to a dead-letter container
