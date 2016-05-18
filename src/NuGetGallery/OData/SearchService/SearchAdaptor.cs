@@ -192,7 +192,7 @@ namespace NuGetGallery.OData
                 string[] nameValue = prop.Split('=');
                 if (nameValue.Length == 2)
                 {
-                    queryTerms[nameValue[0]] = nameValue[1];
+                    queryTerms[Uri.UnescapeDataString(nameValue[0])] = nameValue[1];
                 }
             }
 
