@@ -162,10 +162,15 @@ namespace NuGet.Indexing
         static void AddSortableTitle(Document document, IDictionary<string, string> package)
         {
             string value;
-            if (package.TryGetValue("title", out value) || package.TryGetValue("id", out value))
+
+            package.TryGetValue("title", out value);
+
+            if (string.IsNullOrEmpty(value))
             {
-                AddField(document, "SortableTitle", (value ?? string.Empty).ToLower(), Field.Index.ANALYZED);
+                package.TryGetValue("id", out value);
             }
+            
+            AddField(document, "SortableTitle", (value ?? string.Empty).ToLower(), Field.Index.ANALYZED);
         }
 
         static void AddDates(Document document, IDictionary<string, string> package, List<string> errors)
