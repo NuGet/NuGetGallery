@@ -394,6 +394,43 @@ namespace Stats.ImportAzureCdnStatistics
             _logger.LogDebug("  DONE");
         }
 
+        public async Task<IReadOnlyCollection<string>> GetAlreadyAggregatedLogFilesAsync()
+        {
+            _logger.LogDebug("Retrieving already processed log files...");
+
+            var alreadyAggregatedLogFiles = new List<string>();
+            using (var connection = await _targetDatabase.ConnectTo())
+            {
+                try
+                {
+                    var command = connection.CreateCommand();
+                    command.CommandText = "[dbo].[SelectAlreadyAggregatedLogFiles]";
+                    command.CommandTimeout = _defaultCommandTimeout;
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    using (var dataReader = await command.ExecuteReaderAsync())
+                    {
+                        while (await dataReader.ReadAsync())
+                        {
+                            alreadyAggregatedLogFiles.Add(dataReader.GetString(0));
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError("Failed to retrieve already aggregated log files", exception);
+
+                    ApplicationInsightsHelper.TrackException(exception);
+
+                    throw;
+                }
+            }
+
+            _logger.LogDebug("  DONE");
+
+            return alreadyAggregatedLogFiles;
+        }
+
         private async Task<IDictionary<string, int>> GetDimension(string dimension, string logFileName, Func<SqlConnection, Task<IDictionary<string, int>>> retrieve)
         {
             var stopwatch = Stopwatch.StartNew();

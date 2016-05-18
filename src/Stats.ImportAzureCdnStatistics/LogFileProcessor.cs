@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -29,8 +28,8 @@ namespace Stats.ImportAzureCdnStatistics
 
         public LogFileProcessor(CloudBlobContainer targetContainer,
             CloudBlobContainer deadLetterContainer,
-            SqlConnectionStringBuilder targetDatabase,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            Warehouse warehouse)
         {
             if (targetContainer == null)
             {
@@ -42,9 +41,9 @@ namespace Stats.ImportAzureCdnStatistics
                 throw new ArgumentNullException(nameof(deadLetterContainer));
             }
 
-            if (targetDatabase == null)
+            if (warehouse == null)
             {
-                throw new ArgumentNullException(nameof(targetDatabase));
+                throw new ArgumentNullException(nameof(warehouse));
             }
 
             if (loggerFactory == null)
@@ -56,7 +55,7 @@ namespace Stats.ImportAzureCdnStatistics
             _deadLetterContainer = deadLetterContainer;
             _logger = loggerFactory.CreateLogger<Job>();
 
-            _warehouse = new Warehouse(loggerFactory, targetDatabase);
+            _warehouse = warehouse;
         }
 
         public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser, bool aggregatesOnly = false)
