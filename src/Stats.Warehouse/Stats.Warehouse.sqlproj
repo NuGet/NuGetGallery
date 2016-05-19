@@ -135,6 +135,7 @@
     <Build Include="Programmability\Types\dbo.LogFileAggregatesPackageDownloadsByDateTableType.sql" />
     <Build Include="Tables\dbo.Agg_PackageDownloads_LogFile.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.SelectAlreadyAggregatedLogFiles.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.GetTotalPackageDownloadsByDate.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="StaticCodeAnalysis.SuppressMessages.xml" />
