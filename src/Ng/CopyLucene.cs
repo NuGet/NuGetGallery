@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Lucene.Net.Store.Azure;
 
 namespace Ng
 {
@@ -38,6 +40,18 @@ namespace Ng
             }
 
             Lucene.Net.Store.Directory.Copy(srcDirectory, destDirectory, true);
+
+            if (destDirectory is AzureDirectory)
+            {
+                // When the destination directory is an AzureDirectory,
+                // create an empty write.lock to prevent writers from crashing.
+                if (!destDirectory.ListAll().Any(f =>
+                    String.Equals(f, "write.lock", StringComparison.OrdinalIgnoreCase)))
+                {
+                    var writeLock = destDirectory.CreateOutput("write.lock");
+                    writeLock.Dispose();
+                }
+            }
 
             Console.WriteLine("All Done");
         }

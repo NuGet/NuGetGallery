@@ -113,6 +113,21 @@ namespace NuGet.IndexingTests
         }
 
         [Fact]
+        public void DefaultsEmptyTitleToValueOfId()
+        {
+            // Arrange
+            var package = GetPackage();
+            package["title"] = string.Empty;
+
+            // Act
+            var document = DocumentCreator.CreateDocument(package);
+
+            // Assert
+            Assert.Equal("DotNetZip", document.GetFieldable("Title").StringValue);
+            Assert.Equal("dotnetzip", document.GetFieldable("SortableTitle").StringValue);
+        }
+
+        [Fact]
         public void DefaultsMissingLastEditedToValueOfPublished()
         {
             // Arrange
