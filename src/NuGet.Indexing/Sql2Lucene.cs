@@ -74,7 +74,7 @@ namespace NuGet.Indexing
                         Packages.Copyright                      'copyright',
                         Packages.[Language]                     'language',
                         Packages.LicenseUrl                     'licenseUrl',
-                        Packages.RequiresLicenseAcceptance      'requiresLicenseAcceptance',
+                        Packages.RequiresLicenseAcceptance      'requireLicenseAcceptance',
                         Packages.[Hash]                         'packageHash',
                         Packages.HashAlgorithm                  'packageHashAlgorithm',
                         Packages.PackageFileSize                'packageSize',

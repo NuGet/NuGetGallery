@@ -56,9 +56,8 @@ namespace NuGet.Indexing
                 AddString("packageHash");
                 AddString("packageHashAlgorithm");
                 AddString("packageSize");
-                AddString("requiresLicenseAcceptance");
+                AddString("requireLicenseAcceptance");
 
-                
                 AddFlattenedDependencies();
                 AddSupportedFrameworks();
 
