@@ -39,9 +39,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.ApplicationInsights.Owin", "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", "{717E9A81-75C5-418E-92ED-18CAC55BC345}"
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms

@@ -72,7 +72,7 @@ namespace NuGet.Indexing
             return document;
         }
 
-        static void AddId(Document document, IDictionary<string, string> package, List<string> errors)
+        private static void AddId(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
             if (package.TryGetValue("id", out value))
@@ -94,7 +94,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddVersion(Document document, IDictionary<string, string> package, List<string> errors)
+        private static void AddVersion(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string originalVersion;
             if (package.TryGetValue("originalVersion", out originalVersion))
@@ -129,16 +129,21 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddTitle(Document document, IDictionary<string, string> package)
+        private static void AddTitle(Document document, IDictionary<string, string> package)
         {
             string value;
-            if (package.TryGetValue("title", out value) || package.TryGetValue("id", out value))
+
+            package.TryGetValue("title", out value);
+
+            if (string.IsNullOrEmpty(value))
             {
-                AddField(document, "Title", value ?? string.Empty, Field.Index.ANALYZED);
+                package.TryGetValue("id", out value);
             }
+
+            AddField(document, "Title", value ?? string.Empty, Field.Index.ANALYZED);
         }
 
-        static void AddListed(Document document, IDictionary<string, string> package, List<string> errors)
+        private static void AddListed(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
             if (package.TryGetValue("listed", out value))
@@ -159,7 +164,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddSortableTitle(Document document, IDictionary<string, string> package)
+        private static void AddSortableTitle(Document document, IDictionary<string, string> package)
         {
             string value;
 
@@ -170,10 +175,10 @@ namespace NuGet.Indexing
                 package.TryGetValue("id", out value);
             }
             
-            AddField(document, "SortableTitle", (value ?? string.Empty).ToLower(), Field.Index.ANALYZED);
+            AddField(document, "SortableTitle", (value ?? string.Empty).ToLower(), Field.Index.NOT_ANALYZED);
         }
 
-        static void AddDates(Document document, IDictionary<string, string> package, List<string> errors)
+        private static void AddDates(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string created;
             if (package.TryGetValue("created", out created))
@@ -222,7 +227,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddPackageSize(Document document, IDictionary<string, string> package, List<string> errors)
+        private static void AddPackageSize(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
             if (package.TryGetValue("packageSize", out value))
@@ -239,7 +244,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddRequiresLicenseAcceptance(Document document, IDictionary<string, string> package, List<string> errors)
+        private static void AddRequiresLicenseAcceptance(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
             if (package.TryGetValue("requireLicenseAcceptance", out value))
@@ -256,7 +261,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddDependencies(Document document, IDictionary<string, string> package)
+        private static void AddDependencies(Document document, IDictionary<string, string> package)
         {
             string value;
             if (package.TryGetValue("flattenedDependencies", out value))
@@ -304,7 +309,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddSupportedFrameworks(Document document, IDictionary<string, string> package)
+        private static void AddSupportedFrameworks(Document document, IDictionary<string, string> package)
         {
             string value;
             if (package.TryGetValue("supportedFrameworks", out value))
@@ -329,7 +334,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void DetermineLanguageBoost(Document document, IDictionary<string, string> package)
+        private static void DetermineLanguageBoost(Document document, IDictionary<string, string> package)
         {
             string id;
             string language;
@@ -347,7 +352,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void CheckErrors(List<string> errors)
+        private static void CheckErrors(List<string> errors)
         {
             if (errors.Count > 0)
             {
@@ -360,7 +365,7 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddField(Document document, string destination, IDictionary<string, string> package, string source, Field.Index index, float boost = 1.0f)
+        private static void AddField(Document document, string destination, IDictionary<string, string> package, string source, Field.Index index, float boost = 1.0f)
         {
             string value;
             if (package.TryGetValue(source, out value))
@@ -379,15 +384,22 @@ namespace NuGet.Indexing
             }
         }
 
-        static void AddDateField(Document document, string destination, DateTimeOffset date)
+        private static void AddDateField(Document document, string destination, DateTimeOffset date)
         {
             document.Add(new NumericField(destination, Field.Store.YES, true).SetIntValue(int.Parse(date.ToString("yyyyMMdd"))));
         }
 
-        static void AddField(Document document, string destination, string value, Field.Index index, float boost = 1.0f)
+        private static void AddField(Document document, string destination, string value, Field.Index index, float boost = 1.0f)
         {
-            var termVector = index == Field.Index.ANALYZED ? Field.TermVector.WITH_POSITIONS_OFFSETS : Field.TermVector.NO;
-            document.Add(new Field(destination, value, Field.Store.YES, index, termVector) { Boost = boost });
+            var termVector = index == Field.Index.ANALYZED 
+                ? Field.TermVector.WITH_POSITIONS_OFFSETS
+                : Field.TermVector.NO;
+
+            document.Add(
+                new Field(destination, value, Field.Store.YES, index, termVector)
+                {
+                    Boost = boost
+                });
         }
     }
 }
