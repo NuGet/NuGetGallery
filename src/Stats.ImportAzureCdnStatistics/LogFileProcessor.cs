@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -23,27 +23,29 @@ namespace Stats.ImportAzureCdnStatistics
 
         private readonly CloudBlobContainer _targetContainer;
         private readonly CloudBlobContainer _deadLetterContainer;
-        private readonly SqlConnectionStringBuilder _targetDatabase;
-        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
+        private readonly Warehouse _warehouse;
 
         public LogFileProcessor(CloudBlobContainer targetContainer,
             CloudBlobContainer deadLetterContainer,
-            SqlConnectionStringBuilder targetDatabase,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            Warehouse warehouse)
         {
             if (targetContainer == null)
             {
                 throw new ArgumentNullException(nameof(targetContainer));
             }
+
             if (deadLetterContainer == null)
             {
                 throw new ArgumentNullException(nameof(deadLetterContainer));
             }
-            if (targetDatabase == null)
+
+            if (warehouse == null)
             {
-                throw new ArgumentNullException(nameof(targetDatabase));
+                throw new ArgumentNullException(nameof(warehouse));
             }
+
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -51,15 +53,17 @@ namespace Stats.ImportAzureCdnStatistics
 
             _targetContainer = targetContainer;
             _deadLetterContainer = deadLetterContainer;
-            _targetDatabase = targetDatabase;
-            _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<Job>();
+
+            _warehouse = warehouse;
         }
 
-        public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser)
+        public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser, bool aggregatesOnly = false)
         {
             if (logFile == null)
+            {
                 return;
+            }
 
             try
             {
@@ -70,32 +74,73 @@ namespace Stats.ImportAzureCdnStatistics
                 if (hasPackageStatistics || hasToolStatistics)
                 {
                     // replicate data to the statistics database
-                    var warehouse = new Warehouse(_loggerFactory, _targetDatabase);
+                    List<DataTable> downloadFacts = null;
+                    var logFileName = logFile.Blob.Name;
 
                     if (hasPackageStatistics)
                     {
-                        var downloadFacts = await warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFile.Blob.Name);
-                        await warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
+                        downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFileName);
                     }
+
                     if (hasToolStatistics)
                     {
-                        var downloadFacts = await warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFile.Blob.Name);
-                        await warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
+                        downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFileName);
+                    }
+
+                    if (downloadFacts != null)
+                    {
+                        // store facts recorded in this logfile
+                        if (!aggregatesOnly)
+                        {
+                            await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
+                        }
+
+                        // create aggregates for the logfile
+                        var logFileAggregates = new LogFileAggregates(logFileName);
+                        foreach (var table in downloadFacts)
+                        {
+                            if (string.Equals(table.TableName, "Fact_Download", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                // aggregate download counts by date
+                                var downloadsByDate =
+                                    table.AsEnumerable()
+                                        .GroupBy(e => e.Field<int>("Dimension_Date_Id"))
+                                        .Select(e => new KeyValuePair<int, int>(e.Key, e.Count()));
+
+                                foreach (var keyValuePair in downloadsByDate)
+                                {
+                                    logFileAggregates.PackageDownloadsByDateDimensionId.Add(keyValuePair.Key, keyValuePair.Value);
+
+                                    _logger.LogInformation(
+                                        "{LogFile} contains {PackageDownloadCount} package downloads for date id {DimensionDateId}",
+                                        logFileName, keyValuePair.Value, keyValuePair.Key);
+                                }
+                            }
+                        }
+
+                        // store aggregates for this logfile
+                        await _warehouse.StoreLogFileAggregatesAsync(logFileAggregates);
                     }
                 }
 
-                await ArchiveBlobAsync(logFile);
-
-                // delete the blob from the 'to-be-processed' container
-                await DeleteSourceBlobAsync(logFile);
+                if (!aggregatesOnly)
+                {
+                    await ArchiveBlobAsync(logFile);
+                }
             }
             catch (Exception e)
             {
-                await _deadLetterContainer.CreateIfNotExistsAsync();
+                _logger.LogError(new FormattedLogValues("Unable to process {LogFile}", logFile.Uri), e);
 
-                // copy the blob to a dead-letter container
-                await EnsureCopiedToContainerAsync(logFile, _deadLetterContainer, e);
+                if (!aggregatesOnly)
+                {
+                    // copy the blob to a dead-letter container
+                    await EnsureCopiedToContainerAsync(logFile, _deadLetterContainer, e);
+                }
+            }
 
+            if (!aggregatesOnly)
+            {
                 // delete the blob from the 'to-be-processed' container
                 await DeleteSourceBlobAsync(logFile);
             }
@@ -189,7 +234,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                 stopwatch.Stop();
 
-                _logger.LogDebug("Finished parsing blob {FtpBlobUri} ({RecordCount} records.", blobUri, packageStatistics.Count);
+                _logger.LogDebug("Finished parsing blob {FtpBlobUri} ({RecordCount} records).", blobUri, packageStatistics.Count);
                 ApplicationInsightsHelper.TrackMetric("Blob parsing duration (ms)", stopwatch.ElapsedMilliseconds, blobName);
             }
             catch (Exception exception)

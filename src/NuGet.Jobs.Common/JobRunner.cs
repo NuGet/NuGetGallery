@@ -52,7 +52,7 @@ namespace NuGet.Jobs
                 int? sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep); // sleep is in milliseconds
                 if (!sleepDuration.HasValue)
                 {
-                    sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Interval); 
+                    sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Interval);
                     if (sleepDuration.HasValue)
                     {
                         sleepDuration = sleepDuration.Value * 1000; // interval is in seconds
@@ -60,7 +60,7 @@ namespace NuGet.Jobs
                 }
 
                 // Setup the job for running
-                JobSetup(job, jobArgsDictionary, ref sleepDuration);
+                JobSetup(job, consoleLogOnly, jobArgsDictionary, ref sleepDuration);
 
                 // Run the job loop
                 await JobLoop(job, runContinuously, sleepDuration.Value, consoleLogOnly);
@@ -110,7 +110,7 @@ namespace NuGet.Jobs
             }
         }
 
-        private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
+        private static void JobSetup(JobBase job, bool consoleLogOnly, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
         {
             if (JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, "dbg"))
             {
@@ -127,6 +127,8 @@ namespace NuGet.Jobs
                 Trace.TraceWarning("SleepDuration is not provided or is not a valid integer. Unit is milliSeconds. Assuming default of 5000 ms...");
                 sleepDuration = 5000;
             }
+
+            job.ConsoleLogOnly = consoleLogOnly;
 
             // Initialize the job once with everything needed.
             // JobTraceListener(s) are already initialized

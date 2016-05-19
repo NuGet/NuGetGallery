@@ -22,6 +22,8 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly TimeSpan _defaultLeaseTime = TimeSpan.FromSeconds(60);
         private readonly CloudBlobContainer _container;
         private readonly ILogger _logger;
+        private string _lastProcessedBlobUri;
+        private List<IListBlobItem> _allBlobs;
 
         public LogFileProvider(CloudBlobContainer container, ILoggerFactory loggerFactory)
         {
@@ -38,19 +40,36 @@ namespace Stats.ImportAzureCdnStatistics
             _logger = loggerFactory.CreateLogger<LogFileProvider>();
         }
 
-        public async Task<IReadOnlyCollection<ILeasedLogFile>> LeaseNextLogFilesToBeProcessedAsync(string prefix)
+        public async Task<IReadOnlyCollection<ILeasedLogFile>> LeaseNextLogFilesToBeProcessedAsync(string prefix, IReadOnlyCollection<string> alreadyAggregatedLogFiles)
         {
             try
             {
                 _logger.LogDebug("Beginning blob listing using prefix {BlobPrefix}.", prefix);
 
-                var blobResultSegments = await _container.ListBlobsSegmentedAsync(prefix, true, BlobListingDetails.None, _maxListBlobResultSegments, null, null, null);
+                var aggregatesOnly = alreadyAggregatedLogFiles != null;
+
+                var leasedFiles = new List<ILeasedLogFile>();
+                IEnumerable<IListBlobItem> blobs;
+
+                if (!aggregatesOnly)
+                {
+                    var blobResultSegments = await _container.ListBlobsSegmentedAsync(prefix, true, BlobListingDetails.None, _maxListBlobResultSegments, null, null, null);
+                    blobs = blobResultSegments.Results;
+                }
+                else
+                {
+                    if (_allBlobs == null)
+                    {
+                        _allBlobs = _container.ListBlobs(prefix, true).ToList();
+                    }
+
+                    blobs = _allBlobs.Where(b => !alreadyAggregatedLogFiles.Contains(b.Uri.Segments.Last(), StringComparer.InvariantCultureIgnoreCase));
+                }
 
                 _logger.LogInformation("Finishing blob listing using prefix {BlobPrefix}.", prefix);
 
-                var leasedFiles = new List<ILeasedLogFile>();
-
-                foreach (var logFile in blobResultSegments.Results)
+                var alreadyProcessedBlobs = new List<IListBlobItem>();
+                foreach (var logFile in blobs)
                 {
                     if (leasedFiles.Count == _maxLeasesPerJobRun)
                     {
@@ -61,6 +80,14 @@ namespace Stats.ImportAzureCdnStatistics
                     var blobName = logFile.Uri.Segments.Last();
                     var logFileBlob = _container.GetBlockBlobReference(blobName);
 
+                    if (_lastProcessedBlobUri != null && string.CompareOrdinal(_lastProcessedBlobUri, logFileBlob.Uri.ToString()) >= 0)
+                    {
+                        // skip blobs we already processed (when generating aggregate logfile info only)
+                        alreadyProcessedBlobs.Add(logFile);
+
+                        continue;
+                    }
+
                     // try to acquire a lease on the blob
                     var leaseId = await TryAcquireLeaseAsync(logFileBlob);
                     if (string.IsNullOrEmpty(leaseId))
@@ -70,6 +97,11 @@ namespace Stats.ImportAzureCdnStatistics
                     }
 
                     leasedFiles.Add(new LeasedLogFile(logFileBlob, leaseId));
+                }
+
+                foreach (var logFile in alreadyProcessedBlobs)
+                {
+                    _allBlobs.Remove(logFile);
                 }
 
                 return leasedFiles;
@@ -225,6 +257,11 @@ namespace Stats.ImportAzureCdnStatistics
 #endif
                 }
             }
+        }
+
+        public void TrackLastProcessedBlobUri(string uri)
+        {
+            _lastProcessedBlobUri = uri;
         }
     }
 }

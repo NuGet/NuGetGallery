@@ -87,6 +87,7 @@ namespace NuGet.Jobs
 
         //Arguments specific to ParseAzureCdnLogs
         public const string AzureCdnCloudStorageTableName = "AzureCdnCloudStorageTableName";
+        public const string AggregatesOnly = "AggregatesOnly";
 
         //Arguments specific to Heartbeat
         public const string HeartbeatConfig = "HeartbeatConfig";
