@@ -175,7 +175,7 @@ namespace NuGet.Indexing
                 package.TryGetValue("id", out value);
             }
             
-            AddField(document, "SortableTitle", (value ?? string.Empty).ToLower(), Field.Index.NOT_ANALYZED);
+            AddField(document, "SortableTitle", (value ?? string.Empty).Trim().ToLower(), Field.Index.NOT_ANALYZED);
         }
 
         private static void AddDates(Document document, IDictionary<string, string> package, List<string> errors)
