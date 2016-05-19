@@ -36,6 +36,11 @@
       <Setting name="Auth.MicrosoftAccount.Enabled" />
       <Setting name="Auth.MicrosoftAccount.ClientId" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" />
+      <Setting name="Auth.AzureActiveDirectory.Enabled" />
+      <Setting name="Auth.AzureActiveDirectory.ClientId" />
+      <Setting name="Auth.AzureActiveDirectory.Authority" />
+      <Setting name="Auth.AzureActiveDirectory.Issuer" />
+      <Setting name="Auth.AzureActiveDirectory.ShowOnLoginPage" />
       <Setting name="Startup.BlockedIPs" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
     </ConfigurationSettings>

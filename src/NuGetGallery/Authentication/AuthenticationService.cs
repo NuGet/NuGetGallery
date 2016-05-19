@@ -376,9 +376,17 @@ namespace NuGetGallery.Authentication
             string emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
 
             Authenticator auther;
+            string authenticationType = idClaim.Issuer;
             if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
             {
-                auther = null;
+                foreach (var authenticator in Authenticators.Values)
+                {
+                    if (authenticator.TryMapIssuerToAuthenticationType(idClaim.Issuer, out authenticationType))
+                    {
+                        auther = authenticator;
+                        break;
+                    }
+                }
             }
 
             return new AuthenticateExternalLoginResult()
@@ -386,7 +394,7 @@ namespace NuGetGallery.Authentication
                 Authentication = null,
                 ExternalIdentity = result.Identity,
                 Authenticator = auther,
-                Credential = CredentialBuilder.CreateExternalCredential(idClaim.Issuer, idClaim.Value, nameClaim.Value + emailSuffix)
+                Credential = CredentialBuilder.CreateExternalCredential(authenticationType, idClaim.Value, nameClaim.Value + emailSuffix)
             };
         }
 

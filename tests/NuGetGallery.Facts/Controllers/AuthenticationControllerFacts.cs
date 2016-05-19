@@ -10,6 +10,7 @@ using Microsoft.Owin;
 using Moq;
 using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Configuration;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using Xunit;
@@ -49,8 +50,9 @@ namespace NuGetGallery.Controllers
                 var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: "LogOn");
                 Assert.NotNull(model.SignIn);
                 Assert.NotNull(model.Register);
-                Assert.Equal(1, model.Providers.Count);
-                Assert.Equal("MicrosoftAccount", model.Providers[0].ProviderName);
+                Assert.Equal(2, model.Providers.Count);
+                Assert.Equal("AzureActiveDirectory", model.Providers[0].ProviderName);
+                Assert.Equal("MicrosoftAccount", model.Providers[1].ProviderName);
             }
         }
 
@@ -75,6 +77,15 @@ namespace NuGetGallery.Controllers
 
                 var result = controller.LogOff("theReturnUrl");
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+            }
+
+            [Fact]
+            public void WillNotRedirectToTheReturnUrlWhenReturnUrlContainsAccount()
+            {
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.LogOff("account/profile");
+                ResultAssert.IsSafeRedirectTo(result, null);
             }
         }
 
@@ -724,6 +735,12 @@ namespace NuGetGallery.Controllers
             foreach (var auther in authService.Authenticators.Values)
             {
                 auther.BaseConfig.Enabled = true;
+
+                var azureActiveDirectoryAuthenticator = auther as AzureActiveDirectoryAuthenticator;
+                if (azureActiveDirectoryAuthenticator != null)
+                {
+                    azureActiveDirectoryAuthenticator.Config.ShowOnLoginPage = true;
+                }
             }
         }
     }

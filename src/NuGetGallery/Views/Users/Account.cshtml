@@ -301,8 +301,8 @@
 @if (hasPassword && credGroups.ContainsKey(CredentialKind.External) && credGroups[CredentialKind.External].Any())
 {
     <p class="message">
-        Because you have a Microsoft account registered you can remove your password below and use
-        that account to sign in to NuGet.org. No more passwords to forget!
+        Because you have an external account registered you can remove your password below and use
+        that account to sign in to @Config.Current.Brand. No more passwords to forget!
     </p>
 }
     
@@ -334,7 +334,7 @@
                     }
                 </text>,
                 content: @<p>
-                    You can use this Microsoft account to sign in to NuGet.org
+                    You can use this @cred.AuthUI.AccountNoun to sign in to @Config.Current.Brand
                 </p>)
         }
     }

@@ -182,6 +182,12 @@ namespace NuGetGallery
         public virtual ActionResult LogOff(string returnUrl)
         {
             OwinContext.Authentication.SignOut();
+
+            if (returnUrl.Contains("account"))
+            {
+                returnUrl = null;
+            }
+
             return SafeRedirect(returnUrl);
         }
 
@@ -284,7 +290,7 @@ namespace NuGetGallery
             return (from p in AuthService.Authenticators.Values
                     where p.BaseConfig.Enabled
                     let ui = p.GetUI()
-                    where ui != null
+                    where ui != null && ui.ShowOnLoginPage
                     select new AuthenticationProviderViewModel()
                     {
                         ProviderName = p.Name,
