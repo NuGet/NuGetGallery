@@ -256,7 +256,7 @@ namespace NuGet.Indexing
                 }
                 else
                 {
-                    errors.Add("Unable to parse 'requiresLicenseAcceptance' as Boolean.");
+                    errors.Add("Unable to parse 'requireLicenseAcceptance' as Boolean.");
                 }
             }
         }

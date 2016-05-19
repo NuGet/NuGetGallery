@@ -230,7 +230,7 @@ namespace NuGet.IndexingTests
                 yield return new[] { "listed", "Unable to parse 'listed' as Boolean.\r\n" };
                 yield return new[] { "published", "Unable to parse 'published' as DateTime.\r\n" };
                 yield return new[] { "lastEdited", "Unable to parse 'lastEdited' as DateTime.\r\n" };
-                yield return new[] { "requireLicenseAcceptance", "Unable to parse 'requiresLicenseAcceptance' as Boolean.\r\n" };
+                yield return new[] { "requireLicenseAcceptance", "Unable to parse 'requireLicenseAcceptance' as Boolean.\r\n" };
                 yield return new[] { "packageSize", "Unable to parse 'packageSize' as Int32.\r\n" };
             }
         }
