@@ -8,9 +8,11 @@ using System.Globalization;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Cors;
 using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
+using Microsoft.Owin.Cors;
 using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.StaticFiles.Infrastructure;
@@ -68,6 +70,24 @@ namespace NuGet.Services.BasicSearch
 
             // Add Application Insights
             app.Use(typeof(RequestTrackingMiddleware));
+
+            // Enable CORS
+            var corsPolicy = new CorsPolicy
+            {
+                Methods = { "GET", "HEAD", "OPTIONS" },
+                Headers = { "Content-Type", "If-Match", "If-Modified-Since", "If-None-Match", "If-Unmodified-Since", "Accept-Encoding" },
+                ExposedHeaders = { "Content-Type", "Content-Length", "Last-Modified", "Transfer-Encoding", "ETag", "Date", "Vary", "Server", "X-Hit", "X-CorrelationId" },
+                AllowAnyOrigin = true,
+                PreflightMaxAge = 3600
+            };
+
+            app.UseCors(new CorsOptions
+            {
+                PolicyProvider = new CorsPolicyProvider
+                {
+                    PolicyResolver = context => Task.FromResult(corsPolicy)
+                }
+            });
 
             // Search test console
             app.Use(typeof(SearchConsoleMiddleware));
