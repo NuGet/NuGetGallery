@@ -70,22 +70,14 @@ namespace Stats.ImportAzureCdnStatistics
                 var cdnStatistics = await ParseLogEntries(logFile, packageStatisticsParser);
                 var hasPackageStatistics = cdnStatistics.PackageStatistics.Any();
                 var hasToolStatistics = cdnStatistics.ToolStatistics.Any();
+                var logFileName = logFile.Blob.Name;
 
-                if (hasPackageStatistics || hasToolStatistics)
+                // replicate data to the statistics database
+                if (hasPackageStatistics)
                 {
-                    // replicate data to the statistics database
-                    List<DataTable> downloadFacts = null;
-                    var logFileName = logFile.Blob.Name;
+                    _logger.LogInformation("Creating facts for package download statistics in {LogFileName}", logFileName);
 
-                    if (hasPackageStatistics)
-                    {
-                        downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFileName);
-                    }
-
-                    if (hasToolStatistics)
-                    {
-                        downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFileName);
-                    }
+                    var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFileName);
 
                     if (downloadFacts != null)
                     {
@@ -119,7 +111,24 @@ namespace Stats.ImportAzureCdnStatistics
                         }
 
                         // store aggregates for this logfile
+                        _logger.LogInformation("Storing aggregate facts for package download statistics in {LogFileName}", logFileName);
                         await _warehouse.StoreLogFileAggregatesAsync(logFileAggregates);
+                    }
+                }
+
+                if (hasToolStatistics)
+                {
+                    _logger.LogInformation("Creating facts for tool download statistics in {LogFileName}", logFileName);
+
+                    var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFileName);
+
+                    if (downloadFacts != null)
+                    {
+                        // store facts recorded in this logfile
+                        if (!aggregatesOnly)
+                        {
+                            await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
+                        }
                     }
                 }
 
@@ -198,7 +207,7 @@ namespace Stats.ImportAzureCdnStatistics
             try
             {
                 // parse the log into table entities
-                _logger.LogDebug("Beginning to parse blob {FtpBlobUri}.", blobUri);
+                _logger.LogInformation("Beginning to parse blob {FtpBlobUri}.", blobUri);
 
                 using (var logStreamReader = new StreamReader(logStream))
                 {
@@ -234,7 +243,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                 stopwatch.Stop();
 
-                _logger.LogDebug("Finished parsing blob {FtpBlobUri} ({RecordCount} records).", blobUri, packageStatistics.Count);
+                _logger.LogInformation("Finished parsing blob {FtpBlobUri} ({RecordCount} records).", blobUri, packageStatistics.Count);
                 ApplicationInsightsHelper.TrackMetric("Blob parsing duration (ms)", stopwatch.ElapsedMilliseconds, blobName);
             }
             catch (Exception exception)
@@ -282,7 +291,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             try
             {
-                _logger.LogDebug("Beginning opening of compressed blob {FtpBlobUri}.", logFile.Uri);
+                _logger.LogInformation("Beginning opening of compressed blob {FtpBlobUri}.", logFile.Uri);
 
                 var memoryStream = new MemoryStream();
 
@@ -354,7 +363,7 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 try
                 {
-                    _logger.LogDebug("Beginning to delete blob {FtpBlobUri}.", logFile.Uri);
+                    _logger.LogInformation("Beginning to delete blob {FtpBlobUri}.", logFile.Uri);
 
                     var accessCondition = AccessCondition.GenerateLeaseCondition(logFile.LeaseId);
                     await logFile.Blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, accessCondition, null, null);
