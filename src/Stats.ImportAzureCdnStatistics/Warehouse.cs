@@ -8,7 +8,6 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Internal;
 using Stats.AzureCdnLogs.Common;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -489,7 +488,7 @@ namespace Stats.ImportAzureCdnStatistics
                     }
                     catch (Exception exception)
                     {
-                        _logger.LogError(new FormattedLogValues("Failed to retrieve dimension '{Dimension}'.", dimension), exception);
+                        _logger.LogError(LogEvents.FailedDimensionRetrieval, exception, "Failed to retrieve dimension '{Dimension}'.", dimension);
                         ApplicationInsightsHelper.TrackException(exception, logFileName);
 
                         if (stopwatch.IsRunning)
@@ -561,7 +560,7 @@ namespace Stats.ImportAzureCdnStatistics
                     }
                     catch (Exception exception)
                     {
-                        _logger.LogError(new FormattedLogValues("Failed to retrieve dimension '{Dimension}'.", dimension), exception);
+                        _logger.LogError(LogEvents.FailedDimensionRetrieval, exception, "Failed to retrieve dimension '{Dimension}'.", dimension);
                         ApplicationInsightsHelper.TrackException(exception, logFileName);
 
                         if (stopwatch.IsRunning)
