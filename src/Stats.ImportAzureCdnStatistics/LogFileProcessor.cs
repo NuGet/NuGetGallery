@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.GZip;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Internal;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Stats.AzureCdnLogs.Common;
@@ -139,7 +138,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
             catch (Exception e)
             {
-                _logger.LogError(new FormattedLogValues("Unable to process {LogFile}", logFile.Uri), e);
+                _logger.LogError(LogEvents.FailedToProcessLogFile, e, "Unable to process {LogFile}", logFile.Uri);
 
                 if (!aggregatesOnly)
                 {
@@ -253,7 +252,7 @@ namespace Stats.ImportAzureCdnStatistics
                     stopwatch.Stop();
                 }
 
-                _logger.LogError(new FormattedLogValues("Failed to parse blob {FtpBlobUri}.", blobUri), exception);
+                _logger.LogError(LogEvents.FailedToParseLogFile, exception, "Failed to parse blob {FtpBlobUri}.", blobUri);
                 ApplicationInsightsHelper.TrackException(exception, blobName);
 
                 throw;
@@ -325,7 +324,7 @@ namespace Stats.ImportAzureCdnStatistics
                     stopwatch.Stop();
                 }
 
-                _logger.LogError(new FormattedLogValues("Failed to open compressed blob {FtpBlobUri}", logFile.Uri), exception);
+                _logger.LogError(LogEvents.FailedToDecompressBlob, exception, "Failed to open compressed blob {FtpBlobUri}", logFile.Uri);
                 ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
 
                 throw;
@@ -351,7 +350,7 @@ namespace Stats.ImportAzureCdnStatistics
                     stopwatch.Stop();
                 }
 
-                _logger.LogError(new FormattedLogValues("Failed archive upload for blob {FtpBlobUri}", logFile.Uri), exception);
+                _logger.LogError(LogEvents.FailedBlobUpload, exception, "Failed archive upload for blob {FtpBlobUri}", logFile.Uri);
                 ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                 throw;
             }
@@ -372,7 +371,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(new FormattedLogValues("Finished to delete blob {FtpBlobUri}", logFile.Uri), exception);
+                    _logger.LogError(LogEvents.FailedBlobDelete, exception, "Finished to delete blob {FtpBlobUri}", logFile.Uri);
                     ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                     throw;
                 }

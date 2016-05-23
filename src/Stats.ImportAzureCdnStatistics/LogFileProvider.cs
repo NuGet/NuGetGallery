@@ -9,7 +9,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Internal;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -108,7 +107,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
             catch (Exception exception)
             {
-                _logger.LogError(new FormattedLogValues("Failed blob listing using prefix {BlobPrefix}.", prefix), exception);
+                _logger.LogError(LogEvents.FailedBlobListing, exception, "Failed blob listing using prefix {BlobPrefix}.", prefix);
             }
 
             return Enumerable.Empty<ILeasedLogFile>().ToList();
@@ -151,7 +150,7 @@ namespace Stats.ImportAzureCdnStatistics
                     }
                 }
 
-                _logger.LogError(new FormattedLogValues("Failed to acquire lease for blob {BlobUri}.", blobUriString), storageException);
+                _logger.LogError(LogEvents.FailedBlobLease, storageException, "Failed to acquire lease for blob {BlobUri}.", blobUriString);
 
                 throw;
             }
