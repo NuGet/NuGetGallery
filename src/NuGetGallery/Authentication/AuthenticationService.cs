@@ -293,6 +293,7 @@ namespace NuGetGallery.Authentication
         public virtual ActionResult Challenge(string providerName, string redirectUrl)
         {
             Authenticator provider;
+
             if (!Authenticators.TryGetValue(providerName, out provider))
             {
                 throw new InvalidOperationException(String.Format(
@@ -300,6 +301,7 @@ namespace NuGetGallery.Authentication
                     Strings.UnknownAuthenticationProvider,
                     providerName));
             }
+
             if (!provider.BaseConfig.Enabled)
             {
                 throw new InvalidOperationException(String.Format(

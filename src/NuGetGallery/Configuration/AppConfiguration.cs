@@ -162,6 +162,13 @@ namespace NuGetGallery.Configuration
         public bool AutoUpdateSearchIndex { get; set; }
 
         /// <summary>
+        /// Gets a string indicating which authentication provider(s) are supported for administrators. 
+        /// When specified, the gallery will ensure admin users are logging in using any of the specified authentication providers.
+        /// Blank means any authentication provider can be used by administrators.
+        /// </summary>
+        public string EnforcedAuthProviderForAdmin { get; set; }
+
+        /// <summary>
         /// Gets a string containing the PagerDuty account name.
         /// </summary>
         public string PagerDutyAccountName { get; set; }

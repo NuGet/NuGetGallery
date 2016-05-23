@@ -299,6 +299,92 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().VerifyAll();
                 GetMock<IMessageService>().VerifyAll();
             }
+
+            [Theory]
+            [InlineData("MicrosoftAccount", true)]
+            [InlineData("AzureActiveDirectory", false)]
+            public async Task GivenAdminLogsInWithValidExternalAuth_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
+            {
+                var enforcedProvider = "AzureActiveDirectory";
+
+                var config = Get<ConfigurationService>();
+                config.Current = new AppConfiguration()
+                {
+                    ConfirmEmailAddresses = false,
+                    EnforcedAuthProviderForAdmin = enforcedProvider
+                };
+
+                var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
+
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername")
+                    {
+                        UnconfirmedEmailAddress = "confirmed@example.com",
+                        Roles =
+                        {
+                            new Role { Name = Constants.AdminRoleName }
+                        }
+                    },
+                    externalCred);
+                
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
+                    .CompletesWith(authUser);
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.AddCredential(authUser.User, externalCred))
+                    .Completes()
+                    .Verifiable();
+
+                GetMock<IMessageService>()
+                    .Setup(x => x.SendCredentialAddedNotice(authUser.User, externalCred))
+                    .Verifiable();
+
+                EnableAllAuthenticators(Get<AuthenticationService>());
+                var controller = GetController<AuthenticationController>();
+
+                if (shouldChallenge)
+                {
+                    GetMock<AuthenticationService>()
+                        .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>()))
+                        .Returns(new ChallengeResult(enforcedProvider, null))
+                        .Verifiable();
+                }
+                else
+                {
+                    GetMock<AuthenticationService>()
+                       .Setup(x => x.CreateSession(controller.OwinContext, authUser.User))
+                       .Verifiable();
+                }
+                
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Credential = externalCred
+                    });
+
+                // Act
+                var result = await controller.SignIn(
+                    new LogOnViewModel(
+                        new SignInViewModel(
+                            authUser.User.Username,
+                            "thePassword")),
+                    "theReturnUrl", linkingAccount: true);
+
+                // Assert
+                if (shouldChallenge)
+                {
+                    ResultAssert.IsChallengeResult(result, enforcedProvider);
+                }
+                else
+                {
+                    ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                }
+                GetMock<AuthenticationService>().VerifyAll();
+                GetMock<IMessageService>().VerifyAll();
+            }
         }
 
         public class TheRegisterAction : TestContainer
@@ -494,7 +580,7 @@ namespace NuGetGallery.Controllers
                         Credential = externalCred
                     });
 
-                // Simulate the model state error that will be added when doing an extenral account registration (since password is not present)
+                // Simulate the model state error that will be added when doing an external account registration (since password is not present)
                 controller.ModelState.AddModelError("Register.Password", "Password is required");
 
                 // Act
@@ -516,7 +602,89 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.SendNewAccountEmail(
                         expectedAddress,
                         "https://nuget.local/account/confirm/theUsername/t0k3n"));
+
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
+            }
+
+            [Theory]
+            [InlineData("MicrosoftAccount", true)]
+            [InlineData("AzureActiveDirectory", false)]
+            public async Task GivenAdminLogsInWithExternalIdentity_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
+            {
+                // Arrange
+                var enforcedProvider = "AzureActiveDirectory";
+
+                var config = Get<ConfigurationService>();
+                config.Current = new AppConfiguration()
+                {
+                    ConfirmEmailAddresses = false,
+                    EnforcedAuthProviderForAdmin = enforcedProvider
+                };
+
+                var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
+
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername")
+                    {
+                        UnconfirmedEmailAddress = "unconfirmed@example.com",
+                        EmailConfirmationToken = "t0k3n",
+                        Roles =
+                        {
+                            new Role { Name = Constants.AdminRoleName }
+                        }
+                    },
+                    externalCred);
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred))
+                    .CompletesWith(authUser);
+
+                EnableAllAuthenticators(Get<AuthenticationService>());
+                var controller = GetController<AuthenticationController>();
+
+                if (shouldChallenge)
+                {
+                    GetMock<AuthenticationService>()
+                        .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>()))
+                        .Returns(new ChallengeResult(enforcedProvider, null))
+                        .Verifiable();
+                }
+                else
+                {
+                    GetMock<AuthenticationService>()
+                       .Setup(x => x.CreateSession(controller.OwinContext, authUser.User))
+                       .Verifiable();
+                }
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Credential = externalCred
+                    });
+
+                // Act
+                var result = await controller.Register(
+                    new LogOnViewModel()
+                    {
+                        Register = new RegisterViewModel
+                        {
+                            Username = "theUsername",
+                            EmailAddress = "theEmailAddress",
+                        }
+                    }, "/theReturnUrl", linkingAccount: true);
+
+                // Assert
+                if (shouldChallenge)
+                {
+                    ResultAssert.IsChallengeResult(result, enforcedProvider);
+                }
+                else
+                {
+                    ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
+                }
+                GetMock<AuthenticationService>().VerifyAll();
             }
         }
 
@@ -583,6 +751,67 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.CreateSession(controller.OwinContext, authUser.User));
             }
 
+            [Theory]
+            [InlineData("MicrosoftAccount", true)]
+            [InlineData("AzureActiveDirectory", false)]
+            public async Task GivenAssociatedLocalAdminUser_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
+            {
+                // Arrange
+                var enforcedProvider = "AzureActiveDirectory";
+
+                var config = Get<ConfigurationService>();
+                config.Current = new AppConfiguration()
+                {
+                    ConfirmEmailAddresses = false,
+                    EnforcedAuthProviderForAdmin = enforcedProvider
+                };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var cred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
+                var authUser = new AuthenticatedUser(
+                    Fakes.CreateUser("test", cred),
+                    cred);
+
+                authUser.User.Roles.Add(new Role { Name = Constants.AdminRoleName });
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authentication = authUser
+                    });
+
+                if (shouldChallenge)
+                {
+                    GetMock<AuthenticationService>()
+                        .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>()))
+                        .Returns(new ChallengeResult(enforcedProvider, null))
+                        .Verifiable();
+                }
+                else
+                {
+                    GetMock<AuthenticationService>()
+                       .Setup(x => x.CreateSession(controller.OwinContext, authUser.User))
+                       .Verifiable();
+                }
+
+                // Act
+                var result = await controller.LinkExternalAccount("theReturnUrl");
+
+                // Assert
+                if (shouldChallenge)
+                {
+                    ResultAssert.IsChallengeResult(result, enforcedProvider);
+                }
+                else
+                {
+                    ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                    GetMock<AuthenticationService>().VerifyAll();
+                }
+            }
+
             [Fact]
             public async Task GivenNoLinkAndNoClaimData_ItDisplaysLogOnViewWithNoPrefilledData()
             {
@@ -619,7 +848,6 @@ namespace NuGetGallery.Controllers
             public async Task GivenNoLinkAndNameClaim_ItDisplaysLogOnViewWithExternalAccountName()
             {
                 // Arrange
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
 
@@ -722,6 +950,43 @@ namespace NuGetGallery.Controllers
                 Assert.True(model.External.FoundExistingUser);
                 Assert.Equal(existingUser.EmailAddress, model.SignIn.UserNameOrEmail);
                 Assert.Equal(existingUser.EmailAddress, model.Register.EmailAddress);
+            }
+        }
+
+        public class TheShouldChallengeEnforcedProviderMethod : TestContainer
+        {
+            [Theory]
+            [InlineData("Foo", true)]
+            [InlineData("AzureActiveDirectory", false)]
+            public void VerifyShouldChallenge(string providerUsedForLogin, bool shouldChallenge)
+            {
+                // Arrange
+                var enforcedProvider = "AzureActiveDirectory";
+
+                EnableAllAuthenticators(Get<AuthenticationService>());
+
+                var controller = GetController<AuthenticationController>();
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername")
+                    {
+                        EmailAddress = "confirmed@example.com",
+                        Roles =
+                        {
+                            new Role { Name = Constants.AdminRoleName }
+                        }
+                    },
+                    new Credential { Type = providerUsedForLogin });
+
+                // Act
+                ActionResult challengeResult;
+                var result = controller.ShouldChallengeEnforcedProvider(enforcedProvider, authUser, null, out challengeResult);
+
+                // Assert
+                Assert.Equal(shouldChallenge, result);
+                if (shouldChallenge)
+                {
+                    ResultAssert.IsChallengeResult(challengeResult, enforcedProvider);
+                }
             }
         }
 
