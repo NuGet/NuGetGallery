@@ -244,6 +244,18 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.PackageVersionAction, new { action = "Edit", id, version });
         }
 
+        public static string ReflowPackage(this UrlHelper url, IPackageVersionModel package)
+        {
+            return url.Action(
+                actionName: "Reflow",
+                controllerName: "Packages",
+                routeValues: new
+                {
+                    id = package.Id,
+                    version = package.Version
+                });
+        }
+
         public static string DeletePackage(this UrlHelper url, IPackageVersionModel package)
         {
             return url.Action(
