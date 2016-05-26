@@ -767,10 +767,6 @@ namespace NuGetGallery
                 TempData["Message"] =
                     "The package is being reflowed. It may take a while for this change to propagate through our system.";
             }
-            catch (NotSupportedException)
-            {
-                return HttpNotFound();
-            }
             catch (Exception ex)
             {
                 TempData["Message"] =

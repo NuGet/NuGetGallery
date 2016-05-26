@@ -31,8 +31,7 @@ namespace NuGetGallery
 
             if (package == null)
             {
-                throw new NotSupportedException(
-                    $"Package with id {id} and version {version} could not be found.");
+                return null;
             }
 
             EntitiesConfiguration.SuspendExecutionStrategy = true;
