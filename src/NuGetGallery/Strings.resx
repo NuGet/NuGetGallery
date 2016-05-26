@@ -371,4 +371,13 @@ The {2} Team</value>
   <data name="PackageEntryFromTheFuture" xml:space="preserve">
     <value>The package is invalid and cannot be uploaded. One or more files, such as '{0}' have a date in the future.</value>
   </data>
+  <data name="AzureActiveDirectory_SignInMessage" xml:space="preserve">
+    <value>Sign in with Azure Active Directory</value>
+  </data>
+  <data name="AzureActiveDirectory_AccountNoun" xml:space="preserve">
+    <value>Azure Active Directory Account</value>
+  </data>
+  <data name="AzureActiveDirectory_Caption" xml:space="preserve">
+    <value>Azure Active Directory</value>
+  </data>
 </root>

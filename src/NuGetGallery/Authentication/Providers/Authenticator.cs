@@ -13,7 +13,7 @@ namespace NuGetGallery.Authentication.Providers
 {
     public abstract class Authenticator
     {
-        private static readonly Regex _nameShortener = new Regex(@"^(?<shortname>[A-Za-z0-9_]*)Authenticator$");
+        private static readonly Regex NameShortener = new Regex(@"^(?<shortname>[A-Za-z0-9_]*)Authenticator$");
         private static readonly string AuthPrefix = "Auth.";
 
         public AuthenticatorConfiguration BaseConfig { get; private set; }
@@ -49,7 +49,7 @@ namespace NuGetGallery.Authentication.Providers
         public static string GetName(Type authenticator)
         {
             var name = authenticator.Name;
-            var match = _nameShortener.Match(name);
+            var match = NameShortener.Match(name);
             if (match.Success)
             {
                 name = match.Groups["shortname"].Value;
@@ -92,17 +92,17 @@ namespace NuGetGallery.Authentication.Providers
         {
             return new HttpUnauthorizedResult();
         }
-    }
 
-    public abstract class Authenticator<TConfig> : Authenticator
-        where TConfig : AuthenticatorConfiguration, new()
-    {
-        public TConfig Config { get; private set; }
-
-        protected internal override AuthenticatorConfiguration CreateConfigObject()
+        public virtual bool TryMapIssuerToAuthenticationType(string issuer, out string authenticationType)
         {
-            Config = new TConfig();
-            return Config;
+            if (string.Equals(issuer, BaseConfig.AuthenticationType, StringComparison.OrdinalIgnoreCase))
+            {
+                authenticationType = BaseConfig.AuthenticationType;
+                return true;
+            }
+
+            authenticationType = null;
+            return false;
         }
     }
 }
