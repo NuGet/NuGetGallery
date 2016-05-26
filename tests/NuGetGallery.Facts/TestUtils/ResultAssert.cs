@@ -127,6 +127,13 @@ namespace NuGetGallery
             return Assert.IsType<EmptyResult>(result);
         }
 
+        public static ChallengeResult IsChallengeResult(ActionResult result, string provider)
+        {
+            var challenge = Assert.IsType<ChallengeResult>(result);
+            Assert.Equal(provider, challenge.LoginProvider);
+            return challenge;
+        }
+
         public static ChallengeResult IsChallengeResult(ActionResult result, string provider, string redirectUrl)
         {
             var challenge = Assert.IsType<ChallengeResult>(result);

@@ -33,7 +33,7 @@ namespace NuGetGallery.Authentication.Providers.Cookie
 
         protected internal override AuthenticatorConfiguration CreateConfigObject()
         {
-            return new AuthenticatorConfiguration()
+            return new AuthenticatorConfiguration
             {
                 AuthenticationType = AuthenticationTypes.LocalUser,
                 Enabled = false

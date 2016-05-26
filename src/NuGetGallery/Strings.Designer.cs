@@ -116,6 +116,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Azure Active Directory Account.
+        /// </summary>
+        public static string AzureActiveDirectory_AccountNoun {
+            get {
+                return ResourceManager.GetString("AzureActiveDirectory_AccountNoun", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Azure Active Directory.
+        /// </summary>
+        public static string AzureActiveDirectory_Caption {
+            get {
+                return ResourceManager.GetString("AzureActiveDirectory_Caption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sign in with Azure Active Directory.
+        /// </summary>
+        public static string AzureActiveDirectory_SignInMessage {
+            get {
+                return ResourceManager.GetString("AzureActiveDirectory_SignInMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You canceled your email address change request..
         /// </summary>
         public static string CancelEmailAddress {

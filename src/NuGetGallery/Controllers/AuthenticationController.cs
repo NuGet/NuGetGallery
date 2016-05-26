@@ -25,7 +25,6 @@ namespace NuGetGallery
         public IUserService UserService { get; protected set; }
         public IMessageService MessageService { get; protected set; }
 
-
         public AuthenticationController(
             AuthenticationService authService,
             IUserService userService,
@@ -83,7 +82,7 @@ namespace NuGetGallery
 
                 return LogOnView(model);
             }
-
+            
             if (linkingAccount)
             {
                 // Link with an external account
@@ -94,9 +93,43 @@ namespace NuGetGallery
                 }
             }
 
-            // Now log in!
+            // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
+            // to require a specific authentication provider, challenge that provider if needed.
+            ActionResult challenge;
+            if (ShouldChallengeEnforcedProvider(
+                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
+            {
+                return challenge;
+            }
+
+            // Create session
             AuthService.CreateSession(OwinContext, user.User);
             return SafeRedirect(returnUrl);
+        }
+
+        internal bool ShouldChallengeEnforcedProvider(string enforcedProviders, AuthenticatedUser authenticatedUser, string returnUrl, out ActionResult challenge)
+        {
+            if (!string.IsNullOrEmpty(enforcedProviders)
+                && authenticatedUser.CredentialUsed.Type != null
+                && authenticatedUser.User.IsInRole(Constants.AdminRoleName))
+            {
+                // Seems we *need* a specific authentication provider. Check if we logged in using one...
+                var providers = enforcedProviders.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+
+                if (!providers.Any(p => string.Equals(p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase))
+                    && !providers.Any(p => string.Equals(CredentialTypes.ExternalPrefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
+                {
+                    // Challenge authentication using the first required authentication provider
+                    challenge = AuthService.Challenge(
+                        providers.First(),
+                        Url.Action("LinkExternalAccount", "Authentication", new { ReturnUrl = returnUrl }));
+
+                    return true;
+                }
+            }
+
+            challenge = null;
+            return false;
         }
 
         [HttpGet]
@@ -133,7 +166,6 @@ namespace NuGetGallery
             AuthenticatedUser user;
             try
             {
-
                 if (linkingAccount)
                 {
                     var result = await AuthService.ReadExternalLoginCredential(OwinContext);
@@ -162,7 +194,7 @@ namespace NuGetGallery
             }
 
             // Send a new account email
-            if(NuGetContext.Config.Current.ConfirmEmailAddresses && !String.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
+            if (NuGetContext.Config.Current.ConfirmEmailAddresses && !String.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
             {
                 MessageService.SendNewAccountEmail(
                     new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
@@ -173,15 +205,30 @@ namespace NuGetGallery
                         user.User.EmailConfirmationToken));
             }
 
-            // We're logging in!
-            AuthService.CreateSession(OwinContext, user.User);
+            // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
+            // to require a specific authentication provider, challenge that provider if needed.
+            ActionResult challenge;
+            if (ShouldChallengeEnforcedProvider(
+                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
+            {
+                return challenge;
+            }
 
+            // Create session
+            AuthService.CreateSession(OwinContext, user.User);
             return RedirectFromRegister(returnUrl);
         }
 
         public virtual ActionResult LogOff(string returnUrl)
         {
             OwinContext.Authentication.SignOut();
+
+            if (!string.IsNullOrEmpty(returnUrl) 
+                && returnUrl.Contains("account"))
+            {
+                returnUrl = null;
+            }
+
             return SafeRedirect(returnUrl);
         }
 
@@ -205,6 +252,16 @@ namespace NuGetGallery
 
             if (result.Authentication != null)
             {
+                // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
+                // to require a specific authentication provider, challenge that provider if needed.
+                ActionResult challenge;
+                if (ShouldChallengeEnforcedProvider(
+                    NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, result.Authentication, returnUrl, out challenge))
+                {
+                    return challenge;
+                }
+
+                // Create session
                 AuthService.CreateSession(OwinContext, result.Authentication.User);
                 return SafeRedirect(returnUrl);
             }
@@ -284,7 +341,7 @@ namespace NuGetGallery
             return (from p in AuthService.Authenticators.Values
                     where p.BaseConfig.Enabled
                     let ui = p.GetUI()
-                    where ui != null
+                    where ui != null && ui.ShowOnLoginPage
                     select new AuthenticationProviderViewModel()
                     {
                         ProviderName = p.Name,

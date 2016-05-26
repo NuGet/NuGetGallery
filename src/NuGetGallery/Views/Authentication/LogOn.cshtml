@@ -13,7 +13,7 @@
                 <p>
                     We found an account with this email address. Sign in with your password to link with this account. 
                     Don't have a password? Sorry, you'll have to log in using an existing credential and 
-                    set a password to associate a Microsoft Account. If you're still having trouble, you can 
+                    set a password to associate a @Model.External.ProviderAccountNoun. If you're still having trouble, you can 
                     <a href="mailto:@Config.Current.GalleryOwner.Address">contact support.</a>
                 </p>
                 <div id="signIn-solo-form">
@@ -55,30 +55,36 @@
     }
     else
     {
-        if (Model.Providers.Count > 0)
+        foreach (var provider in Model.Providers)
         {
             <div id="logon-external">
-                <h1>Sign in with a Microsoft account</h1>
+                <h1>@provider.UI.SignInMessage</h1>
                 <p id="logon-external-info">
-                    We recommend using a Microsoft account to log in to NuGet.org.
-                    If you already have a NuGet.org account, click the button to the right to associate it
-                    with your Microsoft account. If not, click the button anyway and we'll create a new NuGet.org 
-                    account for you!
+                    @if (!string.IsNullOrEmpty(provider.UI.SignInInfo))
+                    {
+                        @provider.UI.SignInInfo
+                    }
+                    else
+                    {
+                        <text>
+                            We recommend using a @(provider.UI.AccountNoun ?? "external account") to log in to NuGet.org.
+                            If you already have a NuGet.org account, click the button to the right to associate it with your @(provider.UI.AccountNoun ?? "external account").
+                            If not, click the button anyway and we'll create a new NuGet.org account for you!
+                        </text>
+                    }
                 </p>
                 <ul id="signin-providerlist">
-                    @foreach (var provider in Model.Providers)
-                    {
-                        <li class="signin-authprovider">
-                            <a class="btn btn-big signin-external-link" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
-                                <i class="@provider.UI.IconCssClass signin-authprovider-icon"></i>
-                                @provider.UI.SignInMessage
-                            </a>
-                        </li>
-                    }
+                    <li class="signin-authprovider">
+                        <a class="btn btn-big signin-external-link" href="@Url.Action("Authenticate", new {provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey]})">
+                            <i class="@provider.UI.IconCssClass signin-authprovider-icon"></i>
+                            @provider.UI.SignInMessage
+                        </a>
+                    </li>
                 </ul>
             </div>
             <p id="logon-separator">&mdash; or &mdash;</p>
         }
+
         <h2>Sign in or register with a username and password</h2>
         <div id="register">
             <h3>Register</h3>
