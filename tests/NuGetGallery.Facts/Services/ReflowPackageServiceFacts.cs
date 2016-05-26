@@ -50,7 +50,7 @@ namespace NuGetGallery
         public class TheReflowAsyncMethod
         {
             [Fact]
-            public async Task ThrowsWhenPackageNotFound()
+            public async Task ReturnsNullWhenPackageNotFound()
             {
                 // Arrange
                 var package = CreateTestPackage();
@@ -64,9 +64,11 @@ namespace NuGetGallery
                     entitiesContext: entitiesContext,
                     packageFileService: packageFileService);
 
-                // Act & Assert
-                await Assert.ThrowsAsync<NotSupportedException>(async () => 
-                    await service.ReflowAsync("unknownpackage", "1.0.0"));
+                // Act
+                var result = await service.ReflowAsync("unknownpackage", "1.0.0");
+
+                // Assert
+                Assert.Null(result);
             }
 
             [Fact]
