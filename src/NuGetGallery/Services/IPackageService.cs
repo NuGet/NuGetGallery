@@ -46,5 +46,7 @@ namespace NuGetGallery
         Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true);
 
         void EnsureValid(PackageArchiveReader packageArchiveReader);
+
+        Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true);
     }
 }

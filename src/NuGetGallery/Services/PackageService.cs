@@ -688,7 +688,6 @@ namespace NuGetGallery
             _indexingService.UpdateIndex();
         }
 
-
         public async Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true)
         {
             if (package == null)
@@ -700,7 +699,20 @@ namespace NuGetGallery
             {
                 await _packageRepository.CommitChangesAsync();
             }
-            await _packageRepository.CommitChangesAsync();
+        }
+
+        public async Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true)
+        {
+            var package = FindPackageByIdAndVersion(id, version);
+            if (package != null)
+            {
+                package.DownloadCount++;
+                package.PackageRegistration.DownloadCount++;
+                if (commitChanges)
+                {
+                    await _packageRepository.CommitChangesAsync();
+                }
+            }
         }
     }
 }
