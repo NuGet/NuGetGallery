@@ -745,6 +745,40 @@ namespace NuGetGallery
         }
 
         [Authorize(Roles = "Admins")]
+        [RequiresAccountConfirmation("reflow a package")]
+        public virtual async Task<ActionResult> Reflow(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+            
+            var reflowPackageService = new ReflowPackageService(
+                _entitiesContext, 
+                (PackageService) _packageService,
+                _packageFileService);
+
+            try
+            {
+                await reflowPackageService.ReflowAsync(id, version);
+
+                TempData["Message"] =
+                    "The package is being reflowed. It may take a while for this change to propagate through our system.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] =
+                    $"An error occurred while reflowing the package. {ex.Message}";
+
+                QuietLog.LogHandledException(ex);
+            }
+
+            return SafeRedirect(Url.Package(id, version));
+        }
+
+        [Authorize(Roles = "Admins")]
         [HttpPost]
         [RequiresAccountConfirmation("delete a package")]
         [ValidateAntiForgeryToken]

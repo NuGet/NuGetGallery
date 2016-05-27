@@ -16,6 +16,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
+using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
@@ -37,6 +38,7 @@ namespace NuGetGallery
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         public IStatusService StatusService { get; set; }
         public IMessageService MessageService { get; set; }
+        public ConfigurationService ConfigurationService{ get; set; }
 
         protected ApiController()
         {
@@ -53,7 +55,8 @@ namespace NuGetGallery
             ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
-            IMessageService messageService)
+            IMessageService messageService,
+            ConfigurationService configurationService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -67,6 +70,7 @@ namespace NuGetGallery
             AutoCuratePackage = autoCuratePackage;
             StatusService = statusService;
             MessageService = messageService;
+            ConfigurationService = configurationService;
         }
 
         public ApiController(
@@ -81,8 +85,9 @@ namespace NuGetGallery
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
             IStatisticsService statisticsService,
-            IMessageService messageService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService)
+            IMessageService messageService,
+            ConfigurationService configurationService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, configurationService)
         {
             StatisticsService = statisticsService;
         }
@@ -138,7 +143,11 @@ namespace NuGetGallery
 			        // Database was unavailable and we don't have a version, return a 503
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
                 }
+            }
 
+            if (ConfigurationService.Features.TrackPackageDownloadCountInLocalDatabase)
+            {
+                await PackageService.IncrementDownloadCountAsync(id, version);
             }
 
             return await PackageFileService.CreateDownloadPackageActionResultAsync(
@@ -293,10 +302,11 @@ namespace NuGetGallery
                             Size = packageStream.Length,
                         };
 
-                        var package =
-                            await
-                                PackageService.CreatePackageAsync(packageToPush, packageStreamMetadata, user,
-                                    commitChanges: false);
+                        var package = await PackageService.CreatePackageAsync(
+                            packageToPush, 
+                            packageStreamMetadata,
+                            user,
+                            commitChanges: false);
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
                         await EntitiesContext.SaveChangesAsync();
 
