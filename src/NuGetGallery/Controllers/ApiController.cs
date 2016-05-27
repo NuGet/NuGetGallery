@@ -293,10 +293,11 @@ namespace NuGetGallery
                             Size = packageStream.Length,
                         };
 
-                        var package =
-                            await
-                                PackageService.CreatePackageAsync(packageToPush, packageStreamMetadata, user,
-                                    commitChanges: false);
+                        var package = await PackageService.CreatePackageAsync(
+                            packageToPush, 
+                            packageStreamMetadata,
+                            user,
+                            commitChanges: false);
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
                         await EntitiesContext.SaveChangesAsync();
 
