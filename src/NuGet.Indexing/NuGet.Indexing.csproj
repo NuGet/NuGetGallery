@@ -203,6 +203,7 @@
     <Compile Include="IConfiguration.cs" />
     <Compile Include="NuGetAcronymExpansionProvider.cs" />
     <Compile Include="NuGetMergePolicyApplyer.cs" />
+    <Compile Include="NuGetQueryParser.cs" />
     <Compile Include="OwnerAnalyzer.cs" />
     <Compile Include="Downloads.cs" />
     <Compile Include="DownloadLookup.cs" />
@@ -217,6 +218,7 @@
     <Compile Include="Extraction\NupkgPackageMetadataExtraction.cs" />
     <Compile Include="Handlers\OwnersHandler.cs" />
     <Compile Include="OwnersResult.cs" />
+    <Compile Include="QueryField.cs" />
     <Compile Include="Querys\DownloadsBoostedQuery.cs" />
     <Compile Include="Querys\DownloadsScoreProvider.cs" />
     <Compile Include="Querys\QueryBoostingContext.cs" />
