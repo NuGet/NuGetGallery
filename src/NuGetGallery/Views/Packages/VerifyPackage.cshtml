@@ -54,8 +54,7 @@
             }
             else if (pre)
             {
-                // Not actually using <pre/> because its better to have wrapping text
-                <p>@Html.PreFormattedText(value)</p>
+                <p>@Html.PreFormattedTextWithClickableLinks(value)</p>
             }
             else if (link)
             {

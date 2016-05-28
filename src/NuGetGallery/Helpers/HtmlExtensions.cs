@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
@@ -34,9 +36,59 @@ namespace NuGetGallery.Helpers
             return self.DropDownListFor(expression, items);
         }
 
-        public static IHtmlString PreFormattedText(this HtmlHelper self, string text)
+        /// <summary>
+        /// RegEx Source: http://stackoverflow.com/a/1112171
+        /// Sample: https://regex101.com/r/kI9xT9/2
+        /// </summary>
+        private static Regex regExHttpLinks = new Regex(@"(?<=\()\b(https?://|www\.)[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|](?=\))|(?<=(?<wrap>[=~|_#]))\b(https?://|www\.)[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|](?=\k<wrap>)|\b(https?://|www\.)[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        public static IHtmlString PreFormattedTextWithClickableLinks(this HtmlHelper self, string html, bool newLineAsNewParagraph = false)
         {
-            return self.Raw(HttpUtility.HtmlEncode(text).Replace("\n", "<br />").Replace("  ", "&nbsp; "));
+            if (string.IsNullOrEmpty(html))
+            {
+                return new HtmlString(string.Empty);
+            }
+
+            html = self.Encode(html);
+
+            if (newLineAsNewParagraph)
+            {
+                var splittedParagraphs = html.Split('\n');
+
+                html = string.Empty;
+                foreach (var splittedParagraph in splittedParagraphs)
+                {
+                    html += "<p>" + splittedParagraph + "</p>";
+                }
+            }
+            else
+            {
+                html = html.Replace("\n", "<br />");
+                html = html.Replace("  ", "&nbsp; ");
+            }
+
+            // replace periods on numeric values that appear to be valid domain names
+            var periodReplacement = "[[[replace:period]]]";
+            html = Regex.Replace(html, @"(?<=\d)\.(?=\d)", periodReplacement);
+
+            // create links for matches
+            var linkMatches = regExHttpLinks.Matches(html);
+            for (int i = 0; i < linkMatches.Count; i++)
+            {
+                var temp = linkMatches[i].ToString();
+
+                if (!temp.Contains("://"))
+                {
+                    temp = "http://" + temp;
+                }
+
+                html = html.Replace(linkMatches[i].ToString(), String.Format("<a href=\"{0}\" title=\"{0}\">{1}</a>", temp.Replace(".", periodReplacement).ToLower(), linkMatches[i].ToString().Replace(".", periodReplacement)));
+            }
+
+            // Clear out period replacement
+            html = html.Replace(periodReplacement, ".");
+
+            return self.Raw(html);
         }
 
         public static IHtmlString ValidationSummaryFor(this HtmlHelper html, string key)
