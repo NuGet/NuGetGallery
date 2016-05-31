@@ -14,6 +14,7 @@ using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
@@ -32,6 +33,7 @@ namespace NuGetGallery
         public Mock<IIndexingService> MockIndexingService { get; private set; }
         public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
         public Mock<IMessageService> MockMessageService { get; private set; }
+        public Mock<ConfigurationService> MockConfigurationService { get; private set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -53,6 +55,11 @@ namespace NuGetGallery
             PackageFileService = MockPackageFileService.Object;
 
             MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
+
+            MockConfigurationService = new Mock<ConfigurationService>();
+            MockConfigurationService.SetupGet(s => s.Features.TrackPackageDownloadCountInLocalDatabase)
+                .Returns(false);
+            ConfigurationService = MockConfigurationService.Object;
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
