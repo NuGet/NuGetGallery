@@ -6,7 +6,7 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Credentials_UserKey' AND object_id = OBJECT_ID('Credentials')) CREATE NONCLUSTERED INDEX [nci_wi_Credentials_UserKey] ON [dbo].[Credentials] ([UserKey]) INCLUDE ([Identity], [Key], [Type], [Value]) WITH (ONLINE = ON)");
+            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Credentials_UserKey' AND object_id = OBJECT_ID('Credentials')) CREATE NONCLUSTERED INDEX [nci_wi_Credentials_UserKey] ON [dbo].[Credentials] ([UserKey]) INCLUDE ([Identity], [Key], [Type], [Value])");
         }
 
         public override void Down()
