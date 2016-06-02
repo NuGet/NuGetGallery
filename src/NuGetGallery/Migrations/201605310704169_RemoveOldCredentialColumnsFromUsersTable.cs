@@ -1,8 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System;
-    using System.Data.Entity.Migrations;
-
     /// <summary>
     /// These were supposed to have run with <see cref="RemoveOldCredentialColumns"/>, which did not happen.
     /// </summary>
