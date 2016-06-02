@@ -68,18 +68,34 @@
 
         @if (null != Model.SourceRepository)
         {
+            if (Model.SourceRepository.StarCount >= 0)
+            {
             <div class="stat">
                 <p class="stat-number">@Model.SourceRepository.StarCount.ToNuGetNumberString()</p>
-                <p class="stat-label">Stars on GitHub</p>
+                <p class="stat-label">Stars on @Model.SourceRepository.Origin</p>
             </div>
+            }
+            if (Model.SourceRepository.FollowersCount >= 0)
+            {
+            <div class="stat">
+                <p class="stat-number">@Model.SourceRepository.FollowersCount.ToNuGetNumberString()</p>
+                <p class="stat-label">Forks on @Model.SourceRepository.Origin</p>
+            </div>
+            }
+            if (Model.SourceRepository.ForkCount >= 0)
+            {
             <div class="stat">
                 <p class="stat-number">@Model.SourceRepository.ForkCount.ToNuGetNumberString()</p>
-                <p class="stat-label">Forks on GitHub</p>
+                <p class="stat-label">Forks on @Model.SourceRepository.Origin</p>
             </div>
+            } 
+            if (Model.SourceRepository.OpenIssueCount >= 0)
+            {
             <div class="stat">
                 <p class="stat-number">@Model.SourceRepository.OpenIssueCount.ToNuGetNumberString()</p>
-                <p class="stat-label">Open Issues on GitHub</p>
+                <p class="stat-label">Open Issues on @Model.SourceRepository.Origin</p>
             </div>
+            }
         }
 
     </div>
@@ -308,7 +324,7 @@
 
     @if (null != Model.SourceRepository && !String.IsNullOrWhiteSpace(Model.SourceRepository.ReadmeHTML))
     {
-        <h3>Readme from GitHub <small><a href="@Model.SourceRepository.URL">Open in GitHub</a></small></h3>
+        <h3>Readme from @Model.SourceRepository.Origin <small><a href="@Model.SourceRepository.URL">Open in @Model.SourceRepository.Origin</a></small></h3>
         <div class="readme">
             @Html.Raw(Model.SourceRepository.ReadmeHTML)
         </div>

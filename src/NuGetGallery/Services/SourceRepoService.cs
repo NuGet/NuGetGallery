@@ -1,6 +1,7 @@
 ﻿using Lucene.Net.Support;
 using NuGetGallery.Configuration;
 using Octokit;
+using SharpBucket.V1;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,14 +28,25 @@ namespace NuGetGallery
             string owner = null;
             string repo = null;
 
-            if (IsGithubUrl(url, out owner, out repo)) return LookupGithub(owner, repo);
+            if (IsGitHubUrl(url, out owner, out repo)) return LookupGitHub(owner, repo);
+            if (IsBitbucketUrl(url, out owner, out repo)) return LookupBitbucket(owner, repo);
 
             // add other source code repositories here...
 
             return null;
         }
 
-        public bool IsGithubUrl(string url, out string owner, out string repo)
+        public bool IsGitHubUrl(string url, out string owner, out string repo)
+        {
+            return CheckHostName(url, "github.com", out owner, out repo);
+        }
+
+        public bool IsBitbucketUrl(string url, out string owner, out string repo)
+        {
+            return CheckHostName(url, "bitbucket.org", out owner, out repo);
+        }
+
+        public bool CheckHostName(string url, string host, out string owner, out string repo)
         {
             owner = null;
             repo = null;
@@ -42,7 +54,7 @@ namespace NuGetGallery
 
             var uri = new Uri(url);
 
-            if (string.Compare(uri.Host, "github.com", true) != 0) return false;
+            if (string.Compare(uri.Host, host, true) != 0) return false;
             if (uri.Segments.Length < 3) return false;
 
             // if the path is "/user/repo" the segments will be ["/", "user/", "repo"]
@@ -51,7 +63,7 @@ namespace NuGetGallery
             return true;
         }
 
-        async Task<SourceRepositoryViewModel> LookupGithub(string owner, string repo)
+        async Task<SourceRepositoryViewModel> LookupGitHub(string owner, string repo)
         {
             // no credentials disables the lookup
             if (string.IsNullOrWhiteSpace(Config.GithubUsername)) return null;
@@ -72,12 +84,14 @@ namespace NuGetGallery
 
             var result = new SourceRepositoryViewModel
             {
+                Origin = "GitHub",
                 AvatarUrl = repository.Owner.AvatarUrl,
                 Owner = repository.Owner.Login,
                 Name = repository.Name,
                 ProgrammingLanguage = repository.Language,
                 StarCount = repository.StargazersCount,
                 ForkCount = repository.ForksCount,
+                FollowersCount = -1,
                 OpenIssueCount = repository.OpenIssuesCount,
                 LastUpdated = repository.UpdatedAt,
                 URL = string.Format("https://github.com/{0}/{1}", owner, repo),
@@ -85,6 +99,54 @@ namespace NuGetGallery
             };
 
             return result;
+        }
+
+        Task<SourceRepositoryViewModel> LookupBitbucket(string owner, string repo)
+        {
+            // no credentials disables the lookup
+            if (string.IsNullOrWhiteSpace(Config.BitbucketUsername)) return null;
+            if (string.IsNullOrWhiteSpace(Config.BitbucketPassword)) return null;
+
+            var sharpBucket = new SharpBucketV1();
+            sharpBucket.BasicAuthentication(Config.BitbucketUsername, Config.BitbucketPassword);
+
+            var repository = sharpBucket.RepositoriesEndPoint(owner, repo);
+            var repositoryDetails = repository.GetDetails();
+            var branch = repository.GetMainBranch();
+            var files = repository.GetRevisionSrc(branch.name, "");
+            var readmeFile = GetReadme(files.files.Select(x => x.path).ToArray());
+            var readmeText = repository.GetRevisionRaw(branch.name, readmeFile);
+            var readmeHtml = CommonMark.CommonMarkConverter.Convert(readmeText);
+
+            return Task.FromResult(new SourceRepositoryViewModel
+            {
+                Origin = "Bitbucket",
+                AvatarUrl = repositoryDetails.logo,
+                Owner = repositoryDetails.owner,
+                Name = repositoryDetails.name,
+                ProgrammingLanguage = repositoryDetails.language,
+                FollowersCount = repositoryDetails.followers_count,
+                StarCount = -1,
+                ForkCount = repositoryDetails.fork_count,
+                OpenIssueCount = -1, // not supported
+                LastUpdated = DateTimeOffset.Parse(repositoryDetails.utc_last_updated),
+                URL = string.Format("https://bitbucket.org/{0}/{1}", owner, repo),
+                ReadmeHTML = readmeHtml
+            });
+        }
+
+
+
+        private static string GetReadme(string[] values)
+        {
+            string result = null;
+            result = values.FirstOrDefault(x => x.ToLower() == "readme.md");
+            if (result != null) return result;
+
+            result = values.FirstOrDefault(x => x.ToLower().StartsWith("readme"));
+            if (result != null) return result;
+
+            return values.FirstOrDefault(x => x.ToLower().EndsWith(".md"));
         }
 
     }

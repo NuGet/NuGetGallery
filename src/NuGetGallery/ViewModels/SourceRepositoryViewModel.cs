@@ -7,6 +7,7 @@ namespace NuGetGallery
 {
     public class SourceRepositoryViewModel
     {
+        public string Origin { get; set; }
         public string AvatarUrl { get; set; }
         public string Owner { get; set; }
         public string Name { get; set; }
@@ -16,6 +17,7 @@ namespace NuGetGallery
         public int StarCount { get; set; }
         public int ForkCount { get; set; }
         public int OpenIssueCount { get; set; }
+        public int FollowersCount { get; set; }
         public DateTimeOffset LastUpdated { get; set; }
     }
 }

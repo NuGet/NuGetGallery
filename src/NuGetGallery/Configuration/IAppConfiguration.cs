@@ -169,5 +169,7 @@ namespace NuGetGallery.Configuration
         /// Password used to connect to the GitHub API
         /// </summary>
         string GithubPassword { get; set; }
+        string BitbucketUsername { get; set; }
+        string BitbucketPassword { get; set; }
     }
 }
