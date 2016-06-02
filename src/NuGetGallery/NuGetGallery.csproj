@@ -725,6 +725,10 @@
     <Compile Include="Migrations\201605250755294_AddIndexForUserEmailAddress.Designer.cs">
       <DependentUpon>201605250755294_AddIndexForUserEmailAddress.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201605310704169_RemoveOldCredentialColumnsFromUsersTable.cs" />
+    <Compile Include="Migrations\201605310704169_RemoveOldCredentialColumnsFromUsersTable.Designer.cs">
+      <DependentUpon>201605310704169_RemoveOldCredentialColumnsFromUsersTable.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1814,6 +1818,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201605250755294_AddIndexForUserEmailAddress.resx">
       <DependentUpon>201605250755294_AddIndexForUserEmailAddress.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201605310704169_RemoveOldCredentialColumnsFromUsersTable.resx">
+      <DependentUpon>201605310704169_RemoveOldCredentialColumnsFromUsersTable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
