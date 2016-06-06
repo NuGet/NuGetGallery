@@ -22,7 +22,7 @@ namespace NuGet.Jobs.Validation.Common
         {
             var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
             _auditsContainer = cloudBlobClient.GetContainerReference(containerNamePrefix + "-audit");
-            _auditsContainer.CreateIfNotExists();
+            _auditsContainer.CreateIfNotExists(BlobContainerPublicAccessType.Blob);
         }
 
         public async Task StartAuditAsync(Guid validationId, string[] validators, DateTimeOffset started, string packageId, string packageVersion, NuGetPackage package)
