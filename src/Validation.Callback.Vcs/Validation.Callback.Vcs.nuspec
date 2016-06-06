@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Validation.Callback.Vcs.$branch$</id>
+    <version>$version$</version>
+    <title>Validation.Callback.Vcs</title>
+    <authors>.Net Foundation</authors>
+    <owners>.Net Foundation</owners>
+    <licenseUrl>https://github.com/NuGet/NuGet.Jobs/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/NuGet/NuGet.Jobs</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Validation.Callback.Vcs</description>
+    <copyright>Copyright 2016 .NET Foundation</copyright>
+    <tags>nuget job</tags>
+  </metadata>
+   <files>
+    <file src="Deploy.ps1" />
+    <file src="obj\Validation.Callback.Vcs.zip" />
+  </files>
+</package>
