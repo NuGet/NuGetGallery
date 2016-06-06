@@ -43,38 +43,22 @@
 
 /* Account/API Key */
 
-#apiKey h1 {
-    font-size: 2em;
+.apiKeyExpired {
+    color: red;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
-#apiKey pre {
+.apiKey {
     background-color: #202020;
     border: 2px solid #c0c0c0;
     color: #c0c0c0;
-    display: block;
+    display: inline-block;
     font: 1.2em 'andale mono', 'lucida console', monospace;
     line-height: 1.5em;
-    margin: 15px 0 0;
     overflow: auto;
     padding: 15px;
 }
-
-#generateKey {
-    position: relative;
-}
-
-    #generateKey h2 {
-        font-size: 1.7em;
-    }
-
-    #generateKey #key {
-        font-size: 1.7em;
-        margin-bottom: 0;
-    }
-
-    #generateKey .form input[type="submit"] {
-        width: auto;
-    }
 
 /* Package Page (Display Package) */
 
@@ -406,7 +390,7 @@ form .async-upload-progress-advance {
 }
 
 /* Account Page */
-#account-accordian {
+#account-accordeon {
     clear: both;
 }
 

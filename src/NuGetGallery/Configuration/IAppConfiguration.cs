@@ -156,6 +156,16 @@ namespace NuGetGallery.Configuration
         string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
+        /// Defines the time after which V1 API keys expire.
+        /// </summary>
+        int ExpirationInDaysForApiKeyV1 { get; set; }
+
+        /// <summary>
+        /// Defines the number of days before the API key expires when the server should emit a warning to the client.
+        /// </summary>
+        int WarnAboutExpirationInDaysForApiKeyV1 { get; set; }
+
+        /// <summary>
         /// Gets a string containing the PagerDuty account name.
         /// </summary>
         string PagerDutyAccountName { get; set; }

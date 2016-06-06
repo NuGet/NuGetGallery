@@ -1060,6 +1060,23 @@ a.btn {
     display: inline-block;
 }
 
+.btn.btn-veryflat {
+    display: inline-block;
+    background: none !important;
+    border: none;
+    padding: 0 !important;
+    font: inherit;
+    cursor: pointer;
+    color: #0071bc;
+    outline: none;
+    text-decoration: none;
+    box-shadow: none;
+}
+
+    .btn.btn-veryflat:hover {
+        text-decoration: underline;
+    }
+
 a:hover.btn {
     color: white;
     text-decoration: none;
@@ -1244,12 +1261,12 @@ ul.actionlist {
                 text-decoration: none;
             }
 
-ul.accordian {
+ul.accordeon {
     margin: 0;
     padding: 5px;
 }
 
-    ul.accordian li.accordian-item {
+    ul.accordeon li.accordeon-item {
         background-color: #eff7fa;
         margin: 0.5em 0;
         padding: 0.5em;
@@ -1259,41 +1276,41 @@ ul.accordian {
         min-height: 32px;
     }
 
-        ul.accordian li.accordian-item .accordian-item-actions {
+        ul.accordeon li.accordeon-item .accordeon-item-actions {
             float: right;
             margin-top: 3px;
         }
 
-        ul.accordian li.accordian-item .accordian-item-title {
+        ul.accordeon li.accordeon-item .accordeon-item-title {
             font-size: 16pt;
             margin-bottom: 1em;
         }
 
-        ul.accordian li.accordian-item .accordian-item-subtitle {
+        ul.accordeon li.accordeon-item .accordeon-item-subtitle {
             font-size: 12pt;
             margin-left: 1em;
         }
 
-            ul.accordian li.accordian-item .accordian-item-subtitle .owner-image {
+            ul.accordeon li.accordeon-item .accordeon-item-subtitle .owner-image {
                 margin-bottom: -8px;
             }
 
-        ul.accordian li.accordian-item .accordian-item-content {
+        ul.accordeon li.accordeon-item .accordeon-item-content {
             padding-top: 1em;
         }
 
-        ul.accordian li.accordian-item .accordian-expand-link {
+        ul.accordeon li.accordeon-item .accordeon-expand-link {
             display: inline-block;
             margin-top: 0.25em;
         }
 
-        ul.accordian li.accordian-item.accordian-item-disabled {
+        ul.accordeon li.accordeon-item.accordeon-item-disabled {
             background-color: white;
             border: 1px dashed silver;
             box-shadow: none;
         }
 
-            ul.accordian li.accordian-item.accordian-item-disabled .accordian-item-title, li.accordian-item-disabled .accordian-item-subtitle {
+            ul.accordeon li.accordeon-item.accordeon-item-disabled .accordeon-item-title, li.accordeon-item-disabled .accordeon-item-subtitle {
                 font-style: italic;
             }
 

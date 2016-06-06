@@ -56,7 +56,7 @@ namespace NuGetGallery
                 var user = Fakes.CreateUser(
                     "test",
                     CredentialBuilder.CreatePbkdf2Password("hunter2"),
-                    CredentialBuilder.CreateV1ApiKey(Guid.NewGuid()),
+                    CredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
                     CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -481,7 +481,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var result = await controller.GenerateApiKey();
+                var result = await controller.GenerateApiKey(expirationInDays: null);
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
             }
@@ -499,7 +499,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                await controller.GenerateApiKey();
+                await controller.GenerateApiKey(expirationInDays: null);
 
                 GetMock<AuthenticationService>().VerifyAll();
             }
@@ -801,6 +801,7 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.NoCredentialToRemove, controller.TempData["Message"]);
                 Assert.Equal(1, user.Credentials.Count);
             }
 
@@ -868,6 +869,7 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.NoCredentialToRemove, controller.TempData["Message"]);
                 Assert.Equal(1, user.Credentials.Count);
             }
 

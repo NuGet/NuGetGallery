@@ -1,10 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -19,7 +16,6 @@ namespace NuGetGallery
 
         public static readonly string ApiKeyV1 = "apikey.v1";
         public static readonly string ExternalPrefix = "external.";
-
 
         public static bool IsPassword(string type)
         {

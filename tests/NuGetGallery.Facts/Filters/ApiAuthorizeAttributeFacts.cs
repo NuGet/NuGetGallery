@@ -24,6 +24,7 @@ namespace NuGetGallery.Filters
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
             mockAuthContext.SetupGet(c => c.ActionDescriptor).Returns(actionDescriptor.Object);
             mockAuthContext.SetupGet(c => c.HttpContext).Returns(httpContext.Object);
+            mockAuthContext.SetupGet(c => c.Controller).Returns((Controller)null);
             var context = mockAuthContext.Object;
             var attribute = new ApiAuthorizeAttribute();
 
