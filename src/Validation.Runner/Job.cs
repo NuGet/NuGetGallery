@@ -225,7 +225,7 @@ namespace NuGet.Jobs.Validation.Runner
                 var feed = new NuGetV2Feed(client);
 
                 var createdPackagesUrl = MakePackageQueryUrl(_galleryBaseAddress, "Created", referenceLastCreated);
-                var createdPackages = await feed.GetPackagesAsync(createdPackagesUrl, continuationsToFollow: 1);
+                var createdPackages = await feed.GetPackagesAsync(createdPackagesUrl, continuationsToFollow: 0);
                 foreach (var package in createdPackages)
                 {
                     packages.Add(package);
