@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
 
@@ -91,9 +92,13 @@ namespace NuGetGallery
         {
             if (_contentService != null)
             {
-                ViewBag.Content = await _contentService.GetContentItemAsync(
-                    Constants.ContentNames.Home,
-                    TimeSpan.FromMinutes(1));
+                var homeContent = await _contentService.GetContentItemAsync(
+                     Constants.ContentNames.Home,
+                     TimeSpan.FromMinutes(1));
+
+                homeContent = new HtmlString(homeContent.ToString().Replace("~/", Url.Content("~/")));
+
+                ViewBag.Content = homeContent;
             }
             return View();
         }
