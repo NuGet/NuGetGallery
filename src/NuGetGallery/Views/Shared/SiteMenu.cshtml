@@ -19,6 +19,6 @@
         <li class="@classes["Admin"]"><a href="@Url.Action("Index", "Home", new { area="Admin" })">Admin</a></li>
     }
     <li><a href="https://docs.nuget.org">Documentation</a></li>
-    <li><a href="/downloads">Downloads</a></li>
+    <li><a href="@Url.RouteUrl(RouteName.Downloads)">Downloads</a></li>
     <li><a href="http://blog.nuget.org">Blog</a></li>
 </ul>
