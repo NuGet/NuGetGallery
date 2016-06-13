@@ -88,7 +88,8 @@ This is the Git workflow we're currently using:
 
 ### Setting up
 
-1. Clone and checkout the following branches (to make sure local copies are made): 'master'.
+1. Clone and checkout the following branches (to make sure local copies are made): '
+2. '.
 
 ### When starting a new feature/unit of work.
     
@@ -97,16 +98,16 @@ This is the Git workflow we're currently using:
     This assumes you have no local commits that haven't yet been pushed (i.e., that you were 
     previously up-to-date with origin).
     
-        git checkout master
-        git pull master
+        git checkout dev
+        git pull dev
     
 2.  __Create a topic branch to do your work.__
     You must work in topic branches, in order to help us keep our features isolated and easily moved between branches.
-    Our policy is to start all topic branches off of the 'master' branch. 
+    Our policy is to start all topic branches off of the 'dev' branch. 
     Branch names should use the following format '[user]-[bugnumber]-[shortdescription]'. If there is no bug yet, 
     create one and assign it to yourself!
 
-        git checkout master
+        git checkout dev
         git checkout -b anurse-123-makesuckless
     
 3.  __Do your work.__
@@ -126,19 +127,19 @@ This is the Git workflow we're currently using:
 
 4.  __Start a code review.__
     Start a code review by pushing your branch up to GitHub (```git push origin anurse-123-makesuckless```) and 
-    creating a Pull Request from your branch to ***master***. Wait for at least someone on the team to respond with: ":shipit:" (that's called the
+    creating a Pull Request from your branch to ***dev***. Wait for at least someone on the team to respond with: ":shipit:" (that's called the
     "Ship-It Squirrel" and you can put it in your own comments by typing ```:shipit:```).
 
-5.  __Merge your changes in to master.__
+5.  __Merge your changes in to dev.__
     Click the bright green "Merge" button on your pull request! **NOTE: DO NOT DELETE THE TOPIC BRANCH!!**
 
     If there isn't a bright green button... well, you'll have to do some more complicated merging:
 
-        git checkout master
-        git pull origin master
+        git checkout dev
+        git pull origin dev
         git merge anurse-123-makesuckless
         ... resolve conflicts ...
-        git push origin master
+        git push origin dev
     
 6.  __Be ready to guide your change through QA, Staging and Prod__
     Your change will make its way through the QA, Staging and finally Prod branches as it's deployed to the various environments. Be prepared to fix additional bugs!
