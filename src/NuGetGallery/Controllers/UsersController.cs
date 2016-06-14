@@ -456,13 +456,27 @@ namespace NuGetGallery
         {
             // Get the user
             var user = GetCurrentUser();
-
+            
             // Generate an API Key
             var apiKey = Guid.NewGuid();
 
             // Add/Replace the API Key credential, and save to the database
-            TempData["Message"] = Strings.ApiKeyReset;
-            await AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
+            try
+            {
+                await AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
+                TempData["Message"] = Strings.ApiKeyReset;
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message == Strings.CantAddApiKeyCredentialCanNotBeAdedForUserInDelegatedRole)
+                {
+                    TempData["Message"] = Strings.ApiKeyNotResetForDelegatedUser;
+                }
+                else
+                {
+                    throw;
+                }
+            }
             return RedirectToAction("Account");
         }
 

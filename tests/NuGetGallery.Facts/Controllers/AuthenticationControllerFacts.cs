@@ -301,9 +301,13 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
-            [InlineData("MicrosoftAccount", true)]
-            [InlineData("AzureActiveDirectory", false)]
-            public async Task GivenAdminLogsInWithValidExternalAuth_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
+            [InlineData(Constants.AdminRoleName, "MicrosoftAccount", true)]
+            [InlineData(Constants.AdminRoleName, "AzureActiveDirectory", false)]
+            [InlineData(Constants.DelegatedRoleName, "MicrosoftAccount", true)]
+            [InlineData(Constants.DelegatedRoleName, "AzureActiveDirectory", false)]
+            [InlineData(null, "MicrosoftAccount", false)]
+            [InlineData(null, "AzureActiveDirectory", false)]
+            public async Task GivenUserWithRoleLogsInWithValidExternalAuth_ItChallengesWhenNotUsingRequiredExternalProvider(string roleForUser, string providerUsedForLogin, bool shouldChallenge)
             {
                 var enforcedProvider = "AzureActiveDirectory";
 
@@ -311,7 +315,8 @@ namespace NuGetGallery.Controllers
                 config.Current = new AppConfiguration()
                 {
                     ConfirmEmailAddresses = false,
-                    EnforcedAuthProviderForAdmin = enforcedProvider
+                    EnforcedAuthProviderForAdmin = enforcedProvider,
+                    EnforcedAuthProviderForDelegated = enforcedProvider
                 };
 
                 var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
@@ -319,13 +324,17 @@ namespace NuGetGallery.Controllers
                 var authUser = new AuthenticatedUser(
                     new User("theUsername")
                     {
-                        UnconfirmedEmailAddress = "confirmed@example.com",
-                        Roles =
-                        {
-                            new Role { Name = Constants.AdminRoleName }
-                        }
+                        UnconfirmedEmailAddress = "confirmed@example.com"
                     },
                     externalCred);
+
+                if (!string.IsNullOrEmpty(roleForUser))
+                {
+                    authUser.User.Roles.Add(new Role
+                    {
+                        Name = roleForUser
+                    });
+                }
                 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
@@ -607,9 +616,13 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
-            [InlineData("MicrosoftAccount", true)]
-            [InlineData("AzureActiveDirectory", false)]
-            public async Task GivenAdminLogsInWithExternalIdentity_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
+            [InlineData(Constants.AdminRoleName, "MicrosoftAccount", true)]
+            [InlineData(Constants.AdminRoleName, "AzureActiveDirectory", false)]
+            [InlineData(Constants.DelegatedRoleName, "MicrosoftAccount", true)]
+            [InlineData(Constants.DelegatedRoleName, "AzureActiveDirectory", false)]
+            [InlineData(null, "MicrosoftAccount", false)]
+            [InlineData(null, "AzureActiveDirectory", false)]
+            public async Task GivenUserWithRoleLogsInWithExternalIdentity_ItChallengesWhenNotUsingRequiredExternalProvider(string roleForUser, string providerUsedForLogin, bool shouldChallenge)
             {
                 // Arrange
                 var enforcedProvider = "AzureActiveDirectory";
@@ -618,7 +631,8 @@ namespace NuGetGallery.Controllers
                 config.Current = new AppConfiguration()
                 {
                     ConfirmEmailAddresses = false,
-                    EnforcedAuthProviderForAdmin = enforcedProvider
+                    EnforcedAuthProviderForAdmin = enforcedProvider,
+                    EnforcedAuthProviderForDelegated = enforcedProvider
                 };
 
                 var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
@@ -627,13 +641,17 @@ namespace NuGetGallery.Controllers
                     new User("theUsername")
                     {
                         UnconfirmedEmailAddress = "unconfirmed@example.com",
-                        EmailConfirmationToken = "t0k3n",
-                        Roles =
-                        {
-                            new Role { Name = Constants.AdminRoleName }
-                        }
+                        EmailConfirmationToken = "t0k3n"
                     },
                     externalCred);
+
+                if (!string.IsNullOrEmpty(roleForUser))
+                {
+                    authUser.User.Roles.Add(new Role
+                    {
+                        Name = roleForUser
+                    });
+                }
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred))
@@ -752,9 +770,13 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
-            [InlineData("MicrosoftAccount", true)]
-            [InlineData("AzureActiveDirectory", false)]
-            public async Task GivenAssociatedLocalAdminUser_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
+            [InlineData(Constants.AdminRoleName, "MicrosoftAccount", true)]
+            [InlineData(Constants.AdminRoleName, "AzureActiveDirectory", false)]
+            [InlineData(Constants.DelegatedRoleName, "MicrosoftAccount", true)]
+            [InlineData(Constants.DelegatedRoleName, "AzureActiveDirectory", false)]
+            [InlineData(null, "MicrosoftAccount", false)]
+            [InlineData(null, "AzureActiveDirectory", false)]
+            public async Task GivenAssociatedLocalUserWithRole_ItChallengesWhenNotUsingRequiredExternalProvider(string roleForUser, string providerUsedForLogin, bool shouldChallenge)
             {
                 // Arrange
                 var enforcedProvider = "AzureActiveDirectory";
@@ -763,7 +785,8 @@ namespace NuGetGallery.Controllers
                 config.Current = new AppConfiguration()
                 {
                     ConfirmEmailAddresses = false,
-                    EnforcedAuthProviderForAdmin = enforcedProvider
+                    EnforcedAuthProviderForAdmin = enforcedProvider,
+                    EnforcedAuthProviderForDelegated = enforcedProvider
                 };
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
@@ -773,7 +796,13 @@ namespace NuGetGallery.Controllers
                     Fakes.CreateUser("test", cred),
                     cred);
 
-                authUser.User.Roles.Add(new Role { Name = Constants.AdminRoleName });
+                if (!string.IsNullOrEmpty(roleForUser))
+                {
+                    authUser.User.Roles.Add(new Role
+                    {
+                        Name = roleForUser
+                    });
+                }
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
@@ -979,7 +1008,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 ActionResult challengeResult;
-                var result = controller.ShouldChallengeEnforcedProvider(enforcedProvider, authUser, null, out challengeResult);
+                var result = controller.ShouldChallengeEnforcedProvider(enforcedProvider, string.Empty, authUser, null, out challengeResult);
 
                 // Assert
                 Assert.Equal(shouldChallenge, result);

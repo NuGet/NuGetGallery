@@ -23,15 +23,18 @@ namespace NuGetGallery
 
         public AuthenticationService AuthService { get; protected set; }
         public IUserService UserService { get; protected set; }
+        public IPackageService PackageService { get; protected set; }
         public IMessageService MessageService { get; protected set; }
 
         public AuthenticationController(
             AuthenticationService authService,
             IUserService userService,
+            IPackageService packageService,
             IMessageService messageService)
         {
             AuthService = authService;
             UserService = userService;
+            PackageService = packageService;
             MessageService = messageService;
         }
 
@@ -93,11 +96,15 @@ namespace NuGetGallery
                 }
             }
 
-            // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
-            // to require a specific authentication provider, challenge that provider if needed.
+            // Check if Gallery.EnforcedAuthProviderForAdmin or Gallery.EnforcedAuthProviderForDelegated
+            // require us to use a specific authentication provider & challenge that provider if needed.
             ActionResult challenge;
             if (ShouldChallengeEnforcedProvider(
-                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
+                    NuGetContext.Config.Current.EnforcedAuthProviderForAdmin,
+                    NuGetContext.Config.Current.EnforcedAuthProviderForDelegated,
+                    user,
+                    returnUrl,
+                    out challenge))
             {
                 return challenge;
             }
@@ -107,25 +114,99 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
-        internal bool ShouldChallengeEnforcedProvider(string enforcedProviders, AuthenticatedUser authenticatedUser, string returnUrl, out ActionResult challenge)
+        internal bool ShouldChallengeEnforcedProvider(
+            string enforcedProvidersForAdmin,
+            string enforcedProvidersForDelegated,
+            AuthenticatedUser authenticatedUser,
+            string returnUrl,
+            out ActionResult challenge)
+        {
+            // Is our user an admin? Check if we should challenge.
+            if (ShouldChallengeEnforcedProviderForRole(
+                enforcedProvidersForAdmin,
+                Constants.AdminRoleName,
+                authenticatedUser,
+                returnUrl,
+                out challenge))
+            {
+                return true;
+            }
+
+            // Is our user a delegated user? Check if we should challenge.
+            if (ShouldChallengeEnforcedProviderForRole(
+                enforcedProvidersForDelegated,
+                Constants.DelegatedRoleName,
+                authenticatedUser,
+                returnUrl,
+                out challenge))
+            {
+                return true;
+            }
+
+            // If a specific provider is enforced for delegated users,
+            // check if the current user owns/ co-owns any packages that are owned
+            // by a Delegated account (e.g. "microsoft").
+            if (!string.IsNullOrEmpty(enforcedProvidersForDelegated)
+                && authenticatedUser.CredentialUsed.Type != null)
+            {
+                // Fetch packages and check delegated ownership
+                var ownedPackages = PackageService.FindPackagesByOwner(authenticatedUser.User, includeUnlisted: true);
+                if (ownedPackages.Any(p => p.PackageRegistration.Owners.Any(u => u.IsInRole(Constants.DelegatedRoleName)))
+                    && ShouldChallengeIfNotLoggedInUsingEnforcedProvider(
+                        enforcedProvidersForDelegated,
+                        authenticatedUser,
+                        returnUrl,
+                        out challenge))
+                {
+                    return true;
+                }
+            }
+            
+            challenge = null;
+            return false;
+        }
+
+        private bool ShouldChallengeEnforcedProviderForRole(
+            string enforcedProviders,
+            string role,
+            AuthenticatedUser authenticatedUser,
+            string returnUrl,
+            out ActionResult challenge)
         {
             if (!string.IsNullOrEmpty(enforcedProviders)
                 && authenticatedUser.CredentialUsed.Type != null
-                && authenticatedUser.User.IsInRole(Constants.AdminRoleName))
+                && authenticatedUser.User.IsInRole(role)
+                && ShouldChallengeIfNotLoggedInUsingEnforcedProvider(
+                    enforcedProviders, 
+                    authenticatedUser,
+                    returnUrl,
+                    out challenge))
             {
-                // Seems we *need* a specific authentication provider. Check if we logged in using one...
-                var providers = enforcedProviders.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+                return true;
+            }
+            
+            challenge = null;
+            return false;
+        }
 
-                if (!providers.Any(p => string.Equals(p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase))
-                    && !providers.Any(p => string.Equals(CredentialTypes.ExternalPrefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
-                {
-                    // Challenge authentication using the first required authentication provider
-                    challenge = AuthService.Challenge(
-                        providers.First(),
-                        Url.Action("LinkExternalAccount", "Authentication", new { ReturnUrl = returnUrl }));
+        private bool ShouldChallengeIfNotLoggedInUsingEnforcedProvider(
+            string enforcedProviders, 
+            AuthenticatedUser authenticatedUser, 
+            string returnUrl,
+            out ActionResult challenge)
+        {
+            // Seems we *need* a specific authentication provider. Check if we logged in using one...
+            var providers = enforcedProviders.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
 
-                    return true;
-                }
+            if (!providers.Any(p => string.Equals(p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase))
+                && !providers.Any(p => string.Equals(CredentialTypes.ExternalPrefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
+            {
+                // Challenge authentication using the first required authentication provider
+                challenge = AuthService.Challenge(
+                    providers.First(),
+                    Url.Action("LinkExternalAccount", "Authentication", new {ReturnUrl = returnUrl}));
+
+                return true;
             }
 
             challenge = null;
@@ -205,11 +286,13 @@ namespace NuGetGallery
                         user.User.EmailConfirmationToken));
             }
 
-            // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
-            // to require a specific authentication provider, challenge that provider if needed.
+            // Check if Gallery.EnforcedAuthProviderForAdmin or Gallery.EnforcedAuthProviderForDelegated
+            // require us to use a specific authentication provider & challenge that provider if needed.
             ActionResult challenge;
             if (ShouldChallengeEnforcedProvider(
-                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
+                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin,
+                NuGetContext.Config.Current.EnforcedAuthProviderForDelegated,
+                user, returnUrl, out challenge))
             {
                 return challenge;
             }
@@ -252,11 +335,13 @@ namespace NuGetGallery
 
             if (result.Authentication != null)
             {
-                // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
-                // to require a specific authentication provider, challenge that provider if needed.
+                // Check if Gallery.EnforcedAuthProviderForAdmin or Gallery.EnforcedAuthProviderForDelegated
+                // require us to use a specific authentication provider & challenge that provider if needed.
                 ActionResult challenge;
                 if (ShouldChallengeEnforcedProvider(
-                    NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, result.Authentication, returnUrl, out challenge))
+                    NuGetContext.Config.Current.EnforcedAuthProviderForAdmin,
+                    NuGetContext.Config.Current.EnforcedAuthProviderForDelegated,
+                    result.Authentication, returnUrl, out challenge))
                 {
                     return challenge;
                 }

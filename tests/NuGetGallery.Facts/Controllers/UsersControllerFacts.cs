@@ -503,6 +503,30 @@ namespace NuGetGallery
 
                 GetMock<AuthenticationService>().VerifyAll();
             }
+
+            [Fact]
+            public async Task DoesNotReplaceTheApiKeyCredentialWhenUserIsInDelegatedRole()
+            {
+                // Arrange
+                var user = new User("the-username");
+                user.Roles.Add(new Role { Name = Constants.DelegatedRoleName });
+
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.ReplaceCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .CallBase()
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.GenerateApiKey();
+
+                // Assert
+                Assert.Equal(Strings.ApiKeyNotResetForDelegatedUser, controller.TempData["Message"]);
+                Assert.IsType<RedirectToRouteResult>(result);
+                GetMock<AuthenticationService>().VerifyAll();
+            }
         }
 
         public class TheChangeEmailAction : TestContainer

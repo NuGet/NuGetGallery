@@ -12,29 +12,36 @@
     <li>
         <span data-bind="text: name"></span> <em data-bind="visible: current">(that&#8217;s you!)</em>
         <em data-bind="visible: pending">(pending approval)</em>
-        <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current, click: $root.removeOwner">Remove</a>
+        @if (!User.IsDelegated())
+        {
+            <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current, click: $root.removeOwner">Remove</a>
+        }
     </li>
 </ul>
 
-<h2>Add Owner</h2>
-<p>
-    Enter an owner's username to add them as a package owner.
-</p>
-<p class="message">
-    NOTE: All package owners have full control over their packages,
-    including the ability to remove other users as owners.
-</p>
-@using (Html.BeginForm())
+@if (!User.IsDelegated())
 {
-    @Html.AntiForgeryToken()
-    <fieldset class="form">
-        <legend>Add Owner</legend>
-        <div class="form-field">
-            <label for="newOwnerUserName">Username</label>
-            <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername" />
-        </div>
-        <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: addOwner" />
-    </fieldset>
+    <h2>Add Owner</h2>
+    <p>
+        Enter an owner's username to add them as a package owner.
+    </p>
+    <p class="message">
+        NOTE: All package owners have full control over their packages,
+        including the ability to remove other users as owners.
+    </p>
+
+    using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <fieldset class="form">
+            <legend>Add Owner</legend>
+            <div class="form-field">
+                <label for="newOwnerUserName">Username</label>
+                <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername"/>
+            </div>
+            <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: addOwner"/>
+        </fieldset>
+    }
 }
 
 @section bottomScripts {

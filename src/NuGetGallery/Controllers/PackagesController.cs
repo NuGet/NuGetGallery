@@ -716,6 +716,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+
             if (!package.IsOwner(User))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");

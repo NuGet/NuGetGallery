@@ -101,6 +101,14 @@ namespace NuGetGallery.Authentication
                     return null;
                 }
 
+                if (matched.User.IsInRole(Constants.DelegatedRoleName) &&
+                    String.Equals(credential.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase))
+                {
+                    _trace.Information("Logging in using a '" + matched.Type + "' credential is not allowed for delegated users.");
+
+                    return null;
+                }
+
                 _trace.Verbose("Successfully authenticated '" + matched.User.Username + "' with '" + matched.Type + "' credential");
                 return new AuthenticatedUser(matched.User, matched);
             }
@@ -188,6 +196,14 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task ReplaceCredential(User user, Credential credential)
         {
+            // Are we in the delegated users role? If so, do not allow adding ApiKeyV1 credential
+            if (user.IsInRole(Constants.DelegatedRoleName)
+                && String.Equals(credential.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(Strings.CantAddApiKeyCredentialCanNotBeAdedForUserInDelegatedRole);
+            }
+
+            // Replace credential
             await ReplaceCredentialInternal(user, credential);
             await Entities.SaveChangesAsync();
         }
@@ -315,6 +331,14 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task AddCredential(User user, Credential credential)
         {
+            // Are we in the delegated users role? If so, do not allow adding ApiKeyV1 credential
+            if (user.IsInRole(Constants.DelegatedRoleName)
+                && String.Equals(credential.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(Strings.CantAddApiKeyCredentialCanNotBeAdedForUserInDelegatedRole);
+            }
+
+            // Add credential
             await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.AddedCredential, credential));
             user.Credentials.Add(credential);
             await Entities.SaveChangesAsync();

@@ -737,6 +737,10 @@
     <Compile Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.Designer.cs">
       <DependentUpon>201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201606140811137_DelegatedAccounts.cs" />
+    <Compile Include="Migrations\201606140811137_DelegatedAccounts.Designer.cs">
+      <DependentUpon>201606140811137_DelegatedAccounts.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1835,6 +1839,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.resx">
       <DependentUpon>201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201606140811137_DelegatedAccounts.resx">
+      <DependentUpon>201606140811137_DelegatedAccounts.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

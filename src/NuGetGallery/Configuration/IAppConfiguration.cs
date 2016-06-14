@@ -156,6 +156,14 @@ namespace NuGetGallery.Configuration
         string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
+        /// Gets a string indicating which authentication provider(s) are supported for delegated users
+        /// *and* users that are co-owner of a package our delegated user owns.. 
+        /// When specified, the gallery will ensure these users are logging in using any of the specified authentication providers.
+        /// Blank means any authentication provider can be used by these users.
+        /// </summary>
+        string EnforcedAuthProviderForDelegated { get; set; }
+
+        /// <summary>
         /// Gets a string containing the PagerDuty account name.
         /// </summary>
         string PagerDutyAccountName { get; set; }

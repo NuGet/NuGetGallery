@@ -42,6 +42,7 @@
       <Setting name="Gallery.PagerDutyAPIKey" value="" />
       <Setting name="Gallery.PagerDutyServiceKey" value="" />
       <Setting name="Gallery.EnforcedAuthProviderForAdmin" value="" />
+      <Setting name="Gallery.EnforcedAuthProviderForDelegated" value="" />
 
       <!-- *************** -->
       <!-- STABLE SETTINGS -->
