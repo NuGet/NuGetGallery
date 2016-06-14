@@ -8,6 +8,7 @@ namespace NuGetGallery
     public static class Constants
     {
         public const string AdminRoleName = "Admins";
+        public const string DelegatedRoleName = "Delegated";
         public const string AlphabeticSortOrder = "package-title";
         public const int DefaultPackageListPageSize = 20;
         public const string DefaultPackageListSortOrder = "package-download-count";

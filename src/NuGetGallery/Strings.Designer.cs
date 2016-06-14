@@ -79,6 +79,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The API key has not been updated. The API key can not be edited for delegated users..
+        /// </summary>
+        public static string ApiKeyNotResetForDelegatedUser {
+            get {
+                return ResourceManager.GetString("ApiKeyNotResetForDelegatedUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An API key must be provided in the &apos;X-NuGet-ApiKey&apos; header to use this service.
         /// </summary>
         public static string ApiKeyRequired {
@@ -157,6 +166,15 @@ namespace NuGetGallery {
         public static string CannotRemoveOnlyLoginCredential {
             get {
                 return ResourceManager.GetString("CannotRemoveOnlyLoginCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to API key credential can not be aded for user in delegated role..
+        /// </summary>
+        public static string CantAddApiKeyCredentialCanNotBeAdedForUserInDelegatedRole {
+            get {
+                return ResourceManager.GetString("CantAddApiKeyCredentialCanNotBeAdedForUserInDelegatedRole", resourceCulture);
             }
         }
         

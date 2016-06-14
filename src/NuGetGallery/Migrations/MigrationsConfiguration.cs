@@ -15,13 +15,29 @@ namespace NuGetGallery.Migrations
 
         protected override void Seed(EntitiesContext context)
         {
+            // Ensure roles exist
             var roles = context.Set<Role>();
             if (!roles.Any(x => x.Name == Constants.AdminRoleName))
             {
                 roles.Add(new Role { Name = Constants.AdminRoleName });
                 context.SaveChanges();
             }
+            if (!roles.Any(x => x.Name == Constants.DelegatedRoleName))
+            {
+                roles.Add(new Role { Name = Constants.DelegatedRoleName });
+                context.SaveChanges();
+            }
 
+            // Ensure "microsoft" user is in delegated role 
+            var user = context.Set<User>()
+                .Include("Roles")
+                .FirstOrDefault(u => u.Username == "microsoft");
+            if (user != null && !user.IsInRole(Constants.DelegatedRoleName))
+            {
+                user.Roles.Add(roles.First(r => r.Name == Constants.DelegatedRoleName));
+            }
+
+            // Ensure settings exist
             var gallerySettings = context.Set<GallerySetting>();
             if (!gallerySettings.Any())
             {

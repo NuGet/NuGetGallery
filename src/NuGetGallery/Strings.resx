@@ -380,4 +380,10 @@ The {2} Team</value>
   <data name="AzureActiveDirectory_Caption" xml:space="preserve">
     <value>Azure Active Directory</value>
   </data>
+  <data name="ApiKeyNotResetForDelegatedUser" xml:space="preserve">
+    <value>The API key has not been updated. The API key can not be edited for delegated users.</value>
+  </data>
+  <data name="CantAddApiKeyCredentialCanNotBeAdedForUserInDelegatedRole" xml:space="preserve">
+    <value>API key credential can not be aded for user in delegated role.</value>
+  </data>
 </root>

@@ -142,6 +142,24 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
+            public void GivenValidApiKeyCredentialForDelegatedUser_ItReturnsNull()
+            {                
+                // Arrange
+                var service = Get<AuthenticationService>();
+                var credential = Fakes.User.Credentials.Single(
+                    c => String.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+
+                Fakes.User.Roles.Add(new Role { Name = Constants.DelegatedRoleName });
+
+                // Act
+                // Create a new credential to verify that it's a value-based lookup!
+                var result = service.Authenticate(CredentialBuilder.CreateV1ApiKey(Guid.Parse(credential.Value)));
+
+                // Assert
+                Assert.Null(result);
+            }
+
+            [Fact]
             public void GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential()
             {
                 // Arrange
@@ -524,6 +542,23 @@ namespace NuGetGallery.Authentication
                     ar.AffectedCredential[0].Type == newCred.Type &&
                     ar.AffectedCredential[0].Identity == newCred.Identity &&
                     ar.AffectedCredential[0].Value == null));
+            }
+
+            [Fact]
+            public async Task ThrowsWhenReplacingApiKeyV1CredentialWhenUserIsInDelegatedRole()
+            {
+                // Arrange
+                var user = Fakes.CreateUser("test");
+                user.Roles.Add(new Role { Name = Constants.DelegatedRoleName });
+
+                var credential = CredentialBuilder.CreateV1ApiKey();
+                var authService = Get<AuthenticationService>();
+
+                // Act & assert
+                await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                    await authService.ReplaceCredential(user, credential));
+
+                Assert.DoesNotContain(credential, user.Credentials);
             }
         }
 
@@ -913,6 +948,24 @@ namespace NuGetGallery.Authentication
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == cred.Type &&
                     ar.AffectedCredential[0].Identity == cred.Identity));
+            }
+
+            [Fact]
+            public async Task ThrowsWhenAddingApiKeyV1CredentialWhenUserIsInDelegatedRole()
+            {
+                // Arrange
+                var user = Fakes.CreateUser("test");
+                user.Roles.Add(new Role { Name = Constants.DelegatedRoleName });
+                user.Credentials.Clear();
+
+                var credential = CredentialBuilder.CreateV1ApiKey();
+                var authService = Get<AuthenticationService>();
+
+                // Act & assert
+                await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                    await authService.AddCredential(user, credential));
+                
+                Assert.DoesNotContain(credential, user.Credentials);
             }
         }
 

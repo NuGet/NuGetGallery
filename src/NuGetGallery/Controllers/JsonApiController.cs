@@ -81,6 +81,11 @@ namespace NuGetGallery
             }
 
             var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (currentUser != null && currentUser.IsInRole(Constants.DelegatedRoleName))
+            {
+                return Json(new { success = false, message = "You are not allowed to add package owners" });
+            }
+
             var ownerRequest = await _packageService.CreatePackageOwnerRequestAsync(package, currentUser, user);
 
             var confirmationUrl = Url.ConfirmationUrl(
@@ -115,6 +120,10 @@ namespace NuGetGallery
             if (currentUser == null)
             {
                 return Json(new { success = false, message = "Current user not found" });
+            }
+            if (currentUser.IsInRole(Constants.DelegatedRoleName))
+            {
+                return Json(new { success = false, message = "You are not allowed to remove package owners" });
             }
 
             await _packageService.RemovePackageOwnerAsync(package, user);
