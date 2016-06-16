@@ -555,6 +555,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Package created from API..
+        /// </summary>
+        public static string PackageCreatedFromApi {
+            get {
+                return ResourceManager.GetString("PackageCreatedFromApi", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. One or more files, such as &apos;{0}&apos; have a date in the future..
         /// </summary>
         public static string PackageEntryFromTheFuture {

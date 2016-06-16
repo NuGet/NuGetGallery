@@ -97,7 +97,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.EmailAddressBeingUsed, newEmailAddress);
             }
 
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.ChangeEmail, newEmailAddress));
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.ChangeEmail, newEmailAddress));
 
             user.UpdateEmailAddress(newEmailAddress, Crypto.GenerateToken);
             await UserRepository.CommitChangesAsync();
@@ -105,7 +105,7 @@ namespace NuGetGallery
 
         public async Task CancelChangeEmailAddress(User user)
         {
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.CancelChangeEmail, user.UnconfirmedEmailAddress));
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.CancelChangeEmail, user.UnconfirmedEmailAddress));
 
             user.CancelChangeEmailAddress();
             await UserRepository.CommitChangesAsync();
@@ -144,7 +144,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.EmailAddressBeingUsed, user.UnconfirmedEmailAddress);
             }
 
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.ConfirmEmail, user.UnconfirmedEmailAddress));
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.ConfirmEmail, user.UnconfirmedEmailAddress));
 
             user.ConfirmEmailAddress();
 

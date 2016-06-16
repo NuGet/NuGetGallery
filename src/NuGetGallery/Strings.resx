@@ -380,4 +380,7 @@ The {2} Team</value>
   <data name="AzureActiveDirectory_Caption" xml:space="preserve">
     <value>Azure Active Directory</value>
   </data>
+  <data name="PackageCreatedFromApi" xml:space="preserve">
+    <value>Package created from API.</value>
+  </data>
 </root>

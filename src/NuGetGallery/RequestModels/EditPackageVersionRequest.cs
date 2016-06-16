@@ -1,6 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -103,5 +108,27 @@ namespace NuGetGallery
 
         [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
+
+        /// <summary>
+        /// Applied the edit to a package
+        /// </summary>
+        /// <param name="package">Package to apply edits to</param>
+        /// <returns>Edited package</returns>
+        public Package ApplyTo(Package package)
+        {
+            package.FlattenedAuthors = Authors;
+            package.Copyright = Copyright;
+            package.Description = Description;
+            package.IconUrl = IconUrl;
+            package.LicenseUrl = LicenseUrl;
+            package.ProjectUrl = ProjectUrl;
+            package.ReleaseNotes = ReleaseNotes;
+            package.RequiresLicenseAcceptance = RequiresLicenseAcceptance;
+            package.Summary = Summary;
+            package.Tags = Tags;
+            package.Title = VersionTitle;
+
+            return package;
+        }
     }
 }

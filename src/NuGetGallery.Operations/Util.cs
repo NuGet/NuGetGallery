@@ -352,7 +352,7 @@ namespace NuGetGallery.Operations
             } while (token != null);
         }
 
-        internal static string GetPackageAuditBlobName(string id, string version, PackageAuditAction action)
+        internal static string GetPackageAuditBlobName(string id, string version, AuditedPackageAction action)
         {
             // Audit Blob Name:
             //  /auditing/package/[id]/[version]/[action]-at-[datetime]
@@ -367,7 +367,7 @@ namespace NuGetGallery.Operations
                 Environment.MachineName,
                 localIP,
                 storage.CreateCloudBlobClient().GetContainerReference("auditing"),
-                onBehalfOfThunk: null);
+                getOnBehalfOf: null);
             return await audit.SaveAuditRecord(auditRecord);
         }
 

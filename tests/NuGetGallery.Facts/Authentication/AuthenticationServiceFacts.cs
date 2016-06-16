@@ -38,6 +38,21 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
+            public async Task WritesAuditRecordWhenGivenNoUserWithName()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+
+                // Act
+                await service.Authenticate("notARealUser", "password");
+
+                // Assert
+                Assert.True(service.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
+                    ar.Action == AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser &&
+                    ar.UsernameOrEmail == "notARealUser"));
+            }
+
+            [Fact]
             public async Task GivenUserNameDoesNotMatchPassword_ItReturnsNull()
             {
                 // Arrange
@@ -48,6 +63,21 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordWhenGivenUserNameDoesNotMatchPassword()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+
+                // Act
+                await service.Authenticate(Fakes.User.Username, "bogus password!!");
+
+                // Assert
+                Assert.True(service.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
+                    ar.Action == AuditedAuthenticatedOperationAction.FailedLoginInvalidPassword &&
+                    ar.UsernameOrEmail == Fakes.User.Username));
             }
 
             [Fact]
@@ -96,13 +126,13 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.RemovedCredential &&
+                    ar.Action == AuditedUserAction.RemoveCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == CredentialTypes.Password.Sha1 &&
                     ar.AffectedCredential[0].Value == null));
                 Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.AddedCredential &&
+                    ar.Action == AuditedUserAction.AddCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == CredentialTypes.Password.Pbkdf2 &&
@@ -114,14 +144,14 @@ namespace NuGetGallery.Authentication
             // uses a new Salt and thus produces a value that cannot be looked up in the DB. Instead,
             // we must look up the user and then verify the salted password hash.
             [Fact]
-            public void GivenPasswordCredential_ItThrowsArgumentException()
+            public async Task GivenPasswordCredential_ItThrowsArgumentException()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
                 var cred = CredentialBuilder.CreatePbkdf2Password("bogus");
 
                 // Act
-                var ex = Assert.Throws<ArgumentException>(() => service.Authenticate(cred));
+                var ex = await Assert.ThrowsAsync<ArgumentException>(async () => await service.Authenticate(cred));
 
                 // Assert
                 Assert.Equal(Strings.PasswordCredentialsCannotBeUsedHere + Environment.NewLine + "Parameter name: credential", ex.Message);
@@ -129,20 +159,35 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void GivenInvalidApiKeyCredential_ItReturnsNull()
+            public async Task GivenInvalidApiKeyCredential_ItReturnsNull()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
 
                 // Act
-                var result = service.Authenticate(CredentialBuilder.CreateV1ApiKey());
+                var result = await service.Authenticate(CredentialBuilder.CreateV1ApiKey());
 
                 // Assert
                 Assert.Null(result);
             }
 
             [Fact]
-            public void GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential()
+            public async Task WritesAuditRecordWhenGivenInvalidApiKeyCredential()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+
+                // Act
+                await service.Authenticate(CredentialBuilder.CreateV1ApiKey());
+
+                // Assert
+                Assert.True(service.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
+                    ar.Action == AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser &&
+                    string.IsNullOrEmpty(ar.UsernameOrEmail)));
+            }
+
+            [Fact]
+            public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
@@ -151,7 +196,7 @@ namespace NuGetGallery.Authentication
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result = service.Authenticate(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value)));
+                var result = await service.Authenticate(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value)));
 
                 // Assert
                 Assert.NotNull(result);
@@ -160,7 +205,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void GivenMultipleMatchingCredentials_ItThrows()
+            public async Task GivenMultipleMatchingCredentials_ItThrows()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
@@ -172,7 +217,8 @@ namespace NuGetGallery.Authentication
                 creds.Add(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value)));
 
                 // Act
-                var ex = Assert.Throws<InvalidOperationException>(() => service.Authenticate(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value))));
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => 
+                    await service.Authenticate(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value))));
 
                 // Assert
                 Assert.Equal(String.Format(
@@ -217,10 +263,10 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheCreateSessionMethod : TestContainer
+        public class TheCreateSessionAsyncMethod : TestContainer
         {
             [Fact]
-            public void GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser()
+            public async Task GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
@@ -232,7 +278,7 @@ namespace NuGetGallery.Authentication
                 var authUser = new AuthenticatedUser(Fakes.Admin, passwordCred);
 
                 // Act
-                service.CreateSession(context, authUser.User);
+                await service.CreateSessionAsync(context, authUser);
 
                 // Assert
                 var principal = context.Authentication.AuthenticationResponseGrant.Principal;
@@ -243,6 +289,28 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(Fakes.Admin.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
                 Assert.Equal(AuthenticationTypes.LocalUser, id.AuthenticationType);
                 Assert.True(principal.IsInRole(Constants.AdminRoleName));
+            }
+
+            [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                var context = Fakes.CreateOwinContext();
+
+                var credential = Fakes.Admin.Credentials.SingleOrDefault(
+                    c => String.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase));
+
+                var authenticatedUser = new AuthenticatedUser(Fakes.Admin, credential);
+
+                // Act
+                await service.CreateSessionAsync(context, authenticatedUser);
+
+                // Assert
+                var authenticationService = Get<AuthenticationService>();
+                Assert.True(authenticationService.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == AuditedUserAction.Login &&
+                    ar.Username == Fakes.Admin.Username));
             }
         }
 
@@ -421,7 +489,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(auth.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.Registered &&
+                    ar.Action == AuditedUserAction.Register &&
                     ar.Username == "newUser"));
             }
         }
@@ -495,7 +563,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.RemovedCredential &&
+                    ar.Action == AuditedUserAction.RemoveCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == existingCred.Type &&
@@ -518,7 +586,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.AddedCredential &&
+                    ar.Action == AuditedUserAction.AddCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == newCred.Type &&
@@ -637,14 +705,14 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.RemovedCredential &&
+                    ar.Action == AuditedUserAction.RemoveCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == CredentialTypes.Password.Pbkdf2 &&
                     ar.AffectedCredential[0].Identity == null &&
                     ar.AffectedCredential[0].Value == null));
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.AddedCredential &&
+                    ar.Action == AuditedUserAction.AddCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == CredentialTypes.Password.Pbkdf2 &&
@@ -770,7 +838,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.RequestedPasswordReset &&
+                    ar.Action == AuditedUserAction.RequestPasswordReset &&
                     ar.Username == user.Username));
             }
         }
@@ -820,12 +888,12 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.RemovedCredential &&
+                    ar.Action == AuditedUserAction.RemoveCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == CredentialTypes.Password.Pbkdf2));
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.AddedCredential &&
+                    ar.Action == AuditedUserAction.AddCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == CredentialTypes.Password.Pbkdf2));
@@ -908,7 +976,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.AddedCredential &&
+                    ar.Action == AuditedUserAction.AddCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == cred.Type &&
@@ -1010,7 +1078,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.RemovedCredential &&
+                    ar.Action == AuditedUserAction.RemoveCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == cred.Type &&

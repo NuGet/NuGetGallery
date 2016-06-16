@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.WindowsAzure.Storage;
@@ -24,23 +22,23 @@ namespace NuGetGallery.Auditing
         private CloudBlobContainer _auditContainer;
         private string _instanceId;
         private string _localIP;
-        private Func<Task<AuditActor>> _onBehalfOfThunk;
+        private Func<Task<AuditActor>> _getOnBehalfOf;
 
-        public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, Func<Task<AuditActor>> onBehalfOfThunk)
-            : this(instanceId, localIP, GetContainer(storageConnectionString), onBehalfOfThunk)
+        public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, Func<Task<AuditActor>> getOnBehalfOf)
+            : this(instanceId, localIP, GetContainer(storageConnectionString), getOnBehalfOf)
         {
 
         }
 
-        public CloudAuditingService(string instanceId, string localIP, CloudBlobContainer auditContainer, Func<Task<AuditActor>> onBehalfOfThunk)
+        public CloudAuditingService(string instanceId, string localIP, CloudBlobContainer auditContainer, Func<Task<AuditActor>> getOnBehalfOf)
         {
             _instanceId = instanceId;
             _localIP = localIP;
             _auditContainer = auditContainer;
-            _onBehalfOfThunk = onBehalfOfThunk;
+            _getOnBehalfOf = getOnBehalfOf;
         }
 
-        public static Task<AuditActor> AspNetActorThunk()
+        public static Task<AuditActor> GetAspNetOnBehalfOf()
         {
             // Use HttpContext to build an actor representing the user performing the action
             var context = HttpContext.Current;
@@ -50,14 +48,20 @@ namespace NuGetGallery.Auditing
             }
 
             // Try to identify the client IP using various server variables
-            string clientIP = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-            if (String.IsNullOrEmpty(clientIP)) // Try REMOTE_ADDR server variable
+            string clientIpAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            if (string.IsNullOrEmpty(clientIpAddress)) // Try REMOTE_ADDR server variable
             {
-                clientIP = context.Request.ServerVariables["REMOTE_ADDR"];
+                clientIpAddress = context.Request.ServerVariables["REMOTE_ADDR"];
             }
-            if (String.IsNullOrEmpty(clientIP)) // Try UserHostAddress property
+
+            if (string.IsNullOrEmpty(clientIpAddress)) // Try UserHostAddress property
             {
-                clientIP = context.Request.UserHostAddress;
+                clientIpAddress = context.Request.UserHostAddress;
+            }
+
+            if (!string.IsNullOrEmpty(clientIpAddress) && clientIpAddress.IndexOf(".", StringComparison.Ordinal) > 0)
+            {
+                clientIpAddress = clientIpAddress.Substring(0, clientIpAddress.LastIndexOf(".", StringComparison.Ordinal)) + ".0";
             }
 
             string user = null;
@@ -70,7 +74,7 @@ namespace NuGetGallery.Auditing
 
             return Task.FromResult(new AuditActor(
                 null,
-                clientIP,
+                clientIpAddress,
                 user,
                 authType,
                 DateTime.UtcNow));
@@ -80,8 +84,8 @@ namespace NuGetGallery.Auditing
         {
             // Construct an actor representing the user the service is acting on behalf of
             AuditActor onBehalfOf = null;
-            if(_onBehalfOfThunk != null) {
-                onBehalfOf = await _onBehalfOfThunk();
+            if(_getOnBehalfOf != null) {
+                onBehalfOf = await _getOnBehalfOf();
             }
             return await AuditActor.GetCurrentMachineActor(onBehalfOf);
         }
