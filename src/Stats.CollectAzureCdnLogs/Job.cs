@@ -291,9 +291,11 @@ namespace Stats.CollectAzureCdnLogs
             }
         }
 
-        private static string GetParsedModifiedLogEntry(string rawLogEntry)
+        private string GetParsedModifiedLogEntry(string rawLogEntry)
         {
-            var parsedEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogEntry);
+            var parsedEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogEntry,
+                e => _logger.LogError(LogEvents.FailedToParseLogFileEntry, e, "Failed to parse W3C log entry."));
+
             if (parsedEntry == null)
             {
                 return null;

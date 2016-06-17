@@ -215,7 +215,9 @@ namespace Stats.ImportAzureCdnStatistics
                         var rawLogLine = logStreamReader.ReadLine();
                         if (rawLogLine != null)
                         {
-                            var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogLine);
+                            var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogLine,
+                                e => _logger.LogError(LogEvents.FailedToParseLogFileEntry, e, "Failed to parse W3C log entry."));
+
                             if (logEntry != null)
                             {
                                 var statistic = packageStatisticsParser.FromCdnLogEntry(logEntry);
