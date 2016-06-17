@@ -346,37 +346,6 @@ namespace Stats.CollectAzureCdnLogs
             return stringBuilder.ToString();
         }
 
-        private static void TrySetLongProperty(Action<long?> propertySetter, string record)
-        {
-            if (W3CParseUtils.RecordContainsData(record))
-            {
-                propertySetter(long.Parse(record));
-            }
-        }
-
-        private static void TrySetIntProperty(Action<int?> propertySetter, string record)
-        {
-            if (W3CParseUtils.RecordContainsData(record))
-            {
-                propertySetter(int.Parse(record));
-            }
-        }
-
-        private static void TrySetStringProperty(Action<string> propertySetter, string record)
-        {
-            if (W3CParseUtils.RecordContainsData(record))
-            {
-                propertySetter(record);
-            }
-        }
-
-        private static DateTime FromUnixTimestamp(string unixTimestamp)
-        {
-            // Unix timestamp is seconds past epoch
-            var secondsPastEpoch = double.Parse(unixTimestamp);
-            return _unixTimestamp + TimeSpan.FromSeconds(secondsPastEpoch);
-        }
-
         private static string ToUnixTimeStamp(DateTime dateTime)
         {
             var secondsPastEpoch = (dateTime - _unixTimestamp).TotalSeconds;
