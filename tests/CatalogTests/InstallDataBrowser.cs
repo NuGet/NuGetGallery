@@ -1,13 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CatalogTests
 {
@@ -28,7 +25,7 @@ namespace CatalogTests
             blob.Properties.ContentType = "text/html";
             blob.Properties.CacheControl = "no-store";
 
-            blob.UploadFromFile("DataBrowser\\index.html", System.IO.FileMode.Open);
+            blob.UploadFromFile("DataBrowser\\index.html");
 
             Console.WriteLine(blob.Uri);
         }
