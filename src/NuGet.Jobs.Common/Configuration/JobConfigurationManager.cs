@@ -6,12 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using NuGet.Services.KeyVault;
 
 namespace NuGet.Jobs
 {
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings
-    /// from Environment Variables
+    /// from Environment Variables and command line arguments
     /// </summary>
     public static class JobConfigurationManager
     {
@@ -88,7 +89,7 @@ namespace NuGet.Jobs
                 }
             }
 
-            return argsDictionary;
+            return ExtractSecrets(argsDictionary);
         }
 
         /// <summary>
@@ -166,8 +167,9 @@ namespace NuGet.Jobs
         /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
         /// <param name="argName">Name of the argument for which value is needed</param>
         /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
+        /// <param name="defaultValue">The default value.</param>
         /// <returns>Returns the argument value as a bool</returns>
-        public static bool TryGetBoolArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
+        public static bool TryGetBoolArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null, bool defaultValue = false)
         {
             bool switchValue;
             string argumentString = TryGetArgument(jobArgsDictionary, argName, fallbackEnvVariable);
@@ -175,7 +177,7 @@ namespace NuGet.Jobs
             {
                 return switchValue;
             }
-            return false;
+            return defaultValue;
         }
 
         /// <summary>
@@ -194,6 +196,41 @@ namespace NuGet.Jobs
                 return switchValue;
             }
             return null;
+        }
+
+        private static IDictionary<string, string> ExtractSecrets(Dictionary<string, string> argsDictionary)
+        {
+            var secretReader = GetKeyVaultReader(argsDictionary);
+
+            if (secretReader != null)
+            {
+                foreach (var keyValuePair in argsDictionary)
+                {
+                    argsDictionary[keyValuePair.Key] = secretReader.Format(keyValuePair.Value);
+                }
+            }
+
+            return argsDictionary;
+        }
+
+        /// <summary>
+        /// Initializes a KeyVaultReader from command line arguments
+        /// </summary>
+        private static ISecretReader GetKeyVaultReader(IDictionary<string, string> jobArgsDictionary)
+        {
+            if (TryGetArgument(jobArgsDictionary, JobArgumentNames.VaultName) == null)
+            {
+                return null;
+            }
+
+            var keyVaultConfiguration =
+                new KeyVaultConfiguration(
+                    GetArgument(jobArgsDictionary, JobArgumentNames.VaultName),
+                    GetArgument(jobArgsDictionary, JobArgumentNames.ClientId),
+                    GetArgument(jobArgsDictionary, JobArgumentNames.CertificateThumbprint),
+                    TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.ValidateCertificate, fallbackEnvVariable: null, defaultValue: true));
+
+            return new KeyVaultReader(keyVaultConfiguration);
         }
     }
 }

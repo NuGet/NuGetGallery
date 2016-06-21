@@ -97,5 +97,11 @@ namespace NuGet.Jobs
 
         // Application Insights
         public const string InstrumentationKey = "InstrumentationKey";
+
+        // Key Vault
+        public const string VaultName = "VaultName";
+        public const string ClientId = "ClientId";
+        public const string CertificateThumbprint = "CertificateThumbprint";
+        public const string ValidateCertificate = "ValidateCertificate";
     }
 }
