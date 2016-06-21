@@ -88,9 +88,16 @@ namespace Stats.AzureCdnLogs.Common
             catch (FormatException e)
             {
                 // skip this line but log the error
-                onErrorAction?.Invoke(e);
+                if (onErrorAction == null)
+                {
+                    throw;
+                }
+                else
+                {
+                    onErrorAction.Invoke(e);
 
-                return null;
+                    return null;
+                }
             }
 
             return entry;
