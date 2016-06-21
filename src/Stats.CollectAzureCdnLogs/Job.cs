@@ -203,7 +203,7 @@ namespace Stats.CollectAzureCdnLogs
                                                 {
                                                     resultGzipStream.IsStreamOwner = false;
 
-                                                    ProcessLogStream(rawGzipStream, resultGzipStream);
+                                                    ProcessLogStream(rawGzipStream, resultGzipStream, fileName);
 
                                                     resultGzipStream.Flush();
                                                 }
@@ -258,7 +258,7 @@ namespace Stats.CollectAzureCdnLogs
             return true;
         }
 
-        private void ProcessLogStream(Stream sourceStream, Stream targetStream)
+        private void ProcessLogStream(Stream sourceStream, Stream targetStream, string fileName)
         {
             // note: not using async/await pattern as underlying streams do not support async
             using (var sourceStreamReader = new StreamReader(sourceStream))
@@ -272,7 +272,7 @@ namespace Stats.CollectAzureCdnLogs
                         do
                         {
                             var rawLogLine = sourceStreamReader.ReadLine();
-                            var logLine = GetParsedModifiedLogEntry(rawLogLine);
+                            var logLine = GetParsedModifiedLogEntry(rawLogLine, fileName);
                             if (!string.IsNullOrEmpty(logLine))
                             {
                                 targetStreamWriter.Write(logLine);
@@ -291,10 +291,10 @@ namespace Stats.CollectAzureCdnLogs
             }
         }
 
-        private string GetParsedModifiedLogEntry(string rawLogEntry)
+        private string GetParsedModifiedLogEntry(string rawLogEntry, string fileName)
         {
             var parsedEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogEntry,
-                e => _logger.LogError(LogEvents.FailedToParseLogFileEntry, e, "Failed to parse W3C log entry."));
+                e => _logger.LogError(LogEvents.FailedToParseLogFileEntry, e, "Failed to parse W3C log entry in {LogFileName}.", fileName));
 
             if (parsedEntry == null)
             {
