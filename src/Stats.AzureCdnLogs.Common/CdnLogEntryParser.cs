@@ -9,7 +9,7 @@ namespace Stats.AzureCdnLogs.Common
     {
         private static readonly DateTime _unixTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
-        public static CdnLogEntry ParseLogEntryFromLine(string line)
+        public static CdnLogEntry ParseLogEntryFromLine(string line, Action<Exception> onErrorAction)
         {
             if (string.IsNullOrWhiteSpace(line))
             {
@@ -33,55 +33,72 @@ namespace Stats.AzureCdnLogs.Common
 
             var entry = new CdnLogEntry();
 
-            // timestamp
-            entry.EdgeServerTimeDelivered = FromUnixTimestamp(columns[0]);
+            try
+            {
+                // timestamp
+                entry.EdgeServerTimeDelivered = FromUnixTimestamp(columns[0]);
 
-            // time-taken
-            TrySetIntProperty(value => entry.EdgeServerTimeTaken = value, columns[1]);
+                // time-taken
+                TrySetIntProperty(value => entry.EdgeServerTimeTaken = value, columns[1]);
 
-            // c-ip
-            TrySetStringProperty(value => entry.ClientIpAddress = value, columns[2]);
+                // c-ip
+                TrySetStringProperty(value => entry.ClientIpAddress = value, columns[2]);
 
-            // filesize
-            TrySetLongProperty(value => entry.FileSize = value, columns[3]);
+                // filesize
+                TrySetLongProperty(value => entry.FileSize = value, columns[3]);
 
-            // s-ip
-            TrySetStringProperty(value => entry.EdgeServerIpAddress = value, columns[4]);
+                // s-ip
+                TrySetStringProperty(value => entry.EdgeServerIpAddress = value, columns[4]);
 
-            // s-port
-            TrySetIntProperty(value => entry.EdgeServerPort = value, columns[5]);
+                // s-port
+                TrySetIntProperty(value => entry.EdgeServerPort = value, columns[5]);
 
-            // sc-status
-            TrySetStringProperty(value => entry.CacheStatusCode = value, columns[6]);
+                // sc-status
+                TrySetStringProperty(value => entry.CacheStatusCode = value, columns[6]);
 
-            // sc-bytes
-            TrySetLongProperty(value => entry.EdgeServerBytesSent = value, columns[7]);
+                // sc-bytes
+                TrySetLongProperty(value => entry.EdgeServerBytesSent = value, columns[7]);
 
-            // cs-method
-            TrySetStringProperty(value => entry.HttpMethod = value, columns[8]);
+                // cs-method
+                TrySetStringProperty(value => entry.HttpMethod = value, columns[8]);
 
-            // cs-uri-stem
-            TrySetStringProperty(value => entry.RequestUrl = value, columns[9]);
+                // cs-uri-stem
+                TrySetStringProperty(value => entry.RequestUrl = value, columns[9]);
 
-            // skip column 10, it just contains the '-' character
+                // skip column 10, it just contains the '-' character
 
-            // rs-duration
-            TrySetIntProperty(value => entry.RemoteServerTimeTaken = value, columns[11]);
+                // rs-duration
+                TrySetIntProperty(value => entry.RemoteServerTimeTaken = value, columns[11]);
 
-            // rs-bytes
-            TrySetLongProperty(value => entry.RemoteServerBytesSent = value, columns[12]);
+                // rs-bytes
+                TrySetLongProperty(value => entry.RemoteServerBytesSent = value, columns[12]);
 
-            // c-referrer
-            TrySetStringProperty(value => entry.Referrer = value, columns[13]);
+                // c-referrer
+                TrySetStringProperty(value => entry.Referrer = value, columns[13]);
 
-            // c-user-agent
-            TrySetStringProperty(value => entry.UserAgent = value, columns[14]);
+                // c-user-agent
+                TrySetStringProperty(value => entry.UserAgent = value, columns[14]);
 
-            // customer-id
-            TrySetStringProperty(value => entry.CustomerId = value, columns[15]);
+                // customer-id
+                TrySetStringProperty(value => entry.CustomerId = value, columns[15]);
 
-            // x-ec_custom-1
-            TrySetStringProperty(value => entry.CustomField = value, columns[16]);
+                // x-ec_custom-1
+                TrySetStringProperty(value => entry.CustomField = value, columns[16]);
+            }
+            catch (FormatException e)
+            {
+                // skip this line but log the error
+                if (onErrorAction == null)
+                {
+                    throw;
+                }
+                else
+                {
+                    onErrorAction.Invoke(e);
+
+                    return null;
+                }
+            }
 
             return entry;
         }

@@ -87,6 +87,7 @@ namespace NuGet.Jobs
 
         //Arguments specific to ParseAzureCdnLogs
         public const string AzureCdnCloudStorageTableName = "AzureCdnCloudStorageTableName";
+        public const string AggregatesOnly = "AggregatesOnly";
 
         //Arguments specific to Heartbeat
         public const string HeartbeatConfig = "HeartbeatConfig";
@@ -97,6 +98,16 @@ namespace NuGet.Jobs
 
         // Application Insights
         public const string InstrumentationKey = "InstrumentationKey";
+
+        // Arguments specific to validation tasks
+        public const string RunValidationTasks = "RunValidationTasks";
+        public const string RequestValidationTasks = "RequestValidationTasks";
+
+        // Arguments specific to VCS validation task
+        public const string VcsValidatorServiceUrl = "VcsValidatorServiceUrl";
+        public const string VcsValidatorCallbackUrl = "VcsValidatorCallbackUrl";
+        public const string VcsValidatorAlias = "VcsValidatorAlias";
+        public const string VcsPackageUrlTemplate = "VcsPackageUrlTemplate";
 
         // Key Vault
         public const string VaultName = "VaultName";

@@ -8,7 +8,6 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Internal;
 using Stats.AzureCdnLogs.Common;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -394,6 +393,43 @@ namespace Stats.ImportAzureCdnStatistics
             _logger.LogDebug("  DONE");
         }
 
+        public async Task<IReadOnlyCollection<string>> GetAlreadyAggregatedLogFilesAsync()
+        {
+            _logger.LogDebug("Retrieving already processed log files...");
+
+            var alreadyAggregatedLogFiles = new List<string>();
+            using (var connection = await _targetDatabase.ConnectTo())
+            {
+                try
+                {
+                    var command = connection.CreateCommand();
+                    command.CommandText = "[dbo].[SelectAlreadyAggregatedLogFiles]";
+                    command.CommandTimeout = _defaultCommandTimeout;
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    using (var dataReader = await command.ExecuteReaderAsync())
+                    {
+                        while (await dataReader.ReadAsync())
+                        {
+                            alreadyAggregatedLogFiles.Add(dataReader.GetString(0));
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError("Failed to retrieve already aggregated log files", exception);
+
+                    ApplicationInsightsHelper.TrackException(exception);
+
+                    throw;
+                }
+            }
+
+            _logger.LogDebug("  DONE");
+
+            return alreadyAggregatedLogFiles;
+        }
+
         private async Task<IDictionary<string, int>> GetDimension(string dimension, string logFileName, Func<SqlConnection, Task<IDictionary<string, int>>> retrieve)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -452,7 +488,7 @@ namespace Stats.ImportAzureCdnStatistics
                     }
                     catch (Exception exception)
                     {
-                        _logger.LogError(new FormattedLogValues("Failed to retrieve dimension '{Dimension}'.", dimension), exception);
+                        _logger.LogError(LogEvents.FailedDimensionRetrieval, exception, "Failed to retrieve dimension '{Dimension}'.", dimension);
                         ApplicationInsightsHelper.TrackException(exception, logFileName);
 
                         if (stopwatch.IsRunning)
@@ -524,7 +560,7 @@ namespace Stats.ImportAzureCdnStatistics
                     }
                     catch (Exception exception)
                     {
-                        _logger.LogError(new FormattedLogValues("Failed to retrieve dimension '{Dimension}'.", dimension), exception);
+                        _logger.LogError(LogEvents.FailedDimensionRetrieval, exception, "Failed to retrieve dimension '{Dimension}'.", dimension);
                         ApplicationInsightsHelper.TrackException(exception, logFileName);
 
                         if (stopwatch.IsRunning)
@@ -1220,7 +1256,7 @@ namespace Stats.ImportAzureCdnStatistics
             table.Columns.Add("Date_Dimension_Id", typeof(int));
             table.Columns.Add("PackageDownloads", typeof(int));
 
-            foreach (var kvp in logFileAggregates.PackageDownloadsByDate)
+            foreach (var kvp in logFileAggregates.PackageDownloadsByDateDimensionId)
             {
                 var row = table.NewRow();
                 row["LogFileName"] = logFileAggregates.LogFileName;

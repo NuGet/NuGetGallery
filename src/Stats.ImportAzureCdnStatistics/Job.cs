@@ -51,7 +51,7 @@ namespace Stats.ImportAzureCdnStatistics
                 _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
                 _cloudStorageContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
 
-                _aggregatesOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, "AggregatesOnly");
+                _aggregatesOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.AggregatesOnly);
 
                 // construct a cloud blob client for the configured storage account
                 _cloudBlobClient = _cloudStorageAccount.CreateCloudBlobClient();
@@ -85,13 +85,22 @@ namespace Stats.ImportAzureCdnStatistics
                 await deadLetterBlobContainer.CreateIfNotExistsAsync();
 
                 // Create a parser
-                var logProcessor = new LogFileProcessor(targetBlobContainer, deadLetterBlobContainer, _targetDatabase, _loggerFactory);
+                var warehouse = new Warehouse(_loggerFactory, _targetDatabase);
+                var logProcessor = new LogFileProcessor(targetBlobContainer, deadLetterBlobContainer, _loggerFactory, warehouse);
 
                 // Get the next to-be-processed raw log file using the cdn raw log file name prefix
                 var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);
 
                 // Get next raw log file to be processed
-                var leasedLogFiles = await _blobLeaseManager.LeaseNextLogFilesToBeProcessedAsync(prefix);
+                IReadOnlyCollection<string> alreadyAggregatedLogFiles = null;
+                if (_aggregatesOnly)
+                {
+                    // We only want to process aggregates for the log files.
+                    // Get the list of files we already processed so we can skip them.
+                    alreadyAggregatedLogFiles = await warehouse.GetAlreadyAggregatedLogFilesAsync();
+                }
+
+                var leasedLogFiles = await _blobLeaseManager.LeaseNextLogFilesToBeProcessedAsync(prefix, alreadyAggregatedLogFiles);
                 foreach (var leasedLogFile in leasedLogFiles)
                 {
                     var packageTranslator = new PackageTranslator("packagetranslations.json");

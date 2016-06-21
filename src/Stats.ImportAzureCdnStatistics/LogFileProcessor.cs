@@ -4,14 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.GZip;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Internal;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Stats.AzureCdnLogs.Common;
@@ -29,8 +27,8 @@ namespace Stats.ImportAzureCdnStatistics
 
         public LogFileProcessor(CloudBlobContainer targetContainer,
             CloudBlobContainer deadLetterContainer,
-            SqlConnectionStringBuilder targetDatabase,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            Warehouse warehouse)
         {
             if (targetContainer == null)
             {
@@ -42,9 +40,9 @@ namespace Stats.ImportAzureCdnStatistics
                 throw new ArgumentNullException(nameof(deadLetterContainer));
             }
 
-            if (targetDatabase == null)
+            if (warehouse == null)
             {
-                throw new ArgumentNullException(nameof(targetDatabase));
+                throw new ArgumentNullException(nameof(warehouse));
             }
 
             if (loggerFactory == null)
@@ -56,7 +54,7 @@ namespace Stats.ImportAzureCdnStatistics
             _deadLetterContainer = deadLetterContainer;
             _logger = loggerFactory.CreateLogger<Job>();
 
-            _warehouse = new Warehouse(loggerFactory, targetDatabase);
+            _warehouse = warehouse;
         }
 
         public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser, bool aggregatesOnly = false)
@@ -68,25 +66,17 @@ namespace Stats.ImportAzureCdnStatistics
 
             try
             {
-                var cdnStatistics = await ParseLogEntries(logFile, packageStatisticsParser);
+                var logFileName = logFile.Blob.Name;
+                var cdnStatistics = await ParseLogEntries(logFile, packageStatisticsParser, logFileName);
                 var hasPackageStatistics = cdnStatistics.PackageStatistics.Any();
                 var hasToolStatistics = cdnStatistics.ToolStatistics.Any();
 
-                if (hasPackageStatistics || hasToolStatistics)
+                // replicate data to the statistics database
+                if (hasPackageStatistics)
                 {
-                    // replicate data to the statistics database
-                    List<DataTable> downloadFacts = null;
-                    var logFileName = logFile.Blob.Name;
+                    _logger.LogInformation("Creating facts for package download statistics in {LogFileName}", logFileName);
 
-                    if (hasPackageStatistics)
-                    {
-                        downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFileName);
-                    }
-
-                    if (hasToolStatistics)
-                    {
-                        downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFileName);
-                    }
+                    var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFileName);
 
                     if (downloadFacts != null)
                     {
@@ -110,19 +100,34 @@ namespace Stats.ImportAzureCdnStatistics
 
                                 foreach (var keyValuePair in downloadsByDate)
                                 {
-                                    logFileAggregates.PackageDownloadsByDate.Add(keyValuePair.Key, keyValuePair.Value);
+                                    logFileAggregates.PackageDownloadsByDateDimensionId.Add(keyValuePair.Key, keyValuePair.Value);
 
-#if DEBUG
                                     _logger.LogInformation(
                                         "{LogFile} contains {PackageDownloadCount} package downloads for date id {DimensionDateId}",
                                         logFileName, keyValuePair.Value, keyValuePair.Key);
-#endif
                                 }
                             }
                         }
 
                         // store aggregates for this logfile
+                        _logger.LogInformation("Storing aggregate facts for package download statistics in {LogFileName}", logFileName);
                         await _warehouse.StoreLogFileAggregatesAsync(logFileAggregates);
+                    }
+                }
+
+                if (hasToolStatistics)
+                {
+                    _logger.LogInformation("Creating facts for tool download statistics in {LogFileName}", logFileName);
+
+                    var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFileName);
+
+                    if (downloadFacts != null)
+                    {
+                        // store facts recorded in this logfile
+                        if (!aggregatesOnly)
+                        {
+                            await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
+                        }
                     }
                 }
 
@@ -133,6 +138,8 @@ namespace Stats.ImportAzureCdnStatistics
             }
             catch (Exception e)
             {
+                _logger.LogError(LogEvents.FailedToProcessLogFile, e, "Unable to process {LogFile}", logFile.Uri);
+
                 if (!aggregatesOnly)
                 {
                     // copy the blob to a dead-letter container
@@ -185,7 +192,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
         }
 
-        private async Task<CdnStatistics> ParseLogEntries(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser)
+        private async Task<CdnStatistics> ParseLogEntries(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser, string fileName)
         {
             var logStream = await OpenCompressedBlobAsync(logFile);
             var blobUri = logFile.Uri;
@@ -199,7 +206,7 @@ namespace Stats.ImportAzureCdnStatistics
             try
             {
                 // parse the log into table entities
-                _logger.LogDebug("Beginning to parse blob {FtpBlobUri}.", blobUri);
+                _logger.LogInformation("Beginning to parse blob {FtpBlobUri}.", blobUri);
 
                 using (var logStreamReader = new StreamReader(logStream))
                 {
@@ -208,7 +215,9 @@ namespace Stats.ImportAzureCdnStatistics
                         var rawLogLine = logStreamReader.ReadLine();
                         if (rawLogLine != null)
                         {
-                            var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogLine);
+                            var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogLine,
+                                e => _logger.LogError(LogEvents.FailedToParseLogFileEntry, e, "Failed to parse W3C log entry in {LogFileName}.", fileName));
+
                             if (logEntry != null)
                             {
                                 var statistic = packageStatisticsParser.FromCdnLogEntry(logEntry);
@@ -235,7 +244,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                 stopwatch.Stop();
 
-                _logger.LogDebug("Finished parsing blob {FtpBlobUri} ({RecordCount} records).", blobUri, packageStatistics.Count);
+                _logger.LogInformation("Finished parsing blob {FtpBlobUri} ({RecordCount} records).", blobUri, packageStatistics.Count);
                 ApplicationInsightsHelper.TrackMetric("Blob parsing duration (ms)", stopwatch.ElapsedMilliseconds, blobName);
             }
             catch (Exception exception)
@@ -245,7 +254,7 @@ namespace Stats.ImportAzureCdnStatistics
                     stopwatch.Stop();
                 }
 
-                _logger.LogError(new FormattedLogValues("Failed to parse blob {FtpBlobUri}.", blobUri), exception);
+                _logger.LogError(LogEvents.FailedToParseLogFile, exception, "Failed to parse blob {FtpBlobUri}.", blobUri);
                 ApplicationInsightsHelper.TrackException(exception, blobName);
 
                 throw;
@@ -283,7 +292,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             try
             {
-                _logger.LogDebug("Beginning opening of compressed blob {FtpBlobUri}.", logFile.Uri);
+                _logger.LogInformation("Beginning opening of compressed blob {FtpBlobUri}.", logFile.Uri);
 
                 var memoryStream = new MemoryStream();
 
@@ -317,7 +326,7 @@ namespace Stats.ImportAzureCdnStatistics
                     stopwatch.Stop();
                 }
 
-                _logger.LogError(new FormattedLogValues("Failed to open compressed blob {FtpBlobUri}", logFile.Uri), exception);
+                _logger.LogError(LogEvents.FailedToDecompressBlob, exception, "Failed to open compressed blob {FtpBlobUri}", logFile.Uri);
                 ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
 
                 throw;
@@ -343,7 +352,7 @@ namespace Stats.ImportAzureCdnStatistics
                     stopwatch.Stop();
                 }
 
-                _logger.LogError(new FormattedLogValues("Failed archive upload for blob {FtpBlobUri}", logFile.Uri), exception);
+                _logger.LogError(LogEvents.FailedBlobUpload, exception, "Failed archive upload for blob {FtpBlobUri}", logFile.Uri);
                 ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                 throw;
             }
@@ -355,7 +364,7 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 try
                 {
-                    _logger.LogDebug("Beginning to delete blob {FtpBlobUri}.", logFile.Uri);
+                    _logger.LogInformation("Beginning to delete blob {FtpBlobUri}.", logFile.Uri);
 
                     var accessCondition = AccessCondition.GenerateLeaseCondition(logFile.LeaseId);
                     await logFile.Blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, accessCondition, null, null);
@@ -364,7 +373,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(new FormattedLogValues("Finished to delete blob {FtpBlobUri}", logFile.Uri), exception);
+                    _logger.LogError(LogEvents.FailedBlobDelete, exception, "Finished to delete blob {FtpBlobUri}", logFile.Uri);
                     ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                     throw;
                 }
