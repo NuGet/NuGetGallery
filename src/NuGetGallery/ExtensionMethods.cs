@@ -240,6 +240,11 @@ namespace NuGetGallery
 
         public static MailAddress ToMailAddress(this User user)
         {
+            if (!user.Confirmed)
+            {
+                return new MailAddress(user.UnconfirmedEmailAddress, user.Username);
+            }
+            
             return new MailAddress(user.EmailAddress, user.Username);
         }
 
