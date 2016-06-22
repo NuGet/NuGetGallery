@@ -66,10 +66,10 @@ namespace Stats.ImportAzureCdnStatistics
 
             try
             {
-                var cdnStatistics = await ParseLogEntries(logFile, packageStatisticsParser);
+                var logFileName = logFile.Blob.Name;
+                var cdnStatistics = await ParseLogEntries(logFile, packageStatisticsParser, logFileName);
                 var hasPackageStatistics = cdnStatistics.PackageStatistics.Any();
                 var hasToolStatistics = cdnStatistics.ToolStatistics.Any();
-                var logFileName = logFile.Blob.Name;
 
                 // replicate data to the statistics database
                 if (hasPackageStatistics)
@@ -192,7 +192,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
         }
 
-        private async Task<CdnStatistics> ParseLogEntries(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser)
+        private async Task<CdnStatistics> ParseLogEntries(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser, string fileName)
         {
             var logStream = await OpenCompressedBlobAsync(logFile);
             var blobUri = logFile.Uri;
@@ -216,7 +216,7 @@ namespace Stats.ImportAzureCdnStatistics
                         if (rawLogLine != null)
                         {
                             var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogLine,
-                                e => _logger.LogError(LogEvents.FailedToParseLogFileEntry, e, "Failed to parse W3C log entry."));
+                                e => _logger.LogError(LogEvents.FailedToParseLogFileEntry, e, "Failed to parse W3C log entry in {LogFileName}.", fileName));
 
                             if (logEntry != null)
                             {

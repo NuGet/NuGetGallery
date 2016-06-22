@@ -78,6 +78,7 @@
     <Compile Include="Configuration\JobArgumentNames.cs" />
     <Compile Include="Extensions\SqlConnectionStringBuilderExtensions.cs" />
     <Compile Include="Extensions\XElementExtensions.cs" />
+    <Compile Include="SmtpUri.cs" />
     <Compile Include="Tracing\AzureBlobJobTraceListener.cs" />
     <Compile Include="Configuration\JobConfigurationManager.cs" />
     <Compile Include="Extensions\DapperExtensions.cs" />
