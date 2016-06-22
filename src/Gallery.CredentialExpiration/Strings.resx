@@ -125,6 +125,7 @@ We wanted to inform you that your API key on {0} has expired.
 Visit {1} to generate a new API key so that you can continue pushing packages.
 
 Best regards,
+
 {0}</value>
   </data>
   <data name="ExpiringEmailBody" xml:space="preserve">
@@ -135,6 +136,7 @@ We wanted to inform you that your API key on {0} will expire in {2} days.
 Visit {1} to generate a new API key so that you can continue pushing packages.
 
 Best regards,
+
 {0}</value>
   </data>
   <data name="GetExpiredCredentialsQuery" xml:space="preserve">
@@ -149,9 +151,9 @@ WHERE u.[EmailAllowed] = 1
 ORDER BY u.[Username]</value>
   </data>
   <data name="ExpiredEmailSubject" xml:space="preserve">
-    <value>Your {0} API key has expired</value>
+    <value>[{0}] Your API key has expired</value>
   </data>
   <data name="ExpiringEmailSubject" xml:space="preserve">
-    <value>Your {0} API key is about to expire</value>
+    <value>[{0}] Your API key is about to expire</value>
   </data>
 </root>
