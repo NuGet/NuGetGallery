@@ -8,6 +8,8 @@ namespace NuGetGallery.Auditing
     public class FailedAuthenticatedOperationAuditRecord 
         : AuditRecord<AuditedAuthenticatedOperationAction>
     {
+        private const string Path = "all";
+
         public string UsernameOrEmail { get; }
         public AuditedPackageIdentifier AttemptedPackage { get; }
         public CredentialAuditRecord AttemptedCredential { get; }
@@ -34,7 +36,7 @@ namespace NuGetGallery.Auditing
 
         public override string GetPath()
         {
-            return string.Empty; // store in <auditpath>/failedauthenticatedoperation/
+            return Path; // store in <auditpath>/failedauthenticatedoperation/all
         }
     }
 }
