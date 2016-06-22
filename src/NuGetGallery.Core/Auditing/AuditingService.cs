@@ -1,10 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -15,7 +12,7 @@ namespace NuGetGallery.Auditing
     {
         public static readonly AuditingService None = new NullAuditingService();
 
-        private static readonly JsonSerializerSettings _auditRecordSerializerSettings;
+        private static readonly JsonSerializerSettings AuditRecordSerializerSettings;
 
         static AuditingService()
         {
@@ -31,7 +28,7 @@ namespace NuGetGallery.Auditing
                 TypeNameHandling = TypeNameHandling.None
             };
             settings.Converters.Add(new StringEnumConverter());
-            _auditRecordSerializerSettings = settings;
+            AuditRecordSerializerSettings = settings;
         }
 
         public virtual async Task<Uri> SaveAuditRecord(AuditRecord record)
@@ -48,7 +45,7 @@ namespace NuGetGallery.Auditing
 
         public virtual string RenderAuditEntry(AuditEntry entry)
         {
-            return JsonConvert.SerializeObject(entry, _auditRecordSerializerSettings);
+            return JsonConvert.SerializeObject(entry, AuditRecordSerializerSettings);
         }
 
         /// <summary>
@@ -73,6 +70,7 @@ namespace NuGetGallery.Auditing
             {
                 var uriString = $"http://auditing.local/{resourceType}/{filePath}/{timestamp:s}-{action.ToLowerInvariant()}";
                 var uri = new Uri(uriString);
+
                 return Task.FromResult(uri);
             }
         }

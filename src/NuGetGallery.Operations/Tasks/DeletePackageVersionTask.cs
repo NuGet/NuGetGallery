@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using AnglicanGeek.DbExecutor;
@@ -10,6 +11,7 @@ using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations
 {
+    [Obsolete("This command should no longer be used.")]
     [Command("deletepackageversion", "Delete a specific package version", AltName = "dpv")]
     public class DeletePackageVersionTask : DatabasePackageVersionTask
     {
@@ -73,9 +75,9 @@ namespace NuGetGallery.Operations
                     package.Id,
                     package.Version,
                     package.Hash,
-                    packageRecord,
-                    registrationRecord,
-                    PackageAuditAction.Deleted,
+                    null,
+                    null,
+                    AuditedPackageAction.Delete,
                     Reason);
 
                 if (WhatIf)

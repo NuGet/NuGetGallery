@@ -11,7 +11,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
@@ -20,6 +19,7 @@ using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
+using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
@@ -50,6 +50,7 @@ namespace NuGetGallery
         private readonly EditPackageService _editPackageService;
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly AuditingService _auditingService;
 
         public PackagesController(
             IPackageService packageService,
@@ -64,7 +65,8 @@ namespace NuGetGallery
             ICacheService cacheService,
             EditPackageService editPackageService,
             IPackageDeleteService packageDeleteService,
-            ISupportRequestService supportRequestService)
+            ISupportRequestService supportRequestService,
+            AuditingService auditingService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -79,6 +81,7 @@ namespace NuGetGallery
             _editPackageService = editPackageService;
             _packageDeleteService = packageDeleteService;
             _supportRequestService = supportRequestService;
+            _auditingService = auditingService;
         }
 
         [Authorize]
@@ -141,6 +144,8 @@ namespace NuGetGallery
             }
             else if (numOK > 0)
             {
+                await _auditingService.SaveAuditRecord(new PackageAuditRecord(package, AuditedPackageAction.UndoEdit));
+
                 TempData["Message"] = "Your pending edits for this package were successfully canceled.";
             }
             else
@@ -745,6 +750,40 @@ namespace NuGetGallery
         }
 
         [Authorize(Roles = "Admins")]
+        [RequiresAccountConfirmation("reflow a package")]
+        public virtual async Task<ActionResult> Reflow(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+            
+            var reflowPackageService = new ReflowPackageService(
+                _entitiesContext, 
+                (PackageService) _packageService,
+                _packageFileService);
+
+            try
+            {
+                await reflowPackageService.ReflowAsync(id, version);
+
+                TempData["Message"] =
+                    "The package is being reflowed. It may take a while for this change to propagate through our system.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] =
+                    $"An error occurred while reflowing the package. {ex.Message}";
+
+                QuietLog.LogHandledException(ex);
+            }
+
+            return SafeRedirect(Url.Package(id, version));
+        }
+
+        [Authorize(Roles = "Admins")]
         [HttpPost]
         [RequiresAccountConfirmation("delete a package")]
         [ValidateAntiForgeryToken]
@@ -871,6 +910,10 @@ namespace NuGetGallery
                 {
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                     await _entitiesContext.SaveChangesAsync();
+
+                    var packageWithEditsApplied = formData.Edit.ApplyTo(package);
+
+                    await _auditingService.SaveAuditRecord(new PackageAuditRecord(packageWithEditsApplied, AuditedPackageAction.Edit));
                 }
                 catch (EntityException ex)
                 {
@@ -1131,6 +1174,11 @@ namespace NuGetGallery
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();
 
+                // write an audit record
+                await _auditingService.SaveAuditRecord(
+                    new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
+
+                // notify user
                 _messageService.SendPackageAddedNotice(package,
                     Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                     Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),

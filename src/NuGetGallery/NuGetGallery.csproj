@@ -725,6 +725,18 @@
     <Compile Include="Migrations\201605250755294_AddIndexForUserEmailAddress.Designer.cs">
       <DependentUpon>201605250755294_AddIndexForUserEmailAddress.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201605310704169_RemoveOldCredentialColumnsFromUsersTable.cs" />
+    <Compile Include="Migrations\201605310704169_RemoveOldCredentialColumnsFromUsersTable.Designer.cs">
+      <DependentUpon>201605310704169_RemoveOldCredentialColumnsFromUsersTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201606012049351_AddIndexForCredentialsUserKey.cs" />
+    <Compile Include="Migrations\201606012049351_AddIndexForCredentialsUserKey.Designer.cs">
+      <DependentUpon>201606012049351_AddIndexForCredentialsUserKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs" />
+    <Compile Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.Designer.cs">
+      <DependentUpon>201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1305,6 +1317,7 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
+    <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultExtensions.cs" />
@@ -1813,6 +1826,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201605250755294_AddIndexForUserEmailAddress.resx">
       <DependentUpon>201605250755294_AddIndexForUserEmailAddress.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201605310704169_RemoveOldCredentialColumnsFromUsersTable.resx">
+      <DependentUpon>201605310704169_RemoveOldCredentialColumnsFromUsersTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201606012049351_AddIndexForCredentialsUserKey.resx">
+      <DependentUpon>201606012049351_AddIndexForCredentialsUserKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.resx">
+      <DependentUpon>201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

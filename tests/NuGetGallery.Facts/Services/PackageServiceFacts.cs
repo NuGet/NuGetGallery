@@ -9,6 +9,7 @@ using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
+using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
@@ -88,12 +89,14 @@ namespace NuGetGallery
             Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Mock<IIndexingService> indexingService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
+            AuditingService auditingService = null,
             Action<Mock<PackageService>> setup = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
+            auditingService = auditingService ?? new TestAuditingService();
 
             if (packageNamingConflictValidator == null)
             {
@@ -107,7 +110,8 @@ namespace NuGetGallery
                 packageRepository.Object,
                 packageOwnerRequestRepo.Object,
                 indexingService.Object,
-                packageNamingConflictValidator);
+                packageNamingConflictValidator,
+                auditingService);
 
             packageService.CallBase = true;
 
@@ -158,6 +162,27 @@ namespace NuGetGallery
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 repository.VerifyAll();
+            }
+            
+            [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                // Arrange
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var auditingService = new TestAuditingService();
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    auditingService: auditingService);
+
+                // Act
+                await service.AddPackageOwnerAsync(package, pendingOwner);
+
+                // Assert
+                Assert.True(auditingService.WroteRecord<PackageRegistrationAuditRecord>(ar =>
+                    ar.Action == AuditedPackageRegistrationAction.AddOwner
+                    && ar.Id == package.Id));
             }
         }
 
@@ -1401,6 +1426,28 @@ namespace NuGetGallery
 
                 await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.MarkPackageListedAsync(package));
             }
+
+            [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var auditingService = new TestAuditingService();
+                var service = CreateService(
+                    packageRepository: packageRepository, 
+                    auditingService: auditingService);
+
+                // Act
+                await service.MarkPackageListedAsync(package);
+                
+                // Assert
+                Assert.True(auditingService.WroteRecord<PackageAuditRecord>(ar =>
+                    ar.Action == AuditedPackageAction.List
+                    && ar.Id == package.PackageRegistration.Id
+                    && ar.Version == package.Version));
+            }
         }
 
         public class TheMarkPackageUnlistedMethod
@@ -1486,6 +1533,28 @@ namespace NuGetGallery
 
                 Assert.False(package.IsLatest, "IsLatest");
                 Assert.False(package.IsLatestStable, "IsLatestStable");
+            }
+
+            [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var auditingService = new TestAuditingService();
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    auditingService: auditingService);
+
+                // Act
+                await service.MarkPackageUnlistedAsync(package);
+
+                // Assert
+                Assert.True(auditingService.WroteRecord<PackageAuditRecord>(ar =>
+                    ar.Action == AuditedPackageAction.Unlist
+                    && ar.Id == package.PackageRegistration.Id
+                    && ar.Version == package.Version));
             }
         }
 
@@ -1820,6 +1889,27 @@ namespace NuGetGallery
 
                 Assert.Contains(owner, package.Owners);
                 packageOwnerRequestRepository.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                // Arrange
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var ownerToRemove = new User { Key = 100, Username = "teamawesome" };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var auditingService = new TestAuditingService();
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    auditingService: auditingService);
+
+                // Act
+                await service.RemovePackageOwnerAsync(package, ownerToRemove);
+
+                // Assert
+                Assert.True(auditingService.WroteRecord<PackageRegistrationAuditRecord>(ar =>
+                    ar.Action == AuditedPackageRegistrationAction.RemoveOwner
+                    && ar.Id == package.Id));
             }
         }
 

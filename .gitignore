@@ -174,3 +174,4 @@ src/NuGetGallery.Cloud/ecf/
 
 # Vs2015
 .vs/config/applicationhost.config
+src/NuGetGallery/App_Data/Files/auditing/

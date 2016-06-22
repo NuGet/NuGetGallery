@@ -166,7 +166,7 @@ namespace NuGetGallery
                 var confirmed = await service.ConfirmEmailAddress(user, "secret");
 
                 Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.ConfirmEmail &&
+                    ar.Action == AuditedUserAction.ConfirmEmail &&
                     ar.AffectedEmailAddress == "new@example.com"));
             }
         }
@@ -298,7 +298,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.ChangeEmail &&
+                    ar.Action == AuditedUserAction.ChangeEmail &&
                     ar.AffectedEmailAddress == "new@example.org" &&
                     ar.EmailAddress == "old@example.org"));
             }
@@ -353,7 +353,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == UserAuditAction.CancelChangeEmail &&
+                    ar.Action == AuditedUserAction.CancelChangeEmail &&
                     ar.AffectedEmailAddress == "unconfirmedEmail@example.org" &&
                     ar.EmailAddress == "confirmedEmail@example.org"));
             }

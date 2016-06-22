@@ -57,6 +57,11 @@ namespace NuGetGallery.Authentication
                 if (user == null)
                 {
                     _trace.Information("No such user: " + userNameOrEmail);
+                    
+                    await Auditing.SaveAuditRecord(
+                        new FailedAuthenticatedOperationAuditRecord(
+                            userNameOrEmail, AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser));
+
                     return null;
                 }
 
@@ -65,6 +70,11 @@ namespace NuGetGallery.Authentication
                 if (!ValidatePasswordCredential(user.Credentials, password, out matched))
                 {
                     _trace.Information("Password validation failed: " + userNameOrEmail);
+
+                    await Auditing.SaveAuditRecord(
+                        new FailedAuthenticatedOperationAuditRecord(
+                            userNameOrEmail, AuditedAuthenticatedOperationAction.FailedLoginInvalidPassword));
+
                     return null;
                 }
 
@@ -83,7 +93,7 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public virtual AuthenticatedUser Authenticate(Credential credential)
+        public virtual async Task<AuthenticatedUser> Authenticate(Credential credential)
         {
             if (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase))
             {
@@ -98,6 +108,10 @@ namespace NuGetGallery.Authentication
                 if (matched == null)
                 {
                     _trace.Information("No user matches credential of type: " + credential.Type);
+
+                    await Auditing.SaveAuditRecord(
+                        new FailedAuthenticatedOperationAuditRecord(null, AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser, attemptedCredential: credential));
+
                     return null;
                 }
 
@@ -106,14 +120,18 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public virtual void CreateSession(IOwinContext owinContext, User user)
+        public virtual async Task CreateSessionAsync(IOwinContext owinContext, AuthenticatedUser user)
         {
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(user, AuthenticationTypes.LocalUser);
+            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser);
 
             // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
             owinContext.Authentication.SignOut(AuthenticationTypes.External);
+            
+            // Write an audit record
+            await Auditing.SaveAuditRecord(
+                new UserAuditRecord(user.User, AuditedUserAction.Login, user.CredentialUsed));
         }
 
         public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
@@ -157,7 +175,7 @@ namespace NuGetGallery.Authentication
             }
 
             // Write an audit record
-            await Auditing.SaveAuditRecord(new UserAuditRecord(newUser, UserAuditAction.Registered));
+            await Auditing.SaveAuditRecord(new UserAuditRecord(newUser, AuditedUserAction.Register));
 
             Entities.Users.Add(newUser);
             await Entities.SaveChangesAsync();
@@ -267,7 +285,7 @@ namespace NuGetGallery.Authentication
             user.PasswordResetToken = CryptographyService.GenerateToken();
             user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(expirationInMinutes);
 
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RequestedPasswordReset));
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.RequestPasswordReset));
 
             await Entities.SaveChangesAsync();
         }
@@ -315,7 +333,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task AddCredential(User user, Credential credential)
         {
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.AddedCredential, credential));
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.AddCredential, credential));
             user.Credentials.Add(credential);
             await Entities.SaveChangesAsync();
         }
@@ -346,7 +364,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task RemoveCredential(User user, Credential cred)
         {
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RemovedCredential, cred));
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.RemoveCredential, cred));
             user.Credentials.Remove(cred);
             Entities.Credentials.Remove(cred);
             await Entities.SaveChangesAsync();
@@ -407,7 +425,7 @@ namespace NuGetGallery.Authentication
             // Authenticate!
             if (result.Credential != null)
             {
-                result.Authentication = Authenticate(result.Credential);
+                result.Authentication = await Authenticate(result.Credential);
             }
 
             return result;
@@ -455,13 +473,13 @@ namespace NuGetGallery.Authentication
             if (toRemove.Any())
             {
                 await Auditing.SaveAuditRecord(new UserAuditRecord(
-                    user, UserAuditAction.RemovedCredential, toRemove));
+                    user, AuditedUserAction.RemoveCredential, toRemove));
             }
 
             user.Credentials.Add(credential);
 
             await Auditing.SaveAuditRecord(new UserAuditRecord(
-                user, UserAuditAction.AddedCredential, credential));
+                user, AuditedUserAction.AddCredential, credential));
         }
 
         private static CredentialKind GetCredentialKind(string type)
@@ -601,13 +619,13 @@ namespace NuGetGallery.Authentication
                 user.Credentials.Remove(cred);
                 Entities.DeleteOnCommit(cred);
             }
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RemovedCredential, toRemove));
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.RemoveCredential, toRemove));
 
             // Now add one if there are no credentials left
             if (creds.Count == 0)
             {
                 var newCred = CredentialBuilder.CreatePbkdf2Password(password);
-                await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.AddedCredential, newCred));
+                await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.AddCredential, newCred));
                 user.Credentials.Add(newCred);
             }
 

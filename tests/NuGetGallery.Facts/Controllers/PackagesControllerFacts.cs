@@ -20,6 +20,7 @@ using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Auditing;
 using Xunit;
 
 namespace NuGetGallery
@@ -42,7 +43,8 @@ namespace NuGetGallery
             Mock<IIndexingService> indexingService = null,
             Mock<ICacheService> cacheService = null,
             Mock<IPackageDeleteService> packageDeleteService = null,
-            Mock<ISupportRequestService> supportRequestService = null)
+            Mock<ISupportRequestService> supportRequestService = null,
+            AuditingService auditingService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -75,6 +77,8 @@ namespace NuGetGallery
 
             supportRequestService = supportRequestService ?? new Mock<ISupportRequestService>();
 
+            auditingService = auditingService ?? new TestAuditingService();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -88,7 +92,8 @@ namespace NuGetGallery
                 cacheService.Object,
                 editPackageService.Object,
                 packageDeleteService.Object,
-                supportRequestService.Object);
+                supportRequestService.Object,
+                auditingService);
 
             controller.CallBase = true;
             controller.Object.OwinContext = Fakes.CreateOwinContext();
@@ -1650,6 +1655,39 @@ namespace NuGetGallery
                 await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 fakeAutoCuratePackageCmd.Verify(fake => fake.ExecuteAsync(fakePackage, It.IsAny<PackageArchiveReader>(), false));
+            }
+
+            [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                var fakePackageService = new Mock<IPackageService>();
+                var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(fakePackage));
+                var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+
+                var auditingService = new TestAuditingService();
+
+                var controller = CreateController(
+                    packageService: fakePackageService,
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeNuGetPackage,
+                    auditingService: auditingService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                // Act
+                await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = null });
+
+                // Assert
+                Assert.True(auditingService.WroteRecord<PackageAuditRecord>(ar =>
+                    ar.Action == AuditedPackageAction.Create 
+                    && ar.Id == fakePackage.PackageRegistration.Id
+                    && ar.Version == fakePackage.Version));
             }
         }
 

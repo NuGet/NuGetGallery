@@ -16,6 +16,9 @@ using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
+using NuGetGallery.Auditing;
+using NuGetGallery.Auditing.AuditedEntities;
+using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
@@ -37,9 +40,12 @@ namespace NuGetGallery
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         public IStatusService StatusService { get; set; }
         public IMessageService MessageService { get; set; }
+        public AuditingService AuditingService { get; set; }
+        public ConfigurationService ConfigurationService{ get; set; }
 
         protected ApiController()
         {
+            AuditingService = AuditingService.None;
         }
 
         public ApiController(
@@ -53,7 +59,9 @@ namespace NuGetGallery
             ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
-            IMessageService messageService)
+            IMessageService messageService,
+            AuditingService auditingService,
+            ConfigurationService configurationService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -67,6 +75,8 @@ namespace NuGetGallery
             AutoCuratePackage = autoCuratePackage;
             StatusService = statusService;
             MessageService = messageService;
+            AuditingService = auditingService;
+            ConfigurationService = configurationService;
         }
 
         public ApiController(
@@ -81,8 +91,10 @@ namespace NuGetGallery
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
             IStatisticsService statisticsService,
-            IMessageService messageService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService)
+            IMessageService messageService,
+            AuditingService auditingService,
+            ConfigurationService configurationService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService)
         {
             StatisticsService = statisticsService;
         }
@@ -138,7 +150,11 @@ namespace NuGetGallery
 			        // Database was unavailable and we don't have a version, return a 503
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
                 }
+            }
 
+            if (ConfigurationService.Features.TrackPackageDownloadCountInLocalDatabase)
+            {
+                await PackageService.IncrementDownloadCountAsync(id, version);
             }
 
             return await PackageFileService.CreateDownloadPackageActionResultAsync(
@@ -264,6 +280,15 @@ namespace NuGetGallery
                         {
                             if (!packageRegistration.IsOwner(user))
                             {
+                                // Audit that a non-owner tried to push the package
+                                await AuditingService.SaveAuditRecord(
+                                    new FailedAuthenticatedOperationAuditRecord(
+                                        user.Username, 
+                                        AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner, 
+                                        attemptedPackage: new AuditedPackageIdentifier(
+                                            nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe())));
+
+                                // User can not push this package
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden,
                                     Strings.ApiKeyNotAuthorized);
                             }
@@ -293,10 +318,11 @@ namespace NuGetGallery
                             Size = packageStream.Length,
                         };
 
-                        var package =
-                            await
-                                PackageService.CreatePackageAsync(packageToPush, packageStreamMetadata, user,
-                                    commitChanges: false);
+                        var package = await PackageService.CreatePackageAsync(
+                            packageToPush, 
+                            packageStreamMetadata,
+                            user,
+                            commitChanges: false);
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
                         await EntitiesContext.SaveChangesAsync();
 
@@ -307,6 +333,11 @@ namespace NuGetGallery
                             IndexingService.UpdatePackage(package);
                         }
 
+                        // Write an audit record
+                        await AuditingService.SaveAuditRecord(
+                            new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));
+
+                        // Notify user of push
                         MessageService.SendPackageAddedNotice(package,
                             Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),

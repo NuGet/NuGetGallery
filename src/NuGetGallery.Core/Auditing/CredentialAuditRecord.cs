@@ -5,8 +5,14 @@ namespace NuGetGallery.Auditing
 {
     public class CredentialAuditRecord
     {
+        public int Key { get; }
+        public string Type { get; }
+        public string Value { get; }
+        public string Identity { get; }
+
         public CredentialAuditRecord(Credential credential, bool removed)
         {
+            Key = credential.Key;
             Type = credential.Type;
             Identity = credential.Identity;
 
@@ -16,10 +22,5 @@ namespace NuGetGallery.Auditing
                 Value = credential.Value;
             }
         }
-
-        public string Type { get; set; }
-        public string Value { get; set; }
-        public string Identity { get; set; }
-
     }
 }

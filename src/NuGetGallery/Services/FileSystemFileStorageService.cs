@@ -181,7 +181,7 @@ namespace NuGetGallery
             return Path.Combine(fileStorageDirectory, folderName, fileName);
         }
 
-        private static string ResolvePath(string fileStorageDirectory)
+        public static string ResolvePath(string fileStorageDirectory)
         {
             if (fileStorageDirectory.StartsWith("~/", StringComparison.OrdinalIgnoreCase) && HostingEnvironment.IsHosted)
             {

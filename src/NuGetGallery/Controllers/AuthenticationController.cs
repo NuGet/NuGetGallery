@@ -103,7 +103,7 @@ namespace NuGetGallery
             }
 
             // Create session
-            AuthService.CreateSession(OwinContext, user.User);
+            await AuthService.CreateSessionAsync(OwinContext, user);
             return SafeRedirect(returnUrl);
         }
 
@@ -215,7 +215,7 @@ namespace NuGetGallery
             }
 
             // Create session
-            AuthService.CreateSession(OwinContext, user.User);
+            await AuthService.CreateSessionAsync(OwinContext, user);
             return RedirectFromRegister(returnUrl);
         }
 
@@ -262,7 +262,7 @@ namespace NuGetGallery
                 }
 
                 // Create session
-                AuthService.CreateSession(OwinContext, result.Authentication.User);
+                await AuthService.CreateSessionAsync(OwinContext, result.Authentication);
                 return SafeRedirect(returnUrl);
             }
             else

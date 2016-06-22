@@ -16,5 +16,12 @@ namespace NuGetGallery.Configuration
         [DefaultValue(true)] // Default: Enabled
         [Description("Displays reports on license data")]
         public virtual bool FriendlyLicenses { get; set; }
+
+        /// <summary>
+        /// Gets a boolean indicating if package download counts should be recorded in the local database.
+        /// </summary>
+        [DefaultValue(false)] // Default: Disabled
+        [Description("Indicates if package download counts should be recorded in the local database")]
+        public virtual bool TrackPackageDownloadCountInLocalDatabase { get; set; }
     }
 }

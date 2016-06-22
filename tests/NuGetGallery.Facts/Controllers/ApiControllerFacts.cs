@@ -14,6 +14,8 @@ using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
+using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
@@ -32,6 +34,7 @@ namespace NuGetGallery
         public Mock<IIndexingService> MockIndexingService { get; private set; }
         public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
         public Mock<IMessageService> MockMessageService { get; private set; }
+        public Mock<ConfigurationService> MockConfigurationService { get; private set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -53,6 +56,13 @@ namespace NuGetGallery
             PackageFileService = MockPackageFileService.Object;
 
             MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
+
+            MockConfigurationService = new Mock<ConfigurationService>();
+            MockConfigurationService.SetupGet(s => s.Features.TrackPackageDownloadCountInLocalDatabase)
+                .Returns(false);
+            ConfigurationService = MockConfigurationService.Object;
+
+            AuditingService = new TestAuditingService();
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
@@ -108,6 +118,37 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                // Arrange
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "theId";
+                packageRegistration.Owners.Add(user);
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                    .Returns(Task.FromResult(package));
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                await controller.CreatePackagePut();
+
+                // Assert
+                Assert.True(controller.AuditingService.WroteRecord<PackageAuditRecord>(ar =>
+                    ar.Action == AuditedPackageAction.Create
+                    && ar.Id == package.PackageRegistration.Id
+                    && ar.Version == package.Version));
+            }
+
+            [Fact]
             public async Task CreatePackageWillSendPackageAddedNotice()
             {
                 // Arrange
@@ -160,6 +201,36 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+
+            [Fact]
+            public async Task WillWriteAnAuditRecordIfUserIsNotPackageOwner()
+            {
+                // Arrange
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "theId";
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                await controller.CreatePackagePut();
+
+                // Assert
+                Assert.True(controller.AuditingService.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
+                    ar.Action == AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner
+                    && ar.AttemptedPackage.Id == package.PackageRegistration.Id
+                    && ar.AttemptedPackage.Version == package.Version));
             }
 
             [Fact]
