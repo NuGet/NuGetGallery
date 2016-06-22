@@ -79,7 +79,7 @@ namespace NuGetGallery
                 return Task.FromResult(0);
             }
 
-            protected override PackageAuditRecord CreateAuditRecord(Package package, PackageRegistration packageRegistration, PackageAuditAction action, string reason)
+            protected override PackageAuditRecord CreateAuditRecord(Package package, PackageRegistration packageRegistration, AuditedPackageAction action, string reason)
             {
                 LastAuditRecord = base.CreateAuditRecord(package, packageRegistration, action, reason);
                 return LastAuditRecord;

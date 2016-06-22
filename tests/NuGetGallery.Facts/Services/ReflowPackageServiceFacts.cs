@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
+using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
 
@@ -285,13 +286,15 @@ namespace NuGetGallery
             var packageNamingConflictValidator = new PackageNamingConflictValidator(
                     packageRegistrationRepository.Object,
                     packageRepository.Object);
+            var auditingService = new TestAuditingService();
 
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageOwnerRequestRepo.Object,
                 indexingService.Object,
-                packageNamingConflictValidator);
+                packageNamingConflictValidator,
+                auditingService);
 
             packageService.CallBase = true;
 

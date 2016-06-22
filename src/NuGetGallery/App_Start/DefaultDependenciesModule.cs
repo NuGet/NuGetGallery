@@ -3,6 +3,7 @@
 
 using System;
 using System.Data.Entity;
+using System.IO;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -232,7 +233,7 @@ namespace NuGetGallery
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
-                    ConfigureForLocalFileSystem(builder);
+                    ConfigureForLocalFileSystem(builder, configuration);
                     break;
                 case StorageType.AzureStorage:
                     ConfigureForAzureStorage(builder, configuration);
@@ -330,7 +331,7 @@ namespace NuGetGallery
             }
         }
 
-        private static void ConfigureForLocalFileSystem(ContainerBuilder builder)
+        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, ConfigurationService configuration)
         {
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
@@ -347,7 +348,12 @@ namespace NuGetGallery
                 .As<IStatisticsService>()
                 .SingleInstance();
 
-            builder.RegisterInstance(AuditingService.None)
+            // Setup auditing
+            var auditingPath = Path.Combine(
+                FileSystemFileStorageService.ResolvePath(configuration.Current.FileStorageDirectory),
+                FileSystemAuditingService.DefaultContainerName);
+
+            builder.RegisterInstance(new FileSystemAuditingService(auditingPath, FileSystemAuditingService.GetAspNetOnBehalfOf))
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();
@@ -408,7 +414,7 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIP().Result;
 
-            builder.RegisterInstance(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, CloudAuditingService.AspNetActorThunk))
+            builder.RegisterInstance(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, CloudAuditingService.GetAspNetOnBehalfOf))
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();

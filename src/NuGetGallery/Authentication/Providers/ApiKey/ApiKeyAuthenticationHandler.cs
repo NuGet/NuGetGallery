@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
@@ -69,28 +67,28 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             Response.Write(message);
         }
 
-        protected override Task<AuthenticationTicket> AuthenticateCoreAsync()
+        protected override async Task<AuthenticationTicket> AuthenticateCoreAsync()
         {
             var apiKey = Request.Headers[TheOptions.ApiKeyHeaderName];
             if (!String.IsNullOrEmpty(apiKey))
             {
                 // Get the user
-                var authUser = Auth.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey));
+                var authUser = await Auth.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey));
                 if (authUser != null)
                 {
                     // Set the current user
                     Context.Set(Constants.CurrentUserOwinEnvironmentKey, authUser);
 
-                    return Task.FromResult(
-                        new AuthenticationTicket(
+                    return new AuthenticationTicket(
                             AuthenticationService.CreateIdentity(
                                 authUser.User, 
                                 AuthenticationTypes.ApiKey, 
                                 new Claim(NuGetClaims.ApiKey, apiKey)),
-                            new AuthenticationProperties()));
+                            new AuthenticationProperties());
                 }
                 else
                 {
+                    // No user was matched
                     Logger.WriteWarning("No match for API Key!");
                 }
             }
@@ -98,7 +96,8 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             {
                 Logger.WriteVerbose("No API Key Header found in request.");
             }
-            return Task.FromResult<AuthenticationTicket>(null);
+
+            return null;
         }
     }
 }

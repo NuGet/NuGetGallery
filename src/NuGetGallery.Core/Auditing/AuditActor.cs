@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NuGetGallery.Auditing
@@ -23,9 +23,11 @@ namespace NuGetGallery.Auditing
 
         public AuditActor(string machineName, string machineIP, string userName, string authenticationType, DateTime timeStampUtc)
             : this(machineName, machineIP, userName, authenticationType, timeStampUtc, null) { }
+
         public AuditActor(string machineName, string machineIP, string userName, string authenticationType, DateTime timeStampUtc, AuditActor onBehalfOf)
         {
             MachineName = machineName;
+            MachineIP = machineIP;
             UserName = userName;
             AuthenticationType = authenticationType;
             TimestampUtc = timeStampUtc;

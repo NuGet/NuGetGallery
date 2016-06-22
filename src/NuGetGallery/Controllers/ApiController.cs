@@ -16,6 +16,8 @@ using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
+using NuGetGallery.Auditing;
+using NuGetGallery.Auditing.AuditedEntities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
@@ -38,10 +40,12 @@ namespace NuGetGallery
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         public IStatusService StatusService { get; set; }
         public IMessageService MessageService { get; set; }
+        public AuditingService AuditingService { get; set; }
         public ConfigurationService ConfigurationService{ get; set; }
 
         protected ApiController()
         {
+            AuditingService = AuditingService.None;
         }
 
         public ApiController(
@@ -56,6 +60,7 @@ namespace NuGetGallery
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
             IMessageService messageService,
+            AuditingService auditingService,
             ConfigurationService configurationService)
         {
             EntitiesContext = entitiesContext;
@@ -70,6 +75,7 @@ namespace NuGetGallery
             AutoCuratePackage = autoCuratePackage;
             StatusService = statusService;
             MessageService = messageService;
+            AuditingService = auditingService;
             ConfigurationService = configurationService;
         }
 
@@ -86,8 +92,9 @@ namespace NuGetGallery
             IStatusService statusService,
             IStatisticsService statisticsService,
             IMessageService messageService,
+            AuditingService auditingService,
             ConfigurationService configurationService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, configurationService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService)
         {
             StatisticsService = statisticsService;
         }
@@ -273,6 +280,15 @@ namespace NuGetGallery
                         {
                             if (!packageRegistration.IsOwner(user))
                             {
+                                // Audit that a non-owner tried to push the package
+                                await AuditingService.SaveAuditRecord(
+                                    new FailedAuthenticatedOperationAuditRecord(
+                                        user.Username, 
+                                        AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner, 
+                                        attemptedPackage: new AuditedPackageIdentifier(
+                                            nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe())));
+
+                                // User can not push this package
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden,
                                     Strings.ApiKeyNotAuthorized);
                             }
@@ -317,6 +333,11 @@ namespace NuGetGallery
                             IndexingService.UpdatePackage(package);
                         }
 
+                        // Write an audit record
+                        await AuditingService.SaveAuditRecord(
+                            new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));
+
+                        // Notify user of push
                         MessageService.SendPackageAddedNotice(package,
                             Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
