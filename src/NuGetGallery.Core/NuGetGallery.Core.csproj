@@ -147,12 +147,13 @@
     <Compile Include="Auditing\CloudAuditingService.cs" />
     <Compile Include="Auditing\CredentialAuditRecord.cs" />
     <Compile Include="Auditing\AuditedPackageAction.cs" />
-    <Compile Include="Auditing\PackageAuditRecord.cs" />
     <Compile Include="Auditing\PackageCreatedVia.cs" />
     <Compile Include="Auditing\AuditedPackageRegistrationAction.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackageRegistration.cs" />
     <Compile Include="Auditing\PackageRegistrationAuditRecord.cs" />
     <Compile Include="Auditing\AuditedUserAction.cs" />
+    <Compile Include="Auditing\PackageAuditRecord.cs" />
+    <Compile Include="Auditing\UserAuditAction.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
     <Compile Include="CoreConstants.cs" />
     <Compile Include="CredentialTypes.cs" />

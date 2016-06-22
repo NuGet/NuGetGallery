@@ -199,7 +199,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
-                handler.MockAuth.SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey), user);
+                handler.MockAuth.SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey, Fakes.ExpirationForApiKeyV1), user);
 
                 // Act
                 var ticket = await handler.InvokeAuthenticateCoreAsync();
@@ -219,7 +219,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
-                handler.MockAuth.SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey), user);
+                handler.MockAuth.SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey, Fakes.ExpirationForApiKeyV1), user);
 
                 // Act
                 await handler.InvokeAuthenticateCoreAsync();

@@ -399,6 +399,7 @@ namespace NuGetGallery
             {
                 // User is requesting a password set email
                 await AuthService.GeneratePasswordResetToken(user, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+
                 return SendPasswordResetEmail(user, forgotPassword: false);
             }
             else
@@ -452,7 +453,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> GenerateApiKey()
+        public virtual async Task<ActionResult> GenerateApiKey(int? expirationInDays)
         {
             // Get the user
             var user = GetCurrentUser();
@@ -460,20 +461,42 @@ namespace NuGetGallery
             // Generate an API Key
             var apiKey = Guid.NewGuid();
 
+            // Set expiration
+            var expiration = TimeSpan.Zero;
+            if (Config.ExpirationInDaysForApiKeyV1 > 0)
+            {
+                expiration = TimeSpan.FromDays(Config.ExpirationInDaysForApiKeyV1);
+
+                if (expirationInDays.HasValue && expirationInDays.Value > 0)
+                {
+                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, Config.ExpirationInDaysForApiKeyV1));
+                }
+            }
+
             // Add/Replace the API Key credential, and save to the database
             TempData["Message"] = Strings.ApiKeyReset;
-            await AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
+            await AuthService.ReplaceCredential(user, 
+                CredentialBuilder.CreateV1ApiKey(apiKey, expiration));
+
             return RedirectToAction("Account");
         }
 
         private async Task<ActionResult> RemoveCredential(User user, Credential cred, string message)
         {
-            // Count login credentials
-            if (CountLoginCredentials(user) <= 1)
+            if (cred == null)
+            {
+                TempData["Message"] = Strings.NoCredentialToRemove;
+
+                return RedirectToAction("Account");
+            }
+
+            // Count credentials and make sure the user can always login
+            if (!String.Equals(cred.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)
+                && CountLoginCredentials(user) <= 1)
             {
                 TempData["Message"] = Strings.CannotRemoveOnlyLoginCredential;
             }
-            else if (cred != null)
+            else
             {
                 await AuthService.RemoveCredential(user, cred);
 
@@ -482,6 +505,7 @@ namespace NuGetGallery
 
                 TempData["Message"] = message;
             }
+
             return RedirectToAction("Account");
         }
 
@@ -494,6 +518,9 @@ namespace NuGetGallery
 
             model.Credentials = creds;
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
+
+            model.ExpirationInDaysForApiKeyV1 = Config.ExpirationInDaysForApiKeyV1;
+
             return View("Account", model);
         }
 
