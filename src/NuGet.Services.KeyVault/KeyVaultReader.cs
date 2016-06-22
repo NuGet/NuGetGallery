@@ -9,11 +9,16 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace NuGet.Services.KeyVault
 {
+    /// <summary>
+    /// Reads secretes from KeyVault.
+    /// Authentication with KeyVault is done using a certificate in location:LocalMachine store name:My 
+    /// </summary>
     public class KeyVaultReader : ISecretReader
     {
         private readonly KeyVaultConfiguration _configuration;
         private readonly string _vault;
         private readonly Lazy<KeyVaultClient> _keyVaultClient;
+        private ClientAssertionCertificate _clientAssertionCertificate;
 
         public KeyVaultReader(KeyVaultConfiguration configuration)
         {
@@ -23,11 +28,11 @@ namespace NuGet.Services.KeyVault
             }
 
             _configuration = configuration;
-            _vault = $"https://{_configuration.VaultName}.vault.azure.net:443/";
+            _vault = $"https://{_configuration.VaultName}.vault.azure.net/";
             _keyVaultClient = new Lazy<KeyVaultClient>(InitializeClient);
         }
 
-        public async Task<string> ReadSecretAsync(string secretName)
+        public async Task<string> GetSecretAsync(string secretName)
         {
             var secret = await _keyVaultClient.Value.GetSecretAsync(_vault, secretName);
             return secret.Value;
@@ -35,26 +40,26 @@ namespace NuGet.Services.KeyVault
 
         private KeyVaultClient InitializeClient()
         {
-            var certificate = FindCertificateByThumbprint(StoreName.My, StoreLocation.LocalMachine,
-                _configuration.CertificateThumbprint, _configuration.ValidateCertificate);
-            var clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, certificate);
+            var certificate = FindCertificateByThumbprint(
+                StoreName.My,
+                StoreLocation.LocalMachine,
+                _configuration.CertificateThumbprint,
+                _configuration.ValidateCertificate);
+            _clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, certificate);
 
-            return
-                new KeyVaultClient(
-                    (authority, resource, scope) => GetTokenAsync(clientAssertionCertificate, authority, resource));
+            return new KeyVaultClient(GetTokenAsync);
         }
 
-        private async Task<string> GetTokenAsync(ClientAssertionCertificate clientAssertionCertificate, string authority,
-            string resource)
+        private async Task<string> GetTokenAsync(string authority, string resource, string scope)
         {
             AuthenticationResult result = null;
 
             var authContext = new AuthenticationContext(authority);
-            result = await authContext.AcquireTokenAsync(resource, clientAssertionCertificate);
+            result = await authContext.AcquireTokenAsync(resource, _clientAssertionCertificate);
 
             if (result == null)
             {
-                throw new InvalidOperationException("Bearer token acquisition needed to call KeyVault service failed");
+                throw new InvalidOperationException("Bearer token acquisition needed to call the KeyVault service failed");
             }
 
             return result.AccessToken;
@@ -69,7 +74,7 @@ namespace NuGet.Services.KeyVault
                 var col = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, validationRequired);
                 if (col.Count == 0)
                 {
-                    throw new ArgumentException("Certificate was not found in store");
+                    throw new ArgumentException($"Certificate with thumbprint {thumbprint} was not found in store {storeLocation} {storeName} ");
                 }
 
                 return col[0];

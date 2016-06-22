@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using NuGet.Services.KeyVault;
 
 namespace NuGet.Jobs
 {
@@ -20,12 +19,17 @@ namespace NuGet.Jobs
         /// Parses the string[] of <c>args</c> passed into the job into a dictionary of string, string.
         /// Expects the string[] to be set of pairs of argumentName and argumentValue, where, argumentName start with a hyphen
         /// </summary>
-        /// <param name="jobTraceListener"></param>
         /// <param name="commandLineArgs">Arguments passed to the job via commandline or environment variable settings</param>
         /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
+        /// <param name="secretReaderFactory">Creates a secret reader.</param>
         /// <returns>Returns a dictionary of arguments</returns>
-        public static IDictionary<string, string> GetJobArgsDictionary(JobTraceListener jobTraceListener, string[] commandLineArgs, string jobName)
+        public static IDictionary<string, string> GetJobArgsDictionary(string[] commandLineArgs, string jobName, ISecretReaderFactory secretReaderFactory)
         {
+            if (secretReaderFactory == null)
+            {
+                throw new ArgumentNullException(nameof(secretReaderFactory));
+            }
+
             var allArgsList = commandLineArgs.ToList();
             if (allArgsList.Count == 0)
             {
@@ -89,7 +93,7 @@ namespace NuGet.Jobs
                 }
             }
 
-            return ExtractSecrets(argsDictionary);
+            return InjectSecrets(secretReaderFactory, argsDictionary);
         }
 
         /// <summary>
@@ -198,39 +202,24 @@ namespace NuGet.Jobs
             return null;
         }
 
-        private static IDictionary<string, string> ExtractSecrets(Dictionary<string, string> argsDictionary)
+        private static IDictionary<string, string> InjectSecrets(ISecretReaderFactory secretReaderFactory, Dictionary<string, string> argsDictionary)
         {
-            var secretReader = GetKeyVaultReader(argsDictionary);
+            var secretReader = secretReaderFactory.CreateSecterReader(argsDictionary);
+            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader, argsDictionary);
 
-            if (secretReader != null)
+            if (secretReader == null)
             {
-                foreach (var keyValuePair in argsDictionary)
-                {
-                    argsDictionary[keyValuePair.Key] = secretReader.Format(keyValuePair.Value);
-                }
+                throw new ApplicationException("Could not create a secret reader. Please check your configuration.");
+            }
+           
+            var argsWithSecrets = new Dictionary<string, string>();
+
+            foreach (var keyValuePair in argsDictionary)
+            {
+                argsWithSecrets[keyValuePair.Key] = secretInjector.InjectAsync(keyValuePair.Value).Result;
             }
 
-            return argsDictionary;
-        }
-
-        /// <summary>
-        /// Initializes a KeyVaultReader from command line arguments
-        /// </summary>
-        private static ISecretReader GetKeyVaultReader(IDictionary<string, string> jobArgsDictionary)
-        {
-            if (TryGetArgument(jobArgsDictionary, JobArgumentNames.VaultName) == null)
-            {
-                return null;
-            }
-
-            var keyVaultConfiguration =
-                new KeyVaultConfiguration(
-                    GetArgument(jobArgsDictionary, JobArgumentNames.VaultName),
-                    GetArgument(jobArgsDictionary, JobArgumentNames.ClientId),
-                    GetArgument(jobArgsDictionary, JobArgumentNames.CertificateThumbprint),
-                    TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.ValidateCertificate, fallbackEnvVariable: null, defaultValue: true));
-
-            return new KeyVaultReader(keyVaultConfiguration);
+            return argsWithSecrets;
         }
     }
 }

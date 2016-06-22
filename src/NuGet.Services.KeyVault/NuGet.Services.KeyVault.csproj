@@ -91,10 +91,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EmptySecretReader.cs" />
+    <Compile Include="ISecretInjector.cs" />
     <Compile Include="ISecretReader.cs" />
     <Compile Include="KeyVaultConfiguration.cs" />
     <Compile Include="KeyVaultReader.cs" />
-    <Compile Include="SecretReaderFormatter.cs" />
+    <Compile Include="SecretInjector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.KeyVault
 {
-    public interface ISecretReader
+    public class EmptySecretReader : ISecretReader
     {
-        Task<string> GetSecretAsync(string secretName);
+        public Task<string> GetSecretAsync(string secretName)
+        {
+            return Task.FromResult(secretName);
+        }
     }
 }

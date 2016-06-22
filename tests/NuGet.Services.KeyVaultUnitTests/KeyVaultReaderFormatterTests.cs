@@ -12,6 +12,8 @@ namespace NuGet.Services.KeyVaultUnitTests
 {
     public class KeyVaultReaderFormatterTests
     {
+        private ISecretInjector _secretInjector;
+
         public static IEnumerable<object[]> _testFormatParameters = new List<object[]>
         {
             new object[] // DB connection string
@@ -43,19 +45,28 @@ namespace NuGet.Services.KeyVaultUnitTests
             {
                 "$$$$$",
                 "$$$$$"
+            },
+            new object[] // Multiple frames
+            {
+                "$$x$$$",
+                "X$"
             }
         };
 
+        public KeyVaultReaderFormatterTests()
+        {
+            var mockKeyVault = new Mock<ISecretReader>();
+            mockKeyVault.Setup(x => x.GetSecretAsync(It.IsAny<string>())).Returns((string s) => Task.FromResult(s.ToUpper()));
+
+            _secretInjector = new SecretInjector(mockKeyVault.Object);
+        }
+
         [Theory]
         [MemberData("_testFormatParameters")]
-        public void TestFormat(string input, string expectedOutput)
+        public async Task TestFormat(string input, string expectedOutput)
         {
-            // Arrange
-            var mockKeyVault = new Mock<ISecretReader>();
-            mockKeyVault.Setup(x => x.ReadSecretAsync(It.IsAny<string>())).Returns((string s) => Task.FromResult(s.ToUpper()));
-
             // Act
-            string formattedString = mockKeyVault.Object.Format(input);
+            string formattedString = await _secretInjector.InjectAsync(input);
 
             // Assert
             formattedString.ShouldBeEquivalentTo(expectedOutput);

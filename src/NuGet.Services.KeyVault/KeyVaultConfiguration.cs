@@ -7,10 +7,10 @@ namespace NuGet.Services.KeyVault
 {
     public class KeyVaultConfiguration
     {
-        public string VaultName { get; private set; }
-        public string ClientId { get; private set; }
-        public string CertificateThumbprint { get; private set; }
-        public bool ValidateCertificate { get; private set; }
+        public string VaultName { get; }
+        public string ClientId { get; }
+        public string CertificateThumbprint { get; }
+        public bool ValidateCertificate { get; }
 
         public KeyVaultConfiguration(string vaultName, string clientId, string certificateThumbprint, bool validateCertificate)
         {

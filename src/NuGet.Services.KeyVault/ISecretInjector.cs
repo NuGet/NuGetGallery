@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.KeyVault
 {
-    public interface ISecretReader
+    public interface ISecretInjector
     {
-        Task<string> GetSecretAsync(string secretName);
+        Task<string> InjectAsync(string input);
     }
 }
