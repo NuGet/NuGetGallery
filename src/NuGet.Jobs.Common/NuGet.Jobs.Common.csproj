@@ -79,6 +79,7 @@
     <Compile Include="Extensions\XElementExtensions.cs" />
     <Compile Include="SecretReader\ISecretReaderFactory.cs" />
     <Compile Include="SecretReader\SecretReaderFactory.cs" />
+    <Compile Include="SmtpUri.cs" />
     <Compile Include="Tracing\AzureBlobJobTraceListener.cs" />
     <Compile Include="Configuration\JobConfigurationManager.cs" />
     <Compile Include="Extensions\DapperExtensions.cs" />

@@ -13,10 +13,13 @@ namespace NuGet.Jobs
         public const string Sleep = "Sleep";
         public const string Interval = "Interval";
 
+        public const string WhatIf = "WhatIf";
+
         // Database argument names
         public const string SourceDatabase = "SourceDatabase";
         public const string DestinationDatabase = "DestinationDatabase";
         public const string PackageDatabase = "PackageDatabase";
+        public const string GalleryDatabase = "GalleryDatabase";
 
         // Storage Argument names
         public const string TargetStoragePath = "TargetStoragePath";
@@ -114,5 +117,9 @@ namespace NuGet.Jobs
         public const string ClientId = "ClientId";
         public const string CertificateThumbprint = "CertificateThumbprint";
         public const string ValidateCertificate = "ValidateCertificate";
+
+        // Arguments specific to e-mail
+        public const string MailFrom = "MailFrom";
+        public const string SmtpUri = "SmtpUri";
     }
 }
