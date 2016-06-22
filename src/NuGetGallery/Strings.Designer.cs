@@ -70,7 +70,16 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified API key is invalid or does not have permission to access the specified package..
+        ///   Looks up a localized string similar to API key can not be the default Guid..
+        /// </summary>
+        public static string ApiKeyCanNotBeDefaultGuid {
+            get {
+                return ResourceManager.GetString("ApiKeyCanNotBeDefaultGuid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified API key is invalid, has expired, or does not have permission to access the specified package..
         /// </summary>
         public static string ApiKeyNotAuthorized {
             get {
@@ -188,7 +197,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The external account has been removed.
+        ///   Looks up a localized string similar to The credential has been removed.
         /// </summary>
         public static string CredentialRemoved {
             get {
@@ -528,6 +537,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No credential to remove..
+        /// </summary>
+        public static string NoCredentialToRemove {
+            get {
+                return ResourceManager.GetString("NoCredentialToRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
         public static string NuGetPackagePropertyTooLong {
@@ -636,7 +654,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your password has been changed.
+        ///   Looks up a localized string similar to Your password has been changed. Note that your API key has also been updated..
         /// </summary>
         public static string PasswordChanged {
             get {
@@ -812,6 +830,24 @@ namespace NuGetGallery {
         public static string UserNotFound {
             get {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your API key expires in {0} days. Visit {1} to regenerate your API key..
+        /// </summary>
+        public static string WarningApiKeyAboutToExpire {
+            get {
+                return ResourceManager.GetString("WarningApiKeyAboutToExpire", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your API key has expired. Visit {0} to generate a new API key..
+        /// </summary>
+        public static string WarningApiKeyExpired {
+            get {
+                return ResourceManager.GetString("WarningApiKeyExpired", resourceCulture);
             }
         }
         

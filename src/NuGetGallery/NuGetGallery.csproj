@@ -737,6 +737,10 @@
     <Compile Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.Designer.cs">
       <DependentUpon>201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201606020741056_CredentialExpires.cs" />
+    <Compile Include="Migrations\201606020741056_CredentialExpires.Designer.cs">
+      <DependentUpon>201606020741056_CredentialExpires.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1016,7 +1020,7 @@
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttribute.cs" />
-    <Compile Include="Helpers\AccordianHelper.cs" />
+    <Compile Include="Helpers\AccordeonHelper.cs" />
     <Compile Include="Helpers\HttpContextBaseExtensions.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
@@ -1835,6 +1839,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.resx">
       <DependentUpon>201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201606020741056_CredentialExpires.resx">
+      <DependentUpon>201606020741056_CredentialExpires.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

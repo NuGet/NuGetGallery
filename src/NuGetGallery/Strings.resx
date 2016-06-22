@@ -136,7 +136,7 @@
     <value>A nuget package's {0} property may not be more than {1} characters long.</value>
   </data>
   <data name="ApiKeyNotAuthorized" xml:space="preserve">
-    <value>The specified API key is invalid or does not have permission to access the specified package.</value>
+    <value>The specified API key is invalid, has expired, or does not have permission to access the specified package.</value>
   </data>
   <data name="PackageExistsAndCannotBeModified" xml:space="preserve">
     <value>A package with id '{0}' and version '{1}' already exists and cannot be modified.</value>
@@ -226,10 +226,10 @@
     <value>Oops! You can't remove the only credential that can be used to log in to the website!</value>
   </data>
   <data name="CredentialRemoved" xml:space="preserve">
-    <value>The external account has been removed</value>
+    <value>The credential has been removed</value>
   </data>
   <data name="PasswordChanged" xml:space="preserve">
-    <value>Your password has been changed</value>
+    <value>Your password has been changed. Note that your API key has also been updated.</value>
   </data>
   <data name="PasswordRemoved" xml:space="preserve">
     <value>Your password has been removed</value>
@@ -379,6 +379,18 @@ The {2} Team</value>
   </data>
   <data name="AzureActiveDirectory_Caption" xml:space="preserve">
     <value>Azure Active Directory</value>
+  </data>
+  <data name="ApiKeyCanNotBeDefaultGuid" xml:space="preserve">
+    <value>API key can not be the default Guid.</value>
+  </data>
+  <data name="WarningApiKeyAboutToExpire" xml:space="preserve">
+    <value>Your API key expires in {0} days. Visit {1} to regenerate your API key.</value>
+  </data>
+  <data name="WarningApiKeyExpired" xml:space="preserve">
+    <value>Your API key has expired. Visit {0} to generate a new API key.</value>
+  </data>
+  <data name="NoCredentialToRemove" xml:space="preserve">
+    <value>No credential to remove.</value>
   </data>
   <data name="PackageCreatedFromApi" xml:space="preserve">
     <value>Package created from API.</value>

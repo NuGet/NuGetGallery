@@ -114,8 +114,16 @@ namespace NuGetGallery.Authentication
 
                     return null;
                 }
+                
+                if (matched.HasExpired)
+                {
+                    _trace.Verbose("Credential of type '" + matched.Type + "' for user '" + matched.User.Username + "' has expired on " + matched.Expires.Value.ToString("O", CultureInfo.InvariantCulture));
+
+                    return null;
+                }
 
                 _trace.Verbose("Successfully authenticated '" + matched.User.Username + "' with '" + matched.Type + "' credential");
+
                 return new AuthenticatedUser(matched.User, matched);
             }
         }
@@ -166,7 +174,7 @@ namespace NuGetGallery.Authentication
             };
 
             // Add a credential for the password and the API Key
-            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey));
+            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey, TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1)));
             newUser.Credentials.Add(credential);
 
             if (!_config.ConfirmEmailAddresses)
@@ -302,8 +310,14 @@ namespace NuGetGallery.Authentication
             }
 
             // Replace/Set password credential
-            var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
-            await ReplaceCredentialInternal(user, cred);
+            var passwordCredential = CredentialBuilder.CreatePbkdf2Password(newPassword);
+            await ReplaceCredentialInternal(user, passwordCredential);
+
+            // Expire existing API keys
+            var apiKeyCredential = CredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1));
+            await ReplaceCredentialInternal(user, apiKeyCredential);
+
+            // Save changes
             await Entities.SaveChangesAsync();
             return true;
         }
@@ -351,12 +365,14 @@ namespace NuGetGallery.Authentication
                 }
             }
 
-            return new CredentialViewModel()
+            return new CredentialViewModel
             {
                 Type = credential.Type,
                 TypeCaption = FormatCredentialType(credential.Type),
                 Identity = credential.Identity,
                 Value = kind == CredentialKind.Token ? credential.Value : String.Empty,
+                Created = credential.Created,
+                Expires = credential.Expires,
                 Kind = kind,
                 AuthUI = auther?.GetUI()
             };
