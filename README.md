@@ -6,6 +6,8 @@
 This is an implementation of the NuGet Gallery and API. This serves as the back-end and community 
 website for the NuGet client. For information about the NuGet project, visit the [Home repository](https://github.com/nuget/home).
 
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
 ## Build and Run the Gallery in (arbitrary number) easy steps
 
 1. Prerequisites. Install these if you don't already have them:
