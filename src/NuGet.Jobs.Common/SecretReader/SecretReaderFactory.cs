@@ -25,7 +25,7 @@ namespace NuGet.Jobs
             return new KeyVaultReader(keyVaultConfiguration);
         }
 
-        public ISecretInjector CreateSecretInjector(ISecretReader secretReader, IDictionary<string, string> settings)
+        public ISecretInjector CreateSecretInjector(ISecretReader secretReader)
         {
             return new SecretInjector(secretReader);
         }

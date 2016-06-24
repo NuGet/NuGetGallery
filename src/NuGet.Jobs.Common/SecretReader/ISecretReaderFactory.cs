@@ -10,6 +10,6 @@ namespace NuGet.Jobs
     {
         ISecretReader CreateSecterReader(IDictionary<string, string> settings);
 
-        ISecretInjector CreateSecretInjector(ISecretReader secretReader, IDictionary<string, string> settings);
+        ISecretInjector CreateSecretInjector(ISecretReader secretReader);
     }
 }

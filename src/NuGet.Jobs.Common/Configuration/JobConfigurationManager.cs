@@ -205,7 +205,7 @@ namespace NuGet.Jobs
         private static IDictionary<string, string> InjectSecrets(ISecretReaderFactory secretReaderFactory, Dictionary<string, string> argsDictionary)
         {
             var secretReader = secretReaderFactory.CreateSecterReader(argsDictionary);
-            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader, argsDictionary);
+            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
 
             if (secretReader == null)
             {
