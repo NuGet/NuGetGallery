@@ -9,7 +9,7 @@ namespace Stats.AzureCdnLogs.Common
     {
         private static readonly DateTime _unixTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
-        public static CdnLogEntry ParseLogEntryFromLine(string line, Action<Exception> onErrorAction)
+        public static CdnLogEntry ParseLogEntryFromLine(int lineNumber, string line, Action<Exception, int> onErrorAction)
         {
             if (string.IsNullOrWhiteSpace(line))
             {
@@ -94,7 +94,7 @@ namespace Stats.AzureCdnLogs.Common
                 }
                 else
                 {
-                    onErrorAction.Invoke(e);
+                    onErrorAction.Invoke(e, lineNumber);
 
                     return null;
                 }

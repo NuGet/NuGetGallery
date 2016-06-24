@@ -269,10 +269,13 @@ namespace Stats.CollectAzureCdnLogs
 
                     try
                     {
+                        var lineNumber = 0;
                         do
                         {
                             var rawLogLine = sourceStreamReader.ReadLine();
-                            var logLine = GetParsedModifiedLogEntry(rawLogLine, fileName);
+                            lineNumber++;
+
+                            var logLine = GetParsedModifiedLogEntry(lineNumber, rawLogLine, fileName);
                             if (!string.IsNullOrEmpty(logLine))
                             {
                                 targetStreamWriter.Write(logLine);
@@ -291,10 +294,17 @@ namespace Stats.CollectAzureCdnLogs
             }
         }
 
-        private string GetParsedModifiedLogEntry(string rawLogEntry, string fileName)
+        private string GetParsedModifiedLogEntry(int lineNumber, string rawLogEntry, string fileName)
         {
-            var parsedEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogEntry,
-                e => _logger.LogError(LogEvents.FailedToParseLogFileEntry, e, "Failed to parse W3C log entry in {LogFileName}.", fileName));
+            var parsedEntry = CdnLogEntryParser.ParseLogEntryFromLine(
+                lineNumber,
+                rawLogEntry,
+                (e, line) => _logger.LogError(
+                    LogEvents.FailedToParseLogFileEntry,
+                    e,
+                    LogMessages.ParseLogEntryLineFailed,
+                    fileName,
+                    line));
 
             if (parsedEntry == null)
             {
