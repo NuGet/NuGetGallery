@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -12,8 +13,16 @@ namespace NuGet.Jobs
 {
     public static class JobRunner
     {
+        public static IServiceContainer ServiceContainer;
+
         private const string _jobSucceeded = "Job Succeeded";
         private const string _jobFailed = "Job Failed";
+
+        static JobRunner()
+        {
+            ServiceContainer = new ServiceContainer();
+            ServiceContainer.AddService(typeof(ISecretReaderFactory), new SecretReaderFactory());
+        }
 
         /// <summary>
         /// This is a static method to run a job whose args are passed in
@@ -46,7 +55,7 @@ namespace NuGet.Jobs
                 Trace.TraceInformation("Started...");
 
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
-                var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(job.JobTraceListener, commandLineArgs, job.JobName);
+                var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(commandLineArgs, job.JobName, (ISecretReaderFactory)ServiceContainer.GetService(typeof(ISecretReaderFactory)));
 
                 bool runContinuously = !JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
                 int? sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep); // sleep is in milliseconds

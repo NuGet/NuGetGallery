@@ -11,7 +11,7 @@ namespace NuGet.Jobs
 {
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings
-    /// from Environment Variables
+    /// from Environment Variables and command line arguments
     /// </summary>
     public static class JobConfigurationManager
     {
@@ -19,12 +19,17 @@ namespace NuGet.Jobs
         /// Parses the string[] of <c>args</c> passed into the job into a dictionary of string, string.
         /// Expects the string[] to be set of pairs of argumentName and argumentValue, where, argumentName start with a hyphen
         /// </summary>
-        /// <param name="jobTraceListener"></param>
         /// <param name="commandLineArgs">Arguments passed to the job via commandline or environment variable settings</param>
         /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
+        /// <param name="secretReaderFactory">Creates a secret reader.</param>
         /// <returns>Returns a dictionary of arguments</returns>
-        public static IDictionary<string, string> GetJobArgsDictionary(JobTraceListener jobTraceListener, string[] commandLineArgs, string jobName)
+        public static IDictionary<string, string> GetJobArgsDictionary(string[] commandLineArgs, string jobName, ISecretReaderFactory secretReaderFactory)
         {
+            if (secretReaderFactory == null)
+            {
+                throw new ArgumentNullException(nameof(secretReaderFactory));
+            }
+
             var allArgsList = commandLineArgs.ToList();
             if (allArgsList.Count == 0)
             {
@@ -88,7 +93,7 @@ namespace NuGet.Jobs
                 }
             }
 
-            return argsDictionary;
+            return InjectSecrets(secretReaderFactory, argsDictionary);
         }
 
         /// <summary>
@@ -166,8 +171,9 @@ namespace NuGet.Jobs
         /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
         /// <param name="argName">Name of the argument for which value is needed</param>
         /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
+        /// <param name="defaultValue">The default value.</param>
         /// <returns>Returns the argument value as a bool</returns>
-        public static bool TryGetBoolArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
+        public static bool TryGetBoolArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null, bool defaultValue = false)
         {
             bool switchValue;
             string argumentString = TryGetArgument(jobArgsDictionary, argName, fallbackEnvVariable);
@@ -175,7 +181,7 @@ namespace NuGet.Jobs
             {
                 return switchValue;
             }
-            return false;
+            return defaultValue;
         }
 
         /// <summary>
@@ -194,6 +200,26 @@ namespace NuGet.Jobs
                 return switchValue;
             }
             return null;
+        }
+
+        private static IDictionary<string, string> InjectSecrets(ISecretReaderFactory secretReaderFactory, Dictionary<string, string> argsDictionary)
+        {
+            var secretReader = secretReaderFactory.CreateSecterReader(argsDictionary);
+            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+
+            if (secretReader == null)
+            {
+                throw new ApplicationException("Could not create a secret reader. Please check your configuration.");
+            }
+           
+            var argsWithSecrets = new Dictionary<string, string>();
+
+            foreach (var keyValuePair in argsDictionary)
+            {
+                argsWithSecrets[keyValuePair.Key] = secretInjector.InjectAsync(keyValuePair.Value).Result;
+            }
+
+            return argsWithSecrets;
         }
     }
 }

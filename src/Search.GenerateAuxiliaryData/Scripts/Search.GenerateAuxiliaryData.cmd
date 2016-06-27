@@ -9,7 +9,7 @@ cd bin
 
 	title #{Jobs.search.generateauxiliarydata.Title}
 
-    start /w search.generateauxiliarydata.exe -PackageDatabase "#{Jobs.search.generateauxiliarydata.PackageDatabase}" -verbose true -sleep #{Jobs.search.generateauxiliarydata.Sleep}
+    start /w search.generateauxiliarydata.exe -VaultName "#{KeyVaultName}" -ClientId "#{KeyVaultClientId}" -CertificateThumbprint "#{KeyVaultCertificateThumbprint}" -PackageDatabase #{Jobs.search.generateauxiliarydata.PackageDatabase}" -verbose true -sleep #{Jobs.search.generateauxiliarydata.Sleep}
 
 	echo "Finished #{Jobs.search.generateauxiliarydata.Title}"
 
