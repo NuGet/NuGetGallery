@@ -9,11 +9,8 @@ namespace NuGet.Jobs
     public static class EnvironmentVariableKeys
     {
         public const string SqlGallery = "NUGETJOBS_SQL_GALLERY";
-        public const string SqlWarehouse = "NUGETJOBS_SQL_WAREHOUSE";
         public const string StorageGallery = "NUGETJOBS_STORAGE_GALLERY";
         public const string StoragePrimary = "NUGETJOBS_STORAGE_PRIMARY";
         public const string StorageBackup = "NUGETJOBS_STORAGE_BACKUP";
-        public const string WarehouseStorage = "NUGETJOBS_STORAGE_WAREHOUSE";
-        public const string StorageDashboard = "NUGETJOBS_STORAGE_DASHBOARD";
     }
 }
