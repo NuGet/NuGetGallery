@@ -30,66 +30,60 @@ namespace NuGet.Jobs
                 throw new ArgumentNullException(nameof(secretReaderFactory));
             }
 
+            var argsDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
             var allArgsList = commandLineArgs.ToList();
             if (allArgsList.Count == 0)
             {
-                Trace.TraceInformation("No command-line arguments provided. Trying to pick up from environment variable for the job...");
-            }
-
-            var argsEnvVariable = "NUGETJOBS_ARGS_" + jobName;
-            var envArgString = Environment.GetEnvironmentVariable(argsEnvVariable);
-            if (string.IsNullOrEmpty(envArgString))
-            {
-                Trace.TraceWarning("No environment variable for the job arguments was provided");
+                Trace.TraceInformation("No command-line arguments provided.");
             }
             else
             {
-                allArgsList.AddRange(envArgString.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-            }
-            Trace.TraceInformation("Total number of arguments : " + allArgsList.Count);
+                Trace.TraceInformation("Total number of arguments : " + allArgsList.Count);
 
-            // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
-            // Or, in singles as a switch '-<switch>'
-            var argsDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            for (int i = 0; i < allArgsList.Count; i++)
-            {
-                if (!allArgsList[i].StartsWith("-"))
-                {
-                    throw new ArgumentException("Argument Name does not start with a hyphen ('-')");
-                }
+                // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
+                // Or, in singles as a switch '-<switch>'
 
-                var argName = allArgsList[i].Substring(1);
-                if (string.IsNullOrEmpty(argName))
+                for (int i = 0; i < allArgsList.Count; i++)
                 {
-                    throw new ArgumentException("Argument Name is null or empty");
-                }
-
-                var nextString = allArgsList.Count > i + 1 ? allArgsList[i + 1] : null;
-                if (string.IsNullOrEmpty(nextString) || nextString.StartsWith("-"))
-                {
-                    // If the key already exists, don't add. This means that first added value is preferred
-                    // Since command line args are added before args from environment variable, this is the desired behavior
-                    if (!argsDictionary.ContainsKey(argName))
+                    if (!allArgsList[i].StartsWith("-"))
                     {
-                        // nextString startWith hyphen, the current one is a switch
-                        argsDictionary.Add(argName, bool.TrueString);
-                    }
-                }
-                else
-                {
-                    var argValue = nextString;
-                    if (string.IsNullOrEmpty(argValue))
-                    {
-                        throw new ArgumentException("Argument Value is null or empty");
+                        throw new ArgumentException("Argument Name does not start with a hyphen ('-')");
                     }
 
-                    // If the key already exists, don't add. This means that first added value is preferred
-                    // Since command line args are added before args from environment variable, this is the desired behavior
-                    if (!argsDictionary.ContainsKey(argName))
+                    var argName = allArgsList[i].Substring(1);
+                    if (string.IsNullOrEmpty(argName))
                     {
-                        argsDictionary.Add(argName, argValue);
+                        throw new ArgumentException("Argument Name is null or empty");
                     }
-                    i++; // skip next string since it was added as an argument value
+
+                    var nextString = allArgsList.Count > i + 1 ? allArgsList[i + 1] : null;
+                    if (string.IsNullOrEmpty(nextString) || nextString.StartsWith("-"))
+                    {
+                        // If the key already exists, don't add. This means that first added value is preferred
+                        // Since command line args are added before args from environment variable, this is the desired behavior
+                        if (!argsDictionary.ContainsKey(argName))
+                        {
+                            // nextString startWith hyphen, the current one is a switch
+                            argsDictionary.Add(argName, bool.TrueString);
+                        }
+                    }
+                    else
+                    {
+                        var argValue = nextString;
+                        if (string.IsNullOrEmpty(argValue))
+                        {
+                            throw new ArgumentException("Argument Value is null or empty");
+                        }
+
+                        // If the key already exists, don't add. This means that first added value is preferred
+                        // Since command line args are added before args from environment variable, this is the desired behavior
+                        if (!argsDictionary.ContainsKey(argName))
+                        {
+                            argsDictionary.Add(argName, argValue);
+                        }
+                        i++; // skip next string since it was added as an argument value
+                    }
                 }
             }
 

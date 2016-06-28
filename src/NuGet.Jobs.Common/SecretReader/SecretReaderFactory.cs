@@ -20,7 +20,7 @@ namespace NuGet.Jobs
                     JobConfigurationManager.GetArgument(settings, JobArgumentNames.VaultName),
                     JobConfigurationManager.GetArgument(settings, JobArgumentNames.ClientId),
                     JobConfigurationManager.GetArgument(settings, JobArgumentNames.CertificateThumbprint),
-                    JobConfigurationManager.TryGetBoolArgument(settings, JobArgumentNames.ValidateCertificate, fallbackEnvVariable: null, defaultValue: true));
+                    JobConfigurationManager.TryGetBoolArgument(settings, JobArgumentNames.ValidateCertificate, defaultValue: true));
 
             return new KeyVaultReader(keyVaultConfiguration);
         }

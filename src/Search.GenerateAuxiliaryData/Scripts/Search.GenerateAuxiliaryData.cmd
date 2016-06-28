@@ -4,12 +4,10 @@ cd bin
 
 :Top
 	echo "Starting job - #{Jobs.search.generateauxiliarydata.Title}"
-	
-	set NUGETJOBS_STORAGE_PRIMARY=#{Jobs.search.generateauxiliarydata.Storage.Primary}
 
 	title #{Jobs.search.generateauxiliarydata.Title}
 
-    start /w search.generateauxiliarydata.exe -VaultName "#{KeyVaultName}" -ClientId "#{KeyVaultClientId}" -CertificateThumbprint "#{KeyVaultCertificateThumbprint}" -PackageDatabase #{Jobs.search.generateauxiliarydata.PackageDatabase}" -verbose true -sleep #{Jobs.search.generateauxiliarydata.Sleep}
+    start /w search.generateauxiliarydata.exe -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -LogsAzureStorageConnectionString #{Jobs.search.generateauxiliarydata.Storage.Primary} -PrimaryDestination #{Jobs.search.generateauxiliarydata.Storage.Primary} -PackageDatabase "#{Jobs.search.generateauxiliarydata.PackageDatabase}" -verbose true -sleep #{Jobs.search.generateauxiliarydata.Sleep}
 
 	echo "Finished #{Jobs.search.generateauxiliarydata.Title}"
 

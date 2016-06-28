@@ -121,5 +121,8 @@ namespace NuGet.Jobs
         // Arguments specific to e-mail
         public const string MailFrom = "MailFrom";
         public const string SmtpUri = "SmtpUri";
+
+        // Arguments for Azure logs
+        public const string LogsAzureStorageConnectionString = "LogsAzureStorageConnectionString";
     }
 }
