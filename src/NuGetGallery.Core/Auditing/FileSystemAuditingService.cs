@@ -91,12 +91,11 @@ namespace NuGetGallery.Auditing
         protected override Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
             // Build relative file path
-            var relativeFilePath = string.Concat(
-                resourceType.ToLowerInvariant(), Path.DirectorySeparatorChar, 
-                filePath, Path.DirectorySeparatorChar,
-                timestamp.ToString("s").Replace(":", string.Empty), "-", // Sortable DateTime format
-                action.ToLowerInvariant(), ".audit.v1.json");
-
+            var relativeFilePath = 
+               $"{resourceType.ToLowerInvariant()}{Path.DirectorySeparatorChar}" +
+               $"{filePath}{Path.DirectorySeparatorChar}" +
+               $"{Guid.NewGuid().ToString("N")}-{action.ToLowerInvariant()}.audit.v1.json";
+            
             // Build full file path
             var fullFilePath = Path.Combine(_auditingPath, relativeFilePath);
 
