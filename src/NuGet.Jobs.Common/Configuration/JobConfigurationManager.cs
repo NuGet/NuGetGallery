@@ -92,31 +92,18 @@ namespace NuGet.Jobs
 
         /// <summary>
         /// Get the argument from the dictionary <c>jobArgsDictionary</c> corresponding to <c>argName</c>.
-        /// If not found, tries to get the value of environment variable for <c>envVariableKey</c>, if provided.
         /// If not found, throws ArgumentNullException
         /// </summary>
         /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
         /// <param name="argName">Name of the argument for which value is needed</param>
-        /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
         /// <returns>Returns the argument value as a string</returns>
-        public static string GetArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
+        public static string GetArgument(IDictionary<string, string> jobArgsDictionary, string argName)
         {
             string argValue;
-            if (!jobArgsDictionary.TryGetValue(argName, out argValue) && !string.IsNullOrEmpty(fallbackEnvVariable))
-            {
-                argValue = Environment.GetEnvironmentVariable(fallbackEnvVariable);
-            }
 
-            if (string.IsNullOrEmpty(argValue))
+            if (!jobArgsDictionary.TryGetValue(argName, out argValue))
             {
-                if (string.IsNullOrEmpty(fallbackEnvVariable))
-                {
-                    throw new ArgumentNullException(string.Format(CultureInfo.InvariantCulture, "Argument '{0}' was not passed", argName));
-                }
-                else
-                {
-                    throw new ArgumentNullException(string.Format(CultureInfo.InvariantCulture, "Argument '{0}' was not passed. And, environment variable '{1}' was not set", argName, fallbackEnvVariable));
-                }
+                throw new ArgumentNullException($"Argument '{argName}' was not passed.");
             }
 
             return argValue;
@@ -127,13 +114,12 @@ namespace NuGet.Jobs
         /// </summary>
         /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
         /// <param name="argName">Name of the argument for which value is needed</param>
-        /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
         /// <returns>Returns the argument value as a string</returns>
-        public static string TryGetArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
+        public static string TryGetArgument(IDictionary<string, string> jobArgsDictionary, string argName)
         {
             try
             {
-                return GetArgument(jobArgsDictionary, argName, fallbackEnvVariable);
+                return GetArgument(jobArgsDictionary, argName);
             }
             catch
             {
@@ -146,12 +132,11 @@ namespace NuGet.Jobs
         /// </summary>
         /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
         /// <param name="argName">Name of the argument for which value is needed</param>
-        /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
         /// <returns>Returns the argument value as a string</returns>
-        public static int? TryGetIntArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
+        public static int? TryGetIntArgument(IDictionary<string, string> jobArgsDictionary, string argName)
         {
             int intArgument;
-            string argumentString = TryGetArgument(jobArgsDictionary, argName, fallbackEnvVariable);
+            string argumentString = TryGetArgument(jobArgsDictionary, argName);
             if (!string.IsNullOrEmpty(argumentString) && int.TryParse(argumentString, out intArgument))
             {
                 return intArgument;
@@ -164,13 +149,12 @@ namespace NuGet.Jobs
         /// </summary>
         /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
         /// <param name="argName">Name of the argument for which value is needed</param>
-        /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
         /// <param name="defaultValue">The default value.</param>
         /// <returns>Returns the argument value as a bool</returns>
-        public static bool TryGetBoolArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null, bool defaultValue = false)
+        public static bool TryGetBoolArgument(IDictionary<string, string> jobArgsDictionary, string argName, bool defaultValue = false)
         {
             bool switchValue;
-            string argumentString = TryGetArgument(jobArgsDictionary, argName, fallbackEnvVariable);
+            string argumentString = TryGetArgument(jobArgsDictionary, argName);
             if (!string.IsNullOrEmpty(argumentString) && bool.TryParse(argumentString, out switchValue))
             {
                 return switchValue;
@@ -183,12 +167,11 @@ namespace NuGet.Jobs
         /// </summary>
         /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
         /// <param name="argName">Name of the argument for which value is needed</param>
-        /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
         /// <returns>Returns the argument value as a DateTime?</returns>
-        public static DateTime? TryGetDateTimeArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
+        public static DateTime? TryGetDateTimeArgument(IDictionary<string, string> jobArgsDictionary, string argName)
         {
             DateTime switchValue;
-            string argumentString = TryGetArgument(jobArgsDictionary, argName, fallbackEnvVariable);
+            string argumentString = TryGetArgument(jobArgsDictionary, argName);
             if (!string.IsNullOrEmpty(argumentString) && DateTime.TryParse(argumentString, out switchValue))
             {
                 return switchValue;

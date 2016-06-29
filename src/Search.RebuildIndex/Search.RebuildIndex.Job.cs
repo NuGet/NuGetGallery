@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Indexing;
-using System.Diagnostics;
 using Lucene.Net.Store;
 using System.IO;
 using NuGet.Jobs;
@@ -41,19 +40,14 @@ namespace Search.RebuildIndex
         {
             PackageDatabase =
             new SqlConnectionStringBuilder(
-                JobConfigurationManager.GetArgument(jobArgsDictionary,
-                    JobArgumentNames.PackageDatabase,
-                    EnvironmentVariableKeys.SqlGallery));
+                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
 
             DataStorageAccount =
                 CloudStorageAccount.Parse(
-                    JobConfigurationManager.GetArgument(jobArgsDictionary,
-                        JobArgumentNames.DataStorageAccount,
-                        EnvironmentVariableKeys.StoragePrimary));
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount));
 
             DataContainerName =
-                JobConfigurationManager.TryGetArgument(jobArgsDictionary,
-                    JobArgumentNames.DataContainerName);
+                JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DataContainerName);
 
             if (string.IsNullOrEmpty(DataContainerName))
             {
@@ -61,8 +55,7 @@ namespace Search.RebuildIndex
             }
 
             LocalIndexFolder =
-                JobConfigurationManager.GetArgument(jobArgsDictionary,
-                    JobArgumentNames.LocalIndexFolder);
+                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.LocalIndexFolder);
 
             // Initialized successfully, return true
             return true;
