@@ -73,16 +73,12 @@ namespace HandlePackageEdits
             }
 
             PackageDatabase = new SqlConnectionStringBuilder(
-                        JobConfigurationManager.GetArgument(jobArgsDictionary,
-                            JobArgumentNames.PackageDatabase,
-                            EnvironmentVariableKeys.SqlGallery));
+                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
 
             Source = CloudStorageAccount.Parse(
-                                       JobConfigurationManager.GetArgument(jobArgsDictionary,
-                                           JobArgumentNames.SourceStorage, EnvironmentVariableKeys.StorageGallery));
+                                       JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SourceStorage));
             Backups = CloudStorageAccount.Parse(
-                                       JobConfigurationManager.GetArgument(jobArgsDictionary,
-                                           JobArgumentNames.BackupStorage, EnvironmentVariableKeys.StorageGallery));
+                                       JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.BackupStorage));
 
             SourceContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.SourceContainerName) ?? DefaultSourceContainerName;
             BackupsContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.BackupContainerName) ?? DefaultBackupContainerName;

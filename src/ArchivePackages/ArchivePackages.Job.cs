@@ -68,20 +68,15 @@ namespace ArchivePackages
             try
             {
                 PackageDatabase = new SqlConnectionStringBuilder(
-                            JobConfigurationManager.GetArgument(jobArgsDictionary,
-                                JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
+                            JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
 
                 Source = CloudStorageAccount.Parse(
-                            JobConfigurationManager.GetArgument(jobArgsDictionary,
-                                JobArgumentNames.Source, EnvironmentVariableKeys.StorageGallery));
+                            JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.Source));
 
                 PrimaryDestination = CloudStorageAccount.Parse(
-                                        JobConfigurationManager.GetArgument(jobArgsDictionary,
-                                            JobArgumentNames.PrimaryDestination, EnvironmentVariableKeys.StorageGallery));
+                                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PrimaryDestination));
 
-                var secondaryDestinationCstr = JobConfigurationManager.TryGetArgument(jobArgsDictionary,
-                                                JobArgumentNames.SecondaryDestination,
-                                                    EnvironmentVariableKeys.StorageBackup);
+                var secondaryDestinationCstr = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.SecondaryDestination);
                 SecondaryDestination = string.IsNullOrEmpty(secondaryDestinationCstr) ? null : CloudStorageAccount.Parse(secondaryDestinationCstr);
 
                 SourceContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.SourceContainerName) ?? DefaultPackagesContainerName;

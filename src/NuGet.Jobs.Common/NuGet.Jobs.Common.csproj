@@ -73,7 +73,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\EnvironmentVariableKeys.cs" />
     <Compile Include="Configuration\JobArgumentNames.cs" />
     <Compile Include="Extensions\SqlConnectionStringBuilderExtensions.cs" />
     <Compile Include="Extensions\XElementExtensions.cs" />
