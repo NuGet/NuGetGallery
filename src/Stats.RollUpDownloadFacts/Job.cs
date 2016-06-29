@@ -20,7 +20,8 @@ namespace Stats.RollUpDownloadFacts
         private const string _startTemplateRecordsDeletion = "Package Dimension ID ";
         private const string _endTemplateDimProjectTypeDeletion = " records from [dbo].[Fact_Download_Dimension_ProjectType]";
         private const string _endTemplateFactDownloadDeletion = " records from [dbo].[Fact_Download]";
-        private static int _minAgeInDays = 90;
+        private const int DefaultMinAgeInDays = 90;
+        private static int _minAgeInDays;
         private static SqlConnectionStringBuilder _targetDatabase;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
@@ -38,7 +39,7 @@ namespace Stats.RollUpDownloadFacts
                 var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
                 _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
 
-                _minAgeInDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, "MinAgeInDays", "90").Value;
+                _minAgeInDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, "MinAgeInDays") ?? DefaultMinAgeInDays;
                 Trace.TraceInformation("Min age in days: " + _minAgeInDays);
 
                 return true;

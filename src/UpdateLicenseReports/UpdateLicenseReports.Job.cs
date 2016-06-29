@@ -57,9 +57,7 @@ namespace UpdateLicenseReports
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             _packageDatabase = new SqlConnectionStringBuilder(
-                        JobConfigurationManager.GetArgument(jobArgsDictionary,
-                            JobArgumentNames.PackageDatabase,
-                            EnvironmentVariableKeys.SqlGallery));
+                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
 
             var retryCountString = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.RetryCount);
             if (string.IsNullOrEmpty(retryCountString))
