@@ -156,10 +156,18 @@ namespace NuGetGallery
 
             var filePath = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
             folderPath = Path.GetDirectoryName(filePath);
-            if (!_fileSystemService.DirectoryExists(folderPath))
+            if (_fileSystemService.FileExists(filePath))
             {
-                _fileSystemService.CreateDirectory(folderPath);
+                _fileSystemService.DeleteFile(filePath);
             }
+            else
+            {
+                if (!_fileSystemService.DirectoryExists(folderPath))
+                {
+                    _fileSystemService.CreateDirectory(folderPath);
+                }
+            }
+
             using (var file = _fileSystemService.OpenWrite(filePath))
             {
                 packageFile.CopyTo(file);
