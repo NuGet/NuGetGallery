@@ -32,7 +32,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         private static readonly ReportPackageReason[] ReportMyPackageReasons = {
             ReportPackageReason.ContainsPrivateAndConfidentialData,
-            ReportPackageReason.PublishedWithWrongVersion,
             ReportPackageReason.ReleasedInPublicByAccident,
             ReportPackageReason.ContainsMaliciousCode,
             ReportPackageReason.Other
