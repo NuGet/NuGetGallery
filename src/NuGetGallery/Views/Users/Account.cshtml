@@ -449,8 +449,8 @@
                     }
                     else
                     {
-                        <text>(hidden for security purposes)</text>
-                    }
+                        <text>(hidden for security purposes) <button class="btn btn-small" title="Copy API key to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><i class="icon-copy"></i></button></text>
+    }
 
                     @item.ExpandLink("Show details", "Hide details")
                 }
