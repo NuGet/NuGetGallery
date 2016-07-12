@@ -4,6 +4,7 @@ using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
+using NuGet.Services.KeyVault;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
@@ -284,24 +285,66 @@ namespace Ng
             else if (storageType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
             {
                 string storageAccountName;
-                if (!arguments.TryGetValue("-storageAccountName", out storageAccountName))
-                {
-                    TraceRequiredArgument("-storageAccountName");
-                    return null;
-                }
-
                 string storageKeyValue;
-                if (!arguments.TryGetValue("-storageKeyValue", out storageKeyValue))
-                {
-                    TraceRequiredArgument("-storageKeyValue");
-                    return null;
-                }
+
+                bool useKeyVault = true;
 
                 string storageContainer;
                 if (!arguments.TryGetValue("-storageContainer", out storageContainer))
                 {
                     TraceRequiredArgument("-storageContainer");
                     return null;
+                }
+
+                string storageAccountNameFrame;
+                if (!arguments.TryGetValue("-storageAccountName", out storageAccountNameFrame))
+                {
+                    TraceRequiredArgument("-storageAccountName");
+                    return null;
+                }
+
+                string storageKeyValueFrame;
+                if (!arguments.TryGetValue("-storageKeyValue", out storageKeyValueFrame))
+                {
+                    TraceRequiredArgument("-storageKeyValue");
+                    return null;
+                }
+
+                string vaultName;
+                if (!arguments.TryGetValue("-vaultName", out vaultName))
+                {
+                    useKeyVault = false;
+                }
+
+                if (useKeyVault)
+                {
+                    string clientId;
+                    if (!arguments.TryGetValue("-clientId", out clientId))
+                    {
+                        TraceRequiredArgument("-clientId");
+                        return null;
+                    }
+
+                    string certificateThumbprint;
+                    if (!arguments.TryGetValue("-certificateThumbprint", out certificateThumbprint))
+                    {
+                        TraceRequiredArgument("-certificateThumbprint");
+                        return null;
+                    }
+
+                    bool shouldValidateCertificate = arguments.ContainsKey("-validateCertificate");
+
+                    KeyVaultConfiguration keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, shouldValidateCertificate);
+                    KeyVaultReader keyVaultReader = new KeyVaultReader(keyVaultConfiguration);
+                    SecretInjector secretInjector = new SecretInjector(keyVaultReader, "$");
+
+                    storageAccountName = keyVaultReader.GetSecretAsync(secretInjector.InjectAsync(storageAccountNameFrame).Result).Result;
+                    storageKeyValue = keyVaultReader.GetSecretAsync(secretInjector.InjectAsync(storageKeyValueFrame).Result).Result;
+                }
+                else
+                {
+                    storageAccountName = storageAccountNameFrame;
+                    storageKeyValue = storageKeyValueFrame;
                 }
 
                 string storagePath = null;
@@ -480,15 +523,19 @@ namespace Ng
             }
             else if (luceneDirectoryType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
             {
-                string luceneStorageAccountName;
-                if (!arguments.TryGetValue(names["storageAccountName"], out luceneStorageAccountName))
+                bool useKeyVault = true;
+                string luceneStorageAccountName,
+                       luceneStorageKeyValue;
+
+                string luceneStorageAccountNameFrame;
+                if (!arguments.TryGetValue(names["storageAccountName"], out luceneStorageAccountNameFrame))
                 {
                     TraceRequiredArgument(names["storageAccountName"]);
                     return null;
                 }
 
-                string luceneStorageKeyValue;
-                if (!arguments.TryGetValue(names["storageKeyValue"], out luceneStorageKeyValue))
+                string luceneStorageKeyValueFrame;
+                if (!arguments.TryGetValue(names["storageKeyValue"], out luceneStorageKeyValueFrame))
                 {
                     TraceRequiredArgument(names["storageKeyValue"]);
                     return null;
@@ -499,6 +546,43 @@ namespace Ng
                 {
                     TraceRequiredArgument(names["storageContainer"]);
                     return null;
+                }
+
+                string vaultName;
+                if (!arguments.TryGetValue("-vaultName", out vaultName))
+                {
+                    useKeyVault = false;
+                }
+
+                if (useKeyVault)
+                {
+                    string clientId;
+                    if (!arguments.TryGetValue("-clientId", out clientId))
+                    {
+                        TraceRequiredArgument("-clientId");
+                        return null;
+                    }
+
+                    string certificateThumbprint;
+                    if (!arguments.TryGetValue("-certificateThumbprint", out certificateThumbprint))
+                    {
+                        TraceRequiredArgument("-certificateThumbprint");
+                        return null;
+                    }
+
+                    bool shouldValidateCertificate = arguments.ContainsKey("-validateCertificate");
+
+                    KeyVaultConfiguration keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, shouldValidateCertificate);
+                    KeyVaultReader keyVaultReader = new KeyVaultReader(keyVaultConfiguration);
+                    SecretInjector secretInjector = new SecretInjector(keyVaultReader, /*frame*/ "$");
+
+                    luceneStorageAccountName = keyVaultReader.GetSecretAsync(secretInjector.InjectAsync(luceneStorageAccountNameFrame).Result).Result;
+                    luceneStorageKeyValue = keyVaultReader.GetSecretAsync(secretInjector.InjectAsync(luceneStorageKeyValueFrame).Result).Result;
+                }
+                else
+                {
+                    luceneStorageAccountName = luceneStorageAccountNameFrame;
+                    luceneStorageKeyValue = luceneStorageKeyValueFrame;
                 }
 
                 StorageCredentials credentials = new StorageCredentials(luceneStorageAccountName, luceneStorageKeyValue);

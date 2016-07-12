@@ -11,7 +11,7 @@ namespace Ng
     {
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng copylucene -srcDirectoryType file|azure [-srcPath <file-path>] | [-srcStorageAccountName <azure-acc> -srcStorageKeyValue <azure-key> -srcStorageContainer <azure-container>] -destDirectoryType file|azure [-destPath <file-path>] | [-destStorageAccountName <azure-acc> -destStorageKeyValue <azure-key> -destStorageContainer <azure-container>]");
+            Console.WriteLine("Usage: ng copylucene -srcDirectoryType file|azure [-srcPath <file-path>] | [-srcStorageAccountName <azure-acc> -srcStorageKeyValue <azure-key> -srcStorageContainer <azure-container>] -destDirectoryType file|azure [-destPath <file-path>] | [-destStorageAccountName <azure-acc> -destStorageKeyValue <azure-key> -destStorageContainer <azure-container>] [-vaultName <keyvault-name> -clientId <keyvault-client-id> -certificateThumbprint <keyvault-certificate-thumbprint> [-validateCertificate]]");
         }
 
         public static void Run(string[] args)

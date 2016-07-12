@@ -74,7 +74,7 @@ namespace Ng
 
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2lucene -source <catalog> [-registration <registration-root>] -luceneDirectoryType file|azure [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container>] [-verbose true|false] [-interval <seconds>]");
+            Console.WriteLine("Usage: ng catalog2lucene -source <catalog> [-registration <registration-root>] -luceneDirectoryType file|azure [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container> [-vaultName <keyvault-name> -clientId <keyvault-client-id> -certificateThumbprint <keyvault-certificate-thumbprint> [-validateCertificate]]] [-verbose true|false] [-interval <seconds>]");
         }
 
         public static void Run(string[] args, CancellationToken cancellationToken)
