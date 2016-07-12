@@ -25,9 +25,6 @@ namespace NuGetGallery
         [Description("The package contains private/confidential data")]
         ContainsPrivateAndConfidentialData,
 
-        [Description("The package was published as the wrong version")]
-        PublishedWithWrongVersion,
-
         [Description("The package was not intended to be published publically on nuget.org")]
         ReleasedInPublicByAccident,
     }
