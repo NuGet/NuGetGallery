@@ -580,10 +580,10 @@ namespace Ng
 
                     KeyVaultConfiguration keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, shouldValidateCertificate);
                     KeyVaultReader keyVaultReader = new KeyVaultReader(keyVaultConfiguration);
-                    SecretInjector secretInjector = new SecretInjector(keyVaultReader, /*frame*/ "$");
+                    SecretInjector secretInjector = new SecretInjector(keyVaultReader);
 
-                    luceneStorageAccountName = keyVaultReader.GetSecretAsync(secretInjector.InjectAsync(luceneStorageAccountNameFrame).Result).Result;
-                    luceneStorageKeyValue = keyVaultReader.GetSecretAsync(secretInjector.InjectAsync(luceneStorageKeyValueFrame).Result).Result;
+                    luceneStorageAccountName = secretInjector.InjectAsync(luceneStorageAccountNameFrame).Result;
+                    luceneStorageKeyValue = secretInjector.InjectAsync(luceneStorageKeyValueFrame).Result;
                 }
                 else
                 {
