@@ -49,7 +49,7 @@ namespace Ng
 
         private static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2dnx -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path> [-vaultName <keyvault-name> -clientId <keyvault-client-id> -certificateThumbprint <keyvault-certificate-thumbprint> [-validateCertificate]]] [-verbose true|false] [-interval <seconds>]");
+            Console.WriteLine("Usage: ng catalog2dnx -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path> [-vaultName <keyvault-name> -clientId <keyvault-client-id> -certificateThumbprint <keyvault-certificate-thumbprint> [-validateCertificate true|false]]] [-verbose true|false] [-interval <seconds>]");
         }
 
         public void Run(string[] args, CancellationToken cancellationToken)
