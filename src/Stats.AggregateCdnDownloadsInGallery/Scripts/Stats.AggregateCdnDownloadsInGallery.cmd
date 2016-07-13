@@ -7,7 +7,7 @@ cd bin
 	
 	title #{Jobs.stats.aggregatecdndownloadsingallery.Title}
 
-	start /w stats.aggregatecdndownloadsingallery.exe -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -LogsAzureStorageConnectionString #{Jobs.stats.aggregatecdndownloadsingallery.Storage.Primary} -StatisticsDatabase "#{Jobs.stats.aggregatecdndownloadsingallery.StatisticsDatabase}" -DestinationDatabase "#{Jobs.stats.aggregatecdndownloadsingallery.DestinationDatabase}" -InstrumentationKey "#{Jobs.stats.aggregatecdndownloadsingallery.InstrumentationKey}" -verbose true -interval #{Jobs.stats.aggregatecdndownloadsingallery.Interval}
+	start /w stats.aggregatecdndownloadsingallery.exe -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -StatisticsDatabase "#{Jobs.stats.aggregatecdndownloadsingallery.StatisticsDatabase}" -DestinationDatabase "#{Jobs.stats.aggregatecdndownloadsingallery.DestinationDatabase}" -InstrumentationKey "#{Jobs.stats.aggregatecdndownloadsingallery.InstrumentationKey}" -verbose true -interval #{Jobs.stats.aggregatecdndownloadsingallery.Interval} -ConsoleLogOnly
 
 	echo "Finished #{Jobs.stats.aggregatecdndownloadsingallery.Title}"
 

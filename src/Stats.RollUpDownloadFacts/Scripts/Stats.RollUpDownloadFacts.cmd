@@ -7,7 +7,7 @@ cd bin
 	
 	title #{Jobs.stats.rollupdownloadfacts.Title}
 
-    start /w stats.rollupdownloadfacts.exe -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -LogsAzureStorageConnectionString #{Jobs.stats.rollupdownloadfacts.Storage.Primary} -MinAgeInDays "#{Jobs.stats.rollupdownloadfacts.MinAgeInDays}" -StatisticsDatabase "#{Jobs.stats.rollupdownloadfacts.StatisticsDatabase}" -InstrumentationKey "#{Jobs.stats.rollupdownloadfacts.InstrumentationKey}" -verbose true -interval #{Jobs.stats.rollupdownloadfacts.Interval}
+    start /w stats.rollupdownloadfacts.exe -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -MinAgeInDays "#{Jobs.stats.rollupdownloadfacts.MinAgeInDays}" -StatisticsDatabase "#{Jobs.stats.rollupdownloadfacts.StatisticsDatabase}" -InstrumentationKey "#{Jobs.stats.rollupdownloadfacts.InstrumentationKey}" -verbose true -interval #{Jobs.stats.rollupdownloadfacts.Interval} -ConsoleLogOnly
 
 	echo "Finished #{Jobs.stats.rollupdownloadfacts.Title}"
 
