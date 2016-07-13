@@ -169,7 +169,10 @@ namespace Stats.RefreshClientDimension
             var jobTraceListener = new JobTraceListener();
             Trace.Listeners.Add(jobTraceListener);
 
-            var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(jobTraceListener, commandLineArgs, "Stats.RefreshClientDimension");
+            var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(
+                commandLineArgs,
+                "Stats.RefreshClientDimension",
+                (ISecretReaderFactory)JobRunner.ServiceContainer.GetService(typeof(ISecretReaderFactory)));
             return jobArgsDictionary;
         }
     }

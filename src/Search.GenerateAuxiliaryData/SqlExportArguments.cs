@@ -11,21 +11,21 @@ namespace Search.GenerateAuxiliaryData
 {
     internal class SqlExportArguments
     {
-        public string ConnectionString { get; private set; }
-        public CloudStorageAccount Destination { get; private set; }
-        public CloudBlobContainer DestinationContainer { get; private set; }
-        public string DestinationContainerName { get; private set; }
-        public string Name { get; private set; }
+        public string ConnectionString { get; }
+        public CloudStorageAccount Destination { get; }
+        public CloudBlobContainer DestinationContainer { get; }
+        public string DestinationContainerName { get; }
+        public string Name { get; }
 
         public SqlExportArguments(IDictionary<string, string> jobArgsDictionary, string defaultContainerName, string defaultName)
         {
             var connStrBldr = new SqlConnectionStringBuilder(
-                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
+                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
 
             ConnectionString = connStrBldr.ToString();
 
             Destination = CloudStorageAccount.Parse(
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PrimaryDestination, EnvironmentVariableKeys.StoragePrimary));
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PrimaryDestination));
 
             DestinationContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName) ?? defaultContainerName;
             DestinationContainer = Destination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);

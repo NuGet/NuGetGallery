@@ -50,8 +50,13 @@ namespace NuGet.Jobs
                             Math.Log10(
                                 _maxExpectedLogsPerRun / MaxLogBatchSize))));
 
-        public AzureBlobJobTraceListener(string jobName)
+        public AzureBlobJobTraceListener(string jobName, string primaryStorageAccount)
         {
+            if (string.IsNullOrWhiteSpace(primaryStorageAccount))
+            {
+                throw new ArgumentException("Primary storage account connection string wasn't passed. Pass a valid azure storage connection string, or, pass '-consoleLogOnly' for avoiding this error");
+            }
+
             string nugetJobsLocalPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _logStorageContainerName);
             Directory.CreateDirectory(nugetJobsLocalPath);
             Interlocked.Exchange(ref _logQueues, new ConcurrentQueue<ConcurrentQueue<string>>());
@@ -60,13 +65,7 @@ namespace NuGet.Jobs
             Interlocked.Exchange(ref _jobQueueBatchCounter, 0);
             Interlocked.Exchange(ref _localOnlyLogQueue, new ConcurrentQueue<string>());
 
-            var cstr = Environment.GetEnvironmentVariable(EnvironmentVariableKeys.StoragePrimary);
-            if (cstr == null)
-            {
-                throw new ArgumentException("Storage Primary environment variable needs to be set to use Azure Storage for logging. Try setting env 'NUGETJOBS_STORAGE_PRIMARY' to a valid azure storage connection string, or, pass '-consoleLogOnly' for avoiding this error");
-            }
-
-            var logStorageAccount = CloudStorageAccount.Parse(cstr);
+            var logStorageAccount = CloudStorageAccount.Parse(primaryStorageAccount);
             _logStorageContainer = logStorageAccount.CreateCloudBlobClient().GetContainerReference(_logStorageContainerName);
             _logStorageContainer.CreateIfNotExists();
 

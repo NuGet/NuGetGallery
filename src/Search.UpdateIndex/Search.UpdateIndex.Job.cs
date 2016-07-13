@@ -33,25 +33,19 @@ namespace Search.UpdateIndex
         /// The container in DataStorageAccount where Lucene Search Index is present.
         /// </summary>
         private string ContainerName { get; set; }
-        private string IndexFolder { get; set; }
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             PackageDatabase =
             new SqlConnectionStringBuilder(
-                JobConfigurationManager.GetArgument(jobArgsDictionary,
-                    JobArgumentNames.PackageDatabase,
-                    EnvironmentVariableKeys.SqlGallery));
+                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
 
             DataStorageAccount =
                 CloudStorageAccount.Parse(
-                    JobConfigurationManager.GetArgument(jobArgsDictionary,
-                        JobArgumentNames.DataStorageAccount,
-                        EnvironmentVariableKeys.StoragePrimary));
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount));
 
             DataContainerName =
-                JobConfigurationManager.TryGetArgument(jobArgsDictionary,
-                    JobArgumentNames.DataContainerName);
+                JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DataContainerName);
 
             if (string.IsNullOrEmpty(DataContainerName))
             {
@@ -59,8 +53,7 @@ namespace Search.UpdateIndex
             }
 
             ContainerName =
-               JobConfigurationManager.TryGetArgument(jobArgsDictionary,
-                   JobArgumentNames.ContainerName);
+               JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
 
             // Initialized successfully, return true
             return true;
@@ -68,9 +61,8 @@ namespace Search.UpdateIndex
 
         public override Task<bool> Run()
         {
-
             // Run the task
-            UpdateIndexTask task = new UpdateIndexTask()
+            UpdateIndexTask task = new UpdateIndexTask
             {
                 SqlConnectionString = PackageDatabase.ConnectionString,
                 StorageAccount = DataStorageAccount,

@@ -4,11 +4,11 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("Stats.ImportAzureCdnStatistics")]
+[assembly: AssemblyTitle("Gallery.CredentialExpiration")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Stats.ImportAzureCdnStatistics")]
+[assembly: AssemblyProduct("Gallery.CredentialExpiration")]
 [assembly: AssemblyCopyright("Copyright © .NET Foundation")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
