@@ -332,14 +332,17 @@ namespace Ng
                         return null;
                     }
 
-                    bool shouldValidateCertificate = arguments.ContainsKey("-validateCertificate");
+                    string validateCertificate = "false";
+                    arguments.TryGetValue("-validateCertificate", out validateCertificate);
+
+                    bool shouldValidateCertificate = validateCertificate == null ? false : validateCertificate.Equals("true", StringComparison.InvariantCultureIgnoreCase);
 
                     KeyVaultConfiguration keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, shouldValidateCertificate);
                     KeyVaultReader keyVaultReader = new KeyVaultReader(keyVaultConfiguration);
-                    SecretInjector secretInjector = new SecretInjector(keyVaultReader, "$");
+                    SecretInjector secretInjector = new SecretInjector(keyVaultReader);
 
-                    storageAccountName = keyVaultReader.GetSecretAsync(secretInjector.InjectAsync(storageAccountNameFrame).Result).Result;
-                    storageKeyValue = keyVaultReader.GetSecretAsync(secretInjector.InjectAsync(storageKeyValueFrame).Result).Result;
+                    storageAccountName = secretInjector.InjectAsync(storageAccountNameFrame).Result;
+                    storageKeyValue = secretInjector.InjectAsync(storageKeyValueFrame).Result;
                 }
                 else
                 {
@@ -570,7 +573,10 @@ namespace Ng
                         return null;
                     }
 
-                    bool shouldValidateCertificate = arguments.ContainsKey("-validateCertificate");
+                    string validateCertificate = "false";
+                    arguments.TryGetValue("-validateCertificate", out validateCertificate);
+
+                    bool shouldValidateCertificate = validateCertificate == null ? false : validateCertificate.Equals("true", StringComparison.InvariantCultureIgnoreCase);
 
                     KeyVaultConfiguration keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, shouldValidateCertificate);
                     KeyVaultReader keyVaultReader = new KeyVaultReader(keyVaultConfiguration);
