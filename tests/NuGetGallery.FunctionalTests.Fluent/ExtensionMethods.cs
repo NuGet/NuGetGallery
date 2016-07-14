@@ -23,7 +23,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Open(string.Format(UrlHelper.UploadPageUrl));
             try
             {
-                I.Expect.Url(x => x.AbsoluteUri.Contains("/packages/manage/Upload"));
+                I.Expect.Url(x => x.AbsoluteUri.Contains("/packages/Upload"));
             }
             catch
             {

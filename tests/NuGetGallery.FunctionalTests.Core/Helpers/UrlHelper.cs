@@ -12,7 +12,7 @@ namespace NuGetGallery.FunctionalTests
     {
         private const string _logonPageUrlSuffix = "/users/account/LogOn";
         private const string _editUrlSuffix = "/packages/{0}/{1}/Edit";
-        private const string _cancelUrlSuffix = "packages/manage/cancel-upload";
+        private const string _cancelUrlSuffix = "packages/cancel-upload";
         private const string _signInPageUrlSuffix = "/users/account/SignIn";
         private const string _logOffPageUrlSuffix = "/users/account/LogOff?returnUrl=%2F";
         private const string _logonPageUrlOnPackageUploadSuffix = "Users/Account/LogOn?ReturnUrl=%2fpackages%2fupload";
@@ -21,8 +21,8 @@ namespace NuGetGallery.FunctionalTests
         private const string _registrationPendingPageUrlSuffix = "account/Thanks";
         private const string _statsPageUrlSuffix = "stats";
         private const string _aggregateStatsPageUrlSuffix = "/stats/totals";
-        private const string _uploadPageUrlSuffix = "/packages/manage/Upload";
-        private const string _verifyUploadPageUrlSuffix = "/packages/manage/verify-upload";
+        private const string _uploadPageUrlSuffix = "/packages/Upload";
+        private const string _verifyUploadPageUrlSuffix = "/packages/verify-upload";
         private const string _windows8CuratedFeedUrlSuffix = "curated-feeds/windows8-packages/";
         private const string _webMatrixCuratedFeedUrlSuffix = "curated-feeds/webmatrix/";
         private const string _dotnetCuratedFeedUrlSuffix = "curated-feeds/microsoftdotnet/";
