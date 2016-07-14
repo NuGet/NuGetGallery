@@ -101,7 +101,7 @@ namespace NuGet.Jobs
         {
             string argValue;
 
-            if (!jobArgsDictionary.TryGetValue(argName, out argValue))
+            if (!jobArgsDictionary.TryGetValue(argName, out argValue) || string.IsNullOrEmpty(argValue))
             {
                 throw new ArgumentNullException($"Argument '{argName}' was not passed.");
             }
