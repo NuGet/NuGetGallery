@@ -98,6 +98,7 @@
     <Compile Include="Extensions\CloudBlobExtensions.cs" />
     <Compile Include="INotificationService.cs" />
     <Compile Include="NotificationService.cs" />
+    <Compile Include="NuGetPackageQueueExtensions.cs" />
     <Compile Include="OData\NuGetV2Feed.cs" />
     <Compile Include="NuGetPackage.cs" />
     <Compile Include="OData\NuGetV2PackageComparer.cs" />
