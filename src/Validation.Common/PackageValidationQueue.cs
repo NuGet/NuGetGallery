@@ -40,6 +40,8 @@ namespace NuGet.Jobs.Validation.Common
 
         public async Task EnqueueAsync(string validatorName, PackageValidationMessage message)
         {
+            message.Package = message.Package.TruncateForAzureQueue();
+
             Trace.TraceInformation("Start enqueue validation {0} {1} - package {2} {3}...", validatorName, message.ValidationId, message.PackageId, message.PackageVersion);
 
             var queue = await GetQueueAsync(validatorName);

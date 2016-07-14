@@ -130,6 +130,11 @@
     <Compile Include="Ftp\FtpRawLogClient.cs" />
     <Compile Include="Exceptions\InvalidRawLogFileNameException.cs" />
     <Compile Include="IRawLogClient.cs" />
+    <Compile Include="LogMessages.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LogMessages.resx</DependentUpon>
+    </Compile>
     <Compile Include="RawLogFileInfo.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="Program.cs" />
@@ -150,7 +155,12 @@
       <Name>Stats.AzureCdnLogs.Common</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="LogMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>LogMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

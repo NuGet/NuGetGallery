@@ -112,8 +112,17 @@ namespace NuGet.Jobs
         public const string VcsValidatorAlias = "VcsValidatorAlias";
         public const string VcsPackageUrlTemplate = "VcsPackageUrlTemplate";
 
+        // Key Vault
+        public const string VaultName = "VaultName";
+        public const string ClientId = "ClientId";
+        public const string CertificateThumbprint = "CertificateThumbprint";
+        public const string ValidateCertificate = "ValidateCertificate";
+
         // Arguments specific to e-mail
         public const string MailFrom = "MailFrom";
         public const string SmtpUri = "SmtpUri";
+
+        // Arguments for Azure logs
+        public const string LogsAzureStorageConnectionString = "LogsAzureStorageConnectionString";
     }
 }
