@@ -26,7 +26,8 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var controller = GetController<AuthenticationController>();
-                controller.SetCurrentUser(Fakes.User);
+                var fakes = Get<Fakes>();
+                controller.SetCurrentUser(fakes.User);
 
                 // Act
                 var result = controller.LogOn("/foo/bar/baz");
@@ -96,7 +97,8 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var controller = GetController<AuthenticationController>();
-                controller.SetCurrentUser(Fakes.User);
+                var fakes = Get<Fakes>();
+                controller.SetCurrentUser(fakes.User);
 
                 // Act
                 var result = await controller.SignIn(new LogOnViewModel(), "/foo/bar/baz", linkingAccount: false);
@@ -737,11 +739,12 @@ namespace NuGetGallery.Controllers
             public async Task GivenAssociatedLocalUser_ItCreatesASessionAndSafeRedirectsToReturnUrl()
             {
                 // Arrange
+                var fakes = Get<Fakes>();
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
                 var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
-                    Fakes.CreateUser("test", cred),
+                    fakes.CreateUser("test", cred),
                     cred);
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
@@ -775,11 +778,12 @@ namespace NuGetGallery.Controllers
                     EnforcedAuthProviderForAdmin = enforcedProvider
                 };
 
+                var fakes = Get<Fakes>();
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
                 var cred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
-                    Fakes.CreateUser("test", cred),
+                    fakes.CreateUser("test", cred),
                     cred);
 
                 authUser.User.Roles.Add(new Role { Name = Constants.AdminRoleName });
@@ -925,12 +929,13 @@ namespace NuGetGallery.Controllers
             public async Task GivenNoLinkButEmailMatchingLocalUser_ItDisplaysLogOnViewPresetForSignIn()
             {
                 // Arrange
+                var fakes = Get<Fakes>();
                 var existingUser = new User("existingUser") { EmailAddress = "existing@example.com" };
                 var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
                 var authUser = new AuthenticatedUser(
-                    Fakes.CreateUser("test", cred),
+                    fakes.CreateUser("test", cred),
                     cred);
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
