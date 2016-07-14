@@ -34,6 +34,12 @@ namespace NuGetGallery.Framework
 
         protected override void Load(ContainerBuilder builder)
         {
+            var fakes = new Fakes();
+
+            builder.RegisterInstance(fakes)
+                .As<Fakes>()
+                .SingleInstance();
+
             builder.RegisterType<TestAuditingService>()
                 .As<AuditingService>();
 
@@ -52,8 +58,8 @@ namespace NuGetGallery.Framework
                     {
                         var mockService = new Mock<IPackageService>();
                         mockService
-                            .Setup(p => p.FindPackageRegistrationById(Fakes.Package.Id))
-                            .Returns(Fakes.Package);
+                            .Setup(p => p.FindPackageRegistrationById(fakes.Package.Id))
+                            .Returns(fakes.Package);
                         return mockService.Object;
                     })
                 .As<IPackageService>()
@@ -62,9 +68,9 @@ namespace NuGetGallery.Framework
             builder.Register(_ =>
             {
                 var mockService = new Mock<IUserService>();
-                mockService.Setup(u => u.FindByUsername(Fakes.User.Username)).Returns(Fakes.User);
-                mockService.Setup(u => u.FindByUsername(Fakes.Owner.Username)).Returns(Fakes.Owner);
-                mockService.Setup(u => u.FindByUsername(Fakes.Admin.Username)).Returns(Fakes.Admin);
+                mockService.Setup(u => u.FindByUsername(fakes.User.Username)).Returns(fakes.User);
+                mockService.Setup(u => u.FindByUsername(fakes.Owner.Username)).Returns(fakes.Owner);
+                mockService.Setup(u => u.FindByUsername(fakes.Admin.Username)).Returns(fakes.Admin);
                 return mockService.Object;
             })
                 .As<IUserService>()
@@ -73,7 +79,7 @@ namespace NuGetGallery.Framework
             builder.Register(_ =>
                     {
                         var ctxt = new FakeEntitiesContext();
-                        Fakes.ConfigureEntitiesContext(ctxt);
+                        fakes.ConfigureEntitiesContext(ctxt);
                         return ctxt;
                     })
                 .As<IEntitiesContext>()

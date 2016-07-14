@@ -43,12 +43,13 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task ReturnsFailureWhenRequestedNewOwnerDoesNotExist()
             {
+                var fakes = Get<Fakes>();
                 var controller = GetController<JsonApiController>();
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
-                    .Returns(Fakes.Owner.ToPrincipal());
+                    .Returns(Fakes.ToPrincipal(fakes.Owner));
 
-                JsonResult result = await controller.AddPackageOwner(Fakes.Package.Id, "notARealUser");
+                JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, "notARealUser");
                 dynamic data = result.Data;
 
                 Assert.False(data.success);
@@ -58,34 +59,36 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task CreatesPackageOwnerRequestSendsEmailAndReturnsPendingState()
             {
+                var fakes = Get<Fakes>();
+
                 var controller = GetController<JsonApiController>();
 
                 var httpContextMock = GetMock<HttpContextBase>();
                 httpContextMock
                     .Setup(c => c.User)
-                    .Returns(Fakes.Owner.ToPrincipal())
+                    .Returns(Fakes.ToPrincipal(fakes.Owner))
                     .Verifiable();
 
                 var packageServiceMock = GetMock<IPackageService>();
                 packageServiceMock
-                    .Setup(p => p.CreatePackageOwnerRequestAsync(Fakes.Package, Fakes.Owner, Fakes.User))
+                    .Setup(p => p.CreatePackageOwnerRequestAsync(fakes.Package, fakes.Owner, fakes.User))
                     .Returns(Task.FromResult(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" }))
                     .Verifiable();
 
                 var messageServiceMock = GetMock<IMessageService>();
                 messageServiceMock
                     .Setup(m => m.SendPackageOwnerRequest(
-                        Fakes.Owner,
-                        Fakes.User,
-                        Fakes.Package,
+                        fakes.Owner,
+                        fakes.User,
+                        fakes.Package,
                         "https://nuget.local/packages/FakePackage/owners/testUser/confirm/confirmation-code"))
                     .Verifiable();
 
-                JsonResult result = await controller.AddPackageOwner(Fakes.Package.Id, Fakes.User.Username);
+                JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, fakes.User.Username);
                 dynamic data = result.Data;
 
                 Assert.True(data.success);
-                Assert.Equal(Fakes.User.Username, data.name);
+                Assert.Equal(fakes.User.Username, data.name);
                 Assert.True(data.pending);
 
                 httpContextMock.Verify();
