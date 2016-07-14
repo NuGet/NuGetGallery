@@ -55,11 +55,16 @@ namespace Ng
         public const string SrcStorageKeyValue = "srcStorageKeyValue";
         public const string StartDate = "startDate";
         public const string StorageAccountName = "storageAccountName";
+        public const string StorageAccountNameAuditing = "storageAccountNameAuditing";
         public const string StorageBaseAddress = "storageBaseAddress";
         public const string StorageContainer = "storageContainer";
+        public const string StorageContainerAuditing = "storageContainerAuditing";
         public const string StorageKeyValue = "storageKeyValue";
+        public const string StorageKeyValueAuditing = "storageKeyValueAuditing";
         public const string StoragePath = "storagePath";
+        public const string StoragePathAuditing = "storagePathAuditing";
         public const string StorageType = "storageType";
+        public const string StorageTypeAuditing = "storageTypeAuditing";
         public const string VaultName = "vaultName";
         public const string ValidateCertificate = "validateCertificate";
         public const string Verbose = "verbose";

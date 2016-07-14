@@ -50,8 +50,31 @@ namespace Ng
 
         private static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2registration -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path> [-vaultName <keyvault-name> -clientId <keyvault-client-id> -certificateThumbprint <keyvault-certificate-thumbprint> [-validateCertificate true|false]]] [-verbose true|false] [-interval <seconds>]");
-            Console.WriteLine("To compress data in a separate container, add: -useCompressedStorage [true|false] -compressedStorageBaseAddress <storage-base-address> -compressedStorageAccountName <azure-acc> -compressedStorageKeyValue <azure-key> -compressedstorageContainer <azure-container> -compressedStoragePath <path>");
+            Console.WriteLine("Usage: ng catalog2registration "
+                + "-"  + CommandHelpers.Source             + " <catalog> "
+                + "-"  + CommandHelpers.ContentBaseAddress + " <content-address> "
+                + "-"  + CommandHelpers.StorageBaseAddress + " <storage-base-address> "
+                + "-"  + CommandHelpers.StorageType        + " file|azure "
+                + "[-" + CommandHelpers.StoragePath        + " <path>]"
+                + "|"
+                + "[-"    + CommandHelpers.StorageAccountName + " <azure-acc>"
+                    + "-" + CommandHelpers.StorageKeyValue    + " <azure-key> "
+                    + "-" + CommandHelpers.StorageContainer   + " <azure-container> "
+                    + "-" + CommandHelpers.StoragePath        + " <path> "
+                    + "[-"     + CommandHelpers.VaultName             + " <keyvault-name> "
+                        + "-"  + CommandHelpers.ClientId              + " <keyvault-client-id> "
+                        + "-"  + CommandHelpers.CertificateThumbprint + " <keyvault-certificate-thumbprint> "
+                        + "[-" + CommandHelpers.ValidateCertificate   + " true|false]]] "
+                + "[-" + CommandHelpers.Verbose  + " true|false] "
+                + "[-" + CommandHelpers.Interval + " <seconds>]");
+
+            Console.WriteLine("To compress data in a separate container, add: "
+                + "-" + CommandHelpers.UseCompressedStorage         + " [true|false] "
+                + "-" + CommandHelpers.CompressedStorageBaseAddress + " <storage-base-address> "
+                + "-" + CommandHelpers.CompressedStorageAccountName + " <azure-acc> "
+                + "-" + CommandHelpers.CompressedStorageKeyValue    + " <azure-key> "
+                + "-" + CommandHelpers.CompressedStorageContainer   + " <azure-container> "
+                + "-" + CommandHelpers.CompressedStoragePath        + " <path>");
         }
 
         public void Run(string[] args, CancellationToken cancellationToken)

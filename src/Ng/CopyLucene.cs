@@ -11,7 +11,23 @@ namespace Ng
     {
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng copylucene -srcDirectoryType file|azure [-srcPath <file-path>] | [-srcStorageAccountName <azure-acc> -srcStorageKeyValue <azure-key> -srcStorageContainer <azure-container>] -destDirectoryType file|azure [-destPath <file-path>] | [-destStorageAccountName <azure-acc> -destStorageKeyValue <azure-key> -destStorageContainer <azure-container>] [-vaultName <keyvault-name> -clientId <keyvault-client-id> -certificateThumbprint <keyvault-certificate-thumbprint> [-validateCertificate true|false]]");
+            Console.WriteLine("Usage: ng copylucene "
+                + "-"  + CommandHelpers.SrcDirectoryType + " file|azure "
+                + "[-" + CommandHelpers.SrcPath          + " <file-path>] "
+                + "| "
+                + "[-"    + CommandHelpers.SrcStorageAccountName + " <azure-acc> "
+                    + "-" + CommandHelpers.SrcStorageKeyValue    + " <azure-key> "
+                    + "-" + CommandHelpers.SrcStorageContainer   + " <azure-container>] "
+                + "-"  + CommandHelpers.DestDirectoryType + " file|azure "
+                + "[-" + CommandHelpers.DestPath          + " <file-path>] "
+                + "| "
+                + "[-"     + CommandHelpers.DestStorageAccountName + " <azure-acc> "
+                    + "-"  + CommandHelpers.DestStorageKeyValue    + " <azure-key> "
+                    + "-"  + CommandHelpers.DestStorageContainer   + " <azure-container>] "
+                    + "[-"     + CommandHelpers.VaultName             + " <keyvault-name> "
+                        + "-"  + CommandHelpers.ClientId              + " <keyvault-client-id> "
+                        + "-"  + CommandHelpers.CertificateThumbprint + " <keyvault-certificate-thumbprint> "
+                        + "[-" + CommandHelpers.ValidateCertificate   + " true|false]]");
         }
 
         public static void Run(string[] args)

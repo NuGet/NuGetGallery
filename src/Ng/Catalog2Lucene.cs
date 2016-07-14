@@ -27,12 +27,12 @@ namespace Ng
                         indexWriter: indexWriter,
                         commitEachBatch: false,
                         baseAddress: catalogBaseAddress,
-                        handlerFunc : handlerFunc);
+                        handlerFunc: handlerFunc);
 
                     ReadWriteCursor front = new LuceneCursor(indexWriter, MemoryCursor.MinValue);
 
-                    ReadCursor back = registration == null 
-                        ? (ReadCursor)MemoryCursor.CreateMax() 
+                    ReadCursor back = registration == null
+                        ? (ReadCursor)MemoryCursor.CreateMax()
                         : new HttpReadCursor(new Uri(registration), handlerFunc);
 
                     bool run = false;
@@ -74,7 +74,21 @@ namespace Ng
 
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2lucene -source <catalog> [-registration <registration-root>] -luceneDirectoryType file|azure [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container> [-vaultName <keyvault-name> -clientId <keyvault-client-id> -certificateThumbprint <keyvault-certificate-thumbprint> [-validateCertificate true|false]]] [-verbose true|false] [-interval <seconds>]");
+            Console.WriteLine("Usage: ng catalog2lucene "
+                + "-"  + CommandHelpers.Source              + " <catalog> "
+                + "[-" + CommandHelpers.Registration        + " <registration-root>] "
+                + "-"  + CommandHelpers.LuceneDirectoryType + " file|azure "
+                + "[-" + CommandHelpers.LucenePath          + " <file-path>] "
+                + "|"
+                + "[-"     + CommandHelpers.LuceneStorageAccountName + " <azure-acc> "
+                    + "-"  + CommandHelpers.LuceneStorageKeyValue    + " <azure-key> "
+                    + "-"  + CommandHelpers.LuceneStorageContainer   + " <azure-container> "
+                    + "[-"     + CommandHelpers.VaultName                + " <keyvault-name> "
+                        + "-"  + CommandHelpers.ClientId                 + " <keyvault-client-id> "
+                        + "-"  + CommandHelpers.CertificateThumbprint    + " <keyvault-certificate-thumbprint> "
+                        + "[-" + CommandHelpers.ValidateCertificate      + " true|false]]] "
+                + "[-" + CommandHelpers.Verbose  + " true|false] "
+                + "[-" + CommandHelpers.Interval + " <seconds>]");
         }
 
         public static void Run(string[] args, CancellationToken cancellationToken)

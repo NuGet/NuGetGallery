@@ -49,7 +49,23 @@ namespace Ng
 
         private static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2dnx -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path> [-vaultName <keyvault-name> -clientId <keyvault-client-id> -certificateThumbprint <keyvault-certificate-thumbprint> [-validateCertificate true|false]]] [-verbose true|false] [-interval <seconds>]");
+            Console.WriteLine("Usage: ng catalog2dnx "
+                + "-"  + CommandHelpers.Source             + " <catalog> "
+                + "-"  + CommandHelpers.ContentBaseAddress + " <content-address> "
+                + "-"  + CommandHelpers.StorageBaseAddress + " <storage-base-address> "
+                + "-"  + CommandHelpers.StorageType        + " file|azure "
+                + "[-" + CommandHelpers.StoragePath        + " <path>]"
+                + "|"
+                + "[-"     + CommandHelpers.StorageAccountName + " <azure-acc>"
+                    + "-"  + CommandHelpers.StorageKeyValue    + " <azure-key> "
+                    + "-"  + CommandHelpers.StorageContainer   + " <azure-container> "
+                    + "-"  + CommandHelpers.StoragePath        + " <path> "
+                    + "[-"     + CommandHelpers.VaultName             + " <keyvault-name> "
+                        + "-"  + CommandHelpers.ClientId              + " <keyvault-client-id> "
+                        + "-"  + CommandHelpers.CertificateThumbprint + " <keyvault-certificate-thumbprint> "
+                        + "[-" + CommandHelpers.ValidateCertificate   + " true|false]]] "
+                + "[-" + CommandHelpers.Verbose  + " true|false] "
+                + "[-" + CommandHelpers.Interval + " <seconds>]");
         }
 
         public void Run(string[] args, CancellationToken cancellationToken)

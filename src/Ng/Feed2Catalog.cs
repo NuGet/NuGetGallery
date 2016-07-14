@@ -579,7 +579,30 @@ namespace Ng
 
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng feed2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path> [-vaultName <keyvault-name> -clientId <keyvault-client-id> -certificateThumbprint <keyvault-certificate-thumbprint> [-validateCertificate true|false]]] -storageTypeAuditing file|azure [-storagePathAuditing <path>]|[-storageAccountNameAuditing <azure-acc> -storageKeyValueAuditing <azure-key> -storageContainerAuditing <azure-container> -storagePathAuditing <path>]  [-verbose true|false] [-interval <seconds>] [-startDate <DateTime>]");
+            Console.WriteLine("Usage: ng feed2catalog "
+                + "-" + CommandHelpers.Gallery + " <v2-feed-address> "
+                + "-" + CommandHelpers.StorageBaseAddress + " <storage-base-address> "
+                + "-" + CommandHelpers.StorageType + " file|azure "
+                + "[-" + CommandHelpers.StoragePath + " <path>]"
+                + "|"
+                + "[-" + CommandHelpers.StorageAccountName + " <azure-acc> "
+                    + "-" + CommandHelpers.StorageKeyValue + " <azure-key> "
+                    + "-" + CommandHelpers.StorageContainer + " <azure-container> "
+                    + "-" + CommandHelpers.StoragePath + " <path> "
+                    + "[-" + CommandHelpers.VaultName + " <keyvault-name> "
+                        + "-" + CommandHelpers.ClientId + " <keyvault-client-id> "
+                        + "-" + CommandHelpers.CertificateThumbprint + " <keyvault-certificate-thumbprint> "
+                        + "[-" + CommandHelpers.ValidateCertificate + " true|false]]] "
+                + "-" + CommandHelpers.StorageTypeAuditing + " file|azure "
+                + "[-" + CommandHelpers.StoragePathAuditing + " <path>]"
+                + "|"
+                + "[-" + CommandHelpers.StorageAccountNameAuditing + " <azure-acc> "
+                    + "-" + CommandHelpers.StorageKeyValueAuditing + " <azure-key> "
+                    + "-" + CommandHelpers.StorageContainerAuditing +" <azure-container> "
+                    + "-" + CommandHelpers.StoragePathAuditing + " <path>] "
+                + "[-" + CommandHelpers.Verbose + " true|false] "
+                + "[-" + CommandHelpers.Interval + " <seconds>] "
+                + "[-" + CommandHelpers.StartDate + " <DateTime>]");
         }
 
         public void Run(string[] args, CancellationToken cancellationToken)
@@ -629,7 +652,19 @@ namespace Ng
 
         static void PackagePrintUsage()
         {
-            Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> [-version <version>]");
+            Console.WriteLine("Usage: ng package2catalog "
+                + "-"  + CommandHelpers.Gallery            + " <v2-feed-address> "
+                + "-"  + CommandHelpers.StorageBaseAddress + " <storage-base-address> "
+                + "-"  + CommandHelpers.StorageType        + " file|azure "
+                + "[-" + CommandHelpers.StoragePath        + " <path>]"
+                + "|"
+                + "[-"    + CommandHelpers.StorageAccountName + " <azure-acc> "
+                    + "-" + CommandHelpers.StorageKeyValue    + " <azure-key> "
+                    + "-" + CommandHelpers.StorageContainer   + " <azure-container> "
+                    + "-" + CommandHelpers.StoragePath        + " <path>] "
+                + "[-" + CommandHelpers.Verbose + " true|false] "
+                + "-"  + CommandHelpers.Id      + " <id> "
+                + "[-" + CommandHelpers.Version + " <version>]");
         }
 
         public void Package(string[] args, CancellationToken cancellationToken)

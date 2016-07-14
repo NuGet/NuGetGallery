@@ -10,7 +10,13 @@ namespace Ng
     {
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng checklucene -luceneDirectoryType file|azure [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container>]");
+            Console.WriteLine("Usage: ng checklucene "
+                + "-"  + CommandHelpers.LuceneDirectoryType + " file|azure "
+                + "[-" + CommandHelpers.LucenePath          + " <file-path>]"
+                + "|"
+                + "[-"    + CommandHelpers.LuceneStorageAccountName + " <azure-acc> "
+                    + "-" + CommandHelpers.LuceneStorageKeyValue    + " <azure-key> "
+                    + "-" + CommandHelpers.LuceneStorageContainer   + " <azure-container>]");
         }
 
         public static void Run(string[] args)
