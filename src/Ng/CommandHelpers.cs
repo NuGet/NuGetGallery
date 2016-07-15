@@ -17,66 +17,10 @@ namespace Ng
 {
     static class CommandHelpers
     {
-        #region ArgumentStrings
-        public const string CatalogBaseAddress = "catalogBaseAddress";
-        public const string CertificateThumbprint = "certificateThumbprint";
-        public const string CompressedStorageAccountName = "compressedStorageAccountName";
-        public const string CompressedStorageBaseAddress = "compressedStorageBaseAddress";
-        public const string CompressedStorageContainer = "compressedStorageContainer";
-        public const string CompressedStorageKeyValue = "compressedStorageKeyValue";
-        public const string CompressedStoragePath = "compressedStoragePath";
-        public const string ConnectionString = "connectionString";
-        public const string ContentBaseAddress = "contentBaseAddress";
-        public const string ClientId = "clientId";
-        public const string DestDirectoryType = "destDirectoryType";
-        public const string DestPath = "destPath";
-        public const string DestStorageAccountName = "destStorageAccountName";
-        public const string DestStorageContainer = "destStorageContainer";
-        public const string DestStorageKeyValue = "destStorageKeyValue";
-        public const string DirectoryType = "directoryType";
-        public const string Gallery = "gallery";
-        public const string Id = "id";
-        public const string InstrumentationKey = "instrumentationKey";
-        public const string Interval = "interval";
-        public const string LuceneDirectoryType = "luceneDirectoryType";
-        public const string LucenePath = "lucenePath";
-        public const string LuceneRegistrationTemplate = "luceneRegistrationTemplate";
-        public const string LuceneReset = "luceneReset";
-        public const string LuceneStorageAccountName = "luceneStorageAccountName";
-        public const string LuceneStorageContainer = "luceneStorageContainer";
-        public const string LuceneStorageKeyValue = "luceneStorageKeyValue";
-        public const string Path = "path";
-        public const string Registration = "registration";
-        public const string Source = "source";
-        public const string SrcDirectoryType = "srcDirectoryType";
-        public const string SrcPath = "srcPath";
-        public const string SrcStorageAccountName = "srcStorageAccountName";
-        public const string SrcStorageContainer = "srcStorageContainer";
-        public const string SrcStorageKeyValue = "srcStorageKeyValue";
-        public const string StartDate = "startDate";
-        public const string StorageAccountName = "storageAccountName";
-        public const string StorageAccountNameAuditing = "storageAccountNameAuditing";
-        public const string StorageBaseAddress = "storageBaseAddress";
-        public const string StorageContainer = "storageContainer";
-        public const string StorageContainerAuditing = "storageContainerAuditing";
-        public const string StorageKeyValue = "storageKeyValue";
-        public const string StorageKeyValueAuditing = "storageKeyValueAuditing";
-        public const string StoragePath = "storagePath";
-        public const string StoragePathAuditing = "storagePathAuditing";
-        public const string StorageType = "storageType";
-        public const string StorageTypeAuditing = "storageTypeAuditing";
-        public const string VaultName = "vaultName";
-        public const string ValidateCertificate = "validateCertificate";
-        public const string Verbose = "verbose";
-        public const string Version = "version";
-        public const string UnlistShouldDelete = "unlistShouldDelete";
-        public const string UseCompressedStorage = "useCompressedStorage"; 
-        #endregion
-
         public static IDictionary<string, string> GetArguments(string[] args, int start)
         {
-            IDictionary<string, string> result = new Dictionary<string, string>();
-            List<string> inputArgs = new List<string>();
+            var result = new Dictionary<string, string>();
+            var inputArgs = new List<string>();
 
             if (args.Length == start)
             {
@@ -97,12 +41,9 @@ namespace Ng
 
             var secretInjector = GetSecretInjector(result);
 
-            if (secretInjector != null)
+            foreach (string input in inputArgs)
             {
-                foreach (string input in inputArgs)
-                {
-                    result[input] = secretInjector.InjectAsync(result[input]).Result;
-                }
+                result[input] = secretInjector.InjectAsync(result[input]).Result;
             }
 
             return result;
@@ -114,141 +55,131 @@ namespace Ng
             Trace.TraceError("Required argument \"{0}\" not provided", name);
         }
 
-        private static void TraceMissingArgument(string name)
+        private static bool TryGetArgument(IDictionary<string, string> arguments, string searchArg, out string value, bool required = false)
         {
-            Console.WriteLine("Argument \"{0}\" not provided", name);
-            Trace.TraceWarning("Argument \"{0}\" not provided", name);
-        }
-
-        private static void TryGetArgument(IDictionary<string, string> arguments, string searchArg, out string value, bool required = false)
-        {
-            if (!arguments.TryGetValue("-" + searchArg, out value))
+            if (!arguments.TryGetValue(Constants.ArgumentPrefix + searchArg, out value))
             {
                 if (required)
                 {
                     TraceRequiredArgument(searchArg);
-                    throw new ArgumentException();
-                }
-                else
-                {
-                    TraceMissingArgument(searchArg);
+                    throw new ArgumentException("Required argument not provided", searchArg);
                 }
 
                 value = null;
+                return false;
             }
+
+            return true;
         }
 
         public static SecretInjector GetSecretInjector(IDictionary<string, string> arguments)
         {
+            ISecretReader secretReader;
             try
             {
                 string vaultName;
-                TryGetArgument(arguments, VaultName, out vaultName, required: true);
+                if (!TryGetArgument(arguments, Constants.VaultName, out vaultName))
+                {
+                    secretReader = new EmptySecretReader();
+                }
+                else
+                {
+                    string clientId;
+                    TryGetArgument(arguments, Constants.ClientId, out clientId, required: true);
 
-                string clientId;
-                TryGetArgument(arguments, ClientId, out clientId, required: true);
+                    string certificateThumbprint;
+                    TryGetArgument(arguments, Constants.CertificateThumbprint, out certificateThumbprint, required: true);
 
-                string certificateThumbprint = "";
-                TryGetArgument(arguments, CertificateThumbprint, out certificateThumbprint, required: true);
+                    bool shouldValidateCertificate = GetBool(arguments, Constants.ValidateCertificate, defaultValue: false);
 
-                string validateCertificate = "false";
-                arguments.TryGetValue(ValidateCertificate, out validateCertificate);
-
-                bool shouldValidateCertificate = validateCertificate == null
-                    ? false
-                    : validateCertificate.Equals("true", StringComparison.InvariantCultureIgnoreCase);
-
-                var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, shouldValidateCertificate);
-                var keyVaultReader = new KeyVaultReader(keyVaultConfiguration);
-                return new SecretInjector(keyVaultReader);
+                    var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, shouldValidateCertificate);
+                    secretReader = new KeyVaultReader(keyVaultConfiguration);
+                }
             }
             catch (ArgumentException)
             {
-                return null;
+                secretReader = new EmptySecretReader();
             }
 
+            return new SecretInjector(secretReader);
         }
 
         public static string GetSource(IDictionary<string, string> arguments)
         {
             string value;
-            TryGetArgument(arguments, Source, out value);
+            TryGetArgument(arguments, Constants.Source, out value);
             return value;
         }
 
         public static string GetGallery(IDictionary<string, string> arguments)
         {
             string value;
-            TryGetArgument(arguments, Gallery, out value);
+            TryGetArgument(arguments, Constants.Gallery, out value);
             return value;
         }
 
         public static string GetRegistration(IDictionary<string, string> arguments)
         {
             string value;
-            TryGetArgument(arguments, Registration, out value);
+            TryGetArgument(arguments, Constants.Registration, out value);
             return value;
         }
 
         public static string GetCatalogBaseAddress(IDictionary<string, string> arguments)
         {
             string value;
-            TryGetArgument(arguments, CatalogBaseAddress, out value);
+            TryGetArgument(arguments, Constants.CatalogBaseAddress, out value);
             return value;
         }
 
         public static string GetStorageBaseAddress(IDictionary<string, string> arguments)
         {
             string value;
-            TryGetArgument(arguments, StorageBaseAddress, out value);
+            TryGetArgument(arguments, Constants.StorageBaseAddress, out value);
             return value;
         }
 
         public static string GetId(IDictionary<string, string> arguments)
         {
             string value;
-            TryGetArgument(arguments, Id, out value);
+            TryGetArgument(arguments, Constants.Id, out value);
             return value;
         }
 
         public static string GetVersion(IDictionary<string, string> arguments)
         {
             string value;
-            TryGetArgument(arguments, Version, out value);
+            TryGetArgument(arguments, Constants.Version, out value);
             return value;
         }
 
         public static bool GetUnlistShouldDelete(IDictionary<string, string> arguments)
         {
-            return GetBool(arguments, UnlistShouldDelete, false);
+            return GetBool(arguments, Constants.UnlistShouldDelete, defaultValue: false);
         }
 
         public static bool GetVerbose(IDictionary<string, string> arguments)
         {
-            string verboseStr = "false";
-            arguments.TryGetValue("-verbose", out verboseStr);
-
-            bool verbose = verboseStr == null ? false : verboseStr.Equals("true", StringComparison.InvariantCultureIgnoreCase);
-
-            return verbose;
+            return GetBool(arguments, Constants.Verbose, defaultValue: false);
         }
 
         public static bool GetBool(IDictionary<string, string> arguments, string argumentName, bool defaultValue)
         {
+            bool result;
             string argumentValue;
             TryGetArgument(arguments, argumentName, out argumentValue);
-            return string.IsNullOrEmpty(argumentValue) ? defaultValue : argumentValue.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+
+            return bool.TryParse(argumentValue, out result) ? result : defaultValue;
         }
 
-        public static int GetInterval(IDictionary<string, string> arguments)
+        public static int GetInterval(IDictionary<string, string> arguments, int defaultInterval)
         {
-            const int DefaultInterval = 3; // seconds
-            int interval = DefaultInterval;
+            int interval = defaultInterval;
             string intervalStr = string.Empty;
-            TryGetArgument(arguments, Interval, out intervalStr);
+            TryGetArgument(arguments, Constants.Interval, out intervalStr);
             if (!int.TryParse(intervalStr, out interval))
             {
-                interval = DefaultInterval;
+                interval = defaultInterval;
             }
 
             return interval;
@@ -258,7 +189,7 @@ namespace Ng
         {
             DateTime defaultStartDate = DateTime.MinValue;
             string startDateString;
-            TryGetArgument(arguments, StartDate, out startDateString);
+            TryGetArgument(arguments, Constants.StartDate, out startDateString);
             if (!DateTime.TryParse(startDateString, out defaultStartDate))
             {
                 defaultStartDate = DateTime.MinValue;
@@ -272,7 +203,7 @@ namespace Ng
             string value;
             try
             {
-                TryGetArgument(arguments, LuceneRegistrationTemplate, out value, required: true);
+                TryGetArgument(arguments, Constants.LuceneRegistrationTemplate, out value, required: true);
             }
             catch (ArgumentException)
             {
@@ -285,7 +216,7 @@ namespace Ng
         public static string GetContentBaseAddress(IDictionary<string, string> arguments)
         {
             string value;
-            TryGetArgument(arguments, ContentBaseAddress, out value);
+            TryGetArgument(arguments, Constants.ContentBaseAddress, out value);
             return value;
         }
 
@@ -294,7 +225,7 @@ namespace Ng
             try
             {
                 string useCompressedStorage = "false";
-                TryGetArgument(arguments, UseCompressedStorage, out useCompressedStorage);
+                TryGetArgument(arguments, Constants.UseCompressedStorage, out useCompressedStorage);
 
                 if (useCompressedStorage != null && useCompressedStorage.Equals("false", StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -303,8 +234,7 @@ namespace Ng
 
                 Uri storageBaseAddress = null;
                 string storageBaseAddressStr;
-                TryGetArgument(arguments, StorageBaseAddress, out storageBaseAddressStr);
-                if (!string.IsNullOrEmpty(storageBaseAddressStr))
+                if (!TryGetArgument(arguments, Constants.StorageBaseAddress, out storageBaseAddressStr))
                 {
                     storageBaseAddressStr = storageBaseAddressStr.TrimEnd('/') + "/";
 
@@ -312,16 +242,16 @@ namespace Ng
                 }
 
                 string storageAccountName;
-                TryGetArgument(arguments, CompressedStorageAccountName, out storageAccountName, required: true);
+                TryGetArgument(arguments, Constants.CompressedStorageAccountName, out storageAccountName, required: true);
 
                 string storageKeyValue;
-                TryGetArgument(arguments, CompressedStorageKeyValue, out storageKeyValue, required: true);
+                TryGetArgument(arguments, Constants.CompressedStorageKeyValue, out storageKeyValue, required: true);
 
                 string storageContainer;
-                TryGetArgument(arguments, CompressedStorageContainer, out storageContainer, required: true);
+                TryGetArgument(arguments, Constants.CompressedStorageContainer, out storageContainer, required: true);
 
                 string storagePath = null;
-                TryGetArgument(arguments, CompressedStoragePath, out storagePath);
+                TryGetArgument(arguments, Constants.CompressedStoragePath, out storagePath);
 
                 StorageCredentials credentials = new StorageCredentials(storageAccountName, storageKeyValue);
                 CloudStorageAccount account = new CloudStorageAccount(credentials, true);
@@ -339,8 +269,7 @@ namespace Ng
             {
                 Uri storageBaseAddress = null;
                 string storageBaseAddressStr;
-                TryGetArgument(arguments, StorageBaseAddress, out storageBaseAddressStr);
-                if (!string.IsNullOrEmpty(storageBaseAddressStr))
+                if (!TryGetArgument(arguments, Constants.StorageBaseAddress, out storageBaseAddressStr))
                 {
                     storageBaseAddressStr = storageBaseAddressStr.TrimEnd('/') + "/";
 
@@ -348,12 +277,12 @@ namespace Ng
                 }
 
                 string storageType;
-                TryGetArgument(arguments, StorageType, out storageType, required: true);
+                TryGetArgument(arguments, Constants.StorageType, out storageType, required: true);
 
                 if (storageType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
                 {
                     string storagePath;
-                    TryGetArgument(arguments, StoragePath, out storagePath, required: true);
+                    TryGetArgument(arguments, Constants.StoragePath, out storagePath, required: true);
 
                     if (storageBaseAddress == null)
                     {
@@ -366,16 +295,16 @@ namespace Ng
                 else if (storageType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
                 {
                     string storageContainer;
-                    TryGetArgument(arguments, StorageContainer, out storageContainer, required: true);
+                    TryGetArgument(arguments, Constants.StorageContainer, out storageContainer, required: true);
 
                     string storageAccountName;
-                    TryGetArgument(arguments, StorageAccountName, out storageAccountName, required: true);
+                    TryGetArgument(arguments, Constants.StorageAccountName, out storageAccountName, required: true);
 
                     string storageKeyValue;
-                    TryGetArgument(arguments, StorageKeyValue, out storageKeyValue, required: true);
+                    TryGetArgument(arguments, Constants.StorageKeyValue, out storageKeyValue, required: true);
 
                     string storagePath;
-                    TryGetArgument(arguments, StoragePath, out storagePath);
+                    TryGetArgument(arguments, Constants.StoragePath, out storagePath);
 
                     StorageCredentials credentials = new StorageCredentials(storageAccountName, storageKeyValue);
                     CloudStorageAccount account = new CloudStorageAccount(credentials, true);
@@ -403,7 +332,7 @@ namespace Ng
             {
                 Uri storageBaseAddress = null;
                 string storageBaseAddressStr;
-                TryGetArgument(arguments, StorageBaseAddress + suffix, out storageBaseAddressStr);
+                TryGetArgument(arguments, Constants.StorageBaseAddress + suffix, out storageBaseAddressStr);
                 if (!string.IsNullOrEmpty(storageBaseAddressStr))
                 {
                     storageBaseAddressStr = storageBaseAddressStr.TrimEnd('/') + "/";
@@ -412,12 +341,12 @@ namespace Ng
                 }
 
                 string storageType;
-                TryGetArgument(arguments, StorageType, out storageType, required: true);
+                TryGetArgument(arguments, Constants.StorageType, out storageType, required: true);
 
                 if (storageType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
                 {
                     string storagePath;
-                    TryGetArgument(arguments, StoragePath + suffix, out storagePath, required: true);
+                    TryGetArgument(arguments, Constants.StoragePath + suffix, out storagePath, required: true);
 
                     if (storageBaseAddress == null)
                     {
@@ -430,16 +359,16 @@ namespace Ng
                 else if (storageType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
                 {
                     string storageAccountName;
-                    TryGetArgument(arguments, StorageAccountName + suffix, out storageAccountName, required: true);
+                    TryGetArgument(arguments, Constants.StorageAccountName + suffix, out storageAccountName, required: true);
 
                     string storageKeyValue;
-                    TryGetArgument(arguments, StorageKeyValue + suffix, out storageKeyValue, required: true);
+                    TryGetArgument(arguments, Constants.StorageKeyValue + suffix, out storageKeyValue, required: true);
 
                     string storageContainer;
-                    TryGetArgument(arguments, StorageContainer + suffix, out storageContainer, required: true);
+                    TryGetArgument(arguments, Constants.StorageContainer + suffix, out storageContainer, required: true);
 
                     string storagePath = null;
-                    TryGetArgument(arguments, StoragePath + suffix, out storagePath);
+                    TryGetArgument(arguments, Constants.StoragePath + suffix, out storagePath);
 
                     StorageCredentials credentials = new StorageCredentials(storageAccountName, storageKeyValue);
                     CloudStorageAccount account = new CloudStorageAccount(credentials, true);
@@ -459,18 +388,18 @@ namespace Ng
 
         public static bool GetLuceneReset(IDictionary<string, string> arguments)
         {
-            return GetBool(arguments, LuceneReset, false);
+            return GetBool(arguments, Constants.LuceneReset, false);
         }
 
         public static Lucene.Net.Store.Directory GetLuceneDirectory(IDictionary<string, string> arguments)
         {
             IDictionary<string, string> names = new Dictionary<string, string>
             {
-                { DirectoryType, LuceneDirectoryType },
-                { Path, LucenePath },
-                { StorageAccountName, LuceneStorageAccountName },
-                { StorageKeyValue, LuceneStorageKeyValue },
-                { StorageContainer, LuceneStorageContainer }
+                { Constants.DirectoryType, Constants.LuceneDirectoryType },
+                { Constants.Path, Constants.LucenePath },
+                { Constants.StorageAccountName, Constants.LuceneStorageAccountName },
+                { Constants.StorageKeyValue, Constants.LuceneStorageKeyValue },
+                { Constants.StorageContainer, Constants.LuceneStorageContainer }
             };
 
             return GetLuceneDirectoryImpl(arguments, names);
@@ -480,11 +409,11 @@ namespace Ng
         {
             IDictionary<string, string> names = new Dictionary<string, string>
             {
-                { DirectoryType, SrcDirectoryType },
-                { Path, SrcPath },
-                { StorageAccountName, SrcStorageAccountName },
-                { StorageKeyValue, SrcStorageKeyValue },
-                { StorageContainer, SrcStorageContainer }
+                { Constants.DirectoryType, Constants.SrcDirectoryType },
+                { Constants.Path, Constants.SrcPath },
+                { Constants.StorageAccountName, Constants.SrcStorageAccountName },
+                { Constants.StorageKeyValue, Constants.SrcStorageKeyValue },
+                { Constants.StorageContainer, Constants.SrcStorageContainer }
             };
 
             return GetLuceneDirectoryImpl(arguments, names);
@@ -494,11 +423,11 @@ namespace Ng
         {
             IDictionary<string, string> names = new Dictionary<string, string>
             {
-                { DirectoryType, DestDirectoryType },
-                { Path, DestPath },
-                { StorageAccountName, DestStorageAccountName },
-                { StorageKeyValue, DestStorageKeyValue },
-                { StorageContainer, DestStorageContainer }
+                { Constants.DirectoryType, Constants.DestDirectoryType },
+                { Constants.Path, Constants.DestPath },
+                { Constants.StorageAccountName, Constants.DestStorageAccountName },
+                { Constants.StorageKeyValue, Constants.DestStorageKeyValue },
+                { Constants.StorageContainer, Constants.DestStorageContainer }
             };
 
             return GetLuceneDirectoryImpl(arguments, names);
@@ -509,12 +438,12 @@ namespace Ng
             try
             {
                 string luceneDirectoryType;
-                TryGetArgument(arguments, names[DirectoryType], out luceneDirectoryType, required: true);
+                TryGetArgument(arguments, names[Constants.DirectoryType], out luceneDirectoryType, required: true);
 
                 if (luceneDirectoryType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
                 {
                     string lucenePath;
-                    TryGetArgument(arguments, names[Path], out lucenePath, required: true);
+                    TryGetArgument(arguments, names[Constants.Path], out lucenePath, required: true);
 
                     DirectoryInfo directoryInfo = new DirectoryInfo(lucenePath);
 
@@ -529,13 +458,13 @@ namespace Ng
                 else if (luceneDirectoryType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
                 {
                     string luceneStorageAccountName;
-                    TryGetArgument(arguments, names[StorageAccountName], out luceneStorageAccountName, required: true);
+                    TryGetArgument(arguments, names[Constants.StorageAccountName], out luceneStorageAccountName, required: true);
 
                     string luceneStorageKeyValue;
-                    TryGetArgument(arguments, names[StorageKeyValue], out luceneStorageKeyValue, required: true);
+                    TryGetArgument(arguments, names[Constants.StorageKeyValue], out luceneStorageKeyValue, required: true);
 
                     string luceneStorageContainer;
-                    TryGetArgument(arguments, names[StorageContainer], out luceneStorageContainer, required: true);
+                    TryGetArgument(arguments, names[Constants.StorageContainer], out luceneStorageContainer, required: true);
 
                     StorageCredentials credentials = new StorageCredentials(luceneStorageAccountName, luceneStorageKeyValue);
                     CloudStorageAccount account = new CloudStorageAccount(credentials, true);
@@ -547,7 +476,7 @@ namespace Ng
                     return null;
                 }
             }
-            catch(ArgumentException)
+            catch (ArgumentException)
             {
                 return null;
             }
@@ -574,7 +503,7 @@ namespace Ng
         public static string GetConnectionString(IDictionary<string, string> arguments)
         {
             string connectionString;
-            TryGetArgument(arguments, ConnectionString, out connectionString);
+            TryGetArgument(arguments, Constants.ConnectionString, out connectionString);
             return connectionString;
         }
 
@@ -588,7 +517,7 @@ namespace Ng
         public static string GetPath(IDictionary<string, string> arguments)
         {
             string path;
-            TryGetArgument(arguments, Path, out path);
+            TryGetArgument(arguments, Constants.Path, out path);
             return path;
         }
 

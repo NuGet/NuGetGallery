@@ -40,9 +40,9 @@ namespace Ng
         private static void PrintUsage()
         {
             Console.WriteLine("Usage: ng db2lucene "
-                + "-"  + CommandHelpers.ConnectionString + " <connectionString> "
-                + "-"  + CommandHelpers.Path             + " <folder> "
-                + "[-" + CommandHelpers.Verbose          + " true|false]");
+                + $"-{Constants.ConnectionString} <connectionString> "
+                + $"-{Constants.Path} <folder> "
+                + $"[-{Constants.Verbose} true|false]");
         }
     }
 }

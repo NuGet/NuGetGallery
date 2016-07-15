@@ -276,6 +276,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants.cs" />
     <Compile Include="Catalog2Dnx.cs" />
     <Compile Include="Json\RegistrationBaseUrlRewritingJsonReader.cs" />
     <Compile Include="Json\InterceptingJsonReader.cs" />

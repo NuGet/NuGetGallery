@@ -50,22 +50,22 @@ namespace Ng
         private static void PrintUsage()
         {
             Console.WriteLine("Usage: ng catalog2dnx "
-                + "-"  + CommandHelpers.Source             + " <catalog> "
-                + "-"  + CommandHelpers.ContentBaseAddress + " <content-address> "
-                + "-"  + CommandHelpers.StorageBaseAddress + " <storage-base-address> "
-                + "-"  + CommandHelpers.StorageType        + " file|azure "
-                + "[-" + CommandHelpers.StoragePath        + " <path>]"
+                + $"-{Constants.Source} <catalog> "
+                + $"-{Constants.ContentBaseAddress} <content-address> "
+                + $"-{Constants.StorageBaseAddress} <storage-base-address> "
+                + $"-{Constants.StorageType} file|azure "
+                + $"[-{Constants.StoragePath} <path>]"
                 + "|"
-                + "[-"     + CommandHelpers.StorageAccountName + " <azure-acc>"
-                    + "-"  + CommandHelpers.StorageKeyValue    + " <azure-key> "
-                    + "-"  + CommandHelpers.StorageContainer   + " <azure-container> "
-                    + "-"  + CommandHelpers.StoragePath        + " <path> "
-                    + "[-"     + CommandHelpers.VaultName             + " <keyvault-name> "
-                        + "-"  + CommandHelpers.ClientId              + " <keyvault-client-id> "
-                        + "-"  + CommandHelpers.CertificateThumbprint + " <keyvault-certificate-thumbprint> "
-                        + "[-" + CommandHelpers.ValidateCertificate   + " true|false]]] "
-                + "[-" + CommandHelpers.Verbose  + " true|false] "
-                + "[-" + CommandHelpers.Interval + " <seconds>]");
+                + $"[-{Constants.StorageAccountName} <azure-acc>"
+                    + $"-{Constants.StorageKeyValue} <azure-key> "
+                    + $"-{Constants.StorageContainer} <azure-container> "
+                    + $"-{Constants.StoragePath} <path> "
+                    + $"[-{Constants.VaultName} <keyvault-name> "
+                        + $"-{Constants.ClientId} <keyvault-client-id> "
+                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                        + $"[-{Constants.ValidateCertificate} true|false]]] "
+                + $"[-{Constants.Verbose} true|false] "
+                + $"[-{Constants.Interval} <seconds>]");
         }
 
         public void Run(string[] args, CancellationToken cancellationToken)
@@ -86,7 +86,7 @@ namespace Ng
 
             bool verbose = CommandHelpers.GetVerbose(arguments);
 
-            int interval = CommandHelpers.GetInterval(arguments);
+            int interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
 
             string contentBaseAddress = CommandHelpers.GetContentBaseAddress(arguments);
 

@@ -12,22 +12,22 @@ namespace Ng
         static void PrintUsage()
         {
             Console.WriteLine("Usage: ng copylucene "
-                + "-"  + CommandHelpers.SrcDirectoryType + " file|azure "
-                + "[-" + CommandHelpers.SrcPath          + " <file-path>] "
-                + "| "
-                + "[-"    + CommandHelpers.SrcStorageAccountName + " <azure-acc> "
-                    + "-" + CommandHelpers.SrcStorageKeyValue    + " <azure-key> "
-                    + "-" + CommandHelpers.SrcStorageContainer   + " <azure-container>] "
-                + "-"  + CommandHelpers.DestDirectoryType + " file|azure "
-                + "[-" + CommandHelpers.DestPath          + " <file-path>] "
-                + "| "
-                + "[-"     + CommandHelpers.DestStorageAccountName + " <azure-acc> "
-                    + "-"  + CommandHelpers.DestStorageKeyValue    + " <azure-key> "
-                    + "-"  + CommandHelpers.DestStorageContainer   + " <azure-container>] "
-                    + "[-"     + CommandHelpers.VaultName             + " <keyvault-name> "
-                        + "-"  + CommandHelpers.ClientId              + " <keyvault-client-id> "
-                        + "-"  + CommandHelpers.CertificateThumbprint + " <keyvault-certificate-thumbprint> "
-                        + "[-" + CommandHelpers.ValidateCertificate   + " true|false]]");
+                + $"-{Constants.SrcDirectoryType} file|azure "
+                + $"[-{Constants.SrcPath} <file-path>]"
+                + "|"
+                + $"[-{Constants.SrcStorageAccountName} <azure-acc> "
+                    + $"-{Constants.SrcStorageKeyValue} <azure-key> "
+                    + $"-{Constants.SrcStorageContainer} <azure-container>] "
+                + $"-{Constants.DestDirectoryType} file|azure "
+                + $"[-{Constants.DestPath} <file-path>]"
+                + "|"
+                + $"[-{Constants.DestStorageAccountName} <azure-acc> "
+                    + $"-{Constants.DestStorageKeyValue} <azure-key> "
+                    + $"-{Constants.DestStorageContainer} <azure-container>] "
+                    + $"[-{Constants.VaultName} <keyvault-name> "
+                        + $"-{Constants.ClientId} <keyvault-client-id> "
+                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                        + $"[-{Constants.ValidateCertificate} true|false]]");
         }
 
         public static void Run(string[] args)

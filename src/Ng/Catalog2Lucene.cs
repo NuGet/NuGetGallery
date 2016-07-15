@@ -75,20 +75,20 @@ namespace Ng
         static void PrintUsage()
         {
             Console.WriteLine("Usage: ng catalog2lucene "
-                + "-"  + CommandHelpers.Source              + " <catalog> "
-                + "[-" + CommandHelpers.Registration        + " <registration-root>] "
-                + "-"  + CommandHelpers.LuceneDirectoryType + " file|azure "
-                + "[-" + CommandHelpers.LucenePath          + " <file-path>] "
+                + $"-{Constants.Source} <catalog> "
+                + $"[-{Constants.Registration} <registration-root>] "
+                + $"-{Constants.LuceneDirectoryType} file|azure "
+                + $"[-{Constants.LucenePath} <file-path>] "
                 + "|"
-                + "[-"     + CommandHelpers.LuceneStorageAccountName + " <azure-acc> "
-                    + "-"  + CommandHelpers.LuceneStorageKeyValue    + " <azure-key> "
-                    + "-"  + CommandHelpers.LuceneStorageContainer   + " <azure-container> "
-                    + "[-"     + CommandHelpers.VaultName                + " <keyvault-name> "
-                        + "-"  + CommandHelpers.ClientId                 + " <keyvault-client-id> "
-                        + "-"  + CommandHelpers.CertificateThumbprint    + " <keyvault-certificate-thumbprint> "
-                        + "[-" + CommandHelpers.ValidateCertificate      + " true|false]]] "
-                + "[-" + CommandHelpers.Verbose  + " true|false] "
-                + "[-" + CommandHelpers.Interval + " <seconds>]");
+                + $"[-{Constants.LuceneStorageAccountName} <azure-acc> "
+                    + $"-{Constants.LuceneStorageKeyValue} <azure-key> "
+                    + $"-{Constants.LuceneStorageContainer} <azure-container> "
+                    + $"[-{Constants.VaultName} <keyvault-name> "
+                        + $"-{Constants.ClientId} <keyvault-client-id> "
+                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                        + $"[-{Constants.ValidateCertificate} true|false]]] "
+                + $"[-{Constants.Verbose} true|false] "
+                + $"[-{Constants.Interval} <seconds>]");
         }
 
         public static void Run(string[] args, CancellationToken cancellationToken)
@@ -122,7 +122,7 @@ namespace Ng
                 //Trace.AutoFlush = true;
             }
 
-            int interval = CommandHelpers.GetInterval(arguments);
+            int interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
 
             string registration = CommandHelpers.GetRegistration(arguments);
 

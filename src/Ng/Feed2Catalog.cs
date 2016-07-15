@@ -580,29 +580,29 @@ namespace Ng
         static void PrintUsage()
         {
             Console.WriteLine("Usage: ng feed2catalog "
-                + "-" + CommandHelpers.Gallery + " <v2-feed-address> "
-                + "-" + CommandHelpers.StorageBaseAddress + " <storage-base-address> "
-                + "-" + CommandHelpers.StorageType + " file|azure "
-                + "[-" + CommandHelpers.StoragePath + " <path>]"
+                + $"-{Constants.Gallery} <v2-feed-address> "
+                + $"-{Constants.StorageBaseAddress} <storage-base-address> "
+                + $"-{Constants.StorageType} file|azure "
+                + $"[-{Constants.StoragePath} <path>]"
                 + "|"
-                + "[-" + CommandHelpers.StorageAccountName + " <azure-acc> "
-                    + "-" + CommandHelpers.StorageKeyValue + " <azure-key> "
-                    + "-" + CommandHelpers.StorageContainer + " <azure-container> "
-                    + "-" + CommandHelpers.StoragePath + " <path> "
-                    + "[-" + CommandHelpers.VaultName + " <keyvault-name> "
-                        + "-" + CommandHelpers.ClientId + " <keyvault-client-id> "
-                        + "-" + CommandHelpers.CertificateThumbprint + " <keyvault-certificate-thumbprint> "
-                        + "[-" + CommandHelpers.ValidateCertificate + " true|false]]] "
-                + "-" + CommandHelpers.StorageTypeAuditing + " file|azure "
-                + "[-" + CommandHelpers.StoragePathAuditing + " <path>]"
+                + $"[-{Constants.StorageAccountName} <azure-acc> "
+                    + $"-{Constants.StorageKeyValue} <azure-key> "
+                    + $"-{Constants.StorageContainer} <azure-container> "
+                    + $"-{Constants.StoragePath} <path> "
+                    + $"[-{Constants.VaultName} <keyvault-name> "
+                        + $"-{Constants.ClientId} <keyvault-client-id> "
+                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                        + $"[-{Constants.ValidateCertificate} true|false]]] "
+                + $"-{Constants.StorageTypeAuditing} file|azure "
+                + $"[-{Constants.StoragePathAuditing} <path>]"
                 + "|"
-                + "[-" + CommandHelpers.StorageAccountNameAuditing + " <azure-acc> "
-                    + "-" + CommandHelpers.StorageKeyValueAuditing + " <azure-key> "
-                    + "-" + CommandHelpers.StorageContainerAuditing +" <azure-container> "
-                    + "-" + CommandHelpers.StoragePathAuditing + " <path>] "
-                + "[-" + CommandHelpers.Verbose + " true|false] "
-                + "[-" + CommandHelpers.Interval + " <seconds>] "
-                + "[-" + CommandHelpers.StartDate + " <DateTime>]");
+                + $"[-{Constants.StorageAccountNameAuditing} <azure-acc> "
+                    + $"-{Constants.StorageKeyValueAuditing} <azure-key> "
+                    + $"-{Constants.StorageContainerAuditing} <azure-container> "
+                    + $"-{Constants.StoragePathAuditing} <path>] "
+                + $"[-{Constants.Verbose} true|false] "
+                + $"[-{Constants.Interval} <seconds>] "
+                + $"[-{Constants.StartDate} <DateTime>]");
         }
 
         public void Run(string[] args, CancellationToken cancellationToken)
@@ -623,7 +623,7 @@ namespace Ng
 
             var verbose = CommandHelpers.GetVerbose(arguments);
 
-            var interval = CommandHelpers.GetInterval(arguments);
+            var interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
 
             var startDate = CommandHelpers.GetStartDate(arguments);
 
@@ -653,18 +653,18 @@ namespace Ng
         static void PackagePrintUsage()
         {
             Console.WriteLine("Usage: ng package2catalog "
-                + "-"  + CommandHelpers.Gallery            + " <v2-feed-address> "
-                + "-"  + CommandHelpers.StorageBaseAddress + " <storage-base-address> "
-                + "-"  + CommandHelpers.StorageType        + " file|azure "
-                + "[-" + CommandHelpers.StoragePath        + " <path>]"
+                + $"-{Constants.Gallery} <v2-feed-address> "
+                + $"-{Constants.StorageBaseAddress} <storage-base-address> "
+                + $"-{Constants.StorageType} file|azure "
+                + $"[-{Constants.StoragePath} <path>]"
                 + "|"
-                + "[-"    + CommandHelpers.StorageAccountName + " <azure-acc> "
-                    + "-" + CommandHelpers.StorageKeyValue    + " <azure-key> "
-                    + "-" + CommandHelpers.StorageContainer   + " <azure-container> "
-                    + "-" + CommandHelpers.StoragePath        + " <path>] "
-                + "[-" + CommandHelpers.Verbose + " true|false] "
-                + "-"  + CommandHelpers.Id      + " <id> "
-                + "[-" + CommandHelpers.Version + " <version>]");
+                + $"[-{Constants.StorageAccountName} <azure-acc> "
+                    + $"-{Constants.StorageKeyValue} <azure-key> "
+                    + $"-{Constants.StorageContainer} <azure-container> "
+                    + $"-{Constants.StoragePath} <path>] "
+                + $"[-{Constants.Verbose} true|false] "
+                + $"-{Constants.Id} <id> "
+                + $"[-{Constants.Version} <version>]");
         }
 
         public void Package(string[] args, CancellationToken cancellationToken)
