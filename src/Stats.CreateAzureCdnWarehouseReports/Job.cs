@@ -75,7 +75,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
             catch (Exception exception)
             {
-                _logger.LogError("Failed to initialize job!", exception);
+                _logger.LogError("Failed to initialize job! {Exception}", exception);
 
                 return false;
             }
@@ -90,7 +90,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 var reportGenerationTime = DateTime.UtcNow;
                 var destinationContainer = _cloudStorageAccount.CreateCloudBlobClient().GetContainerReference(_statisticsContainerName);
 
-                _logger.LogDebug("Generating reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+                _logger.LogDebug("Generating reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
                 if (string.IsNullOrEmpty(_reportName))
                 {
@@ -121,7 +121,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     await ProcessReport(destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime);
                 }
 
-                _logger.LogInformation("Generated reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+                _logger.LogInformation("Generated reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
                 // totals reports
                 var stopwatch = Stopwatch.StartNew();
@@ -163,7 +163,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
             catch (Exception exception)
             {
-                _logger.LogError("Job run failed!", exception);
+                _logger.LogError("Job run failed! {Exception}", exception);
 
                 return false;
             }

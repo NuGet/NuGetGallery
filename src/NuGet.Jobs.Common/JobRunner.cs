@@ -116,7 +116,6 @@ namespace NuGet.Jobs
             if(consoleLogOnly)
             {
                 job.SetJobTraceListener(new JobTraceListener());
-                Trace.TraceWarning("You have chosen not to log messages to Azure blob storage. Note that this is NOT recommended");
             }
             else
             {
@@ -164,7 +163,7 @@ namespace NuGet.Jobs
             {
                 Trace.WriteLine("Running " + (runContinuously ? " continuously..." : " once..."));
                 Trace.WriteLine("SleepDuration is " + PrettyPrintTime(sleepDuration));
-                Trace.WriteLine("Job run started...");
+                Trace.TraceInformation("Job run started...");
 
                 // Force a flush here to create a blob corresponding to run indicating that the run has started
                 job.JobTraceListener.Flush();
@@ -192,7 +191,7 @@ namespace NuGet.Jobs
                 }
 
                 // Wait for <sleepDuration> milliSeconds and run the job again
-                Trace.WriteLine(string.Format("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration)));
+                Trace.TraceInformation("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration));
 
                 // Flush All the logs for this run
                 job.JobTraceListener.Close();
