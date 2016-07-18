@@ -150,6 +150,22 @@ namespace NuGetGallery.Packaging
                       </metadata>
                     </package>";
 
+        private const string NuSpecUrlNotHttpOrHttps = @"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>valid</id>
+                        <version>1.0.1-alpha</version>
+                        <title>Package A</title>
+                        <authors>ownera, ownerb</authors>
+                        <owners>ownera, ownerb</owners>
+                        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                        <description>package A description.</description>
+                        <language>en-US</language>
+                        <licenseUrl>javascript:alert('test');</licenseUrl>
+                        <dependencies />
+                      </metadata>
+                    </package>";
+
         private const string NuSpecDependencySetContainsInvalidId = @"<?xml version=""1.0""?>
                 <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                   <metadata>
@@ -347,6 +363,14 @@ namespace NuGetGallery.Packaging
         public void ReturnsErrorIfLicenseUrlInvalid()
         {
             var nuspecStream = CreateNuspecStream(NuSpecLicenseUrlInvalid);
+
+            Assert.Equal(new[] { Strings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
+        }
+
+        [Fact]
+        public void ReturnsErrorIfUrlNotHttpOrHttps()
+        {
+            var nuspecStream = CreateNuspecStream(NuSpecUrlNotHttpOrHttps);
 
             Assert.Equal(new[] { Strings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
         }

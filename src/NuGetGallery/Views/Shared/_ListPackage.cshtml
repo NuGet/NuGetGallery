@@ -2,7 +2,7 @@
 <section class="package @(Model.IsOwner(User) ? "my-package" : null)">
     <div class="side">
         <a href="@Url.Package(Model)" title="View more about @Model.Title">
-            <img src="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png"))" alt="@Model.Id icon" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png")';" />
+            <img src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png"))" alt="@Model.Id icon" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png")';" />
         </a>
     </div>
     <div class="main">
