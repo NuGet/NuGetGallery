@@ -8,7 +8,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using NuGet.Packaging;
-using NuGet.Versioning;
 
 namespace NuGetGallery.Packaging
 {
@@ -59,7 +58,7 @@ namespace NuGetGallery.Packaging
                 }
             }
 
-            // Check URL properties
+            // Check and validate URL properties
             foreach (var result in CheckUrls(
                 packageMetadata.GetValueFromMetadata("IconUrl"),
                 packageMetadata.GetValueFromMetadata("ProjectUrl"), 
@@ -153,8 +152,12 @@ namespace NuGetGallery.Packaging
         {
             foreach (var url in urls)
             {
-                Uri _;
-                if (!String.IsNullOrEmpty(url) && !Uri.TryCreate(url, UriKind.Absolute, out _))
+                Uri uri = null;
+                if (!string.IsNullOrEmpty(url) && !Uri.TryCreate(url, UriKind.Absolute, out uri))
+                {
+                    yield return new ValidationResult(Strings.Manifest_InvalidUrl);
+                }
+                else if (uri != null && uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)
                 {
                     yield return new ValidationResult(Strings.Manifest_InvalidUrl);
                 }
