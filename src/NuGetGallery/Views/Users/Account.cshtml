@@ -539,6 +539,10 @@
 
                 if (apiKey != null && !apiKey.HasExpired)
                 {
+                    var siteRoot = Config.Current.RequireSSL
+                        ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
+                        : Config.Current.SiteRoot.TrimEnd('/');
+
                     <hr/>
 
                     <h4>Example usage</h4>
@@ -551,9 +555,9 @@
                             <div>
                                 nuget.exe setApiKey @apiKey.Value
 
-                                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('nuget.exe setApiKey @apiKey.Value -Source @(Config.Current.SiteRoot.TrimEnd('/'))/api/v2/package')"><i class="icon-copy"></i></button>
+                                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('nuget.exe setApiKey @apiKey.Value -Source @siteRoot/api/v2/package')"><i class="icon-copy"></i></button>
                             </div>
-                            <div>nuget.exe push MyPackage.1.0.nupkg -Source @(Config.Current.SiteRoot.TrimEnd('/'))/api/v2/package</div>
+                            <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
                         </div>
                     </p>
                 }
