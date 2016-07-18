@@ -30,15 +30,8 @@ namespace Ng
                         + $"[-{Constants.ValidateCertificate} true|false]]");
         }
 
-        public static void Run(string[] args)
+        public static void Run(IDictionary<string, string> arguments)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
-
             Lucene.Net.Store.Directory srcDirectory = CommandHelpers.GetCopySrcLuceneDirectory(arguments);
             if (srcDirectory == null)
             {

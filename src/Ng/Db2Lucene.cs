@@ -11,15 +11,8 @@ namespace Ng
 {
     internal class Db2Lucene
     {
-        public static void Run(string[] args, CancellationToken cancellationToken, ILoggerFactory loggerFactory)
+        public static void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken, ILoggerFactory loggerFactory)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
-
             var connectionString = CommandHelpers.GetConnectionString(arguments);
             if (connectionString == null)
             {

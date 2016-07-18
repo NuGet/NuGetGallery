@@ -4,6 +4,7 @@
     {
         public const int DefaultInterval = 3; // seconds
 
+        public const string AzureStorageType = "azure";
         public const string ArgumentPrefix = "-";
         public const string CatalogBaseAddress = "catalogBaseAddress";
         public const string CertificateThumbprint = "certificateThumbprint";
@@ -21,6 +22,7 @@
         public const string DestStorageContainer = "destStorageContainer";
         public const string DestStorageKeyValue = "destStorageKeyValue";
         public const string DirectoryType = "directoryType";
+        public const string FileStorageType = "file";
         public const string Gallery = "gallery";
         public const string Id = "id";
         public const string InstrumentationKey = "instrumentationKey";

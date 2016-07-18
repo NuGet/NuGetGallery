@@ -72,33 +72,26 @@ namespace Ng
             return true;
         }
 
-        public static SecretInjector GetSecretInjector(IDictionary<string, string> arguments)
+        private static SecretInjector GetSecretInjector(IDictionary<string, string> arguments)
         {
             ISecretReader secretReader;
-            try
-            {
-                string vaultName;
-                if (!TryGetArgument(arguments, Constants.VaultName, out vaultName))
-                {
-                    secretReader = new EmptySecretReader();
-                }
-                else
-                {
-                    string clientId;
-                    TryGetArgument(arguments, Constants.ClientId, out clientId, required: true);
-
-                    string certificateThumbprint;
-                    TryGetArgument(arguments, Constants.CertificateThumbprint, out certificateThumbprint, required: true);
-
-                    bool shouldValidateCertificate = GetBool(arguments, Constants.ValidateCertificate, defaultValue: false);
-
-                    var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, shouldValidateCertificate);
-                    secretReader = new KeyVaultReader(keyVaultConfiguration);
-                }
-            }
-            catch (ArgumentException)
+            string vaultName;
+            if (!TryGetArgument(arguments, Constants.VaultName, out vaultName))
             {
                 secretReader = new EmptySecretReader();
+            }
+            else
+            {
+                string clientId;
+                TryGetArgument(arguments, Constants.ClientId, out clientId, required: true);
+
+                string certificateThumbprint;
+                TryGetArgument(arguments, Constants.CertificateThumbprint, out certificateThumbprint, required: true);
+
+                bool shouldValidateCertificate = GetBool(arguments, Constants.ValidateCertificate, defaultValue: false);
+
+                var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, shouldValidateCertificate);
+                secretReader = new KeyVaultReader(keyVaultConfiguration);
             }
 
             return new SecretInjector(secretReader);
@@ -167,9 +160,16 @@ namespace Ng
         {
             bool result;
             string argumentValue;
-            TryGetArgument(arguments, argumentName, out argumentValue);
+            if (TryGetArgument(arguments, argumentName, out argumentValue))
+            {
+                result = bool.Parse(argumentValue);
+            }
+            else
+            {
+                result = defaultValue;
+            }
 
-            return bool.TryParse(argumentValue, out result) ? result : defaultValue;
+            return result;
         }
 
         public static int GetInterval(IDictionary<string, string> arguments, int defaultInterval)
@@ -279,20 +279,20 @@ namespace Ng
                 string storageType;
                 TryGetArgument(arguments, Constants.StorageType, out storageType, required: true);
 
-                if (storageType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
+                if (storageType.Equals(Constants.FileStorageType, StringComparison.InvariantCultureIgnoreCase))
                 {
                     string storagePath;
                     TryGetArgument(arguments, Constants.StoragePath, out storagePath, required: true);
 
                     if (storageBaseAddress == null)
                     {
-                        TraceRequiredArgument("-storageBaseAddress");
+                        TraceRequiredArgument(Constants.StorageBaseAddress);
                         return null;
                     }
 
                     return new FileStorageFactory(storageBaseAddress, storagePath) { Verbose = verbose };
                 }
-                else if (storageType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
+                else if (storageType.Equals(Constants.AzureStorageType, StringComparison.InvariantCultureIgnoreCase))
                 {
                     string storageContainer;
                     TryGetArgument(arguments, Constants.StorageContainer, out storageContainer, required: true);
@@ -343,20 +343,20 @@ namespace Ng
                 string storageType;
                 TryGetArgument(arguments, Constants.StorageType, out storageType, required: true);
 
-                if (storageType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
+                if (storageType.Equals(Constants.FileStorageType, StringComparison.InvariantCultureIgnoreCase))
                 {
                     string storagePath;
                     TryGetArgument(arguments, Constants.StoragePath + suffix, out storagePath, required: true);
 
                     if (storageBaseAddress == null)
                     {
-                        TraceRequiredArgument("-storageBaseAddress" + suffix);
+                        TraceRequiredArgument(Constants.StorageBaseAddress + suffix);
                         return null;
                     }
 
                     return new FileStorageFactory(storageBaseAddress, storagePath) { Verbose = verbose };
                 }
-                else if (storageType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
+                else if (storageType.Equals(Constants.AzureStorageType, StringComparison.InvariantCultureIgnoreCase))
                 {
                     string storageAccountName;
                     TryGetArgument(arguments, Constants.StorageAccountName + suffix, out storageAccountName, required: true);
@@ -388,7 +388,7 @@ namespace Ng
 
         public static bool GetLuceneReset(IDictionary<string, string> arguments)
         {
-            return GetBool(arguments, Constants.LuceneReset, false);
+            return GetBool(arguments, Constants.LuceneReset, defaultValue: false);
         }
 
         public static Lucene.Net.Store.Directory GetLuceneDirectory(IDictionary<string, string> arguments)
@@ -440,7 +440,7 @@ namespace Ng
                 string luceneDirectoryType;
                 TryGetArgument(arguments, names[Constants.DirectoryType], out luceneDirectoryType, required: true);
 
-                if (luceneDirectoryType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
+                if (luceneDirectoryType.Equals(Constants.FileStorageType, StringComparison.InvariantCultureIgnoreCase))
                 {
                     string lucenePath;
                     TryGetArgument(arguments, names[Constants.Path], out lucenePath, required: true);
@@ -455,7 +455,7 @@ namespace Ng
 
                     return new SimpleFSDirectory(directoryInfo);
                 }
-                else if (luceneDirectoryType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
+                else if (luceneDirectoryType.Equals(Constants.AzureStorageType, StringComparison.InvariantCultureIgnoreCase))
                 {
                     string luceneStorageAccountName;
                     TryGetArgument(arguments, names[Constants.StorageAccountName], out luceneStorageAccountName, required: true);
@@ -524,11 +524,7 @@ namespace Ng
         public static string GetApplicationInsightsInstrumentationKey(IDictionary<string, string> arguments)
         {
             string endpoint;
-            if (arguments == null || !arguments.TryGetValue("-instrumentationkey", out endpoint))
-            {
-                return null;
-            }
-
+            TryGetArgument(arguments, Constants.InstrumentationKey, out endpoint);
             return endpoint;
         }
     }

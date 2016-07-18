@@ -605,15 +605,8 @@ namespace Ng
                 + $"[-{Constants.StartDate} <DateTime>]");
         }
 
-        public void Run(string[] args, CancellationToken cancellationToken)
+        public void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            var arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
-
             var gallery = CommandHelpers.GetGallery(arguments);
             if (gallery == null)
             {
@@ -667,15 +660,8 @@ namespace Ng
                 + $"[-{Constants.Version} <version>]");
         }
 
-        public void Package(string[] args, CancellationToken cancellationToken)
+        public void Package(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            var arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PackagePrintUsage();
-                return;
-            }
-
             var gallery = CommandHelpers.GetGallery(arguments);
             if (gallery == null)
             {

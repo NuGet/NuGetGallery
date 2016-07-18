@@ -20,15 +20,8 @@ namespace Ng
                     + $"-{Constants.LuceneStorageContainer} <azure-container>]");
         }
 
-        public static void Run(string[] args)
+        public static void Run(IDictionary<string, string> arguments)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null)
-            {
-                PrintUsage();
-                return;
-            }
-
             Lucene.Net.Store.Directory directory = CommandHelpers.GetLuceneDirectory(arguments);
             if (directory == null)
             {

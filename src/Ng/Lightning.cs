@@ -94,16 +94,9 @@ namespace Ng
             Console.WriteLine("entries.");
         }
 
-        public static void Run(string[] args, CancellationToken cancellationToken)
+        public static void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             PrintLightning();
-
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
 
             string command = CommandHelpers.Get(arguments, "command");
             if (string.IsNullOrEmpty(command))

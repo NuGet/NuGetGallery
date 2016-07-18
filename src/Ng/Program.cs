@@ -27,12 +27,6 @@ namespace Ng
                 Debugger.Launch();
             }
 
-            // Get arguments
-            var arguments = CommandHelpers.GetArguments(args, 0);
-
-            // Configure ApplicationInsights
-            ApplicationInsights.Initialize(CommandHelpers.GetApplicationInsightsInstrumentationKey(arguments));
-
             // Create an ILoggerFactory
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: true);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
@@ -40,9 +34,15 @@ namespace Ng
             // Create a logger that is scoped to this class (only)
             _logger = loggerFactory.CreateLogger<Program>();
 
-            var cancellationTokenSource = new CancellationTokenSource();
             try
             {
+                // Get arguments
+                var arguments = CommandHelpers.GetArguments(args, 0);
+
+                // Configure ApplicationInsights
+                ApplicationInsights.Initialize(CommandHelpers.GetApplicationInsightsInstrumentationKey(arguments));
+
+                var cancellationTokenSource = new CancellationTokenSource();
                 if (args.Length == 0)
                 {
                     PrintUsage();
@@ -53,42 +53,46 @@ namespace Ng
                 {
                     case "package2catalog":
                         var packageToCatalog = new Feed2Catalog(loggerFactory);
-                        packageToCatalog.Package(args, cancellationTokenSource.Token);
+                        packageToCatalog.Package(arguments, cancellationTokenSource.Token);
                         break;
                     case "feed2catalog":
                         var feedToCatalog = new Feed2Catalog(loggerFactory);
-                        feedToCatalog.Run(args, cancellationTokenSource.Token);
+                        feedToCatalog.Run(arguments, cancellationTokenSource.Token);
                         break;
                     case "catalog2registration":
                         var catalog2Registration = new Catalog2Registration(loggerFactory);
-                        catalog2Registration.Run(args, cancellationTokenSource.Token);
+                        catalog2Registration.Run(arguments, cancellationTokenSource.Token);
                         break;
                     case "catalog2lucene":
-                        Catalog2Lucene.Run(args, cancellationTokenSource.Token);
+                        Catalog2Lucene.Run(arguments, cancellationTokenSource.Token);
                         break;
                     case "catalog2dnx":
                         var catalogToDnx = new Catalog2Dnx(loggerFactory);
-                        catalogToDnx.Run(args, cancellationTokenSource.Token);
+                        catalogToDnx.Run(arguments, cancellationTokenSource.Token);
                         break;
                     case "copylucene":
-                        CopyLucene.Run(args);
+                        CopyLucene.Run(arguments);
                         break;
                     case "checklucene":
-                        CheckLucene.Run(args);
+                        CheckLucene.Run(arguments);
                         break;
                     case "clearlucene":
-                        ResetLucene.Run(args);
+                        ResetLucene.Run(arguments);
                         break;
                     case "db2lucene":
-                        Db2Lucene.Run(args, cancellationTokenSource.Token, loggerFactory);
+                        Db2Lucene.Run(arguments, cancellationTokenSource.Token, loggerFactory);
                         break;
                     case "lightning":
-                        Lightning.Run(args, cancellationTokenSource.Token);
+                        Lightning.Run(arguments, cancellationTokenSource.Token);
                         break;
                     default:
                         PrintUsage();
                         break;
                 }
+            }
+            catch (ArgumentException ae)
+            {
+                _logger.LogError("A required argument was not found.", ae);
             }
             catch (Exception e)
             {
