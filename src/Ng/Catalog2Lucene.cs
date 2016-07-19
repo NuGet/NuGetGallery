@@ -72,7 +72,7 @@ namespace Ng
             return indexWriter;
         }
 
-        static void PrintUsage()
+        public static void PrintUsage()
         {
             Console.WriteLine("Usage: ng catalog2lucene "
                 + $"-{Constants.Source} <catalog> "
@@ -94,20 +94,8 @@ namespace Ng
         public static void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             Lucene.Net.Store.Directory directory = CommandHelpers.GetLuceneDirectory(arguments);
-            if (directory == null)
-            {
-                PrintUsage();
-                return;
-            }
-
             string source = CommandHelpers.GetSource(arguments);
-            if (source == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            bool verbose = CommandHelpers.GetVerbose(arguments);
+            bool verbose = CommandHelpers.GetVerbose(arguments, required: false);
 
             if (verbose)
             {
@@ -117,15 +105,13 @@ namespace Ng
 
             int interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
 
-            string registration = CommandHelpers.GetRegistration(arguments);
-
+            string registration = CommandHelpers.GetRegistration(arguments, required: false);
             if (registration == null)
             {
                 Console.WriteLine("Lucene index will be created up to the end of the catalog (alternatively if you provide a registration it will not pass that)");
             }
 
-            string catalogBaseAddress = CommandHelpers.GetCatalogBaseAddress(arguments);
-
+            string catalogBaseAddress = CommandHelpers.GetCatalogBaseAddress(arguments, required: false);
             if (catalogBaseAddress == null)
             {
                 Console.WriteLine("No catalogBaseAddress was specified so the Lucene index will NOT contain the storage paths");

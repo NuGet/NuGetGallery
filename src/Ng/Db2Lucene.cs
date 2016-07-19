@@ -14,23 +14,12 @@ namespace Ng
         public static void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken, ILoggerFactory loggerFactory)
         {
             var connectionString = CommandHelpers.GetConnectionString(arguments);
-            if (connectionString == null)
-            {
-                PrintUsage();
-                return;
-            }
-
             string path = CommandHelpers.GetPath(arguments);
-            if (path == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             Sql2Lucene.Export(connectionString, path, loggerFactory);
         }
 
-        private static void PrintUsage()
+        public static void PrintUsage()
         {
             Console.WriteLine("Usage: ng db2lucene "
                 + $"-{Constants.ConnectionString} <connectionString> "

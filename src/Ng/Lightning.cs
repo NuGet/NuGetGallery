@@ -35,7 +35,7 @@ namespace Ng
             Console.WriteLine();
         }
 
-        private static void PrintUsage()
+        public static void PrintUsage()
         {
             Console.WriteLine("Usage: ng lightning -command prepare|strike");
             Console.WriteLine();
@@ -99,13 +99,7 @@ namespace Ng
             PrintLightning();
 
             string command = CommandHelpers.Get(arguments, "command");
-            if (string.IsNullOrEmpty(command))
-            {
-                PrintUsage();
-                return;
-            }
-
-            bool verbose = CommandHelpers.GetVerbose(arguments);
+            bool verbose = CommandHelpers.GetVerbose(arguments, required: false);
 
             var log = verbose ? Console.Out : new StringWriter();
 
@@ -135,20 +129,7 @@ namespace Ng
             string storageAccount = CommandHelpers.Get(arguments, "storageAccount");
             string storageContainer = CommandHelpers.Get(arguments, "storageContainer");
             string storageBaseAddress = CommandHelpers.Get(arguments, "storageBaseAddress");
-            bool compress = CommandHelpers.GetBool(arguments, "compress", false);
-
-            if (string.IsNullOrEmpty(outputFolder)
-                || string.IsNullOrEmpty(catalogIndex)
-                || string.IsNullOrEmpty(templateFile)
-                || string.IsNullOrEmpty(batchSize)
-                || string.IsNullOrEmpty(contentBaseAddress)
-                || string.IsNullOrEmpty(storageAccount)
-                || string.IsNullOrEmpty(storageContainer)
-                || string.IsNullOrEmpty(storageBaseAddress))
-            {
-                PrintUsage();
-                return;
-            }
+            bool compress = CommandHelpers.GetBool(arguments, "compress", defaultValue: false, required: false);
 
             log.WriteLine("Making sure folder {0} exists.", outputFolder);
             if (!Directory.Exists(outputFolder))
@@ -276,18 +257,7 @@ namespace Ng
             string storageAccount = CommandHelpers.Get(arguments, "storageAccount");
             string storageContainer = CommandHelpers.Get(arguments, "storageContainer");
             string storageBaseAddress = CommandHelpers.Get(arguments, "storageBaseAddress");
-            bool compress = CommandHelpers.GetBool(arguments, "compress", false);
-
-            if (string.IsNullOrEmpty(indexFile)
-                || string.IsNullOrEmpty(cursorFile)
-                || string.IsNullOrEmpty(contentBaseAddress)
-                || string.IsNullOrEmpty(storageAccount)
-                || string.IsNullOrEmpty(storageContainer)
-                || string.IsNullOrEmpty(storageBaseAddress))
-            {
-                PrintUsage();
-                return;
-            }
+            bool compress = CommandHelpers.GetBool(arguments, "compress", defaultValue: false, required: false);
 
             log.WriteLine("Start lightning strike for {0}...", cursorFile);
 

@@ -4,8 +4,6 @@ cd Ng
 
 :Top
 	echo "Starting job - #{Jobs.catalog2lucenev3.Title}"
-	
-	set NUGETJOBS_STORAGE_PRIMARY=#{Jobs.common.v3.Storage.Primary}
 
 	title #{Jobs.catalog2lucenev3.Title}
 

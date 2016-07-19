@@ -9,7 +9,7 @@ namespace Ng
 {
     static class CopyLucene
     {
-        static void PrintUsage()
+        public static void PrintUsage()
         {
             Console.WriteLine("Usage: ng copylucene "
                 + $"-{Constants.SrcDirectoryType} file|azure "
@@ -33,20 +33,7 @@ namespace Ng
         public static void Run(IDictionary<string, string> arguments)
         {
             Lucene.Net.Store.Directory srcDirectory = CommandHelpers.GetCopySrcLuceneDirectory(arguments);
-            if (srcDirectory == null)
-            {
-                Console.WriteLine("problem with src arguments");
-                PrintUsage();
-                return;
-            }
-
             Lucene.Net.Store.Directory destDirectory = CommandHelpers.GetCopyDestLuceneDirectory(arguments);
-            if (destDirectory == null)
-            {
-                Console.WriteLine("problem with dest arguments");
-                PrintUsage();
-                return;
-            }
 
             Lucene.Net.Store.Directory.Copy(srcDirectory, destDirectory, true);
 

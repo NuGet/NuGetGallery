@@ -47,7 +47,7 @@ namespace Ng
             }
         }
 
-        private static void PrintUsage()
+        public static void PrintUsage()
         {
             Console.WriteLine("Usage: ng catalog2dnx "
                 + $"-{Constants.Source} <catalog> "
@@ -71,24 +71,10 @@ namespace Ng
         public void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             string source = CommandHelpers.GetSource(arguments);
-            if (source == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            bool verbose = CommandHelpers.GetVerbose(arguments);
-
+            bool verbose = CommandHelpers.GetVerbose(arguments, required: false);
             int interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
-
             string contentBaseAddress = CommandHelpers.GetContentBaseAddress(arguments);
-
             StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-            if (storageFactory == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             if (verbose)
             {

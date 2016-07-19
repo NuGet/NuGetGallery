@@ -9,7 +9,7 @@ namespace Ng
 {
     public static class ResetLucene
     {
-        static void PrintUsage()
+        public static void PrintUsage()
         {
             Console.WriteLine("Usage: ng clearlucene "
                 + $"-{Constants.LuceneDirectoryType} file|azure "
@@ -23,11 +23,6 @@ namespace Ng
         public static void Run(IDictionary<string, string> arguments)
         {
             Lucene.Net.Store.Directory directory = CommandHelpers.GetLuceneDirectory(arguments);
-            if (directory == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             if (IndexReader.IndexExists(directory))
             {

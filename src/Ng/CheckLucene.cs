@@ -8,7 +8,7 @@ namespace Ng
 {
     static class CheckLucene
     {
-        static void PrintUsage()
+        public static void PrintUsage()
         {
             Console.WriteLine("Usage: ng checklucene "
                 + $"-{Constants.LuceneDirectoryType} file|azure "
@@ -22,11 +22,6 @@ namespace Ng
         public static void Run(IDictionary<string, string> arguments)
         {
             Lucene.Net.Store.Directory directory = CommandHelpers.GetLuceneDirectory(arguments);
-            if (directory == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             using (IndexReader reader = IndexReader.Open(directory, true))
             {

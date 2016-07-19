@@ -577,7 +577,32 @@ namespace Ng
             }
         }
 
-        static void PrintUsage()
+
+        public void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
+        {
+            var gallery = CommandHelpers.GetGallery(arguments);
+            var verbose = CommandHelpers.GetVerbose(arguments, required: false);
+            var interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
+            var startDate = CommandHelpers.GetStartDate(arguments);
+
+            var catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
+            var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
+
+            if (verbose)
+            {
+                Trace.Listeners.Add(new ConsoleTraceListener());
+                Trace.AutoFlush = true;
+            }
+
+            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2}", gallery, catalogStorageFactory, interval);
+            DateTime? nullableStartDate = null;
+            if (startDate != DateTime.MinValue)
+            {
+                nullableStartDate = startDate;
+            }
+            Loop(gallery, catalogStorageFactory, auditingStorageFactory, verbose, interval, nullableStartDate, cancellationToken).Wait();
+        }
+        public static void PrintUsage()
         {
             Console.WriteLine("Usage: ng feed2catalog "
                 + $"-{Constants.Gallery} <v2-feed-address> "
@@ -605,45 +630,7 @@ namespace Ng
                 + $"[-{Constants.StartDate} <DateTime>]");
         }
 
-        public void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
-        {
-            var gallery = CommandHelpers.GetGallery(arguments);
-            if (gallery == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            var verbose = CommandHelpers.GetVerbose(arguments);
-
-            var interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
-
-            var startDate = CommandHelpers.GetStartDate(arguments);
-
-            var catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-            var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
-            if (catalogStorageFactory == null || auditingStorageFactory == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            if (verbose)
-            {
-                Trace.Listeners.Add(new ConsoleTraceListener());
-                Trace.AutoFlush = true;
-            }
-
-            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2}", gallery, catalogStorageFactory, interval);
-            DateTime? nullableStartDate = null;
-            if (startDate != DateTime.MinValue)
-            {
-                nullableStartDate = startDate;
-            }
-            Loop(gallery, catalogStorageFactory, auditingStorageFactory, verbose, interval, nullableStartDate, cancellationToken).Wait();
-        }
-
-        static void PackagePrintUsage()
+        public static void PackagePrintUsage()
         {
             Console.WriteLine("Usage: ng package2catalog "
                 + $"-{Constants.Gallery} <v2-feed-address> "
@@ -663,29 +650,10 @@ namespace Ng
         public void Package(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             var gallery = CommandHelpers.GetGallery(arguments);
-            if (gallery == null)
-            {
-                PackagePrintUsage();
-                return;
-            }
-
-            var verbose = CommandHelpers.GetVerbose(arguments);
-
+            var verbose = CommandHelpers.GetVerbose(arguments, required: false);
             var id = CommandHelpers.GetId(arguments);
-            if (id == null)
-            {
-                PackagePrintUsage();
-                return;
-            }
-
             var version = CommandHelpers.GetVersion(arguments);
-
             var storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-            if (storageFactory == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             if (verbose)
             {
