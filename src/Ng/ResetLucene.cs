@@ -9,26 +9,20 @@ namespace Ng
 {
     public static class ResetLucene
     {
-        static void PrintUsage()
+        public static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng clearlucene -luceneDirectoryType file|azure [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container>]");
+            Console.WriteLine("Usage: ng clearlucene "
+                + $"-{Constants.LuceneDirectoryType} file|azure "
+                + $"[-{Constants.LucenePath} <file-path>]"
+                + "|"
+                + $"[-{Constants.LuceneStorageAccountName} <azure-acc> "
+                    + $"-{Constants.LuceneStorageKeyValue} <azure-key> "
+                    + $"-{Constants.LuceneStorageContainer} <azure-container>]");
         }
 
-        public static void Run(string[] args)
+        public static void Run(IDictionary<string, string> arguments)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null)
-            {
-                PrintUsage();
-                return;
-            }
-
             Lucene.Net.Store.Directory directory = CommandHelpers.GetLuceneDirectory(arguments);
-            if (directory == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             if (IndexReader.IndexExists(directory))
             {
