@@ -212,6 +212,28 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
+            public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                var fakes = Get<Fakes>();
+                var cred = fakes.User.Credentials.Single(
+                    c => String.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+
+                var referenceTime = DateTime.UtcNow;
+                Assert.False(cred.LastUsed.HasValue);
+
+                // Act
+                // Create a new credential to verify that it's a value-based lookup!
+                var result = await service.Authenticate(CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.True(cred.LastUsed > referenceTime);
+                Assert.True(cred.LastUsed.HasValue);
+            }
+
+            [Fact]
             public async Task GivenExpiredMatchingApiKeyCredential_ItReturnsNull()
             {
                 // Arrange
@@ -228,6 +250,62 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNull()
+            {
+                // Arrange
+                var config = GetMock<IAppConfiguration>();
+                config.SetupGet(m => m.ExpirationInDaysForApiKeyV1).Returns(10);
+                
+                var fakes = Get<Fakes>();
+                var cred = fakes.User.Credentials.Single(
+                    c => String.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+
+                // credential was last used < allowed last used
+                cred.LastUsed = DateTime.UtcNow
+                    .AddDays(-20);
+
+                var service = Get<AuthenticationService>();
+
+                // Act
+                // Create a new credential to verify that it's a value-based lookup!
+                var result = await service.Authenticate(
+                    CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
+
+                // Assert
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItExpiresTheApiKeyAndWritesAuditRecord()
+            {
+                // Arrange
+                var config = GetMock<IAppConfiguration>();
+                config.SetupGet(m => m.ExpirationInDaysForApiKeyV1).Returns(10);
+
+                var fakes = Get<Fakes>();
+                var cred = fakes.User.Credentials.Single(
+                    c => String.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+
+                // credential was last used < allowed last used
+                cred.LastUsed = DateTime.UtcNow
+                    .AddDays(-20);
+
+                var service = Get<AuthenticationService>();
+
+                // Act
+                // Create a new credential to verify that it's a value-based lookup!
+                var result = await service.Authenticate(
+                    CredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
+
+                // Assert
+                Assert.Null(result);
+                Assert.True(cred.HasExpired);
+                Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == AuditedUserAction.ExpireCredential &&
+                    ar.Username == fakes.User.Username));
             }
 
             [Fact]

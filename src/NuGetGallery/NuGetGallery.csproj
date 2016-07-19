@@ -741,6 +741,14 @@
     <Compile Include="Migrations\201606020741056_CredentialExpires.Designer.cs">
       <DependentUpon>201606020741056_CredentialExpires.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201607190813558_CredentialDoesNotExpire.cs" />
+    <Compile Include="Migrations\201607190813558_CredentialDoesNotExpire.Designer.cs">
+      <DependentUpon>201607190813558_CredentialDoesNotExpire.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201607190842411_CredentialLastUsed.cs" />
+    <Compile Include="Migrations\201607190842411_CredentialLastUsed.Designer.cs">
+      <DependentUpon>201607190842411_CredentialLastUsed.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1842,6 +1850,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201606020741056_CredentialExpires.resx">
       <DependentUpon>201606020741056_CredentialExpires.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201607190813558_CredentialDoesNotExpire.resx">
+      <DependentUpon>201607190813558_CredentialDoesNotExpire.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201607190842411_CredentialLastUsed.resx">
+      <DependentUpon>201607190842411_CredentialLastUsed.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

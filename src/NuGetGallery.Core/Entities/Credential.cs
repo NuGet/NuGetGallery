@@ -69,6 +69,8 @@ namespace NuGetGallery
 
         public DateTime? Expires { get; set; }
 
+        public DateTime? LastUsed { get; set; }
+
         public virtual User User { get; set; }
 
         [NotMapped]
@@ -78,11 +80,21 @@ namespace NuGetGallery
             {
                 if (Expires.HasValue)
                 {
-                    return DateTime.UtcNow > Expires.Value;
+                    return DateTime.UtcNow >= Expires.Value;
                 }
 
                 return false;
             }
+        }
+
+        public bool HasBeenUsedInLastDays(int numberOfDays)
+        {
+            if (numberOfDays > 0 && LastUsed.HasValue)
+            {
+                return LastUsed.Value.AddDays(numberOfDays) > DateTime.UtcNow;
+            }
+
+            return true;
         }
     }
 }

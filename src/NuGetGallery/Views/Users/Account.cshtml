@@ -425,7 +425,7 @@
         var shouldExpandApiKeyAccordeon = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyReset, StringComparison.OrdinalIgnoreCase));
 
         // or when the API key has expired
-        shouldExpandApiKeyAccordeon = shouldExpandApiKeyAccordeon || (apiKey != null && apiKey.HasExpired);
+        shouldExpandApiKeyAccordeon = shouldExpandApiKeyAccordeon || (apiKey != null && (apiKey.HasExpired || !apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1)));
     }
     @AccordeonBar(
         groupName: "editprofile",
@@ -443,13 +443,13 @@
                     {
                         <text>You don't have an API key yet.</text>
                     }
-                    else if (apiKey.HasExpired)
+                    else if (apiKey.HasExpired || !apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1))
                     {
                         <span class="apiKeyExpired">Your API key has expired</span>
                     }
                     else
                     {
-                        <text>(hidden for security purposes)</text>
+                        <text>(hidden for security purposes, <a href="#" title="Copy API key to clipboard" onclick="copyTextToClipboard('@apiKey.Value'); return false;"><i class="icon-copy"></i> copy to clipboard</a>)</text>
                     }
 
                     @item.ExpandLink("Show details", "Hide details")
@@ -477,7 +477,7 @@
                         <strong>You don't have an API key yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
                     </p>
                 }
-                else if (apiKey.HasExpired)
+                else if (apiKey.HasExpired || !apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1))
                 {
                     <p>
                         <strong>Your API key has expired</strong> and can no longer be used to publish packages to @(Config.Current.Brand). Use the button below to generate a new API key.
@@ -524,20 +524,32 @@
                         @if (Model.ExpirationInDaysForApiKeyV1 > 0)
                         {
                             <text>Expires in:</text>
-                                <select name="expirationInDays" id="expirationInDays">
+                            <select name="expirationInDays" id="expirationInDays">
+                                @if (Model.ExpirationInDaysForApiKeyV1 == 365) // Shorter dropdown for NuGet.org
+                                {
                                     <option value="1">1 day</option>
-                                    @for (int i = 2; i <= Model.ExpirationInDaysForApiKeyV1; i++)
+                                    <option value="90">90 days</option>
+                                    <option value="180">180 days</option>
+                                    <option value="270">270 days</option>
+                                    <option value="365" selected="selected">365 days</option>
+                                }
+                                else
+                                {
+                                    <option value="1">1 day</option>
+                                    for (int i = 10; i < Model.ExpirationInDaysForApiKeyV1; i += 10)
                                     {
                                         <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
                                     }
-                                </select>
+                                    <option value="@Model.ExpirationInDaysForApiKeyV1" selected="selected">@Model.ExpirationInDaysForApiKeyV1 days</option>
+                                }
+                            </select>
                         }
 
                         <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to generate a new API key? The old API key will be rendered invalid." type="submit">@(apiKey == null ? "Generate an API Key" : "Generate a new API Key")</button>
                     </fieldset><br/>
                 }
 
-                if (apiKey != null && !apiKey.HasExpired)
+                if (apiKey != null && !apiKey.HasExpired && apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1))
                 {
                     var siteRoot = Config.Current.RequireSSL
                         ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
