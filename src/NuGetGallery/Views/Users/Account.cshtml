@@ -498,7 +498,7 @@
 
                         @if (apiKey.Expires.HasValue)
                         {
-                            <text><br />Expires: <span class="s-localtime" data-utc="@apiKey.Expires.Value.ToJavaScriptUTC()">@apiKey.Expires.Value.ToNuGetShortDateString()</span></text>
+                            <text><br />Expires on: <span class="s-localtime" data-utc="@apiKey.Expires.Value.ToJavaScriptUTC()">@apiKey.Expires.Value.ToNuGetShortDateString()</span></text>
                         }
                         else if (Model.ExpirationInDaysForApiKeyV1 > 0)
                         {
