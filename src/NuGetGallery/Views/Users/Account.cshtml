@@ -1,28 +1,28 @@
 ﻿@model AccountViewModel
 
-@helper AccordeonBar(
+@helper AccordionBar(
     string groupName,
     string title,
     string subtitle = null,
     bool enabled = true,
     string formModelStatePrefix = null,
-    Func<AccordeonHelper, HelperResult> actions = null,
-    Func<AccordeonHelper, HelperResult> content = null
+    Func<AccordionHelper, HelperResult> actions = null,
+    Func<AccordionHelper, HelperResult> content = null
 )
 {
-    Func<AccordeonHelper, HelperResult> titleTemplate = null;
+    Func<AccordionHelper, HelperResult> titleTemplate = null;
     if (!String.IsNullOrEmpty(title))
     {
-        titleTemplate = new Func<AccordeonHelper, HelperResult>(@<text>@title</text>);
+        titleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@title</text>);
     }
 
-    Func<AccordeonHelper, HelperResult> subtitleTemplate = null;
+    Func<AccordionHelper, HelperResult> subtitleTemplate = null;
     if (!String.IsNullOrEmpty(subtitle))
     {
-        subtitleTemplate = new Func<AccordeonHelper, HelperResult>(@<text>@subtitle</text>);
+        subtitleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@subtitle</text>);
     }
 
-    @AccordeonBar(groupName,
+    @AccordionBar(groupName,
         titleTemplate,
         subtitleTemplate,
         enabled,
@@ -31,44 +31,44 @@
         content)
 }
 
-@helper AccordeonBar(
+@helper AccordionBar(
     string groupName,
-    Func<AccordeonHelper, HelperResult> title,
-    Func<AccordeonHelper, HelperResult> subtitle = null,
+    Func<AccordionHelper, HelperResult> title,
+    Func<AccordionHelper, HelperResult> subtitle = null,
     bool enabled = true,
     string formModelStatePrefix = null,
-    Func<AccordeonHelper, HelperResult> actions = null,
-    Func<AccordeonHelper, HelperResult> content = null,
+    Func<AccordionHelper, HelperResult> actions = null,
+    Func<AccordionHelper, HelperResult> content = null,
     bool expanded = false
 )
 {
-    @* Calculate Accordeon Index *@
-    string dataKey = "___AccordeonCounter_" + groupName;
+    @* Calculate Accordion Index *@
+    string dataKey = "___AccordionCounter_" + groupName;
     int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
     int id = lastId + 1;
     HttpContext.Current.Items[dataKey] = id;
     string name = groupName + "-" + id.ToString();
 
-    var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
-    <li id="@hlp.ItemId" class="accordeon-item @(enabled ? "accordeon-item-enabled" : "accordeon-item-disabled")">
+    var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, this);
+    <li id="@hlp.ItemId" class="accordion-item @(enabled ? "accordion-item-enabled" : "accordion-item-disabled")">
         @if (actions != null)
         {
-            <div class="accordeon-item-actions">
+            <div class="accordion-item-actions">
                 @actions(hlp)
             </div>
         }
-        <span class="accordeon-item-title">
+        <span class="accordion-item-title">
             @title(hlp)
         </span>
         @if (subtitle != null)
         {
-            <span class="accordeon-item-subtitle">
+            <span class="accordion-item-subtitle">
                 @subtitle(hlp)
             </span>
         }
         @if (content != null)
         {
-            <div id="@hlp.ContentDropDownId" class="accordeon-item-content @(!expanded ? hlp.ContentHiddenClass : string.Empty)">
+            <div id="@hlp.ContentDropDownId" class="accordion-item-content @(!expanded ? hlp.ContentHiddenClass : string.Empty)">
                 @content(hlp)
             </div>
         }
@@ -154,11 +154,11 @@
     </ul>
 </section>
 
-<ul id="account-accordeon" class="accordeon">
+<ul id="account-accordion" class="accordion">
     @**************************
             Email Address
     **************************@
-    @AccordeonBar(
+    @AccordionBar(
         groupName: "editprofile",
         title: (String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) ? "Email Address" : "Pending Email Address"),
         subtitle: currentEmailAddress,
@@ -211,7 +211,7 @@
     @**************************
         Email Notifications
     **************************@
-    @AccordeonBar(
+    @AccordionBar(
         groupName: "editprofile",
         title: "Email Notifications",
         enabled: true,
@@ -256,7 +256,7 @@
     @**************************
         Profile Picture
     **************************@
-    @AccordeonBar(
+    @AccordionBar(
         groupName: "editprofile",
         title: @<text>
                    Profile Picture
@@ -287,7 +287,7 @@
     {
         foreach (var curatedFeed in Model.CuratedFeeds)
         {
-            @AccordeonBar(
+            @AccordionBar(
                 groupName: "editprofile",
                 title: "Curated Feed",
                 subtitle: curatedFeed,
@@ -309,7 +309,7 @@
     </p>
 }
     
-<ul class="accordeon">
+<ul class="accordion">
     @**************************
         External Credentials
     **************************@
@@ -317,7 +317,7 @@
     {
         foreach (var cred in credGroups[CredentialKind.External])
         {
-            @AccordeonBar(
+            @AccordionBar(
                 groupName: "editprofile",
                 title: cred.TypeCaption,
                 subtitle: cred.Identity,
@@ -345,7 +345,7 @@
     @**************************
         Password
     **************************@
-    @AccordeonBar(
+    @AccordionBar(
         groupName: "editprofile",
         title: (hasPassword ? "Password Login" : "Password Login Disabled"),
         enabled: hasPassword,
@@ -420,18 +420,20 @@
         API Key
     **************************@
     @{
+        // has our API key been used in last ExpirationInDaysForApiKeyV1 days?
+        var apiKeyHasBeenUsedRecently = apiKey == null || apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1);
 
         // auto-expand when we just generated a new key
-        var shouldExpandApiKeyAccordeon = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyReset, StringComparison.OrdinalIgnoreCase));
+        var shouldExpandApiKeyAccordion = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyReset, StringComparison.OrdinalIgnoreCase));
 
         // or when the API key has expired
-        shouldExpandApiKeyAccordeon = shouldExpandApiKeyAccordeon || (apiKey != null && (apiKey.HasExpired || !apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1)));
+        shouldExpandApiKeyAccordion = shouldExpandApiKeyAccordion || (apiKey != null && (apiKey.HasExpired || !apiKeyHasBeenUsedRecently));
     }
-    @AccordeonBar(
+    @AccordionBar(
         groupName: "editprofile",
         title: @<text>API Key</text>,
         enabled: CurrentUser.Confirmed,
-        expanded: shouldExpandApiKeyAccordeon,
+        expanded: shouldExpandApiKeyAccordion,
         actions: @<text>
                 @if (!CurrentUser.Confirmed)
                 {
@@ -443,7 +445,7 @@
                     {
                         <text>You don't have an API key yet.</text>
                     }
-                    else if (apiKey.HasExpired || !apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1))
+                    else if (apiKey.HasExpired || !apiKeyHasBeenUsedRecently)
                     {
                         <span class="apiKeyExpired">Your API key has expired</span>
                     }
@@ -477,7 +479,7 @@
                         <strong>You don't have an API key yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
                     </p>
                 }
-                else if (apiKey.HasExpired || !apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1))
+                else if (apiKey.HasExpired || !apiKeyHasBeenUsedRecently)
                 {
                     <p>
                         <strong>Your API key has expired</strong> and can no longer be used to publish packages to @(Config.Current.Brand). Use the button below to generate a new API key.
@@ -557,7 +559,7 @@
                     </fieldset><br/>
                 }
 
-                if (apiKey != null && !apiKey.HasExpired && apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1))
+                if (apiKey != null && !apiKey.HasExpired && apiKeyHasBeenUsedRecently)
                 {
                     var siteRoot = Config.Current.RequireSSL
                         ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
