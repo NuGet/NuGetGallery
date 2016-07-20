@@ -25,7 +25,7 @@
         public const string FileStorageType = "file";
         public const string Gallery = "gallery";
         public const string Id = "id";
-        public const string InstrumentationKey = "instrumentationKey";
+        public const string InstrumentationKey = "instrumentationkey";
         public const string Interval = "interval";
         public const string LuceneDirectoryType = "luceneDirectoryType";
         public const string LucenePath = "lucenePath";
