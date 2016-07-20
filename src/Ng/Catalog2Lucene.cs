@@ -117,7 +117,7 @@ namespace Ng
                 Console.WriteLine("No catalogBaseAddress was specified so the Lucene index will NOT contain the storage paths");
             }
 
-            string storageBaseAddress = CommandHelpers.GetStorageBaseAddress(arguments);
+            string storageBaseAddress = CommandHelpers.GetStorageBaseAddress(arguments, required: false);
 
             Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" catalogBaseAddress: \"{2}\" storageBaseAddress: \"{3}\" interval: {4} seconds", source, registration ?? "(null)", catalogBaseAddress ?? "(null)", storageBaseAddress ?? "(null)", interval);
 
