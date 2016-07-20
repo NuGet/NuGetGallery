@@ -47,39 +47,34 @@ namespace Ng
             }
         }
 
-        private static void PrintUsage()
+        public static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2dnx -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] [-interval <seconds>]");
+            Console.WriteLine("Usage: ng catalog2dnx "
+                + $"-{Constants.Source} <catalog> "
+                + $"-{Constants.ContentBaseAddress} <content-address> "
+                + $"-{Constants.StorageBaseAddress} <storage-base-address> "
+                + $"-{Constants.StorageType} file|azure "
+                + $"[-{Constants.StoragePath} <path>]"
+                + "|"
+                + $"[-{Constants.StorageAccountName} <azure-acc>"
+                    + $"-{Constants.StorageKeyValue} <azure-key> "
+                    + $"-{Constants.StorageContainer} <azure-container> "
+                    + $"-{Constants.StoragePath} <path> "
+                    + $"[-{Constants.VaultName} <keyvault-name> "
+                        + $"-{Constants.ClientId} <keyvault-client-id> "
+                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                        + $"[-{Constants.ValidateCertificate} true|false]]] "
+                + $"[-{Constants.Verbose} true|false] "
+                + $"[-{Constants.Interval} <seconds>]");
         }
 
-        public void Run(string[] args, CancellationToken cancellationToken)
+        public void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
-
             string source = CommandHelpers.GetSource(arguments);
-            if (source == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            bool verbose = CommandHelpers.GetVerbose(arguments);
-
-            int interval = CommandHelpers.GetInterval(arguments);
-
+            bool verbose = CommandHelpers.GetVerbose(arguments, required: false);
+            int interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
             string contentBaseAddress = CommandHelpers.GetContentBaseAddress(arguments);
-
             StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-            if (storageFactory == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             if (verbose)
             {

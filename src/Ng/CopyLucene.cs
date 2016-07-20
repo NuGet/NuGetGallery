@@ -9,35 +9,31 @@ namespace Ng
 {
     static class CopyLucene
     {
-        static void PrintUsage()
+        public static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng copylucene -srcDirectoryType file|azure [-srcPath <file-path>] | [-srcStorageAccountName <azure-acc> -srcStorageKeyValue <azure-key> -srcStorageContainer <azure-container>] -destDirectoryType file|azure [-destPath <file-path>] | [-destStorageAccountName <azure-acc> -destStorageKeyValue <azure-key> -destStorageContainer <azure-container>]");
+            Console.WriteLine("Usage: ng copylucene "
+                + $"-{Constants.SrcDirectoryType} file|azure "
+                + $"[-{Constants.SrcPath} <file-path>]"
+                + "|"
+                + $"[-{Constants.SrcStorageAccountName} <azure-acc> "
+                    + $"-{Constants.SrcStorageKeyValue} <azure-key> "
+                    + $"-{Constants.SrcStorageContainer} <azure-container>] "
+                + $"-{Constants.DestDirectoryType} file|azure "
+                + $"[-{Constants.DestPath} <file-path>]"
+                + "|"
+                + $"[-{Constants.DestStorageAccountName} <azure-acc> "
+                    + $"-{Constants.DestStorageKeyValue} <azure-key> "
+                    + $"-{Constants.DestStorageContainer} <azure-container>] "
+                    + $"[-{Constants.VaultName} <keyvault-name> "
+                        + $"-{Constants.ClientId} <keyvault-client-id> "
+                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                        + $"[-{Constants.ValidateCertificate} true|false]]");
         }
 
-        public static void Run(string[] args)
+        public static void Run(IDictionary<string, string> arguments)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
-
             Lucene.Net.Store.Directory srcDirectory = CommandHelpers.GetCopySrcLuceneDirectory(arguments);
-            if (srcDirectory == null)
-            {
-                Console.WriteLine("problem with src arguments");
-                PrintUsage();
-                return;
-            }
-
             Lucene.Net.Store.Directory destDirectory = CommandHelpers.GetCopyDestLuceneDirectory(arguments);
-            if (destDirectory == null)
-            {
-                Console.WriteLine("problem with dest arguments");
-                PrintUsage();
-                return;
-            }
 
             Lucene.Net.Store.Directory.Copy(srcDirectory, destDirectory, true);
 

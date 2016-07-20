@@ -27,12 +27,12 @@ namespace Ng
                         indexWriter: indexWriter,
                         commitEachBatch: false,
                         baseAddress: catalogBaseAddress,
-                        handlerFunc : handlerFunc);
+                        handlerFunc: handlerFunc);
 
                     ReadWriteCursor front = new LuceneCursor(indexWriter, MemoryCursor.MinValue);
 
-                    ReadCursor back = registration == null 
-                        ? (ReadCursor)MemoryCursor.CreateMax() 
+                    ReadCursor back = registration == null
+                        ? (ReadCursor)MemoryCursor.CreateMax()
                         : new HttpReadCursor(new Uri(registration), handlerFunc);
 
                     bool run = false;
@@ -72,35 +72,30 @@ namespace Ng
             return indexWriter;
         }
 
-        static void PrintUsage()
+        public static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2lucene -source <catalog> [-registration <registration-root>] -luceneDirectoryType file|azure [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container>] [-verbose true|false] [-interval <seconds>]");
+            Console.WriteLine("Usage: ng catalog2lucene "
+                + $"-{Constants.Source} <catalog> "
+                + $"[-{Constants.Registration} <registration-root>] "
+                + $"-{Constants.LuceneDirectoryType} file|azure "
+                + $"[-{Constants.LucenePath} <file-path>] "
+                + "|"
+                + $"[-{Constants.LuceneStorageAccountName} <azure-acc> "
+                    + $"-{Constants.LuceneStorageKeyValue} <azure-key> "
+                    + $"-{Constants.LuceneStorageContainer} <azure-container> "
+                    + $"[-{Constants.VaultName} <keyvault-name> "
+                        + $"-{Constants.ClientId} <keyvault-client-id> "
+                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                        + $"[-{Constants.ValidateCertificate} true|false]]] "
+                + $"[-{Constants.Verbose} true|false] "
+                + $"[-{Constants.Interval} <seconds>]");
         }
 
-        public static void Run(string[] args, CancellationToken cancellationToken)
+        public static void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
-
             Lucene.Net.Store.Directory directory = CommandHelpers.GetLuceneDirectory(arguments);
-            if (directory == null)
-            {
-                PrintUsage();
-                return;
-            }
-
             string source = CommandHelpers.GetSource(arguments);
-            if (source == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            bool verbose = CommandHelpers.GetVerbose(arguments);
+            bool verbose = CommandHelpers.GetVerbose(arguments, required: false);
 
             if (verbose)
             {
@@ -108,23 +103,21 @@ namespace Ng
                 //Trace.AutoFlush = true;
             }
 
-            int interval = CommandHelpers.GetInterval(arguments);
+            int interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
 
-            string registration = CommandHelpers.GetRegistration(arguments);
-
+            string registration = CommandHelpers.GetRegistration(arguments, required: false);
             if (registration == null)
             {
                 Console.WriteLine("Lucene index will be created up to the end of the catalog (alternatively if you provide a registration it will not pass that)");
             }
 
-            string catalogBaseAddress = CommandHelpers.GetCatalogBaseAddress(arguments);
-
+            string catalogBaseAddress = CommandHelpers.GetCatalogBaseAddress(arguments, required: false);
             if (catalogBaseAddress == null)
             {
                 Console.WriteLine("No catalogBaseAddress was specified so the Lucene index will NOT contain the storage paths");
             }
 
-            string storageBaseAddress = CommandHelpers.GetStorageBaseAddress(arguments);
+            string storageBaseAddress = CommandHelpers.GetStorageBaseAddress(arguments, required: false);
 
             Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" catalogBaseAddress: \"{2}\" storageBaseAddress: \"{3}\" interval: {4} seconds", source, registration ?? "(null)", catalogBaseAddress ?? "(null)", storageBaseAddress ?? "(null)", interval);
 

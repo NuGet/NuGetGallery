@@ -577,40 +577,16 @@ namespace Ng
             }
         }
 
-        static void PrintUsage()
-        {
-            Console.WriteLine("Usage: ng feed2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] -storageTypeAuditing file|azure [-storagePathAuditing <path>]|[-storageAccountNameAuditing <azure-acc> -storageKeyValueAuditing <azure-key> -storageContainerAuditing <azure-container> -storagePathAuditing <path>]  [-verbose true|false] [-interval <seconds>] [-startDate <DateTime>]");
-        }
 
-        public void Run(string[] args, CancellationToken cancellationToken)
+        public void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            var arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
-
             var gallery = CommandHelpers.GetGallery(arguments);
-            if (gallery == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            var verbose = CommandHelpers.GetVerbose(arguments);
-
-            var interval = CommandHelpers.GetInterval(arguments);
-
+            var verbose = CommandHelpers.GetVerbose(arguments, required: false);
+            var interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
             var startDate = CommandHelpers.GetStartDate(arguments);
 
             var catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
-            if (catalogStorageFactory == null || auditingStorageFactory == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             if (verbose)
             {
@@ -626,45 +602,58 @@ namespace Ng
             }
             Loop(gallery, catalogStorageFactory, auditingStorageFactory, verbose, interval, nullableStartDate, cancellationToken).Wait();
         }
-
-        static void PackagePrintUsage()
+        public static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> [-version <version>]");
+            Console.WriteLine("Usage: ng feed2catalog "
+                + $"-{Constants.Gallery} <v2-feed-address> "
+                + $"-{Constants.StorageBaseAddress} <storage-base-address> "
+                + $"-{Constants.StorageType} file|azure "
+                + $"[-{Constants.StoragePath} <path>]"
+                + "|"
+                + $"[-{Constants.StorageAccountName} <azure-acc> "
+                    + $"-{Constants.StorageKeyValue} <azure-key> "
+                    + $"-{Constants.StorageContainer} <azure-container> "
+                    + $"-{Constants.StoragePath} <path> "
+                    + $"[-{Constants.VaultName} <keyvault-name> "
+                        + $"-{Constants.ClientId} <keyvault-client-id> "
+                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                        + $"[-{Constants.ValidateCertificate} true|false]]] "
+                + $"-{Constants.StorageTypeAuditing} file|azure "
+                + $"[-{Constants.StoragePathAuditing} <path>]"
+                + "|"
+                + $"[-{Constants.StorageAccountNameAuditing} <azure-acc> "
+                    + $"-{Constants.StorageKeyValueAuditing} <azure-key> "
+                    + $"-{Constants.StorageContainerAuditing} <azure-container> "
+                    + $"-{Constants.StoragePathAuditing} <path>] "
+                + $"[-{Constants.Verbose} true|false] "
+                + $"[-{Constants.Interval} <seconds>] "
+                + $"[-{Constants.StartDate} <DateTime>]");
         }
 
-        public void Package(string[] args, CancellationToken cancellationToken)
+        public static void PackagePrintUsage()
         {
-            var arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PackagePrintUsage();
-                return;
-            }
+            Console.WriteLine("Usage: ng package2catalog "
+                + $"-{Constants.Gallery} <v2-feed-address> "
+                + $"-{Constants.StorageBaseAddress} <storage-base-address> "
+                + $"-{Constants.StorageType} file|azure "
+                + $"[-{Constants.StoragePath} <path>]"
+                + "|"
+                + $"[-{Constants.StorageAccountName} <azure-acc> "
+                    + $"-{Constants.StorageKeyValue} <azure-key> "
+                    + $"-{Constants.StorageContainer} <azure-container> "
+                    + $"-{Constants.StoragePath} <path>] "
+                + $"[-{Constants.Verbose} true|false] "
+                + $"-{Constants.Id} <id> "
+                + $"[-{Constants.Version} <version>]");
+        }
 
+        public void Package(IDictionary<string, string> arguments, CancellationToken cancellationToken)
+        {
             var gallery = CommandHelpers.GetGallery(arguments);
-            if (gallery == null)
-            {
-                PackagePrintUsage();
-                return;
-            }
-
-            var verbose = CommandHelpers.GetVerbose(arguments);
-
+            var verbose = CommandHelpers.GetVerbose(arguments, required: false);
             var id = CommandHelpers.GetId(arguments);
-            if (id == null)
-            {
-                PackagePrintUsage();
-                return;
-            }
-
             var version = CommandHelpers.GetVersion(arguments);
-
             var storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-            if (storageFactory == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             if (verbose)
             {

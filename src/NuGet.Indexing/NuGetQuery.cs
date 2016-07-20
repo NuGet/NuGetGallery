@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Tokenattributes;
 using Lucene.Net.Index;
@@ -22,17 +20,8 @@ namespace NuGet.Indexing
 
         public static Query MakeQuery(string q, OwnersResult owners)
         {
-            var grouping = new Dictionary<string, HashSet<string>>();
-            foreach (Clause clause in MakeClauses(Tokenize(q)))
-            {
-                HashSet<string> text;
-                if (!grouping.TryGetValue(clause.Field, out text))
-                {
-                    text = new HashSet<string>();
-                    grouping.Add(clause.Field, text);
-                }
-                text.Add(clause.Text);
-            }
+            var queryParser = new NuGetQueryParser();
+            var grouping = queryParser.ParseQuery(q);
 
             if (grouping.Count == 0)
             {
@@ -44,7 +33,7 @@ namespace NuGet.Indexing
 
         // Lucene Query creation logic
 
-        private static Query ConstructQuery(Dictionary<string, HashSet<string>> clauses, OwnersResult owners)
+        private static Query ConstructQuery(Dictionary<QueryField, HashSet<string>> clauses, OwnersResult owners)
         {
             Analyzer analyzer = new PackageAnalyzer();
 
@@ -53,54 +42,51 @@ namespace NuGet.Indexing
             BooleanQuery booleanQuery = new BooleanQuery();
             foreach (var clause in clauses)
             {
-                switch (clause.Key.ToLowerInvariant())
+                switch (clause.Key)
                 {
-                    case "id":
-                        IdClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
-                        break;
-                    case "packageid":
-                        PackageIdClause(booleanQuery, analyzer, clause.Value);
-                        break;
-                    case "version":
-                        VersionClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
-                        break;
-                    case "title":
-                        TitleClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
-                        break;
-                    case "description":
-                        DescriptionClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
-                        break;
-                    case "tag":
-                    case "tags":
-                        TagClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
-                        break;
-                    case "author":
-                    case "authors":
-                        AuthorClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
-                        break;
-                    case "summary":
-                        SummaryClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
-                        break;
-                    case "owner":
-                    case "owners":
-                        if (owners != null)
-                        {
-                            filters.AddRange(OwnerFilters(owners, clause.Value));
-                        }
-                        break;
-                    default:
-                        AnyClause(booleanQuery, analyzer, clause.Value);
+                case QueryField.Id:
+                    IdClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
+                    break;
+                case QueryField.PackageId:
+                    PackageIdClause(booleanQuery, analyzer, clause.Value);
+                    break;
+                case QueryField.Version:
+                    VersionClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
+                    break;
+                case QueryField.Title:
+                    TitleClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
+                    break;
+                case QueryField.Description:
+                    DescriptionClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
+                    break;
+                case QueryField.Tag:
+                    TagClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
+                    break;
+                case QueryField.Author:
+                    AuthorClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
+                    break;
+                case QueryField.Summary:
+                    SummaryClause(booleanQuery, analyzer, clause.Value, Occur.MUST);
+                    break;
+                case QueryField.Owner:
+                    if (owners != null)
+                    {
+                        filters.AddRange(OwnerFilters(owners, clause.Value));
+                    }
+                    break;
+                default:
+                    AnyClause(booleanQuery, analyzer, clause.Value);
 
-                        if (owners != null)
+                    if (owners != null)
+                    {
+                        var ownerFilters = OwnerFilters(owners, clause.Value).ToList();
+                        if (ownerFilters.Any())
                         {
-                            var ownerFilters = OwnerFilters(owners, clause.Value).ToList();
-                            if (ownerFilters.Any())
-                            {
-                                booleanQuery.Add(ConstructFilteredQuery(new MatchAllDocsQuery(), ownerFilters), Occur.SHOULD);
-                            }
+                            booleanQuery.Add(ConstructFilteredQuery(new MatchAllDocsQuery(), ownerFilters), Occur.SHOULD);
                         }
+                    }
 
-                        break;
+                    break;
                 }
             }
 
@@ -276,119 +262,6 @@ namespace NuGet.Indexing
                 }
                 return multiPhraseQuery;
             }
-        }
-
-        // NuGet query tokenizing code
-
-        private static IEnumerable<Token> Tokenize(string s)
-        {
-            StringBuilder buf = new StringBuilder();
-
-            int state = 0;
-            bool previousTokenIsKeyword = false;
-
-            foreach (char ch in s)
-            {
-                switch (state)
-                {
-                    case 0:
-                        if (Char.IsWhiteSpace(ch))
-                        {
-                            if (buf.Length > 0)
-                            {
-                                yield return new Token { Type = Token.TokenType.Value, Value = buf.ToString() };
-                                previousTokenIsKeyword = false;
-                                buf.Clear();
-                            }
-                        }
-                        else if (ch == '"')
-                        {
-                            state = 1;
-                        }
-                        else if (ch == ':')
-                        {
-                            if (buf.Length > 0)
-                            {
-                                yield return new Token { Type = Token.TokenType.Keyword, Value = buf.ToString() };
-                                previousTokenIsKeyword = true;
-                                buf.Clear();
-                            }
-                        }
-                        else
-                        {
-                            buf.Append(ch);
-                        }
-                        break;
-                    case 1:
-                        if (ch == '"')
-                        {
-                            if (buf.Length > 0 || previousTokenIsKeyword)
-                            {
-                                yield return new Token { Type = Token.TokenType.Value, Value = buf.ToString() };
-                                previousTokenIsKeyword = false;
-                                buf.Clear();
-                            }
-                            state = 0;
-                        }
-                        else
-                        {
-                            buf.Append(ch);
-                        }
-                        break;
-                }
-            }
-
-            if (buf.Length > 0)
-            {
-                yield return new Token { Type = Token.TokenType.Value, Value = buf.ToString() };
-                previousTokenIsKeyword = false;
-            }
-
-            yield break;
-        }
-
-        static IEnumerable<Clause> MakeClauses(IEnumerable<Token> tokens)
-        {
-            string field = null;
-
-            foreach (Token token in tokens)
-            {
-                if (token.Type == Token.TokenType.Keyword)
-                {
-                    field = token.Value;
-                }
-                else if (token.Type == Token.TokenType.Value)
-                {
-                    if (token.Value.ToLowerInvariant() == "and" || token.Value.ToLowerInvariant() == "or")
-                    {
-                        continue;
-                    }
-                    if (field != null)
-                    {
-                        yield return new Clause { Field = field, Text = token.Value };
-                    }
-                    else
-                    {
-                        yield return new Clause { Field = "*", Text = token.Value };
-                    }
-                    field = null;
-                }
-            }
-
-            yield break;
-        }
-
-        private class Clause
-        {
-            public string Field { get; set; }
-            public string Text { get; set; }
-        }
-
-        private class Token
-        {
-            public enum TokenType { Value, Keyword }
-            public TokenType Type { get; set; }
-            public string Value { get; set; }
         }
     }
 }
