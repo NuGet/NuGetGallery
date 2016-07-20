@@ -500,6 +500,14 @@
                         {
                             <text><br />Expires: <span class="s-localtime" data-utc="@apiKey.Expires.Value.ToJavaScriptUTC()">@apiKey.Expires.Value.ToNuGetShortDateString()</span></text>
                         }
+                        else if (Model.ExpirationInDaysForApiKeyV1 > 0)
+                        {
+                            <text><br/>Expires when not used for @Model.ExpirationInDaysForApiKeyV1 days.</text>
+                            if (apiKey.LastUsed.HasValue)
+                            {
+                                <text>The API key was last used <span class="s-localtime" data-utc="@apiKey.LastUsed.Value.ToJavaScriptUTC()">@apiKey.LastUsed.Value.ToNuGetShortDateString()</span>.</text>
+                            }
+                        }
 
                         @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new { @class = "form-inline" }))
                         {
