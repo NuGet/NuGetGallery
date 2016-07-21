@@ -73,4 +73,12 @@
     </Target>
 
     <Target Name="Build" DependsOnTargets="CheckForMultipleSolutions;RestorePackages;CoreBuild" />
+	
+	<Target Name="LocalGalleryPublish" DependsOnTargets="RestorePackages">
+	  <Copy SourceFiles="$(MSBuildThisFileDirectory)src\NuGetGallery\NuGetGallery.dll.config" DestinationFolder="$(MSBuildThisFileDirectory)src\NuGetGallery\bin\" ContinueOnError="true" />
+
+	
+	  <MsBuild Projects="$(MSBuildThisFileDirectory)src\NuGetGallery\NuGetGallery.csproj" Targets="Package" Properties="PackageLocation=$(MSBuildThisFileDirectory)artifacts\NuGetGallery.zip;_PackageTempDir=$(MSBuildThisFileDirectory)artifacts\NuGetGallery;OutputPath=$(MSBuildThisFileDirectory)artifacts\temp\NuGetGallery-build;Configuration=Release;Platform=Any CPU;VisualStudioVersion=14.0;LocalGalleryPublish=true" />
+    </Target>
+
 </Project>

@@ -1925,5 +1925,5 @@
     <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props'))" />
     <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets'))" />
   </Target>
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" />
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets') And '$(LocalGalleryPublish)' == ''" />
 </Project>
