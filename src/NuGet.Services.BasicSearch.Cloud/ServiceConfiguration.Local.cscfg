@@ -16,6 +16,7 @@
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="WebsiteSsl" thumbprint="F8ACE24A36F93B006BFAF495F6C14FB827AC61A3" thumbprintAlgorithm="sha1" />
+      <Certificate name="KeyVaultAccess" thumbprint="F8ACE24A36F93B006BFAF495F6C14FB827AC61A3" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>

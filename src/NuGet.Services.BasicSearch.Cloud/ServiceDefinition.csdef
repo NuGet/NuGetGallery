@@ -36,6 +36,7 @@
     </Endpoints>
     <Certificates>
       <Certificate name="WebsiteSsl" storeLocation="LocalMachine" storeName="My" />
+      <Certificate name="KeyVaultAccess" storeLocation="LocalMachine" storeName="My" />
     </Certificates>
   </WebRole>
 </ServiceDefinition>
