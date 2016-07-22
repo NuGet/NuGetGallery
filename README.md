@@ -31,17 +31,36 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
  4. When running the application using the Azure Compute emulator, you may have to edit the `.\src\NuGetGallery.Cloud\ServiceConfiguration.Local.cscfg` file and set the certificate thumbprint for the setting `SSLCertificate` to the certificate thumbprint of the generated `nuget.localtest.me` certificate from step 2. You can get a list of certificates and their thumbprints using PowerShell, running `Get-ChildItem -path cert:\LocalMachine\My`.
 
 5. Create the Database!
- 1. Open Visual Studio 2015
- 2. Open the Package Manager Console window
- 3. Ensure that the Default Project is set to `NuGetGallery`
- 4. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
- 5. Run the following command in the Package Manager Console:
- 
-    ```
-    Update-Database -StartUpProjectName NuGetGallery -ConfigurationTypeName MigrationsConfiguration
-    ```
-If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
-
+  
+  There are two ways you can create the databases. From Visual Studio 2015 or from the command line.
+  
+  1. From Visual Studio 2015
+    1. Open Visual Studio 2015
+    2. Open the Package Manager Console window
+    3. Ensure that the Default Project is set to `NuGetGallery`
+    4. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
+    5. Run the following command in the Package Manager Console:
+    
+       ``` powershell
+       Update-Database -StartUpProjectName NuGetGallery -ConfigurationTypeName MigrationsConfiguration
+       ```
+    If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
+  2. From the command line. ***Important:*** Step 3 must complete successfully for this step to succeed.
+    * Run `Update-databases.ps1` in the `tools` folder to migrate the databaes to the latest version.
+      * To Update both databases, Nuget Gallery and Support Request run this command
+        ``` powershell
+        .\tools\Update-Databases.ps1 -MigrationTargets NugetGallery,NugetGallerySupportRequest
+        ```
+      * To update only the Nuget Gallery DB, run this
+        ``` powershell
+        .\tools\Update-Databases.ps1 -MigrationTargets NugetGallery
+        ```
+      * And to update only the Support Request DB, run this
+        ``` powershell
+        .\tools\Update-Databases.ps1 -MigrationTargets NugetGallerySupportRequest
+        ```
+    * Additionally you can provide a `-NugetGallerySitePath` parameter to the `Update-databases.ps1` script to indicate that you want to perform the migration on a site other than the one that is built with this repository.
+    
 6. When working with the gallery, e-mail messages are saved to the file system (under `~/App_Data`).
     * To change this to use an SMTP server, edit `src\NuGetGallery\Web.Config` and add a `Gallery.SmtpUri` setting. Its value should be an SMTP connection string, for example `smtp://user:password@smtpservername:25`.
     * To turn off e-mail confirmations, edit `src\NuGetGallery\Web.Config` and change the value of `Gallery.ConfirmEmailAddresses` to `false`.
