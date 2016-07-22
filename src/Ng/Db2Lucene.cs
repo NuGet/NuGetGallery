@@ -11,35 +11,20 @@ namespace Ng
 {
     internal class Db2Lucene
     {
-        public static void Run(string[] args, CancellationToken cancellationToken, ILoggerFactory loggerFactory)
+        public static void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken, ILoggerFactory loggerFactory)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
-
             var connectionString = CommandHelpers.GetConnectionString(arguments);
-            if (connectionString == null)
-            {
-                PrintUsage();
-                return;
-            }
-
             string path = CommandHelpers.GetPath(arguments);
-            if (path == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             Sql2Lucene.Export(connectionString, path, loggerFactory);
         }
 
-        private static void PrintUsage()
+        public static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng db2lucene -connectionString <connectionString> -path <folder> [-verbose true|false]");
+            Console.WriteLine("Usage: ng db2lucene "
+                + $"-{Constants.ConnectionString} <connectionString> "
+                + $"-{Constants.Path} <folder> "
+                + $"[-{Constants.Verbose} true|false]");
         }
     }
 }

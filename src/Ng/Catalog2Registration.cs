@@ -26,8 +26,8 @@ namespace Ng
         {
             CommitCollector collector = new RegistrationCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
             {
-                ContentBaseAddress = contentBaseAddress == null 
-                    ? null 
+                ContentBaseAddress = contentBaseAddress == null
+                    ? null
                     : new Uri(contentBaseAddress)
             };
 
@@ -48,43 +48,45 @@ namespace Ng
             }
         }
 
-        private static void PrintUsage()
+        public static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2registration -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] [-interval <seconds>]");
-            Console.WriteLine("To compress data in a separate container, add: -useCompressedStorage [true|false] -compressedStorageBaseAddress <storage-base-address> -compressedStorageAccountName <azure-acc> -compressedStorageKeyValue <azure-key> -compressedstorageContainer <azure-container> -compressedStoragePath <path>");
+            Console.WriteLine("Usage: ng catalog2registration "
+                + $"-{Constants.Source} <catalog> "
+                + $"-{Constants.ContentBaseAddress} <content-address> "
+                + $"-{Constants.StorageBaseAddress} <storage-base-address> "
+                + $"-{Constants.StorageType} file|azure "
+                + $"[-{Constants.StoragePath} <path>]"
+                + "|"
+                + $"[-{Constants.StorageAccountName} <azure-acc>"
+                    + $"-{Constants.StorageKeyValue} <azure-key> "
+                    + $"-{Constants.StorageContainer} <azure-container> "
+                    + $"-{Constants.StoragePath} <path> "
+                    + $"[-{Constants.VaultName} <keyvault-name> "
+                        + $"-{Constants.ClientId} <keyvault-client-id> "
+                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                        + $"[-{Constants.ValidateCertificate} true|false]]] "
+                + $"[-{Constants.Verbose} true|false] "
+                + $"[-{Constants.Interval} <seconds>]");
+
+            Console.WriteLine("To compress data in a separate container, add: "
+                + $"-{Constants.UseCompressedStorage} [true|false] "
+                + $"-{Constants.CompressedStorageBaseAddress} <storage-base-address> "
+                + $"-{Constants.CompressedStorageAccountName} <azure-acc> "
+                + $"-{Constants.CompressedStorageKeyValue} <azure-key> "
+                + $"-{Constants.CompressedStorageContainer} <azure-container> "
+                + $"-{Constants.CompressedStoragePath} <path>");
         }
 
-        public void Run(string[] args, CancellationToken cancellationToken)
+        public void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null || arguments.Count == 0)
-            {
-                PrintUsage();
-                return;
-            }
-
             string source = CommandHelpers.GetSource(arguments);
-            if (source == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            bool unlistShouldDelete = CommandHelpers.GetUnlistShouldDelete(arguments);
-
-            bool verbose = CommandHelpers.GetVerbose(arguments);
-
-            int interval = CommandHelpers.GetInterval(arguments);
+            bool unlistShouldDelete = CommandHelpers.GetUnlistShouldDelete(arguments, required: false);
+            bool verbose = CommandHelpers.GetVerbose(arguments, required: false);
+            int interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
 
             string contentBaseAddress = CommandHelpers.GetContentBaseAddress(arguments);
 
             StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-            if (storageFactory == null)
-            {
-                PrintUsage();
-                return;
-            }
-
             StorageFactory compressedStorageFactory = CommandHelpers.CreateCompressedStorageFactory(arguments, verbose);
 
             if (verbose)

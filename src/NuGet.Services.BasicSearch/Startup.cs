@@ -126,7 +126,7 @@ namespace NuGet.Services.BasicSearch
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
 
-            Configuration(app, new ConfigurationService(), null, null);
+            Configuration(app, new ConfigurationService(new SecretReaderFactory()), null, null);
         }
 
         private void ReopenCallback(object state)

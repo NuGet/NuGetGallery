@@ -21,6 +21,9 @@
       <Setting name="Search.RegistrationBaseAddress" />
       <Setting name="serilog-ApplicationInsightsInstrumentationKey" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
+      <Setting name="keyVault-VaultName" />
+      <Setting name="keyVault-ClientId" />
+      <Setting name="keyVault-CertificateThumbprint" />
     </ConfigurationSettings>
     <Endpoints>
       <InputEndpoint name="HttpEndpoint" protocol="http" port="80" />
