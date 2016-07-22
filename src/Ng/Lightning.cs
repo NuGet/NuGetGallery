@@ -40,7 +40,7 @@ namespace Ng
             Console.WriteLine("Usage: ng lightning -command prepare|strike");
             Console.WriteLine();
             Console.WriteLine("The prepare command:");
-            Console.WriteLine("  ng lightning -command prepare -outputFolder <output-folder> -catalogIndex <catalog-index-url> -contentBaseAddress <content-address> -templateFile <template-file> -batchSize 2000 -storageContainer <connection-string> -container <container> -storageBaseAddress <storage-base-address> -compress true|false [-verbose true|false]");
+            Console.WriteLine("  ng lightning -command prepare -outputFolder <output-folder> -catalogIndex <catalog-index-url> -contentBaseAddress <content-address> -templateFile <template-file> -batchSize 2000 -storageAccount <connection-string> -storageContainer <container> -storageBaseAddress <storage-base-address> -compress true|false [-verbose true|false]");
             Console.WriteLine();
             Console.WriteLine("  -outputFolder <output-folder>");
             Console.WriteLine("      The folder to generate files in.");
