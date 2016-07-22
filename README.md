@@ -45,9 +45,9 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
        Update-Database -StartUpProjectName NuGetGallery -ConfigurationTypeName MigrationsConfiguration
        ```
     If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
-  2. From the command line. ***Important:*** Step 3 must complete successfully for this step to succeed.
-    * Run `Update-databases.ps1` in the `tools` folder to migrate the databaes to the latest version.
-      * To Update both databases, Nuget Gallery and Support Request run this command
+  2. From the command line. ***Important:*** You must have successfully built the Gallery (step 3) for this to succeed.
+    * Run `Update-Databases.ps1` in the `tools` folder to migrate the databases to the latest version.
+      * To Update both databases, Nuget Gallery and Support Request, run this command
         ``` powershell
         .\tools\Update-Databases.ps1 -MigrationTargets NugetGallery,NugetGallerySupportRequest
         ```
@@ -59,8 +59,8 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
         ``` powershell
         .\tools\Update-Databases.ps1 -MigrationTargets NugetGallerySupportRequest
         ```
-    * Additionally you can provide a `-NugetGallerySitePath` parameter to the `Update-databases.ps1` script to indicate that you want to perform the migration on a site other than the one that is built with this repository.
-    
+    * Additionally you can provide a `-NugetGallerySitePath` parameter to the `Update-Databases.ps1` script to indicate that you want to perform the migration on a site other than the one that is built with this repository.
+
 6. When working with the gallery, e-mail messages are saved to the file system (under `~/App_Data`).
     * To change this to use an SMTP server, edit `src\NuGetGallery\Web.Config` and add a `Gallery.SmtpUri` setting. Its value should be an SMTP connection string, for example `smtp://user:password@smtpservername:25`.
     * To turn off e-mail confirmations, edit `src\NuGetGallery\Web.Config` and change the value of `Gallery.ConfirmEmailAddresses` to `false`.
