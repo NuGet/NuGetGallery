@@ -1,4 +1,7 @@
-param([string] $NugetGallerySitePath)
+param(
+    [parameter(Mandatory=$true)]
+    [string[]] $MigrationTargets,
+    [string] $NugetGallerySitePath)
 
 function Initialize-MigrateExe() {
     [string] $migrateDirectory = [System.IO.Path]::Combine($PSScriptRoot, '__temp_migrate_directory_' + [guid]::NewGuid().ToString("N") )
@@ -23,13 +26,19 @@ function Initialize-MigrateExe() {
     return $migrateDirectory
 }
 
-function Update-NugetDatabases([string] $MigrateExePath, [string] $NugetGallerySitePath) {
+function Update-NugetDatabases([string] $MigrateExePath, [string] $NugetGallerySitePath, [string[]] $MigrationTargets) {
     [string] $binariesPath = [System.IO.Path]::Combine($NugetGallerySitePath, 'bin')
     [string] $webConfigPath = [System.IO.Path]::Combine($NugetGallerySitePath, 'web.config')
-    Write-Host 'Updating Nuget Gallery database...'
-    & $MigrateExePath "NuGetGallery.dll" MigrationsConfiguration "NuGetGallery.Core.dll" "/startUpDirectory:$binariesPath" "/startUpConfigurationFile:$webConfigPath"
-    Write-Host 'Updating Nuget Gallery Support request database...'
-    & $MigrateExePath "NuGetGallery.dll" SupportRequestMigrationsConfiguration "NuGetGallery.dll" "/startUpDirectory:$binariesPath" "/startUpConfigurationFile:$webConfigPath"
+    if ($MigrationTargets.Contains('NugetGallery')) {
+        Write-Host 'Updating Nuget Gallery database...'
+        & $MigrateExePath "NuGetGallery.dll" MigrationsConfiguration "NuGetGallery.Core.dll" "/startUpDirectory:$binariesPath" "/startUpConfigurationFile:$webConfigPath"
+    }
+    
+    if ($MigrationTargets.Contains('NugetGallerySupportRequest')) {
+        Write-Host 'Updating Nuget Gallery Support request database...'
+        & $MigrateExePath "NuGetGallery.dll" SupportRequestMigrationsConfiguration "NuGetGallery.dll" "/startUpDirectory:$binariesPath" "/startUpConfigurationFile:$webConfigPath"
+    }
+
     Write-Host 'Update Complete!'
 }
 
@@ -45,10 +54,12 @@ try {
 
     Update-NugetDatabases `
         -MigrateExePath ([System.IO.Path]::Combine($migrateExeDirectory, 'migrate.exe')) `
-        -NugetGallerySitePath $NugetGallerySitePath
+        -NugetGallerySitePath $NugetGallerySitePath `
+        -MigrationTargets $MigrationTargets
 }
 finally {
     if ($migrateExeDirectory -ne $null -and (Test-Path -Path $migrateExeDirectory -PathType Container)) {
         Remove-Item -Path $migrateExeDirectory -Recurse -Force
     }
 }
+
