@@ -10,10 +10,10 @@
     Func<AccordeonHelper, HelperResult> content = null
 )
 {
-Func<AccordeonHelper, HelperResult> titleTemplate = null;
-if (!String.IsNullOrEmpty(title))
-{
-    titleTemplate = new Func<AccordeonHelper, HelperResult>(@<text>@title</text>);
+    Func<AccordeonHelper, HelperResult> titleTemplate = null;
+    if (!String.IsNullOrEmpty(title))
+    {
+        titleTemplate = new Func<AccordeonHelper, HelperResult>(@<text>@title</text>);
     }
 
     Func<AccordeonHelper, HelperResult> subtitleTemplate = null;
@@ -43,13 +43,13 @@ if (!String.IsNullOrEmpty(title))
 )
 {
     @* Calculate Accordeon Index *@
-string dataKey = "___AccordeonCounter_" + groupName;
-int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
-int id = lastId + 1;
-HttpContext.Current.Items[dataKey] = id;
-string name = groupName + "-" + id.ToString();
+    string dataKey = "___AccordeonCounter_" + groupName;
+    int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
+    int id = lastId + 1;
+    HttpContext.Current.Items[dataKey] = id;
+    string name = groupName + "-" + id.ToString();
 
-var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
+    var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
     <li id="@hlp.ItemId" class="accordeon-item @(enabled ? "accordeon-item-enabled" : "accordeon-item-disabled")">
         @if (actions != null)
         {
@@ -117,10 +117,6 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
     </p>
 }
 
-<text>
-    <a href="https://www.research.net/r/DRPXR92?nugetgallery_user=[@CurrentUser.Username]">What do you think about NuGet.org?</a><br /><br />
-</text>
-
 @if (!CurrentUser.Confirmed)
 {
     <p class="message">
@@ -160,8 +156,8 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
 
 <ul id="account-accordeon" class="accordeon">
     @**************************
-                Email Address
-        **************************@
+            Email Address
+    **************************@
     @AccordeonBar(
         groupName: "editprofile",
         title: (String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) ? "Email Address" : "Pending Email Address"),
@@ -169,124 +165,124 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
         enabled: String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress),
         formModelStatePrefix: "ChangeEmail",
         actions: @<text>@item.ExpandButton("Change", "Cancel")
-        @if (!String.IsNullOrEmpty(CurrentUser.EmailAddress) && !String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
-        {
-            using (Html.BeginForm("CancelChangeEmail", "Users", FormMethod.Post, new { @class = "form-inline" }))
-            {
-                <fieldset class="form">
-                    <legend>Reset to Confirmed Email Address</legend>
-                    @Html.AntiForgeryToken()
-                    <button class="btn btn-inline" type="submit">Reset to Confirmed Email Address</button>
-                </fieldset>
-            }
-        }
-        </text>,
+                     @if (!String.IsNullOrEmpty(CurrentUser.EmailAddress) && !String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
+                     {
+                         using (Html.BeginForm("CancelChangeEmail", "Users", FormMethod.Post, new {@class = "form-inline"}))
+                         {
+                             <fieldset class="form">
+                                 <legend>Reset to Confirmed Email Address</legend>
+                                 @Html.AntiForgeryToken()
+                                 <button class="btn btn-inline" type="submit">Reset to Confirmed Email Address</button>
+                             </fieldset>
+                         }
+                     }
+                  </text>,
         content: @<text>
-        @using (Html.BeginForm("ChangeEmail", "Users", FormMethod.Post, new { @class = "form-inline" }))
-        {
-            <fieldset class="form">
-                <legend>Change Email Address</legend>
+                     @using (Html.BeginForm("ChangeEmail", "Users", FormMethod.Post, new {@class = "form-inline"}))
+                     {
+                         <fieldset class="form">
+                             <legend>Change Email Address</legend>
 
-                @Html.AntiForgeryToken()
-                @Html.ValidationSummaryFor("ChangeEmail")
+                             @Html.AntiForgeryToken()
+                             @Html.ValidationSummaryFor("ChangeEmail")
 
-                <div class="form-field">
-                    @Html.LabelFor(m => m.ChangeEmail.NewEmail)
-                    @Html.TextBoxFor(m => m.ChangeEmail.NewEmail)
-                    @Html.ValidationMessageFor(m => m.ChangeEmail.NewEmail)
-                </div>
+                             <div class="form-field">
+                                 @Html.LabelFor(m => m.ChangeEmail.NewEmail)
+                                 @Html.TextBoxFor(m => m.ChangeEmail.NewEmail)
+                                 @Html.ValidationMessageFor(m => m.ChangeEmail.NewEmail)
+                             </div>
 
-                @if (hasPassword)
-                {
-                    <div class="form-field">
-                        @Html.LabelFor(m => m.ChangeEmail.Password)
-                        @Html.PasswordFor(m => m.ChangeEmail.Password)
-                        @Html.ValidationMessageFor(m => m.ChangeEmail.Password)
-                    </div>
-                }
+                             @if (hasPassword)
+                             {
+                                 <div class="form-field">
+                                     @Html.LabelFor(m => m.ChangeEmail.Password)
+                                     @Html.PasswordFor(m => m.ChangeEmail.Password)
+                                     @Html.ValidationMessageFor(m => m.ChangeEmail.Password)
+                                 </div>
+                             }
 
-                <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
+                             <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required."/>
 
-                <input type="submit" value="Save" title="Change email address" />
-            </fieldset>
-        }
-        </text>)
+                             <input type="submit" value="Save" title="Change email address"/>
+                         </fieldset>
+                     }
+                  </text>)
 
     @**************************
-            Email Notifications
-        **************************@
+        Email Notifications
+    **************************@
     @AccordeonBar(
         groupName: "editprofile",
         title: "Email Notifications",
         enabled: true,
         actions: @<text>
-            @(CurrentUser.EmailAllowed ? "Users can contact you" : "Users can not contact you")
-            | @(CurrentUser.NotifyPackagePushed ? "Receiving package push notifications" : "Not receiving package push notifications")
-            @item.ExpandButton("Change", "Cancel")
-        </text>,
+                     @(CurrentUser.EmailAllowed ? "Users can contact you" : "Users can not contact you")
+                     | @(CurrentUser.NotifyPackagePushed ? "Receiving package push notifications" : "Not receiving package push notifications")
+                     @item.ExpandButton("Change", "Cancel")
+                  </text>,
         content: @<text>
-        @using (Html.BeginRouteForm(routeName: RouteName.ChangeEmailSubscription, method: FormMethod.Post, htmlAttributes: new { @class = "form-inline" }))
-        {
-            <fieldset class="form">
-                <legend>Update Email Notifications</legend>
-                @Html.AntiForgeryToken()
-                <div class="form-field">
-                    <input name="emailAllowed" id="CurrentUser_EmailAllowed" type="checkbox" checked="@(CurrentUser.EmailAllowed)" value="true">
-                    <label class="checkbox" for="CurrentUser_EmailAllowed">Users can contact me through the <em>Contact Owners form</em></label>
-                    <p class="smaller">
-                        This subscription allows other registered users of the site to contact you
-                        about packages that you own using the <em>Contact Owners</em> form, or to request
-                        that you become an owner of their package. Unsubscribing means users cannot contact you for these reasons.
-                    </p>
-                </div>
-                <div class="form-field">
-                    <input name="notifyPackagePushed" id="CurrentUser_NotifyPackagePushed" type="checkbox" checked="@(CurrentUser.NotifyPackagePushed)" value="true">
-                    <label class="checkbox" for="CurrentUser_NotifyPackagePushed">Notify me when a package is pushed to @Config.Current.Brand using my account</label>
-                    <p class="smaller">
-                        This subscription will send a notification whenever a package is pushed using your account.
-                        We recommend to enable this subscription so that you can inspect whether a package was pushed intentional or not.
-                        Unsubscribing means no notification will be sent on push.
-                    </p>
-                </div>
-                <input type="submit" value="Save" title="Save changes to email notifications" />
-            </fieldset>
-        }
+                     @using (Html.BeginRouteForm(routeName: RouteName.ChangeEmailSubscription, method: FormMethod.Post, htmlAttributes: new {@class = "form-inline"}))
+                     {
+                         <fieldset class="form">
+                             <legend>Update Email Notifications</legend>
+                             @Html.AntiForgeryToken()
+                             <div class="form-field">
+                                 <input name="emailAllowed" id="CurrentUser_EmailAllowed" type="checkbox" checked="@(CurrentUser.EmailAllowed)" value="true">
+                                 <label class="checkbox" for="CurrentUser_EmailAllowed">Users can contact me through the <em>Contact Owners form</em></label>
+                                 <p class="smaller">
+                                     This subscription allows other registered users of the site to contact you
+                                     about packages that you own using the <em>Contact Owners</em> form, or to request
+                                     that you become an owner of their package. Unsubscribing means users cannot contact you for these reasons.
+                                 </p>
+                             </div>
+                             <div class="form-field">
+                                 <input name="notifyPackagePushed" id="CurrentUser_NotifyPackagePushed" type="checkbox" checked="@(CurrentUser.NotifyPackagePushed)" value="true">
+                                 <label class="checkbox" for="CurrentUser_NotifyPackagePushed">Notify me when a package is pushed to @Config.Current.Brand using my account</label>
+                                 <p class="smaller">
+                                     This subscription will send a notification whenever a package is pushed using your account.
+                                     We recommend to enable this subscription so that you can inspect whether a package was pushed intentional or not.
+                                     Unsubscribing means no notification will be sent on push.
+                                 </p>
+                             </div>
+                             <input type="submit" value="Save" title="Save changes to email notifications"/>
+                         </fieldset>
+                     }
 
-        <p>
-            <br /> <strong>Note:</strong> We will <em>always</em> send important account management and security notices.
-        </p>
-        </text>)
+                     <p>
+                         <br/> <strong>Note:</strong> We will <em>always</em> send important account management and security notices.
+                     </p>
+                  </text>)
 
     @**************************
-            Profile Picture
-        **************************@
+        Profile Picture
+    **************************@
     @AccordeonBar(
         groupName: "editprofile",
         title: @<text>
-            Profile Picture
-            @if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
-            {
-                @:(preview)
+                   Profile Picture
+                   @if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
+                   {
+                       @:(preview)
                    }
-        </text>,
+                </text>,
         subtitle: @<text>@ViewHelpers.GravatarImage(currentEmailAddress, CurrentUser.Username, 32)</text>,
         actions: @<text>@item.ExpandLink("More Info", "Less Info")</text>,
         content: @<text>
-        @if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
-        {
-            <text>This is a preview of how your profile picture will look once you have verified your
-                current email address. </text>
-        }
-        We use your verified email address and
-        <a href="http://www.gravatar.com" target="_blank">gravatar.com</a>
-        to get your profile picture.
-        <a href="http://gravatar.com" target="_blank">Go to gravatar.com</a>
-        to change your profile picture.
-        </text>)
+                     @if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
+                     {
+                         <text>This is a preview of how your profile picture will look once you have verified your
+                             current email address. </text>
+                     }
+                     We use your verified email address and
+                     <a href="http://www.gravatar.com" target="_blank">gravatar.com</a>
+                     to get your profile picture.
+                     <a href="http://gravatar.com" target="_blank">Go to gravatar.com</a>
+                     to change your profile picture.
+                  </text>)
 
     @**************************
-            Curated Feeds
-        **************************@
+        Curated Feeds
+    **************************@
     @if (Model.CuratedFeeds.Any())
     {
         foreach (var curatedFeed in Model.CuratedFeeds)
@@ -296,10 +292,10 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
                 title: "Curated Feed",
                 subtitle: curatedFeed,
                 actions: @<text>
-                    <a class="btn btn-inline" href="@Url.RouteUrl(RouteName.CuratedFeed, new {name = curatedFeed})">
-                        Manage
-                    </a>
-                </text>)
+                             <a class="btn btn-inline" href="@Url.RouteUrl(RouteName.CuratedFeed, new {name = curatedFeed})">
+                                 Manage
+                             </a>
+                          </text>)
         }
     }
 </ul>
@@ -312,11 +308,11 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
         that account to sign in to @Config.Current.Brand. No more passwords to forget!
     </p>
 }
-
+    
 <ul class="accordeon">
     @**************************
-            External Credentials
-        **************************@
+        External Credentials
+    **************************@
     @if (credGroups.ContainsKey(CredentialKind.External))
     {
         foreach (var cred in credGroups[CredentialKind.External])
@@ -341,14 +337,14 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
                     }
                 </text>,
                 content: @<p>
-            You can use this @cred.AuthUI.AccountNoun to sign in to @Config.Current.Brand
-        </p>)
+                    You can use this @cred.AuthUI.AccountNoun to sign in to @Config.Current.Brand
+                </p>)
         }
     }
 
     @**************************
-            Password
-        **************************@
+        Password
+    **************************@
     @AccordeonBar(
         groupName: "editprofile",
         title: (hasPassword ? "Password Login" : "Password Login Disabled"),
@@ -383,46 +379,46 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
             }
         </text>,
         content: @<text>
-        @using (Html.BeginForm("ChangePassword", "Users"))
+            @using (Html.BeginForm("ChangePassword", "Users"))
             {
-            <fieldset id="account-changepassword-fieldset" class="form">
-                <legend>Change Password Form</legend>
+                <fieldset id="account-changepassword-fieldset" class="form">
+                    <legend>Change Password Form</legend>
 
-                <p>
-                    Using this form, you can change your password for @(Config.Current.Brand).
-                </p>
-
-                @Html.AntiForgeryToken()
-                @Html.ValidationSummaryFor("ChangePassword")
-                <div class="form-field">
-                    @Html.LabelFor(m => m.ChangePassword.OldPassword)
-                    @Html.PasswordFor(m => m.ChangePassword.OldPassword)
-                    @Html.ValidationMessageFor(m => m.ChangePassword.OldPassword)
-                </div>
-
-                <div class="form-field">
-                    @Html.LabelFor(m => m.ChangePassword.NewPassword)
-                    @Html.PasswordFor(m => m.ChangePassword.NewPassword)
-                    @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
-                </div>
-
-                <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
-
-                @if (apiKey != null)
-                {
-                    <p class="warning">
-                        <strong>Note:</strong> Changing your password will immediately expire your existing API key as well.
+                    <p>
+                        Using this form, you can change your password for @(Config.Current.Brand).
                     </p>
-                }
 
-                <input type="submit" value="Change" title="Change password" />
-            </fieldset>
-        }
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummaryFor("ChangePassword")
+                    <div class="form-field">
+                        @Html.LabelFor(m => m.ChangePassword.OldPassword)
+                        @Html.PasswordFor(m => m.ChangePassword.OldPassword)
+                        @Html.ValidationMessageFor(m => m.ChangePassword.OldPassword)
+                    </div>
+
+                    <div class="form-field">
+                        @Html.LabelFor(m => m.ChangePassword.NewPassword)
+                        @Html.PasswordFor(m => m.ChangePassword.NewPassword)
+                        @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
+                    </div>
+
+                    <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required."/>
+                    
+                    @if (apiKey != null)
+                    {
+                        <p class="warning">
+                            <strong>Note:</strong> Changing your password will immediately expire your existing API key as well.
+                        </p>
+                    }
+
+                    <input type="submit" value="Change" title="Change password" />
+                </fieldset>
+            }
         </text>)
 
     @**************************
-            API Key
-        **************************@
+        API Key
+    **************************@
     @{
 
         // auto-expand when we just generated a new key
@@ -437,62 +433,61 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
         enabled: CurrentUser.Confirmed,
         expanded: shouldExpandApiKeyAccordeon,
         actions: @<text>
-            @if (!CurrentUser.Confirmed)
-            {
-                <text>You need to
-                    <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Key</text>
-            }
-            else
-            {
-                if (apiKey == null)
+                @if (!CurrentUser.Confirmed)
                 {
-                    <text>You don't have an API key yet.</text>
-                }
-                else if (apiKey.HasExpired)
-                {
-                    <span class="apiKeyExpired">Your API key has expired</span>
+                    <text>You need to <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Key</text>
                 }
                 else
                 {
-                    <text>(hidden for security purposes)</text>
+                    if (apiKey == null)
+                    {
+                        <text>You don't have an API key yet.</text>
+                    }
+                    else if (apiKey.HasExpired)
+                    {
+                        <span class="apiKeyExpired">Your API key has expired</span>
+                    }
+                    else
+                    {
+                        <text>(hidden for security purposes)</text>
+                    }
+
+                    @item.ExpandLink("Show details", "Hide details")
                 }
-
-                @item.ExpandLink("Show details", "Hide details")
-            }
-        </text>,
+            </text>,
         content: @<text>
-        <p>
-            An API key provides you with a token that can identify you to @(Config.Current.Brand). The
-            <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
-            submit a NuGet package to the gallery using your API key to authenticate.
-        </p>
-
-        @if (!CurrentUser.Confirmed)
-            {
             <p>
-                To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
+                An API key provides you with a token that can identify you to @(Config.Current.Brand). The
+                <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
+                submit a NuGet package to the gallery using your API key to authenticate.
             </p>
-        }
 
-        @if (CurrentUser.Confirmed)
+            @if (!CurrentUser.Confirmed)
+            {
+                <p>
+                    To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
+                </p>
+            }
+
+            @if (CurrentUser.Confirmed)
             {
                 if (apiKey == null)
                 {
-                <p>
-                    <strong>You don't have an API key yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
-                </p>
-            }
-            else if (apiKey.HasExpired)
-            {
-                <p>
-                    <strong>Your API key has expired</strong> and can no longer be used to publish packages to @(Config.Current.Brand). Use the button below to generate a new API key.
-                </p>
-            }
-            else
-            {
-                <p>
-                    <strong>Always keep your API key a secret!</strong> If your key is accidentally revealed, you can always regenerate it at any time. You can also remove the API key if necessary.
-                </p>
+                    <p>
+                        <strong>You don't have an API key yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
+                    </p>
+                }
+                else if (apiKey.HasExpired)
+                {
+                    <p>
+                        <strong>Your API key has expired</strong> and can no longer be used to publish packages to @(Config.Current.Brand). Use the button below to generate a new API key.
+                    </p>
+                }
+                else
+                { 
+                    <p>
+                        <strong>Always keep your API key a secret!</strong> If your key is accidentally revealed, you can always regenerate it at any time. You can also remove the API key if necessary.
+                    </p>
 
                     <p>
                         <span id="key" class="apiKey">
@@ -516,40 +511,39 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
                             </fieldset>
                         }
                     </p>
-            }
+                }
 
-            <hr />
+                <hr/>
 
-            using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline" }))
-            {
-                <fieldset class="form">
-                    <h4>@(apiKey == null ? "Generate an API Key" : "Generate a new API Key")</h4>
-                    @Html.AntiForgeryToken()
+                using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                {
+                    <fieldset class="form">
+                        <h4>@(apiKey == null ? "Generate an API Key" : "Generate a new API Key")</h4>
+                        @Html.AntiForgeryToken()
 
-                    @if (Model.ExpirationInDaysForApiKeyV1 > 0)
-                    {
-                        <text>Expires in:</text>
-                        <select name="expirationInDays" id="expirationInDays">
-                            <option value="1">1 day</option>
-                            @for (int i = 2; i <= Model.ExpirationInDaysForApiKeyV1; i++)
-                            {
-                                <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
-                            }
-                        </select>
-                    }
+                        @if (Model.ExpirationInDaysForApiKeyV1 > 0)
+                        {
+                            <text>Expires in:</text>
+                                <select name="expirationInDays" id="expirationInDays">
+                                    <option value="1">1 day</option>
+                                    @for (int i = 2; i <= Model.ExpirationInDaysForApiKeyV1; i++)
+                                    {
+                                        <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
+                                    }
+                                </select>
+                        }
 
-                    <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to generate a new API key? The old API key will be rendered invalid." type="submit">@(apiKey == null ? "Generate an API Key" : "Generate a new API Key")</button>
-                </fieldset>
-                <br />
-            }
+                        <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to generate a new API key? The old API key will be rendered invalid." type="submit">@(apiKey == null ? "Generate an API Key" : "Generate a new API Key")</button>
+                    </fieldset><br/>
+                }
 
-            if (apiKey != null && !apiKey.HasExpired)
-            {
-                var siteRoot = Config.Current.RequireSSL
-                    ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
-                    : Config.Current.SiteRoot.TrimEnd('/');
+                if (apiKey != null && !apiKey.HasExpired)
+                {
+                    var siteRoot = Config.Current.RequireSSL
+                        ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
+                        : Config.Current.SiteRoot.TrimEnd('/');
 
-                <hr />
+                    <hr/>
 
                     <h4>Example usage</h4>
                     <p>
@@ -566,10 +560,10 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
                             <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
                         </div>
                     </p>
+                }
             }
-        }
-        </text>)
-</ul>
+            </text>)
+</ul> 
 
 
 @section bottomScripts {
@@ -610,7 +604,7 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
                 var textArea = document.createElement("textarea");
 
                 //
-                //  This styling is an extra step which is likely not required.
+                //  This styling is an extra step which is likely not required. 
                 //
                 // Why is it here? To ensure:
                 // 1. the element is able to have focus and selection.
@@ -619,11 +613,11 @@ var hlp = new AccordeonHelper(name, formModelStatePrefix, expanded, this);
                 //    the textarea element is not visible.
                 //
                 // The likelihood is the element won't even render, not even a flash,
-                // so some of these are just precautions.
-                //
+                // so some of these are just precautions. 
+                // 
                 // However in IE the element
                 // is visible whilst the popup box asking the user for permission for
-                // the web page to copy to the clipboard. To prevent this, we are using
+                // the web page to copy to the clipboard. To prevent this, we are using 
                 // the detectIE workaround.
 
                 // Place in top-left corner of screen regardless of scroll position.
