@@ -10,9 +10,13 @@
       <Setting name="Search.RegistrationBaseAddress" value="http://api.nuget.org/v3/registration0/" />
       <Setting name="serilog-ApplicationInsightsInstrumentationKey" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="keyVault-VaultName" value="" />
+      <Setting name="keyVault-ClientId" value="" />
+      <Setting name="keyVault-CertificateThumbprint" value="" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="WebsiteSsl" thumbprint="F8ACE24A36F93B006BFAF495F6C14FB827AC61A3" thumbprintAlgorithm="sha1" />
+      <Certificate name="KeyVaultAccess" thumbprint="F8ACE24A36F93B006BFAF495F6C14FB827AC61A3" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>

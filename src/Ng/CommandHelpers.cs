@@ -267,7 +267,7 @@ namespace Ng
         {
             Uri storageBaseAddress = null;
             string storageBaseAddressStr;
-            if (!TryGetArgument(arguments, Constants.StorageBaseAddress, out storageBaseAddressStr))
+            if (TryGetArgument(arguments, Constants.StorageBaseAddress, out storageBaseAddressStr))
             {
                 storageBaseAddressStr = storageBaseAddressStr.TrimEnd('/') + "/";
 

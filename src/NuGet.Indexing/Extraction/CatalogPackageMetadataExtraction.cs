@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
@@ -196,8 +197,31 @@ namespace NuGet.Indexing
 
             private void AddSupportedFrameworks()
             {
-                var supportedFrameworks = _reader
-                    .GetSupportedFrameworks()
+                // Parse files for framework names
+                List<NuGetFramework> supportedFrameworksFromReader = null;
+                try
+                {
+                    supportedFrameworksFromReader = _reader
+                        .GetSupportedFrameworks()
+                        .ToList();
+                }
+                catch (ArgumentException ex) when (ex.Message.ToLowerInvariant().StartsWith("invalid portable"))
+                {
+                    // ignoring ArgumentException that denotes invalid portable framework on purpose
+                    // - we don't want the job crashing whenever someone uploads an unsupported framework
+                    Trace.TraceError("CatalogPackageMetadataExtraction.AddSupportedFrameworks exception: " + ex.Message);
+                    return;
+                }
+                catch (FrameworkException ex)
+                {
+                    // ignoring FrameworkException on purpose - we don't want the job crashing
+                    // whenever someone uploads an unsupported framework
+                    Trace.TraceError("CatalogPackageMetadataExtraction.AddSupportedFrameworks exception: " + ex.Message);
+                    return;
+                }
+                
+                // Filter out special frameworks + get short framework names
+                var supportedFrameworks = supportedFrameworksFromReader
                     .Except(SpecialFrameworks)
                     .Select(f =>
                     {

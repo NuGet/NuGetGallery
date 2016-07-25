@@ -52,7 +52,7 @@ namespace NuGet.Indexing
         }
 
         public override IEnumerable<string> CopyFiles(string destination, IEnumerable<string> packageFiles, ExtractPackageFileDelegate extractFile,
-            CancellationToken token)
+            Common.ILogger logger, CancellationToken token)
         {
             throw new NotImplementedException();
         }

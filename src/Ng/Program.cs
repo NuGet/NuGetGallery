@@ -126,10 +126,8 @@ namespace Ng
                 {
                     _logger.LogCritical(message, e);
                 }
-                else
-                {
-                    Console.Error.WriteLine(message, e);
-                }
+                
+                Console.Error.WriteLine(message, e);
             }
 
             Trace.Close();
