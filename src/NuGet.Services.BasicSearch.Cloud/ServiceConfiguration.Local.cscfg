@@ -17,6 +17,7 @@
     <Certificates>
       <Certificate name="WebsiteSsl" thumbprint="F8ACE24A36F93B006BFAF495F6C14FB827AC61A3" thumbprintAlgorithm="sha1" />
       <Certificate name="KeyVaultAccess" thumbprint="F8ACE24A36F93B006BFAF495F6C14FB827AC61A3" thumbprintAlgorithm="sha1" />
+      <Certificate name="KeyVaultAccessCA" thumbprint="D17697CC206ED26E1A51F5BB96E9356D6D610B74" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>
