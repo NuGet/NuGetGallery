@@ -690,7 +690,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", PackageIdValidator.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
@@ -786,7 +786,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", PackageIdValidator.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]

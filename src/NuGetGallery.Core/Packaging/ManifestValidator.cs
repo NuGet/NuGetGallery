@@ -42,7 +42,7 @@ namespace NuGetGallery.Packaging
             }
             else
             {
-                if (packageMetadata.Id.Length > MaxPackageIdLength)
+                if (packageMetadata.Id.Length > PackageIdValidator.MaxPackageIdLength)
                 {
                     yield return new ValidationResult(Strings.Manifest_IdTooLong);
                 }
