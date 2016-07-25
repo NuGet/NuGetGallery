@@ -37,7 +37,7 @@
     <Certificates>
       <Certificate name="WebsiteSsl" storeLocation="LocalMachine" storeName="My" />
       <Certificate name="KeyVaultAccess" storeLocation="LocalMachine" storeName="My" />
-      <Certificate name="KeyVaultAccessCA" storeLocation="LocalMachine" storeName="CA" />
+      <Certificate name="KeyVaultAccessCA" storeLocation="LocalMachine" storeName="Root" />
     </Certificates>
   </WebRole>
 </ServiceDefinition>
