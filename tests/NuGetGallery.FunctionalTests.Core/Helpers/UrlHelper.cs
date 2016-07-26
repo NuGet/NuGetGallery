@@ -40,6 +40,14 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
+        public static string SearchServiceBaseUrl
+        {
+            get
+            {
+                return EnsureTrailingSlash(EnvironmentSettings.SearchServiceBaseUrl);
+            }
+        }
+
         public static string V1FeedRootUrl
         {
             get
