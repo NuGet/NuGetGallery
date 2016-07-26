@@ -44,3 +44,7 @@ pkgmgr.exe /iu:IIS-ApplicationInit
 &$appcmd set config -section:applicationPools /applicationPoolDefaults.startMode:AlwaysRunning
 &$appcmd list sites "/name:$=NuGet*" /xml | &$appcmd set site /in /serverAutoStart:true
 &$appcmd list sites "/name:$=NuGet*" /xml | &$appcmd set site /in /applicationDefaults.preloadEnabled:true
+
+# Install Microsoft internal corporate root required for KeyVault access to LocalMachine\AuthRoot (it's not supported by azure, hence we install to cert to CA store, and then need to move it) 
+Move-Item -Path Cert:\LocalMachine\CA\D17697CC206ED26E1A51F5BB96E9356D6D610B74 -Destination Cert:\LocalMachine\Root
+
