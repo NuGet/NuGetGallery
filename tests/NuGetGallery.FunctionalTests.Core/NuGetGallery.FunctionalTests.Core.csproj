@@ -73,7 +73,6 @@
     <Compile Include="Helpers\ClientSdkHelper.cs" />
     <Compile Include="Helpers\CommandlineHelper.cs" />
     <Compile Include="Helpers\HelperBase.cs" />
-    <Compile Include="Helpers\MetricsServiceHelper.cs" />
     <Compile Include="Helpers\NuspecHelper.cs" />
     <Compile Include="Helpers\ODataHelper.cs" />
     <Compile Include="Helpers\PackageCreationHelper.cs" />

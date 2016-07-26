@@ -11,6 +11,7 @@ namespace NuGetGallery.FunctionalTests
     public class EnvironmentSettings
     {
         private static string _baseurl;
+        private static string _searchServiceBaseurl;
         private static string _testAccountName;
         private static string _testAccountPassword;
         private static string _testAccountApiKey;
@@ -64,17 +65,35 @@ namespace NuGetGallery.FunctionalTests
             {
                 if (string.IsNullOrEmpty(_baseurl))
                 {
-                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.User)) && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Process)) && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Machine)))
+                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl",
+                            EnvironmentVariableTarget.User)) &&
+                        string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl",
+                            EnvironmentVariableTarget.Process)) &&
+                        string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl",
+                            EnvironmentVariableTarget.Machine)))
+                    {
                         _baseurl = "https://int.nugettest.org/";
+                    }
                     else
                     {
-                        //Check for the environment variable under all scopes. This is to make sure that the variables are acessed properly in teamcity where we cannot set process leve variables.
-                        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.User)))
-                           _baseurl = Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.User);
-                        else if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Process)))
-                           _baseurl = Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Process);
+                        // Check for the environment variable under all scopes. This is to make sure that the variables are acessed properly in teamcity where we cannot set process leve variables.
+                        if (!string.IsNullOrEmpty(
+                            Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.User)))
+                        {
+                            _baseurl = Environment.GetEnvironmentVariable("GalleryUrl",
+                                EnvironmentVariableTarget.User);
+                        }
+                        else if (!string.IsNullOrEmpty(
+                            Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Process)))
+                        {
+                            _baseurl = Environment.GetEnvironmentVariable("GalleryUrl",
+                                EnvironmentVariableTarget.Process);
+                        }
                         else
-                            _baseurl = Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Machine);
+                        {
+                            _baseurl = Environment.GetEnvironmentVariable("GalleryUrl",
+                                EnvironmentVariableTarget.Machine);
+                        }
                     }
                 }
 
@@ -82,7 +101,59 @@ namespace NuGetGallery.FunctionalTests
                 {
                     _baseurl = "https://int.nugettest.org/";
                 }
+
                 return _baseurl;
+            }
+        }
+
+        /// <summary>
+        /// The environment against which the (search service) test has to be run. The value would be picked from env variable.
+        /// If nothing is specified, preview is used as default.
+        /// </summary>
+        public static string SearchServiceBaseUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_searchServiceBaseurl))
+                {
+                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SearchServiceUrl",
+                            EnvironmentVariableTarget.User)) &&
+                        string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SearchServiceUrl",
+                            EnvironmentVariableTarget.Process)) &&
+                        string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SearchServiceUrl",
+                            EnvironmentVariableTarget.Machine)))
+                    {
+                        _searchServiceBaseurl = "http://nuget-int-0-v2v3search.cloudapp.net/";
+                    }
+                    else
+                    {
+                        // Check for the environment variable under all scopes. This is to make sure that the variables are acessed properly in teamcity where we cannot set process leve variables.
+                        if (!string.IsNullOrEmpty(
+                            Environment.GetEnvironmentVariable("SearchServiceUrl", EnvironmentVariableTarget.User)))
+                        {
+                            _searchServiceBaseurl = Environment.GetEnvironmentVariable("SearchServiceUrl",
+                                EnvironmentVariableTarget.User);
+                        }
+                        else if (!string.IsNullOrEmpty(
+                            Environment.GetEnvironmentVariable("SearchServiceUrl", EnvironmentVariableTarget.Process)))
+                        {
+                            _searchServiceBaseurl = Environment.GetEnvironmentVariable("SearchServiceUrl",
+                                EnvironmentVariableTarget.Process);
+                        }
+                        else
+                        {
+                            _searchServiceBaseurl = Environment.GetEnvironmentVariable("SearchServiceUrl",
+                                EnvironmentVariableTarget.Machine);
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(_searchServiceBaseurl))
+                {
+                    _searchServiceBaseurl = "http://nuget-int-0-v2v3search.cloudapp.net/";
+                }
+
+                return _searchServiceBaseurl;
             }
         }
 
