@@ -152,7 +152,7 @@ This is the Git workflow we're currently using:
     "Ship-It Squirrel" and you can put it in your own comments by typing ```:shipit:```).
 
 5.  __Merge your changes in to dev.__
-    Click the bright green "Merge" button on your pull request! **NOTE: DO NOT DELETE THE TOPIC BRANCH!!**
+    Click the bright green "Merge" button on your pull request! Don't forget to delete the branch afterwards to keep our repo clean.
 
     If there isn't a bright green button... well, you'll have to do some more complicated merging:
 
