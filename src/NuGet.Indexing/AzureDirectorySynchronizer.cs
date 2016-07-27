@@ -36,6 +36,8 @@ namespace NuGet.Indexing
 
         public void Sync()
         {
+            const int maxRetries = 10;
+
             Retry.Incremental(
                 () =>
                 {
@@ -51,7 +53,7 @@ namespace NuGet.Indexing
 
                     return false;
                 },
-                maxRetries: 5,
+                maxRetries: maxRetries,
                 waitIncrement: TimeSpan.FromSeconds(2));
         }
 

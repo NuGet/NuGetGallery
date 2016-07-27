@@ -174,7 +174,7 @@ namespace NuGet.Services.BasicSearch
 
         private bool InitializeSearcherManager(IConfiguration configuration, Directory directory, ILoader loader, ILoggerFactory loggerFactory)
         {
-            const int maxRetries = 5;
+            const int maxRetries = 10;
 
             try
             {
