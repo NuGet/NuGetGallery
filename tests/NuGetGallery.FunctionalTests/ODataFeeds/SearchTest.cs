@@ -19,7 +19,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Fact]
-        [Description("Performs a querystring-based search of the v1 feed.  Confirms expected packages are returned.")]
+        [Description("Performs a querystring-based search of the v1 feed. Confirms expected packages are returned.")]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task SearchV1Feed()
@@ -28,12 +28,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Fact]
-        [Description("Performs a querystring-based search of the default (non-curated) v2 feed.  Confirms expected packages are returned.")]
+        [Description("Performs a querystring-based search of the default (non-curated) v2 feed. Confirms expected packages are returned.")]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task SearchV2Feed()
         {
-            await SearchFeedAsync(UrlHelper.V2FeedRootUrl, "microsoft-web-helpers");
+            await SearchFeedAsync(UrlHelper.V2FeedRootUrl, "ASP.NET Web Helpers Library");
         }
 
         private async Task SearchFeedAsync(string feedRootUrl, string title)
