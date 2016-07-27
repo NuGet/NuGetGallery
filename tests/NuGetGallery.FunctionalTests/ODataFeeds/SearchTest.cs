@@ -55,7 +55,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             var expectedUrl = feedRootUrl + "package/Microsoft.AspNet.WebHelpers/";
 
             Assert.True(responseText.Contains(@"<title type=""text"">" + title + @"</title>")
-                     || responseText.Contains(@"<d:Title > " + title + @"</d:Title>"), "The expected package title '" + title + "' wasn't found in the feed. Feed contents: " + responseText);
+                     || responseText.Contains(@"<d:Title>" + title + @"</d:Title>"), "The expected package title '" + title + "' wasn't found in the feed. Feed contents: " + responseText);
             Assert.True(responseText.Contains(@"<content type=""application/zip"" src=""" + expectedUrl), "The expected package URL '" + expectedUrl + "' wasn't found in the feed.  Feed contents: " + responseText);
             Assert.False(responseText.Contains(@"jquery"), "The feed contains non-matching package names. Feed contents: " + responseText);
         }
