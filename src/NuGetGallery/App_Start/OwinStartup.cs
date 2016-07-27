@@ -49,7 +49,7 @@ namespace NuGetGallery
             ServiceCenter.Current = _ => elmahServiceCenter;
 
             // Get config
-            var config = dependencyResolver.GetService<ConfigurationService>();
+            var config = dependencyResolver.GetService<IGalleryConfigurationService>();
             var auth = dependencyResolver.GetService<AuthenticationService>();
 
             // Setup telemetry

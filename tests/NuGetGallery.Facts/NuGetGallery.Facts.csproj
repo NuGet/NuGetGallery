@@ -347,6 +347,7 @@
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="Framework\TestGalleryConfigurationService.cs" />
     <Compile Include="SearchClient\CorrelatingHttpClientHandlerFacts.cs" />
     <Compile Include="SearchClient\RequestInspectingHandler.cs" />
     <Compile Include="SearchClient\WebApiCorrelationHandlerFacts.cs" />

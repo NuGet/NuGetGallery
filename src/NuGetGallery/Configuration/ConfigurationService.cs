@@ -8,73 +8,79 @@ using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using PoliteCaptcha;
+using NuGet.Services.KeyVault;
+using NuGetGallery.Configuration.SecretReader;
 
 namespace NuGetGallery.Configuration
 {
-    public class ConfigurationService : IConfigurationSource
+    public class ConfigurationService : PoliteCaptcha.IConfigurationSource, IGalleryConfigurationService
     {
-        private const string _settingPrefix = "Gallery.";
-        private const string _featurePrefix = "Feature.";
+        protected const string SettingPrefix = "Gallery.";
+        protected const string FeaturePrefix = "Feature.";
         private bool _notInCloud;
-        private IAppConfiguration _current;
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
-        private FeatureConfiguration _features;
+        private ISecretReaderFactory _secretReaderFactory;
+        private Lazy<ISecretInjector> _secretInjector;
+        private Lazy<IAppConfiguration> _lazyAppConfiguration;
+        private Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
 
-        public ConfigurationService()
+        public ConfigurationService(ISecretReaderFactory secretReaderFactory)
         {
+            if (secretReaderFactory == null)
+            {
+                throw new ArgumentNullException(nameof(secretReaderFactory));
+            }
+
+            _secretReaderFactory = secretReaderFactory;
+            _secretInjector = new Lazy<ISecretInjector>(InitSecretInjector, isThreadSafe: false);
+
             _httpSiteRootThunk = new Lazy<string>(GetHttpSiteRoot);
             _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
+
+            _lazyAppConfiguration = new Lazy<IAppConfiguration>(() => ResolveSettings().Result);
+            _lazyFeatureConfiguration = new Lazy<FeatureConfiguration>(() => ResolveFeatures().Result);
         }
 
-        public virtual IAppConfiguration Current
+        /// <summary>
+        /// PoliteCaptcha.IConfigurationSource implementation
+        /// </summary>
+        public string GetConfigurationValue(string key)
         {
-            get { return _current ?? (_current = ResolveSettings()); }
-            set { _current = value; }
+            // Fudge the name because Azure cscfg system doesn't allow : in setting names
+            return ReadSetting(key.Replace("::", "."));
         }
 
-        public virtual FeatureConfiguration Features
-        {
-            get { return _features ?? (_features = ResolveFeatures()); }
-            set { _features = value; }
-        }
+        public IAppConfiguration Current => _lazyAppConfiguration.Value;
+
+        public FeatureConfiguration Features => _lazyFeatureConfiguration.Value;
 
         /// <summary>
         /// Gets the site root using the specified protocol
         /// </summary>
         /// <param name="useHttps">If true, the root will be returned in HTTPS form, otherwise, HTTP.</param>
         /// <returns></returns>
-        public virtual string GetSiteRoot(bool useHttps)
+        public string GetSiteRoot(bool useHttps)
         {
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
         }
 
-        public virtual FeatureConfiguration ResolveFeatures()
-        {
-            return ResolveConfigObject(new FeatureConfiguration(), _featurePrefix);
-        }
-
-        public virtual IAppConfiguration ResolveSettings()
-        {
-            return ResolveConfigObject(new AppConfiguration(), _settingPrefix);
-        }
-
-        public virtual T ResolveConfigObject<T>(T instance, string prefix)
+        public async Task<T> ResolveConfigObject<T>(T instance, string prefix)
         {
             // Iterate over the properties
             foreach (var property in GetConfigProperties<T>(instance))
             {
                 // Try to get a config setting value
-                string baseName = String.IsNullOrEmpty(property.DisplayName) ? property.Name : property.DisplayName;
+                string baseName = string.IsNullOrEmpty(property.DisplayName) ? property.Name : property.DisplayName;
                 string settingName = prefix + baseName;
 
                 string value = ReadSetting(settingName);
 
-                if (String.IsNullOrEmpty(value))
+                if (string.IsNullOrEmpty(value))
                 {
                     var defaultValue = property.Attributes.OfType<DefaultValueAttribute>().FirstOrDefault();
                     if (defaultValue != null && defaultValue.Value != null)
@@ -90,8 +96,12 @@ namespace NuGetGallery.Configuration
                         }
                     }
                 }
+                else
+                {
+                    value = await _secretInjector.Value.InjectAsync(value);
+                }
 
-                if (!String.IsNullOrEmpty(value))
+                if (!string.IsNullOrEmpty(value))
                 {
                     if (property.PropertyType.IsAssignableFrom(typeof(string)))
                     {
@@ -105,18 +115,18 @@ namespace NuGetGallery.Configuration
                 }
                 else if (property.Attributes.OfType<RequiredAttribute>().Any())
                 {
-                    throw new ConfigurationErrorsException(String.Format(CultureInfo.InvariantCulture, "Missing required configuration setting: '{0}'", settingName));
+                    throw new ConfigurationErrorsException(string.Format(CultureInfo.InvariantCulture, "Missing required configuration setting: '{0}'", settingName));
                 }
             }
             return instance;
         }
 
-        internal static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
+        public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
         {
             return TypeDescriptor.GetProperties(instance).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly);
         }
 
-        public virtual string ReadSetting(string settingName)
+        protected virtual string ReadSetting(string settingName)
         {
             string value;
             var cstr = GetConnectionString(settingName);
@@ -141,7 +151,28 @@ namespace NuGetGallery.Configuration
             return cloudValue;
         }
 
-        public virtual string GetCloudSetting(string settingName)
+        protected virtual HttpRequestBase GetCurrentRequest()
+        {
+            return new HttpRequestWrapper(HttpContext.Current.Request);
+        }
+
+
+        private ISecretInjector InitSecretInjector()
+        {
+            return _secretReaderFactory.CreateSecretInjector(_secretReaderFactory.CreateSecretReader(new ConfigurationService(new EmptySecretReaderFactory())));
+        }
+
+        private async Task<FeatureConfiguration> ResolveFeatures()
+        {
+            return await ResolveConfigObject(new FeatureConfiguration(), FeaturePrefix);
+        }
+
+        private async Task<IAppConfiguration> ResolveSettings()
+        {
+            return await ResolveConfigObject(new AppConfiguration(), SettingPrefix);
+        }
+
+        private string GetCloudSetting(string settingName)
         {
             // Short-circuit if we've already determined we're not in the cloud
             if (_notInCloud)
@@ -174,21 +205,16 @@ namespace NuGetGallery.Configuration
             return value;
         }
 
-        public virtual string GetAppSetting(string settingName)
+        private string GetAppSetting(string settingName)
         {
             return WebConfigurationManager.AppSettings[settingName];
         }
 
-        public virtual ConnectionStringSettings GetConnectionString(string settingName)
+        private ConnectionStringSettings GetConnectionString(string settingName)
         {
             return WebConfigurationManager.ConnectionStrings[settingName];
         }
-
-        protected virtual HttpRequestBase GetCurrentRequest()
-        {
-            return new HttpRequestWrapper(HttpContext.Current.Request);
-        }
-
+      
         private string GetHttpSiteRoot()
         {
             var request = GetCurrentRequest();
@@ -227,12 +253,6 @@ namespace NuGetGallery.Configuration
             }
 
             return "https://" + siteRoot.Substring(7);
-        }
-
-        string IConfigurationSource.GetConfigurationValue(string key)
-        {
-            // Fudge the name because Azure cscfg system doesn't allow : in setting names
-            return ReadSetting(key.Replace("::", "."));
         }
     }
 }

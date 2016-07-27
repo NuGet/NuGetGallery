@@ -11,7 +11,7 @@ namespace NuGetGallery.Authentication.Providers.Cookie
 {
     public class LocalUserAuthenticator : Authenticator
     {
-        protected override void AttachToOwinApp(ConfigurationService config, IAppBuilder app)
+        protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             var cookieSecurity = config.Current.RequireSSL ?
                 CookieSecureOption.Always :

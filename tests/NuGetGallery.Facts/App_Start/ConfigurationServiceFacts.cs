@@ -4,6 +4,7 @@ using System;
 using System.Web;
 using Moq;
 using NuGetGallery.Configuration;
+using NuGetGallery.Configuration.SecretReader;
 using Xunit;
 
 namespace NuGetGallery.App_Start
@@ -12,23 +13,32 @@ namespace NuGetGallery.App_Start
     {
         public class TestableConfigurationService : ConfigurationService
         {
-            public TestableConfigurationService()
+            public TestableConfigurationService() : base(new EmptySecretReaderFactory())
             {
-                StubRequest = new Mock<HttpRequestBase>();
                 StubConfiguredSiteRoot = "http://aSiteRoot/";
-                Current = (StubConfiguration = new Mock<IAppConfiguration>()).Object;
-                StubConfiguration.Setup(c => c.SiteRoot).Returns(() => StubConfiguredSiteRoot);
 
+                StubRequest = new Mock<HttpRequestBase>();
                 StubRequest.Setup(stub => stub.IsLocal).Returns(false);
             }
 
-            public Mock<IAppConfiguration> StubConfiguration { get; set; }
             public string StubConfiguredSiteRoot { get; set; }
             public Mock<HttpRequestBase> StubRequest { get; set; }
 
             protected override HttpRequestBase GetCurrentRequest()
             {
                 return StubRequest.Object;
+            }
+
+            protected override string ReadSetting(string settingName)
+            {
+                var tempAppConfig = new AppConfiguration();
+
+                if (settingName == $"{SettingPrefix}{nameof(tempAppConfig.SiteRoot)}")
+                {
+                    return StubConfiguredSiteRoot;
+                }
+
+                return string.Empty;
             }
         }
 

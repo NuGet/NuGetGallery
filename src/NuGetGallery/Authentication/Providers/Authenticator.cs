@@ -13,8 +13,8 @@ namespace NuGetGallery.Authentication.Providers
 {
     public abstract class Authenticator
     {
+        public const string AuthPrefix = "Auth.";
         private static readonly Regex NameShortener = new Regex(@"^(?<shortname>[A-Za-z0-9_]*)Authenticator$");
-        private static readonly string AuthPrefix = "Auth.";
 
         public AuthenticatorConfiguration BaseConfig { get; private set; }
 
@@ -28,7 +28,7 @@ namespace NuGetGallery.Authentication.Providers
             BaseConfig = CreateConfigObject();
         }
 
-        public void Startup(ConfigurationService config, IAppBuilder app)
+        public void Startup(IGalleryConfigurationService config, IAppBuilder app)
         {
             Configure(config);
 
@@ -38,12 +38,12 @@ namespace NuGetGallery.Authentication.Providers
             }
         }
 
-        protected virtual void AttachToOwinApp(ConfigurationService config, IAppBuilder app) { }
+        protected virtual void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app) { }
 
         // Configuration Logic
-        public virtual void Configure(ConfigurationService config)
+        protected virtual void Configure(IGalleryConfigurationService config)
         {
-            BaseConfig = config.ResolveConfigObject(BaseConfig, AuthPrefix + Name + ".");
+            BaseConfig = config.ResolveConfigObject(BaseConfig, AuthPrefix + Name + ".").Result;
         }
 
         public static string GetName(Type authenticator)

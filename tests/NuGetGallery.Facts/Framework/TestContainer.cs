@@ -48,7 +48,7 @@ namespace NuGetGallery.Framework
             if (appCtrl != null)
             {
                 appCtrl.OwinContext = Container.Resolve<IOwinContext>();
-                appCtrl.NuGetContext.Config = Container.Resolve<ConfigurationService>();
+                appCtrl.NuGetContext.Config = Container.Resolve<IGalleryConfigurationService>();
             }
 
             return c;

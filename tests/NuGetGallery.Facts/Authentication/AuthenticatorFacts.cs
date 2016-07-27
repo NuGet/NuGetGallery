@@ -1,11 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Moq;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
@@ -50,33 +46,29 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange
                 var authConfig = new AuthenticatorConfiguration();
-                GetMock<ConfigurationService>()
-                    .Setup(c => c.ResolveConfigObject(It.IsAny<AuthenticatorConfiguration>(), "Auth.ATest."))
-                    .Returns(authConfig);
                 var auther = new ATestAuthenticator();
 
                 // Act
-                auther.Startup(Get<ConfigurationService>(), Get<IAppBuilder>());
+                auther.Startup(Get<IGalleryConfigurationService>(), Get<IAppBuilder>());
 
                 // Assert
-                Assert.Same(authConfig, auther.BaseConfig);
+                Assert.Equal(authConfig.Enabled, auther.BaseConfig.Enabled);
+                Assert.Equal(authConfig.AuthenticationType, auther.BaseConfig.AuthenticationType);
             }
 
             [Fact]
             public void DoesNotAttachToOwinAppIfDisabled()
             {
                 // Arrange
-                var authConfig = new AuthenticatorConfiguration()
-                {
-                    Enabled = false
-                };
-                GetMock<ConfigurationService>()
-                    .Setup(c => c.ResolveConfigObject(It.IsAny<AuthenticatorConfiguration>(), "Auth.ATest."))
-                    .Returns(authConfig);
                 var auther = new ATestAuthenticator();
 
+                var tempAuthConfig = new AuthenticatorConfiguration();
+
+                var mockConfiguration = (TestGalleryConfigurationService)Get<IGalleryConfigurationService>();
+                mockConfiguration.Settings[$"{Authenticator.AuthPrefix}{auther.Name}.{nameof(tempAuthConfig.Enabled)}"] = "false";
+
                 // Act
-                auther.Startup(Get<ConfigurationService>(), Get<IAppBuilder>());
+                auther.Startup(Get<IGalleryConfigurationService>(), Get<IAppBuilder>());
 
                 // Assert
                 Assert.Null(auther.AttachedTo);
@@ -86,17 +78,15 @@ namespace NuGetGallery.Authentication
             public void AttachesToOwinAppIfEnabled()
             {
                 // Arrange
-                var authConfig = new AuthenticatorConfiguration()
-                {
-                    Enabled = true
-                };
-                GetMock<ConfigurationService>()
-                    .Setup(c => c.ResolveConfigObject(It.IsAny<AuthenticatorConfiguration>(), "Auth.ATest."))
-                    .Returns(authConfig);
                 var auther = new ATestAuthenticator();
 
+                var tempAuthConfig = new AuthenticatorConfiguration();
+
+                var mockConfiguration = (TestGalleryConfigurationService)Get<IGalleryConfigurationService>();
+                mockConfiguration.Settings[$"{Authenticator.AuthPrefix}{auther.Name}.{nameof(tempAuthConfig.Enabled)}"] = "true"; 
+
                 // Act
-                auther.Startup(Get<ConfigurationService>(), Get<IAppBuilder>());
+                auther.Startup(mockConfiguration, Get<IAppBuilder>());
 
                 // Assert
                 Assert.Same(Get<IAppBuilder>(), auther.AttachedTo);
@@ -132,7 +122,7 @@ namespace NuGetGallery.Authentication
         private class ATestAuthenticator : Authenticator {
             public IAppBuilder AttachedTo { get; private set; }
 
-            protected override void AttachToOwinApp(ConfigurationService config, IAppBuilder app)
+            protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
             {
                 AttachedTo = app;
                 base.AttachToOwinApp(config, app);
