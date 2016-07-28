@@ -18,7 +18,9 @@ namespace NuGetGallery
             };
             string json = JsonConvert.SerializeObject(confirmationContext);
             string protectedJson = Convert.ToBase64String(MachineKey.Protect(Encoding.UTF8.GetBytes(json), "ConfirmationContext"));
-            httpContext.Response.Cookies.Add(new HttpCookie("ConfirmationContext", protectedJson));
+            HttpCookie responseCookie = new HttpCookie("ConfirmationContext", protectedJson);
+            responseCookie.HttpOnly = true;
+            httpContext.Response.Cookies.Add(responseCookie);
         }
 
         public static string GetConfirmationReturnUrl(this HttpContextBase httpContext)
