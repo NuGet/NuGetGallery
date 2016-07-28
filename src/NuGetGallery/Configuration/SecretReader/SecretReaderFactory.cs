@@ -9,6 +9,9 @@ namespace NuGetGallery.Configuration.SecretReader
     public class SecretReaderFactory : ISecretReaderFactory
     {
         internal const string KeyVaultConfigurationPrefix = "KeyVault.";
+        internal const string VaultNameConfigurationKey = "VaultName";
+        internal const string ClientIdConfigurationKey = "ClientId";
+        internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
 
         public ISecretInjector CreateSecretInjector(ISecretReader secretReader)
         {
@@ -29,13 +32,15 @@ namespace NuGetGallery.Configuration.SecretReader
 
             ISecretReader secretReader;
 
-            // Create an empty instance of KeyVault configuration, and later initialize it.
-            const string placeholder = "placeholder";
-            var keyVaultConfiguration = new KeyVaultConfiguration(placeholder, placeholder, placeholder, validateCertificate: true);
-            keyVaultConfiguration = configurationService.ResolveConfigObject(keyVaultConfiguration, KeyVaultConfigurationPrefix).Result;
+            var vaultName = configurationService.ReadSetting($"{KeyVaultConfigurationPrefix}{VaultNameConfigurationKey}").Result;
 
-            if (!string.IsNullOrEmpty(keyVaultConfiguration.VaultName) && keyVaultConfiguration.VaultName != placeholder)
+            if (!string.IsNullOrEmpty(vaultName))
             {
+                var clientId = configurationService.ReadSetting($"{KeyVaultConfigurationPrefix}{ClientIdConfigurationKey}").Result;
+                var certificateThumbprint = configurationService.ReadSetting($"{KeyVaultConfigurationPrefix}{CertificateThumbprintConfigurationKey}").Result;
+
+                var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, validateCertificate: true);
+
                 secretReader = new KeyVaultReader(keyVaultConfiguration);
             }
             else

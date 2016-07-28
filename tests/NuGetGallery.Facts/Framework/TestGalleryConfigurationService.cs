@@ -15,7 +15,7 @@ namespace NuGetGallery.Framework
         {
         }
 
-        protected override string ReadSetting(string settingName)
+        protected override string GetAppSetting(string settingName)
         {
             if (Settings.ContainsKey(settingName))
             {

@@ -46,13 +46,18 @@ namespace NuGetGallery.Configuration
             _lazyFeatureConfiguration = new Lazy<FeatureConfiguration>(() => ResolveFeatures().Result);
         }
 
+        public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
+        {
+            return TypeDescriptor.GetProperties(instance).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly);
+        }
+
         /// <summary>
         /// PoliteCaptcha.IConfigurationSource implementation
         /// </summary>
         public string GetConfigurationValue(string key)
         {
             // Fudge the name because Azure cscfg system doesn't allow : in setting names
-            return ReadSetting(key.Replace("::", "."));
+            return ReadSetting(key.Replace("::", ".")).Result;
         }
 
         public IAppConfiguration Current => _lazyAppConfiguration.Value;
@@ -78,7 +83,7 @@ namespace NuGetGallery.Configuration
                 string baseName = string.IsNullOrEmpty(property.DisplayName) ? property.Name : property.DisplayName;
                 string settingName = prefix + baseName;
 
-                string value = ReadSetting(settingName);
+                string value = await ReadSetting(settingName);
 
                 if (string.IsNullOrEmpty(value))
                 {
@@ -95,10 +100,6 @@ namespace NuGetGallery.Configuration
                             value = defaultValue.Value as string;
                         }
                     }
-                }
-                else
-                {
-                    value = await _secretInjector.Value.InjectAsync(value);
                 }
 
                 if (!string.IsNullOrEmpty(value))
@@ -120,35 +121,29 @@ namespace NuGetGallery.Configuration
             }
             return instance;
         }
-
-        public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
-        {
-            return TypeDescriptor.GetProperties(instance).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly);
-        }
-
-        protected virtual string ReadSetting(string settingName)
+        
+        public async Task<string> ReadSetting(string settingName)
         {
             string value;
-            var cstr = GetConnectionString(settingName);
-            if (cstr != null)
+
+            value = GetCloudSetting(settingName);
+
+            if (value == "null")
             {
-                value = cstr.ConnectionString;
+                value = null;
             }
-            else
+            else if (string.IsNullOrEmpty(value))
             {
-                value = GetAppSetting(settingName);
+                var cstr = GetConnectionString(settingName);
+                value = cstr != null ? cstr.ConnectionString : GetAppSetting(settingName);
             }
 
-            string cloudValue = GetCloudSetting(settingName);
-            if (string.IsNullOrEmpty(cloudValue))
+            if (!string.IsNullOrEmpty(value))
             {
-                return value;
+                value = await _secretInjector.Value.InjectAsync(value);
             }
-            else if (cloudValue == "null")
-            {
-                return null;
-            }
-            return cloudValue;
+
+            return value;
         }
 
         protected virtual HttpRequestBase GetCurrentRequest()
@@ -172,7 +167,7 @@ namespace NuGetGallery.Configuration
             return await ResolveConfigObject(new AppConfiguration(), SettingPrefix);
         }
 
-        private string GetCloudSetting(string settingName)
+        protected virtual string GetCloudSetting(string settingName)
         {
             // Short-circuit if we've already determined we're not in the cloud
             if (_notInCloud)
@@ -205,12 +200,12 @@ namespace NuGetGallery.Configuration
             return value;
         }
 
-        private string GetAppSetting(string settingName)
+        protected virtual string GetAppSetting(string settingName)
         {
             return WebConfigurationManager.AppSettings[settingName];
         }
 
-        private ConnectionStringSettings GetConnectionString(string settingName)
+        protected virtual ConnectionStringSettings GetConnectionString(string settingName)
         {
             return WebConfigurationManager.ConnectionStrings[settingName];
         }

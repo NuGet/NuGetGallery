@@ -24,5 +24,7 @@ namespace NuGetGallery.Configuration
         /// <param name="instance">The instance.</param>
         /// <param name="prefix">The prefix of the properties in the config.</param>
         Task<T> ResolveConfigObject<T>(T instance, string prefix);
+
+        Task<string> ReadSetting(string settingName);
     }
 }
