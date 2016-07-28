@@ -84,6 +84,7 @@ namespace NuGetGallery
             _auditingService = auditingService;
         }
 
+        [HttpGet]
         [Authorize]
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public virtual ActionResult UploadPackageProgress()
@@ -461,6 +462,7 @@ namespace NuGetGallery
             ReportPackageReason.Other
         };
 
+        [HttpGet]
         public virtual ActionResult ReportAbuse(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -505,6 +507,7 @@ namespace NuGetGallery
             ReportPackageReason.Other
         };
 
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("contact support about your package")]
         public virtual ActionResult ReportMyPackage(string id, string version)
@@ -640,6 +643,7 @@ namespace NuGetGallery
             return Redirect(Url.Package(id, version));
         }
 
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id)
@@ -707,11 +711,13 @@ namespace NuGetGallery
         }
 
         // This is the page that explains why there's no download link.
+        [HttpGet]
         public virtual ActionResult Download()
         {
             return View();
         }
 
+        [HttpGet]
         [Authorize]
         public virtual ActionResult ManagePackageOwners(string id)
         {
@@ -729,7 +735,8 @@ namespace NuGetGallery
 
             return View(model);
         }
-
+        
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("delete a package")]
         public virtual ActionResult Delete(string id, string version)
@@ -847,6 +854,7 @@ namespace NuGetGallery
             return await Edit(id, version, listed, Url.Package);
         }
 
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("edit a package")]
         public virtual ActionResult Edit(string id, string version)

@@ -49,8 +49,9 @@
         <p>
             A member of our Support team will be in touch with you soon.
         </p>
-        using (Html.BeginForm())
+        using (Html.BeginForm("Contact", "Pages"))
         {
+            @Html.AntiForgeryToken()
             <div class="form-field">
                 @Html.LabelFor(m => m.SubjectLine)
                 @Html.TextAreaFor(m => m.SubjectLine, 1, 50, null)
