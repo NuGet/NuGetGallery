@@ -48,7 +48,7 @@ namespace NuGetGallery.Configuration.SecretReader
                 secretReader = new EmptySecretReader();
             }
 
-            return secretReader;
+            return new CachingSecretReader(secretReader);
         }
     }
 }

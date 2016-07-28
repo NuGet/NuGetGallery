@@ -366,6 +366,7 @@
     <Compile Include="AutocompleteServicePackageVersionsQueryFacts.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationServiceFacts.cs" />
+    <Compile Include="App_Start\CachingSecretReaderFacts.cs" />
     <Compile Include="Controllers\AppControllerFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
