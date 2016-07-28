@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,14 +16,13 @@ namespace NuGet.Services.Search.Client
     {
         private readonly HttpClient _httpClient;
         private readonly IEndpointHealthIndicatorStore _endpointHealthIndicatorStore;
-
-        private static readonly Random Random = new Random((int) DateTime.UtcNow.Ticks);
+        
         private static readonly int PeriodToDelayAlternateRequest = 3000;
         private static readonly IComparer<int> HealthComparer;
 
         static RetryingHttpClientWrapper()
         {
-            HealthComparer = new WeightedRandomComparer(Random);
+            HealthComparer = new WeightedRandomComparer();
         }
 
         public RetryingHttpClientWrapper(HttpClient httpClient)
@@ -216,17 +216,26 @@ namespace NuGet.Services.Search.Client
         class WeightedRandomComparer
             : IComparer<int>
         {
-            private readonly Random _random;
 
-            public WeightedRandomComparer(Random random)
+            private RNGCryptoServiceProvider _random;
+
+            public WeightedRandomComparer()
             {
-                _random = random;
+                _random = new RNGCryptoServiceProvider();
             }
 
             public int Compare(int x, int y)
             {
                 var totalWeight = x + y;
-                var randomNumber = _random.Next(0, totalWeight);
+
+                int bytesRequired = (int)Math.Ceiling(Math.Log(totalWeight) / Math.Log(2));
+                var randomBytes = new byte[bytesRequired];
+                int randomNumber;
+                
+                _random.GetBytes(randomBytes);
+                randomNumber = Math.Abs(BitConverter.ToInt32(randomBytes, 0)) % totalWeight;
+                // This is not entirely fair, but it's close enough.
+                // See https://msdn.microsoft.com/en-us/library/wb9c8c67(v=vs.110).aspx for more info.
 
                 if (randomNumber < x)
                 {
