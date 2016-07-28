@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using NuGet.Services.KeyVault;
 
 namespace NuGetGallery.Configuration.SecretReader
@@ -32,12 +33,15 @@ namespace NuGetGallery.Configuration.SecretReader
 
             ISecretReader secretReader;
 
-            var vaultName = configurationService.ReadSetting($"{KeyVaultConfigurationPrefix}{VaultNameConfigurationKey}").Result;
+            var vaultName = configurationService.ReadSetting(
+                string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, VaultNameConfigurationKey)).Result;
 
             if (!string.IsNullOrEmpty(vaultName))
             {
-                var clientId = configurationService.ReadSetting($"{KeyVaultConfigurationPrefix}{ClientIdConfigurationKey}").Result;
-                var certificateThumbprint = configurationService.ReadSetting($"{KeyVaultConfigurationPrefix}{CertificateThumbprintConfigurationKey}").Result;
+                var clientId = configurationService.ReadSetting(
+                    string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, ClientIdConfigurationKey)).Result;
+                var certificateThumbprint = configurationService.ReadSetting(
+                    string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, CertificateThumbprintConfigurationKey)).Result;
 
                 var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, validateCertificate: true);
 
