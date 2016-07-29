@@ -84,11 +84,11 @@ namespace NuGetGallery
             }
 
             // Get the local user auth provider, if present and attach it first
-            Authenticator localUserAuther;
-            if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out localUserAuther))
+            Authenticator localUserAuthenticator;
+            if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out localUserAuthenticator))
             {
                 // Configure cookie auth now
-                localUserAuther.Startup(config, app).Wait();
+                localUserAuthenticator.Startup(config, app).Wait();
             }
 
             // Attach external sign-in cookie middleware

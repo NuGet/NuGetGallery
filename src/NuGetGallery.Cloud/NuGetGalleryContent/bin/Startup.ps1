@@ -88,5 +88,5 @@ $additionalSSL | where { ![String]::IsNullOrEmpty($_) } | foreach {
 	netsh http add sslcert hostnameport=$hostname`:$port certhash=$thumbprint appid='{4dc3e181-e14b-4a21-b022-59fc669b0914}' certstorename=MY
 }
 
-# Install Microsoft internal corporate root required for KeyVault access to LocalMachine\AuthRoot (it's not supported by azure, hence we install to cert to CA store, and then need to move it) 
+# Install Microsoft internal corporate root cert required for KeyVault access to LocalMachine\AuthRoot (it's not supported by azure, hence we install to cert to CA store, and then need to move it) 
 Move-Item -Path Cert:\LocalMachine\CA\D17697CC206ED26E1A51F5BB96E9356D6D610B74 -Destination Cert:\LocalMachine\Root
