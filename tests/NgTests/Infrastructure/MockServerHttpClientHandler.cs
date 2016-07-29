@@ -30,7 +30,15 @@ namespace NgTests.Infrastructure
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Func<HttpRequestMessage, Task<HttpResponseMessage>> action;
+
+            // try with full URL
             if (Actions.TryGetValue(request.RequestUri.PathAndQuery, out action))
+            {
+                return await action(request);
+            }
+
+            // try with full URL ignoring query string
+            if (Actions.TryGetValue(request.RequestUri.AbsolutePath, out action))
             {
                 return await action(request);
             }
