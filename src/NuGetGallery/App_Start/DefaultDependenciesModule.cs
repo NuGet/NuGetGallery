@@ -30,7 +30,13 @@ namespace NuGetGallery
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
-            var configuration = new ConfigurationService(new SecretReaderFactory());
+            var diagnosticsService = new DiagnosticsService();
+            builder.RegisterInstance(diagnosticsService)
+                .AsSelf()
+                .As<IDiagnosticsService>()
+                .SingleInstance();
+
+            var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
 
             builder.RegisterInstance(configuration)
                 .AsSelf()
@@ -43,6 +49,11 @@ namespace NuGetGallery
             builder.Register(c => configuration.Current)
                 .AsSelf()
                 .As<IAppConfiguration>();
+
+            // Force the read of this configuration, so it will be initialized on startup
+            builder.Register(c => configuration.Features)
+               .AsSelf()
+               .As<FeatureConfiguration>();
 
             builder.RegisterInstance(LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .As<Lucene.Net.Store.Directory>()
@@ -280,11 +291,6 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             ConfigureAutocomplete(builder, configuration);
-
-            builder.RegisterType<DiagnosticsService>()
-                .AsSelf()
-                .As<IDiagnosticsService>()
-                .SingleInstance();
         }
 
         private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)

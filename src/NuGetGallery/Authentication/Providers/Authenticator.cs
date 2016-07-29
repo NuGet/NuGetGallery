@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
 using Owin;
@@ -28,9 +29,9 @@ namespace NuGetGallery.Authentication.Providers
             BaseConfig = CreateConfigObject();
         }
 
-        public void Startup(IGalleryConfigurationService config, IAppBuilder app)
+        public async Task Startup(IGalleryConfigurationService config, IAppBuilder app)
         {
-            Configure(config);
+            await Configure(config);
 
             if (BaseConfig.Enabled)
             {
@@ -41,9 +42,9 @@ namespace NuGetGallery.Authentication.Providers
         protected virtual void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app) { }
 
         // Configuration Logic
-        protected virtual void Configure(IGalleryConfigurationService config)
+        protected virtual async Task Configure(IGalleryConfigurationService config)
         {
-            BaseConfig = config.ResolveConfigObject(BaseConfig, AuthPrefix + Name + ".").Result;
+            BaseConfig = await config.ResolveConfigObject(BaseConfig, AuthPrefix + Name + ".");
         }
 
         public static string GetName(Type authenticator)

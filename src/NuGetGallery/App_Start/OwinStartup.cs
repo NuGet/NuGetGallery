@@ -88,7 +88,7 @@ namespace NuGetGallery
             if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out localUserAuther))
             {
                 // Configure cookie auth now
-                localUserAuther.Startup(config, app);
+                localUserAuther.Startup(config, app).Wait();
             }
 
             // Attach external sign-in cookie middleware
@@ -111,7 +111,7 @@ namespace NuGetGallery
                 .Select(p => p.Value);
             foreach (var auther in nonCookieAuthers)
             {
-                auther.Startup(config, app);
+                auther.Startup(config, app).Wait();
             }
 
             // Catch unobserved exceptions from threads before they cause IIS to crash:

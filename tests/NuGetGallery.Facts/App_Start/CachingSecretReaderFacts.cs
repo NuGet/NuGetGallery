@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.KeyVault;
 using NuGetGallery.Configuration.SecretReader;
+using NuGetGallery.Diagnostics;
 using Xunit;
 
 namespace NuGetGallery.App_Start
@@ -19,7 +20,7 @@ namespace NuGetGallery.App_Start
             var mockSecretReader = new Mock<ISecretReader>();
             mockSecretReader.Setup(x => x.GetSecretAsync(It.IsAny<string>())).Returns(Task.FromResult(secret));
 
-            var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object);
+            var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, new DiagnosticsService());
             
             // Act
             string value = await cachingSecretReader.GetSecretAsync("secretname");

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading.Tasks;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
@@ -42,14 +43,14 @@ namespace NuGetGallery.Authentication
         public class TheStartupMethod : TestContainer
         {
             [Fact]
-            public void LoadsConfigFromConfigurationService()
+            public async Task LoadsConfigFromConfigurationService()
             {
                 // Arrange
                 var authConfig = new AuthenticatorConfiguration();
                 var auther = new ATestAuthenticator();
 
                 // Act
-                auther.Startup(Get<IGalleryConfigurationService>(), Get<IAppBuilder>());
+                await auther.Startup(Get<IGalleryConfigurationService>(), Get<IAppBuilder>());
 
                 // Assert
                 Assert.Equal(authConfig.Enabled, auther.BaseConfig.Enabled);
@@ -57,7 +58,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void DoesNotAttachToOwinAppIfDisabled()
+            public async Task DoesNotAttachToOwinAppIfDisabled()
             {
                 // Arrange
                 var auther = new ATestAuthenticator();
@@ -68,14 +69,14 @@ namespace NuGetGallery.Authentication
                 mockConfiguration.Settings[$"{Authenticator.AuthPrefix}{auther.Name}.{nameof(tempAuthConfig.Enabled)}"] = "false";
 
                 // Act
-                auther.Startup(Get<IGalleryConfigurationService>(), Get<IAppBuilder>());
+                await auther.Startup(Get<IGalleryConfigurationService>(), Get<IAppBuilder>());
 
                 // Assert
                 Assert.Null(auther.AttachedTo);
             }
 
             [Fact]
-            public void AttachesToOwinAppIfEnabled()
+            public async Task AttachesToOwinAppIfEnabled()
             {
                 // Arrange
                 var auther = new ATestAuthenticator();
@@ -86,7 +87,7 @@ namespace NuGetGallery.Authentication
                 mockConfiguration.Settings[$"{Authenticator.AuthPrefix}{auther.Name}.{nameof(tempAuthConfig.Enabled)}"] = "true"; 
 
                 // Act
-                auther.Startup(mockConfiguration, Get<IAppBuilder>());
+                await auther.Startup(mockConfiguration, Get<IAppBuilder>());
 
                 // Assert
                 Assert.Same(Get<IAppBuilder>(), auther.AttachedTo);
