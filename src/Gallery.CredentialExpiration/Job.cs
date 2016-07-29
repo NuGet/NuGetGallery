@@ -72,7 +72,7 @@ namespace Gallery.CredentialExpiration
             }
             catch (Exception exception)
             {
-                _logger.LogCritical("Failed to initialize job!", exception);
+                _logger.LogCritical("Failed to initialize job! {Exception}", exception);
 
                 return false;
             }
@@ -135,7 +135,7 @@ namespace Gallery.CredentialExpiration
             }
             catch (Exception ex)
             {
-                _logger.LogCritical("Job run failed!", ex);
+                _logger.LogCritical("Job run failed! {Exception}", ex);
 
                 return false;
             }
@@ -143,8 +143,7 @@ namespace Gallery.CredentialExpiration
             {
                 // Make sure we know who has been contacted today, so they do not get double
                 // e-mail notifications.
-                File.WriteAllText(_cursorFile,
-                    JsonConvert.SerializeObject(_contactedUsers));
+                File.WriteAllText(_cursorFile, JsonConvert.SerializeObject(_contactedUsers));
             }
 
             return true;

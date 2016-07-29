@@ -58,7 +58,7 @@ namespace Stats.CollectAzureCdnLogs
             }
             catch (Exception ex)
             {
-                _logger.LogCritical("Job failed to initialize!", ex);
+                _logger.LogCritical("Job failed to initialize! {Exception}", ex);
 
                 return false;
             }
@@ -223,7 +223,7 @@ namespace Stats.CollectAzureCdnLogs
                                         }
                                         catch (Exception exception)
                                         {
-                                            _logger.LogError("Failed to upload file.", exception);
+                                            _logger.LogError("Failed to upload file. {Exception}", exception);
                                         }
                                     }
                                 }
@@ -239,18 +239,18 @@ namespace Stats.CollectAzureCdnLogs
                     catch (UnknownAzureCdnPlatformException exception)
                     {
                         // Trace, but ignore the failing file. Other files should go through just fine.
-                        _logger.LogWarning("Unknown Azure CDN platform.", exception);
+                        _logger.LogWarning("Unknown Azure CDN platform. {Exception}", exception);
                     }
                     catch (InvalidRawLogFileNameException exception)
                     {
                         // Trace, but ignore the failing file. Other files should go through just fine.
-                        _logger.LogWarning("Invalid raw log filename.", exception);
+                        _logger.LogWarning("Invalid raw log filename. {Exception}", exception);
                     }
                 }
             }
             catch (Exception exception)
             {
-                _logger.LogCritical("Job run failed!", exception);
+                _logger.LogCritical("Job run failed! {Exception}", exception);
 
                 return false;
             }
@@ -286,7 +286,7 @@ namespace Stats.CollectAzureCdnLogs
                     catch (SharpZipBaseException e)
                     {
                         // this raw log file may be corrupt...
-                        _logger.LogError("Error processing log stream.", e);
+                        _logger.LogError("Error processing log stream. {Exception}", e);
 
                         throw;
                     }

@@ -1,9 +1,9 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NuGet;
+using NuGetGallery.Packaging;
 
 namespace HandlePackageEdits
 {
@@ -40,23 +40,26 @@ namespace HandlePackageEdits
         public string LicenseUrl { get; set; }
         public string ProjectUrl { get; set; }
         public string ReleaseNotes { get; set; }
-        public bool RequiresLicenseAcceptance { get; set; }
+        public bool? RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
 
-        public virtual void ApplyTo(ManifestMetadata metadata)
+        public virtual List<Action<ManifestEdit>> GetEditsAsActionList()
         {
-            metadata.Title = Title;
-            metadata.Authors = Authors;
-            metadata.Copyright = Copyright;
-            metadata.Description = Description;
-            metadata.IconUrl = IconUrl;          
-            metadata.LicenseUrl = LicenseUrl;          
-            metadata.ProjectUrl = ProjectUrl;
-            metadata.ReleaseNotes = ReleaseNotes;
-            metadata.RequireLicenseAcceptance = RequiresLicenseAcceptance;
-            metadata.Summary = Summary;
-            metadata.Tags = Tags;
+            return new List<Action<ManifestEdit>>
+            {
+                (m) => { m.Authors = string.IsNullOrEmpty(Authors) ? m.Authors : Authors; },
+                (m) => { m.Copyright = string.IsNullOrEmpty(Copyright) ? m.Copyright : Copyright; },
+                (m) => { m.Description = string.IsNullOrEmpty(Description) ? m.Description: Description; },
+                (m) => { m.IconUrl = string.IsNullOrEmpty(IconUrl) ? m.IconUrl : IconUrl; },
+                (m) => { m.LicenseUrl = string.IsNullOrEmpty(LicenseUrl) ? m.LicenseUrl : LicenseUrl; },
+                (m) => { m.ProjectUrl = string.IsNullOrEmpty(ProjectUrl) ? m.ProjectUrl : ProjectUrl; },
+                (m) => { m.ReleaseNotes = string.IsNullOrEmpty(ReleaseNotes) ? m.ReleaseNotes : ReleaseNotes; },
+                (m) => { m.RequireLicenseAcceptance = RequiresLicenseAcceptance ?? m.RequireLicenseAcceptance; },
+                (m) => { m.Summary = string.IsNullOrEmpty(Summary) ? m.Summary : Summary; },
+                (m) => { m.Title = string.IsNullOrEmpty(Title) ? m.Title : Title; },
+                (m) => { m.Tags = string.IsNullOrEmpty(Tags) ? m.Tags : Tags; },
+            };
         }
     }
 }

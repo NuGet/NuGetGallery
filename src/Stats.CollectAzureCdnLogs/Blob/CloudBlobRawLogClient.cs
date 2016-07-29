@@ -79,7 +79,7 @@ namespace Stats.CollectAzureCdnLogs.Blob
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError("Failed to check if file exists.", exception);
+                    _logger.LogError("Failed to check if file exists. {Exception}", exception);
                 }
             }
 

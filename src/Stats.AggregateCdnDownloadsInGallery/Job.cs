@@ -72,7 +72,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             }
             catch (Exception exception)
             {
-                _logger.LogCritical("Failed to initialize job!", exception);
+                _logger.LogCritical("Failed to initialize job! {Exception}", exception);
 
                 return false;
             }
@@ -188,7 +188,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             }
             catch (Exception exception)
             {
-                _logger.LogCritical("Job run failed!", exception);
+                _logger.LogCritical("Job run failed {Exception}!", exception);
 
                 return false;
             }

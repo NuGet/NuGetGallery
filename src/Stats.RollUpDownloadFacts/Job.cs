@@ -46,7 +46,7 @@ namespace Stats.RollUpDownloadFacts
             }
             catch (Exception exception)
             {
-                _logger.LogCritical("Job failed to initialize.", exception);
+                _logger.LogCritical("Job failed to initialize. {Exception}", exception);
             }
 
             return false;
@@ -73,7 +73,7 @@ namespace Stats.RollUpDownloadFacts
             }
             catch (Exception exception)
             {
-                _logger.LogCritical("Job run failed.", exception);
+                _logger.LogCritical("Job run failed. {Exception}", exception);
 
                 return false;
             }
