@@ -18,6 +18,7 @@ namespace NuGetGallery.Infrastructure
             {
                 var cookies = new HttpCookieCollection();
                 var cookie = new HttpCookie("__Controller::TempData");
+                cookie.HttpOnly = true;
                 cookies.Add(cookie);
                 cookie["message"] = "Say hello to my little friend";
                 cookie["question"] = "How am I funny?";
@@ -53,6 +54,7 @@ namespace NuGetGallery.Infrastructure
             {
                 var cookies = new HttpCookieCollection();
                 var cookie = new HttpCookie("__Controller::TempData");
+                cookie.HttpOnly = true;
                 cookies.Add(cookie);
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.Request.Cookies).Returns(cookies);
