@@ -101,7 +101,7 @@ namespace NuGetGallery.Operations
             {
                 ConnectionString = new SqlConnectionStringBuilder()
                 {
-                    DataSource = @"(LocalDB)\v11.0",
+                    DataSource = @"(LocalDB)\mssqllocaldb",
                     IntegratedSecurity = true,
                     InitialCatalog = LocalDbName
                 };
