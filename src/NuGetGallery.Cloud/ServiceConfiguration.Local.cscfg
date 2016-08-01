@@ -15,7 +15,6 @@
       <!-- WARNING: This is an insecure default password. Change it before enabling remote desktop -->
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEG870pHsz0GPRZ18ZHEVMyMwDQYJKoZIhvcNAQEBBQAEggEABCvdlx/fjNaMh+I4tdArjlmC/KhsVISFYKP+Tppd4LJM4J67FUcgSnnZLp/fII7gvd0X7XHRjV9a9gTj15b3lexRXp36oDLiRpw9Ld0EbxNMB1CBPNDqYRlV8iZBLeER3KOq7b+6iUywx1TWRf3UtaIZYI1BU6XJXWlKKartrKFl7g1MV6T506xN5a2m+r9Wi9dTApOYx3mBl1ZICDPTQX5dMWP6aRslapdOcyp+cMAgNjdE0TW0jw5eVEY0m3PqxuSSI99xtXLcVYrz6H7K3C8lNoxR9BlL89XOBh2VGsrsNeDF80cwuZkLYkqL3koehilh6b+iIC74yjcNboPRajAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECCGRjuJpsHCYgBDKJqr9G6xa5kT1yQHFHx5Y" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2014-10-12T23:59:59.0000000-07:00" />
-      
       <!-- ******************** -->
       <!-- ENVIRONMENT SPECIFIC -->
       <!-- ******************** -->
@@ -42,7 +41,6 @@
       <Setting name="Gallery.PagerDutyAPIKey" value="" />
       <Setting name="Gallery.PagerDutyServiceKey" value="" />
       <Setting name="Gallery.EnforcedAuthProviderForAdmin" value="" />
-
       <!-- *************** -->
       <!-- STABLE SETTINGS -->
       <!-- *************** -->
@@ -59,7 +57,6 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="nuget" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
-      
       <!-- **************** -->
       <!-- RUNTIME SETTINGS -->
       <!-- **************** -->
@@ -67,11 +64,19 @@
       <Setting name="Gallery.ReadOnlyMode" value="false" />
       <Setting name="Gallery.FeedOnlyMode" value="false" />
       <Setting name="Startup.BlockedIPs" value="" />
+      <!-- ***************** -->
+      <!-- KeyVault settings. -->
+      <!-- ***************** -->
+      <Setting name="KeyVault.VaultName" value="" />
+      <Setting name="KeyVault.ClientId" value="" />
+      <Setting name="KeyVault.CertificateThumbprint" value="" />
     </ConfigurationSettings>
     <Certificates>
       <!-- Totally bogus set of Hex digits that get replaced by the actual thumbprints when generating a CSCFG -->
       <Certificate name="SSLCertificate" thumbprint="D2CA3A778E08936DD4C61E2734158B0044831010" thumbprintAlgorithm="sha1" />
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="D2CA3A778E08936DD4C61E2734158B0044831010" thumbprintAlgorithm="sha1" />
+      <Certificate name="KeyVaultAccess" thumbprint="D2CA3A778E08936DD4C61E2734158B0044831010" thumbprintAlgorithm="sha1" />
+      <Certificate name="KeyVaultAccessCA" thumbprint="D17697CC206ED26E1A51F5BB96E9356D6D610B74" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>

@@ -122,7 +122,7 @@
 @helper InstrumentationScript()
 {
     // Get instrumentation key
-    var config = DependencyResolver.Current.GetService<ConfigurationService>();
+    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
     var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey;
     var samplingPct = config == null ? 100 : config.Current.AppInsightsSamplingPercentage;
 
@@ -159,7 +159,7 @@
 {
     // Get Version info and gallery brand name
     var ver = ApplicationVersionHelper.GetVersion();
-    var config = DependencyResolver.Current.GetService<ConfigurationService>();
+    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
     string brand = config == null ? "" : config.Current.Brand;
 
     <p id="releaseTag">
@@ -204,7 +204,7 @@
 
 @helper AnalyticsScript()
 {
-    var config = DependencyResolver.Current.GetService<ConfigurationService>();
+    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
     if(config != null) {
         var propertyId = config.Current.GoogleAnalyticsPropertyId;
         if (propertyId != null)

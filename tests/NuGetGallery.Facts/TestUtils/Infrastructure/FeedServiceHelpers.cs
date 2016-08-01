@@ -148,7 +148,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
             // Controllers
             var repo = SetupTestPackageRepository();
 
-            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+            var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://nuget.org/");
             configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
 

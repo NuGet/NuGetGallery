@@ -34,7 +34,7 @@ namespace NuGetGallery
         public Mock<IIndexingService> MockIndexingService { get; private set; }
         public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
         public Mock<IMessageService> MockMessageService { get; private set; }
-        public Mock<ConfigurationService> MockConfigurationService { get; private set; }
+        public Mock<IGalleryConfigurationService> MockConfigurationService { get; private set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -57,7 +57,7 @@ namespace NuGetGallery
 
             MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
 
-            MockConfigurationService = new Mock<ConfigurationService>();
+            MockConfigurationService = new Mock<IGalleryConfigurationService>();
             MockConfigurationService.SetupGet(s => s.Features.TrackPackageDownloadCountInLocalDatabase)
                 .Returns(false);
             ConfigurationService = MockConfigurationService.Object;

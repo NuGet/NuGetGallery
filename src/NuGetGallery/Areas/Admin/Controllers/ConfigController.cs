@@ -13,10 +13,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
 {
     public partial class ConfigController : AdminControllerBase
     {
-        private readonly ConfigurationService _config;
+        private readonly IGalleryConfigurationService _config;
         private readonly AuthenticationService _auth;
 
-        public ConfigController(ConfigurationService config, AuthenticationService auth)
+        public ConfigController(IGalleryConfigurationService config, AuthenticationService auth)
         {
             _config = config;
             _auth = auth;

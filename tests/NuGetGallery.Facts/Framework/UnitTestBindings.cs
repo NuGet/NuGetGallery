@@ -8,6 +8,7 @@ using Microsoft.Owin;
 using Moq;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Framework
 {
@@ -87,6 +88,10 @@ namespace NuGetGallery.Framework
 
             builder.Register(_ => Fakes.CreateOwinContext())
                 .As<IOwinContext>()
+                .SingleInstance();
+
+            builder.Register(_ => new TestGalleryConfigurationService())
+                .As<IGalleryConfigurationService>()
                 .SingleInstance();
         }
     }

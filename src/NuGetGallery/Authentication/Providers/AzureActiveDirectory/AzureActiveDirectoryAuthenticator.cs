@@ -15,7 +15,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
     {
         public static readonly string DefaultAuthenticationType = "AzureActiveDirectory";
 
-        protected override void AttachToOwinApp(ConfigurationService config, IAppBuilder app)
+        protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             // Fetch site root from configuration
             var siteRoot = config.Current.SiteRoot.TrimEnd('/') + "/";

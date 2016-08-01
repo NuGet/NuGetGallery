@@ -41,7 +41,7 @@ namespace NuGetGallery
         public IStatusService StatusService { get; set; }
         public IMessageService MessageService { get; set; }
         public AuditingService AuditingService { get; set; }
-        public ConfigurationService ConfigurationService { get; set; }
+        public IGalleryConfigurationService ConfigurationService { get; set; }
 
         protected ApiController()
         {
@@ -61,7 +61,7 @@ namespace NuGetGallery
             IStatusService statusService,
             IMessageService messageService,
             AuditingService auditingService,
-            ConfigurationService configurationService)
+            IGalleryConfigurationService configurationService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -93,7 +93,7 @@ namespace NuGetGallery
             IStatisticsService statisticsService,
             IMessageService messageService,
             AuditingService auditingService,
-            ConfigurationService configurationService)
+            IGalleryConfigurationService configurationService)
             : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService)
         {
             StatisticsService = statisticsService;
