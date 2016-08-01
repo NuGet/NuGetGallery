@@ -19,7 +19,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Fact]
-        [Description("Performs a querystring-based search of the v1 feed.  Confirms expected packages are returned.")]
+        [Description("Performs a querystring-based search of the v1 feed. Confirms expected packages are returned.")]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task SearchV1Feed()
@@ -28,12 +28,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Fact]
-        [Description("Performs a querystring-based search of the default (non-curated) v2 feed.  Confirms expected packages are returned.")]
+        [Description("Performs a querystring-based search of the default (non-curated) v2 feed. Confirms expected packages are returned.")]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task SearchV2Feed()
         {
-            await SearchFeedAsync(UrlHelper.V2FeedRootUrl, "microsoft-web-helpers");
+            await SearchFeedAsync(UrlHelper.V2FeedRootUrl, "ASP.NET Web Helpers Library");
         }
 
         private async Task SearchFeedAsync(string feedRootUrl, string title)
@@ -52,9 +52,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 responseText = await sr.ReadToEndAsync();
             }
 
-            Assert.True(responseText.Contains(@"<title type=""text"">" + title + @"</title>"), "The expected package title wasn't found in the feed.  Feed contents: " + responseText);
-            Assert.True(responseText.Contains(@"<content type=""application/zip"" src=""" + feedRootUrl + "package/microsoft-web-helpers/"), "The expected package URL wasn't found in the feed.  Feed contents: " + responseText);
-            Assert.False(responseText.Contains(@"jquery"), "The feed contains non-matching package names.  Feed contents: " + responseText);
+            var expectedUrl = feedRootUrl + "package/Microsoft.AspNet.WebHelpers/";
+
+            Assert.True(responseText.Contains(@"<title type=""text"">" + title + @"</title>")
+                     || responseText.Contains(@"<d:Title>" + title + @"</d:Title>"), "The expected package title '" + title + "' wasn't found in the feed. Feed contents: " + responseText);
+            Assert.True(responseText.Contains(@"<content type=""application/zip"" src=""" + expectedUrl), "The expected package URL '" + expectedUrl + "' wasn't found in the feed.  Feed contents: " + responseText);
+            Assert.False(responseText.Contains(@"jquery"), "The feed contains non-matching package names. Feed contents: " + responseText);
         }
     }
 }

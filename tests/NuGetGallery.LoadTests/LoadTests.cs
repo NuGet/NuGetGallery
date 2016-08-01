@@ -118,7 +118,7 @@ namespace NuGetGallery.LoadTests
             HttpClientHandler handler = new HttpClientHandler();
             handler.AllowAutoRedirect = false;
 
-            string requestUri = "http://nuget-prod-0-v2searchwebsite.azurewebsites.net/search/query?q='app insights'&luceneQuery=false";
+            string requestUri = UrlHelper.SearchServiceBaseUrl + "search/query?q='app insights'&luceneQuery=false";
             HttpResponseMessage response;
 
             using (var client = new HttpClient(handler))
@@ -129,15 +129,6 @@ namespace NuGetGallery.LoadTests
             Console.WriteLine("HTTP status code : {0}", response.StatusCode);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [TestMethod]
-        [Description("Hits the metrics service endpoint directly")]
-        public async Task HitMetricsEndPointDirectly()
-        {
-            var metricsServiceHelper = new MetricsServiceHelper();
-            bool value = await metricsServiceHelper.TryHitMetricsEndPoint("RIAServices.Server", "4.2.0", "120.0.0.0", "NuGet Load Tests/Metrics Service", "Test", "None", null);
-            Assert.IsTrue(value);
         }
 
         [TestMethod]

@@ -1,4 +1,4 @@
-<OpenSearchDescription>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
   <ShortName>NuGet packages</ShortName>
   <Description>Search NuGet packages</Description>
   <Tags>nuget package component</Tags>
