@@ -11,7 +11,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 {
     public class ApiKeyAuthenticator : Authenticator<ApiKeyAuthenticatorConfiguration>
     {
-        protected override void AttachToOwinApp(ConfigurationService config, IAppBuilder app)
+        protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             app.UseApiKeyAuthentication(new ApiKeyAuthenticationOptions()
             {

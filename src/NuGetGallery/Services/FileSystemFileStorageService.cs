@@ -141,25 +141,22 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageFile));
             }
 
-            var storageDirectory = ResolvePath(_configuration.FileStorageDirectory);
-
-            if (!_fileSystemService.DirectoryExists(storageDirectory))
+            if (!_fileSystemService.DirectoryExists(_configuration.FileStorageDirectory))
             {
-                _fileSystemService.CreateDirectory(storageDirectory);
-            }
-
-            var folderPath = Path.Combine(storageDirectory, folderName);
-            if (!_fileSystemService.DirectoryExists(folderPath))
-            {
-                _fileSystemService.CreateDirectory(folderPath);
+                _fileSystemService.CreateDirectory(_configuration.FileStorageDirectory);
             }
 
             var filePath = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            folderPath = Path.GetDirectoryName(filePath);
-            if (!_fileSystemService.DirectoryExists(folderPath))
+            var folderPath = Path.GetDirectoryName(filePath);
+            if (_fileSystemService.FileExists(filePath))
+            {
+                _fileSystemService.DeleteFile(filePath);
+            }
+            else
             {
                 _fileSystemService.CreateDirectory(folderPath);
             }
+
             using (var file = _fileSystemService.OpenWrite(filePath))
             {
                 packageFile.CopyTo(file);

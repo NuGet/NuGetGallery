@@ -21,6 +21,7 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Configuration.SecretReader;
 
 namespace NuGetGallery
 {
@@ -29,13 +30,30 @@ namespace NuGetGallery
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
-            var configuration = new ConfigurationService();
+            var diagnosticsService = new DiagnosticsService();
+            builder.RegisterInstance(diagnosticsService)
+                .AsSelf()
+                .As<IDiagnosticsService>()
+                .SingleInstance();
+
+            var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
+
             builder.RegisterInstance(configuration)
                 .AsSelf()
                 .As<PoliteCaptcha.IConfigurationSource>();
+
+            builder.RegisterInstance(configuration)
+                .AsSelf()
+                .As<IGalleryConfigurationService>();
+
             builder.Register(c => configuration.Current)
                 .AsSelf()
                 .As<IAppConfiguration>();
+
+            // Force the read of this configuration, so it will be initialized on startup
+            builder.Register(c => configuration.Features)
+               .AsSelf()
+               .As<FeatureConfiguration>();
 
             builder.RegisterInstance(LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .As<Lucene.Net.Store.Directory>()
@@ -273,14 +291,9 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             ConfigureAutocomplete(builder, configuration);
-
-            builder.RegisterType<DiagnosticsService>()
-                .AsSelf()
-                .As<IDiagnosticsService>()
-                .SingleInstance();
         }
 
-        private static void ConfigureSearch(ContainerBuilder builder, ConfigurationService configuration)
+        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri == null)
             {
@@ -302,7 +315,7 @@ namespace NuGetGallery
                     .InstancePerLifetimeScope();
             }
         }
-        private static void ConfigureAutocomplete(ContainerBuilder builder, ConfigurationService configuration)
+        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
@@ -331,7 +344,7 @@ namespace NuGetGallery
             }
         }
 
-        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, ConfigurationService configuration)
+        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
@@ -365,7 +378,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder, ConfigurationService configuration)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             builder.RegisterInstance(new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .AsSelf()

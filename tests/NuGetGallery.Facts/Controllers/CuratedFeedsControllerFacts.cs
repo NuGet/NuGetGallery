@@ -17,8 +17,12 @@ namespace NuGetGallery
     {
         public class TestableCuratedFeedsController : CuratedFeedsController
         {
+            public Fakes Fakes { get; }
+
             public TestableCuratedFeedsController()
             {
+                Fakes = new Fakes();
+
                 StubCuratedFeed = new CuratedFeed
                     { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { Fakes.User }) };
                 StubCuratedFeedService = new Mock<ICuratedFeedService>();
@@ -73,7 +77,7 @@ namespace NuGetGallery
             public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.SetCurrentUser(Fakes.Owner);
+                controller.SetCurrentUser(controller.Fakes.Owner);
 
                 var result = controller.CuratedFeed("aName") as HttpStatusCodeResult;
 
@@ -100,7 +104,7 @@ namespace NuGetGallery
                 var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
-                Assert.Equal(Fakes.User.Username, viewModel.Managers.First());
+                Assert.Equal(controller.Fakes.User.Username, viewModel.Managers.First());
             }
 
             [Fact]

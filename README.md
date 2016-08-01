@@ -26,21 +26,40 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
     ```
 4. Set up the website in IIS Express!
  1. We highly recommend using IIS Express. Use the [Web Platform Installer](http://microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though). Make sure to at least once run IIS Express as an administrator.
- 2. In an ADMIN powershell prompt, run the `.\tools\Enable-LocalTestMe.ps1` file. It allows non-admins to host websites at: `http(s)://nuget.localtest.me`, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on `localtest.me`, check out [readme.localtest.me](http://readme.localtest.me).
+ 2. In an ADMIN powershell prompt, run the `.\tools\Enable-LocalTestMe.ps1` file. It allows non-admins to host websites at: `http(s)://nuget.localtest.me`, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on `localtest.me`, check out [readme.localtest.me](http://readme.localtest.me). However, because [Server Name Indication](https://en.wikipedia.org/wiki/Server_Name_Indication) is not supported in the Network Shell on versions of Windows before 8, you must have at least Windows 8 to run this script successfully.
  3. If you're having trouble, go to the _Project Properties_ for the Website project, click on the _Web_ tab and change the URL to `localhost:port` where _port_ is some port number above 1024.
  4. When running the application using the Azure Compute emulator, you may have to edit the `.\src\NuGetGallery.Cloud\ServiceConfiguration.Local.cscfg` file and set the certificate thumbprint for the setting `SSLCertificate` to the certificate thumbprint of the generated `nuget.localtest.me` certificate from step 2. You can get a list of certificates and their thumbprints using PowerShell, running `Get-ChildItem -path cert:\LocalMachine\My`.
 
 5. Create the Database!
- 1. Open Visual Studio 2015
- 2. Open the Package Manager Console window
- 3. Ensure that the Default Project is set to `NuGetGallery`
- 4. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
- 5. Run the following command in the Package Manager Console:
- 
-    ```
-    Update-Database -StartUpProjectName NuGetGallery -ConfigurationTypeName MigrationsConfiguration
-    ```
-If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
+  
+  There are two ways you can create the databases. From Visual Studio 2015 or from the command line.
+  
+  1. From Visual Studio 2015
+    1. Open Visual Studio 2015
+    2. Open the Package Manager Console window
+    3. Ensure that the Default Project is set to `NuGetGallery`
+    4. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
+    5. Run the following command in the Package Manager Console:
+    
+       ``` powershell
+       Update-Database -StartUpProjectName NuGetGallery -ConfigurationTypeName MigrationsConfiguration
+       ```
+    If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
+  2. From the command line. ***Important:*** You must have successfully built the Gallery (step 3) for this to succeed.
+    * Run `Update-Databases.ps1` in the `tools` folder to migrate the databases to the latest version.
+      * To Update both databases, Nuget Gallery and Support Request, run this command
+        ``` powershell
+        .\tools\Update-Databases.ps1 -MigrationTargets NugetGallery,NugetGallerySupportRequest
+        ```
+      * To update only the Nuget Gallery DB, run this
+        ``` powershell
+        .\tools\Update-Databases.ps1 -MigrationTargets NugetGallery
+        ```
+      * And to update only the Support Request DB, run this
+        ``` powershell
+        .\tools\Update-Databases.ps1 -MigrationTargets NugetGallerySupportRequest
+        ```
+    * Additionally you can provide a `-NugetGallerySitePath` parameter to the `Update-Databases.ps1` script to indicate that you want to perform the migration on a site other than the one that is built with this repository.
 
 6. When working with the gallery, e-mail messages are saved to the file system (under `~/App_Data`).
     * To change this to use an SMTP server, edit `src\NuGetGallery\Web.Config` and add a `Gallery.SmtpUri` setting. Its value should be an SMTP connection string, for example `smtp://user:password@smtpservername:25`.
@@ -133,7 +152,7 @@ This is the Git workflow we're currently using:
     "Ship-It Squirrel" and you can put it in your own comments by typing ```:shipit:```).
 
 5.  __Merge your changes in to dev.__
-    Click the bright green "Merge" button on your pull request! **NOTE: DO NOT DELETE THE TOPIC BRANCH!!**
+    Click the bright green "Merge" button on your pull request! Don't forget to delete the branch afterwards to keep our repo clean.
 
     If there isn't a bright green button... well, you'll have to do some more complicated merging:
 

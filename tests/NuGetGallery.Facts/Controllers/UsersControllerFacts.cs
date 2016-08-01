@@ -53,7 +53,8 @@ namespace NuGetGallery
             public void LoadsDescriptionsOfCredentialsInToViewModel()
             {
                 // Arrange
-                var user = Fakes.CreateUser(
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser(
                     "test",
                     CredentialBuilder.CreatePbkdf2Password("hunter2"),
                     CredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
@@ -741,7 +742,8 @@ namespace NuGetGallery
             public async Task GivenNoOldPassword_ItSendsAPasswordSetEmail()
             {
                 // Arrange
-                var user = Fakes.CreateUser("test");
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test");
                 user.EmailAddress = "confirmed@example.com";
 
                 GetMock<AuthenticationService>()
@@ -773,7 +775,8 @@ namespace NuGetGallery
             public async Task GivenNoOtherLoginCredentials_ItRedirectsBackWithAnErrorMessage()
             {
                 // Arrange
-                var user = Fakes.CreateUser("test",
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
                     CredentialBuilder.CreatePbkdf2Password("password"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -791,7 +794,8 @@ namespace NuGetGallery
             public async Task GivenNoPassword_ItRedirectsBackWithNoChangesMade()
             {
                 // Arrange
-                var user = Fakes.CreateUser("test",
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
                     CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -809,8 +813,9 @@ namespace NuGetGallery
             public async Task GivenValidRequest_ItRemovesCredAndSendsNotificationToUser()
             {
                 // Arrange
+                var fakes = Get<Fakes>();
                 var cred = CredentialBuilder.CreatePbkdf2Password("password");
-                var user = Fakes.CreateUser("test",
+                var user = fakes.CreateUser("test",
                     cred,
                     CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
 
@@ -841,8 +846,9 @@ namespace NuGetGallery
             public async Task GivenNoOtherLoginCredentials_ItRedirectsBackWithAnErrorMessage()
             {
                 // Arrange
+                var fakes = Get<Fakes>();
                 var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
-                var user = Fakes.CreateUser("test", cred);
+                var user = fakes.CreateUser("test", cred);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -859,7 +865,8 @@ namespace NuGetGallery
             public async Task GivenNoCredential_ItRedirectsBackWithNoChangesMade()
             {
                 // Arrange
-                var user = Fakes.CreateUser("test",
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
                     CredentialBuilder.CreatePbkdf2Password("password"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -877,8 +884,9 @@ namespace NuGetGallery
             public async Task GivenValidRequest_ItRemovesCredAndSendsNotificationToUser()
             {
                 // Arrange
+                var fakes = Get<Fakes>();
                 var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
-                var user = Fakes.CreateUser("test",
+                var user = fakes.CreateUser("test",
                     cred,
                     CredentialBuilder.CreatePbkdf2Password("password"));
 

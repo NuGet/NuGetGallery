@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2015-04.2.6">
- <LoadBalancerProbes>
+  <LoadBalancerProbes>
     <LoadBalancerProbe name="HTTP" path="/" protocol="http" port="80" />
   </LoadBalancerProbes>
-   <!-- Size of the instances -->
+  <!-- Size of the instances -->
   <WebRole name="NuGetGallery" vmsize="ExtraLarge">
     <ConfigurationSettings>
       <Setting name="Gallery.Brand" />
@@ -44,6 +44,9 @@
       <Setting name="Auth.AzureActiveDirectory.ShowOnLoginPage" />
       <Setting name="Startup.BlockedIPs" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
+      <Setting name="KeyVault.VaultName" />
+      <Setting name="KeyVault.ClientId" />
+      <Setting name="KeyVault.CertificateThumbprint" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
@@ -79,6 +82,8 @@
     </Imports>
     <Certificates>
       <Certificate name="SSLCertificate" storeLocation="LocalMachine" storeName="My" />
+      <Certificate name="KeyVaultAccess" storeLocation="LocalMachine" storeName="My" />
+      <Certificate name="KeyVaultAccessCA" storeLocation="LocalMachine" storeName="CA" />
     </Certificates>
     <LocalResources>
       <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />

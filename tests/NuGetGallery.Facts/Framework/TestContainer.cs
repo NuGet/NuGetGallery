@@ -48,7 +48,7 @@ namespace NuGetGallery.Framework
             if (appCtrl != null)
             {
                 appCtrl.OwinContext = Container.Resolve<IOwinContext>();
-                appCtrl.NuGetContext.Config = Container.Resolve<ConfigurationService>();
+                appCtrl.NuGetContext.Config = Container.Resolve<IGalleryConfigurationService>();
             }
 
             return c;
@@ -65,7 +65,12 @@ namespace NuGetGallery.Framework
 
         protected FakeEntitiesContext GetFakeContext()
         {
-            var fakeContext = new FakeEntitiesContext();
+            var fakeContext = Container.Resolve<IEntitiesContext>() as FakeEntitiesContext;
+
+            if (fakeContext == null)
+            {
+                fakeContext = new FakeEntitiesContext();
+            }
 
             var updater = new ContainerBuilder();
             updater.RegisterInstance(fakeContext).As<IEntitiesContext>();
@@ -86,9 +91,10 @@ namespace NuGetGallery.Framework
 
         protected T Get<T>()
         {
-            if(typeof(Controller).IsAssignableFrom(typeof(T))) {
+            if (typeof(Controller).IsAssignableFrom(typeof(T))) {
                 throw new InvalidOperationException("Use GetController<T> to get a controller instance");
             }
+
             return Container.Resolve<T>();
         }
 
