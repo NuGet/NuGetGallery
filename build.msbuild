@@ -71,6 +71,24 @@
       </PropertyGroup>
       <MSBuild Projects="$(MSBuildThisFileDirectory)packages\$(_NuGetServicesBuildVersion)\tools\NuGet.Services.FullBuild.msbuild" />
     </Target>
+	
+    <Target Name="RunBinSkim" DependsOnTargets="RestorePackages">
+        <PropertyGroup Condition="'$(Configuration)' == ''">
+            <Configuration>Debug</Configuration>
+        </PropertyGroup>
 
-    <Target Name="Build" DependsOnTargets="CheckForMultipleSolutions;RestorePackages;CoreBuild" />
+        <PropertyGroup>
+            <NuGetExeDir>$(MSBuildThisFileDirectory)\.nuget</NuGetExeDir>
+            <NuGetExePath>$(NuGetExeDir)\nuget.exe</NuGetExePath>
+            <InstallBinSkimCommand>"$(NuGetExePath)" install Microsoft.CodeAnalysis.BinSkim -Version 1.3.4-beta -NonInteractive -ExcludeVersion</InstallBinSkimCommand>
+            <RunBinSkimCommand>.\packages\Microsoft.CodeAnalysis.BinSkim\tools\x64\BinSkim.exe analyze --config default --verbose</RunBinSkimCommand>
+		</PropertyGroup>
+        <Message Text="Downloading and running BinSkim ... " Importance="high" />
+        <Exec Command="$(InstallBinSkimCommand)" LogStandardErrorAsError="true" />
+        <Exec Command="$(RunBinSkimCommand) src\NuGetGallery\bin\NuGetGallery.dll" LogStandardErrorAsError="true" />
+		<Exec Command="$(RunBinSkimCommand) src\NuGet.Services.Search.Client\bin\$(Configuration)\NuGet.Services.Search.Client.dll" LogStandardErrorAsError="true" />
+		<Exec Command="$(RunBinSkimCommand) src\NuGetGallery.Core\bin\$(Configuration)\NuGetGallery.Core.dll" LogStandardErrorAsError="true" />
+    </Target>
+
+    <Target Name="Build" DependsOnTargets="CheckForMultipleSolutions;RestorePackages;CoreBuild;RunBinSkim" />
 </Project>
