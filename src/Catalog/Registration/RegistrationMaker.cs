@@ -38,8 +38,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> promoted = new Dictionary<RegistrationEntryKey, RegistrationCatalogEntry>();
             foreach (var newItem in newItems)
             {
-                promoted.Add(RegistrationCatalogEntry.Promote(newItem.Key, newItem.Value, isExistingItem: false));
+                var promotedEntry = RegistrationCatalogEntry.Promote(newItem.Key, newItem.Value, isExistingItem: false);
+
+                promoted[promotedEntry.Key] = promotedEntry.Value;
             }
+
             return promoted;
         }
 

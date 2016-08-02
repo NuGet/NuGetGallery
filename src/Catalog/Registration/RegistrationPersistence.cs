@@ -51,7 +51,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             Trace.TraceInformation("RegistrationPersistence.Load: resourceUri = {0}", resourceUri);
 
-            IGraph graph = await LoadCatalog(storage, resourceUri,cancellationToken);
+            IGraph graph = await LoadCatalog(storage, resourceUri, cancellationToken);
 
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resources = GetResources(graph);
 
