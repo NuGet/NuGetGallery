@@ -7,11 +7,13 @@ namespace NuGetGallery
 {
     public partial class ErrorsController : AppController
     {
+        [HttpGet]
         public virtual ActionResult NotFound()
         {
             return View();
         }
 
+        [HttpGet]
         public virtual ActionResult InternalError()
         {
             return View();

@@ -103,7 +103,10 @@ namespace WASDImportExport
                     //Initialize the WebResponse to the response from the WebRequest
                     webResponse = webRequest.GetResponse();
 
-                    xmlStreamReader = XmlReader.Create(webResponse.GetResponseStream());
+                    // See CA3053. Default XmlReaderSettings contains an insecure XmlResolver. Best to specify null.
+                    XmlReaderSettings xmlSettings = new XmlReaderSettings();
+                    xmlSettings.XmlResolver = null;
+                    xmlStreamReader = XmlReader.Create(webResponse.GetResponseStream(), xmlSettings);
                     xmlStreamReader.ReadToFollowing("guid");
                     requestGuid = xmlStreamReader.ReadElementContentAsString();
                     _log.Info($"Export Request '{requestGuid}' submitted");
@@ -245,7 +248,10 @@ namespace WASDImportExport
             webRequest.Method = WebRequestMethods.Http.Get;
             webRequest.ContentType = @"application/xml";
             WebResponse webResponse = webRequest.GetResponse();
-            XmlReader xmlStreamReader = XmlReader.Create(webResponse.GetResponseStream());
+            // See CA3053. Default XmlReaderSettings contains an insecure XmlResolver. Best to specify null.
+            XmlReaderSettings xmlSettings = new XmlReaderSettings();
+            xmlSettings.XmlResolver = null;
+            XmlReader xmlStreamReader = XmlReader.Create(webResponse.GetResponseStream(), xmlSettings);
             DataContractSerializer dataContractSerializer = new DataContractSerializer(typeof(List<StatusInfo>));
 
             return (List<StatusInfo>)dataContractSerializer.ReadObject(xmlStreamReader, true);

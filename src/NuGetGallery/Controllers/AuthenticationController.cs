@@ -38,6 +38,7 @@ namespace NuGetGallery
         /// <summary>
         /// Sign In\Register view
         /// </summary>
+        [HttpGet]
         [RequireSsl]
         public virtual ActionResult LogOn(string returnUrl)
         {
@@ -219,6 +220,7 @@ namespace NuGetGallery
             return RedirectFromRegister(returnUrl);
         }
 
+        [HttpGet]
         public virtual ActionResult LogOff(string returnUrl)
         {
             OwinContext.Authentication.SignOut();
@@ -232,6 +234,8 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult Authenticate(string returnUrl, string provider)
         {
             return AuthService.Challenge(

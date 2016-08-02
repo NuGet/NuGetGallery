@@ -24,6 +24,7 @@ namespace NuGetGallery
             {
                 args.Context = (ObjectContext)table.CreateContext();
             };
+            ViewStateUserKey = User.Identity.Name;
         }
 
         protected void Page_Load(object sender, EventArgs e)

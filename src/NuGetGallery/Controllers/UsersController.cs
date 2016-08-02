@@ -53,6 +53,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ActionName("ConfirmationRequired")]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult ConfirmationRequiredPost()
         {
             User user = GetCurrentUser();
@@ -80,6 +81,7 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpGet]
         [Authorize]
         public virtual ActionResult Account()
         {
@@ -105,6 +107,7 @@ namespace NuGetGallery
             return RedirectToAction("Account");
         }
 
+        [HttpGet]
         [Authorize]
         public virtual ActionResult Thanks()
         {
@@ -114,6 +117,7 @@ namespace NuGetGallery
             return View();
         }
 
+        [HttpGet]
         [Authorize]
         public virtual ActionResult Packages()
         {
@@ -132,6 +136,7 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpGet]
         public virtual ActionResult ForgotPassword()
         {
             // We don't want Login to have us as a return URL
@@ -163,6 +168,7 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpGet]
         public virtual ActionResult PasswordSent()
         {
             // We don't want Login to have us as a return URL
@@ -174,6 +180,7 @@ namespace NuGetGallery
             return View();
         }
 
+        [HttpGet]
         public virtual ActionResult ResetPassword(bool forgot)
         {
             // We don't want Login to have us as a return URL
@@ -287,6 +294,7 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpGet]
         public virtual ActionResult Profiles(string username, int page = 1, bool showAllPackages = false)
         {
             var user = UserService.FindByUsername(username);
@@ -445,6 +453,7 @@ namespace NuGetGallery
             return RemoveCredential(user, cred, Strings.CredentialRemoved);
         }
 
+        [HttpGet]
         public virtual ActionResult PasswordChanged()
         {
             return View();

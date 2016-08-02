@@ -22,6 +22,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _auth = auth;
         }
 
+        [HttpGet]
         public virtual ActionResult Index()
         {
             var settings = (from p in typeof(IAppConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)

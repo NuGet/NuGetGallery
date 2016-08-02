@@ -20,7 +20,7 @@ namespace NuGetGallery
             FormView1.SetMetaTable(table);
             GridDataSource.EntityTypeFilter = table.EntityType.Name;
             DetailsDataSource.EntityTypeFilter = table.EntityType.Name;
-
+            ViewStateUserKey = User.Identity.Name;
         }
 
         protected void Page_Load(object sender, EventArgs e)
