@@ -61,12 +61,12 @@ namespace NuGetGallery.Packaging
                     IconUrl = ReadFromMetadata(metadataNode, "iconUrl"),
                     LicenseUrl = ReadFromMetadata(metadataNode, "licenseUrl"),
                     ProjectUrl = ReadFromMetadata(metadataNode, "projectUrl"),
-                    ReleaseNotes = ReadFromMetadata(metadataNode, "releasenotes"),
+                    ReleaseNotes = ReadFromMetadata(metadataNode, "releaseNotes"),
                     RequireLicenseAcceptance = ReadBoolFromMetadata(metadataNode, "requireLicenseAcceptance"),
                     Summary = ReadFromMetadata(metadataNode, "summary"),
                     Tags = ReadFromMetadata(metadataNode, "tags")
                 };
-                
+
                 // Perform edits
                 foreach (var edit in edits)
                 {
@@ -81,11 +81,11 @@ namespace NuGetGallery.Packaging
                 WriteToMetadata(metadataNode, "iconUrl", editableManifestElements.IconUrl);
                 WriteToMetadata(metadataNode, "licenseUrl", editableManifestElements.LicenseUrl);
                 WriteToMetadata(metadataNode, "projectUrl", editableManifestElements.ProjectUrl);
-                WriteToMetadata(metadataNode, "releasenotes", editableManifestElements.ReleaseNotes);
+                WriteToMetadata(metadataNode, "releaseNotes", editableManifestElements.ReleaseNotes);
                 WriteToMetadata(metadataNode, "requireLicenseAcceptance", editableManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
                 WriteToMetadata(metadataNode, "summary", editableManifestElements.Summary);
                 WriteToMetadata(metadataNode, "tags", editableManifestElements.Tags);
-                
+
                 // Update the package stream
                 using (var newManifestStream = new MemoryStream())
                 {
