@@ -24,7 +24,8 @@ namespace NuGetGallery.Packaging
                     new List<Action<ManifestEdit>>
                     {
                         metadata => { metadata.Authors = "Me and You"; },
-                        metadata => { metadata.Tags = "Peas In A Pod"; }
+                        metadata => { metadata.Tags = "Peas In A Pod"; },
+                        metadata => { metadata.ReleaseNotes = "In perfect harmony we're bobbing our heads to the groove"; }
                     });
 
             // Assert
@@ -36,6 +37,7 @@ namespace NuGetGallery.Packaging
                 Assert.Equal(NuGetVersion.Parse("0.0.0.1"), nuspec.GetVersion());
                 Assert.Equal("Me and You", nuspec.GetMetadata().First(kvp => kvp.Key == "authors").Value);
                 Assert.Equal("Peas In A Pod", nuspec.GetMetadata().First(kvp => kvp.Key == "tags").Value);
+                Assert.Equal("In perfect harmony we're bobbing our heads to the groove", nuspec.GetMetadata().First(kvp => kvp.Key == "releaseNotes").Value);
             }
         }
 
