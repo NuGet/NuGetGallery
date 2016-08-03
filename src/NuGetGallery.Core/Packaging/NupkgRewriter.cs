@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -45,26 +46,26 @@ namespace NuGetGallery.Packaging
 
                 // Read <metadata> node from nuspec
                 var metadataNode = nuspecReader.Xml.Root.Elements()
-                    .FirstOrDefault(e => StringComparer.Ordinal.Equals(e.Name.LocalName, "metadata"));
+                    .FirstOrDefault(e => StringComparer.Ordinal.Equals(e.Name.LocalName, PackageMetadataStrings.Metadata));
                 if (metadataNode == null)
                 {
-                    throw new PackagingException("The package manifest is missing the 'metadata' node.");
+                    throw new PackagingException($"The package manifest is missing the '{PackageMetadataStrings.Metadata}' node.");
                 }
 
                 // Convert metadata into a ManifestEdit so that we can run it through the editing pipeline
                 var editableManifestElements = new ManifestEdit
                 {
-                    Title = ReadFromMetadata(metadataNode, "title"),
-                    Authors = ReadFromMetadata(metadataNode, "authors"),
-                    Copyright = ReadFromMetadata(metadataNode, "copyright"),
-                    Description = ReadFromMetadata(metadataNode, "description"),
-                    IconUrl = ReadFromMetadata(metadataNode, "iconUrl"),
-                    LicenseUrl = ReadFromMetadata(metadataNode, "licenseUrl"),
-                    ProjectUrl = ReadFromMetadata(metadataNode, "projectUrl"),
-                    ReleaseNotes = ReadFromMetadata(metadataNode, "releaseNotes"),
-                    RequireLicenseAcceptance = ReadBoolFromMetadata(metadataNode, "requireLicenseAcceptance"),
-                    Summary = ReadFromMetadata(metadataNode, "summary"),
-                    Tags = ReadFromMetadata(metadataNode, "tags")
+                    Title = ReadFromMetadata(metadataNode, PackageMetadataStrings.Title),
+                    Authors = ReadFromMetadata(metadataNode, PackageMetadataStrings.Authors),
+                    Copyright = ReadFromMetadata(metadataNode, PackageMetadataStrings.Copyright),
+                    Description = ReadFromMetadata(metadataNode, PackageMetadataStrings.Description),
+                    IconUrl = ReadFromMetadata(metadataNode, PackageMetadataStrings.IconUrl),
+                    LicenseUrl = ReadFromMetadata(metadataNode, PackageMetadataStrings.LicenseUrl),
+                    ProjectUrl = ReadFromMetadata(metadataNode, PackageMetadataStrings.ProjectUrl),
+                    ReleaseNotes = ReadFromMetadata(metadataNode, PackageMetadataStrings.ReleaseNotes),
+                    RequireLicenseAcceptance = ReadBoolFromMetadata(metadataNode, PackageMetadataStrings.RequireLicenseAcceptance),
+                    Summary = ReadFromMetadata(metadataNode, PackageMetadataStrings.Summary),
+                    Tags = ReadFromMetadata(metadataNode, PackageMetadataStrings.Tags)
                 };
 
                 var originalManifestElements = (ManifestEdit)editableManifestElements.Clone();
@@ -82,57 +83,57 @@ namespace NuGetGallery.Packaging
                 // Defined by spec here: https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Packaging/compiler/resources/nuspec.xsd
                 if (originalManifestElements.Title != editableManifestElements.Title)
                 {
-                    WriteToMetadata(metadataNode, "title", editableManifestElements.Title, /*canBeRemoved*/ true);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.Title, editableManifestElements.Title, /*canBeRemoved*/ true);
                 }
 
                 if (originalManifestElements.Authors != editableManifestElements.Authors)
                 {
-                    WriteToMetadata(metadataNode, "authors", editableManifestElements.Authors);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.Authors, editableManifestElements.Authors);
                 }
 
                 if (originalManifestElements.Copyright != editableManifestElements.Copyright)
                 {
-                    WriteToMetadata(metadataNode, "copyright", editableManifestElements.Copyright, /*canBeRemoved*/ true);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.Copyright, editableManifestElements.Copyright, /*canBeRemoved*/ true);
                 }
 
                 if (originalManifestElements.Description != editableManifestElements.Description)
                 {
-                    WriteToMetadata(metadataNode, "description", editableManifestElements.Description);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.Description, editableManifestElements.Description);
                 }
 
                 if (originalManifestElements.IconUrl != editableManifestElements.IconUrl)
                 {
-                    WriteToMetadata(metadataNode, "iconUrl", editableManifestElements.IconUrl, /*canBeRemoved*/ true);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.IconUrl, editableManifestElements.IconUrl, /*canBeRemoved*/ true);
                 }
 
                 if (originalManifestElements.LicenseUrl != editableManifestElements.LicenseUrl)
                 {
-                    WriteToMetadata(metadataNode, "licenseUrl", editableManifestElements.LicenseUrl, /*canBeRemoved*/ true);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.LicenseUrl, editableManifestElements.LicenseUrl, /*canBeRemoved*/ true);
                 }
 
                 if (originalManifestElements.ProjectUrl != editableManifestElements.ProjectUrl)
                 {
-                    WriteToMetadata(metadataNode, "projectUrl", editableManifestElements.ProjectUrl, /*canBeRemoved*/ true);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.ProjectUrl, editableManifestElements.ProjectUrl, /*canBeRemoved*/ true);
                 }
 
                 if (originalManifestElements.ReleaseNotes != editableManifestElements.ReleaseNotes)
                 {
-                    WriteToMetadata(metadataNode, "releaseNotes", editableManifestElements.ReleaseNotes, /*canBeRemoved*/ true);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.ReleaseNotes, editableManifestElements.ReleaseNotes, /*canBeRemoved*/ true);
                 }
 
                 if (originalManifestElements.RequireLicenseAcceptance != editableManifestElements.RequireLicenseAcceptance)
                 {
-                    WriteToMetadata(metadataNode, "requireLicenseAcceptance", editableManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.RequireLicenseAcceptance, editableManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
                 }
 
                 if (originalManifestElements.Summary != editableManifestElements.Summary)
                 {
-                    WriteToMetadata(metadataNode, "summary", editableManifestElements.Summary, /*canBeRemoved*/ true);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.Summary, editableManifestElements.Summary, /*canBeRemoved*/ true);
                 }
 
                 if (originalManifestElements.Tags != editableManifestElements.Tags)
                 {
-                    WriteToMetadata(metadataNode, "tags", editableManifestElements.Tags, /*canBeRemoved*/ true);
+                    WriteToMetadata(metadataNode, PackageMetadataStrings.Tags, editableManifestElements.Tags, /*canBeRemoved*/ true);
                 }
 
                 // Update the package stream
