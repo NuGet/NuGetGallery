@@ -43,6 +43,24 @@ IF %ERRORLEVEL% NEQ 0 goto error
 if not "%TEAMCITY_VERSION%" == "" (
 	echo ##teamcity[blockClosed name='Build solution']
 )
+		
+REM Run BinSkim
+if not "%TEAMCITY_VERSION%" == "" (
+	echo ##teamcity[blockOpened name='Run BinSkim']
+)
+echo.
+echo Run BinSkim...
+call :ExecuteCmd tools\nuget.exe install Microsoft.CodeAnalysis.BinSkim -Version 1.3.4-beta -NonInteractive -ExcludeVersion -OutputDirectory packages
+IF %ERRORLEVEL% NEQ 0 goto error
+call :ExecuteCmd packages\Microsoft.CodeAnalysis.BinSkim\tools\x64\BinSkim.exe analyze --config default --verbose src\Ng\bin\%config%\Ng.exe
+REM IF %ERRORLEVEL% NEQ 0 goto error
+call :ExecuteCmd packages\Microsoft.CodeAnalysis.BinSkim\tools\x64\BinSkim.exe analyze --config default --verbose src\NuGet.Services.BasicSearch\bin\%config%\NuGet.Services.BasicSearch.dll
+REM IF %ERRORLEVEL% NEQ 0 goto error
+call :ExecuteCmd packages\Microsoft.CodeAnalysis.BinSkim\tools\x64\BinSkim.exe analyze --config default --verbose src\NuGet.Indexing\bin\%config%\NuGet.Indexing.dll
+REM IF %ERRORLEVEL% NEQ 0 goto error
+if not "%TEAMCITY_VERSION%" == "" (
+	echo ##teamcity[blockClosed name='Run BinSkim']
+)
 
 REM Run tests
 if not "%TEAMCITY_VERSION%" == "" (
@@ -61,7 +79,7 @@ IF %ERRORLEVEL% NEQ 0 goto error
 if not "%TEAMCITY_VERSION%" == "" (
 	echo ##teamcity[blockClosed name='Run tests']
 )
-
+		
 REM Build cloud service
 if not "%TEAMCITY_VERSION%" == "" (
 	echo ##teamcity[blockOpened name='Build cloud service']
