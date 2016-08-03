@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Xml.Linq;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using Xunit;
@@ -38,6 +39,89 @@ namespace NuGetGallery.Packaging
                 Assert.Equal("Me and You", nuspec.GetMetadata().First(kvp => kvp.Key == "authors").Value);
                 Assert.Equal("Peas In A Pod", nuspec.GetMetadata().First(kvp => kvp.Key == "tags").Value);
                 Assert.Equal("In perfect harmony", nuspec.GetMetadata().First(kvp => kvp.Key == "releaseNotes").Value);
+            }
+        }
+
+        [Fact]
+        public static void RewritingTheNuspecDoesNotAddEmptyMetadataElements()
+        {
+            var packageStream = CreateTestPackageStream();
+
+            // Act
+            NupkgRewriter.RewriteNupkgManifest(packageStream,
+                    new List<Action<ManifestEdit>>
+                    {
+                        metadata => { metadata.Authors = "Me and You"; },
+                        metadata => { metadata.Tags = "Peas In A Pod"; },
+                        metadata => { metadata.ReleaseNotes = "In perfect harmony"; }
+                    });
+
+            // Assert
+            using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
+            {
+                var nuspec = nupkg.GetNuspecReader();
+                var metadataDescendants = nuspec.Xml.Document.Descendants().Where(d => d.Name.LocalName == "metadata").Descendants();
+                foreach (var element in metadataDescendants)
+                {
+                    Assert.False(string.IsNullOrEmpty(element.Value), $"Nuspec contains a null or emtpy tag <{element.Name.LocalName}>");
+                }
+            }
+        }
+
+        [Fact]
+        public static void RewritingTheNuspecCreatesValidNewElements()
+        {
+            var packageStream = CreateTestPackageStream();
+            // ensure
+            using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: true))
+            {
+                var nuspec = nupkg.GetNuspecReader();
+                Assert.Equal(nuspec.GetMetadata().Any(kvp => kvp.Key == "projectUrl"), false);
+            }
+
+            // Act
+            NupkgRewriter.RewriteNupkgManifest(packageStream,
+                    new List<Action<ManifestEdit>>
+                    {
+                        metadata => { metadata.Authors = "Me and You"; },
+                        metadata => { metadata.Tags = "Peas In A Pod"; },
+                        metadata => { metadata.ProjectUrl = "http://myget.org"; }
+                    });
+
+            // Assert
+            using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
+            {
+                var nuspec = nupkg.GetNuspecReader();
+                Assert.Equal("TestPackage", nuspec.GetId());
+                Assert.Equal(NuGetVersion.Parse("0.0.0.1"), nuspec.GetVersion());
+                Assert.Equal(nuspec.GetMetadata().Any(kvp => kvp.Key == "projectUrl"), true);
+                Assert.Equal(nuspec.GetMetadata().First(kvp => kvp.Key == "projectUrl").Value, "http://myget.org");
+            }
+        }
+
+        [Fact]
+        public static void RewritingTheNuspecRemovesInvalidElements()
+        {
+            var packageStream = CreateTestPackageStream();
+            // ensure
+            using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: true))
+            {
+                var nuspec = nupkg.GetNuspecReader();
+                Assert.Equal(nuspec.GetMetadata().Any(kvp => kvp.Key == "title"), true);
+            }
+
+            // Act
+            NupkgRewriter.RewriteNupkgManifest(packageStream,
+                    new List<Action<ManifestEdit>>
+                    {
+                        metadata => { metadata.Title = ""; }
+                    });
+
+            // Assert
+            using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
+            {
+                var nuspec = nupkg.GetNuspecReader();
+                Assert.Equal(nuspec.GetMetadata().Any(kvp => kvp.Key == "title"), false);
             }
         }
 
@@ -115,7 +199,6 @@ namespace NuGetGallery.Packaging
                         <requireLicenseAcceptance>false</requireLicenseAcceptance>
                         <description>package A description.</description>
                         <language>en-US</language>
-                        <dependencies />
                       </metadata>
                     </package>");
                 }

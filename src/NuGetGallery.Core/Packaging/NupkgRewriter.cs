@@ -67,6 +67,7 @@ namespace NuGetGallery.Packaging
                     Tags = ReadFromMetadata(metadataNode, "tags")
                 };
 
+                var originalManifestElements = (ManifestEdit)editableManifestElements.Clone();
                 // Perform edits
                 foreach (var edit in edits)
                 {
@@ -74,17 +75,65 @@ namespace NuGetGallery.Packaging
                 }
 
                 // Update the <metadata> node
-                WriteToMetadata(metadataNode, "title", editableManifestElements.Title);
-                WriteToMetadata(metadataNode, "authors", editableManifestElements.Authors);
-                WriteToMetadata(metadataNode, "copyright", editableManifestElements.Copyright);
-                WriteToMetadata(metadataNode, "description", editableManifestElements.Description);
-                WriteToMetadata(metadataNode, "iconUrl", editableManifestElements.IconUrl);
-                WriteToMetadata(metadataNode, "licenseUrl", editableManifestElements.LicenseUrl);
-                WriteToMetadata(metadataNode, "projectUrl", editableManifestElements.ProjectUrl);
-                WriteToMetadata(metadataNode, "releaseNotes", editableManifestElements.ReleaseNotes);
-                WriteToMetadata(metadataNode, "requireLicenseAcceptance", editableManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
-                WriteToMetadata(metadataNode, "summary", editableManifestElements.Summary);
-                WriteToMetadata(metadataNode, "tags", editableManifestElements.Tags);
+                // Modify metadata elements only if they are changed.
+                // 1. Do not add empty/null elements to metadata
+                // 2. Remove the empty/null elements from metadata after edit
+                // Apart from Authors, Description, Id and Version all other elements are optional.
+                // Defined by spec here: https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Packaging/compiler/resources/nuspec.xsd
+                if (originalManifestElements.Title != editableManifestElements.Title)
+                {
+                    WriteToMetadata(metadataNode, "title", editableManifestElements.Title, /*canBeRemoved*/ true);
+                }
+
+                if (originalManifestElements.Authors != editableManifestElements.Authors)
+                {
+                    WriteToMetadata(metadataNode, "authors", editableManifestElements.Authors);
+                }
+
+                if (originalManifestElements.Copyright != editableManifestElements.Copyright)
+                {
+                    WriteToMetadata(metadataNode, "copyright", editableManifestElements.Copyright, /*canBeRemoved*/ true);
+                }
+
+                if (originalManifestElements.Description != editableManifestElements.Description)
+                {
+                    WriteToMetadata(metadataNode, "description", editableManifestElements.Description);
+                }
+
+                if (originalManifestElements.IconUrl != editableManifestElements.IconUrl)
+                {
+                    WriteToMetadata(metadataNode, "iconUrl", editableManifestElements.IconUrl, /*canBeRemoved*/ true);
+                }
+
+                if (originalManifestElements.LicenseUrl != editableManifestElements.LicenseUrl)
+                {
+                    WriteToMetadata(metadataNode, "licenseUrl", editableManifestElements.LicenseUrl, /*canBeRemoved*/ true);
+                }
+
+                if (originalManifestElements.ProjectUrl != editableManifestElements.ProjectUrl)
+                {
+                    WriteToMetadata(metadataNode, "projectUrl", editableManifestElements.ProjectUrl, /*canBeRemoved*/ true);
+                }
+
+                if (originalManifestElements.ReleaseNotes != editableManifestElements.ReleaseNotes)
+                {
+                    WriteToMetadata(metadataNode, "releaseNotes", editableManifestElements.ReleaseNotes, /*canBeRemoved*/ true);
+                }
+
+                if (originalManifestElements.RequireLicenseAcceptance != editableManifestElements.RequireLicenseAcceptance)
+                {
+                    WriteToMetadata(metadataNode, "requireLicenseAcceptance", editableManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
+                }
+
+                if (originalManifestElements.Summary != editableManifestElements.Summary)
+                {
+                    WriteToMetadata(metadataNode, "summary", editableManifestElements.Summary, /*canBeRemoved*/ true);
+                }
+
+                if (originalManifestElements.Tags != editableManifestElements.Tags)
+                {
+                    WriteToMetadata(metadataNode, "tags", editableManifestElements.Tags, /*canBeRemoved*/ true);
+                }
 
                 // Update the package stream
                 using (var newManifestStream = new MemoryStream())
@@ -125,12 +174,7 @@ namespace NuGetGallery.Packaging
             var element = metadataElement.Elements(XName.Get(elementName, metadataElement.GetDefaultNamespace().NamespaceName))
                 .FirstOrDefault();
 
-            if (element != null)
-            {
-                return element.Value;
-            }
-
-            return null;
+            return element?.Value;
         }
 
         private static bool ReadBoolFromMetadata(XElement metadataElement, string elementName)
@@ -149,16 +193,24 @@ namespace NuGetGallery.Packaging
             return false;
         }
 
-        private static void WriteToMetadata(XElement metadataElement, string elementName, string value)
+        private static void WriteToMetadata(XElement metadataElement, string elementName, string value, bool canBeRemoved = false)
         {
             var element = metadataElement.Elements(XName.Get(elementName, metadataElement.GetDefaultNamespace().NamespaceName))
                 .FirstOrDefault();
 
             if (element != null)
             {
-                element.Value = value;
+                // Always set a non-null value for an element. For null values remove the element if possible.
+                if (!string.IsNullOrEmpty(value))
+                {
+                    element.Value = value;
+                }
+                else if (canBeRemoved)
+                {
+                    element.Remove();
+                }
             }
-            else
+            else if (!string.IsNullOrEmpty(value))
             {
                 metadataElement.Add(new XElement(XName.Get(elementName, metadataElement.GetDefaultNamespace().NamespaceName), value));
             }
