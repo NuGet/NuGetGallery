@@ -45,21 +45,21 @@ namespace NuGetGallery.Packaging
                 Version = nugetVersion;
             }
 
-            IconUrl = GetValue("iconUrl", (Uri) null);
-            ProjectUrl = GetValue("projectUrl", (Uri) null);
-            LicenseUrl = GetValue("licenseUrl", (Uri) null);
-            Copyright = GetValue("copyright", (string) null);
-            Description = GetValue("description", (string) null);
-            ReleaseNotes = GetValue("releaseNotes", (string) null);
-            RequireLicenseAcceptance = GetValue("requireLicenseAcceptance", false);
-            Summary = GetValue("summary", (string) null);
-            Title = GetValue("title", (string) null);
-            Tags = GetValue("tags", (string) null);
-            Language = GetValue("language", (string) null);
+            IconUrl = GetValue(PackageMetadataStrings.IconUrl, (Uri) null);
+            ProjectUrl = GetValue(PackageMetadataStrings.ProjectUrl, (Uri) null);
+            LicenseUrl = GetValue(PackageMetadataStrings.LicenseUrl, (Uri) null);
+            Copyright = GetValue(PackageMetadataStrings.Copyright, (string) null);
+            Description = GetValue(PackageMetadataStrings.Description, (string) null);
+            ReleaseNotes = GetValue(PackageMetadataStrings.ReleaseNotes, (string) null);
+            RequireLicenseAcceptance = GetValue(PackageMetadataStrings.RequireLicenseAcceptance, false);
+            Summary = GetValue(PackageMetadataStrings.Summary, (string) null);
+            Title = GetValue(PackageMetadataStrings.Title, (string) null);
+            Tags = GetValue(PackageMetadataStrings.Tags, (string) null);
+            Language = GetValue(PackageMetadataStrings.Language, (string) null);
 
-            Owners = GetValue("owners", (string) null);
+            Owners = GetValue(PackageMetadataStrings.Owners, (string) null);
 
-            var authorsString = GetValue("authors", Owners ?? string.Empty);
+            var authorsString = GetValue(PackageMetadataStrings.Authors, Owners ?? string.Empty);
             Authors = new List<string>(authorsString.Split(',').Select(author => author.Trim()));
         }
 
