@@ -48,17 +48,17 @@ namespace HandlePackageEdits
         {
             return new List<Action<ManifestEdit>>
             {
-                (m) => { m.Authors = string.IsNullOrEmpty(Authors) ? m.Authors : Authors; },
-                (m) => { m.Copyright = string.IsNullOrEmpty(Copyright) ? m.Copyright : Copyright; },
-                (m) => { m.Description = string.IsNullOrEmpty(Description) ? m.Description: Description; },
-                (m) => { m.IconUrl = string.IsNullOrEmpty(IconUrl) ? m.IconUrl : IconUrl; },
-                (m) => { m.LicenseUrl = string.IsNullOrEmpty(LicenseUrl) ? m.LicenseUrl : LicenseUrl; },
-                (m) => { m.ProjectUrl = string.IsNullOrEmpty(ProjectUrl) ? m.ProjectUrl : ProjectUrl; },
-                (m) => { m.ReleaseNotes = string.IsNullOrEmpty(ReleaseNotes) ? m.ReleaseNotes : ReleaseNotes; },
+                (m) => { m.Authors = Authors; },
+                (m) => { m.Copyright = Copyright; },
+                (m) => { m.Description = Description; },
+                (m) => { m.IconUrl = IconUrl; },
+                (m) => { m.LicenseUrl = LicenseUrl; },
+                (m) => { m.ProjectUrl = ProjectUrl; },
+                (m) => { m.ReleaseNotes = ReleaseNotes; },
                 (m) => { m.RequireLicenseAcceptance = RequiresLicenseAcceptance ?? m.RequireLicenseAcceptance; },
-                (m) => { m.Summary = string.IsNullOrEmpty(Summary) ? m.Summary : Summary; },
-                (m) => { m.Title = string.IsNullOrEmpty(Title) ? m.Title : Title; },
-                (m) => { m.Tags = string.IsNullOrEmpty(Tags) ? m.Tags : Tags; },
+                (m) => { m.Summary = Summary; },
+                (m) => { m.Title = Title; },
+                (m) => { m.Tags = Tags; },
             };
         }
     }
