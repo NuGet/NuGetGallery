@@ -81,19 +81,19 @@ namespace NuGetGallery.Packaging
                 // 2. Remove the empty/null elements from metadata after edit
                 // Apart from Authors, Description, Id and Version all other elements are optional.
                 // Defined by spec here: https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Packaging/compiler/resources/nuspec.xsd
-                WriteToMetadata(metadataNode, PackageMetadataStrings.Title, originalManifestElements.Title, editableManifestElements.Title, /*canBeRemoved*/ true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Title, originalManifestElements.Title, editableManifestElements.Title, canBeRemoved: true);
                 WriteToMetadata(metadataNode, PackageMetadataStrings.Authors, originalManifestElements.Authors, editableManifestElements.Authors);
-                WriteToMetadata(metadataNode, PackageMetadataStrings.Copyright, originalManifestElements.Copyright, editableManifestElements.Copyright, /*canBeRemoved*/ true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Copyright, originalManifestElements.Copyright, editableManifestElements.Copyright, canBeRemoved: true);
                 WriteToMetadata(metadataNode, PackageMetadataStrings.Description, originalManifestElements.Description, editableManifestElements.Description);
-                WriteToMetadata(metadataNode, PackageMetadataStrings.IconUrl, originalManifestElements.IconUrl, editableManifestElements.IconUrl, /*canBeRemoved*/ true);
-                WriteToMetadata(metadataNode, PackageMetadataStrings.LicenseUrl, originalManifestElements.LicenseUrl, editableManifestElements.LicenseUrl, /*canBeRemoved*/ true);
-                WriteToMetadata(metadataNode, PackageMetadataStrings.ProjectUrl, originalManifestElements.ProjectUrl, editableManifestElements.ProjectUrl, /*canBeRemoved*/ true);
-                WriteToMetadata(metadataNode, PackageMetadataStrings.ReleaseNotes, originalManifestElements.ReleaseNotes, editableManifestElements.ReleaseNotes, /*canBeRemoved*/ true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.IconUrl, originalManifestElements.IconUrl, editableManifestElements.IconUrl, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.LicenseUrl, originalManifestElements.LicenseUrl, editableManifestElements.LicenseUrl, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.ProjectUrl, originalManifestElements.ProjectUrl, editableManifestElements.ProjectUrl, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.ReleaseNotes, originalManifestElements.ReleaseNotes, editableManifestElements.ReleaseNotes, canBeRemoved: true);
                 WriteToMetadata(metadataNode, PackageMetadataStrings.RequireLicenseAcceptance,
                     originalManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant(),
                     editableManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
-                WriteToMetadata(metadataNode, PackageMetadataStrings.Summary, originalManifestElements.Summary, editableManifestElements.Summary, /*canBeRemoved*/ true);
-                WriteToMetadata(metadataNode, PackageMetadataStrings.Tags, originalManifestElements.Tags, editableManifestElements.Tags, /*canBeRemoved*/ true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Summary, originalManifestElements.Summary, editableManifestElements.Summary, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Tags, originalManifestElements.Tags, editableManifestElements.Tags, canBeRemoved: true);
 
                 // Update the package stream
                 using (var newManifestStream = new MemoryStream())

@@ -18,6 +18,7 @@ namespace NuGetGallery.Packaging
         public bool RequireLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
+
         public object Clone()
         {
             return this.MemberwiseClone();
