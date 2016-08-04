@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -45,28 +46,29 @@ namespace NuGetGallery.Packaging
 
                 // Read <metadata> node from nuspec
                 var metadataNode = nuspecReader.Xml.Root.Elements()
-                    .FirstOrDefault(e => StringComparer.Ordinal.Equals(e.Name.LocalName, "metadata"));
+                    .FirstOrDefault(e => StringComparer.Ordinal.Equals(e.Name.LocalName, PackageMetadataStrings.Metadata));
                 if (metadataNode == null)
                 {
-                    throw new PackagingException("The package manifest is missing the 'metadata' node.");
+                    throw new PackagingException($"The package manifest is missing the '{PackageMetadataStrings.Metadata}' node.");
                 }
 
                 // Convert metadata into a ManifestEdit so that we can run it through the editing pipeline
                 var editableManifestElements = new ManifestEdit
                 {
-                    Title = ReadFromMetadata(metadataNode, "title"),
-                    Authors = ReadFromMetadata(metadataNode, "authors"),
-                    Copyright = ReadFromMetadata(metadataNode, "copyright"),
-                    Description = ReadFromMetadata(metadataNode, "description"),
-                    IconUrl = ReadFromMetadata(metadataNode, "iconUrl"),
-                    LicenseUrl = ReadFromMetadata(metadataNode, "licenseUrl"),
-                    ProjectUrl = ReadFromMetadata(metadataNode, "projectUrl"),
-                    ReleaseNotes = ReadFromMetadata(metadataNode, "releasenotes"),
-                    RequireLicenseAcceptance = ReadBoolFromMetadata(metadataNode, "requireLicenseAcceptance"),
-                    Summary = ReadFromMetadata(metadataNode, "summary"),
-                    Tags = ReadFromMetadata(metadataNode, "tags")
+                    Title = ReadFromMetadata(metadataNode, PackageMetadataStrings.Title),
+                    Authors = ReadFromMetadata(metadataNode, PackageMetadataStrings.Authors),
+                    Copyright = ReadFromMetadata(metadataNode, PackageMetadataStrings.Copyright),
+                    Description = ReadFromMetadata(metadataNode, PackageMetadataStrings.Description),
+                    IconUrl = ReadFromMetadata(metadataNode, PackageMetadataStrings.IconUrl),
+                    LicenseUrl = ReadFromMetadata(metadataNode, PackageMetadataStrings.LicenseUrl),
+                    ProjectUrl = ReadFromMetadata(metadataNode, PackageMetadataStrings.ProjectUrl),
+                    ReleaseNotes = ReadFromMetadata(metadataNode, PackageMetadataStrings.ReleaseNotes),
+                    RequireLicenseAcceptance = ReadBoolFromMetadata(metadataNode, PackageMetadataStrings.RequireLicenseAcceptance),
+                    Summary = ReadFromMetadata(metadataNode, PackageMetadataStrings.Summary),
+                    Tags = ReadFromMetadata(metadataNode, PackageMetadataStrings.Tags)
                 };
-                
+
+                var originalManifestElements = (ManifestEdit)editableManifestElements.Clone();
                 // Perform edits
                 foreach (var edit in edits)
                 {
@@ -74,18 +76,25 @@ namespace NuGetGallery.Packaging
                 }
 
                 // Update the <metadata> node
-                WriteToMetadata(metadataNode, "title", editableManifestElements.Title);
-                WriteToMetadata(metadataNode, "authors", editableManifestElements.Authors);
-                WriteToMetadata(metadataNode, "copyright", editableManifestElements.Copyright);
-                WriteToMetadata(metadataNode, "description", editableManifestElements.Description);
-                WriteToMetadata(metadataNode, "iconUrl", editableManifestElements.IconUrl);
-                WriteToMetadata(metadataNode, "licenseUrl", editableManifestElements.LicenseUrl);
-                WriteToMetadata(metadataNode, "projectUrl", editableManifestElements.ProjectUrl);
-                WriteToMetadata(metadataNode, "releasenotes", editableManifestElements.ReleaseNotes);
-                WriteToMetadata(metadataNode, "requireLicenseAcceptance", editableManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
-                WriteToMetadata(metadataNode, "summary", editableManifestElements.Summary);
-                WriteToMetadata(metadataNode, "tags", editableManifestElements.Tags);
-                
+                // Modify metadata elements only if they are changed.
+                // 1. Do not add empty/null elements to metadata
+                // 2. Remove the empty/null elements from metadata after edit
+                // Apart from Authors, Description, Id and Version all other elements are optional.
+                // Defined by spec here: https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Packaging/compiler/resources/nuspec.xsd
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Title, originalManifestElements.Title, editableManifestElements.Title, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Authors, originalManifestElements.Authors, editableManifestElements.Authors);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Copyright, originalManifestElements.Copyright, editableManifestElements.Copyright, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Description, originalManifestElements.Description, editableManifestElements.Description);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.IconUrl, originalManifestElements.IconUrl, editableManifestElements.IconUrl, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.LicenseUrl, originalManifestElements.LicenseUrl, editableManifestElements.LicenseUrl, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.ProjectUrl, originalManifestElements.ProjectUrl, editableManifestElements.ProjectUrl, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.ReleaseNotes, originalManifestElements.ReleaseNotes, editableManifestElements.ReleaseNotes, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.RequireLicenseAcceptance,
+                    originalManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant(),
+                    editableManifestElements.RequireLicenseAcceptance.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Summary, originalManifestElements.Summary, editableManifestElements.Summary, canBeRemoved: true);
+                WriteToMetadata(metadataNode, PackageMetadataStrings.Tags, originalManifestElements.Tags, editableManifestElements.Tags, canBeRemoved: true);
+
                 // Update the package stream
                 using (var newManifestStream = new MemoryStream())
                 {
@@ -125,12 +134,7 @@ namespace NuGetGallery.Packaging
             var element = metadataElement.Elements(XName.Get(elementName, metadataElement.GetDefaultNamespace().NamespaceName))
                 .FirstOrDefault();
 
-            if (element != null)
-            {
-                return element.Value;
-            }
-
-            return null;
+            return element?.Value;
         }
 
         private static bool ReadBoolFromMetadata(XElement metadataElement, string elementName)
@@ -149,18 +153,31 @@ namespace NuGetGallery.Packaging
             return false;
         }
 
-        private static void WriteToMetadata(XElement metadataElement, string elementName, string value)
+        private static void WriteToMetadata(XElement metadataElement, string elementName, string oldValue, string newValue, bool canBeRemoved = false)
         {
+            if (oldValue == newValue)
+            {
+                return;
+            }
+
             var element = metadataElement.Elements(XName.Get(elementName, metadataElement.GetDefaultNamespace().NamespaceName))
                 .FirstOrDefault();
 
             if (element != null)
             {
-                element.Value = value;
+                // Always set a non-null newValue for an element. For null values remove the element if possible.
+                if (!string.IsNullOrEmpty(newValue))
+                {
+                    element.Value = newValue;
+                }
+                else if (canBeRemoved)
+                {
+                    element.Remove();
+                }
             }
-            else
+            else if (!string.IsNullOrEmpty(newValue))
             {
-                metadataElement.Add(new XElement(XName.Get(elementName, metadataElement.GetDefaultNamespace().NamespaceName), value));
+                metadataElement.Add(new XElement(XName.Get(elementName, metadataElement.GetDefaultNamespace().NamespaceName), newValue));
             }
         }
     }
