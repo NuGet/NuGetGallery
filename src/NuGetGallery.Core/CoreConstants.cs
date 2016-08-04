@@ -5,6 +5,6 @@ namespace NuGetGallery
 {
     public static class CoreConstants
     {
-        public const int MaxPackageIdLength = 128;
+        public const int MaxPackageIdLength = 100;
     }
 }
