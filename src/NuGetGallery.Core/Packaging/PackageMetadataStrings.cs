@@ -3,7 +3,7 @@
 
 namespace NuGetGallery.Packaging
 {
-    static class PackageMetadataStrings
+    public static class PackageMetadataStrings
     {
         public const string Authors = "authors";
         public const string Copyright = "copyright";
