@@ -34,9 +34,10 @@ namespace NuGetGallery.OData
                 && options.Filter.FilterClause.ItemType.Definition.TypeKind == EdmTypeKind.Entity)
             {
                 var functionCallExpression = (SingleValueFunctionCallNode) options.Filter.FilterClause.Expression;
-                if (string.Equals(functionCallExpression.Name, "substringof", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(functionCallExpression.Name, "substringof", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(functionCallExpression.Name, "tolower", StringComparison.OrdinalIgnoreCase))
                 {
-                    // The 'substringof' function cannot be applied to an enumeration-typed argument
+                    // The function cannot be applied to an enumeration-typed argument
                     hijackable = null;
                     return false;
                 }
