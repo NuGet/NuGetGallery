@@ -1,9 +1,9 @@
 ﻿SELECT	[PackageRegistrations].[Id] 'Id',
 		[Users].[UserName] 'UserName'
-FROM	[PackageRegistrations]
+FROM	[PackageRegistrations] (NOLOCK)
 
-INNER JOIN	[PackageRegistrationOwners]
+INNER JOIN	[PackageRegistrationOwners] (NOLOCK)
 ON			[PackageRegistrationOwners].[PackageRegistrationKey] = [PackageRegistrations].[Key]
 
-INNER JOIN	[Users]
+INNER JOIN	[Users] (NOLOCK)
 ON			[Users].[Key] = [PackageRegistrationOwners].[UserKey]

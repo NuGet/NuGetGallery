@@ -20,6 +20,7 @@ namespace NuGet.Jobs
         public const string DestinationDatabase = "DestinationDatabase";
         public const string PackageDatabase = "PackageDatabase";
         public const string GalleryDatabase = "GalleryDatabase";
+        public const string StatisticsDatabase = "StatisticsDatabase";
 
         // Catalog Collector argument names
         public const string ChecksumCollectorBatchSize = "ChecksumCollectorBatchSize";
@@ -80,9 +81,12 @@ namespace NuGet.Jobs
         //Arguments specific to ParseAzureCdnLogs
         public const string AzureCdnCloudStorageTableName = "AzureCdnCloudStorageTableName";
         public const string AggregatesOnly = "AggregatesOnly";
-
-        //Arguments specific to Statistics jobs
-        public const string StatisticsDatabase = "StatisticsDatabase";
+        
+        //Arguments specific to Heartbeat
+        public const string HeartbeatConfig = "HeartbeatConfig";
+        public const string DashboardStorageAccount = "DashboardStorageAccount";
+        public const string DashboardStorageContainer = "DashboardStorageContainer";
+        public const string LogFileSuffix = "LogFileSuffix";
 
         // Application Insights
         public const string InstrumentationKey = "InstrumentationKey";
