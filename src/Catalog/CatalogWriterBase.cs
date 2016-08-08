@@ -129,7 +129,7 @@ namespace NuGet.Services.Metadata.Catalog
                 }
                 catch (Exception e)
                 {
-                    string msg = (saveOperationForItem.ResourceUri == null) 
+                    string msg = (saveOperationForItem == null || saveOperationForItem.ResourceUri == null) 
                         ? string.Format("batch index: {0}", batchIndex)
                         : string.Format("batch index: {0} resourceUri: {1}", batchIndex, saveOperationForItem.ResourceUri);
 
