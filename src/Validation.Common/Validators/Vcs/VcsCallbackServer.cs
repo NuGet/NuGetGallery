@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -28,9 +27,12 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 
         public VcsCallbackServerStartup()
         {
+            // Configure to get values from keyvault
+            var configurationService = new ConfigurationService(new SecretReaderFactory());
+
             // Get configuration
-            var cloudStorageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["DataStorageAccount"]);
-            var containerName = ConfigurationManager.AppSettings["ContainerName"];
+            var cloudStorageAccount = CloudStorageAccount.Parse(configurationService.Get("DataStorageAccount").Result);
+            var containerName = configurationService.Get("ContainerName").Result;
 
             // Services
             _packageValidationTable = new PackageValidationTable(cloudStorageAccount, containerName);

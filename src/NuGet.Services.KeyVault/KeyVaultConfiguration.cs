@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Cryptography.X509Certificates;
 
 namespace NuGet.Services.KeyVault
 {
@@ -10,9 +11,11 @@ namespace NuGet.Services.KeyVault
         public string VaultName { get; }
         public string ClientId { get; }
         public string CertificateThumbprint { get; }
+        public StoreName StoreName { get; }
+        public StoreLocation StoreLocation { get; set; }
         public bool ValidateCertificate { get; }
 
-        public KeyVaultConfiguration(string vaultName, string clientId, string certificateThumbprint, bool validateCertificate)
+        public KeyVaultConfiguration(string vaultName, string clientId, string certificateThumbprint, StoreName storeName, StoreLocation storeLocation, bool validateCertificate)
         {
             if (string.IsNullOrWhiteSpace(vaultName))
             {
@@ -33,6 +36,8 @@ namespace NuGet.Services.KeyVault
             ClientId = clientId;
             CertificateThumbprint = certificateThumbprint;
             ValidateCertificate = validateCertificate;
+            StoreName = storeName;
+            StoreLocation = storeLocation;
         }
     }
 }

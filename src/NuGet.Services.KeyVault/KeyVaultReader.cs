@@ -41,8 +41,8 @@ namespace NuGet.Services.KeyVault
         private KeyVaultClient InitializeClient()
         {
             var certificate = FindCertificateByThumbprint(
-                StoreName.My,
-                StoreLocation.LocalMachine,
+                _configuration.StoreName,
+                _configuration.StoreLocation,
                 _configuration.CertificateThumbprint,
                 _configuration.ValidateCertificate);
             _clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, certificate);

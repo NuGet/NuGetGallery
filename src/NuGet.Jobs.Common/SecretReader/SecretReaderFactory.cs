@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using NuGet.Services.KeyVault;
 
 namespace NuGet.Jobs
@@ -15,11 +17,16 @@ namespace NuGet.Jobs
                 return new EmptySecretReader();
             }
 
+            var storeName = JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.StoreName);
+            var storeLocation = JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.StoreLocation);
+
             var keyVaultConfiguration =
                 new KeyVaultConfiguration(
                     JobConfigurationManager.GetArgument(settings, JobArgumentNames.VaultName),
                     JobConfigurationManager.GetArgument(settings, JobArgumentNames.ClientId),
                     JobConfigurationManager.GetArgument(settings, JobArgumentNames.CertificateThumbprint),
+                    storeName != null ? (StoreName)Enum.Parse(typeof(StoreName), storeName) : StoreName.My,
+                    storeLocation != null ? (StoreLocation)Enum.Parse(typeof(StoreLocation), storeLocation) : StoreLocation.LocalMachine,
                     JobConfigurationManager.TryGetBoolArgument(settings, JobArgumentNames.ValidateCertificate, defaultValue: true));
 
             return new KeyVaultReader(keyVaultConfiguration);
