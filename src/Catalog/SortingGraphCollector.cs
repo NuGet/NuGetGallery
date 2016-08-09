@@ -22,18 +22,36 @@ namespace NuGet.Services.Metadata.Catalog
             _types = types;
         }
 
-        protected override async Task ProcessSortedBatch(CollectorHttpClient client, KeyValuePair<string, IList<JObject>> sortedBatch, JToken context, CancellationToken cancellationToken)
+        protected override async Task ProcessSortedBatch(
+            CollectorHttpClient client,
+            KeyValuePair<string, IList<JObject>> sortedBatch,
+            JToken context, 
+            CancellationToken cancellationToken)
         {
-            IDictionary<string, IGraph> graphs = new Dictionary<string, IGraph>();
-
-            foreach (JObject item in sortedBatch.Value)
+            var graphs = new Dictionary<string, IGraph>();
+            var graphTasks = new Dictionary<string, Task<IGraph>>();
+            
+            foreach (var item in sortedBatch.Value)
             {
                 if (Utils.IsType((JObject)context, item, _types))
                 {
-                    string itemUri = item["@id"].ToString();
-                    IGraph graph = await client.GetGraphAsync(new Uri(itemUri), cancellationToken);
-                    graphs.Add(itemUri, graph);
+                    var itemUri = item["@id"].ToString();
+                    var task = client.GetGraphAsync(new Uri(itemUri), cancellationToken);
+
+                    graphTasks.Add(itemUri, task);
+
+                    if (!Concurrent)
+                    {
+                        task.Wait(cancellationToken);
+                    }
                 }
+            }
+
+            await Task.WhenAll(graphTasks.Values.ToArray());
+
+            foreach (var task in graphTasks)
+            {
+                graphs.Add(task.Key, task.Value.Result);
             }
 
             if (graphs.Count > 0)

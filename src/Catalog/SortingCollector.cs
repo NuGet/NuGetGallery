@@ -20,7 +20,13 @@ namespace NuGet.Services.Metadata.Catalog
 
         public bool Concurrent { get; set; }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
+        protected override async Task<bool> OnProcessBatch(
+            CollectorHttpClient client, 
+            IEnumerable<JToken> items,
+            JToken context, 
+            DateTime commitTimeStamp,
+            bool isLastBatch,
+            CancellationToken cancellationToken)
         {
             IDictionary<string, IList<JObject>> sortedItems = new Dictionary<string, IList<JObject>>();
 
@@ -61,6 +67,10 @@ namespace NuGet.Services.Metadata.Catalog
             return item["nuget:id"].ToString();
         }
 
-        protected abstract Task ProcessSortedBatch(CollectorHttpClient client, KeyValuePair<string, IList<JObject>> sortedBatch, JToken context, CancellationToken cancellationToken);
+        protected abstract Task ProcessSortedBatch(
+            CollectorHttpClient client, 
+            KeyValuePair<string, IList<JObject>> sortedBatch, 
+            JToken context, 
+            CancellationToken cancellationToken);
     }
 }

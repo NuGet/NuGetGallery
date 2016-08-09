@@ -304,7 +304,14 @@ namespace Ng
             {
                 foreach (var packageItem in entry.Value)
                 {
-                    var response = await client.GetAsync(packageItem.ContentUri, cancellationToken);
+                    // When downloading the package binary, add a query string parameter
+                    // that corresponds to the operation's timestamp.
+                    // This query string will ensure the package is not cached
+                    // (e.g. on the CDN) and returns the "latest and greatest" package metadata.
+                    var packageUriBuilder = new UriBuilder(packageItem.ContentUri);
+                    packageUriBuilder.Query = "nuget-cache=" + entry.Key.ToString("O");
+
+                    var response = await client.GetAsync(packageUriBuilder.Uri, cancellationToken);
 
                     if (response.IsSuccessStatusCode)
                     {

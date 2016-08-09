@@ -24,6 +24,8 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class Utils
     {
+        private static readonly Dictionary<string, string> _resourceStringCache = new Dictionary<string, string>();
+
         public static Stream GetResourceStream(string resName)
         {
             string name = Assembly.GetExecutingAssembly().GetName().Name;
@@ -32,7 +34,15 @@ namespace NuGet.Services.Metadata.Catalog
 
         public static string GetResource(string resName)
         {
-            return new StreamReader(GetResourceStream(resName)).ReadToEnd();
+            if (!_resourceStringCache.ContainsKey(resName))
+            {
+                using (var reader = new StreamReader(GetResourceStream(resName)))
+                {
+                    _resourceStringCache[resName] = reader.ReadToEnd();
+                }
+            }
+
+            return _resourceStringCache[resName];
         }
 
         public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress)
