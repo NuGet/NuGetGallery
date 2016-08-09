@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
@@ -180,12 +181,13 @@ namespace NuGet.Services.Metadata.Catalog
 
             return graph;
         }
+
         protected override string GetItemIdentity()
         {
             return (_id + "." + _version).ToLowerInvariant();
         }
 
-        static XDocument NormalizeNuspecNamespace(XDocument original, XslCompiledTransform xslt)
+        private static XDocument NormalizeNuspecNamespace(XDocument original, XslCompiledTransform xslt)
         {
             XDocument result = new XDocument();
             using (XmlWriter writer = result.CreateWriter())
@@ -195,7 +197,7 @@ namespace NuGet.Services.Metadata.Catalog
             return result;
         }
 
-        static IGraph CreateNuspecGraph(XDocument nuspec, Uri baseAddress, XslCompiledTransform xslt)
+        private static IGraph CreateNuspecGraph(XDocument nuspec, Uri baseAddress, XslCompiledTransform xslt)
         {
             XsltArgumentList arguments = new XsltArgumentList();
             arguments.AddParam("base", "", baseAddress.ToString());
@@ -212,11 +214,35 @@ namespace NuGet.Services.Metadata.Catalog
             XmlDocument doc = new XmlDocument();
             doc.Load(rdfxml.CreateReader());
 
+            NormalizeXml(doc);
+
             IGraph graph = new Graph();
             RdfXmlParser rdfXmlParser = new RdfXmlParser();
             rdfXmlParser.Load(graph, doc);
 
             return graph;
+        }
+
+        private static void NormalizeXml(XmlNode xmlNode)
+        {
+            if (xmlNode.Attributes != null)
+            {
+                foreach (XmlAttribute attribute in xmlNode.Attributes)
+                {
+                    attribute.Value = attribute.Value.Normalize(NormalizationForm.FormC);
+                }
+            }
+
+            if (xmlNode.Value != null)
+            {
+                xmlNode.Value = xmlNode.Value.Normalize(NormalizationForm.FormC);
+                return;
+            }
+
+            foreach (XmlNode childNode in xmlNode.ChildNodes)
+            {
+                NormalizeXml(childNode);
+            }
         }
     }
 }
