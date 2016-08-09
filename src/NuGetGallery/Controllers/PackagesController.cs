@@ -11,6 +11,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
@@ -349,8 +350,11 @@ namespace NuGetGallery
                 var isIndexed = HttpContext.Cache.Get(isIndexedCacheKey) as bool?;
                 if (!isIndexed.HasValue)
                 {
+                    var normalizedRegistrationId = package.PackageRegistration.Id
+                        .Normalize(NormalizationForm.FormC);
+
                     var searchFilter = SearchAdaptor.GetSearchFilter(
-                            "id:\"" + package.PackageRegistration.Id + "\" AND version:\"" + package.Version + "\"",
+                            "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
                             1, null, SearchFilter.ODataSearchContext);
 
                     searchFilter.IncludePrerelease = true;
