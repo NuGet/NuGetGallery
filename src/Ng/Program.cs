@@ -5,8 +5,10 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Logging;
+using Serilog.Events;
 
 namespace Ng
 {
@@ -18,9 +20,9 @@ namespace Ng
         {
             Console.WriteLine("Usage: ng [package2catalog|feed2catalog|catalog2registration|catalog2lucene|catalog2dnx|frameworkcompatibility|copylucene|checklucene|clearlucene|db2lucene|lightning] "
                 + $"[-{Constants.VaultName} <keyvault-name> "
-                        + $"-{Constants.ClientId} <keyvault-client-id> "
-                        + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
-                        + $"[-{Constants.ValidateCertificate} true|false]]");
+                + $"-{Constants.ClientId} <keyvault-client-id> "
+                + $"-{Constants.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                + $"[-{Constants.ValidateCertificate} true|false]]");
         }
 
         public static void Main(string[] args)
@@ -43,7 +45,7 @@ namespace Ng
 
                 // Create an ILoggerFactory
                 var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: true);
-                var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+                var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration, LogEventLevel.Debug);
 
                 // Create a logger that is scoped to this class (only)
                 _logger = loggerFactory.CreateLogger<Program>();
@@ -73,7 +75,8 @@ namespace Ng
                         break;
                     case "catalog2lucene":
                         printToolUsage = Catalog2Lucene.PrintUsage;
-                        Catalog2Lucene.Run(arguments, cancellationTokenSource.Token);
+                        var catalog2lucene = new Catalog2Lucene(loggerFactory);
+                        catalog2lucene.Run(arguments, cancellationTokenSource.Token);
                         break;
                     case "catalog2dnx":
                         printToolUsage = Catalog2Dnx.PrintUsage;
@@ -108,29 +111,22 @@ namespace Ng
             catch (ArgumentException ae)
             {
                 var message = "A required argument was not found or was malformed/invalid.";
-                if (_logger != null)
-                {
-                    _logger.LogError(message, ae);
-                }
-                else
-                {
-                    Console.Error.WriteLine(message, ae);
-                }
+
+                _logger?.LogError(message, ae);
+                Trace.TraceError($"{message}. Exception: {ae}");
 
                 printToolUsage();
             }
             catch (Exception e)
             {
                 var message = "A critical exception occured in ng.exe!";
-                if (_logger != null)
-                {
-                    _logger.LogCritical(message, e);
-                }
-                
-                Console.Error.WriteLine(message, e);
+
+                _logger?.LogCritical(message, e);
+                Trace.TraceError($"{message}. Exception: {e}");
             }
 
             Trace.Close();
+            TelemetryConfiguration.Active.TelemetryChannel.Flush();
         }
     }
 }

@@ -1,20 +1,28 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Index;
+using Microsoft.Extensions.Logging;
 using NuGet.Indexing;
 
 namespace Ng
 {
-    public static class Catalog2Lucene
+    public class Catalog2Lucene
     {
-        static async Task Loop(string source, string registration, Lucene.Net.Store.Directory directory, string catalogBaseAddress, string storageBaseAddress, bool verbose, int interval, CancellationToken cancellationToken)
+        private readonly ILogger _logger;
+
+        public Catalog2Lucene(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger<Catalog2Lucene>();
+        }
+
+        private async Task Loop(string source, string registration, Lucene.Net.Store.Directory directory, string catalogBaseAddress, string storageBaseAddress, bool verbose, int interval, CancellationToken cancellationToken)
         {
             Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose, catalogBaseAddress, storageBaseAddress);
 
@@ -23,6 +31,7 @@ namespace Ng
                 using (var indexWriter = CreateIndexWriter(directory))
                 {
                     var collector = new SearchIndexFromCatalogCollector(
+                        _logger,
                         index: new Uri(source),
                         indexWriter: indexWriter,
                         commitEachBatch: false,
@@ -91,35 +100,36 @@ namespace Ng
                 + $"[-{Constants.Interval} <seconds>]");
         }
 
-        public static void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
+        public void Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             Lucene.Net.Store.Directory directory = CommandHelpers.GetLuceneDirectory(arguments);
             string source = CommandHelpers.GetSource(arguments);
             bool verbose = CommandHelpers.GetVerbose(arguments, required: false);
-
-            if (verbose)
-            {
-                Trace.Listeners.Add(new ConsoleTraceListener());
-                //Trace.AutoFlush = true;
-            }
 
             int interval = CommandHelpers.GetInterval(arguments, defaultInterval: Constants.DefaultInterval);
 
             string registration = CommandHelpers.GetRegistration(arguments, required: false);
             if (registration == null)
             {
-                Console.WriteLine("Lucene index will be created up to the end of the catalog (alternatively if you provide a registration it will not pass that)");
+                _logger.LogInformation("Lucene index will be created up to the end of the catalog (alternatively if you provide a registration it will not pass that)");
             }
 
             string catalogBaseAddress = CommandHelpers.GetCatalogBaseAddress(arguments, required: false);
             if (catalogBaseAddress == null)
             {
-                Console.WriteLine("No catalogBaseAddress was specified so the Lucene index will NOT contain the storage paths");
+                _logger.LogInformation("No catalogBaseAddress was specified so the Lucene index will NOT contain the storage paths");
             }
 
             string storageBaseAddress = CommandHelpers.GetStorageBaseAddress(arguments, required: false);
 
-            Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" catalogBaseAddress: \"{2}\" storageBaseAddress: \"{3}\" interval: {4} seconds", source, registration ?? "(null)", catalogBaseAddress ?? "(null)", storageBaseAddress ?? "(null)", interval);
+            _logger.LogInformation("CONFIG source: \"{ConfigSource}\" registration: \"{Registration}\"" +
+                                   " catalogBaseAddress: \"{CatalogBaseAddress}\" storageBaseAddress: \"{StorageBaseAddress}\"" +
+                                   " interval: {Interval} seconds",
+                                   source, 
+                                   registration ?? "(null)",
+                                   catalogBaseAddress ?? "(null)",
+                                   storageBaseAddress ?? "(null)",
+                                   interval);
 
             Loop(source, registration, directory, catalogBaseAddress, storageBaseAddress, verbose, interval, cancellationToken).Wait();
         }

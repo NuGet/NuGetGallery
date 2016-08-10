@@ -89,13 +89,7 @@ namespace Ng
             StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             StorageFactory compressedStorageFactory = CommandHelpers.CreateCompressedStorageFactory(arguments, verbose);
 
-            if (verbose)
-            {
-                Trace.Listeners.Add(new ConsoleTraceListener());
-                Trace.AutoFlush = true;
-            }
-
-            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2} seconds", source, storageFactory, interval);
+            _logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" interval: {Interval}", source, storageFactory, interval);
 
             RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
 
