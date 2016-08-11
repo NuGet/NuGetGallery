@@ -93,6 +93,12 @@ namespace NuGetGallery.Configuration
         public MailAddress GalleryOwner { get; set; }
 
         /// <summary>
+        /// Gets the gallery e-mail from name and email address
+        /// </summary>
+        [TypeConverter(typeof(MailAddressConverter))]
+        public MailAddress GalleryNoReplyAddress { get; set; }
+
+        /// <summary>
         /// Gets the storage mechanism used by this instance of the gallery
         /// </summary>
         [DefaultValue(StorageType.NotSpecified)]
