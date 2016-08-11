@@ -175,7 +175,7 @@ namespace Ng
 
         private void ProcessPackageDetails(IndexWriter indexWriter, JObject catalogItem)
         {
-            _logger.LogVerbose("ProcessPackageDetails");
+            _logger.LogDebug("ProcessPackageDetails");
 
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
 
@@ -186,7 +186,7 @@ namespace Ng
 
         private void ProcessPackageDelete(IndexWriter indexWriter, JObject catalogItem)
         {
-            _logger.LogVerbose("ProcessPackageDelete");
+            _logger.LogDebug("ProcessPackageDelete");
 
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
         }

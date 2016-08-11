@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Logging;
+using Serilog.Context;
 using Serilog.Events;
 
 namespace Ng
@@ -55,6 +56,10 @@ namespace Ng
                 {
                     throw new ArgumentException("Missing tool specification");
                 }
+
+                string jobName = args[0];
+
+                LogContext.PushProperty("JobName", jobName);
 
                 switch (args[0])
                 {
