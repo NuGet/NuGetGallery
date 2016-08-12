@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -595,18 +594,14 @@ namespace Ng
             var catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
 
-            if (verbose)
-            {
-                Trace.Listeners.Add(new ConsoleTraceListener());
-                Trace.AutoFlush = true;
-            }
+            _logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" interval: {Interval}", gallery, catalogStorageFactory, interval);
 
-            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2}", gallery, catalogStorageFactory, interval);
             DateTime? nullableStartDate = null;
             if (startDate != DateTime.MinValue)
             {
                 nullableStartDate = startDate;
             }
+
             Loop(gallery, catalogStorageFactory, auditingStorageFactory, verbose, interval, nullableStartDate, cancellationToken).Wait();
         }
         public static void PrintUsage()
@@ -662,12 +657,6 @@ namespace Ng
             var version = CommandHelpers.GetVersion(arguments);
             var storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
 
-            if (verbose)
-            {
-                Trace.Listeners.Add(new ConsoleTraceListener());
-                Trace.AutoFlush = true;
-            }
-
             ProcessPackages(gallery, storageFactory, id, version, verbose, cancellationToken).Wait();
         }
 
@@ -685,7 +674,7 @@ namespace Ng
 
                 var packages = await GetPackages(client, uri, "Created");
 
-                Trace.TraceInformation("downloading {0} packages", packages.Select(t => t.Value.Count).Sum());
+                _logger.LogInformation(string.Format("Downloading {0} packages", packages.Select(t => t.Value.Count).Sum()));
 
                 var storage = storageFactory.Create();
 

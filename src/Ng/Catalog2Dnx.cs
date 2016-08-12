@@ -5,7 +5,6 @@ using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -43,7 +42,6 @@ namespace Ng
                 while (run);
 
                 await Task.Delay(interval * 1000, cancellationToken);
-                //Thread.Sleep(interval * 1000);
             }
         }
 
@@ -76,13 +74,7 @@ namespace Ng
             string contentBaseAddress = CommandHelpers.GetContentBaseAddress(arguments);
             StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
 
-            if (verbose)
-            {
-                Trace.Listeners.Add(new ConsoleTraceListener());
-                Trace.AutoFlush = true;
-            }
-
-            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2} seconds", source, storageFactory, interval);
+            _logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" interval: {Interval} seconds", source, storageFactory, interval);
 
             Loop(source, storageFactory, contentBaseAddress, verbose, interval, cancellationToken).Wait();
         }

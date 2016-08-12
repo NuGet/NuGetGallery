@@ -10,12 +10,12 @@ using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Ng
 {
@@ -25,15 +25,17 @@ namespace Ng
 
         private readonly IndexWriter _indexWriter;
         private readonly bool _commitEachBatch;
-        
+        private readonly ILogger _logger;
+
         private LuceneCommitMetadata _metadataForNextCommit;
 
-        public SearchIndexFromCatalogCollector(Uri index, IndexWriter indexWriter, bool commitEachBatch, string baseAddress, Func<HttpMessageHandler> handlerFunc = null)
+        public SearchIndexFromCatalogCollector(ILogger logger, Uri index, IndexWriter indexWriter, bool commitEachBatch, string baseAddress, Func<HttpMessageHandler> handlerFunc = null)
             : base(index, handlerFunc)
         {
             _indexWriter = indexWriter;
             _commitEachBatch = commitEachBatch;
             _baseAddress = baseAddress;
+            _logger = logger;
         }
 
         protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
@@ -42,7 +44,7 @@ namespace Ng
             IEnumerable<JObject> catalogItems = await FetchCatalogItems(client, items, cancellationToken);
 
             var numDocs = _indexWriter.NumDocs();
-            Trace.TraceInformation("Index contains {0} documents.", _indexWriter.NumDocs());
+            _logger.LogInformation(string.Format("Index contains {0} documents.", _indexWriter.NumDocs()));
 
             ProcessCatalogIndex(_indexWriter, catalogIndex, _baseAddress);
             ProcessCatalogItems(_indexWriter, catalogItems, _baseAddress);
@@ -51,8 +53,8 @@ namespace Ng
 
             UpdateCommitMetadata(commitTimeStamp, docsDifference);
 
-            Trace.TraceInformation("Processed catalog items. Index now contains {0} documents. (total uncommitted {1}, batch {2})",
-                _indexWriter.NumDocs(), _metadataForNextCommit.Count, docsDifference);
+            _logger.LogInformation(string.Format("Processed catalog items. Index now contains {0} documents. (total uncommitted {1}, batch {2})",
+                _indexWriter.NumDocs(), _metadataForNextCommit.Count, docsDifference));
 
             if (_commitEachBatch || isLastBatch)
             {
@@ -80,14 +82,14 @@ namespace Ng
             if (_metadataForNextCommit == null)
             {
                 // this means no changes have been made to the index - no need to commit
-                Trace.TraceInformation("SKIP COMMIT No changes. Index contains {0} documents.", _indexWriter.NumDocs());
+                _logger.LogInformation(string.Format("SKIP COMMIT No changes. Index contains {0} documents.", _indexWriter.NumDocs()));
                 return;
             }
             
             _indexWriter.ExpungeDeletes();
             _indexWriter.Commit(_metadataForNextCommit.ToDictionary());
 
-            Trace.TraceInformation("COMMIT index contains {0} documents. Metadata: commitTimeStamp {1}; change count {2}; trace {3}",
+            _logger.LogInformation("COMMIT index contains {0} documents. Metadata: commitTimeStamp {CommitTimeStamp}; change count {ChangeCount}; trace {CommitTrace}",
                 _indexWriter.NumDocs(), _metadataForNextCommit.CommitTimeStamp.ToString("O"), _metadataForNextCommit.Count, _metadataForNextCommit.Trace);
 
             _metadataForNextCommit = null;
@@ -127,13 +129,13 @@ namespace Ng
             indexWriter.AddDocument(doc);
         }
 
-        private static void ProcessCatalogItems(IndexWriter indexWriter, IEnumerable<JObject> catalogItems, string baseAddress)
+        private void ProcessCatalogItems(IndexWriter indexWriter, IEnumerable<JObject> catalogItems, string baseAddress)
         {
             int count = 0;
 
             foreach (JObject catalogItem in catalogItems)
             {
-                Trace.TraceInformation("Process CatalogItem {0}", catalogItem["@id"]);
+                _logger.LogInformation("Process CatalogItem {CatalogItem}", catalogItem["@id"]);
 
                 NormalizeId(catalogItem);
 
@@ -147,13 +149,13 @@ namespace Ng
                 }
                 else
                 {
-                    Trace.TraceInformation("Unrecognized @type ignoring CatalogItem");
+                    _logger.LogInformation("Unrecognized @type ignoring CatalogItem");
                 }
 
                 count++;
             }
 
-            Trace.TraceInformation("Processed {0} CatalogItems", count);
+            _logger.LogInformation(string.Format("Processed {0} CatalogItems", count));
         }
 
         private static void NormalizeId(JObject catalogItem)
@@ -171,9 +173,9 @@ namespace Ng
             return catalogItem["@context"];
         }
 
-        private static void ProcessPackageDetails(IndexWriter indexWriter, JObject catalogItem)
+        private void ProcessPackageDetails(IndexWriter indexWriter, JObject catalogItem)
         {
-            Trace.TraceInformation("ProcessPackageDetails");
+            _logger.LogDebug("ProcessPackageDetails");
 
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
 
@@ -182,9 +184,9 @@ namespace Ng
             indexWriter.AddDocument(document);
         }
 
-        private static void ProcessPackageDelete(IndexWriter indexWriter, JObject catalogItem)
+        private void ProcessPackageDelete(IndexWriter indexWriter, JObject catalogItem)
         {
-            Trace.TraceInformation("ProcessPackageDelete");
+            _logger.LogDebug("ProcessPackageDelete");
 
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
         }

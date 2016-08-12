@@ -49,10 +49,14 @@ namespace NgTests
         public LogLevel MinimumLevel { get; set; }
     }
 
-    internal class TestLogger
-        : ILogger
+    internal class TestLogger : ILogger
     {
         public void Log(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
+        {
+            Console.WriteLine($"{logLevel}: {formatter(state, exception)}");
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             Console.WriteLine($"{logLevel}: {formatter(state, exception)}");
         }
@@ -62,13 +66,17 @@ namespace NgTests
             return true;
         }
 
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return BeginScopeImpl(state);
+        }
+
         public IDisposable BeginScopeImpl(object state)
         {
             return new TestLoggerScoper();
         }
 
-        private class TestLoggerScoper
-            : IDisposable
+        private class TestLoggerScoper : IDisposable
         {
             public void Dispose()
             {
