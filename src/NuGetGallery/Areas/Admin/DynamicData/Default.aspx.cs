@@ -8,6 +8,12 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 {
     public partial class _Default : Page
     {
+        protected override void OnInit(EventArgs e)
+        {
+            base.OnInit(e);
+            ViewStateUserKey = User.Identity.Name;
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             IList visibleTables = DynamicDataManager.DefaultModel.VisibleTables;

@@ -122,6 +122,29 @@ namespace NuGetGallery.Authentication
                     return null;
                 }
 
+                if (matched.Type == CredentialTypes.ApiKeyV1 
+                    && !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
+                {
+                    // API key credential was last used a long, long time ago - expire it
+                    await Auditing.SaveAuditRecord(
+                        new UserAuditRecord(matched.User, AuditedUserAction.ExpireCredential, matched));
+
+                    matched.Expires = DateTime.UtcNow;
+                    await Entities.SaveChangesAsync();
+
+                    _trace.Verbose(
+                        "Credential of type '" + matched.Type 
+                        + "' for user '" + matched.User.Username 
+                        + "' was last used on " + matched.LastUsed.Value.ToString("O", CultureInfo.InvariantCulture)
+                        + " and has now expired.");
+
+                    return null;
+                }
+
+                // update last used timestamp
+                matched.LastUsed = DateTime.UtcNow;
+                await Entities.SaveChangesAsync();
+
                 _trace.Verbose("Successfully authenticated '" + matched.User.Username + "' with '" + matched.Type + "' credential");
 
                 return new AuthenticatedUser(matched.User, matched);
@@ -373,6 +396,7 @@ namespace NuGetGallery.Authentication
                 Value = kind == CredentialKind.Token ? credential.Value : String.Empty,
                 Created = credential.Created,
                 Expires = credential.Expires,
+                LastUsed = credential.LastUsed,
                 Kind = kind,
                 AuthUI = auther?.GetUI()
             };

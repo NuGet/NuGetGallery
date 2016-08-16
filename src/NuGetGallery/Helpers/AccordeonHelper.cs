@@ -6,7 +6,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery.Helpers
 {
-    public class AccordeonHelper
+    public class AccordionHelper
     {
         private readonly bool _expanded;
 
@@ -26,7 +26,7 @@ namespace NuGetGallery.Helpers
             }
         }
 
-        public AccordeonHelper(string name, string formModelStatePrefix, bool expanded, WebViewPage page)
+        public AccordionHelper(string name, string formModelStatePrefix, bool expanded, WebViewPage page)
         {
             _expanded = expanded;
 
@@ -38,7 +38,7 @@ namespace NuGetGallery.Helpers
         public HtmlString ExpandButton(string closedTitle, string expandedTitle)
         {
             return new HtmlString(
-                "<a href=\"#\" class=\"accordeon-expand-button btn btn-inline s-expand\" data-target=\"#" +
+                "<a href=\"#\" class=\"accordion-expand-button btn btn-inline s-expand\" data-target=\"#" +
                 ContentDropDownId +
                 "\" data-toggletext=\"" +
                 (Expanded ? closedTitle : expandedTitle) +
@@ -50,7 +50,7 @@ namespace NuGetGallery.Helpers
         public HtmlString ExpandLink(string closedTitle, string expandedTitle)
         {
             return new HtmlString(
-                "<a href=\"#\" class=\"accordeon-expand-link s-expand\" data-target=\"#" +
+                "<a href=\"#\" class=\"accordion-expand-link s-expand\" data-target=\"#" +
                 ContentDropDownId +
                 "\" data-toggletext=\"" +
                 (Expanded ? closedTitle : expandedTitle) +

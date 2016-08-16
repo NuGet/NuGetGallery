@@ -13,6 +13,7 @@ namespace NuGetGallery.Auditing
         public string Identity { get; }
         public DateTime Created { get; }
         public DateTime? Expires { get; }
+        public DateTime? LastUsed { get; }
 
         public CredentialAuditRecord(Credential credential, bool removed)
         {
@@ -27,6 +28,7 @@ namespace NuGetGallery.Auditing
             }
             Created = credential.Created;
             Expires = credential.Expires;
+            LastUsed = credential.LastUsed;
         }
     }
 }

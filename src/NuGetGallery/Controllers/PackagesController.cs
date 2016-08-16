@@ -11,6 +11,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
@@ -84,6 +85,7 @@ namespace NuGetGallery
             _auditingService = auditingService;
         }
 
+        [HttpGet]
         [Authorize]
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public virtual ActionResult UploadPackageProgress()
@@ -348,8 +350,11 @@ namespace NuGetGallery
                 var isIndexed = HttpContext.Cache.Get(isIndexedCacheKey) as bool?;
                 if (!isIndexed.HasValue)
                 {
+                    var normalizedRegistrationId = package.PackageRegistration.Id
+                        .Normalize(NormalizationForm.FormC);
+
                     var searchFilter = SearchAdaptor.GetSearchFilter(
-                            "id:\"" + package.PackageRegistration.Id + "\" AND version:\"" + package.Version + "\"",
+                            "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
                             1, null, SearchFilter.ODataSearchContext);
 
                     searchFilter.IncludePrerelease = true;
@@ -461,6 +466,7 @@ namespace NuGetGallery
             ReportPackageReason.Other
         };
 
+        [HttpGet]
         public virtual ActionResult ReportAbuse(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -505,6 +511,7 @@ namespace NuGetGallery
             ReportPackageReason.Other
         };
 
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("contact support about your package")]
         public virtual ActionResult ReportMyPackage(string id, string version)
@@ -640,6 +647,7 @@ namespace NuGetGallery
             return Redirect(Url.Package(id, version));
         }
 
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id)
@@ -707,11 +715,13 @@ namespace NuGetGallery
         }
 
         // This is the page that explains why there's no download link.
+        [HttpGet]
         public virtual ActionResult Download()
         {
             return View();
         }
 
+        [HttpGet]
         [Authorize]
         public virtual ActionResult ManagePackageOwners(string id)
         {
@@ -729,7 +739,8 @@ namespace NuGetGallery
 
             return View(model);
         }
-
+        
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("delete a package")]
         public virtual ActionResult Delete(string id, string version)
@@ -847,6 +858,7 @@ namespace NuGetGallery
             return await Edit(id, version, listed, Url.Package);
         }
 
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("edit a package")]
         public virtual ActionResult Edit(string id, string version)

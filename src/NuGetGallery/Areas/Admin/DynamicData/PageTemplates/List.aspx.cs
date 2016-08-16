@@ -36,6 +36,7 @@ namespace NuGetGallery
                 SearchPanel.Visible = false;
                 GridQueryExtender.Expressions.Remove(searchExpression);
             }
+            ViewStateUserKey = User.Identity.Name;
         }
 
         protected void Page_Load(object sender, EventArgs e)

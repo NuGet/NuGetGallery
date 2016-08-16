@@ -48,7 +48,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <UseVSHostingProcess>true</UseVSHostingProcess>
-    <CodeAnalysisRuleSet>..\Frontend.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\FrontendSDL.ruleset</CodeAnalysisRuleSet>
     <CodeContractsEnableRuntimeChecking>False</CodeContractsEnableRuntimeChecking>
     <CodeContractsRuntimeOnlyPublicSurface>False</CodeContractsRuntimeOnlyPublicSurface>
     <CodeContractsRuntimeThrowOnFailure>True</CodeContractsRuntimeThrowOnFailure>
@@ -746,6 +746,7 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.Designer.cs">
       <DependentUpon>201602181939424_RemovePackageStatistics.cs</DependentUpon>
@@ -785,6 +786,14 @@
     <Compile Include="Migrations\201606020741056_CredentialExpires.cs" />
     <Compile Include="Migrations\201606020741056_CredentialExpires.Designer.cs">
       <DependentUpon>201606020741056_CredentialExpires.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201607190813558_CredentialDoesNotExpire.cs" />
+    <Compile Include="Migrations\201607190813558_CredentialDoesNotExpire.Designer.cs">
+      <DependentUpon>201607190813558_CredentialDoesNotExpire.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201607190842411_CredentialLastUsed.cs" />
+    <Compile Include="Migrations\201607190842411_CredentialLastUsed.Designer.cs">
+      <DependentUpon>201607190842411_CredentialLastUsed.cs</DependentUpon>
     </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
@@ -1889,6 +1898,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201606020741056_CredentialExpires.resx">
       <DependentUpon>201606020741056_CredentialExpires.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201607190813558_CredentialDoesNotExpire.resx">
+      <DependentUpon>201607190813558_CredentialDoesNotExpire.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201607190842411_CredentialLastUsed.resx">
+      <DependentUpon>201607190842411_CredentialLastUsed.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

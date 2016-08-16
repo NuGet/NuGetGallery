@@ -195,7 +195,7 @@ The {0} Team";
             {
                 mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your account.", Config.GalleryOwner.DisplayName);
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(toAddress);
                 SendMessage(mailMessage);
@@ -225,7 +225,7 @@ The {0} Team";
                 mailMessage.Subject = String.Format(
                     CultureInfo.CurrentCulture, "[{0}] Please verify your new email address.", Config.GalleryOwner.DisplayName);
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(newEmailAddress);
                 SendMessage(mailMessage);
@@ -255,7 +255,7 @@ The {0} Team";
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
                 SendMessage(mailMessage);
@@ -276,7 +276,7 @@ The {0} Team";
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(user.ToMailAddress());
                 SendMessage(mailMessage);
@@ -309,7 +309,7 @@ The {3} Team";
             {
                 mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
@@ -338,7 +338,7 @@ The {3} Team";
             {
                 mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
@@ -491,7 +491,7 @@ The {3} Team";
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
 
