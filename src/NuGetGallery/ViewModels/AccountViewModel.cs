@@ -56,7 +56,7 @@ namespace NuGetGallery
         public string NewPassword { get; set; }
 
         [DefaultValue(true)]
-        [Display(Name = "Also reset my current API key")]
+        [Display(Name = "Reset my API key")]
         public bool ResetApiKey { get; set; }
     }
     
