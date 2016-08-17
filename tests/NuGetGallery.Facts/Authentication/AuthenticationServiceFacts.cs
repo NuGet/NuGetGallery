@@ -192,7 +192,7 @@ namespace NuGetGallery.Authentication
                     string.IsNullOrEmpty(ar.UsernameOrEmail)));
             }
 
-            //[Fact]
+            [Fact]
             public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential()
             {
                 // Arrange

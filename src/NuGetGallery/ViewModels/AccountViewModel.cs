@@ -19,6 +19,7 @@ namespace NuGetGallery
                 ResetApiKey = true
             };
         }
+
         public IEnumerable<string> CuratedFeeds { get; set; }
         public IList<CredentialViewModel> Credentials { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
