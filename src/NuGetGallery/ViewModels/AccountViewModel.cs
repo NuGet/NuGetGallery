@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 using NuGetGallery.Authentication.Providers;
@@ -11,6 +12,13 @@ namespace NuGetGallery
 {
     public class AccountViewModel
     {
+        public AccountViewModel()
+        {
+            ChangePassword = new ChangePasswordViewModel
+            {
+                ResetApiKey = true
+            };
+        }
         public IEnumerable<string> CuratedFeeds { get; set; }
         public IList<CredentialViewModel> Credentials { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
@@ -46,6 +54,10 @@ namespace NuGetGallery
         [Display(Name = "New Password")]
         [AllowHtml]
         public string NewPassword { get; set; }
+
+        [DefaultValue(true)]
+        [Display(Name = "Also reset my current API key")]
+        public bool ResetApiKey { get; set; }
     }
     
     public class CredentialViewModel

@@ -679,7 +679,7 @@ namespace NuGetGallery
                 user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("old"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(u => u.ChangePassword(user, "old", "new"))
+                    .Setup(u => u.ChangePassword(user, "old", "new", false))
                     .CompletesWith(false);
 
                 var controller = GetController<UsersController>();
@@ -717,7 +717,7 @@ namespace NuGetGallery
                 user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("old"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(u => u.ChangePassword(user, "old", "new"))
+                    .Setup(u => u.ChangePassword(user, "old", "new", false))
                     .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);

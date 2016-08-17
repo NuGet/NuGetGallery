@@ -321,7 +321,7 @@ namespace NuGetGallery.Authentication
             await Entities.SaveChangesAsync();
         }
 
-        public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword)
+        public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword, bool resetApiKey)
         {
             var hasPassword = user.Credentials.Any(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
@@ -336,9 +336,14 @@ namespace NuGetGallery.Authentication
             var passwordCredential = CredentialBuilder.CreatePbkdf2Password(newPassword);
             await ReplaceCredentialInternal(user, passwordCredential);
 
-            // Expire existing API keys
-            var apiKeyCredential = CredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1));
-            await ReplaceCredentialInternal(user, apiKeyCredential);
+            // Reset existing API keys
+            if (resetApiKey)
+            {
+                var apiKeyCredential = CredentialBuilder.CreateV1ApiKey(
+                    Guid.NewGuid(), TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1));
+
+                await ReplaceCredentialInternal(user, apiKeyCredential);
+            }
 
             // Save changes
             await Entities.SaveChangesAsync();

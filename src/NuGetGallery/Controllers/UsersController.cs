@@ -417,7 +417,7 @@ namespace NuGetGallery
                     return AccountView(model);
                 }
 
-                if (!(await AuthService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword)))
+                if (!(await AuthService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword, model.ChangePassword.ResetApiKey)))
                 {
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
                     return AccountView(model);
