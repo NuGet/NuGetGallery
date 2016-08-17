@@ -948,14 +948,16 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act
-                bool result = await authService.ChangePassword(user, "not-the-right-password!", "new-password!");
+                bool result = await authService.ChangePassword(user, "not-the-right-password!", "new-password!", resetApiKey: false);
 
                 // Assert
                 Assert.False(result);
             }
 
-            [Fact]
-            public async Task GivenValidOldPassword_ItReturnsTrueAndReplacesPasswordCredentialAndApiKeyV1Credential()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task GivenValidOldPassword_ItReturnsTrueAndReplacesPasswordCredentialAndApiKeyV1CredentialWhenNeeded(bool resetApiKey)
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -965,15 +967,24 @@ namespace NuGetGallery.Authentication
                     String.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
 
                 // Act
-                bool result = await authService.ChangePassword(user, Fakes.Password, "new-password!");
+                bool result = await authService.ChangePassword(user, Fakes.Password, "new-password!", resetApiKey: resetApiKey);
 
                 // Assert
                 Assert.True(result);
 
                 Credential _;
                 Assert.True(AuthenticationService.ValidatePasswordCredential(user.Credentials, "new-password!", out _));
-                Assert.NotEqual(oldApiKeyV1Credential, user.Credentials.FirstOrDefault(c =>
-                    String.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)));
+
+                if (resetApiKey)
+                {
+                    Assert.NotEqual(oldApiKeyV1Credential, user.Credentials.FirstOrDefault(c =>
+                        String.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)));
+                }
+                else
+                {
+                    Assert.Equal(oldApiKeyV1Credential, user.Credentials.FirstOrDefault(c =>
+                        String.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)));
+                }
             }
 
             [Fact]
@@ -985,7 +996,7 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act
-                await authService.ChangePassword(user, Fakes.Password, "new-password!");
+                await authService.ChangePassword(user, Fakes.Password, "new-password!", resetApiKey: false);
 
                 // Assert
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
