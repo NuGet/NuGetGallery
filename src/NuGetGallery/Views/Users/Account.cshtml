@@ -406,14 +406,12 @@
                         @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
                     </div>
 
+                    <div class="form-field">
+                        @Html.CheckBoxFor(m => m.ChangePassword.ResetApiKey)
+                        @Html.LabelFor(m => m.ChangePassword.ResetApiKey, new { @class = "checkbox" })
+                    </div>
+
                     <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required."/>
-                    
-                    @if (apiKey != null)
-                    {
-                        <p class="warning">
-                            <strong>Note:</strong> Changing your password will immediately expire your existing API key as well.
-                        </p>
-                    }
 
                     <input type="submit" value="Change" title="Change password" />
                 </fieldset>
