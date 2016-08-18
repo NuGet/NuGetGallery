@@ -36,7 +36,7 @@ namespace NuGetGallery
                 .As<IDiagnosticsService>()
                 .SingleInstance();
 
-            // var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
+            var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
 
             builder.RegisterInstance(new ConfigurationService(new SecretReaderFactory(diagnosticsService)))
                 .AsSelf()
