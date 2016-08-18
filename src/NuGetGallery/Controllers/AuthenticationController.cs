@@ -234,9 +234,22 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
+        [ActionName("Authenticate")]
+        [HttpGet]
+        public virtual ActionResult AuthenticateGet(string returnUrl, string provider)
+        {
+            return ChallengeAuthentication(returnUrl, provider);
+        }
+
+        [ActionName("Authenticate")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Authenticate(string returnUrl, string provider)
+        public virtual ActionResult AuthenticatePost(string returnUrl, string provider)
+        {
+            return ChallengeAuthentication(returnUrl, provider);
+        }
+
+        private ActionResult ChallengeAuthentication(string returnUrl, string provider)
         {
             return AuthService.Challenge(
                 provider,
