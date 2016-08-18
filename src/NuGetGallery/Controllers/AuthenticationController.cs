@@ -249,7 +249,8 @@ namespace NuGetGallery
             return ChallengeAuthentication(returnUrl, provider);
         }
 
-        private ActionResult ChallengeAuthentication(string returnUrl, string provider)
+        [NonAction]
+        public ActionResult ChallengeAuthentication(string returnUrl, string provider)
         {
             return AuthService.Challenge(
                 provider,

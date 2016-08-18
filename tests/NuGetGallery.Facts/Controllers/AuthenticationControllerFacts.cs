@@ -709,7 +709,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
 
                 // Act
-                var result = controller.Authenticate("/theReturnUrl", "MicrosoftAccount");
+                var result = controller.ChallengeAuthentication("/theReturnUrl", "MicrosoftAccount");
 
                 // Assert
                 ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=%2FtheReturnUrl");
