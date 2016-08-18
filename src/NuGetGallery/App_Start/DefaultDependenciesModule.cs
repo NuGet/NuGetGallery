@@ -36,24 +36,12 @@ namespace NuGetGallery
                 .As<IDiagnosticsService>()
                 .SingleInstance();
 
-            var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
+            // var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
 
-            builder.RegisterInstance(configuration)
+            builder.RegisterInstance(new ConfigurationService(new SecretReaderFactory(diagnosticsService)))
                 .AsSelf()
-                .As<PoliteCaptcha.IConfigurationSource>();
-
-            builder.RegisterInstance(configuration)
-                .AsSelf()
+                .As<PoliteCaptcha.IConfigurationSource>()
                 .As<IGalleryConfigurationService>();
-
-            builder.Register(c => configuration.Current)
-                .AsSelf()
-                .As<IAppConfiguration>();
-
-            // Force the read of this configuration, so it will be initialized on startup
-            builder.Register(c => configuration.Features)
-               .AsSelf()
-               .As<FeatureConfiguration>();
 
             builder.RegisterInstance(LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .As<Lucene.Net.Store.Directory>()
@@ -293,7 +281,7 @@ namespace NuGetGallery
             ConfigureAutocomplete(builder, configuration);
         }
 
-        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureSearch(ContainerBuilder builder)//, IGalleryConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri == null)
             {
@@ -315,7 +303,7 @@ namespace NuGetGallery
                     .InstancePerLifetimeScope();
             }
         }
-        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureAutocomplete(ContainerBuilder builder)//, IGalleryConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
@@ -344,7 +332,7 @@ namespace NuGetGallery
             }
         }
 
-        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureForLocalFileSystem(ContainerBuilder builder)//, IGalleryConfigurationService configuration)
         {
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
@@ -378,9 +366,9 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder)//, IGalleryConfigurationService configuration)
         {
-            builder.RegisterInstance(new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.RegisterType<CloudBlobClientWrapper>()
                 .AsSelf()
                 .As<ICloudBlobClient>()
                 .SingleInstance();
@@ -391,24 +379,22 @@ namespace NuGetGallery
                 .SingleInstance();
 
             // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
-            builder.RegisterInstance(new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.RegisterType<JsonAggregateStatsService>()
                 .AsSelf()
                 .As<IAggregateStatsService>()
                 .SingleInstance();
 
             // when running on Windows Azure, pull the statistics from the warehouse via storage
-            builder.RegisterInstance(new CloudReportService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.RegisterType<CloudReportService>()
                 .AsSelf()
                 .As<IReportService>()
                 .SingleInstance();
 
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
-            var downloadCountService = new CloudDownloadCountService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant);
-            builder.RegisterInstance(downloadCountService)
+            builder.RegisterType<CloudDownloadCountService>()
                 .AsSelf()
                 .As<IDownloadCountService>()
                 .SingleInstance();
-            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService));
 
             builder.RegisterType<JsonStatisticsService>()
                 .AsSelf()
@@ -427,7 +413,7 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIP().Result;
 
-            builder.RegisterInstance(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, CloudAuditingService.GetAspNetOnBehalfOf))
+            builder.RegisterType<CloudAuditingService>(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, CloudAuditingService.GetAspNetOnBehalfOf))
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();

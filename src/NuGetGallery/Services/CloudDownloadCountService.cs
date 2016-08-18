@@ -11,6 +11,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -20,8 +21,7 @@ namespace NuGetGallery
         private const string DownloadCountBlobName = "downloads.v1.json";
         private const string TelemetryOriginForRefreshMethod = "CloudDownloadCountService.Refresh";
 
-        private readonly string _connectionString;
-        private readonly bool _readAccessGeoRedundant;
+        private IGalleryConfigurationService _configService;
 
         private readonly object _refreshLock = new object();
         private bool _isRefreshing;
@@ -30,10 +30,10 @@ namespace NuGetGallery
         
         public DateTime LastRefresh { get; protected set; }
 
-        public CloudDownloadCountService(string connectionString, bool readAccessGeoRedundant)
+        public CloudDownloadCountService(IGalleryConfigurationService configService)
         {
-            _connectionString = connectionString;
-            _readAccessGeoRedundant = readAccessGeoRedundant;
+            _configService = configService;
+            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(this));
         }
         
         public bool TryGetDownloadCountForPackageRegistration(string id, out int downloadCount)
@@ -211,10 +211,10 @@ namespace NuGetGallery
 
         private CloudBlockBlob GetBlobReference()
         {
-            var storageAccount = CloudStorageAccount.Parse(_connectionString);
+            var storageAccount = CloudStorageAccount.Parse(_configService.Current.AzureStorageConnectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
 
-            if (_readAccessGeoRedundant)
+            if (_configService.Current.AzureStorageReadAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }
