@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
+using System.Web.Security;
+using System.Web.UI.WebControls;
 using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery
@@ -78,11 +80,8 @@ namespace NuGetGallery
         internal const string UsernameValidationRegex =
             @"[A-Za-z0-9][A-Za-z0-9_\.-]+[A-Za-z0-9]";
 
-        /// <summary>
-        /// Regex that matches INVALID username characters, to make it easy to strip those characters out.
-        /// </summary>
-        internal static readonly Regex UsernameNormalizationRegex =
-            new Regex(@"[^A-Za-z0-9_\.-]");
+        internal const string PasswordValidationRegex =
+            @"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{1,64}$";
 
         internal const string UsernameValidationErrorMessage =
             "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
@@ -106,7 +105,9 @@ namespace NuGetGallery
 
         [Required]
         [DataType(DataType.Password)]
-        [StringLength(64, MinimumLength = 7)]
+        [RegularExpression(PasswordValidationRegex,
+            ErrorMessageResourceType = typeof(Strings),
+            ErrorMessageResourceName = "PasswordValidationFailure")]
         [Hint("Passwords must be at least 7 characters long.")]
         [AllowHtml]
         public string Password { get; set; }

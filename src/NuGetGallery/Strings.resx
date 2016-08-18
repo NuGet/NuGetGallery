@@ -316,7 +316,7 @@ The {2} Team</value>
   </data>
   <data name="NuGetPackageReleaseVersionContainsOnlyNumerics" xml:space="preserve">
     <value>Package {0} invalid: the release label can not only contain numerics.</value>
-  </data>  
+  </data>
   <data name="CopyExternalPackages_PackageFileBlobAlreadyExists" xml:space="preserve">
     <value>SKIPPED! Package file blob {0} already exists</value>
   </data>
@@ -394,5 +394,8 @@ The {2} Team</value>
   </data>
   <data name="PackageCreatedFromApi" xml:space="preserve">
     <value>Package created from API.</value>
+  </data>
+  <data name="PasswordValidationFailure" xml:space="preserve">
+    <value>Use atleast 8 characters and include one uppercase letter, one lowercase letter and a digit. </value>
   </data>
 </root>
