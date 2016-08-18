@@ -5,18 +5,19 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class CloudReportService : IReportService
     {
         private const string _statsContainerName = "nuget-cdnstats";
-        private IGalleryConfigurationService _configService;
+        private readonly string _connectionString;
+        private readonly bool _readAccessGeoRedundant;
 
-        public CloudReportService(IGalleryConfigurationService configService)
+        public CloudReportService(string connectionString, bool readAccessGeoRedundant)
         {
-            _configService = configService;
+            _connectionString = connectionString;
+            _readAccessGeoRedundant = readAccessGeoRedundant;
         }
 
         public async Task<StatisticsReport> Load(string reportName)
@@ -24,10 +25,12 @@ namespace NuGetGallery
             // In NuGet we always use lowercase names for all blobs in Azure Storage
             reportName = reportName.ToLowerInvariant();
 
-            var storageAccount = CloudStorageAccount.Parse(_configService.Current.AzureStorageConnectionString);
+            string connectionString = _connectionString;
+
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
 
-            if (_configService.Current.AzureStorageReadAccessGeoRedundant)
+            if (_readAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }

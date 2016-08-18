@@ -6,25 +6,26 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class JsonAggregateStatsService : IAggregateStatsService
     {
-        private IGalleryConfigurationService _configService;
+        private readonly string _connectionString;
+        private readonly bool _readAccessGeoRedundant;
 
-        public JsonAggregateStatsService(IGalleryConfigurationService configService)
+        public JsonAggregateStatsService(string connectionString, bool readAccessGeoRedundant)
         {
-            _configService = configService;
+            _connectionString = connectionString;
+            _readAccessGeoRedundant = readAccessGeoRedundant;
         }
 
         public async Task<AggregateStats> GetAggregateStats()
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_configService.Current.AzureStorageConnectionString);
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
-            if (_configService.Current.AzureStorageReadAccessGeoRedundant)
+            if (_readAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }
