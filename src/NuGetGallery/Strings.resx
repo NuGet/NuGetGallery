@@ -395,7 +395,4 @@ The {2} Team</value>
   <data name="PackageCreatedFromApi" xml:space="preserve">
     <value>Package created from API.</value>
   </data>
-  <data name="PasswordValidationFailure" xml:space="preserve">
-    <value>Use atleast 8 characters and include one uppercase letter, one lowercase letter and a digit. </value>
-  </data>
 </root>

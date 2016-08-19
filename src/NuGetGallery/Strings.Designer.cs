@@ -690,15 +690,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use atleast 8 characters and include one uppercase letter, one lowercase letter and a digit. .
-        /// </summary>
-        public static string PasswordValidationFailure {
-            get {
-                return ResourceManager.GetString("PasswordValidationFailure", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via SSL..
         /// </summary>
         public static string SSLRequired {

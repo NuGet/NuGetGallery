@@ -3,10 +3,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
 using System.Web.Mvc;
-using System.Web.Security;
-using System.Web.UI.WebControls;
 using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery
@@ -76,39 +73,41 @@ namespace NuGetGallery
         internal const string EmailValidationRegex = "^" + FirstPart + "@" + SecondPart + "$";
 
         internal const string EmailValidationErrorMessage = "This doesn't appear to be a valid email address.";
+        public const string EmailHint = "Your email will not be public unless you choose to disclose it. " +
+                                          "It is required to verify your registration and for password retrieval, important notifications, etc. ";
 
         internal const string UsernameValidationRegex =
             @"[A-Za-z0-9][A-Za-z0-9_\.-]+[A-Za-z0-9]";
-
-        internal const string PasswordValidationRegex =
-            @"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{1,64}$";
-
+        
         internal const string UsernameValidationErrorMessage =
             "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
+
+        public const string UserNameHint = "Choose something unique so others will know which contributions are yours.";
+
+        /// <summary>
+        /// The password should be between 8 and 64 characters, and contain at least one uppercase letter,
+        ///  one lowercase letter and a digit.
+        /// </summary>
+        internal const string PasswordValidationRegex =
+            @"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,64}$";
+
+        public const string PasswordHint = "Use at least 8 characters and include one uppercase letter, one lowercase letter and a digit.";
 
         [Required]
         [StringLength(255)]
         [Display(Name = "Email")]
-        //[DataType(DataType.EmailAddress)] - does not work with client side validation
         [RegularExpression(EmailValidationRegex, ErrorMessage = EmailValidationErrorMessage)]
-        [Hint(
-            "Your email will not be public unless you choose to disclose it. " +
-            "It is required to verify your registration and for password retrieval, important notifications, etc. ")]
         [Subtext("We use <a href=\"http://www.gravatar.com\" target=\"_blank\">Gravatar</a> to get your profile picture", AllowHtml = true)]
         public string EmailAddress { get; set; }
 
         [Required]
         [StringLength(64)]
         [RegularExpression(UsernameValidationRegex, ErrorMessage = UsernameValidationErrorMessage)]
-        [Hint("Choose something unique so others will know which contributions are yours.")]
         public string Username { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
-        [RegularExpression(PasswordValidationRegex,
-            ErrorMessageResourceType = typeof(Strings),
-            ErrorMessageResourceName = "PasswordValidationFailure")]
-        [Hint("Passwords must be at least 7 characters long.")]
+        [RegularExpression(PasswordValidationRegex, ErrorMessage = PasswordHint)]
         [AllowHtml]
         public string Password { get; set; }
     }

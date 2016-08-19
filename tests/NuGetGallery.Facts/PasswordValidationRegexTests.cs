@@ -7,7 +7,7 @@ using Xunit;
 namespace NuGetGallery
 {
     /// <summary>
-    /// The regex checks that the password is atleast 8 characters, one uppercase letter, one lowercase letter, and a digit.
+    /// The regex checks that the password is at least 8 characters, one uppercase letter, one lowercase letter, and a digit.
     /// </summary>
     public class PasswordValidationRegexTests
     {
@@ -22,9 +22,10 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [InlineData("aa")]
-        [InlineData("aaAAaaAAaaAA")]
-        [InlineData("12345678")]
+        [InlineData("aaAAaaAAaaAA")] // No digit
+        [InlineData("12345678a")] // No upperscase letter
+        [InlineData("12345678A")] // No lowercase letter
+        [InlineData("1aA")] // Too short
         public void DoesNotAccept(string password)
         {
             var match = new Regex(RegisterViewModel.PasswordValidationRegex).IsMatch(password);

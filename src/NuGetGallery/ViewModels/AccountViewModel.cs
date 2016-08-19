@@ -53,6 +53,7 @@ namespace NuGetGallery
 
         [Required]
         [Display(Name = "New Password")]
+        [RegularExpression(RegisterViewModel.PasswordValidationRegex, ErrorMessage = RegisterViewModel.PasswordHint)]
         [AllowHtml]
         public string NewPassword { get; set; }
 
