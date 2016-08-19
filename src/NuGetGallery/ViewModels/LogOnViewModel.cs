@@ -91,7 +91,7 @@ namespace NuGetGallery
         internal const string PasswordValidationRegex =
             @"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,64}$";
 
-        public const string PasswordHint = "Use at least 8 characters and include one uppercase letter, one lowercase letter and a digit.";
+        public const string PasswordHint = "Your password must be at least 8 characters, should include at least one uppercase letter, one lowercase letter and a digit.";
 
         [Required]
         [StringLength(255)]
