@@ -9,8 +9,7 @@ namespace NuGetGallery
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New password")]
-        [StringLength(64, MinimumLength = 7)]
-        [Hint("Passwords must be at least 7 characters long.")]
+        [RegularExpression(RegisterViewModel.PasswordValidationRegex, ErrorMessage = RegisterViewModel.PasswordHint)]
         public string NewPassword { get; set; }
 
         [Required]
