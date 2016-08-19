@@ -65,5 +65,4 @@ $(document).ready(function () {
     if (elem != null && elem.length > 0) {
         getStats();
     }
-
 });

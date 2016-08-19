@@ -27,19 +27,25 @@ else
     @Scripts.Render("~/Scripts/statsdimensions.js")
     @Scripts.Render("~/Scripts/perpackagestatsgraphs.js")
     <script>
-        $(document).ready(function() {
-            groupbyNavigation();
-            packageDisplayGraphs();
+        $(document)
+            .ready(function() {
+                groupbyNavigation();
+                packageDisplayGraphs();
 
-        @if (Model.IsReportAvailable)
-        {
-            <text>
-            if ($('.dimension-checkbox:checked').length == 0 && location.search.indexOf('groupby') >= 0)
-            {
-                location.reload();
-            }
-            </text>
-        }
-        });
+                @if (Model.IsReportAvailable)
+                {
+                    <text>
+                        if ($('.dimension-checkbox:checked').length == 0) {
+                            var search = location.search.toLowerCase();
+                            if (search.indexOf('groupby=version') >= 0 ||
+                                search.indexOf('groupby=clientname') >= 0 ||
+                                search.indexOf('groupby=clientversion') >= 0 ||
+                                search.indexOf('groupby=operation') >= 0) {
+                                location.reload();
+                            }
+                        }
+                    </text>
+                }
+            });
     </script>
 }
