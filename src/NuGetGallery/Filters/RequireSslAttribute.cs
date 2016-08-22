@@ -13,7 +13,7 @@ namespace NuGetGallery.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public sealed class RequireSslAttribute : FilterAttribute, IAuthorizationFilter
     {
-        public IAppConfiguration Configuration { get; set; }
+        public IGalleryConfigurationService ConfigService { get; set; }
 
         public void OnAuthorization(AuthorizationContext filterContext)
         {
@@ -23,7 +23,7 @@ namespace NuGetGallery.Filters
             }
 
             var request = filterContext.HttpContext.Request;
-            if (Configuration.RequireSSL && !request.IsSecureConnection)
+            if (ConfigService.Current.RequireSSL && !request.IsSecureConnection)
             {
                 HandleNonHttpsRequest(filterContext);
             }
@@ -41,9 +41,9 @@ namespace NuGetGallery.Filters
             {
                 // redirect to HTTPS version of page
                 string portString = String.Empty;
-                if (Configuration.SSLPort != 443)
+                if (ConfigService.Current.SSLPort != 443)
                 {
-                    portString = String.Format(CultureInfo.InvariantCulture, ":{0}", Configuration.SSLPort);
+                    portString = String.Format(CultureInfo.InvariantCulture, ":{0}", ConfigService.Current.SSLPort);
                 }
 
                 string url = "https://" + filterContext.HttpContext.Request.Url.Host + portString + filterContext.HttpContext.Request.RawUrl;

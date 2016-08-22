@@ -21,14 +21,14 @@ namespace NuGetGallery.Authentication
     {
         private readonly Dictionary<string, Func<string, string>> _credentialFormatters;
         private readonly IDiagnosticsSource _trace;
-        private readonly IAppConfiguration _config;
+        private readonly IGalleryConfigurationService _configService;
 
         protected AuthenticationService()
             : this(null, null, null, AuditingService.None, Enumerable.Empty<Authenticator>())
         {
         }
 
-        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, AuditingService auditing, IEnumerable<Authenticator> providers)
+        public AuthenticationService(IEntitiesContext entities, IGalleryConfigurationService configService, IDiagnosticsService diagnostics, AuditingService auditing, IEnumerable<Authenticator> providers)
         {
             _credentialFormatters = new Dictionary<string, Func<string, string>>(StringComparer.OrdinalIgnoreCase) {
                 { "password", _ => Strings.CredentialType_Password },
@@ -37,7 +37,7 @@ namespace NuGetGallery.Authentication
             };
 
             Entities = entities;
-            _config = config;
+            _configService = configService;
             Auditing = auditing;
             _trace = diagnostics.SafeGetSource("AuthenticationService");
             Authenticators = providers.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
@@ -123,7 +123,7 @@ namespace NuGetGallery.Authentication
                 }
 
                 if (matched.Type == CredentialTypes.ApiKeyV1 
-                    && !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
+                    && !matched.HasBeenUsedInLastDays(_configService.Current.ExpirationInDaysForApiKeyV1))
                 {
                     // API key credential was last used a long, long time ago - expire it
                     await Auditing.SaveAuditRecord(
@@ -167,7 +167,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
         {
-            if (_config.FeedOnlyMode)
+            if (_configService.Current.FeedOnlyMode)
             {
                 throw new FeedOnlyModeException(FeedOnlyModeException.FeedOnlyModeError);
             }
@@ -197,10 +197,10 @@ namespace NuGetGallery.Authentication
             };
 
             // Add a credential for the password and the API Key
-            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey, TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1)));
+            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey, TimeSpan.FromDays(_configService.Current.ExpirationInDaysForApiKeyV1)));
             newUser.Credentials.Add(credential);
 
-            if (!_config.ConfirmEmailAddresses)
+            if (!_configService.Current.ConfirmEmailAddresses)
             {
                 newUser.ConfirmEmailAddress();
             }
@@ -340,7 +340,7 @@ namespace NuGetGallery.Authentication
             if (resetApiKey)
             {
                 var apiKeyCredential = CredentialBuilder.CreateV1ApiKey(
-                    Guid.NewGuid(), TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1));
+                    Guid.NewGuid(), TimeSpan.FromDays(_configService.Current.ExpirationInDaysForApiKeyV1));
 
                 await ReplaceCredentialInternal(user, apiKeyCredential);
             }

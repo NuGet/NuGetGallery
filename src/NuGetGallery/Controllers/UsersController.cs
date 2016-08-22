@@ -18,7 +18,6 @@ namespace NuGetGallery
         public IUserService UserService { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
-        public IAppConfiguration Config { get; protected set; }
         public AuthenticationService AuthService { get; protected set; }
 
         public UsersController(
@@ -26,14 +25,12 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IAppConfiguration config,
             AuthenticationService authService)
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
-            Config = config;
             AuthService = authService;
         }
 

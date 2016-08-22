@@ -22,6 +22,7 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration.SecretReader;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -51,15 +52,17 @@ namespace NuGetGallery
 
             if (!string.IsNullOrEmpty(configuration.Current.AzureStorageConnectionString))
             {
-                builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorageConnectionString))
+                var tableErrorLogFactory = new ConfigObjectDelegate<TableErrorLog>(() => new TableErrorLog(configuration.Current.AzureStorageConnectionString), () => configuration.Current.AzureStorageConnectionString);
+                builder.Register(c => tableErrorLogFactory.Get())
                     .As<ErrorLog>()
-                    .SingleInstance();
+                    .InstancePerLifetimeScope();
             }
             else
             {
-                builder.RegisterInstance(new SqlErrorLog(configuration.Current.SqlConnectionString))
+                var sqlErrorLogFactory = new ConfigObjectDelegate<SqlErrorLog>(() => new SqlErrorLog(configuration.Current.SqlConnectionString), () => configuration.Current.SqlConnectionString);
+                builder.Register(c => sqlErrorLogFactory.Get())
                     .As<ErrorLog>()
-                    .SingleInstance();
+                    .InstancePerLifetimeScope();
             }
 
             builder.RegisterType<HttpContextCacheService>()
@@ -242,7 +245,7 @@ namespace NuGetGallery
                     ConfigureForLocalFileSystem(builder, configuration);
                     break;
                 case StorageType.AzureStorage:
-                    ConfigureForAzureStorage(builder, configuration);
+                    ConfigureForAzureStorage(builder);
                     break;
             }
 
@@ -281,7 +284,7 @@ namespace NuGetGallery
             ConfigureAutocomplete(builder, configuration);
         }
 
-        private static void ConfigureSearch(ContainerBuilder builder)//, IGalleryConfigurationService configuration)
+        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri == null)
             {
@@ -303,7 +306,7 @@ namespace NuGetGallery
                     .InstancePerLifetimeScope();
             }
         }
-        private static void ConfigureAutocomplete(ContainerBuilder builder)//, IGalleryConfigurationService configuration)
+        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
@@ -332,7 +335,7 @@ namespace NuGetGallery
             }
         }
 
-        private static void ConfigureForLocalFileSystem(ContainerBuilder builder)//, IGalleryConfigurationService configuration)
+        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
@@ -366,7 +369,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder)//, IGalleryConfigurationService configuration)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder)
         {
             builder.RegisterType<CloudBlobClientWrapper>()
                 .AsSelf()
@@ -413,7 +416,7 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIP().Result;
 
-            builder.RegisterType<CloudAuditingService>(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, CloudAuditingService.GetAspNetOnBehalfOf))
+            builder.RegisterType<CloudAuditingServiceWrapper>()
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();

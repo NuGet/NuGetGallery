@@ -19,13 +19,13 @@ namespace NuGetGallery
     public class CloudBlobFileStorageService : IFileStorageService
     {
         private readonly ICloudBlobClient _client;
-        private readonly IAppConfiguration _configuration;
+        private readonly IGalleryConfigurationService _configService;
         private readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
 
-        public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration)
+        public CloudBlobFileStorageService(ICloudBlobClient client, IGalleryConfigurationService configService)
         {
             _client = client;
-            _configuration = configuration;
+            _configService = configService;
         }
 
         public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
@@ -242,9 +242,9 @@ namespace NuGetGallery
 
         internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri)
         {
-            var host = string.IsNullOrEmpty(_configuration.AzureCdnHost)
+            var host = string.IsNullOrEmpty(_configService.Current.AzureCdnHost)
                 ? blobUri.Host 
-                : _configuration.AzureCdnHost;
+                : _configService.Current.AzureCdnHost;
 
             // When a blob query string is passed, that one always wins.
             // This will only happen on private NuGet gallery instances,

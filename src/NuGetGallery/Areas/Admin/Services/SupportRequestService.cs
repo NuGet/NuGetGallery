@@ -22,12 +22,12 @@ namespace NuGetGallery.Areas.Admin
 
         public SupportRequestService(
             ISupportRequestDbContext supportRequestDbContext,
-            IAppConfiguration config)
+            IGalleryConfigurationService configService)
         {
             _supportRequestDbContext = supportRequestDbContext;
-            _siteRoot = config.SiteRoot;
+            _siteRoot = configService.Current.SiteRoot;
 
-            _pagerDutyClient = new PagerDutyClient(config.PagerDutyAccountName, config.PagerDutyAPIKey, config.PagerDutyServiceKey);
+            _pagerDutyClient = new PagerDutyClient(configService.Current.PagerDutyAccountName, configService.Current.PagerDutyAPIKey, configService.Current.PagerDutyServiceKey);
         }
 
         public IReadOnlyCollection<Models.Admin> GetAllAdmins()

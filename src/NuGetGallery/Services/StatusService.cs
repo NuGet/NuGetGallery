@@ -20,7 +20,7 @@ namespace NuGetGallery
         private readonly HttpClient _httpClient = new HttpClient();
         private readonly IEntitiesContext _entities;
         private readonly IFileStorageService _fileStorageService;
-        private readonly IAppConfiguration _config;
+        private readonly IGalleryConfigurationService _configService;
 
         private const string Available = "Available";
         private const string Unavailable = "Unavailable";
@@ -32,11 +32,11 @@ namespace NuGetGallery
         public StatusService(
             IEntitiesContext entities,
             IFileStorageService fileStorageService,
-            IAppConfiguration config)
+            IGalleryConfigurationService configService)
         {
             _entities = entities;
             _fileStorageService = fileStorageService;
-            _config = config;
+            _configService = configService;
         }
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Just want to log the exception and return the appropriate HTTPStatusCode")]
@@ -83,7 +83,7 @@ namespace NuGetGallery
 
         private async Task<bool?> IsAzureStorageAvailable()
         {
-            if (_config == null || _config.StorageType != StorageType.AzureStorage)
+            if (_configService == null || _configService.Current.StorageType != StorageType.AzureStorage)
             {
                 return null;
             }
@@ -107,12 +107,12 @@ namespace NuGetGallery
 
         private async Task<bool?> IsSearchServiceAvailable()
         {
-            if (_config == null || _config.ServiceDiscoveryUri == null)
+            if (_configService == null || _configService.Current.ServiceDiscoveryUri == null)
             {
                 return null;
             }
 
-            return await IsGetSuccessful(_config.ServiceDiscoveryUri);
+            return await IsGetSuccessful(_configService.Current.ServiceDiscoveryUri);
         }
 
         private async Task<bool> IsGetSuccessful(Uri uri)

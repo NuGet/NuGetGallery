@@ -13,12 +13,12 @@ namespace NuGetGallery
 {
     public class FileSystemFileStorageService : IFileStorageService
     {
-        private readonly IAppConfiguration _configuration;
+        private readonly IGalleryConfigurationService _configService;
         private readonly IFileSystemService _fileSystemService;
 
-        public FileSystemFileStorageService(IAppConfiguration configuration, IFileSystemService fileSystemService)
+        public FileSystemFileStorageService(IGalleryConfigurationService configService, IFileSystemService fileSystemService)
         {
-            _configuration = configuration;
+            _configService = configService;
             _fileSystemService = fileSystemService;
         }
 
@@ -34,7 +34,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
             if (!_fileSystemService.FileExists(path))
             {
                 return Task.FromResult<ActionResult>(new HttpNotFoundResult());
@@ -60,7 +60,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
             if (_fileSystemService.FileExists(path))
             {
                 _fileSystemService.DeleteFile(path);
@@ -81,7 +81,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
             bool fileExists = _fileSystemService.FileExists(path);
 
             return Task.FromResult(fileExists);
@@ -99,7 +99,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
 
             Stream fileStream = _fileSystemService.FileExists(path) ? _fileSystemService.OpenRead(path) : null;
             return Task.FromResult(fileStream);
@@ -117,7 +117,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
 
             // Get the last modified date of the file and use that as the ContentID
             var file = new FileInfo(path);
@@ -141,12 +141,12 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageFile));
             }
 
-            if (!_fileSystemService.DirectoryExists(_configuration.FileStorageDirectory))
+            if (!_fileSystemService.DirectoryExists(_configService.Current.FileStorageDirectory))
             {
-                _fileSystemService.CreateDirectory(_configuration.FileStorageDirectory);
+                _fileSystemService.CreateDirectory(_configService.Current.FileStorageDirectory);
             }
 
-            var filePath = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+            var filePath = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
             var folderPath = Path.GetDirectoryName(filePath);
             if (_fileSystemService.FileExists(filePath))
             {
@@ -167,7 +167,7 @@ namespace NuGetGallery
 
         public Task<bool> IsAvailableAsync()
         {
-            return Task.FromResult(Directory.Exists(_configuration.FileStorageDirectory));
+            return Task.FromResult(Directory.Exists(_configService.Current.FileStorageDirectory));
         }
 
         private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)

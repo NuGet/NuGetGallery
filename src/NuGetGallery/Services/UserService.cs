@@ -15,7 +15,6 @@ namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        public IAppConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
         public AuditingService Auditing { get; protected set; }
@@ -23,13 +22,11 @@ namespace NuGetGallery
         protected UserService() { }
 
         public UserService(
-            IAppConfiguration config,
             IEntityRepository<User> userRepository,
             IEntityRepository<Credential> credentialRepository,
             AuditingService auditing)
             : this()
         {
-            Config = config;
             UserRepository = userRepository;
             CredentialRepository = credentialRepository;
             Auditing = auditing;

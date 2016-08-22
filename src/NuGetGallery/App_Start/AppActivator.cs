@@ -65,10 +65,10 @@ namespace NuGetGallery
             }
 
             // Get configuration from the kernel
-            var config = DependencyResolver.Current.GetService<IAppConfiguration>();
+            var configService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
 
-            BackgroundJobsPostStart(config);
-            AppPostStart(config);
+            BackgroundJobsPostStart(configService);
+            AppPostStart(configService.Current);
             BundlingPostStart();
         }
 
@@ -176,7 +176,7 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(supportRequestsBundle);
         }
 
-        private static void AppPostStart(IAppConfiguration configuration)
+        private static void AppPostStart(IGalleryConfigurationService configService)
         {
             WebApiConfig.Register(GlobalConfiguration.Configuration);
             NuGetODataConfig.Register(GlobalConfiguration.Configuration);
@@ -184,7 +184,7 @@ namespace NuGetGallery
             // Attach correlator
             GlobalConfiguration.Configuration.MessageHandlers.Add(new WebApiCorrelationHandler());
 
-            Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
+            Routes.RegisterRoutes(RouteTable.Routes, configService.Current.FeedOnlyMode);
             AreaRegistration.RegisterAllAreas();
 
             GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });
@@ -193,21 +193,21 @@ namespace NuGetGallery
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
-        private static void BackgroundJobsPostStart(IAppConfiguration configuration)
+        private static void BackgroundJobsPostStart(IGalleryConfigurationService configService)
         {
             var indexer = DependencyResolver.Current.GetService<IIndexingService>();
             var jobs = new List<IJob>();
             if (indexer != null)
             {
-                indexer.RegisterBackgroundJobs(jobs, configuration);
+                indexer.RegisterBackgroundJobs(jobs, configService.Current);
             }
 
-            if (configuration.CollectPerfLogs)
+            if (configService.Current.CollectPerfLogs)
             {
                 jobs.Add(CreateLogFlushJob());
             }
 
-            if (configuration.StorageType == StorageType.AzureStorage)
+            if (configService.Current.StorageType == StorageType.AzureStorage)
             {
                 var cloudDownloadCountService = DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
                 if (cloudDownloadCountService != null)

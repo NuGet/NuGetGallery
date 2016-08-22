@@ -19,7 +19,7 @@ namespace NuGetGallery.Auditing
     {
         public static readonly string DefaultContainerName = "auditing";
 
-        private CloudBlobContainer _auditContainer;
+        protected CloudBlobContainer _auditContainer;
         private string _instanceId;
         private string _localIP;
         private Func<Task<AuditActor>> _getOnBehalfOf;
@@ -129,7 +129,7 @@ namespace NuGetGallery.Auditing
             return blob.Uri;
         }
 
-        private static CloudBlobContainer GetContainer(string storageConnectionString)
+        public static CloudBlobContainer GetContainer(string storageConnectionString)
         {
             return CloudStorageAccount.Parse(storageConnectionString)
                 .CreateCloudBlobClient()

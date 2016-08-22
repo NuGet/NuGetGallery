@@ -17,7 +17,7 @@ namespace NuGetGallery
         Task<int> GetDocumentCount();
         Task<long> GetIndexSizeInBytes();
 
-        void RegisterBackgroundJobs(IList<IJob> jobs, IAppConfiguration configuration);
+        void RegisterBackgroundJobs(IList<IJob> jobs, IGalleryConfigurationService configService);
 
         string IndexPath { get; }
 

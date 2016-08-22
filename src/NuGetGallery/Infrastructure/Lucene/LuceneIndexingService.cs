@@ -49,12 +49,12 @@ namespace NuGetGallery
             IEntityRepository<CuratedPackage> curatedPackageSource,
             Lucene.Net.Store.Directory directory,
 			IDiagnosticsService diagnostics,
-            IAppConfiguration config)
+            IGalleryConfigurationService configService)
         {
             _packageRepository = packageSource;
             _curatedPackageRepository = curatedPackageSource;
             _directory = directory;
-            _getShouldAutoUpdate = config == null ? new Func<bool>(() => true) : new Func<bool>(() => config.AutoUpdateSearchIndex);
+            _getShouldAutoUpdate = configService.Current == null ? new Func<bool>(() => true) : new Func<bool>(() => configService.Current.AutoUpdateSearchIndex);
             Trace = diagnostics.SafeGetSource("LuceneIndexingService");
         }
 
@@ -308,7 +308,7 @@ namespace NuGetGallery
         }
 
 
-        public void RegisterBackgroundJobs(IList<IJob> jobs, IAppConfiguration configuration)
+        public void RegisterBackgroundJobs(IList<IJob> jobs, IGalleryConfigurationService configService)
         {
             if (_getShouldAutoUpdate())
             {

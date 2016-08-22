@@ -18,26 +18,26 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 
         private static DynamicDataRoute _route;
 
-        public static void Register(RouteCollection routes, string root, IAppConfiguration configuration)
+        public static void Register(RouteCollection routes, string root, IGalleryConfigurationService configService)
         {
             // Set up unobtrusive validation
             InitializeValidation();
 
             // Set up dynamic data
-            InitializeDynamicData(routes, root, configuration);
+            InitializeDynamicData(routes, root, configService);
         }
 
         private static void InitializeValidation()
         {
         }
 
-        private static void InitializeDynamicData(RouteCollection routes, string root, IAppConfiguration configuration)
+        private static void InitializeDynamicData(RouteCollection routes, string root, IGalleryConfigurationService configService)
         {
             try
             {
                 DefaultModel.RegisterContext(
                     new EFDataModelProvider(
-                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
+                        () => new EntitiesContext(configService.Current.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
                         configuration: new ContextConfiguration { ScaffoldAllTables = true });
             }
             catch (SqlException e)
