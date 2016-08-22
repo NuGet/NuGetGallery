@@ -37,10 +37,10 @@ else
                     <text>
                         if ($('.dimension-checkbox:checked').length == 0) {
                             var search = location.search.toLowerCase();
-                            if (search.indexOf('groupby=version') >= 0 ||
-                                search.indexOf('groupby=clientname') >= 0 ||
-                                search.indexOf('groupby=clientversion') >= 0 ||
-                                search.indexOf('groupby=operation') >= 0) {
+                            if (search.indexOf('groupby=@Constants.StatisticsDimensions.Version.ToLowerInvariant()') >= 0 ||
+                                search.indexOf('groupby=@Constants.StatisticsDimensions.ClientName.ToLowerInvariant()') >= 0 ||
+                                search.indexOf('groupby=@Constants.StatisticsDimensions.ClientVersion.ToLowerInvariant()') >= 0 ||
+                                search.indexOf('groupby=@Constants.StatisticsDimensions.Operation.ToLowerInvariant()') >= 0) {
                                 location.reload();
                             }
                         }

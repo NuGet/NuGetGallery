@@ -148,7 +148,13 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var dimensions = new [] { "Version", "ClientName", "ClientVersion", "Operation" };
+            var dimensions = new []
+            {
+                Constants.StatisticsDimensions.Version,
+                Constants.StatisticsDimensions.ClientName,
+                Constants.StatisticsDimensions.ClientVersion,
+                Constants.StatisticsDimensions.Operation
+            };
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
             ProcessReport(report, groupby, dimensions, id);
@@ -177,7 +183,10 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var dimensions = new[] { "ClientName", "ClientVersion", "Operation" };
+            var dimensions = new[] {
+                Constants.StatisticsDimensions.ClientName,
+                Constants.StatisticsDimensions.ClientVersion,
+                Constants.StatisticsDimensions.Operation };
             
             StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
@@ -207,7 +216,7 @@ namespace NuGetGallery
             var pivot = new string[4];
             if (groupby != null)
             {
-                // process and validate the groupby query. unrecognized fields are ignored. others fields regarded for existance
+                // process and validate the groupby query. unrecognized fields are ignored. others fields regarded for existence
                 var dim = 0;
 
                 foreach (var dimension in dimensions)
