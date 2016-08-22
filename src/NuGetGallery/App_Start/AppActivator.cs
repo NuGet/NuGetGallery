@@ -68,7 +68,7 @@ namespace NuGetGallery
             var configService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
 
             BackgroundJobsPostStart(configService);
-            AppPostStart(configService.Current);
+            AppPostStart(configService);
             BundlingPostStart();
         }
 
@@ -199,7 +199,7 @@ namespace NuGetGallery
             var jobs = new List<IJob>();
             if (indexer != null)
             {
-                indexer.RegisterBackgroundJobs(jobs, configService.Current);
+                indexer.RegisterBackgroundJobs(jobs, configService);
             }
 
             if (configService.Current.CollectPerfLogs)

@@ -21,12 +21,12 @@ namespace NuGetGallery
         public UrlHelper Url { get; set; }
         public bool CopySender { get; set; }
 
-        internal string FillIn(string subject, IAppConfiguration config)
+        internal string FillIn(string subject, IGalleryConfigurationService configService)
         {
             // note, format blocks {xxx} are matched by ordinal-case-sensitive comparison
             var builder = new StringBuilder(subject);
 
-            Substitute(builder, "{GalleryOwnerName}", config.GalleryOwner.DisplayName);
+            Substitute(builder, "{GalleryOwnerName}", configService.Current.GalleryOwner.DisplayName);
             Substitute(builder, "{Id}", Package.PackageRegistration.Id);
             Substitute(builder, "{Version}", Package.Version);
             Substitute(builder, "{Reason}", Reason);

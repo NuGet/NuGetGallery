@@ -271,7 +271,7 @@ The {0} Team";
                 resetPasswordUrl,
                 ConfigService.Current.GalleryOwner.DisplayName);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject, Config.GalleryOwner.DisplayName);
+            string subject = String.Format(CultureInfo.CurrentCulture, forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject, ConfigService.Current.GalleryOwner.DisplayName);
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
@@ -303,7 +303,7 @@ To accept this request and become a listed owner of the package, click the follo
 Thanks,
 The {3} Team";
 
-            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, Config.GalleryOwner.DisplayName);
+            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, ConfigService.Current.GalleryOwner.DisplayName);
 
             using (var mailMessage = new MailMessage())
             {

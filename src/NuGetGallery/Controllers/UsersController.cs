@@ -15,6 +15,7 @@ namespace NuGetGallery
         : AppController
     {
         public ICuratedFeedService CuratedFeedService { get; protected set; }
+        public IGalleryConfigurationService ConfigService { get; protected set; }
         public IUserService UserService { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
@@ -22,12 +23,14 @@ namespace NuGetGallery
 
         public UsersController(
             ICuratedFeedService feedsQuery,
+            IGalleryConfigurationService configService,
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
             AuthenticationService authService)
         {
             CuratedFeedService = feedsQuery;
+            ConfigService = configService;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
@@ -469,13 +472,13 @@ namespace NuGetGallery
 
             // Set expiration
             var expiration = TimeSpan.Zero;
-            if (Config.ExpirationInDaysForApiKeyV1 > 0)
+            if (ConfigService.Current.ExpirationInDaysForApiKeyV1 > 0)
             {
-                expiration = TimeSpan.FromDays(Config.ExpirationInDaysForApiKeyV1);
+                expiration = TimeSpan.FromDays(ConfigService.Current.ExpirationInDaysForApiKeyV1);
 
                 if (expirationInDays.HasValue && expirationInDays.Value > 0)
                 {
-                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, Config.ExpirationInDaysForApiKeyV1));
+                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, ConfigService.Current.ExpirationInDaysForApiKeyV1));
                 }
             }
 
@@ -525,7 +528,7 @@ namespace NuGetGallery
             model.Credentials = creds;
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
 
-            model.ExpirationInDaysForApiKeyV1 = Config.ExpirationInDaysForApiKeyV1;
+            model.ExpirationInDaysForApiKeyV1 = ConfigService.Current.ExpirationInDaysForApiKeyV1;
 
             return View("Account", model);
         }
