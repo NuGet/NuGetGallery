@@ -203,9 +203,9 @@ Function Clear-PackageCache {
     param()
     Trace-Log 'Clearing package cache (except the web cache)'
 
-    & nuget locals packages-cache -clear -verbosity detailed
+    & $NuGetExe locals packages-cache -clear -verbosity detailed
     #& nuget locals global-packages -clear -verbosity detailed
-    & nuget locals temp -clear -verbosity detailed
+    & $NuGetExe locals temp -clear -verbosity detailed
 }
 
 Function Install-SolutionPackages {
