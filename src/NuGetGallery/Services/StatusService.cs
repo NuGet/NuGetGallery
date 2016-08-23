@@ -83,7 +83,7 @@ namespace NuGetGallery
 
         private async Task<bool?> IsAzureStorageAvailable()
         {
-            if (_configService == null || _configService.Current.StorageType != StorageType.AzureStorage)
+            if (_configService == null || (await _configService.GetCurrent()).StorageType != StorageType.AzureStorage)
             {
                 return null;
             }
@@ -107,12 +107,12 @@ namespace NuGetGallery
 
         private async Task<bool?> IsSearchServiceAvailable()
         {
-            if (_configService == null || _configService.Current.ServiceDiscoveryUri == null)
+            if (_configService == null || (await _configService.GetCurrent()).ServiceDiscoveryUri == null)
             {
                 return null;
             }
 
-            return await IsGetSuccessful(_configService.Current.ServiceDiscoveryUri);
+            return await IsGetSuccessful((await _configService.GetCurrent()).ServiceDiscoveryUri);
         }
 
         private async Task<bool> IsGetSuccessful(Uri uri)

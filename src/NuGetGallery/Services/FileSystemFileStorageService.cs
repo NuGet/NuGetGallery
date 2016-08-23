@@ -22,7 +22,7 @@ namespace NuGetGallery
             _fileSystemService = fileSystemService;
         }
 
-        public Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
+        public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -34,10 +34,10 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath((await _configService.GetCurrent()).FileStorageDirectory, folderName, fileName);
             if (!_fileSystemService.FileExists(path))
             {
-                return Task.FromResult<ActionResult>(new HttpNotFoundResult());
+                return new HttpNotFoundResult();
             }
 
             var result = new FilePathResult(path, GetContentType(folderName))
@@ -45,10 +45,10 @@ namespace NuGetGallery
                 FileDownloadName = new FileInfo(fileName).Name
             };
 
-            return Task.FromResult<ActionResult>(result);
+            return result;
         }
 
-        public Task DeleteFileAsync(string folderName, string fileName)
+        public async Task DeleteFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -60,16 +60,16 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath((await _configService.GetCurrent()).FileStorageDirectory, folderName, fileName);
             if (_fileSystemService.FileExists(path))
             {
                 _fileSystemService.DeleteFile(path);
             }
 
-            return Task.FromResult(0);
+            return;
         }
 
-        public Task<bool> FileExistsAsync(string folderName, string fileName)
+        public async Task<bool> FileExistsAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -81,13 +81,13 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath((await _configService.GetCurrent()).FileStorageDirectory, folderName, fileName);
             bool fileExists = _fileSystemService.FileExists(path);
 
-            return Task.FromResult(fileExists);
+            return fileExists;
         }
 
-        public Task<Stream> GetFileAsync(string folderName, string fileName)
+        public async Task<Stream> GetFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -99,13 +99,13 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath((await _configService.GetCurrent()).FileStorageDirectory, folderName, fileName);
 
             Stream fileStream = _fileSystemService.FileExists(path) ? _fileSystemService.OpenRead(path) : null;
-            return Task.FromResult(fileStream);
+            return fileStream;
         }
 
-        public Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null)
+        public async Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -117,14 +117,14 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            var path = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
+            var path = BuildPath((await _configService.GetCurrent()).FileStorageDirectory, folderName, fileName);
 
             // Get the last modified date of the file and use that as the ContentID
             var file = new FileInfo(path);
-            return Task.FromResult<IFileReference>(file.Exists ? new LocalFileReference(file) : null);
+            return file.Exists ? new LocalFileReference(file) : null;
         }
 
-        public Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
+        public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -141,12 +141,12 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageFile));
             }
 
-            if (!_fileSystemService.DirectoryExists(_configService.Current.FileStorageDirectory))
+            if (!_fileSystemService.DirectoryExists((await _configService.GetCurrent()).FileStorageDirectory))
             {
-                _fileSystemService.CreateDirectory(_configService.Current.FileStorageDirectory);
+                _fileSystemService.CreateDirectory((await _configService.GetCurrent()).FileStorageDirectory);
             }
 
-            var filePath = BuildPath(_configService.Current.FileStorageDirectory, folderName, fileName);
+            var filePath = BuildPath((await _configService.GetCurrent()).FileStorageDirectory, folderName, fileName);
             var folderPath = Path.GetDirectoryName(filePath);
             if (_fileSystemService.FileExists(filePath))
             {
@@ -162,12 +162,12 @@ namespace NuGetGallery
                 packageFile.CopyTo(file);
             }
 
-            return Task.FromResult(0);
+            return;
         }
 
-        public Task<bool> IsAvailableAsync()
+        public async Task<bool> IsAvailableAsync()
         {
-            return Task.FromResult(Directory.Exists(_configService.Current.FileStorageDirectory));
+            return Directory.Exists((await _configService.GetCurrent()).FileStorageDirectory);
         }
 
         private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)

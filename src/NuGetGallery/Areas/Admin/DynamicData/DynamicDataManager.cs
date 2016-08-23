@@ -31,13 +31,14 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         {
         }
 
-        private static void InitializeDynamicData(RouteCollection routes, string root, IGalleryConfigurationService configService)
+        private static async void InitializeDynamicData(RouteCollection routes, string root, IGalleryConfigurationService configService)
         {
             try
             {
+                var entitiesContext = new EntitiesContext((await configService.GetCurrent()).SqlConnectionString, readOnly: false);
                 DefaultModel.RegisterContext(
                     new EFDataModelProvider(
-                        () => new EntitiesContext(configService.Current.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
+                        () => entitiesContext), // DB Admins do not need to respect read-only mode.
                         configuration: new ContextConfiguration { ScaffoldAllTables = true });
             }
             catch (SqlException e)

@@ -15,10 +15,10 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
     {
         public static readonly string DefaultAuthenticationType = "AzureActiveDirectory";
 
-        protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
+        protected override async void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             // Fetch site root from configuration
-            var siteRoot = config.Current.SiteRoot.TrimEnd('/') + "/";
+            var siteRoot = (await config.GetCurrent()).SiteRoot.TrimEnd('/') + "/";
             
             // We *always* require SSL for Azure Active Directory
             if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) 

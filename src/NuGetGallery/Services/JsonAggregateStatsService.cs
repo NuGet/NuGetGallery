@@ -21,10 +21,10 @@ namespace NuGetGallery
 
         public async Task<AggregateStats> GetAggregateStats()
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_configService.Current.AzureStorageConnectionString);
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse((await _configService.GetCurrent()).AzureStorageConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
-            if (_configService.Current.AzureStorageReadAccessGeoRedundant)
+            if ((await _configService.GetCurrent()).AzureStorageReadAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }

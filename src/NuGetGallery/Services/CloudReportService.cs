@@ -24,10 +24,10 @@ namespace NuGetGallery
             // In NuGet we always use lowercase names for all blobs in Azure Storage
             reportName = reportName.ToLowerInvariant();
 
-            var storageAccount = CloudStorageAccount.Parse(_configService.Current.AzureStorageConnectionString);
+            var storageAccount = CloudStorageAccount.Parse((await _configService.GetCurrent()).AzureStorageConnectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
 
-            if (_configService.Current.AzureStorageReadAccessGeoRedundant)
+            if ((await _configService.GetCurrent()).AzureStorageReadAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }

@@ -19,7 +19,7 @@ namespace NuGetGallery
 
         private const string ForceSSLCookieName = "ForceSSL";
 
-        public void SetAuthCookie(
+        public async void SetAuthCookie(
             string userName,
             bool createPersistentCookie,
             IEnumerable<string> roles)
@@ -45,11 +45,11 @@ namespace NuGetGallery
             var formsCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket)
             {
                 HttpOnly = true,
-                Secure = _configService.Current.RequireSSL
+                Secure = (await _configService.GetCurrent()).RequireSSL
             };
             context.Response.Cookies.Add(formsCookie);
 
-            if (_configService.Current.RequireSSL)
+            if ((await _configService.GetCurrent()).RequireSSL)
             {
                 // Drop a second cookie indicating that the user is logged in via SSL (no secret data, just tells us to redirect them to SSL)
                 HttpCookie responseCookie = new HttpCookie(ForceSSLCookieName, "true");

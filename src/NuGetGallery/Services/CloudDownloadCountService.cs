@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGetGallery.Configuration;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -129,11 +130,11 @@ namespace NuGetGallery
             }
         }
 
-        private void RefreshCore()
+        private async void RefreshCore()
         {
             try
             {
-                var blob = GetBlobReference();
+                var blob = await GetBlobReference();
                 if (blob == null)
                 {
                     return;
@@ -209,12 +210,12 @@ namespace NuGetGallery
             }
         }
 
-        private CloudBlockBlob GetBlobReference()
+        private async Task<CloudBlockBlob> GetBlobReference()
         {
-            var storageAccount = CloudStorageAccount.Parse(_configService.Current.AzureStorageConnectionString);
+            var storageAccount = CloudStorageAccount.Parse((await _configService.GetCurrent()).AzureStorageConnectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
 
-            if (_configService.Current.AzureStorageReadAccessGeoRedundant)
+            if ((await _configService.GetCurrent()).AzureStorageReadAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }

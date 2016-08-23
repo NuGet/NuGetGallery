@@ -176,7 +176,7 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(supportRequestsBundle);
         }
 
-        private static void AppPostStart(IGalleryConfigurationService configService)
+        private static async void AppPostStart(IGalleryConfigurationService configService)
         {
             WebApiConfig.Register(GlobalConfiguration.Configuration);
             NuGetODataConfig.Register(GlobalConfiguration.Configuration);
@@ -184,7 +184,7 @@ namespace NuGetGallery
             // Attach correlator
             GlobalConfiguration.Configuration.MessageHandlers.Add(new WebApiCorrelationHandler());
 
-            Routes.RegisterRoutes(RouteTable.Routes, configService.Current.FeedOnlyMode);
+            Routes.RegisterRoutes(RouteTable.Routes, (await configService.GetCurrent()).FeedOnlyMode);
             AreaRegistration.RegisterAllAreas();
 
             GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });
@@ -193,7 +193,7 @@ namespace NuGetGallery
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
-        private static void BackgroundJobsPostStart(IGalleryConfigurationService configService)
+        private static async void BackgroundJobsPostStart(IGalleryConfigurationService configService)
         {
             var indexer = DependencyResolver.Current.GetService<IIndexingService>();
             var jobs = new List<IJob>();
@@ -202,12 +202,12 @@ namespace NuGetGallery
                 indexer.RegisterBackgroundJobs(jobs, configService);
             }
 
-            if (configService.Current.CollectPerfLogs)
+            if ((await configService.GetCurrent()).CollectPerfLogs)
             {
                 jobs.Add(CreateLogFlushJob());
             }
 
-            if (configService.Current.StorageType == StorageType.AzureStorage)
+            if ((await configService.GetCurrent()).StorageType == StorageType.AzureStorage)
             {
                 var cloudDownloadCountService = DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
                 if (cloudDownloadCountService != null)

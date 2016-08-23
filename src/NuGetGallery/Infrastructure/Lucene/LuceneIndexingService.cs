@@ -30,7 +30,8 @@ namespace NuGetGallery
         private IndexWriter _indexWriter;
         private IEntityRepository<Package> _packageRepository;
         private IEntityRepository<CuratedPackage> _curatedPackageRepository;
-        private Func<bool> _getShouldAutoUpdate;
+
+        private IGalleryConfigurationService _configService;
 
         private IDiagnosticsSource Trace { get; set; }
 
@@ -54,23 +55,31 @@ namespace NuGetGallery
             _packageRepository = packageSource;
             _curatedPackageRepository = curatedPackageSource;
             _directory = directory;
-            _getShouldAutoUpdate = configService.Current == null ? new Func<bool>(() => true) : new Func<bool>(() => configService.Current.AutoUpdateSearchIndex);
+            _configService = configService;
             Trace = diagnostics.SafeGetSource("LuceneIndexingService");
         }
 
-        public void UpdateIndex()
+        public async Task<bool> GetShouldAutoUpdate()
         {
-            if (_getShouldAutoUpdate())
+            if (_configService == null) return true;
+
+            var currentConfig = await _configService.GetCurrent();
+            return currentConfig == null || currentConfig.AutoUpdateSearchIndex;
+        }
+
+        public async void UpdateIndex()
+        {
+            if (await GetShouldAutoUpdate())
             {
                 UpdateIndex(forceRefresh: false);
             }
         }
 
-        public void UpdateIndex(bool forceRefresh)
+        public async void UpdateIndex(bool forceRefresh)
         {
             // Always do it if we're asked to "force" a refresh (i.e. manually triggered)
             // Otherwise, no-op unless we're supporting background search indexing.
-            if (forceRefresh || _getShouldAutoUpdate())
+            if (forceRefresh || await GetShouldAutoUpdate())
             {
                 DateTime? lastWriteTime = GetLastWriteTime().Result;
 
@@ -98,9 +107,9 @@ namespace NuGetGallery
             }
         }
 
-        public void UpdatePackage(Package package)
+        public async void UpdatePackage(Package package)
         {
-            if (_getShouldAutoUpdate())
+            if (await GetShouldAutoUpdate())
             {
                 var packageRegistrationKey = package.PackageRegistrationKey;
                 var updateTerm = new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
@@ -182,9 +191,9 @@ namespace NuGetGallery
             return packagesForIndexing.ToList();
         }
 
-        public void AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
+        public async void AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
         {
-            if (_getShouldAutoUpdate())
+            if (await GetShouldAutoUpdate())
             {
                 AddPackagesCore(packages, creatingIndex);
             }
@@ -308,9 +317,9 @@ namespace NuGetGallery
         }
 
 
-        public void RegisterBackgroundJobs(IList<IJob> jobs, IGalleryConfigurationService configService)
+        public async void RegisterBackgroundJobs(IList<IJob> jobs, IGalleryConfigurationService configService)
         {
-            if (_getShouldAutoUpdate())
+            if (await GetShouldAutoUpdate())
             {
                 jobs.Add(
                     new LuceneIndexingJob(

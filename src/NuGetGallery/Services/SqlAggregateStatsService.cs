@@ -22,9 +22,9 @@ namespace NuGetGallery
             _configService = configService;
         }
 
-        public Task<AggregateStats> GetAggregateStats()
+        public async Task<AggregateStats> GetAggregateStats()
         {
-            using (var dbContext = new EntitiesContext(_configService.Current.SqlConnectionString, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
+            using (var dbContext = new EntitiesContext((await _configService.GetCurrent()).SqlConnectionString, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
             {
                 var database = dbContext.Database;
                 using (var command = database.Connection.CreateCommand())
@@ -36,14 +36,14 @@ namespace NuGetGallery
                         bool hasData = reader.Read();
                         if (!hasData)
                         {
-                            return Task.FromResult(new AggregateStats());
+                            return new AggregateStats();
                         }
 
-                        return Task.FromResult(new AggregateStats
+                        return new AggregateStats
                             {
                                 UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
                                 TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1)
-                            });
+                            };
                     }
                 }
             }

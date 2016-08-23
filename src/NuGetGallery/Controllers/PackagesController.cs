@@ -381,7 +381,7 @@ namespace NuGetGallery
                 model.IsIndexed = isIndexed;
             }
 
-            ViewBag.FacebookAppID = _configService.Current.FacebookAppId;
+            ViewBag.FacebookAppID = (await _configService.GetCurrent()).FacebookAppId;
             return View(model);
         }
 

@@ -32,10 +32,10 @@ namespace NuGetGallery
         public IGalleryConfigurationService ConfigService { get; protected set; }
         public AuthenticationService AuthService { get; protected set; }
 
-        public void ReportAbuse(ReportPackageRequest request)
+        public async void ReportAbuse(ReportPackageRequest request)
         {
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
-            subject = request.FillIn(subject, ConfigService);
+            subject = request.FillIn(subject, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
             const string bodyTemplate = @"
 **Email:** {Name} ({Address})
 
@@ -61,18 +61,18 @@ namespace NuGetGallery
 
 
             var body = new StringBuilder();
-            body.Append(request.FillIn(bodyTemplate, ConfigService));
+            body.Append(request.FillIn(bodyTemplate, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName));
             body.AppendFormat(CultureInfo.InvariantCulture, @"
 
-*Message sent from {0}*", ConfigService.Current.GalleryOwner.DisplayName);
+*Message sent from {0}*", (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body.ToString();
-                mailMessage.From = ConfigService.Current.GalleryOwner;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryOwner;
                 mailMessage.ReplyToList.Add(request.FromAddress);
-                mailMessage.To.Add(ConfigService.Current.GalleryOwner);
+                mailMessage.To.Add((await ConfigService.GetCurrent()).GalleryOwner);
                 if (request.CopySender)
                 {
                     // Normally we use a second email to copy the sender to avoid disclosing the receiver's address
@@ -84,10 +84,10 @@ namespace NuGetGallery
             }
         }
 
-        public void ReportMyPackage(ReportPackageRequest request)
+        public async void ReportMyPackage(ReportPackageRequest request)
         {
             string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
-            subject = request.FillIn(subject, ConfigService);
+            subject = request.FillIn(subject, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
 
             const string bodyTemplate = @"
 **Email:** {Name} ({Address})
@@ -108,18 +108,18 @@ namespace NuGetGallery
 ";
 
             var body = new StringBuilder();
-            body.Append(request.FillIn(bodyTemplate, ConfigService));
+            body.Append(request.FillIn(bodyTemplate, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName));
             body.AppendFormat(CultureInfo.InvariantCulture, @"
 
-*Message sent from {0}*", ConfigService.Current.GalleryOwner.DisplayName);
+*Message sent from {0}*", (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body.ToString();
-                mailMessage.From = ConfigService.Current.GalleryOwner;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryOwner;
                 mailMessage.ReplyToList.Add(request.FromAddress);
-                mailMessage.To.Add(ConfigService.Current.GalleryOwner);
+                mailMessage.To.Add((await ConfigService.GetCurrent()).GalleryOwner);
                 if (request.CopySender)
                 {
                     // Normally we use a second email to copy the sender to avoid disclosing the receiver's address
@@ -131,7 +131,7 @@ namespace NuGetGallery
             }
         }
 
-        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl, bool copySender)
+        public async void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl, bool copySender)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
             string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}'._
@@ -151,16 +151,16 @@ namespace NuGetGallery
                 fromAddress.Address,
                 packageRegistration.Id,
                 message,
-                ConfigService.Current.GalleryOwner.DisplayName,
+                (await ConfigService.GetCurrent()).GalleryOwner.DisplayName,
                 emailSettingsUrl);
 
-            subject = String.Format(CultureInfo.CurrentCulture, subject, ConfigService.Current.GalleryOwner.DisplayName, packageRegistration.Id);
+            subject = String.Format(CultureInfo.CurrentCulture, subject, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName, packageRegistration.Id);
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryOwner;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryOwner;
                 mailMessage.ReplyToList.Add(fromAddress);
 
                 AddOwnersToMailMessage(packageRegistration, mailMessage);
@@ -172,7 +172,7 @@ namespace NuGetGallery
             }
         }
 
-        public void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl)
+        public async void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl)
         {
             string body = @"Thank you for registering with the {0}.
 We can't wait to see what packages you'll upload.
@@ -187,22 +187,22 @@ The {0} Team";
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                ConfigService.Current.GalleryOwner.DisplayName,
+                (await ConfigService.GetCurrent()).GalleryOwner.DisplayName,
                 HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_"),
                 confirmationUrl);
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your account.", ConfigService.Current.GalleryOwner.DisplayName);
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your account.", (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryNoReplyAddress;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryNoReplyAddress;
 
                 mailMessage.To.Add(toAddress);
                 SendMessage(mailMessage);
             }
         }
 
-        public void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)
+        public async void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)
         {
             string body = @"You recently changed your {0} email address.
 
@@ -216,23 +216,23 @@ The {0} Team";
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                ConfigService.Current.GalleryOwner.DisplayName,
+                (await ConfigService.GetCurrent()).GalleryOwner.DisplayName,
                 HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_"),
                 confirmationUrl);
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = String.Format(
-                    CultureInfo.CurrentCulture, "[{0}] Please verify your new email address.", ConfigService.Current.GalleryOwner.DisplayName);
+                    CultureInfo.CurrentCulture, "[{0}] Please verify your new email address.", (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryNoReplyAddress;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryNoReplyAddress;
 
                 mailMessage.To.Add(newEmailAddress);
                 SendMessage(mailMessage);
             }
         }
 
-        public void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress)
+        public async void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress)
         {
             string body = @"Hi there,
 
@@ -245,38 +245,38 @@ The {0} Team";
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                ConfigService.Current.GalleryOwner.DisplayName,
+                (await ConfigService.GetCurrent()).GalleryOwner.DisplayName,
                 oldEmailAddress,
                 user.EmailAddress);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Recent changes to your account.", ConfigService.Current.GalleryOwner.DisplayName);
+            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Recent changes to your account.", (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
             using (
                 var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryNoReplyAddress;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryNoReplyAddress;
 
                 mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
                 SendMessage(mailMessage);
             }
         }
 
-        public void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword)
+        public async void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword)
         {
             string body = String.Format(
                 CultureInfo.CurrentCulture,
                 forgotPassword ? Strings.Emails_ForgotPassword_Body : Strings.Emails_SetPassword_Body,
                 Constants.DefaultPasswordResetTokenExpirationHours,
                 resetPasswordUrl,
-                ConfigService.Current.GalleryOwner.DisplayName);
+                (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject, ConfigService.Current.GalleryOwner.DisplayName);
+            string subject = String.Format(CultureInfo.CurrentCulture, forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryNoReplyAddress;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryNoReplyAddress;
 
                 mailMessage.To.Add(user.ToMailAddress());
                 SendMessage(mailMessage);
@@ -284,7 +284,7 @@ The {0} Team";
         }
 
 
-        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
+        public async void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
         {
             if (!toUser.EmailAllowed)
             {
@@ -303,13 +303,13 @@ To accept this request and become a listed owner of the package, click the follo
 Thanks,
 The {3} Team";
 
-            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, ConfigService.Current.GalleryOwner.DisplayName);
+            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, ConfigService.Current.GalleryOwner.DisplayName, fromUser.Username, package.Id);
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName, fromUser.Username, package.Id);
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryNoReplyAddress;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
@@ -317,7 +317,7 @@ The {3} Team";
             }
         }
 
-        public void SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package)
+        public async void SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package)
         {
             if (!toUser.EmailAllowed)
             {
@@ -332,13 +332,13 @@ If this was done incorrectly, we'd recommend contacting '{0}' at '{2}'.
 
 Thanks,
 The {3} Team";
-            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, fromUser.EmailAddress, ConfigService.Current.GalleryOwner.DisplayName);
+            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, fromUser.EmailAddress, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName);
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, ConfigService.Current.GalleryOwner.DisplayName, fromUser.Username, package.Id);
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName, fromUser.Username, package.Id);
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryNoReplyAddress;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
@@ -364,7 +364,7 @@ The {3} Team";
                 Strings.Emails_CredentialAdded_Subject);
         }
 
-        private void SendCredentialChangeNotice(User user, Credential changed, string bodyTemplate, string subjectTemplate)
+        private async void SendCredentialChangeNotice(User user, Credential changed, string bodyTemplate, string subjectTemplate)
         {
             // What kind of credential is this?
             var credViewModel = AuthService.DescribeCredential(changed);
@@ -377,12 +377,12 @@ The {3} Team";
             string subject = String.Format(
                 CultureInfo.CurrentCulture,
                 subjectTemplate,
-                ConfigService.Current.GalleryOwner.DisplayName,
+                (await ConfigService.GetCurrent()).GalleryOwner.DisplayName,
                 name);
             SendSupportMessage(user, body, subject);
         }
 
-        public void SendContactSupportEmail(ContactSupportRequest request)
+        public async void SendContactSupportEmail(ContactSupportRequest request)
         {
             string subject = string.Format(CultureInfo.CurrentCulture, "Support Request (Reason: {0})", request.SubjectLine);
 
@@ -400,9 +400,9 @@ The {3} Team";
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryOwner;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryOwner;
                 mailMessage.ReplyToList.Add(request.FromAddress);
-                mailMessage.To.Add(ConfigService.Current.GalleryOwner);
+                mailMessage.To.Add((await ConfigService.GetCurrent()).GalleryOwner);
                 if (request.CopySender)
                 {
                     mailMessage.CC.Add(request.FromAddress);
@@ -411,7 +411,7 @@ The {3} Team";
             }
         }
 
-        private void SendSupportMessage(User user, string body, string subject)
+        private async void SendSupportMessage(User user, string body, string subject)
         {
             if (user == null)
             {
@@ -422,14 +422,14 @@ The {3} Team";
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryOwner;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryOwner;
 
                 mailMessage.To.Add(user.ToMailAddress());
                 SendMessage(mailMessage);
             }
         }
 
-        private void SendMessage(MailMessage mailMessage, bool copySender = false)
+        private async void SendMessage(MailMessage mailMessage, bool copySender = false)
         {
             try
             {
@@ -437,14 +437,14 @@ The {3} Team";
                 if (copySender)
                 {
                     var senderCopy = new MailMessage(
-                        ConfigService.Current.GalleryOwner,
+                        (await ConfigService.GetCurrent()).GalleryOwner,
                         mailMessage.ReplyToList.First())
                         {
                             Subject = mailMessage.Subject + " [Sender Copy]",
                             Body = String.Format(
                                 CultureInfo.CurrentCulture,
                                 "You sent the following message via {0}: {1}{1}{2}",
-                                ConfigService.Current.GalleryOwner.DisplayName,
+                                (await ConfigService.GetCurrent()).GalleryOwner.DisplayName,
                                 Environment.NewLine,
                                 mailMessage.Body),
                         };
@@ -464,7 +464,7 @@ The {3} Team";
             }
         }
 
-        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
+        public async void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
         {
             string subject = "[{0}] Package published - {1} {2}";
             string body = @"The package [{1} {2}]({3}) was just published on {0}. If this was not intended, please [contact support]({4}).
@@ -478,20 +478,20 @@ The {3} Team";
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                ConfigService.Current.GalleryOwner.DisplayName, 
+                (await ConfigService.GetCurrent()).GalleryOwner.DisplayName, 
                 package.PackageRegistration.Id, 
                 package.Version,
                 packageUrl,
                 packageSupportUrl,
                 emailSettingsUrl);
 
-            subject = String.Format(CultureInfo.CurrentCulture, subject, ConfigService.Current.GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
+            subject = String.Format(CultureInfo.CurrentCulture, subject, (await ConfigService.GetCurrent()).GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = ConfigService.Current.GalleryNoReplyAddress;
+                mailMessage.From = (await ConfigService.GetCurrent()).GalleryNoReplyAddress;
 
                 AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
 

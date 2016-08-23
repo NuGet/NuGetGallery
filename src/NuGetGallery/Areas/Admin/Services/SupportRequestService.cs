@@ -16,18 +16,22 @@ namespace NuGetGallery.Areas.Admin
         : ISupportRequestService
     {
         private readonly ISupportRequestDbContext _supportRequestDbContext;
-        private readonly PagerDutyClient _pagerDutyClient;
-        private readonly string _siteRoot;
         private const string _unassignedAdmin = "unassigned";
+
+        private Lazy<Task<PagerDutyClient>> _lazyPagerDutyClient;
+        private Task<PagerDutyClient> PagerDutyClient => _lazyPagerDutyClient.Value;
+
+        private Lazy<Task<string>> _lazySiteRoot;
+        private Task<string> SiteRoot => _lazySiteRoot.Value;
 
         public SupportRequestService(
             ISupportRequestDbContext supportRequestDbContext,
             IGalleryConfigurationService configService)
         {
             _supportRequestDbContext = supportRequestDbContext;
-            _siteRoot = configService.Current.SiteRoot;
+            _lazySiteRoot = new Lazy<Task<string>>(async () => (await configService.GetCurrent()).SiteRoot);
 
-            _pagerDutyClient = new PagerDutyClient(configService.Current.PagerDutyAccountName, configService.Current.PagerDutyAPIKey, configService.Current.PagerDutyServiceKey);
+            _lazyPagerDutyClient = new Lazy<Task<PagerDutyClient>>(async () => new PagerDutyClient((await configService.GetCurrent()).PagerDutyAccountName, (await configService.GetCurrent()).PagerDutyAPIKey, (await configService.GetCurrent()).PagerDutyServiceKey));
         }
 
         public IReadOnlyCollection<Models.Admin> GetAllAdmins()
@@ -207,7 +211,7 @@ namespace NuGetGallery.Areas.Admin
                 var newIssue = new Issue();
 
                 // If primary on-call person is not yet configured in the Support Request DB, assign to 'unassigned'.
-                var primaryOnCall = await _pagerDutyClient.GetPrimaryOnCallAsync();
+                var primaryOnCall = await (await PagerDutyClient).GetPrimaryOnCallAsync();
                 if (string.IsNullOrEmpty(primaryOnCall) || GetAdminKeyFromUsername(primaryOnCall) == -1)
                 {
                     newIssue.AssignedTo = null;
@@ -227,7 +231,7 @@ namespace NuGetGallery.Areas.Admin
                 newIssue.PackageId = package?.PackageRegistration.Id;
                 newIssue.PackageVersion = package?.Version;
                 newIssue.Reason = reason;
-                newIssue.SiteRoot = _siteRoot;
+                newIssue.SiteRoot = await SiteRoot;
                 newIssue.UserKey = user?.Key;
                 newIssue.PackageRegistrationKey = package?.PackageRegistrationKey;
 
@@ -245,7 +249,7 @@ namespace NuGetGallery.Areas.Admin
 
                 var errorMessage = $"Error while submitting support request at {DateTime.UtcNow}. User requesting support = {loggedInUser}. Support reason = {reason ?? "N/A"}. Package info = {packageInfo}";
 
-                await _pagerDutyClient.TriggerIncidentAsync(errorMessage);
+                await (await PagerDutyClient).TriggerIncidentAsync(errorMessage);
             }
             catch (Exception e) //In case getting data from PagerDuty has failed
             {

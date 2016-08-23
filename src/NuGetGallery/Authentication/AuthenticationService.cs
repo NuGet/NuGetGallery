@@ -123,7 +123,7 @@ namespace NuGetGallery.Authentication
                 }
 
                 if (matched.Type == CredentialTypes.ApiKeyV1 
-                    && !matched.HasBeenUsedInLastDays(_configService.Current.ExpirationInDaysForApiKeyV1))
+                    && !matched.HasBeenUsedInLastDays((await _configService.GetCurrent()).ExpirationInDaysForApiKeyV1))
                 {
                     // API key credential was last used a long, long time ago - expire it
                     await Auditing.SaveAuditRecord(
@@ -167,7 +167,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
         {
-            if (_configService.Current.FeedOnlyMode)
+            if ((await _configService.GetCurrent()).FeedOnlyMode)
             {
                 throw new FeedOnlyModeException(FeedOnlyModeException.FeedOnlyModeError);
             }
@@ -197,10 +197,10 @@ namespace NuGetGallery.Authentication
             };
 
             // Add a credential for the password and the API Key
-            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey, TimeSpan.FromDays(_configService.Current.ExpirationInDaysForApiKeyV1)));
+            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey, TimeSpan.FromDays((await _configService.GetCurrent()).ExpirationInDaysForApiKeyV1)));
             newUser.Credentials.Add(credential);
 
-            if (!_configService.Current.ConfirmEmailAddresses)
+            if (!(await _configService.GetCurrent()).ConfirmEmailAddresses)
             {
                 newUser.ConfirmEmailAddress();
             }
@@ -340,7 +340,7 @@ namespace NuGetGallery.Authentication
             if (resetApiKey)
             {
                 var apiKeyCredential = CredentialBuilder.CreateV1ApiKey(
-                    Guid.NewGuid(), TimeSpan.FromDays(_configService.Current.ExpirationInDaysForApiKeyV1));
+                    Guid.NewGuid(), TimeSpan.FromDays((await _configService.GetCurrent()).ExpirationInDaysForApiKeyV1));
 
                 await ReplaceCredentialInternal(user, apiKeyCredential);
             }

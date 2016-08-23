@@ -83,9 +83,9 @@ namespace NuGetGallery
 
         [HttpGet]
         [Authorize]
-        public virtual ActionResult Account()
+        public virtual async Task<ActionResult> Account()
         {
-            return AccountView(new AccountViewModel());
+            return await AccountView(new AccountViewModel());
         }
 
         [Authorize]
@@ -322,7 +322,7 @@ namespace NuGetGallery
         {
             if (!ModelState.IsValidField("ChangeEmail.NewEmail"))
             {
-                return AccountView(model);
+                return await AccountView(model);
             }
 
             var user = GetCurrentUser();
@@ -330,14 +330,14 @@ namespace NuGetGallery
             {
                 if (!ModelState.IsValidField("ChangeEmail.Password"))
                 {
-                    return AccountView(model);
+                    return await AccountView(model);
                 }
 
                 var authUser = await AuthService.Authenticate(User.Identity.Name, model.ChangeEmail.Password);
                 if (authUser == null)
                 {
                     ModelState.AddModelError("ChangeEmail.Password", Strings.CurrentPasswordIncorrect);
-                    return AccountView(model);
+                    return await AccountView(model);
                 }
             }
             // No password? We can't do any additional verification...
@@ -355,7 +355,7 @@ namespace NuGetGallery
             catch (EntityException e)
             {
                 ModelState.AddModelError("ChangeEmail.NewEmail", e.Message);
-                return AccountView(model);
+                return await AccountView(model);
             }
 
             if (user.Confirmed)
@@ -414,13 +414,13 @@ namespace NuGetGallery
             {
                 if (!ModelState.IsValidField("ChangePassword"))
                 {
-                    return AccountView(model);
+                    return await AccountView(model);
                 }
 
                 if (!(await AuthService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword, model.ChangePassword.ResetApiKey)))
                 {
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
-                    return AccountView(model);
+                    return await AccountView(model);
                 }
 
                 TempData["Message"] = Strings.PasswordChanged;
@@ -472,13 +472,13 @@ namespace NuGetGallery
 
             // Set expiration
             var expiration = TimeSpan.Zero;
-            if (ConfigService.Current.ExpirationInDaysForApiKeyV1 > 0)
+            if ((await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1 > 0)
             {
-                expiration = TimeSpan.FromDays(ConfigService.Current.ExpirationInDaysForApiKeyV1);
+                expiration = TimeSpan.FromDays((await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1);
 
                 if (expirationInDays.HasValue && expirationInDays.Value > 0)
                 {
-                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, ConfigService.Current.ExpirationInDaysForApiKeyV1));
+                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, (await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1));
                 }
             }
 
@@ -518,7 +518,7 @@ namespace NuGetGallery
             return RedirectToAction("Account");
         }
 
-        private ActionResult AccountView(AccountViewModel model)
+        private async Task<ActionResult> AccountView(AccountViewModel model)
         {
             // Load Credential info
             var user = GetCurrentUser();
@@ -528,7 +528,7 @@ namespace NuGetGallery
             model.Credentials = creds;
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
 
-            model.ExpirationInDaysForApiKeyV1 = ConfigService.Current.ExpirationInDaysForApiKeyV1;
+            model.ExpirationInDaysForApiKeyV1 = (await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1;
 
             return View("Account", model);
         }

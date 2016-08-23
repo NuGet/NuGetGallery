@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGetGallery.Configuration;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -19,13 +20,13 @@ namespace NuGetGallery
             _configService = configService;
         }
 
-        public ICloudBlobContainer GetContainerReference(string containerAddress)
+        public async Task<ICloudBlobContainer> GetContainerReference(string containerAddress)
         {
             var oldStorageConnectionString = _storageConnectionString;
             var oldReadAccessGeoRedundant = _readAccessGeoRedundant;
 
-            _storageConnectionString = _configService.Current.AzureStorageConnectionString;
-            _readAccessGeoRedundant = _configService.Current.AzureStorageReadAccessGeoRedundant;
+            _storageConnectionString = (await _configService.GetCurrent()).AzureStorageConnectionString;
+            _readAccessGeoRedundant = (await _configService.GetCurrent()).AzureStorageReadAccessGeoRedundant;
 
             if (_blobClient == null || oldStorageConnectionString != _storageConnectionString || oldReadAccessGeoRedundant != _readAccessGeoRedundant)
             {

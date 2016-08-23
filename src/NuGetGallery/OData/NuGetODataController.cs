@@ -9,6 +9,7 @@ using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using NuGetGallery.Configuration;
 using NuGetGallery.WebApi;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.OData
 {
@@ -45,9 +46,9 @@ namespace NuGetGallery.OData
             return Request.RequestUri.Scheme == "https";
         }
 
-        protected virtual string GetSiteRoot()
+        protected virtual async Task<string> GetSiteRoot()
         {
-            return _configurationService.GetSiteRoot(UseHttps()).TrimEnd('/') + '/';
+            return (await _configurationService.GetSiteRoot(UseHttps())).TrimEnd('/') + '/';
         }
 
         /// <summary>

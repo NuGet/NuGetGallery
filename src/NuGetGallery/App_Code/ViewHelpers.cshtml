@@ -123,8 +123,8 @@
 {
     // Get instrumentation key
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey;
-    var samplingPct = config == null ? 100 : config.Current.AppInsightsSamplingPercentage;
+    var iKey = config == null ? string.Empty : (await config.GetCurrent()).AppInsightsInstrumentationKey;
+    var samplingPct = config == null ? 100 : (await config.GetCurrent()).AppInsightsSamplingPercentage;
 
     if (!string.IsNullOrEmpty(iKey))
     {

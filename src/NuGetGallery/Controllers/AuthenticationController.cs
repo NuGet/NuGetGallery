@@ -98,7 +98,7 @@ namespace NuGetGallery
             // to require a specific authentication provider, challenge that provider if needed.
             ActionResult challenge;
             if (ShouldChallengeEnforcedProvider(
-                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
+                (await NuGetContext.Config.GetCurrent()).EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
             {
                 return challenge;
             }
@@ -195,7 +195,7 @@ namespace NuGetGallery
             }
 
             // Send a new account email
-            if (NuGetContext.Config.Current.ConfirmEmailAddresses && !String.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
+            if ((await NuGetContext.Config.GetCurrent()).ConfirmEmailAddresses && !String.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
             {
                 MessageService.SendNewAccountEmail(
                     new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
@@ -210,7 +210,7 @@ namespace NuGetGallery
             // to require a specific authentication provider, challenge that provider if needed.
             ActionResult challenge;
             if (ShouldChallengeEnforcedProvider(
-                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
+                (await NuGetContext.Config.GetCurrent()).EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
             {
                 return challenge;
             }
@@ -274,7 +274,7 @@ namespace NuGetGallery
                 // to require a specific authentication provider, challenge that provider if needed.
                 ActionResult challenge;
                 if (ShouldChallengeEnforcedProvider(
-                    NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, result.Authentication, returnUrl, out challenge))
+                    (await NuGetContext.Config.GetCurrent()).EnforcedAuthProviderForAdmin, result.Authentication, returnUrl, out challenge))
                 {
                     return challenge;
                 }

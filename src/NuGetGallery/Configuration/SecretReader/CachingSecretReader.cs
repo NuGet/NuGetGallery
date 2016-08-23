@@ -11,8 +11,10 @@ namespace NuGetGallery.Configuration.SecretReader
 {
     public class CachingSecretReader : ISecretReader
     {
+        public const int DaysToInvalidate = 1;
+
         private ISecretReader _internalReader;
-        private Dictionary<string, string> _cache;
+        private Dictionary<string, Tuple<string, DateTime>> _cache;
         private IDiagnosticsSource _trace;
 
         public CachingSecretReader(ISecretReader secretReader, IDiagnosticsService diagnosticsService)
@@ -28,20 +30,20 @@ namespace NuGetGallery.Configuration.SecretReader
             }
 
             _internalReader = secretReader;
-            _cache = new Dictionary<string, string>();
+            _cache = new Dictionary<string, Tuple<string, DateTime>>();
             _trace = diagnosticsService.GetSource("CachingSecretReader");
         }
             
         public async Task<string> GetSecretAsync(string secretName)
         {
-            if (!_cache.ContainsKey(secretName))
+            if (!_cache.ContainsKey(secretName) || _cache[secretName].Item2.Subtract(DateTime.Now).Days > DaysToInvalidate)
             {
                 _trace.Information("Cache miss for setting " + secretName);
                 var secretValue = await _internalReader.GetSecretAsync(secretName);
-                _cache[secretName] = secretValue;
+                _cache[secretName] = Tuple.Create<string, DateTime>(secretValue, DateTime.Now);
             }
 
-            return _cache[secretName];
+            return _cache[secretName].Item1;
         }
     }
 }

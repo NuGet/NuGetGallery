@@ -23,13 +23,14 @@ using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration.SecretReader;
 using NuGetGallery.Services;
+using Autofac.Core;
 
 namespace NuGetGallery
 {
     public class DefaultDependenciesModule : Module
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
-        protected override void Load(ContainerBuilder builder)
+        protected override async void Load(ContainerBuilder builder)
         {
             var diagnosticsService = new DiagnosticsService();
             builder.RegisterInstance(diagnosticsService)
@@ -44,22 +45,22 @@ namespace NuGetGallery
                 .As<PoliteCaptcha.IConfigurationSource>()
                 .As<IGalleryConfigurationService>();
 
-            builder.RegisterInstance(LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
+            builder.RegisterInstance(LuceneCommon.GetDirectory((await configuration.GetCurrent()).LuceneIndexLocation))
                 .As<Lucene.Net.Store.Directory>()
                 .SingleInstance();
 
-            ConfigureSearch(builder, configuration);
+            ConfigureSearch(builder, configuration, diagnosticsService);
 
-            if (!string.IsNullOrEmpty(configuration.Current.AzureStorageConnectionString))
+            if (!string.IsNullOrEmpty((await configuration.GetCurrent()).AzureStorageConnectionString))
             {
-                var tableErrorLogFactory = new ConfigObjectDelegate<TableErrorLog>(() => new TableErrorLog(configuration.Current.AzureStorageConnectionString), () => configuration.Current.AzureStorageConnectionString);
+                var tableErrorLogFactory = new ConfigObjectDelegate<TableErrorLog>(async () => new TableErrorLog((await configuration.GetCurrent()).AzureStorageConnectionString), async () => (await configuration.GetCurrent()).AzureStorageConnectionString);
                 builder.Register(c => tableErrorLogFactory.Get())
                     .As<ErrorLog>()
                     .InstancePerLifetimeScope();
             }
             else
             {
-                var sqlErrorLogFactory = new ConfigObjectDelegate<SqlErrorLog>(() => new SqlErrorLog(configuration.Current.SqlConnectionString), () => configuration.Current.SqlConnectionString);
+                var sqlErrorLogFactory = new ConfigObjectDelegate<SqlErrorLog>(async () => new SqlErrorLog((await configuration.GetCurrent()).SqlConnectionString), async () => (await configuration.GetCurrent()).SqlConnectionString);
                 builder.Register(c => sqlErrorLogFactory.Get())
                     .As<ErrorLog>()
                     .InstancePerLifetimeScope();
@@ -75,7 +76,7 @@ namespace NuGetGallery
                 .As<IContentService>()
                 .SingleInstance();
 
-            builder.Register(c => new EntitiesContext(configuration.Current.SqlConnectionString, readOnly: configuration.Current.ReadOnlyMode))
+            builder.Register(async (c) => new EntitiesContext((await configuration.GetCurrent()).SqlConnectionString, readOnly: (await configuration.GetCurrent()).ReadOnlyMode))
                 .AsSelf()
                 .As<IEntitiesContext>()
                 .As<DbContext>()
@@ -131,7 +132,7 @@ namespace NuGetGallery
                 .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new SupportRequestDbContext(configuration.Current.SqlConnectionStringSupportRequest))
+            builder.Register(async (c) => new SupportRequestDbContext((await configuration.GetCurrent()).SqlConnectionStringSupportRequest))
                 .AsSelf()
                 .As<ISupportRequestDbContext>()
                 .InstancePerLifetimeScope();
@@ -183,13 +184,13 @@ namespace NuGetGallery
                 .As<IStatusService>()
                 .InstancePerLifetimeScope();
 
+            var settings = (await configuration.GetCurrent());
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                 {
-                    var settings = configuration;
-                    if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
+                    if (settings.SmtpUri != null && settings.SmtpUri.IsAbsoluteUri)
                     {
-                        var smtpUri = new SmtpUri(settings.Current.SmtpUri);
+                        var smtpUri = new SmtpUri(settings.SmtpUri);
 
                         var mailSenderConfiguration = new MailSenderConfiguration
                             {
@@ -238,7 +239,7 @@ namespace NuGetGallery
                 .As<IPrincipal>()
                 .InstancePerLifetimeScope();
 
-            switch (configuration.Current.StorageType)
+            switch ((await configuration.GetCurrent()).StorageType)
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
@@ -284,9 +285,9 @@ namespace NuGetGallery
             ConfigureAutocomplete(builder, configuration);
         }
 
-        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static async void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration, IDiagnosticsService diagnosticsService)
         {
-            if (configuration.Current.ServiceDiscoveryUri == null)
+            if ((await configuration.GetCurrent()).ServiceDiscoveryUri == null)
             {
                 builder.RegisterType<LuceneSearchService>()
                     .AsSelf()
@@ -299,24 +300,24 @@ namespace NuGetGallery
             }
             else
             {
-                builder.RegisterType<ExternalSearchService>()
+                builder.Register(async (c) => new ExternalSearchService(diagnosticsService, (await configuration.GetCurrent()).ServiceDiscoveryUri, (await configuration.GetCurrent()).SearchServiceResourceType))
                     .AsSelf()
                     .As<ISearchService>()
                     .As<IIndexingService>()
                     .InstancePerLifetimeScope();
             }
         }
-        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static async void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
-            if (configuration.Current.ServiceDiscoveryUri != null &&
-                !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
+            if ((await configuration.GetCurrent()).ServiceDiscoveryUri != null &&
+                !string.IsNullOrEmpty((await configuration.GetCurrent()).AutocompleteServiceResourceType))
             {
-                builder.RegisterType<AutocompleteServicePackageIdsQuery>()
+                builder.Register(async (c) => new AutocompleteServicePackageIdsQuery(await configuration.GetCurrent()))
                     .AsSelf()
                     .As<IPackageIdsQuery>()
                     .SingleInstance();
 
-                builder.RegisterType<AutocompleteServicePackageVersionsQuery>()
+                builder.Register(async (c) => new AutocompleteServicePackageVersionsQuery(await configuration.GetCurrent()))
                     .AsSelf()
                     .As<IPackageVersionsQuery>()
                     .InstancePerLifetimeScope();
@@ -335,7 +336,7 @@ namespace NuGetGallery
             }
         }
 
-        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static async void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
@@ -354,7 +355,7 @@ namespace NuGetGallery
 
             // Setup auditing
             var auditingPath = Path.Combine(
-                FileSystemFileStorageService.ResolvePath(configuration.Current.FileStorageDirectory),
+                FileSystemFileStorageService.ResolvePath((await configuration.GetCurrent()).FileStorageDirectory),
                 FileSystemAuditingService.DefaultContainerName);
 
             builder.RegisterInstance(new FileSystemAuditingService(auditingPath, FileSystemAuditingService.GetAspNetOnBehalfOf))

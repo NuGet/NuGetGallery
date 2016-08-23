@@ -37,7 +37,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 Directory = IndexingService.IndexPath,
                 IsLocal = IndexingService.IsLocal,
-                Location = ConfigService.Current.LuceneIndexLocation
+                Location = (await ConfigService.GetCurrent()).LuceneIndexLocation
             };
 
             try

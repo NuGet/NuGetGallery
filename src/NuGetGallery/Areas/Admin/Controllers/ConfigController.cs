@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -23,15 +24,18 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public virtual ActionResult Index()
+        public virtual async Task<ActionResult> Index()
         {
+            var currentConfig = (await _config.GetCurrent());
+            var featuresConfig = (await _config.GetFeatures());
+
             var settings = (from p in typeof(IAppConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                         where p.CanRead
                         select p)
                        .ToDictionary(p => p.Name, p =>
                        {
                            var propertyType = p.PropertyType;
-                           var propertyValue = p.GetValue(_config.Current);
+                           var propertyValue = p.GetValue(currentConfig);
 
                            if (propertyValue != null && p.Name.ToLowerInvariant().Contains("connectionstring"))
                            {
@@ -43,7 +47,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var features = (from p in typeof(FeatureConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                             where p.CanRead
-                            select new FeatureConfigViewModel(p, _config.Features))
+                            select new FeatureConfigViewModel(p, featuresConfig))
                             .ToList();
 
 

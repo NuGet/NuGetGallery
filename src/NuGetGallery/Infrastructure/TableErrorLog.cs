@@ -203,44 +203,4 @@ namespace NuGetGallery.Infrastructure
             return pos.ToString(CultureInfo.InvariantCulture);
         }
     }
-
-    public class TableErrorLogWrapper : TableErrorLog
-    {
-        private IGalleryConfigurationService _configService;
-
-        public TableErrorLogWrapper(IGalleryConfigurationService configService)
-            : base(configService.Current.AzureStorageConnectionString)
-        {
-            _configService = configService;
-        }
-
-        private void InitializeEntityList()
-        {
-            var oldConnectionString = _connectionString;
-            _connectionString = _configService.Current.AzureStorageConnectionString;
-
-            if (oldConnectionString != _connectionString)
-            {
-                _entityList = GetEntityList();
-            }
-        }
-
-        public override ErrorLogEntry GetError(string id)
-        {
-            InitializeEntityList();
-            return base.GetError(id);
-        }
-
-        public override int GetErrors(int pageIndex, int pageSize, IList errorEntryList)
-        {
-            InitializeEntityList();
-            return base.GetErrors(pageIndex, pageSize, errorEntryList);
-        }
-
-        public override string Log(Error error)
-        {
-            InitializeEntityList();
-            return base.Log(error);
-        }
-    }
 }

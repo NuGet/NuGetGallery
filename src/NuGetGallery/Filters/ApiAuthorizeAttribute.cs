@@ -15,7 +15,7 @@ namespace NuGetGallery.Filters
 {
     public sealed class ApiAuthorizeAttribute : AuthorizeAttribute
     {
-        public override void OnAuthorization(AuthorizationContext filterContext)
+        public override async void OnAuthorization(AuthorizationContext filterContext)
         {
             // Add a warning header if the API key is about to expire (or has expired)
             var identity = filterContext.HttpContext.User.Identity as ClaimsIdentity;
@@ -29,8 +29,8 @@ namespace NuGetGallery.Filters
                 var apiKeyCredential = user.Credentials.FirstOrDefault(c => c.Value == apiKey);
                 if (apiKeyCredential != null && apiKeyCredential.Expires.HasValue)
                 {
-                    var accountUrl = controller.NuGetContext.Config.GetSiteRoot(
-                        controller.NuGetContext.Config.Current.RequireSSL).TrimEnd('/') + "/account";
+                    var accountUrl = (await controller.NuGetContext.Config.GetSiteRoot(
+                        (await controller.NuGetContext.Config.GetCurrent()).RequireSSL)).TrimEnd('/') + "/account";
 
                     var expirationPeriod = apiKeyCredential.Expires.Value - DateTime.UtcNow;
                     if (apiKeyCredential.HasExpired)
@@ -40,7 +40,7 @@ namespace NuGetGallery.Filters
                             Constants.WarningHeaderName,
                             string.Format(CultureInfo.InvariantCulture, Strings.WarningApiKeyExpired, accountUrl));
                     }
-                    else if (expirationPeriod.TotalDays <= controller.NuGetContext.Config.Current.WarnAboutExpirationInDaysForApiKeyV1)
+                    else if (expirationPeriod.TotalDays <= (await controller.NuGetContext.Config.GetCurrent()).WarnAboutExpirationInDaysForApiKeyV1)
                     {
                         // about to expire warning
                         filterContext.HttpContext.Response.Headers.Add(
