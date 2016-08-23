@@ -14,7 +14,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
  1. Visual Studio 2015 - Custom install so that you may also install Microsoft SQL Server Data Tools. This will provide the LocalDB that Windows Azure SDK requires.
  2. PowerShell 2.0 (comes with Windows 7+)
  3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
- 4. [Windows Azure SDK](http://www.microsoft.com/windowsazure/sdk/) - Note that you may have to manually upgrade the ".Cloud" projects in the solution if a different SDK version is used.
+ 4. [Windows Azure SDK](http://www.microsoft.com/windowsazure/sdk/)
 2. Clone it!
     
     ```git clone git@github.com:NuGet/NuGetGallery.git```
@@ -28,8 +28,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
  1. We highly recommend using IIS Express. Use the [Web Platform Installer](http://microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though). Make sure to at least once run IIS Express as an administrator.
  2. In an ADMIN powershell prompt, run the `.\tools\Enable-LocalTestMe.ps1` file. It allows non-admins to host websites at: `http(s)://nuget.localtest.me`, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on `localtest.me`, check out [readme.localtest.me](http://readme.localtest.me). However, because [Server Name Indication](https://en.wikipedia.org/wiki/Server_Name_Indication) is not supported in the Network Shell on versions of Windows before 8, you must have at least Windows 8 to run this script successfully.
  3. If you're having trouble, go to the _Project Properties_ for the Website project, click on the _Web_ tab and change the URL to `localhost:port` where _port_ is some port number above 1024.
- 4. When running the application using the Azure Compute emulator, you may have to edit the `.\src\NuGetGallery.Cloud\ServiceConfiguration.Local.cscfg` file and set the certificate thumbprint for the setting `SSLCertificate` to the certificate thumbprint of the generated `nuget.localtest.me` certificate from step 2. You can get a list of certificates and their thumbprints using PowerShell, running `Get-ChildItem -path cert:\LocalMachine\My`.
-
+ 
 5. Create the Database!
   
   There are two ways you can create the databases. From Visual Studio 2015 or from the command line.
