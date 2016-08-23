@@ -22,6 +22,7 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration.SecretReader;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery
 {
@@ -54,6 +55,9 @@ namespace NuGetGallery
             builder.Register(c => configuration.Features)
                .AsSelf()
                .As<FeatureConfiguration>();
+
+            builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
+            builder.RegisterType<CredentialValidator>().As<ICredentialValidator>().SingleInstance();
 
             builder.RegisterInstance(LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .As<Lucene.Net.Store.Directory>()

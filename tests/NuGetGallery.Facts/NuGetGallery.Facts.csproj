@@ -362,6 +362,8 @@
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddlewareFacts.cs" />
+    <Compile Include="Authentication\TestCredentialBuilder.cs" />
+    <Compile Include="Authentication\V3HasherTests.cs" />
     <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
     <Compile Include="AutocompleteServicePackageVersionsQueryFacts.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />

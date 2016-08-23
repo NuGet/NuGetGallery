@@ -10,29 +10,51 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery
 {
     public partial class AuthenticationController
         : AppController
     {
-        // For sub-classes to initialize services themselves
-        protected AuthenticationController()
-        {
-        }
+        private readonly AuthenticationService _authService;
 
-        public AuthenticationService AuthService { get; protected set; }
-        public IUserService UserService { get; protected set; }
-        public IMessageService MessageService { get; protected set; }
+        private readonly IUserService _userService;
+
+        private readonly IMessageService _messageService;
+
+        private readonly ICredentialBuilder _credentialBuilder;
 
         public AuthenticationController(
             AuthenticationService authService,
             IUserService userService,
-            IMessageService messageService)
+            IMessageService messageService,
+            ICredentialBuilder credentialBuilder)
         {
-            AuthService = authService;
-            UserService = userService;
-            MessageService = messageService;
+            if (authService == null)
+            {
+                throw new ArgumentNullException(nameof(authService));
+            }
+
+            if (userService == null)
+            {
+                throw new ArgumentNullException(nameof(userService));
+            }
+
+            if (messageService == null)
+            {
+                throw new ArgumentNullException(nameof(messageService));
+            }
+
+            if (credentialBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(credentialBuilder));
+            }
+
+            _authService = authService;
+            _userService = userService;
+            _messageService = messageService;
+            _credentialBuilder = credentialBuilder;
         }
 
         /// <summary>
@@ -73,7 +95,7 @@ namespace NuGetGallery
                 return LogOnView(model);
             }
 
-            var user = await AuthService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
+            var user = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
 
             if (user == null)
             {
@@ -104,7 +126,7 @@ namespace NuGetGallery
             }
 
             // Create session
-            await AuthService.CreateSessionAsync(OwinContext, user);
+            await _authService.CreateSessionAsync(OwinContext, user);
             return SafeRedirect(returnUrl);
         }
 
@@ -121,7 +143,7 @@ namespace NuGetGallery
                     && !providers.Any(p => string.Equals(CredentialTypes.ExternalPrefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Challenge authentication using the first required authentication provider
-                    challenge = AuthService.Challenge(
+                    challenge = _authService.Challenge(
                         providers.First(),
                         Url.Action("LinkExternalAccount", "Authentication", new { ReturnUrl = returnUrl }));
 
@@ -143,7 +165,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ValidateAntiForgeryToken]
-        public async virtual Task<ActionResult> Register(LogOnViewModel model, string returnUrl, bool linkingAccount)
+        public virtual async Task<ActionResult> Register(LogOnViewModel model, string returnUrl, bool linkingAccount)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
@@ -169,23 +191,23 @@ namespace NuGetGallery
             {
                 if (linkingAccount)
                 {
-                    var result = await AuthService.ReadExternalLoginCredential(OwinContext);
+                    var result = await _authService.ReadExternalLoginCredential(OwinContext);
                     if (result.ExternalIdentity == null)
                     {
                         return ExternalLinkExpired();
                     }
 
-                    user = await AuthService.Register(
+                    user = await _authService.Register(
                         model.Register.Username,
                         model.Register.EmailAddress,
                         result.Credential);
                 }
                 else
                 {
-                    user = await AuthService.Register(
+                    user = await _authService.Register(
                         model.Register.Username,
                         model.Register.EmailAddress,
-                        CredentialBuilder.CreatePbkdf2Password(model.Register.Password));
+                        _credentialBuilder.CreatePasswordCredential(model.Register.Password));
                 }
             }
             catch (EntityException ex)
@@ -195,9 +217,9 @@ namespace NuGetGallery
             }
 
             // Send a new account email
-            if (NuGetContext.Config.Current.ConfirmEmailAddresses && !String.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
+            if (NuGetContext.Config.Current.ConfirmEmailAddresses && !string.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
             {
-                MessageService.SendNewAccountEmail(
+                _messageService.SendNewAccountEmail(
                     new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
                     Url.ConfirmationUrl(
                         "Confirm",
@@ -216,7 +238,7 @@ namespace NuGetGallery
             }
 
             // Create session
-            await AuthService.CreateSessionAsync(OwinContext, user);
+            await _authService.CreateSessionAsync(OwinContext, user);
             return RedirectFromRegister(returnUrl);
         }
 
@@ -252,15 +274,15 @@ namespace NuGetGallery
         [NonAction]
         public ActionResult ChallengeAuthentication(string returnUrl, string provider)
         {
-            return AuthService.Challenge(
+            return _authService.Challenge(
                 provider,
                 Url.Action("LinkExternalAccount", "Authentication", new { ReturnUrl = returnUrl }));
         }
 
-        public async virtual Task<ActionResult> LinkExternalAccount(string returnUrl)
+        public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl)
         {
             // Extract the external login info
-            var result = await AuthService.AuthenticateExternalLogin(OwinContext);
+            var result = await _authService.AuthenticateExternalLogin(OwinContext);
             if (result.ExternalIdentity == null)
             {
                 // User got here without an external login cookie (or an expired one)
@@ -280,7 +302,7 @@ namespace NuGetGallery
                 }
 
                 // Create session
-                await AuthService.CreateSessionAsync(OwinContext, result.Authentication);
+                await _authService.CreateSessionAsync(OwinContext, result.Authentication);
                 return SafeRedirect(returnUrl);
             }
             else
@@ -296,7 +318,7 @@ namespace NuGetGallery
                 User existingUser = null;
                 if (!string.IsNullOrEmpty(email))
                 {
-                    existingUser = UserService.FindByEmailAddress(email);
+                    existingUser = _userService.FindByEmailAddress(email);
                 }
 
                 var external = new AssociateExternalAccountViewModel()
@@ -338,7 +360,7 @@ namespace NuGetGallery
 
         private async Task<AuthenticatedUser> AssociateCredential(AuthenticatedUser user)
         {
-            var result = await AuthService.ReadExternalLoginCredential(OwinContext);
+            var result = await _authService.ReadExternalLoginCredential(OwinContext);
             if (result.ExternalIdentity == null)
             {
                 // User got here without an external login cookie (or an expired one)
@@ -346,17 +368,17 @@ namespace NuGetGallery
                 return null;
             }
 
-            await AuthService.AddCredential(user.User, result.Credential);
+            await _authService.AddCredential(user.User, result.Credential);
 
             // Notify the user of the change
-            MessageService.SendCredentialAddedNotice(user.User, result.Credential);
+            _messageService.SendCredentialAddedNotice(user.User, result.Credential);
 
             return new AuthenticatedUser(user.User, result.Credential);
         }
 
         private List<AuthenticationProviderViewModel> GetProviders()
         {
-            return (from p in AuthService.Authenticators.Values
+            return (from p in _authService.Authenticators.Values
                     where p.BaseConfig.Enabled
                     let ui = p.GetUI()
                     where ui != null && ui.ShowOnLoginPage

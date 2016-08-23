@@ -9,13 +9,14 @@ namespace NuGetGallery
     {
         public static class Password
         {
-            public static readonly string Prefix = "password.";
-            public static readonly string Pbkdf2 = Prefix + "pbkdf2";
-            public static readonly string Sha1 = Prefix + "sha1";
+            public const string Prefix = "password.";
+            public const string Pbkdf2 = Prefix + "pbkdf2";
+            public const string Sha1 = Prefix + "sha1";
+            public const string V3 = Prefix + "v3";
         }
 
-        public static readonly string ApiKeyV1 = "apikey.v1";
-        public static readonly string ExternalPrefix = "external.";
+        public const string ApiKeyV1 = "apikey.v1";
+        public const string ExternalPrefix = "external.";
 
         public static bool IsPassword(string type)
         {

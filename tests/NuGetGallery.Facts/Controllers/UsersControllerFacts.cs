@@ -11,6 +11,7 @@ using Moq;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery
@@ -53,12 +54,13 @@ namespace NuGetGallery
             public void LoadsDescriptionsOfCredentialsInToViewModel()
             {
                 // Arrange
+                var credentialBuilder = new CredentialBuilder();
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser(
                     "test",
-                    CredentialBuilder.CreatePbkdf2Password("hunter2"),
-                    CredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
-                    CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
+                    credentialBuilder.CreatePasswordCredential("hunter2"),
+                    TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -658,8 +660,8 @@ namespace NuGetGallery
                 var inputModel = new AccountViewModel();
                 controller.SetCurrentUser(new User()
                 {
-                    Credentials = new List<Credential>() {
-                        CredentialBuilder.CreatePbkdf2Password("abc")
+                    Credentials = new List<Credential> {
+                        new CredentialBuilder().CreatePasswordCredential("abc")
                     }
                 });
 
@@ -676,7 +678,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var user = new User("foo");
-                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("old"));
+                user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
 
                 GetMock<AuthenticationService>()
                     .Setup(u => u.ChangePassword(user, "old", "new", false))
@@ -714,7 +716,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var user = new User("foo");
-                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("old"));
+                user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
 
                 GetMock<AuthenticationService>()
                     .Setup(u => u.ChangePassword(user, "old", "new", false))
@@ -777,7 +779,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test",
-                    CredentialBuilder.CreatePbkdf2Password("password"));
+                    new CredentialBuilder().CreatePasswordCredential("password"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -796,7 +798,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test",
-                    CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
+                    new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -813,11 +815,12 @@ namespace NuGetGallery
             public async Task GivenValidRequest_ItRemovesCredAndSendsNotificationToUser()
             {
                 // Arrange
+                var credentialBuilder = new CredentialBuilder();
                 var fakes = Get<Fakes>();
-                var cred = CredentialBuilder.CreatePbkdf2Password("password");
+                var cred = credentialBuilder.CreatePasswordCredential("password");
                 var user = fakes.CreateUser("test",
                     cred,
-                    CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
+                    credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
 
                 GetMock<AuthenticationService>()
                     .Setup(a => a.RemoveCredential(user, cred))
@@ -847,7 +850,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
                 var user = fakes.CreateUser("test", cred);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -867,7 +870,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test",
-                    CredentialBuilder.CreatePbkdf2Password("password"));
+                    new CredentialBuilder().CreatePasswordCredential("password"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -884,11 +887,12 @@ namespace NuGetGallery
             public async Task GivenValidRequest_ItRemovesCredAndSendsNotificationToUser()
             {
                 // Arrange
+                var credentialBuilder = new CredentialBuilder();
                 var fakes = Get<Fakes>();
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
+                var cred = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
                 var user = fakes.CreateUser("test",
                     cred,
-                    CredentialBuilder.CreatePbkdf2Password("password"));
+                    credentialBuilder.CreatePasswordCredential("password"));
 
                 GetMock<AuthenticationService>()
                     .Setup(a => a.RemoveCredential(user, cred))

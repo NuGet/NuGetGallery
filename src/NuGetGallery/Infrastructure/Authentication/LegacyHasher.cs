@@ -1,85 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Web;
-using System.Web.Helpers;
 
-namespace NuGetGallery
+namespace NuGetGallery.Services.Authentication
 {
-    public class CryptographyService
+    public static class LegacyHasher
     {
         private const int SaltLengthInBytes = 16;
 
-        public static string GenerateHash(
-            Stream input,
-            string hashAlgorithmId = Constants.Sha512HashAlgorithmId)
-        {
-            input.Position = 0;
-
-            byte[] hashBytes;
-
-            using (var hashAlgorithm = HashAlgorithm.Create(hashAlgorithmId))
-            {
-                hashBytes = hashAlgorithm.ComputeHash(input);
-            }
-
-            var hash = Convert.ToBase64String(hashBytes);
-            return hash;
-        }
-
-        public static string GenerateSaltedHash(
-            string input,
-            string hashAlgorithmId)
-        {
-            if (hashAlgorithmId.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
-            {
-                return Crypto.HashPassword(input);
-            }
-
-            return GenerateLegacySaltedHash(input, hashAlgorithmId);
-        }
-
-        public static string GenerateToken()
-        {
-            var data = new byte[0x10];
-
-            using (var crypto = new RNGCryptoServiceProvider())
-            {
-                crypto.GetBytes(data);
-
-                return HttpServerUtility.UrlTokenEncode(data);
-            }
-        }
-
-        public static bool ValidateHash(
-            string hash,
-            byte[] input,
-            string hashAlgorithmId = Constants.Sha512HashAlgorithmId)
-        {
-            using (var tempStream = new MemoryStream(input))
-            {
-                return hash.Equals(GenerateHash(tempStream, hashAlgorithmId));
-            }
-        }
-
-        public static bool ValidateSaltedHash(
-            string hash,
-            string input,
-            string hashAlgorithmId)
-        {
-            if (hashAlgorithmId.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
-            {
-                return Crypto.VerifyHashedPassword(hashedPassword: hash, password: input);
-            }
-
-            return ValidateLegacySaltedHash(hash, input, hashAlgorithmId);
-        }
-
-        private static string GenerateLegacySaltedHash(string input, string hashAlgorithmId)
+        public static string GenerateHash(string input, string hashAlgorithmId)
         {
             var saltBytes = new byte[SaltLengthInBytes];
 
@@ -108,7 +41,7 @@ namespace NuGetGallery
             return saltedHash;
         }
 
-        private static bool ValidateLegacySaltedHash(string hash, string input, string hashAlgorithmId)
+        public static bool VerifyHash(string hash, string input, string hashAlgorithmId)
         {
             var saltPlusHashBytes = Convert.FromBase64String(hash);
 
