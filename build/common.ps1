@@ -182,7 +182,11 @@ Function Install-NuGet {
     param()		
 	$NuGetFolderPath = Split-Path -Path $NuGetExe -Parent
 	if (-not (Test-Path $NuGetFolderPath )) {
+		Trace-Log 'Creating folder "$($NuGetFolderPath)"'
 		New-Item $NuGetFolderPath -Type Directory | Out-Null
+	}
+	else {
+		Trace-Log 'Target folder "$($NuGetFolderPath)" already exists.'
 	}
 	
 	Trace-Log 'Downloading latest prerelease of nuget.exe'
