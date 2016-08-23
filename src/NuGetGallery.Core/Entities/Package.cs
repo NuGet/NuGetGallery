@@ -20,6 +20,7 @@ namespace NuGetGallery
             Dependencies = new HashSet<PackageDependency>();
             PackageEdits = new HashSet<PackageEdit>();
             PackageHistories = new HashSet<PackageHistory>();
+            PackageTypes = new HashSet<PackageTypeEntity>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             Listed = true;
         }
@@ -40,6 +41,8 @@ namespace NuGetGallery
         public DateTime Created { get; set; }
 
         public virtual ICollection<PackageDependency> Dependencies { get; set; }
+
+        public virtual ICollection<PackageTypeEntity> PackageTypes { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed but *IS* used for searches. Db column is nvarchar(max).
