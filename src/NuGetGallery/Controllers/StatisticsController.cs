@@ -148,9 +148,16 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
+            var dimensions = new []
+            {
+                Constants.StatisticsDimensions.Version,
+                Constants.StatisticsDimensions.ClientName,
+                Constants.StatisticsDimensions.ClientVersion,
+                Constants.StatisticsDimensions.Operation
+            };
 
-            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
+            StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
+            ProcessReport(report, groupby, dimensions, id);
 
             if (report != null)
             {
@@ -176,9 +183,14 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
+            var dimensions = new[] {
+                Constants.StatisticsDimensions.ClientName,
+                Constants.StatisticsDimensions.ClientVersion,
+                Constants.StatisticsDimensions.Operation };
+            
             StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
-            ProcessReport(report, groupby, new[] { "ClientName", "ClientVersion", "Operation" }, null);
+            ProcessReport(report, groupby, dimensions, null);
 
             if (report != null)
             {
@@ -204,7 +216,7 @@ namespace NuGetGallery
             var pivot = new string[4];
             if (groupby != null)
             {
-                //  process and validate the groupby query. unrecognized fields are ignored. others fields regarded for existance
+                // process and validate the groupby query. unrecognized fields are ignored. others fields regarded for existence
                 var dim = 0;
 
                 foreach (var dimension in dimensions)
@@ -222,7 +234,10 @@ namespace NuGetGallery
                     // the pivot array is used as the Columns in the report so we resize because this was the final set of columns
                     Array.Resize(ref pivot, dim);
                 }
+            }
 
+            if (groupby != null)
+            {
                 Tuple<StatisticsPivot.TableEntry[][], string> result = StatisticsPivot.GroupBy(report.Facts, pivot);
 
                 if (id != null)
@@ -252,7 +267,15 @@ namespace NuGetGallery
 
                 foreach (string dimension in dimensions)
                 {
-                    report.Dimensions.Add(new StatisticsDimension { Value = dimension, DisplayName = GetDimensionDisplayName(dimension), IsChecked = false });
+                    if (!report.Dimensions.Any(d => d.Value == dimension))
+                    {
+                        report.Dimensions.Add(new StatisticsDimension
+                        {
+                            Value = dimension,
+                            DisplayName = GetDimensionDisplayName(dimension),
+                            IsChecked = false
+                        });
+                    }
                 }
 
                 report.Table = null;
