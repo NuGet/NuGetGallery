@@ -39,7 +39,6 @@ namespace NuGetGallery.Configuration.SecretReader
         public async Task<string> GetSecretAsync(string secretName)
         {
             var cacheContainsKey = _cache.ContainsKey(secretName);
-            var secSinceLastRefresh = cacheContainsKey ? DateTime.Now.Subtract(_cache[secretName].Item2).TotalSeconds : -1;
             var mustRefresh = cacheContainsKey && DateTime.Now.Subtract(_cache[secretName].Item2).TotalSeconds >= _refreshIntervalSeconds;
 
             if (!cacheContainsKey || mustRefresh)
