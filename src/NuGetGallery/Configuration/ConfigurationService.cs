@@ -22,12 +22,10 @@ namespace NuGetGallery.Configuration
         protected const string SettingPrefix = "Gallery.";
         protected const string FeaturePrefix = "Feature.";
         private bool _notInCloud;
-        private readonly Lazy<string> _httpSiteRootThunk;
-        private readonly Lazy<string> _httpsSiteRootThunk;
+        private readonly Lazy<Task<string>> _httpSiteRootThunk;
+        private readonly Lazy<Task<string>> _httpsSiteRootThunk;
         private ISecretReaderFactory _secretReaderFactory;
         private Lazy<ISecretInjector> _secretInjector;
-        private Lazy<IAppConfiguration> _lazyAppConfiguration;
-        private Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
 
         public ConfigurationService(ISecretReaderFactory secretReaderFactory)
         {
@@ -39,11 +37,8 @@ namespace NuGetGallery.Configuration
             _secretReaderFactory = secretReaderFactory;
             _secretInjector = new Lazy<ISecretInjector>(InitSecretInjector, isThreadSafe: false);
 
-            _httpSiteRootThunk = new Lazy<string>(GetHttpSiteRoot);
-            _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
-
-            _lazyAppConfiguration = new Lazy<IAppConfiguration>(() => ResolveSettings().Result);
-            _lazyFeatureConfiguration = new Lazy<FeatureConfiguration>(() => ResolveFeatures().Result);
+            _httpSiteRootThunk = new Lazy<Task<string>>(GetHttpSiteRoot);
+            _httpsSiteRootThunk = new Lazy<Task<string>>(GetHttpsSiteRoot);
         }
 
         public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
@@ -61,18 +56,24 @@ namespace NuGetGallery.Configuration
             return ReadSetting(key.Replace("::", ".")).Result;
         }
 
-        public IAppConfiguration Current => _lazyAppConfiguration.Value;
+        public virtual async Task<IAppConfiguration> GetCurrent()
+        {
+            return await ResolveSettings();
+        }
 
-        public FeatureConfiguration Features => _lazyFeatureConfiguration.Value;
+        public async Task<FeatureConfiguration> GetFeatures()
+        {
+            return await ResolveFeatures();
+        }
 
         /// <summary>
         /// Gets the site root using the specified protocol
         /// </summary>
         /// <param name="useHttps">If true, the root will be returned in HTTPS form, otherwise, HTTP.</param>
         /// <returns></returns>
-        public string GetSiteRoot(bool useHttps)
+        public async Task<string> GetSiteRoot(bool useHttps)
         {
-            return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
+            return await (useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value);
         }
 
         public async Task<T> ResolveConfigObject<T>(T instance, string prefix)
@@ -211,7 +212,7 @@ namespace NuGetGallery.Configuration
             return WebConfigurationManager.ConnectionStrings[settingName];
         }
       
-        private string GetHttpSiteRoot()
+        private async Task<string> GetHttpSiteRoot()
         {
             var request = GetCurrentRequest();
             string siteRoot;
@@ -222,7 +223,7 @@ namespace NuGetGallery.Configuration
             }
             else
             {
-                siteRoot = Current.SiteRoot;
+                siteRoot = (await GetCurrent()).SiteRoot;
             }
 
             if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
@@ -239,9 +240,9 @@ namespace NuGetGallery.Configuration
             return siteRoot;
         }
 
-        private string GetHttpsSiteRoot()
+        private async Task<string> GetHttpsSiteRoot()
         {
-            var siteRoot = _httpSiteRootThunk.Value;
+            var siteRoot = await _httpSiteRootThunk.Value;
 
             if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
             {

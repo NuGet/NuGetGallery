@@ -444,6 +444,11 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n"
                     },
                     new Credential());
+
+                GetMock<IAppConfiguration>()
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
                     .CompletesWith(authUser);
@@ -569,7 +574,12 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n"
                     },
                     new Credential());
+
                 var externalCred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+
+                GetMock<IAppConfiguration>()
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred))

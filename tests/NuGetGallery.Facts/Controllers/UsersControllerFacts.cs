@@ -20,13 +20,13 @@ namespace NuGetGallery
         public class TheAccountAction : TestContainer
         {
             [Fact]
-            public void WillGetCuratedFeedsManagedByTheCurrentUser()
+            public async void WillGetCuratedFeedsManagedByTheCurrentUser()
             {
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(new User { Key = 42 });
 
                 // act
-                controller.Account();
+                await controller.Account();
 
                 // verify
                 GetMock<ICuratedFeedService>()
@@ -34,7 +34,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillReturnTheAccountViewModelWithTheCuratedFeeds()
+            public async void WillReturnTheAccountViewModelWithTheCuratedFeeds()
             {
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(new User { Key = 42 });
@@ -43,14 +43,14 @@ namespace NuGetGallery
                     .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
 
                 // act
-                var model = ResultAssert.IsView<AccountViewModel>(controller.Account(), viewName: "Account");
+                var model = ResultAssert.IsView<AccountViewModel>(await controller.Account(), viewName: "Account");
 
                 // verify
                 Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
             }
 
             [Fact]
-            public void LoadsDescriptionsOfCredentialsInToViewModel()
+            public async void LoadsDescriptionsOfCredentialsInToViewModel()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -63,7 +63,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = controller.Account();
+                var result = await controller.Account();
 
                 // Assert
                 var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
@@ -86,6 +86,10 @@ namespace NuGetGallery
                     UnconfirmedEmailAddress = "to@example.com",
                     EmailConfirmationToken = "confirmation"
                 };
+
+                GetMock<IAppConfiguration>()
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
 
                 string sentConfirmationUrl = null;
                 MailAddress sentToAddress = null;

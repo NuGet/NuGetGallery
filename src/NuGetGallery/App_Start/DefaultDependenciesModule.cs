@@ -54,14 +54,14 @@ namespace NuGetGallery
             if (!string.IsNullOrEmpty((await configuration.GetCurrent()).AzureStorageConnectionString))
             {
                 var tableErrorLogFactory = new ConfigObjectDelegate<TableErrorLog>(async () => new TableErrorLog((await configuration.GetCurrent()).AzureStorageConnectionString), async () => (await configuration.GetCurrent()).AzureStorageConnectionString);
-                builder.Register(c => tableErrorLogFactory.Get())
+                builder.Register(c => tableErrorLogFactory.Get().Result)
                     .As<ErrorLog>()
                     .InstancePerLifetimeScope();
             }
             else
             {
                 var sqlErrorLogFactory = new ConfigObjectDelegate<SqlErrorLog>(async () => new SqlErrorLog((await configuration.GetCurrent()).SqlConnectionString), async () => (await configuration.GetCurrent()).SqlConnectionString);
-                builder.Register(c => sqlErrorLogFactory.Get())
+                builder.Register(c => sqlErrorLogFactory.Get().Result)
                     .As<ErrorLog>()
                     .InstancePerLifetimeScope();
             }
@@ -76,7 +76,7 @@ namespace NuGetGallery
                 .As<IContentService>()
                 .SingleInstance();
 
-            builder.Register(async (c) => new EntitiesContext((await configuration.GetCurrent()).SqlConnectionString, readOnly: (await configuration.GetCurrent()).ReadOnlyMode))
+            builder.Register(c => new EntitiesContext(configuration.GetCurrent().Result.SqlConnectionString, readOnly: configuration.GetCurrent().Result.ReadOnlyMode))
                 .AsSelf()
                 .As<IEntitiesContext>()
                 .As<DbContext>()
@@ -132,7 +132,7 @@ namespace NuGetGallery
                 .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(async (c) => new SupportRequestDbContext((await configuration.GetCurrent()).SqlConnectionStringSupportRequest))
+            builder.Register(c => new SupportRequestDbContext(configuration.GetCurrent().Result.SqlConnectionStringSupportRequest))
                 .AsSelf()
                 .As<ISupportRequestDbContext>()
                 .InstancePerLifetimeScope();
@@ -300,7 +300,7 @@ namespace NuGetGallery
             }
             else
             {
-                builder.Register(async (c) => new ExternalSearchService(diagnosticsService, (await configuration.GetCurrent()).ServiceDiscoveryUri, (await configuration.GetCurrent()).SearchServiceResourceType))
+                builder.Register(c => new ExternalSearchService(diagnosticsService, configuration.GetCurrent().Result.ServiceDiscoveryUri, configuration.GetCurrent().Result.SearchServiceResourceType))
                     .AsSelf()
                     .As<ISearchService>()
                     .As<IIndexingService>()
@@ -312,12 +312,12 @@ namespace NuGetGallery
             if ((await configuration.GetCurrent()).ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty((await configuration.GetCurrent()).AutocompleteServiceResourceType))
             {
-                builder.Register(async (c) => new AutocompleteServicePackageIdsQuery(await configuration.GetCurrent()))
+                builder.Register(c => new AutocompleteServicePackageIdsQuery(configuration.GetCurrent().Result))
                     .AsSelf()
                     .As<IPackageIdsQuery>()
                     .SingleInstance();
 
-                builder.Register(async (c) => new AutocompleteServicePackageVersionsQuery(await configuration.GetCurrent()))
+                builder.Register(c => new AutocompleteServicePackageVersionsQuery(configuration.GetCurrent().Result))
                     .AsSelf()
                     .As<IPackageVersionsQuery>()
                     .InstancePerLifetimeScope();

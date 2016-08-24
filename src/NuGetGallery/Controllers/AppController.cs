@@ -6,6 +6,7 @@ using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -52,7 +53,7 @@ namespace NuGetGallery
         /// Called before the action method is invoked.
         /// </summary>
         /// <param name="filterContext">Information about the current request and action.</param>
-        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        protected override async void OnActionExecuting(ActionExecutingContext filterContext)
         {
             if (!filterContext.IsChildAction)
             {
@@ -63,6 +64,14 @@ namespace NuGetGallery
                 {
                     Thread.CurrentThread.CurrentCulture = clientCulture;
                 }
+            }
+
+            // This check is for the unit tests. Normally this should never be null.
+            // (NuGetGallery.StatisticsControllerFacts+TheTotalsAllAction.UseClientCultureIfLanguageHeadersIsPresent)
+            if (NuGetContext.Config != null)
+            {
+                ViewBag.CurrentConfig = await NuGetContext.Config.GetCurrent();
+                ViewBag.CurrentFeatures = await NuGetContext.Config.GetFeatures();
             }
 
             base.OnActionExecuting(filterContext);

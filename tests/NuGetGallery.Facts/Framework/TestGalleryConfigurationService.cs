@@ -4,6 +4,8 @@
 using System.Collections.Generic;
 using NuGetGallery.Configuration;
 using NuGetGallery.Configuration.SecretReader;
+using System.Threading.Tasks;
+using Moq;
 
 namespace NuGetGallery.Framework
 {
@@ -11,8 +13,11 @@ namespace NuGetGallery.Framework
     {
         public IDictionary<string, string> Settings = new Dictionary<string, string>();
 
-        public TestGalleryConfigurationService() : base(new EmptySecretReaderFactory())
+        private IAppConfiguration _currentConfig;
+
+        public TestGalleryConfigurationService(IAppConfiguration currentConfig) : base(new EmptySecretReaderFactory())
         {
+            _currentConfig = currentConfig;
         }
 
         protected override string GetAppSetting(string settingName)
@@ -24,6 +29,11 @@ namespace NuGetGallery.Framework
 
             // Will cause ResolveConfigObject to populate a class with default values.
             return string.Empty;
+        }
+
+        public override async Task<IAppConfiguration> GetCurrent()
+        {
+            return await Task.FromResult(_currentConfig);
         }
     }
 }

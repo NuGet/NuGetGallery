@@ -563,7 +563,6 @@ namespace NuGetGallery
                 var controller = CreateController(aggregateStatsService, request);
 
                 // Act
-
                 var result = await InvokeAction(() => (controller.Totals()), controller) as JsonResult;
 
                 // Asssert
@@ -611,8 +610,6 @@ namespace NuGetGallery
                 return (T)actionExecutedContext.Result;
             }
         }
-
-
 
         public static StatisticsController CreateController(Mock<IAggregateStatsService> aggregateStatsService, Mock<HttpRequestBase> request = null)
         {

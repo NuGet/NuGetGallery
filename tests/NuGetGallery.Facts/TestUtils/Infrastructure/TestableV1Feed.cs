@@ -4,6 +4,7 @@
 using System.Web;
 using NuGetGallery.Configuration;
 using NuGetGallery.Controllers;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.TestUtils.Infrastructure
 {
@@ -22,7 +23,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
             return FeedServiceHelpers.GetMockContext();
         }
 
-        public string GetSiteRootForTest()
+        public Task<string> GetSiteRootForTest()
         {
             return GetSiteRoot();
         }

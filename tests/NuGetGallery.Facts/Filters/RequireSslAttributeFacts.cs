@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.Filters
 {
@@ -21,7 +22,10 @@ namespace NuGetGallery.Filters
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsSecureConnection).Returns(false);
             var context = mockAuthContext.Object;
 
-            var attribute = new RequireSslAttribute() { Configuration = mockConfig.Object };
+            var mockConfigService = new Mock<IGalleryConfigurationService>();
+            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockConfig.Object));
+
+            var attribute = new RequireSslAttribute() { ConfigService = mockConfigService.Object };
             var result = new ViewResult();
             context.Result = result;
 
@@ -41,7 +45,9 @@ namespace NuGetGallery.Filters
             mockConfig.Setup(cfg => cfg.RequireSSL).Returns(true);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsSecureConnection).Returns(true);
             var context = mockAuthContext.Object;
-            var attribute = new RequireSslAttribute() { Configuration = mockConfig.Object };
+            var mockConfigService = new Mock<IGalleryConfigurationService>();
+            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockConfig.Object));
+            var attribute = new RequireSslAttribute() { ConfigService = mockConfigService.Object };
             var result = new ViewResult();
             context.Result = result;
 
@@ -69,9 +75,12 @@ namespace NuGetGallery.Filters
             mockConfig.Setup(cfg => cfg.RequireSSL).Returns(true);
             mockConfig.Setup(cfg => cfg.SSLPort).Returns(port);
 
+            var mockConfigService = new Mock<IGalleryConfigurationService>();
+            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockConfig.Object));
+
             var attribute = new RequireSslAttribute()
             {
-                Configuration = mockConfig.Object
+                ConfigService = mockConfigService.Object
             };
 
             var context = mockAuthContext.Object;
@@ -95,7 +104,6 @@ namespace NuGetGallery.Filters
         {
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
-            var mockConfig = new Mock<IAppConfiguration>();
 
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsLocal).Returns(false);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.HttpMethod).Returns(method);
@@ -103,12 +111,15 @@ namespace NuGetGallery.Filters
             mockAuthContext.SetupGet(c => c.HttpContext.Request.RawUrl).Returns("/api/create");
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsSecureConnection).Returns(false);
 
+            var mockConfig = new Mock<IAppConfiguration>();
             mockConfig.Setup(cfg => cfg.RequireSSL).Returns(true);
+            var mockConfigService = new Mock<IGalleryConfigurationService>();
+            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockConfig.Object));
             var context = mockAuthContext.Object;
 
             var attribute = new RequireSslAttribute()
             {
-                Configuration = mockConfig.Object
+                ConfigService = mockConfigService.Object
             };
 
             // Act

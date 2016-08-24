@@ -416,19 +416,14 @@ namespace NuGetGallery
 
         public class TestableUserService : UserService
         {
-            public Mock<IAppConfiguration> MockConfig { get; protected set; }
             public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
             public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
 
             public TestableUserService()
             {
-                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
                 UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
                 CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
                 Auditing = new TestAuditingService();
-
-                // Set ConfirmEmailAddress to a default of true
-                MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);
             }
         }
 
@@ -448,7 +443,6 @@ namespace NuGetGallery
 
             public TestableUserServiceWithDBFaking()
             {
-                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
                 UserRepository = new EntityRepository<User>(FakeEntitiesContext = new FakeEntitiesContext());
                 Auditing = new TestAuditingService();
             }

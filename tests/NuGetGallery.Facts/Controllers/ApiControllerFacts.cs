@@ -57,9 +57,11 @@ namespace NuGetGallery
 
             MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
 
+            var mockFeatureConfig = new Mock<FeatureConfiguration>();
+            mockFeatureConfig.Setup(s => s.TrackPackageDownloadCountInLocalDatabase).Returns(false);
+
             MockConfigurationService = new Mock<IGalleryConfigurationService>();
-            MockConfigurationService.SetupGet(s => s.Features.TrackPackageDownloadCountInLocalDatabase)
-                .Returns(false);
+            MockConfigurationService.Setup(s => s.GetFeatures()).Returns(Task.FromResult(mockFeatureConfig.Object));
             ConfigurationService = MockConfigurationService.Object;
 
             AuditingService = new TestAuditingService();
