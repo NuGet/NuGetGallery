@@ -1376,7 +1376,6 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
-    <Compile Include="Services\CloudAuditingServiceWrapper.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />

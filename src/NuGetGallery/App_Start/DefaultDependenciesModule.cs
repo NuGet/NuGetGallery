@@ -183,11 +183,12 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IStatusService>()
                 .InstancePerLifetimeScope();
-
-            var settings = (await configuration.GetCurrent());
+            
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                 {
+                    var settings = configuration.GetCurrent().Result;
+
                     if (settings.SmtpUri != null && settings.SmtpUri.IsAbsoluteUri)
                     {
                         var smtpUri = new SmtpUri(settings.SmtpUri);
@@ -246,7 +247,7 @@ namespace NuGetGallery
                     ConfigureForLocalFileSystem(builder, configuration);
                     break;
                 case StorageType.AzureStorage:
-                    ConfigureForAzureStorage(builder);
+                    ConfigureForAzureStorage(builder, configuration);
                     break;
             }
 
@@ -370,7 +371,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             builder.RegisterType<CloudBlobClientWrapper>()
                 .AsSelf()
@@ -417,7 +418,11 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIP().Result;
 
-            builder.RegisterType<CloudAuditingServiceWrapper>()
+            var cloudAuditingServiceFactory = new ConfigObjectDelegate<AuditingService>(
+                async () => new CloudAuditingService(instanceId, localIp, (await configuration.GetCurrent()).AzureStorageConnectionString, CloudAuditingService.GetAspNetOnBehalfOf), 
+                async () => (await configuration.GetCurrent()).AzureStorageConnectionString);
+
+            builder.Register(c => cloudAuditingServiceFactory.Get().Result)
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();
