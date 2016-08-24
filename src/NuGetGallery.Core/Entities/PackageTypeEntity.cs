@@ -18,6 +18,7 @@ namespace NuGetGallery
 
         public string Version { get; set; }
 
+        [Key]
         public int Key { get; set; }
     }
 }
