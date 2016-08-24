@@ -17,7 +17,6 @@ Packages.dgml
 *.sln.docstates
 
 # Build results
-
 [Dd]ebug/
 [Rr]elease/
 x64/
