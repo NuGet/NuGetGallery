@@ -148,7 +148,7 @@ Desktop.ini
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
 
-# Mac crap
+# Mac
 .DS_Store
 
 # NuGetGallery Specific Ignores
