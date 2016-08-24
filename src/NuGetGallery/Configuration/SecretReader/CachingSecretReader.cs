@@ -38,18 +38,24 @@ namespace NuGetGallery.Configuration.SecretReader
             
         public async Task<string> GetSecretAsync(string secretName)
         {
-            var cacheContainsKey = _cache.ContainsKey(secretName);
-            var mustRefresh = cacheContainsKey && DateTime.Now.Subtract(_cache[secretName].Item2).TotalSeconds >= _refreshIntervalSeconds;
-
-            if (!cacheContainsKey || mustRefresh)
+            if (_cache.ContainsKey(secretName))
             {
-                if (!cacheContainsKey) _trace.Information("Cache miss for setting " + secretName);
-                else if (mustRefresh) _trace.Information("Must refresh setting " + secretName);
-
-                var secretValue = await _internalReader.GetSecretAsync(secretName);
-                _cache[secretName] = Tuple.Create<string, DateTime>(secretValue, DateTime.Now);
+                if (DateTime.Now.Subtract(_cache[secretName].Item2).TotalSeconds < _refreshIntervalSeconds)
+                {
+                    // If the secret is in the cache and does not need to be refreshed, return from the cache
+                    return _cache[secretName].Item1;
+                } else
+                {
+                    _trace.Information("Must refresh setting " + secretName);
+                }
+            } else
+            {
+                _trace.Information("Cache miss for setting " + secretName);
             }
 
+            // If the secret is not in the cache or needs to be refreshed, refresh from KeyVault
+            var secretValue = await _internalReader.GetSecretAsync(secretName);
+            _cache[secretName] = Tuple.Create<string, DateTime>(secretValue, DateTime.Now);
             return _cache[secretName].Item1;
         }
     }
