@@ -5,14 +5,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
-    public class PackageTypeEntity
+    public class PackageType
         : IEntity
     {
         public Package Package { get; set; }
         public int PackageKey { get; set; }
 
         /// <remarks>
-        ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
+        ///     Has a max length of 512. Is indexed. Db column is nvarchar(512).
         /// </remarks>
         public string Name { get; set; }
 

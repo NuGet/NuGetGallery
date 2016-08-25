@@ -34,7 +34,7 @@ namespace NuGetGallery
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            IEnumerable<PackageType> packageTypes = null)
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null)
         {
             using (var streamWriter = new StreamWriter(stream, new UTF8Encoding(false, true), 1024, leaveStreamOpen))
             {
@@ -63,7 +63,7 @@ namespace NuGetGallery
             }
         }
 
-        private static string WritePackageTypes(IEnumerable<PackageType> packageTypes)
+        private static string WritePackageTypes(IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes)
         {
             if (packageTypes == null || !packageTypes.Any())
             {
@@ -141,7 +141,7 @@ namespace NuGetGallery
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            IEnumerable<PackageType> packageTypes = null,
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
             Action<ZipArchive> populatePackage = null)
         {
             return CreateTestPackageStream(packageArchive =>

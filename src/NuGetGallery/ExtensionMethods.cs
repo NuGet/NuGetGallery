@@ -98,11 +98,11 @@ namespace NuGetGallery
             }
         }
 
-        public static IEnumerable<PackageTypeEntity> AsPackageTypeEntityEnumerable(this IEnumerable<PackageType> packageTypes)
+        public static IEnumerable<PackageType> AsPackageTypeEnumerable(this IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes)
         {
             foreach (var packageType in packageTypes)
             {
-                yield return new PackageTypeEntity
+                yield return new PackageType
                 {
                     Name = packageType.Name,
                     Version = packageType.Version.ToString()

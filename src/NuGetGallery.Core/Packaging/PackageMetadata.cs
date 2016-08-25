@@ -15,13 +15,13 @@ namespace NuGetGallery.Packaging
         private readonly Dictionary<string, string> _metadata;
         private readonly IReadOnlyCollection<PackageDependencyGroup> _dependencyGroups;
         private readonly IReadOnlyCollection<FrameworkSpecificGroup> _frameworkReferenceGroups;
-        private readonly IReadOnlyCollection<PackageType> _packageTypes;
+        private readonly IReadOnlyCollection<NuGet.Packaging.Core.PackageType> _packageTypes;
 
         public PackageMetadata(
             Dictionary<string, string> metadata,
             IEnumerable<PackageDependencyGroup> dependencyGroups, 
             IEnumerable<FrameworkSpecificGroup> frameworkGroups,
-            IEnumerable<PackageType> packageTypes,
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes,
             NuGetVersion minClientVersion)
         {
             _metadata = new Dictionary<string, string>(metadata, StringComparer.OrdinalIgnoreCase);
@@ -100,7 +100,7 @@ namespace NuGetGallery.Packaging
             return _frameworkReferenceGroups;
         }
 
-        public IReadOnlyCollection<PackageType> GetPackageTypes()
+        public IReadOnlyCollection<NuGet.Packaging.Core.PackageType> GetPackageTypes()
         {
             return _packageTypes;
         }

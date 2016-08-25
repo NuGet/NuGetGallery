@@ -147,7 +147,7 @@ namespace NuGetGallery
                 .HasForeignKey(pd => pd.PackageKey);
 
             modelBuilder.Entity<Package>()
-                .HasMany<PackageTypeEntity>(p => p.PackageTypes)
+                .HasMany<PackageType>(p => p.PackageTypes)
                 .WithRequired(pt => pt.Package)
                 .HasForeignKey(pt => pt.PackageKey);
 

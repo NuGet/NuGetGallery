@@ -37,7 +37,7 @@ namespace NuGetGallery
             Uri iconUrl = null,
             bool requireLicenseAcceptance = true,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            IEnumerable<PackageType> packageTypes = null)
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null)
         {
             licenseUrl = licenseUrl ?? new Uri("http://thelicenseurl/");
             projectUrl = projectUrl ?? new Uri("http://theprojecturl/");
@@ -78,8 +78,8 @@ namespace NuGetGallery
             {
                 packageTypes = new[]
                 {
-                    new PackageType("dependency", new Version("1.0.0")),
-                    new PackageType("DotNetCliTool", new Version("2.1.1"))
+                    new NuGet.Packaging.Core.PackageType("dependency", new Version("1.0.0")),
+                    new NuGet.Packaging.Core.PackageType("DotNetCliTool", new Version("2.1.1"))
                 };
             }
 

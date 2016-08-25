@@ -8,13 +8,13 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             CreateTable(
-                "dbo.PackageTypeEntities",
+                "dbo.PackageTypes",
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
                         PackageKey = c.Int(nullable: false),
-                        Name = c.String(),
-                        Version = c.String(),
+                        Name = c.String(maxLength: 512),
+                        Version = c.String(maxLength: 128),
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
@@ -24,9 +24,9 @@ namespace NuGetGallery.Migrations
         
         public override void Down()
         {
-            DropForeignKey("dbo.PackageTypeEntities", "PackageKey", "dbo.Packages");
-            DropIndex("dbo.PackageTypeEntities", new[] { "PackageKey" });
-            DropTable("dbo.PackageTypeEntities");
+            DropForeignKey("dbo.PackageTypes", "PackageKey", "dbo.Packages");
+            DropIndex("dbo.PackageTypes", new[] { "PackageKey" });
+            DropTable("dbo.PackageTypes");
         }
     }
 }

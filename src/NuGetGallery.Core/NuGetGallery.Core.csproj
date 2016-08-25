@@ -178,7 +178,7 @@
     <Compile Include="Entities\PackageLicenseReport.cs" />
     <Compile Include="Entities\PackageOwnerRequest.cs" />
     <Compile Include="Entities\PackageRegistration.cs" />
-    <Compile Include="Entities\PackageTypeEntity.cs" />
+    <Compile Include="Entities\PackageType.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
