@@ -785,9 +785,9 @@
     <Compile Include="Migrations\201607190842411_CredentialLastUsed.Designer.cs">
       <DependentUpon>201607190842411_CredentialLastUsed.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201608240016397_AddPackageTypesToDb.cs" />
-    <Compile Include="Migrations\201608240016397_AddPackageTypesToDb.Designer.cs">
-      <DependentUpon>201608240016397_AddPackageTypesToDb.cs</DependentUpon>
+    <Compile Include="Migrations\201608251939567_AddPackageTypes.cs" />
+    <Compile Include="Migrations\201608251939567_AddPackageTypes.Designer.cs">
+      <DependentUpon>201608251939567_AddPackageTypes.cs</DependentUpon>
     </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
@@ -1900,8 +1900,8 @@
     <EmbeddedResource Include="Migrations\201607190842411_CredentialLastUsed.resx">
       <DependentUpon>201607190842411_CredentialLastUsed.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201608240016397_AddPackageTypesToDb.resx">
-      <DependentUpon>201608240016397_AddPackageTypesToDb.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201608251939567_AddPackageTypes.resx">
+      <DependentUpon>201608251939567_AddPackageTypes.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

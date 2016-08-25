@@ -127,6 +127,11 @@ namespace NuGetGallery
                 AsPackageDependencyEnumerable(dependencyGroups).ToList());
         }
 
+        public static string Flatten(this IEnumerable<PackageType> packageTypes)
+        {
+            return String.Join("|", packageTypes.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}", d.Name, d.Version)));
+        }
+
         public static string Flatten(this ICollection<PackageDependency> dependencies)
         {
             return

@@ -532,6 +532,8 @@ namespace NuGetGallery
 
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
+            package.FlattenedPackageTypes = package.PackageTypes.Flatten();
+
             return package;
         }
 

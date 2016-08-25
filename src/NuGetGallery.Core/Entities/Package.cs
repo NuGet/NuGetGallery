@@ -153,6 +153,9 @@ namespace NuGetGallery
         public string FlattenedAuthors { get; set; }
 
         public string FlattenedDependencies { get; set; }
+
+        public string FlattenedPackageTypes { get; set; }
+
         public int Key { get; set; }
 
         [StringLength(44)]
