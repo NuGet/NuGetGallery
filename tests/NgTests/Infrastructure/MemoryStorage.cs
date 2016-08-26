@@ -46,7 +46,8 @@ namespace NgTests.Infrastructure
         protected override Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
             StorageContent content;
-            Content.TryGetValue(resourceUri, out content);
+            // resourceUri might contain query strings, ignore it.
+            Content.TryGetValue(new Uri(resourceUri.GetLeftPart(UriPartial.Path)), out content);
             return Task.FromResult(content);
         }
 
