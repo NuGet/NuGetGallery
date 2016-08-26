@@ -18,6 +18,7 @@ using System.Web.WebPages;
 using Microsoft.Owin;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 
 namespace NuGetGallery
 {
@@ -84,7 +85,7 @@ namespace NuGetGallery
                 else
                 {
                     foreach (var dependency in dependencyGroup.Packages.Select(
-                        d => new {d.Id, d.VersionRange, dependencyGroup.TargetFramework}))
+                        d => new { d.Id, d.VersionRange, dependencyGroup.TargetFramework }))
                     {
                         yield return new PackageDependency
                         {
@@ -95,6 +96,19 @@ namespace NuGetGallery
                     }
                 }
             }
+        }
+
+        public static IEnumerable<PackageType> AsPackageTypeEnumerable(this IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes)
+        {
+            foreach (var packageType in packageTypes)
+            {
+                yield return new PackageType
+                {
+                    Name = packageType.Name,
+                    Version = packageType.Version.ToString()
+                };
+            }
+
         }
 
         public static string Flatten(this IEnumerable<string> list)
@@ -111,6 +125,11 @@ namespace NuGetGallery
         {
             return FlattenDependencies(
                 AsPackageDependencyEnumerable(dependencyGroups).ToList());
+        }
+
+        public static string Flatten(this IEnumerable<PackageType> packageTypes)
+        {
+            return String.Join("|", packageTypes.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}", d.Name, d.Version)));
         }
 
         public static string Flatten(this ICollection<PackageDependency> dependencies)
@@ -244,7 +263,7 @@ namespace NuGetGallery
             {
                 return new MailAddress(user.UnconfirmedEmailAddress, user.Username);
             }
-            
+
             return new MailAddress(user.EmailAddress, user.Username);
         }
 
