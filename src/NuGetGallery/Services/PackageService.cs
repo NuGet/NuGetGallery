@@ -509,17 +509,24 @@ namespace NuGetGallery
             }
 #pragma warning restore 618
 
-            var supportedFrameworks = GetSupportedFrameworks(packageArchive).Select(fn => fn.ToShortNameOrNull()).ToArray();
-            if (!supportedFrameworks.AnySafe(sf => sf == null))
-            {
-                ValidateSupportedFrameworks(supportedFrameworks);
+            var supportedFrameworks = GetSupportedFrameworks(packageArchive)
+                .ToArray();
 
-                foreach (var supportedFramework in supportedFrameworks)
+            if (!supportedFrameworks.Any(fx => fx != null && fx.IsAny))
+            {
+                var supportedFrameworkNames = supportedFrameworks
+                                .Select(fn => fn.ToShortNameOrNull())
+                                .Where(fn => fn != null)
+                                .ToArray();
+
+                ValidateSupportedFrameworks(supportedFrameworkNames);
+
+                foreach (var supportedFramework in supportedFrameworkNames)
                 {
-                    package.SupportedFrameworks.Add(new PackageFramework {TargetFramework = supportedFramework});
+                    package.SupportedFrameworks.Add(new PackageFramework { TargetFramework = supportedFramework });
                 }
             }
-
+            
             package.Dependencies = packageMetadata
                 .GetDependencyGroups()
                 .AsPackageDependencyEnumerable()
