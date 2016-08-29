@@ -935,29 +935,7 @@ namespace NuGetGallery
                 Assert.Equal("net40", package.SupportedFrameworks.First().TargetFramework);
                 Assert.Equal("net35", package.SupportedFrameworks.ElementAt(1).TargetFramework);
             }
-
-            [Fact]
-            private async Task WillNotSaveAnySupportedFrameworksWhenThereIsANullTargetFramework()
-            {
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
-                {
-                    mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                    mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageArchiveReader>())).Returns(
-                        new[]
-                        {
-                                           null,
-                                           NuGetFramework.Parse("net35")
-                        });
-                });
-                var nugetPackage = CreateNuGetPackage();
-                var currentUser = new User();
-
-                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
-
-                Assert.Empty(package.SupportedFrameworks);
-            }
-
+            
             [Fact]
             private async Task WillNotSaveAnySupportedFrameworksWhenThereIsAnAnyTargetFramework()
             {
