@@ -79,18 +79,6 @@ IF %ERRORLEVEL% NEQ 0 goto error
 if not "%TEAMCITY_VERSION%" == "" (
 	echo ##teamcity[blockClosed name='Run tests']
 )
-		
-REM Build cloud service
-if not "%TEAMCITY_VERSION%" == "" (
-	echo ##teamcity[blockOpened name='Build cloud service']
-)
-echo.
-echo Building cloud service...
-call :ExecuteCmd %msbuild% "src\NuGet.Services.BasicSearch.Cloud\NuGet.Services.BasicSearch.Cloud.ccproj" /t:Publish /p:Configuration="%config%";TargetProfile=Cloud /m /v:M /fl /flp:LogFile=msbuild.log;Verbosity=Normal /nr:false
-IF %ERRORLEVEL% NEQ 0 goto error
-if not "%TEAMCITY_VERSION%" == "" (
-	echo ##teamcity[blockClosed name='Build cloud service']
-)
 
 REM Package
 if not "%TEAMCITY_VERSION%" == "" (
@@ -109,8 +97,6 @@ IF %ERRORLEVEL% NEQ 0 goto error
 
 mkdir artifacts\octopus
 call :ExecuteCmd tools\nuget.exe pack "src\Ng\Ng.csproj" -o artifacts\octopus -p Configuration=%config% %version% -NoPackageAnalysis
-IF %ERRORLEVEL% NEQ 0 goto error
-call :ExecuteCmd tools\nuget.exe pack "src\NuGet.Services.BasicSearch.Cloud\NuGet.Services.BasicSearch.Cloud.nuspec" -o artifacts\octopus -p Configuration=%config% %version% -NoPackageAnalysis
 IF %ERRORLEVEL% NEQ 0 goto error
 if not "%TEAMCITY_VERSION%" == "" (
 	echo ##teamcity[blockClosed name='Package artifacts']
