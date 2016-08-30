@@ -65,8 +65,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         {
             string relativeAddress = "index.json";
             var resourceUri = new Uri(storage.BaseAddress, relativeAddress);
-            var cacheMissResourceUri = Utilities.GetNugetCacheBustingUri(resourceUri);
-            HashSet<NuGetVersion> versions = GetVersions(await storage.LoadString(cacheMissResourceUri, cancellationToken));
+            HashSet<NuGetVersion> versions = GetVersions(await storage.LoadString(resourceUri, cancellationToken));
             updateAction(versions);
             List<NuGetVersion> result = new List<NuGetVersion>(versions);
 
