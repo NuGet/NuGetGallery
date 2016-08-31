@@ -168,6 +168,12 @@ namespace NuGetGallery.Configuration
         public bool AutoUpdateSearchIndex { get; set; }
 
         /// <summary>
+        /// Gets a boolean indicating if the database requires a migration for this release
+        /// </summary>
+        [DefaultValue(false)]
+        public bool RequireDatabaseMigration { get; set; }
+
+        /// <summary>
         /// Gets a string indicating which authentication provider(s) are supported for administrators. 
         /// When specified, the gallery will ensure admin users are logging in using any of the specified authentication providers.
         /// Blank means any authentication provider can be used by administrators.

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Migrations;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Claims;
@@ -22,6 +23,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
+using NuGetGallery.Migrations;
 using WebBackgrounder;
 using WebActivatorEx;
 
@@ -66,6 +68,13 @@ namespace NuGetGallery
 
             // Get configuration from the kernel
             var config = DependencyResolver.Current.GetService<IAppConfiguration>();
+
+            if (config.RequireDatabaseMigration)
+            {
+                var migrationConfiguration = new MigrationsConfiguration();
+                var migrator = new DbMigrator(migrationConfiguration);
+                migrator.Update();
+            }
 
             BackgroundJobsPostStart(config);
             AppPostStart(config);
