@@ -1,15 +1,1 @@
-@SETLOCAL
-@SET SCRIPT_PATH=%~dp0
-:CheckOS
-IF EXIST "%PROGRAMFILES(X86)%" (GOTO 64BIT) ELSE (GOTO 32BIT)
-
-:64BIT
-"%programfiles(x86)%\MSBuild\14.0\Bin\msbuild.exe" %SCRIPT_PATH%build.msbuild /tv:14.0 /p:VisualStudioVersion=14.0 /p:ToolsVersion=14.0 %*
-GOTO END
-
-:32BIT
-"%programfiles%\MSBuild\14.0\Bin\msbuild.exe" %SCRIPT_PATH%build.msbuild /tv:14.0 /p:VisualStudioVersion=14.0 /p:ToolsVersion=14.0 %*
-GOTO END
-
-:END
-@SETLOCAL
+PowerShell.exe -NoProfile -ExecutionPolicy ByPass ".\build.ps1 -Configuration 'Release' -Verbose"

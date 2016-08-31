@@ -59,7 +59,7 @@ namespace NuGetGallery.Controllers
             try
             {
                 HijackableQueryParameters hijackableQueryParameters = null;
-                if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && _searchService is ExternalSearchService)
+                if (_searchService is ExternalSearchService && SearchHijacker.IsHijackable(options, out hijackableQueryParameters))
                 {
                     var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                         _searchService, GetTraditionalHttpContext().Request, packages,

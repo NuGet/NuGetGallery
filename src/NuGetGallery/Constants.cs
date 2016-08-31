@@ -57,5 +57,13 @@ namespace NuGetGallery
             public static readonly string PrivacyPolicy = "Privacy-Policy";
             public static readonly string Team = "Team";
         }
+
+        public static class StatisticsDimensions
+        {
+            public const string Version = "Version";
+            public const string ClientName = "ClientName";
+            public const string ClientVersion = "ClientVersion";
+            public const string Operation = "Operation";
+        }
     }
 }
