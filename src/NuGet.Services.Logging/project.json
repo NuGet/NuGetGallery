@@ -19,5 +19,5 @@
     "owners": [ "nuget" ],
     "licenseUrl": "https://github.com/NuGet/ServerCommon/blob/master/License.md"
   },
-  "version": "1.0.0"
+  "version": "1.0.0-*"
 }
