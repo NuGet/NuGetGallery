@@ -342,7 +342,8 @@ Function New-Package {
 		[string]$BuildNumber,
 		[switch]$NoPackageAnalysis,
 		[string]$Version,
-		[string]$MSBuildVersion = "14"
+		[string]$MSBuildVersion = "14",
+		[switch]$Symbols
 	)
 	Trace-Log "Creating package from @""$TargetFilePath"""
 	$opts = , 'pack'
@@ -371,6 +372,10 @@ Function New-Package {
 	
 	if ($NoPackageAnalysis) {
 		$opts += '-NoPackageAnalysis'
+	}
+	
+	if ($Symbols) {
+		$opts += '-Symbols'
 	}
 	
     Trace-Log "$NuGetExe $opts"

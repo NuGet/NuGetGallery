@@ -95,7 +95,7 @@ Invoke-BuildStep 'Running tests' { Run-Tests } `
 	
 Invoke-BuildStep 'Creating artifacts' { `
 	param($Configuration, $BuildNumber, $ReleaseLabel, $SemanticVersion, $Artifacts) `
-		New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion
+		New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion -Symbols
 		dotnet pack (Join-Path $PSScriptRoot "src\NuGet.Services.Logging") -c $Configuration --version-suffix $Branch -o $Artifacts --no-build
 		dotnet pack (Join-Path $PSScriptRoot "src\NuGet.Services.Configuration") -c $Configuration --version-suffix $Branch -o $Artifacts --no-build
 	} `
