@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0",
+    "NuGet.Services.KeyVault": "1.0.0.1"
+  },
+
+  "frameworks": {
+    "net452": {
+      "frameworkAssemblies": {
+        "System.Data": "",
+        "System.Threading.Tasks": "",
+        "System.Runtime": ""
+      }
+    }
+  },
+  "packOptions": {
+    "owners": [ "nuget" ],
+    "licenseUrl": "https://github.com/NuGet/ServerCommon/blob/master/License.md"
+  },
+  "version": "1.0.0"
+}
