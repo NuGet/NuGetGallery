@@ -40,7 +40,7 @@ namespace NuGetGallery.Configuration.SecretReader
         {
             if (_cache.ContainsKey(secretName))
             {
-                if (DateTime.Now.Subtract(_cache[secretName].Item2).TotalSeconds < _refreshIntervalSeconds)
+                if (DateTime.UtcNow.Subtract(_cache[secretName].Item2).TotalSeconds < _refreshIntervalSeconds)
                 {
                     // If the secret is in the cache and does not need to be refreshed, return from the cache
                     return _cache[secretName].Item1;
@@ -55,7 +55,7 @@ namespace NuGetGallery.Configuration.SecretReader
 
             // If the secret is not in the cache or needs to be refreshed, refresh from KeyVault
             var secretValue = await _internalReader.GetSecretAsync(secretName);
-            _cache[secretName] = Tuple.Create<string, DateTime>(secretValue, DateTime.Now);
+            _cache[secretName] = Tuple.Create<string, DateTime>(secretValue, DateTime.UtcNow);
             return _cache[secretName].Item1;
         }
     }
