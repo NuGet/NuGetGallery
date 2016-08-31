@@ -73,7 +73,16 @@ namespace NuGetGallery
             {
                 var migrationConfiguration = new MigrationsConfiguration();
                 var migrator = new DbMigrator(migrationConfiguration);
-                migrator.Update();
+                try
+                {
+                    migrator.Update(config.TargetMigration);
+                }
+                catch (Exception)
+                {
+                    Trace.TraceWarning($"Migration to target {config.TargetMigration} failed.");
+                    Trace.TraceWarning("Defaulting to latest migration");
+                    migrator.Update();
+                }
             }
 
             BackgroundJobsPostStart(config);
