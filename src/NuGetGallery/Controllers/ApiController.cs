@@ -289,9 +289,10 @@ namespace NuGetGallery
                                         attemptedPackage: new AuditedPackageIdentifier(
                                             nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe())));
 
-                                // User can not push this package
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden,
-                                    Strings.ApiKeyNotAuthorized);
+                                // ID is taken by another user
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
+                                    String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
+                                        nuspec.GetId()));
                             }
 
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
