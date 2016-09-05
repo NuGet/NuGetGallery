@@ -13,8 +13,7 @@
       },
       "dependencies": {
         "NuGet.Services.KeyVault": {
-          "target": "project",
-          "type": "build"
+          "target": "project"
         }
       }
     }

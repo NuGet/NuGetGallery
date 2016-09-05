@@ -10,5 +10,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright © .NET Foundation 2015")]
 [assembly: ComVisible(false)]
 [assembly: Guid("c87d0ef1-54aa-4b0b-89de-cff2dc941d11")]
-[assembly: AssemblyVersion("1.0.0.1")]
-[assembly: AssemblyFileVersion("1.0.0.1")]
+[assembly: AssemblyCompany(".NET Foundation")]
+
+// Assembly version info is set at build time

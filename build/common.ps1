@@ -338,7 +338,7 @@ Function New-Package {
 		[Alias('target')]
 		[string]$TargetFilePath,
 		[string]$Configuration,		
-		[string]$ReleaseLabel = "zlocal",
+		[string]$ReleaseLabel,
 		[string]$BuildNumber,
 		[switch]$NoPackageAnalysis,
 		[string]$Version,
@@ -364,11 +364,13 @@ Function New-Package {
 	if ($Version){
 		$PackageVersion = $Version
 	}
-	else {
+	elseif ($ReleaseLabel) {
 		$PackageVersion = Get-PackageVersion $ReleaseLabel $BuildNumber
 	}
 	
-	$opts += '-Version', "$PackageVersion"
+	if ($PackageVersion) {
+		$opts += '-Version', "$PackageVersion"
+	}
 	
 	if ($NoPackageAnalysis) {
 		$opts += '-NoPackageAnalysis'

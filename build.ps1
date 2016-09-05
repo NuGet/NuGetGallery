@@ -75,6 +75,15 @@ Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
 Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
+Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
+	param($Version, $Branch, $Commit)
+	Set-VersionInfo -Path (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\Properties\AssemblyInfo.cs") -Version $Version -Branch $Branch -Commit $Commit
+	Set-VersionInfo -Path (Join-Path $PSScriptRoot "src\NuGet.Services.Logging\Properties\AssemblyInfo.cs") -Version $Version -Branch $Branch -Commit $Commit
+	Set-VersionInfo -Path (Join-Path $PSScriptRoot "src\NuGet.Services.Configuration\Properties\AssemblyInfo.cs") -Version $Version -Branch $Branch -Commit $Commit
+	} `
+	-args $SimpleVersion, $Branch, $CommitSHA `
+	-ev +BuildErrors
+	
 Invoke-BuildStep 'Restoring solution packages' { `
 	Install-SolutionPackages -path (Join-Path $PSScriptRoot ".nuget\packages.config") -output (Join-Path $PSScriptRoot "packages") -excludeversion } `
     -skip:$SkipRestore `
@@ -95,13 +104,26 @@ Invoke-BuildStep 'Running tests' { Run-Tests } `
 	
 Invoke-BuildStep 'Creating artifacts' { `
 	param($Configuration, $BuildNumber, $ReleaseLabel, $SemanticVersion, $Artifacts) `
-		New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion -Symbols
-		dotnet pack (Join-Path $PSScriptRoot "src\NuGet.Services.Logging") -c $Configuration --version-suffix $Branch -o $Artifacts --no-build
-		dotnet pack (Join-Path $PSScriptRoot "src\NuGet.Services.Configuration") -c $Configuration --version-suffix $Branch -o $Artifacts --no-build
+		New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj") -Configuration $Configuration -Symbols
+				
+		& dotnet pack (Join-Path $PSScriptRoot "src\NuGet.Services.Logging") --configuration $Configuration --output "$Artifacts" --no-build --version-suffix "$Branch"		
+		& dotnet pack (Join-Path $PSScriptRoot "src\NuGet.Services.Configuration") --configuration $Configuration --output "$Artifacts" --no-build --version-suffix "$Branch"
 	} `
 	-args $Configuration, $BuildNumber, $ReleaseLabel, $SemanticVersion, $Artifacts `
 	-ev +BuildErrors
 
+Invoke-BuildStep 'Patching versions of artifacts' {`
+		$NupkgWrenchExe = (Join-Path $PSScriptRoot "packages\NupkgWrench\tools\NupkgWrench.exe")
+		
+		Trace-Log "Patching versions of NuGet packages to $SemanticVersion"
+		
+		& $NupkgWrenchExe release "$Artifacts" --new-version $SemanticVersion
+		& $NupkgWrenchExe release "$Artifacts\NuGet.Services.Configuration.$SemanticVersion.nupkg" --new-version $SemanticVersion --id "NuGet.Services.KeyVault"
+		
+		Trace-Log "Done"
+	}`
+	-ev +BuildErrors
+	
 Trace-Log ('-' * 60)
 
 ## Calculating Build time
