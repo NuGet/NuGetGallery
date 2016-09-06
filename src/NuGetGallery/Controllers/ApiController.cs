@@ -344,6 +344,9 @@ namespace NuGetGallery
                             Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
 
+                        // Notify everyone listening on the package
+                        MessageService.NotifyWebhooks(package, "NewVersionAdded");
+
                         return new HttpStatusCodeResult(HttpStatusCode.Created);
                     }
                 }

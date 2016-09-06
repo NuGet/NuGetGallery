@@ -11,6 +11,10 @@ using AnglicanGeek.MarkdownMailer;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Services;
+using System.Net;
+using System.IO;
+using System.Net.Http;
+using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -439,15 +443,15 @@ The {3} Team";
                     var senderCopy = new MailMessage(
                         Config.GalleryOwner,
                         mailMessage.ReplyToList.First())
-                        {
-                            Subject = mailMessage.Subject + " [Sender Copy]",
-                            Body = String.Format(
+                    {
+                        Subject = mailMessage.Subject + " [Sender Copy]",
+                        Body = String.Format(
                                 CultureInfo.CurrentCulture,
                                 "You sent the following message via {0}: {1}{1}{2}",
                                 Config.GalleryOwner.DisplayName,
                                 Environment.NewLine,
                                 mailMessage.Body),
-                        };
+                    };
                     senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
                     MailSender.Send(senderCopy);
                 }
@@ -478,8 +482,8 @@ The {3} Team";
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                Config.GalleryOwner.DisplayName, 
-                package.PackageRegistration.Id, 
+                Config.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
                 package.Version,
                 packageUrl,
                 packageSupportUrl,
@@ -499,6 +503,23 @@ The {3} Team";
                 {
                     SendMessage(mailMessage);
                 }
+            }
+        }
+
+        public void NotifyWebhooks(Package package, string type)
+        {
+            // Get all webhooks listening on the package
+            // For each webhook POST the update event/package upload event.
+            var notifyUrl = "https://deltaxfunctions.azurewebsites.net/api/HttpTriggerNodeJS1?code=8HXDRTqv6jdsiorhVYs51GJ8alFnliOwz8G/DXXHL1twtUQV4dqX6w==";
+
+            using (var client = new HttpClient())
+            {
+                var body = new Dictionary<string, string>();
+                body.Add("PackageId", package.PackageRegistration.Id);
+                body.Add("PackageVersion", package.NormalizedVersion);
+                body.Add("Type", type);
+                var content = new FormUrlEncodedContent(body);
+                var response = client.PostAsync(notifyUrl, content);
             }
         }
 
