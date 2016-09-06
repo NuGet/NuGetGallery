@@ -3,6 +3,7 @@
 
 using System.Text.RegularExpressions;
 using Xunit;
+using static NuGetGallery.Constants;
 
 namespace NuGetGallery
 {
@@ -17,18 +18,23 @@ namespace NuGetGallery
         [InlineData("****1bB***")]
         public void Accepts(string password)
         {
-            var match = new Regex(RegisterViewModel.PasswordValidationRegex).IsMatch(password);
+            var match = new Regex(PasswordValidationRegex).IsMatch(password);
             Assert.True(match);
         }
 
         [Theory]
+        [InlineData("v")] // Single letter
+        [InlineData("V")] // Single upper case letter
+        [InlineData("8")] // Single number
+        [InlineData("89984214214")] // Just numbers
+        [InlineData("%*`~&*()%#@$!@<>?\"")] // Special characters
         [InlineData("aaAAaaAAaaAA")] // No digit
         [InlineData("12345678a")] // No upperscase letter
         [InlineData("12345678A")] // No lowercase letter
         [InlineData("1aA")] // Too short
         public void DoesNotAccept(string password)
         {
-            var match = new Regex(RegisterViewModel.PasswordValidationRegex).IsMatch(password);
+            var match = new Regex(PasswordValidationRegex).IsMatch(password);
             Assert.False(match);
         }
     }

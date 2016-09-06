@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 using NuGetGallery.Authentication.Providers;
+using static NuGetGallery.Constants;
 
 namespace NuGetGallery
 {
@@ -83,15 +84,6 @@ namespace NuGetGallery
             "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
 
         public const string UserNameHint = "Choose something unique so others will know which contributions are yours.";
-
-        /// <summary>
-        /// The password should be between 8 and 64 characters, and contain at least one uppercase letter,
-        ///  one lowercase letter and a digit.
-        /// </summary>
-        internal const string PasswordValidationRegex =
-            @"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,64}$";
-
-        public const string PasswordHint = "Your password must be at least 8 characters, should include at least one uppercase letter, one lowercase letter and a digit.";
 
         [Required]
         [StringLength(255)]
