@@ -120,6 +120,7 @@ namespace NuGetGallery
             document.Add(new Field("Copyright", Package.Copyright.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Created", Package.Created.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("FlattenedDependencies", Package.FlattenedDependencies.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("FlattenedPackageTypes", Package.FlattenedPackageTypes.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Hash", Package.Hash.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("HashAlgorithm", Package.HashAlgorithm.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Id-Original", Package.PackageRegistration.Id, Field.Store.YES, Field.Index.NO));

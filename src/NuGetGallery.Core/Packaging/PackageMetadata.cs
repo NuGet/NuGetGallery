@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
 namespace NuGetGallery.Packaging
@@ -14,16 +15,19 @@ namespace NuGetGallery.Packaging
         private readonly Dictionary<string, string> _metadata;
         private readonly IReadOnlyCollection<PackageDependencyGroup> _dependencyGroups;
         private readonly IReadOnlyCollection<FrameworkSpecificGroup> _frameworkReferenceGroups;
+        private readonly IReadOnlyCollection<NuGet.Packaging.Core.PackageType> _packageTypes;
 
         public PackageMetadata(
             Dictionary<string, string> metadata,
             IEnumerable<PackageDependencyGroup> dependencyGroups, 
             IEnumerable<FrameworkSpecificGroup> frameworkGroups,
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes,
             NuGetVersion minClientVersion)
         {
             _metadata = new Dictionary<string, string>(metadata, StringComparer.OrdinalIgnoreCase);
             _dependencyGroups = dependencyGroups.ToList().AsReadOnly();
             _frameworkReferenceGroups = frameworkGroups.ToList().AsReadOnly();
+            _packageTypes = packageTypes.ToList().AsReadOnly();
 
             SetPropertiesFromMetadata();
             MinClientVersion = minClientVersion;
@@ -96,6 +100,11 @@ namespace NuGetGallery.Packaging
             return _frameworkReferenceGroups;
         }
 
+        public IReadOnlyCollection<NuGet.Packaging.Core.PackageType> GetPackageTypes()
+        {
+            return _packageTypes;
+        }
+
         private string GetValue(string key, string alternateValue)
         {
             string value;
@@ -141,6 +150,7 @@ namespace NuGetGallery.Packaging
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(),
                 nuspecReader.GetFrameworkReferenceGroups(),
+                nuspecReader.GetPackageTypes(),
                 nuspecReader.GetMinClientVersion()
            );
         }
