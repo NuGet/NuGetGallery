@@ -266,8 +266,9 @@ namespace NuGetGallery
             {
                 // Arrange
                 var user = new User { EmailAddress = "confirmed@email.com" };
+                var packageId = "theId";
                 var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = "theId";
+                packageRegistration.Id = packageId;
                 var package = new Package();
                 package.PackageRegistration = packageRegistration;
                 package.Version = "1.0.42";
@@ -278,7 +279,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
 
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
                 controller.SetCurrentUser(new User());
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -289,7 +290,7 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(
                     result,
                     HttpStatusCode.Conflict,
-                    String.Format(Strings.PackageIdNotAvailable, "theId"));
+                    String.Format(Strings.PackageIdNotAvailable, packageId));
             }
 
             [Fact]

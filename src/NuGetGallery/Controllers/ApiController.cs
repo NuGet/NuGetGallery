@@ -289,7 +289,7 @@ namespace NuGetGallery
                                         attemptedPackage: new AuditedPackageIdentifier(
                                             nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe())));
 
-                                // ID is taken by another user
+                                // User cannot push a package to an ID owned by another user.
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
                                     String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
                                         nuspec.GetId()));
