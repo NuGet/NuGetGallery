@@ -1194,6 +1194,9 @@ namespace NuGetGallery
                     Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                     Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                     Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
+
+                // Notify everyone listening on the package
+                _messageService.NotifyWebhooks(package, "New Version Added");
             }
 
             // delete the uploaded binary in the Uploads container

@@ -15,6 +15,7 @@ using System.Net;
 using System.IO;
 using System.Net.Http;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
@@ -514,12 +515,15 @@ The {3} Team";
 
             using (var client = new HttpClient())
             {
-                var body = new Dictionary<string, string>();
-                body.Add("PackageId", package.PackageRegistration.Id);
-                body.Add("PackageVersion", package.NormalizedVersion);
-                body.Add("Type", type);
-                var content = new FormUrlEncodedContent(body);
-                var response = client.PostAsync(notifyUrl, content);
+                var body = new
+                {
+                    PackageId = package.PackageRegistration.Id,
+                    PackageVersion = package.NormalizedVersion,
+                    Type = type
+                };
+
+                var response = client.PostAsJsonAsync(notifyUrl, body);
+                var responseString = response.Result;
             }
         }
 

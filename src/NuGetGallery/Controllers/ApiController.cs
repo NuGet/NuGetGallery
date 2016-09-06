@@ -345,7 +345,7 @@ namespace NuGetGallery
                             Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
 
                         // Notify everyone listening on the package
-                        MessageService.NotifyWebhooks(package, "NewVersionAdded");
+                        MessageService.NotifyWebhooks(package, "New Version Added");
 
                         return new HttpStatusCodeResult(HttpStatusCode.Created);
                     }
