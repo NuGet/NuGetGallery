@@ -150,7 +150,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
 
             var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://nuget.org/");
-            configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+            configuration.Setup(c => c.Features).Returns(new FeatureConfiguration { FriendlyLicenses = true });
 
             var searchService = new Mock<ISearchService>(MockBehavior.Strict);
             searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
