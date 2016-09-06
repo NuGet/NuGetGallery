@@ -75,6 +75,12 @@ namespace NuGetGallery.Services.Authentication
                 return false;
             }
 
+            // Verify format marker
+            if (decodedHashedCredential[0] != 0x01)
+            {
+                return false;
+            }
+
             return VerifyHashInternal(decodedHashedCredential, providedInput);
         }
 
