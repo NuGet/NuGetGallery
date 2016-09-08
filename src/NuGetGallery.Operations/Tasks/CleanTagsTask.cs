@@ -15,7 +15,7 @@ namespace NuGetGallery.Operations.Tasks
     {
         public override void ExecuteCommand()
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
             {
                 connection.Open();
 

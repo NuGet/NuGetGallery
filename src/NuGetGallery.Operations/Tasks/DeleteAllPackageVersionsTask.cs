@@ -38,7 +38,7 @@ namespace NuGetGallery.Operations
                 "Deleting package registration and all package versions for '{0}'.",
                 PackageId);
 
-            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -53,7 +53,7 @@ namespace NuGetGallery.Operations
                 foreach(var package in packages)
                 {
                     var task = new DeletePackageVersionTask {
-                        ConnectionStringBuilder = ConnectionStringBuilder,
+                        ConnectionString = ConnectionString,
                         BackupStorage = BackupStorage,
                         StorageAccount = StorageAccount,
                         PackageId = package.Id,

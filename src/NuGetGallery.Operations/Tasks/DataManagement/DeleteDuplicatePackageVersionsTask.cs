@@ -38,7 +38,7 @@ namespace NuGetGallery.Operations.Tasks
         }
         public override void ExecuteCommand()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -130,7 +130,7 @@ namespace NuGetGallery.Operations.Tasks
             {
                 BackupStorage = BackupStorage,
                 StorageAccount = StorageAccount,
-                ConnectionStringBuilder = ConnectionStringBuilder,
+                ConnectionString = ConnectionString,
                 AuditOnly = AuditOnly,
                 WhatIf = WhatIf,
                 PackageId = package.Id,

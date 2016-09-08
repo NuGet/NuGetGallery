@@ -16,8 +16,8 @@ namespace NuGetGallery.Operations.Tasks
         protected override void ExecuteCommandCore(MigratorBase migrator)
         {
             Log.Info("Migration Status for {0} on {1}",
-                     ConnectionStringBuilder.InitialCatalog,
-                     ConnectionStringBuilder.DataSource);
+                     ConnectionString.InitialCatalog,
+                     ConnectionString.DataSource);
 
             foreach (var migration in migrator.GetDatabaseMigrations().Reverse())
             {

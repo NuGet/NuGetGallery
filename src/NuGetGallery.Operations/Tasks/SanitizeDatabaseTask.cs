@@ -48,12 +48,12 @@ namespace NuGetGallery.Operations.Tasks
         public override void ExecuteCommand()
         {
             // Verify the name
-            if (!Force && !AllowedPrefixes.Any(p => ConnectionStringBuilder.InitialCatalog.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+            if (!Force && !AllowedPrefixes.Any(p => ConnectionString.InitialCatalog.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
             {
-                Log.Error("Cannot sanitize database named '{0}' without -Force argument", ConnectionStringBuilder.InitialCatalog);
+                Log.Error("Cannot sanitize database named '{0}' without -Force argument", ConnectionString.InitialCatalog);
                 return;
             }
-            Log.Info("Ready to sanitize {0} on {1}", ConnectionStringBuilder.InitialCatalog, Util.GetDatabaseServerName(ConnectionStringBuilder));
+            Log.Info("Ready to sanitize {0} on {1}", ConnectionString.InitialCatalog, Util.GetDatabaseServerName(ConnectionString));
 
             // All we need to sanitize is the user table. Package data is public (EVEN unlisted ones) and not PII
             if (WhatIf)
@@ -64,7 +64,7 @@ namespace NuGetGallery.Operations.Tasks
             }
             else
             {
-                using (SqlConnection connection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
+                using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
                 using (SqlExecutor dbExecutor = new SqlExecutor(connection))
                 {
                     connection.Open();

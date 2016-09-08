@@ -22,7 +22,7 @@ namespace NuGetGallery.Operations.Tasks
         public override void ExecuteCommand()
         {
             //Get all the failed edits.
-            var connectionString = ConnectionStringBuilder.ConnectionString;
+            var connectionString = ConnectionString.ConnectionString;
             var entitiesContext = new EntitiesContext(connectionString, readOnly: true);
             var failedEdits = entitiesContext.Set<PackageEdit>()
                 .Where(pe => pe.TriedCount == 3).Include(pe => pe.Package).Include(pe => pe.Package.PackageRegistration);
@@ -36,7 +36,7 @@ namespace NuGetGallery.Operations.Tasks
                edit.Package.PackageRegistration.Id);
                 SendMailTask mailTask = new SendMailTask
                 {
-                    ConnectionStringBuilder = this.ConnectionStringBuilder,
+                    ConnectionString = this.ConnectionString,
                     UserAccount = this.UserAccount,
                     Password = this.Password,
                     EmailHost = this.EmailHost,

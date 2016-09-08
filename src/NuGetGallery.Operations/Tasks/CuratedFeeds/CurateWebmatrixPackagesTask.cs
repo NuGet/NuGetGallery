@@ -38,7 +38,7 @@ namespace NuGetGallery.Operations.CuratedFeeds
             Log.Trace(
                 "Curating {0} packages for the WebMatrix curated on '{1}',",
                 totalCount,
-                ConnectionStringBuilder);
+                ConnectionString);
 
             Parallel.ForEach(packageIdsToCurate, new ParallelOptions { MaxDegreeOfParallelism = 10 }, packageIdToCurate =>
             {
@@ -121,7 +121,7 @@ namespace NuGetGallery.Operations.CuratedFeeds
 
         IEnumerable<string> GetAlreadyCuratedPackageIds()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -136,7 +136,7 @@ namespace NuGetGallery.Operations.CuratedFeeds
 
         IDictionary<string, Package> GetLatestStablePackages()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -153,7 +153,7 @@ namespace NuGetGallery.Operations.CuratedFeeds
         {
             if (!WhatIf)
             {
-                using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
+                using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
                 using (var dbExecutor = new SqlExecutor(sqlConnection))
                 {
                     sqlConnection.Open();

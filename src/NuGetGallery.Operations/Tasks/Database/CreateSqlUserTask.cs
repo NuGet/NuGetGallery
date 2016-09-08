@@ -67,8 +67,8 @@ namespace NuGetGallery.Operations.Tasks
             });
 
             // Generate the new connection string
-            var newstr = new SqlConnectionStringBuilder(ConnectionStringBuilder.ConnectionString);
-            newstr.UserID = $"{UserName}@{Util.GetDatabaseServerName(ConnectionStringBuilder)}";
+            var newstr = new SqlConnectionStringBuilder(ConnectionString.ConnectionString);
+            newstr.UserID = $"{UserName}@{Util.GetDatabaseServerName(ConnectionString)}";
             newstr.Password = password;
 
             if (Clip)

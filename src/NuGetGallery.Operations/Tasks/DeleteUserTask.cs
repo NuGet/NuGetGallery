@@ -25,7 +25,7 @@ namespace NuGetGallery.Operations.Tasks
                 "Delete the user account and all packages for '{0}'.",
                 Username);
 
-            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -51,7 +51,7 @@ namespace NuGetGallery.Operations.Tasks
 
                     var deletePackageTask = new DeleteAllPackageVersionsTask
                     {
-                        ConnectionStringBuilder = ConnectionStringBuilder,
+                        ConnectionString = ConnectionString,
                         StorageAccount = StorageAccount,
                         PackageId = packageId,
                         WhatIf = WhatIf

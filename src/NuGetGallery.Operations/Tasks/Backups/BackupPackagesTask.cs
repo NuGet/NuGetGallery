@@ -196,7 +196,7 @@ namespace NuGetGallery.Operations
 
         IList<Package> GetPackagesToBackUp(long? lastBackupId, bool forcedRecheck)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();

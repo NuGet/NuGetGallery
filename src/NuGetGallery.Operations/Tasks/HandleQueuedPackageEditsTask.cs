@@ -24,7 +24,7 @@ namespace NuGetGallery.Operations.Tasks
             // 0) Find Pending Edits in DB that have been attempted less than 3 times
             // 1) Backup all old NUPKGS
             // 2) Generate all new NUPKGs (in place), and tell gallery the edit is completed
-            var connectionString = ConnectionStringBuilder.ConnectionString;
+            var connectionString = ConnectionString.ConnectionString;
 
             // We group edits together by their package key and process them together - this is a read-only operation
             var entitiesContext = new EntitiesContext(connectionString, readOnly: true);
@@ -47,7 +47,7 @@ namespace NuGetGallery.Operations.Tasks
         private void ProcessPackageEdits(int packageKey, IEnumerable<PackageEdit> editsToDelete)
         {
             // Create a fresh entities context so that we work in isolation
-            var entitiesContext = new EntitiesContext(ConnectionStringBuilder.ConnectionString, readOnly: false);
+            var entitiesContext = new EntitiesContext(ConnectionString.ConnectionString, readOnly: false);
 
             // Get the most recent edit for this package
             var edit = entitiesContext.Set<PackageEdit>()
@@ -197,7 +197,7 @@ namespace NuGetGallery.Operations.Tasks
                         // Try to record the error into the PackageEdit database record
                         // so that we can actually diagnose failures.
                         // This must be done on a fresh context to ensure no conflicts.
-                        var errorContext = new EntitiesContext(ConnectionStringBuilder.ConnectionString, readOnly: false);
+                        var errorContext = new EntitiesContext(ConnectionString.ConnectionString, readOnly: false);
                         var errorEdit = errorContext.Set<PackageEdit>().Where(pe => pe.Key == edit.Key).FirstOrDefault();
 
                         if (errorEdit != null)

@@ -11,8 +11,8 @@ namespace NuGetGallery.Operations
     {
         public override void ExecuteCommand()
         {
-            var dbServer = ConnectionStringBuilder.DataSource;
-            var masterConnectionString = Util.GetMasterConnectionString(ConnectionStringBuilder.ConnectionString);
+            var dbServer = ConnectionString.DataSource;
+            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
 
             Log.Info("Listing backups for server '{0}':", dbServer);
             

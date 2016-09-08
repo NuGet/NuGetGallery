@@ -47,7 +47,7 @@ namespace NuGetGallery.Operations.Tasks
 
             // TODO: Parameterize the policy (i.e. BackupPeriod, RollingBackupCount, DailyBackupCount, etc.)
 
-            var cstr = Util.GetMasterConnectionString(ConnectionStringBuilder.ConnectionString);
+            var cstr = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
             using (var connection = new SqlConnection(cstr))
             using (var db = new SqlExecutor(connection))
             {
@@ -57,7 +57,7 @@ namespace NuGetGallery.Operations.Tasks
                 var backups = db.Query<Db>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%'",
                     new { state = Util.OnlineState })
-                    .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionStringBuilder), d.Name, d.State))
+                    .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
                     .OrderByDescending(b => b.Timestamp)
                     .ToList();
 
