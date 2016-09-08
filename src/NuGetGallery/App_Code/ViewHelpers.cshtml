@@ -119,12 +119,11 @@
     }
 }
 
-@helper InstrumentationScript()
+@helper InstrumentationScript(IAppConfiguration currentConfig)
 {
     // Get instrumentation key
-    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey;
-    var samplingPct = config == null ? 100 : config.Current.AppInsightsSamplingPercentage;
+    var iKey = currentConfig == null ? string.Empty : currentConfig.AppInsightsInstrumentationKey;
+    var samplingPct = currentConfig == null ? 100 : currentConfig.AppInsightsSamplingPercentage;
 
     if (!string.IsNullOrEmpty(iKey))
     {
@@ -155,12 +154,11 @@
     }
 }
 
-@helper ReleaseTag()
+@helper ReleaseTag(IAppConfiguration currentConfig)
 {
     // Get Version info and gallery brand name
     var ver = ApplicationVersionHelper.GetVersion();
-    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    string brand = config == null ? "" : config.Current.Brand;
+    string brand = currentConfig == null ? "" : currentConfig.Brand;
 
     <p id="releaseTag">
         This is the @brand
@@ -202,11 +200,10 @@
     </p>
 }
 
-@helper AnalyticsScript()
+@helper AnalyticsScript(IAppConfiguration currentConfig)
 {
-    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    if(config != null) {
-        var propertyId = config.Current.GoogleAnalyticsPropertyId;
+    if(currentConfig != null) {
+        var propertyId = currentConfig.GoogleAnalyticsPropertyId;
         if (propertyId != null)
         {
             @Analytics.GetGoogleAsyncHtml(propertyId)

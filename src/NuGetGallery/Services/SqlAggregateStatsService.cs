@@ -9,7 +9,7 @@ namespace NuGetGallery
 {
     public class SqlAggregateStatsService : IAggregateStatsService
     {
-        private readonly IAppConfiguration _configuration;
+        private readonly IGalleryConfigurationService _configService;
 
         // Note the NOLOCK hints here!
         private static readonly string GetStatisticsSql = @"SELECT
@@ -17,14 +17,14 @@ namespace NuGetGallery
                             WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageDelete_Key IS NULL)) AS UniquePackages,
                     (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
 
-        public SqlAggregateStatsService(IAppConfiguration configuration)
+        public SqlAggregateStatsService(IGalleryConfigurationService configService)
         {
-            _configuration = configuration;
+            _configService = configService;
         }
 
-        public Task<AggregateStats> GetAggregateStats()
+        public async Task<AggregateStats> GetAggregateStats()
         {
-            using (var dbContext = new EntitiesContext(_configuration.SqlConnectionString, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
+            using (var dbContext = new EntitiesContext((await _configService.GetCurrent()).SqlConnectionString, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
             {
                 var database = dbContext.Database;
                 using (var command = database.Connection.CreateCommand())
@@ -36,14 +36,14 @@ namespace NuGetGallery
                         bool hasData = reader.Read();
                         if (!hasData)
                         {
-                            return Task.FromResult(new AggregateStats());
+                            return new AggregateStats();
                         }
 
-                        return Task.FromResult(new AggregateStats
+                        return new AggregateStats
                             {
                                 UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
                                 TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1)
-                            });
+                            };
                     }
                 }
             }

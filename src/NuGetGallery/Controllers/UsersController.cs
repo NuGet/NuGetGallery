@@ -15,25 +15,25 @@ namespace NuGetGallery
         : AppController
     {
         public ICuratedFeedService CuratedFeedService { get; protected set; }
+        public IGalleryConfigurationService ConfigService { get; protected set; }
         public IUserService UserService { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
-        public IAppConfiguration Config { get; protected set; }
         public AuthenticationService AuthService { get; protected set; }
 
         public UsersController(
             ICuratedFeedService feedsQuery,
+            IGalleryConfigurationService configService,
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IAppConfiguration config,
             AuthenticationService authService)
         {
             CuratedFeedService = feedsQuery;
+            ConfigService = configService;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
-            Config = config;
             AuthService = authService;
         }
 
@@ -83,9 +83,9 @@ namespace NuGetGallery
 
         [HttpGet]
         [Authorize]
-        public virtual ActionResult Account()
+        public virtual async Task<ActionResult> Account()
         {
-            return AccountView(new AccountViewModel());
+            return await AccountView(new AccountViewModel());
         }
 
         [Authorize]
@@ -322,7 +322,7 @@ namespace NuGetGallery
         {
             if (!ModelState.IsValidField("ChangeEmail.NewEmail"))
             {
-                return AccountView(model);
+                return await AccountView(model);
             }
 
             var user = GetCurrentUser();
@@ -330,14 +330,14 @@ namespace NuGetGallery
             {
                 if (!ModelState.IsValidField("ChangeEmail.Password"))
                 {
-                    return AccountView(model);
+                    return await AccountView(model);
                 }
 
                 var authUser = await AuthService.Authenticate(User.Identity.Name, model.ChangeEmail.Password);
                 if (authUser == null)
                 {
                     ModelState.AddModelError("ChangeEmail.Password", Strings.CurrentPasswordIncorrect);
-                    return AccountView(model);
+                    return await AccountView(model);
                 }
             }
             // No password? We can't do any additional verification...
@@ -355,7 +355,7 @@ namespace NuGetGallery
             catch (EntityException e)
             {
                 ModelState.AddModelError("ChangeEmail.NewEmail", e.Message);
-                return AccountView(model);
+                return await AccountView(model);
             }
 
             if (user.Confirmed)
@@ -414,13 +414,13 @@ namespace NuGetGallery
             {
                 if (!ModelState.IsValidField("ChangePassword"))
                 {
-                    return AccountView(model);
+                    return await AccountView(model);
                 }
 
                 if (!(await AuthService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword, model.ChangePassword.ResetApiKey)))
                 {
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
-                    return AccountView(model);
+                    return await AccountView(model);
                 }
 
                 TempData["Message"] = Strings.PasswordChanged;
@@ -472,13 +472,15 @@ namespace NuGetGallery
 
             // Set expiration
             var expiration = TimeSpan.Zero;
-            if (Config.ExpirationInDaysForApiKeyV1 > 0)
+            var maxExpiration = (await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1;
+
+            if (maxExpiration > 0)
             {
-                expiration = TimeSpan.FromDays(Config.ExpirationInDaysForApiKeyV1);
+                expiration = TimeSpan.FromDays(maxExpiration);
 
                 if (expirationInDays.HasValue && expirationInDays.Value > 0)
                 {
-                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, Config.ExpirationInDaysForApiKeyV1));
+                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, maxExpiration));
                 }
             }
 
@@ -518,7 +520,7 @@ namespace NuGetGallery
             return RedirectToAction("Account");
         }
 
-        private ActionResult AccountView(AccountViewModel model)
+        private async Task<ActionResult> AccountView(AccountViewModel model)
         {
             // Load Credential info
             var user = GetCurrentUser();
@@ -528,7 +530,7 @@ namespace NuGetGallery
             model.Credentials = creds;
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
 
-            model.ExpirationInDaysForApiKeyV1 = Config.ExpirationInDaysForApiKeyV1;
+            model.ExpirationInDaysForApiKeyV1 = (await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1;
 
             return View("Account", model);
         }

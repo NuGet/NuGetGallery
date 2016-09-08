@@ -90,9 +90,9 @@ namespace NuGetGallery.Framework
                 .As<IOwinContext>()
                 .SingleInstance();
 
-            builder.Register(_ => new TestGalleryConfigurationService())
+            builder.RegisterType<TestGalleryConfigurationService>()
                 .As<IGalleryConfigurationService>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
         }
     }
 }

@@ -13,9 +13,9 @@ namespace NuGetGallery.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public sealed class RequireSslAttribute : FilterAttribute, IAuthorizationFilter
     {
-        public IAppConfiguration Configuration { get; set; }
+        public IGalleryConfigurationService ConfigService { get; set; }
 
-        public void OnAuthorization(AuthorizationContext filterContext)
+        public async void OnAuthorization(AuthorizationContext filterContext)
         {
             if (filterContext == null)
             {
@@ -23,13 +23,13 @@ namespace NuGetGallery.Filters
             }
 
             var request = filterContext.HttpContext.Request;
-            if (Configuration.RequireSSL && !request.IsSecureConnection)
+            if ((await ConfigService.GetCurrent()).RequireSSL && !request.IsSecureConnection)
             {
                 HandleNonHttpsRequest(filterContext);
             }
         }
 
-        private void HandleNonHttpsRequest(AuthorizationContext filterContext)
+        private async void HandleNonHttpsRequest(AuthorizationContext filterContext)
         {
             // only redirect for GET requests, otherwise the browser might not propagate the verb and request
             // body correctly.
@@ -40,10 +40,12 @@ namespace NuGetGallery.Filters
             else
             {
                 // redirect to HTTPS version of page
-                string portString = String.Empty;
-                if (Configuration.SSLPort != 443)
+                var portString = String.Empty;
+
+                var sslPort = (await ConfigService.GetCurrent()).SSLPort;
+                if (sslPort != 443)
                 {
-                    portString = String.Format(CultureInfo.InvariantCulture, ":{0}", Configuration.SSLPort);
+                    portString = String.Format(CultureInfo.InvariantCulture, ":{0}", sslPort);
                 }
 
                 string url = "https://" + filterContext.HttpContext.Request.Url.Host + portString + filterContext.HttpContext.Request.RawUrl;

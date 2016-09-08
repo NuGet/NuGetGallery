@@ -12,6 +12,7 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -602,20 +603,27 @@ namespace NuGetGallery
         public class TestableMessageService : MessageService
         {
             public Mock<AuthenticationService> MockAuthService { get; protected set; }
-            public Mock<IAppConfiguration> MockConfig { get; protected set; }
+            public Mock<IGalleryConfigurationService> MockConfigService { get; protected set; }
             public TestMailSender MockMailSender { get; protected set; }
 
-            public TestableMessageService()
+            public TestableMessageService() : base(new TestMailSender())
             {
-                AuthService = (MockAuthService = new Mock<AuthenticationService>()).Object;
-                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
-                MailSender = MockMailSender = new TestMailSender();
+                MockMailSender = (TestMailSender)MailSender;
 
-                MockConfig.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
-                MockConfig.Setup(x => x.GalleryNoReplyAddress).Returns(TestGalleryNoReplyAddress);
+                AuthService = (MockAuthService = new Mock<AuthenticationService>()).Object;
+
+                var mockConfig = new Mock<IAppConfiguration>();
+                
+                mockConfig.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
+                mockConfig.Setup(x => x.GalleryNoReplyAddress).Returns(TestGalleryNoReplyAddress);
+
+                MockConfigService = new Mock<IGalleryConfigurationService>();
+                MockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockConfig.Object));
+
+                ConfigService = MockConfigService.Object;
             }
         }
-
+        
         // Normally I don't like hand-written mocks, but this actually seems appropriate - anurse
         public class TestMailSender : IMailSender
         {

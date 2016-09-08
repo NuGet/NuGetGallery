@@ -14,13 +14,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public partial class LuceneController : AdminControllerBase
     {
         protected IIndexingService IndexingService { get; set; }
-        protected IAppConfiguration Config { get; set; }
+        protected IGalleryConfigurationService ConfigService { get; set; }
 
         protected LuceneController() { }
-        public LuceneController(IIndexingService indexingService, IAppConfiguration config)
+        public LuceneController(IIndexingService indexingService, IGalleryConfigurationService configService)
         {
             IndexingService = indexingService;
-            Config = config;
+            ConfigService = configService;
         }
 
         //
@@ -37,7 +37,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 Directory = IndexingService.IndexPath,
                 IsLocal = IndexingService.IsLocal,
-                Location = Config.LuceneIndexLocation
+                Location = (await ConfigService.GetCurrent()).LuceneIndexLocation
             };
 
             try

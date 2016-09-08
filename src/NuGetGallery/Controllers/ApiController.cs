@@ -153,7 +153,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (ConfigurationService.Features.TrackPackageDownloadCountInLocalDatabase)
+            if ((await ConfigurationService.GetFeatures()).TrackPackageDownloadCountInLocalDatabase)
             {
                 await PackageService.IncrementDownloadCountAsync(id, version);
             }

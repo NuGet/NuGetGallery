@@ -22,6 +22,9 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration.SecretReader;
+using NuGetGallery.Services;
+using Autofac.Core;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -36,42 +39,33 @@ namespace NuGetGallery
                 .As<IDiagnosticsService>()
                 .SingleInstance();
 
-            var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
+            var configService = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
+            var currentConfig = configService.GetCurrent().Result;
 
-            builder.RegisterInstance(configuration)
+            builder.RegisterInstance(configService)
                 .AsSelf()
-                .As<PoliteCaptcha.IConfigurationSource>();
-
-            builder.RegisterInstance(configuration)
-                .AsSelf()
+                .As<PoliteCaptcha.IConfigurationSource>()
                 .As<IGalleryConfigurationService>();
 
-            builder.Register(c => configuration.Current)
-                .AsSelf()
-                .As<IAppConfiguration>();
-
-            // Force the read of this configuration, so it will be initialized on startup
-            builder.Register(c => configuration.Features)
-               .AsSelf()
-               .As<FeatureConfiguration>();
-
-            builder.RegisterInstance(LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
+            builder.RegisterInstance(LuceneCommon.GetDirectory(currentConfig.LuceneIndexLocation))
                 .As<Lucene.Net.Store.Directory>()
                 .SingleInstance();
 
-            ConfigureSearch(builder, configuration);
+            ConfigureSearch(builder, configService, currentConfig, diagnosticsService);
 
-            if (!string.IsNullOrEmpty(configuration.Current.AzureStorageConnectionString))
+            if (!string.IsNullOrEmpty(currentConfig.AzureStorageConnectionString))
             {
-                builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorageConnectionString))
+                var tableErrorLogFactory = new ConfigObjectDelegate<TableErrorLog>(async () => new TableErrorLog((await configService.GetCurrent()).AzureStorageConnectionString), async () => (await configService.GetCurrent()).AzureStorageConnectionString);
+                builder.Register(c => tableErrorLogFactory.Get().Result)
                     .As<ErrorLog>()
-                    .SingleInstance();
+                    .InstancePerLifetimeScope();
             }
             else
             {
-                builder.RegisterInstance(new SqlErrorLog(configuration.Current.SqlConnectionString))
+                var sqlErrorLogFactory = new ConfigObjectDelegate<SqlErrorLog>(async () => new SqlErrorLog((await configService.GetCurrent()).SqlConnectionString), async () => (await configService.GetCurrent()).SqlConnectionString);
+                builder.Register(c => sqlErrorLogFactory.Get().Result)
                     .As<ErrorLog>()
-                    .SingleInstance();
+                    .InstancePerLifetimeScope();
             }
 
             builder.RegisterType<HttpContextCacheService>()
@@ -84,7 +78,7 @@ namespace NuGetGallery
                 .As<IContentService>()
                 .SingleInstance();
 
-            builder.Register(c => new EntitiesContext(configuration.Current.SqlConnectionString, readOnly: configuration.Current.ReadOnlyMode))
+            builder.Register(c => new EntitiesContext(configService.GetCurrent().Result.SqlConnectionString, readOnly: configService.GetCurrent().Result.ReadOnlyMode))
                 .AsSelf()
                 .As<IEntitiesContext>()
                 .As<DbContext>()
@@ -140,7 +134,7 @@ namespace NuGetGallery
                 .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new SupportRequestDbContext(configuration.Current.SqlConnectionStringSupportRequest))
+            builder.Register(c => new SupportRequestDbContext(configService.GetCurrent().Result.SqlConnectionStringSupportRequest))
                 .AsSelf()
                 .As<ISupportRequestDbContext>()
                 .InstancePerLifetimeScope();
@@ -192,51 +186,6 @@ namespace NuGetGallery
                 .As<IStatusService>()
                 .InstancePerLifetimeScope();
 
-            var mailSenderThunk = new Lazy<IMailSender>(
-                () =>
-                {
-                    var settings = configuration;
-                    if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
-                    {
-                        var smtpUri = new SmtpUri(settings.Current.SmtpUri);
-
-                        var mailSenderConfiguration = new MailSenderConfiguration
-                            {
-                                DeliveryMethod = SmtpDeliveryMethod.Network,
-                                Host = smtpUri.Host,
-                                Port = smtpUri.Port,
-                                EnableSsl = smtpUri.Secure
-                            };
-
-                        if (!string.IsNullOrWhiteSpace(smtpUri.UserName))
-                        {
-                            mailSenderConfiguration.UseDefaultCredentials = false;
-                            mailSenderConfiguration.Credentials = new NetworkCredential(
-                                smtpUri.UserName,
-                                smtpUri.Password);
-                        }
-
-                        return new MailSender(mailSenderConfiguration);
-                    }
-                    else
-                    {
-                        var mailSenderConfiguration = new MailSenderConfiguration
-                            {
-                                DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
-                                PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
-                            };
-
-                        return new MailSender(mailSenderConfiguration);
-                    }
-                });
-
-
-
-            builder.Register(c => mailSenderThunk.Value)
-                .AsSelf()
-                .As<IMailSender>()
-                .InstancePerLifetimeScope();
-
             builder.RegisterType<MessageService>()
                 .AsSelf()
                 .As<IMessageService>()
@@ -247,14 +196,14 @@ namespace NuGetGallery
                 .As<IPrincipal>()
                 .InstancePerLifetimeScope();
 
-            switch (configuration.Current.StorageType)
+            switch (currentConfig.StorageType)
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
-                    ConfigureForLocalFileSystem(builder, configuration);
+                    ConfigureForLocalFileSystem(builder, currentConfig);
                     break;
                 case StorageType.AzureStorage:
-                    ConfigureForAzureStorage(builder, configuration);
+                    ConfigureForAzureStorage(builder, configService);
                     break;
             }
 
@@ -290,12 +239,12 @@ namespace NuGetGallery
                 .As<IAutomaticallyCuratePackageCommand>()
                 .InstancePerLifetimeScope();
 
-            ConfigureAutocomplete(builder, configuration);
+            ConfigureAutocomplete(builder, configService, currentConfig);
         }
 
-        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration, IAppConfiguration currentConfig, IDiagnosticsService diagnosticsService)
         {
-            if (configuration.Current.ServiceDiscoveryUri == null)
+            if (currentConfig.ServiceDiscoveryUri == null)
             {
                 builder.RegisterType<LuceneSearchService>()
                     .AsSelf()
@@ -308,24 +257,24 @@ namespace NuGetGallery
             }
             else
             {
-                builder.RegisterType<ExternalSearchService>()
+                builder.Register(c => new ExternalSearchService(diagnosticsService, configuration.GetCurrent().Result.ServiceDiscoveryUri, configuration.GetCurrent().Result.SearchServiceResourceType))
                     .AsSelf()
                     .As<ISearchService>()
                     .As<IIndexingService>()
                     .InstancePerLifetimeScope();
             }
         }
-        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configService, IAppConfiguration currentConfig)
         {
-            if (configuration.Current.ServiceDiscoveryUri != null &&
-                !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
+            if (currentConfig.ServiceDiscoveryUri != null &&
+                !string.IsNullOrEmpty(currentConfig.AutocompleteServiceResourceType))
             {
-                builder.RegisterType<AutocompleteServicePackageIdsQuery>()
+                builder.Register(c => new AutocompleteServicePackageIdsQuery(configService.GetCurrent().Result))
                     .AsSelf()
                     .As<IPackageIdsQuery>()
                     .SingleInstance();
 
-                builder.RegisterType<AutocompleteServicePackageVersionsQuery>()
+                builder.Register(c => new AutocompleteServicePackageVersionsQuery(configService.GetCurrent().Result))
                     .AsSelf()
                     .As<IPackageVersionsQuery>()
                     .InstancePerLifetimeScope();
@@ -344,7 +293,7 @@ namespace NuGetGallery
             }
         }
 
-        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IAppConfiguration currentConfig)
         {
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
@@ -363,7 +312,7 @@ namespace NuGetGallery
 
             // Setup auditing
             var auditingPath = Path.Combine(
-                FileSystemFileStorageService.ResolvePath(configuration.Current.FileStorageDirectory),
+                FileSystemFileStorageService.ResolvePath(currentConfig.FileStorageDirectory),
                 FileSystemAuditingService.DefaultContainerName);
 
             builder.RegisterInstance(new FileSystemAuditingService(auditingPath, FileSystemAuditingService.GetAspNetOnBehalfOf))
@@ -378,9 +327,9 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configService)
         {
-            builder.RegisterInstance(new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.RegisterType<CloudBlobClientWrapper>()
                 .AsSelf()
                 .As<ICloudBlobClient>()
                 .SingleInstance();
@@ -391,24 +340,22 @@ namespace NuGetGallery
                 .SingleInstance();
 
             // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
-            builder.RegisterInstance(new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.RegisterType<JsonAggregateStatsService>()
                 .AsSelf()
                 .As<IAggregateStatsService>()
                 .SingleInstance();
 
             // when running on Windows Azure, pull the statistics from the warehouse via storage
-            builder.RegisterInstance(new CloudReportService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.RegisterType<CloudReportService>()
                 .AsSelf()
                 .As<IReportService>()
                 .SingleInstance();
 
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
-            var downloadCountService = new CloudDownloadCountService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant);
-            builder.RegisterInstance(downloadCountService)
+            builder.RegisterType<CloudDownloadCountService>()
                 .AsSelf()
                 .As<IDownloadCountService>()
                 .SingleInstance();
-            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService));
 
             builder.RegisterType<JsonStatisticsService>()
                 .AsSelf()
@@ -427,7 +374,11 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIP().Result;
 
-            builder.RegisterInstance(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, CloudAuditingService.GetAspNetOnBehalfOf))
+            var cloudAuditingServiceFactory = new ConfigObjectDelegate<AuditingService>(
+                async () => new CloudAuditingService(instanceId, localIp, (await configService.GetCurrent()).AzureStorageConnectionString, CloudAuditingService.GetAspNetOnBehalfOf), 
+                async () => (await configService.GetCurrent()).AzureStorageConnectionString);
+
+            builder.Register(c => cloudAuditingServiceFactory.Get().Result)
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();

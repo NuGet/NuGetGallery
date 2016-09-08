@@ -314,11 +314,11 @@ namespace NuGetGallery.Controllers
                 var enforcedProvider = "AzureActiveDirectory";
 
                 var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration
+                mockConfig.Setup(x => x.GetCurrent()).Returns(Task.FromResult<IAppConfiguration>(new AppConfiguration
                 {
                     ConfirmEmailAddresses = false,
                     EnforcedAuthProviderForAdmin = enforcedProvider
-                });
+                }));
 
                 var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
 
@@ -444,6 +444,11 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n"
                     },
                     new Credential());
+
+                GetMock<IAppConfiguration>()
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
                     .CompletesWith(authUser);
@@ -491,7 +496,7 @@ namespace NuGetGallery.Controllers
                     new Credential());
 
                 var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration { ConfirmEmailAddresses = false });
+                mockConfig.Setup(x => x.GetCurrent()).Returns(Task.FromResult<IAppConfiguration>(new AppConfiguration { ConfirmEmailAddresses = false }));
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
@@ -569,7 +574,12 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n"
                     },
                     new Credential());
+
                 var externalCred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+
+                GetMock<IAppConfiguration>()
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred))
@@ -625,11 +635,11 @@ namespace NuGetGallery.Controllers
                 var enforcedProvider = "AzureActiveDirectory";
 
                 var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration
+                mockConfig.Setup(x => x.GetCurrent()).Returns(Task.FromResult<IAppConfiguration>(new AppConfiguration
                 {
                     ConfirmEmailAddresses = false,
                     EnforcedAuthProviderForAdmin = enforcedProvider
-                });
+                }));
 
                 var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
 
@@ -742,7 +752,7 @@ namespace NuGetGallery.Controllers
                 var fakes = Get<Fakes>();
 
                 var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration());
+                mockConfig.Setup(x => x.GetCurrent()).Returns(Task.FromResult <IAppConfiguration>(new AppConfiguration()));
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
@@ -776,11 +786,11 @@ namespace NuGetGallery.Controllers
                 var enforcedProvider = "AzureActiveDirectory";
 
                 var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration
+                mockConfig.Setup(x => x.GetCurrent()).Returns(Task.FromResult<IAppConfiguration>(new AppConfiguration
                 {
                     ConfirmEmailAddresses = false,
                     EnforcedAuthProviderForAdmin = enforcedProvider
-                });
+                }));
 
                 var fakes = Get<Fakes>();
                 GetMock<AuthenticationService>(); // Force a mock to be created

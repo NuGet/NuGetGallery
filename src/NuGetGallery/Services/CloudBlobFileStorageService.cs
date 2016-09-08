@@ -19,13 +19,13 @@ namespace NuGetGallery
     public class CloudBlobFileStorageService : IFileStorageService
     {
         private readonly ICloudBlobClient _client;
-        private readonly IAppConfiguration _configuration;
+        private readonly IGalleryConfigurationService _configService;
         private readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
 
-        public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration)
+        public CloudBlobFileStorageService(ICloudBlobClient client, IGalleryConfigurationService configService)
         {
             _client = client;
-            _configuration = configuration;
+            _configService = configService;
         }
 
         public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
@@ -33,7 +33,7 @@ namespace NuGetGallery
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
 
-            var redirectUri = GetRedirectUri(requestUrl, blob.Uri);
+            var redirectUri = await GetRedirectUri(requestUrl, blob.Uri);
             return new RedirectResult(redirectUri.OriginalString, false);
         }
 
@@ -217,7 +217,7 @@ namespace NuGetGallery
 
         private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic)
         {
-            var container = _client.GetContainerReference(folderName);
+            var container = await _client.GetContainerReference(folderName);
             await container.CreateIfNotExistAsync();
             await container.SetPermissionsAsync(
                 new BlobContainerPermissions
@@ -236,15 +236,15 @@ namespace NuGetGallery
             var container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
 
-            var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri);
+            var redirectUri = await GetRedirectUri(httpContext.Request.Url, blob.Uri);
             return new RedirectResult(redirectUri.OriginalString, false);
         }
 
-        internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri)
+        internal async Task<Uri> GetRedirectUri(Uri requestUrl, Uri blobUri)
         {
-            var host = string.IsNullOrEmpty(_configuration.AzureCdnHost)
+            var host = string.IsNullOrEmpty((await _configService.GetCurrent()).AzureCdnHost)
                 ? blobUri.Host 
-                : _configuration.AzureCdnHost;
+                : (await _configService.GetCurrent()).AzureCdnHost;
 
             // When a blob query string is passed, that one always wins.
             // This will only happen on private NuGet gallery instances,

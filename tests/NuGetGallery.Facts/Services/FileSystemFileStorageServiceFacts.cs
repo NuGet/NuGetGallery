@@ -23,13 +23,15 @@ namespace NuGetGallery
         }
 
         private static FileSystemFileStorageService CreateService(
-            Mock<IAppConfiguration> configuration = null,
+            Mock<IGalleryConfigurationService> configuration = null,
             Mock<IFileSystemService> fileSystemService = null)
         {
             if (configuration == null)
             {
-                configuration = new Mock<IAppConfiguration>();
-                configuration.Setup(x => x.FileStorageDirectory).Returns(FakeConfiguredFileStorageDirectory);
+                configuration = new Mock<IGalleryConfigurationService>();
+                var currentConfig = new Mock<IAppConfiguration>();
+                currentConfig.Setup(x => x.FileStorageDirectory).Returns(FakeConfiguredFileStorageDirectory);
+                configuration.Setup(x => x.GetCurrent()).Returns(Task.FromResult(currentConfig.Object));
             }
 
             if (fileSystemService == null)
@@ -160,13 +162,13 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillDeleteTheFileIfItExists()
+            public async void WillDeleteTheFileIfItExists()
             {
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                service.DeleteFileAsync(Constants.PackagesFolderName, "theFileName");
+                await service.DeleteFileAsync(Constants.PackagesFolderName, "theFileName");
 
                 fakeFileSystemService.Verify(
                     x => x.DeleteFile(
@@ -174,7 +176,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillNotDeleteTheFileIfItDoesNotExist()
+            public async void WillNotDeleteTheFileIfItDoesNotExist()
             {
                 var deleteWasInvoked = false;
                 var fakeFileSystemService = new Mock<IFileSystemService>();
@@ -182,7 +184,7 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.DeleteFile(It.IsAny<string>())).Callback(() => deleteWasInvoked = true);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                service.DeleteFileAsync(Constants.PackagesFolderName, "theFileName");
+                await service.DeleteFileAsync(Constants.PackagesFolderName, "theFileName");
 
                 Assert.False(deleteWasInvoked);
             }

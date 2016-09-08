@@ -56,9 +56,9 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
         }
 
-        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
+        public ExternalSearchService(IDiagnosticsService diagnostics, Uri serviceDiscoveryUri, string searchServiceResourceType)
         {
-            ServiceUri = config.ServiceDiscoveryUri;
+            ServiceUri = serviceDiscoveryUri;
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
@@ -90,7 +90,7 @@ namespace NuGetGallery.Infrastructure.Lucene
 
             if (_client == null)
             {
-                _client = new SearchClient(ServiceUri, config.SearchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace), new CorrelatingHttpClientHandler());
+                _client = new SearchClient(ServiceUri, searchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace), new CorrelatingHttpClientHandler());
             }
         }
 
@@ -326,7 +326,7 @@ namespace NuGetGallery.Infrastructure.Lucene
             // No-op
         }
 
-        public void RegisterBackgroundJobs(IList<WebBackgrounder.IJob> jobs, IAppConfiguration configuration)
+        public void RegisterBackgroundJobs(IList<WebBackgrounder.IJob> jobs)
         {
             // No background jobs to register!
         }

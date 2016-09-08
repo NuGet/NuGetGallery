@@ -13,7 +13,7 @@ namespace NuGetGallery.Authentication.Providers.Cookie
     {
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
-            var cookieSecurity = config.Current.RequireSSL ?
+            var cookieSecurity = config.GetCurrent().Result.RequireSSL ?
                 CookieSecureOption.Always :
                 CookieSecureOption.Never;
 

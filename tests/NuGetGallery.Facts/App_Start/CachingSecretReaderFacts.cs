@@ -7,6 +7,7 @@ using NuGet.Services.KeyVault;
 using NuGetGallery.Configuration.SecretReader;
 using NuGetGallery.Diagnostics;
 using Xunit;
+using System.Threading;
 
 namespace NuGetGallery.App_Start
 {
@@ -20,7 +21,7 @@ namespace NuGetGallery.App_Start
             var mockSecretReader = new Mock<ISecretReader>();
             mockSecretReader.Setup(x => x.GetSecretAsync(It.IsAny<string>())).Returns(Task.FromResult(secret));
 
-            var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, new DiagnosticsService());
+            var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, new DiagnosticsService(), int.MaxValue);
             
             // Act
             string value = await cachingSecretReader.GetSecretAsync("secretname");
@@ -29,6 +30,41 @@ namespace NuGetGallery.App_Start
             // Assert
             mockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Once);
             Assert.Equal(secret, value);
+        }
+
+        [Fact]
+        public async Task WhenGetSecretIsCalledCacheIsRefreshedIfPastInterval()
+        {
+            // Arrange
+            const string firstSecret = "secret1";
+            const string secondSecret = "secret2";
+            const int refreshIntervalSec = 1;
+            const int delayBeforeRefreshingMs = (refreshIntervalSec + 1) * 1000;
+
+            var mockSecretReader = new Mock<ISecretReader>();
+            mockSecretReader.Setup(x => x.GetSecretAsync(It.IsAny<string>())).Returns(Task.FromResult(firstSecret));
+
+            var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, new DiagnosticsService(), refreshIntervalSec);
+
+            // Act
+            string value1 = await cachingSecretReader.GetSecretAsync("secretname");
+            value1 = await cachingSecretReader.GetSecretAsync("secretname");
+
+            // Assert
+            mockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Once);
+            Assert.Equal(firstSecret, value1);
+
+            // Wait and reconfigure the mockSecretReader and then retry
+            Thread.Sleep(delayBeforeRefreshingMs);
+            mockSecretReader.Setup(x => x.GetSecretAsync(It.IsAny<string>())).Returns(Task.FromResult(secondSecret));
+
+            // Act 2
+            string value2 = await cachingSecretReader.GetSecretAsync("secretname");
+            value2 = await cachingSecretReader.GetSecretAsync("secretname");
+
+            // Assert 2
+            mockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Exactly(2));
+            Assert.Equal(secondSecret, value2);
         }
     }
 }

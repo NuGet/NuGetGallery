@@ -18,7 +18,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             // Fetch site root from configuration
-            var siteRoot = config.Current.SiteRoot.TrimEnd('/') + "/";
+            var siteRoot = config.GetCurrent().Result.SiteRoot.TrimEnd('/') + "/";
             
             // We *always* require SSL for Azure Active Directory
             if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) 

@@ -59,6 +59,9 @@ namespace NuGetGallery
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
             config = config ?? new Mock<IAppConfiguration>();
 
+            var configService = new Mock<IGalleryConfigurationService>();
+            configService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(config.Object));
+
             if (packageFileService == null)
             {
                 packageFileService = new Mock<IPackageFileService>();
@@ -87,7 +90,7 @@ namespace NuGetGallery
                 autoCuratePackageCmd.Object,
                 packageFileService.Object,
                 entitiesContext.Object,
-                config.Object,
+                configService.Object,
                 indexingService.Object,
                 cacheService.Object,
                 editPackageService.Object,

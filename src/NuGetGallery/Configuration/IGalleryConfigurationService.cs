@@ -7,9 +7,9 @@ namespace NuGetGallery.Configuration
 {
     public interface IGalleryConfigurationService
     {
-        IAppConfiguration Current { get; }
+        Task<IAppConfiguration> GetCurrent();
 
-        FeatureConfiguration Features { get; }
+        Task<FeatureConfiguration> GetFeatures();
 
         /// <summary>
         /// Gets the site root using the specified protocol

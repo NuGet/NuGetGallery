@@ -9,6 +9,7 @@ using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using NuGetGallery.Configuration;
 using NuGetGallery.WebApi;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.OData
 {
@@ -47,7 +48,7 @@ namespace NuGetGallery.OData
 
         protected virtual string GetSiteRoot()
         {
-            return _configurationService.GetSiteRoot(UseHttps()).TrimEnd('/') + '/';
+            return (_configurationService.GetSiteRoot(UseHttps())).TrimEnd('/') + '/';
         }
 
         /// <summary>

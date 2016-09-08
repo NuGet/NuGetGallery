@@ -27,10 +27,10 @@ namespace NuGetGallery
         private readonly string _autocompleteServiceResourceType;
         private readonly RetryingHttpClientWrapper _httpClient;
 
-        public AutocompleteServicePackageVersionsQuery(IAppConfiguration configuration)
+        public AutocompleteServicePackageVersionsQuery(IAppConfiguration config)
         {
-            _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
-            _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
+            _serviceDiscoveryClient = new ServiceDiscoveryClient(config.ServiceDiscoveryUri);
+            _autocompleteServiceResourceType = config.AutocompleteServiceResourceType;
             _httpClient = new RetryingHttpClientWrapper(new HttpClient());
         }
 

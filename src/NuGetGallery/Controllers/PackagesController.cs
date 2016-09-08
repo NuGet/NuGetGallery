@@ -39,7 +39,7 @@ namespace NuGetGallery
         // TODO: improve validation summary emphasis
 
         private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
-        private readonly IAppConfiguration _config;
+        private readonly IGalleryConfigurationService _configService;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
@@ -61,7 +61,7 @@ namespace NuGetGallery
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
-            IAppConfiguration config,
+            IGalleryConfigurationService configService,
             IIndexingService indexingService,
             ICacheService cacheService,
             EditPackageService editPackageService,
@@ -76,7 +76,7 @@ namespace NuGetGallery
             _autoCuratedPackageCmd = autoCuratedPackageCmd;
             _packageFileService = packageFileService;
             _entitiesContext = entitiesContext;
-            _config = config;
+            _configService = configService;
             _indexingService = indexingService;
             _cacheService = cacheService;
             _editPackageService = editPackageService;
@@ -381,7 +381,7 @@ namespace NuGetGallery
                 model.IsIndexed = isIndexed;
             }
 
-            ViewBag.FacebookAppID = _config.FacebookAppId;
+            ViewBag.FacebookAppID = (await _configService.GetCurrent()).FacebookAppId;
             return View(model);
         }
 

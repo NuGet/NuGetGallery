@@ -89,7 +89,7 @@ namespace NuGetGallery.Operations
             base.ValidateArguments();
 
             // Load defaults from environment
-            if(ConnectionString == null) {
+            if (ConnectionString == null) {
                 if (CurrentEnvironment != null)
                 {
                     ConnectionString = GetConnectionFromEnvironment(CurrentEnvironment);

@@ -4,6 +4,7 @@
 using System;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.Views
 {
@@ -14,11 +15,6 @@ namespace NuGetGallery.Views
         public NuGetContext NuGetContext
         {
             get { return _nugetContext.Value; }
-        }
-
-        public IGalleryConfigurationService Config
-        {
-            get { return NuGetContext.Config; }
         }
 
         public User CurrentUser
@@ -52,11 +48,6 @@ namespace NuGetGallery.Views
         public NuGetContext NuGetContext
         {
             get { return _nugetContext.Value; }
-        }
-
-        public IGalleryConfigurationService Config
-        {
-            get { return NuGetContext.Config; }
         }
 
         public User CurrentUser

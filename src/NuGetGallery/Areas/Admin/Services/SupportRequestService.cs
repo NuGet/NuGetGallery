@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration;
+using NuGetGallery.Configuration.Factories;
 
 namespace NuGetGallery.Areas.Admin
 {
@@ -16,18 +17,17 @@ namespace NuGetGallery.Areas.Admin
         : ISupportRequestService
     {
         private readonly ISupportRequestDbContext _supportRequestDbContext;
-        private readonly PagerDutyClient _pagerDutyClient;
-        private readonly string _siteRoot;
         private const string _unassignedAdmin = "unassigned";
+
+        private IGalleryConfigurationService _configService;
+        private PagerDutyClient _pagerDutyClient;
 
         public SupportRequestService(
             ISupportRequestDbContext supportRequestDbContext,
-            IAppConfiguration config)
+            IGalleryConfigurationService configService)
         {
             _supportRequestDbContext = supportRequestDbContext;
-            _siteRoot = config.SiteRoot;
-
-            _pagerDutyClient = new PagerDutyClient(config.PagerDutyAccountName, config.PagerDutyAPIKey, config.PagerDutyServiceKey);
+            _configService = configService;
         }
 
         public IReadOnlyCollection<Models.Admin> GetAllAdmins()
@@ -200,6 +200,11 @@ namespace NuGetGallery.Areas.Admin
         public async Task AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
             User user, Package package = null)
         {
+            if (_pagerDutyClient == null)
+            {
+                _pagerDutyClient = await PagerDutyClientFactory.CreatePagerDutyClient(_configService);
+            }
+
             var loggedInUser = user?.Username ?? "Anonymous";
 
             try
@@ -227,7 +232,7 @@ namespace NuGetGallery.Areas.Admin
                 newIssue.PackageId = package?.PackageRegistration.Id;
                 newIssue.PackageVersion = package?.Version;
                 newIssue.Reason = reason;
-                newIssue.SiteRoot = _siteRoot;
+                newIssue.SiteRoot = (await _configService.GetCurrent()).SiteRoot;
                 newIssue.UserKey = user?.Key;
                 newIssue.PackageRegistrationKey = package?.PackageRegistrationKey;
 

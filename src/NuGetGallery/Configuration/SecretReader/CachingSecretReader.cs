@@ -11,11 +11,13 @@ namespace NuGetGallery.Configuration.SecretReader
 {
     public class CachingSecretReader : ISecretReader
     {
+        private readonly int _refreshIntervalSeconds;
+
         private ISecretReader _internalReader;
-        private Dictionary<string, string> _cache;
+        private Dictionary<string, Tuple<string, DateTime>> _cache;
         private IDiagnosticsSource _trace;
 
-        public CachingSecretReader(ISecretReader secretReader, IDiagnosticsService diagnosticsService)
+        public CachingSecretReader(ISecretReader secretReader, IDiagnosticsService diagnosticsService, int refreshInterval)
         {
             if (secretReader == null)
             {
@@ -28,20 +30,33 @@ namespace NuGetGallery.Configuration.SecretReader
             }
 
             _internalReader = secretReader;
-            _cache = new Dictionary<string, string>();
+            _cache = new Dictionary<string, Tuple<string, DateTime>>();
             _trace = diagnosticsService.GetSource("CachingSecretReader");
+
+            _refreshIntervalSeconds = refreshInterval;
         }
             
         public async Task<string> GetSecretAsync(string secretName)
         {
-            if (!_cache.ContainsKey(secretName))
+            if (_cache.ContainsKey(secretName))
+            {
+                if (DateTime.UtcNow.Subtract(_cache[secretName].Item2).TotalSeconds < _refreshIntervalSeconds)
+                {
+                    // If the secret is in the cache and does not need to be refreshed, return from the cache
+                    return _cache[secretName].Item1;
+                } else
+                {
+                    _trace.Information("Must refresh setting " + secretName);
+                }
+            } else
             {
                 _trace.Information("Cache miss for setting " + secretName);
-                var secretValue = await _internalReader.GetSecretAsync(secretName);
-                _cache[secretName] = secretValue;
             }
 
-            return _cache[secretName];
+            // If the secret is not in the cache or needs to be refreshed, refresh from KeyVault
+            var secretValue = await _internalReader.GetSecretAsync(secretName);
+            _cache[secretName] = Tuple.Create<string, DateTime>(secretValue, DateTime.UtcNow);
+            return _cache[secretName].Item1;
         }
     }
 }

@@ -3,24 +3,32 @@
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using NuGetGallery.Configuration;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
     public class CloudBlobClientWrapper : ICloudBlobClient
     {
-        private readonly string _storageConnectionString;
-        private readonly bool _readAccessGeoRedundant;
+        private IGalleryConfigurationService _configService;
+        private string _storageConnectionString;
+        private bool _readAccessGeoRedundant;
         private CloudBlobClient _blobClient;
 
-        public CloudBlobClientWrapper(string storageConnectionString, bool readAccessGeoRedundant)
+        public CloudBlobClientWrapper(IGalleryConfigurationService configService)
         {
-            _storageConnectionString = storageConnectionString;
-            _readAccessGeoRedundant = readAccessGeoRedundant;
+            _configService = configService;
         }
 
-        public ICloudBlobContainer GetContainerReference(string containerAddress)
+        public async Task<ICloudBlobContainer> GetContainerReference(string containerAddress)
         {
-            if (_blobClient == null)
+            var oldStorageConnectionString = _storageConnectionString;
+            var oldReadAccessGeoRedundant = _readAccessGeoRedundant;
+
+            _storageConnectionString = (await _configService.GetCurrent()).AzureStorageConnectionString;
+            _readAccessGeoRedundant = (await _configService.GetCurrent()).AzureStorageReadAccessGeoRedundant;
+
+            if (_blobClient == null || oldStorageConnectionString != _storageConnectionString || oldReadAccessGeoRedundant != _readAccessGeoRedundant)
             {
                 _blobClient = CloudStorageAccount.Parse(_storageConnectionString).CreateCloudBlobClient();
 

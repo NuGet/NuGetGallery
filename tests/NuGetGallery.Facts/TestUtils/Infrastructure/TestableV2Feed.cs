@@ -4,6 +4,7 @@
 using System.Web;
 using NuGetGallery.Configuration;
 using NuGetGallery.Controllers;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.TestUtils.Infrastructure
 {

@@ -241,7 +241,7 @@
                              </div>
                              <div class="form-field">
                                  <input name="notifyPackagePushed" id="CurrentUser_NotifyPackagePushed" type="checkbox" checked="@(CurrentUser.NotifyPackagePushed)" value="true">
-                                 <label class="checkbox" for="CurrentUser_NotifyPackagePushed">Notify me when a package is pushed to @Config.Current.Brand using my account</label>
+                                 <label class="checkbox" for="CurrentUser_NotifyPackagePushed">Notify me when a package is pushed to @ViewBag.CurrentConfig.Brand using my account</label>
                                  <p class="smaller">
                                      This subscription will send a notification whenever a package is pushed using your account.
                                      We recommend to enable this subscription so that you can inspect whether a package was pushed intentional or not.
@@ -309,7 +309,7 @@
 {
     <p class="message">
         Because you have an external account registered you can remove your password below and use
-        that account to sign in to @Config.Current.Brand. No more passwords to forget!
+        that account to sign in to @ViewBag.CurrentConfig.Brand. No more passwords to forget!
     </p>
 }
     
@@ -341,7 +341,7 @@
                     }
                 </text>,
                 content: @<p>
-                    You can use this @cred.AuthUI.AccountNoun to sign in to @Config.Current.Brand
+                    You can use this @cred.AuthUI.AccountNoun to sign in to @ViewBag.CurrentConfig.Brand
                 </p>)
         }
     }
@@ -389,7 +389,7 @@
                     <legend>Change Password Form</legend>
 
                     <p>
-                        Using this form, you can change your password for @(Config.Current.Brand).
+                        Using this form, you can change your password for @(ViewBag.CurrentConfig.Brand).
                     </p>
 
                     @Html.AntiForgeryToken()
@@ -423,7 +423,7 @@
     **************************@
     @{
         // has our API key been used in last ExpirationInDaysForApiKeyV1 days?
-        var apiKeyHasBeenUsedRecently = apiKey == null || apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1);
+        var apiKeyHasBeenUsedRecently = apiKey == null || apiKey.HasBeenUsedInLastDays(ViewBag.CurrentConfig.ExpirationInDaysForApiKeyV1);
 
         // auto-expand when we just generated a new key
         var shouldExpandApiKeyAccordion = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyReset, StringComparison.OrdinalIgnoreCase));
@@ -461,7 +461,7 @@
             </text>,
         content: @<text>
             <p>
-                An API key provides you with a token that can identify you to @(Config.Current.Brand). The
+                An API key provides you with a token that can identify you to @(ViewBag.CurrentConfig.Brand). The
                 <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
                 submit a NuGet package to the gallery using your API key to authenticate.
             </p>
@@ -478,13 +478,13 @@
                 if (apiKey == null)
                 {
                     <p>
-                        <strong>You don't have an API key yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
+                        <strong>You don't have an API key yet.</strong> Use the button below to generate an API key and start publishing packages to @(ViewBag.CurrentConfig.Brand).
                     </p>
                 }
                 else if (apiKey.HasExpired || !apiKeyHasBeenUsedRecently)
                 {
                     <p>
-                        <strong>Your API key has expired</strong> and can no longer be used to publish packages to @(Config.Current.Brand). Use the button below to generate a new API key.
+                        <strong>Your API key has expired</strong> and can no longer be used to publish packages to @(ViewBag.CurrentConfig.Brand). Use the button below to generate a new API key.
                     </p>
                 }
                 else
@@ -563,9 +563,9 @@
 
                 if (apiKey != null && !apiKey.HasExpired && apiKeyHasBeenUsedRecently)
                 {
-                    var siteRoot = Config.Current.RequireSSL
-                        ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
-                        : Config.Current.SiteRoot.TrimEnd('/');
+                    var siteRoot = ViewBag.CurrentConfig.RequireSSL
+                        ? ViewBag.CurrentConfig.SiteRoot.TrimEnd('/').Replace("http://", "https://")
+                        : ViewBag.CurrentConfig.SiteRoot.TrimEnd('/');
 
                     <hr/>
 

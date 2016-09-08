@@ -24,6 +24,7 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using WebBackgrounder;
 using WebActivatorEx;
+using System.Threading.Tasks;
 
 [assembly: PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
 [assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
@@ -65,10 +66,11 @@ namespace NuGetGallery
             }
 
             // Get configuration from the kernel
-            var config = DependencyResolver.Current.GetService<IAppConfiguration>();
+            var configService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
+            var currentConfig = configService.GetCurrent().Result;
 
-            BackgroundJobsPostStart(config);
-            AppPostStart(config);
+            BackgroundJobsPostStart(currentConfig);
+            AppPostStart(currentConfig);
             BundlingPostStart();
         }
 
@@ -176,7 +178,7 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(supportRequestsBundle);
         }
 
-        private static void AppPostStart(IAppConfiguration configuration)
+        private static void AppPostStart(IAppConfiguration currentConfig)
         {
             WebApiConfig.Register(GlobalConfiguration.Configuration);
             NuGetODataConfig.Register(GlobalConfiguration.Configuration);
@@ -184,7 +186,7 @@ namespace NuGetGallery
             // Attach correlator
             GlobalConfiguration.Configuration.MessageHandlers.Add(new WebApiCorrelationHandler());
 
-            Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
+            Routes.RegisterRoutes(RouteTable.Routes, currentConfig.FeedOnlyMode);
             AreaRegistration.RegisterAllAreas();
 
             GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });
@@ -193,21 +195,21 @@ namespace NuGetGallery
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
-        private static void BackgroundJobsPostStart(IAppConfiguration configuration)
+        private static void BackgroundJobsPostStart(IAppConfiguration currentConfig)
         {
             var indexer = DependencyResolver.Current.GetService<IIndexingService>();
             var jobs = new List<IJob>();
             if (indexer != null)
             {
-                indexer.RegisterBackgroundJobs(jobs, configuration);
+                indexer.RegisterBackgroundJobs(jobs);
             }
 
-            if (configuration.CollectPerfLogs)
+            if (currentConfig.CollectPerfLogs)
             {
                 jobs.Add(CreateLogFlushJob());
             }
 
-            if (configuration.StorageType == StorageType.AzureStorage)
+            if (currentConfig.StorageType == StorageType.AzureStorage)
             {
                 var cloudDownloadCountService = DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
                 if (cloudDownloadCountService != null)

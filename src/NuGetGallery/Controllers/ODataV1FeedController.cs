@@ -55,7 +55,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(NoCache = true)]
         public IHttpActionResult GetCount(ODataQueryOptions<V1FeedPackage> options)
         {
-            return Get(options).FormattedAsCountResult<V1FeedPackage>();
+            return (Get(options)).FormattedAsCountResult<V1FeedPackage>();
         }
 
         // /api/v1/Packages(Id=,Version=)
