@@ -13,8 +13,8 @@ namespace NuGetGallery.Operations
     {
         public override void ExecuteCommand()
         {
-            var dbServer = ConnectionString.DataSource;
-            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
+            var dbServer = ConnectionStringBuilder.DataSource;
+            var masterConnectionString = Util.GetMasterConnectionString(ConnectionStringBuilder.ConnectionString);
 
             Log.Trace("Deleting old warehouse backups for server '{0}':", dbServer);
 

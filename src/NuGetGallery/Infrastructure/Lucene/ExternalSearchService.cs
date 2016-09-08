@@ -326,7 +326,7 @@ namespace NuGetGallery.Infrastructure.Lucene
             // No-op
         }
 
-        public void RegisterBackgroundJobs(IList<WebBackgrounder.IJob> jobs, IGalleryConfigurationService configService)
+        public void RegisterBackgroundJobs(IList<WebBackgrounder.IJob> jobs)
         {
             // No background jobs to register!
         }

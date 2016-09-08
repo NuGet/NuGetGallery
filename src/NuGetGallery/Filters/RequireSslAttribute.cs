@@ -40,10 +40,12 @@ namespace NuGetGallery.Filters
             else
             {
                 // redirect to HTTPS version of page
-                string portString = String.Empty;
-                if ((await ConfigService.GetCurrent()).SSLPort != 443)
+                var portString = String.Empty;
+
+                var sslPort = (await ConfigService.GetCurrent()).SSLPort;
+                if (sslPort != 443)
                 {
-                    portString = String.Format(CultureInfo.InvariantCulture, ":{0}", (await ConfigService.GetCurrent()).SSLPort);
+                    portString = String.Format(CultureInfo.InvariantCulture, ":{0}", sslPort);
                 }
 
                 string url = "https://" + filterContext.HttpContext.Request.Url.Host + portString + filterContext.HttpContext.Request.RawUrl;

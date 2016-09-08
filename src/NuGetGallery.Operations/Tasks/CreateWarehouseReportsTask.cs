@@ -153,7 +153,7 @@ namespace NuGetGallery.Operations
         {
             IList<string> packageIds = new List<string>();
 
-            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
             {
                 connection.Open();
 
@@ -214,7 +214,7 @@ namespace NuGetGallery.Operations
         {
             IList<Tuple<string, int>> packageIds = new List<Tuple<string, int>>();
 
-            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
             {
                 connection.Open();
 
@@ -409,7 +409,7 @@ namespace NuGetGallery.Operations
 
             IList<string> packageIds = new List<string>();
 
-            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
             {
                 connection.Open();
 
@@ -433,7 +433,7 @@ namespace NuGetGallery.Operations
         {
             Log.Info($"ConfirmPackageExported for {packageId.Item1}");
 
-            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
             {
                 connection.Open();
 
@@ -454,7 +454,7 @@ namespace NuGetGallery.Operations
             List<object[]> rows = new List<object[]>();
             string[] columns;
 
-            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
             {
                 connection.Open();
 

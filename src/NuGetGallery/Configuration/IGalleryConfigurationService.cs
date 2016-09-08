@@ -15,7 +15,7 @@ namespace NuGetGallery.Configuration
         /// Gets the site root using the specified protocol
         /// </summary>
         /// <param name="useHttps">If true, the root will be returned in HTTPS form, otherwise, HTTP.</param>
-        Task<string> GetSiteRoot(bool useHttps);
+        string GetSiteRoot(bool useHttps);
 
         /// <summary>
         /// Populate the properties of <param name="instance"></param> from configuration. 

@@ -52,9 +52,9 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            Log.Info("Exporting {0} on {1} to {2}", ConnectionString.InitialCatalog, Util.GetDatabaseServerName(ConnectionString), DestinationStorage.Credentials.AccountName);
+            Log.Info("Exporting {0} on {1} to {2}", ConnectionStringBuilder.InitialCatalog, Util.GetDatabaseServerName(ConnectionStringBuilder), DestinationStorage.Credentials.AccountName);
 
-            string serverName = ConnectionString.DataSource;
+            string serverName = ConnectionStringBuilder.DataSource;
             if (serverName.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
             {
                 serverName = serverName.Substring(4);
@@ -63,10 +63,10 @@ namespace NuGetGallery.Operations
             WASDImportExport.ImportExportHelper helper = new WASDImportExport.ImportExportHelper(Log)
             {
                 EndPointUri = SqlDacEndpoint.AbsoluteUri,
-                DatabaseName = ConnectionString.InitialCatalog,
+                DatabaseName = ConnectionStringBuilder.InitialCatalog,
                 ServerName = serverName,
-                UserName = ConnectionString.UserID,
-                Password = ConnectionString.Password,
+                UserName = ConnectionStringBuilder.UserID,
+                Password = ConnectionStringBuilder.Password,
                 StorageKey = Convert.ToBase64String(DestinationStorage.Credentials.ExportKey())
             };
 
@@ -77,7 +77,7 @@ namespace NuGetGallery.Operations
                 var client = DestinationStorage.CreateCloudBlobClient();
                 var container = client.GetContainerReference(DestinationContainer);
                 container.CreateIfNotExists();
-                var blob = container.GetBlockBlobReference(ConnectionString.InitialCatalog + ".bacpac");
+                var blob = container.GetBlockBlobReference(ConnectionStringBuilder.InitialCatalog + ".bacpac");
                 if (blob.Exists())
                 {
                     Log.Info("Skipping export of {0} because the blob already exists", blob.Name);

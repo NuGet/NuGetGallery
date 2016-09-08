@@ -13,7 +13,7 @@ namespace NuGetGallery.Operations
         public override void ExecuteCommand()
         {
             // todo: move the data access from the website to a common lib and use that instead
-            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();

@@ -11,19 +11,23 @@ using AnglicanGeek.MarkdownMailer;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Services;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
     public class MessageService : IMessageService
     {
-        protected MessageService()
-        {
-        }
-
-        public MessageService(IMailSender mailSender, IGalleryConfigurationService configService, AuthenticationService authService)
-            : this()
+        /// <summary>
+        /// Constructor for tests to specify a custom MailSender
+        /// </summary>
+        /// <param name="mailSender">MailSender to use to send mail</param>
+        protected MessageService(IMailSender mailSender)
         {
             MailSender = mailSender;
+        }
+
+        public MessageService(IGalleryConfigurationService configService, AuthenticationService authService)
+        {
             ConfigService = configService;
             AuthService = authService;
         }
@@ -433,6 +437,11 @@ The {3} Team";
         {
             try
             {
+                if (MailSender == null)
+                {
+                    MailSender = await MailSenderFactory.CreateMailSender(ConfigService);
+                }
+
                 MailSender.Send(mailMessage);
                 if (copySender)
                 {

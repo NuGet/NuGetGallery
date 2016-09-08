@@ -44,7 +44,7 @@ namespace NuGetGallery.Operations.Tasks
 
         public override void ExecuteCommand()
         {
-            var cstr = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
+            var cstr = Util.GetMasterConnectionString(ConnectionStringBuilder.ConnectionString);
             using (var connection = new SqlConnection(cstr))
             using (var db = new SqlExecutor(connection))
             {
@@ -56,7 +56,7 @@ namespace NuGetGallery.Operations.Tasks
                 // Get the list of database backups
                 var backups = db.Query<Db>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%'")
-                    .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
+                    .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionStringBuilder), d.Name, d.State))
                     .OrderByDescending(b => b.Timestamp)
                     .ToList();
 
@@ -86,7 +86,7 @@ namespace NuGetGallery.Operations.Tasks
                         Log.Info("Exporting '{0}'...", dailyBackup.DatabaseName);
                         (new ExportDatabaseTask()
                         {
-                            ConnectionString = new SqlConnectionStringBuilder(ConnectionString.ConnectionString)
+                            ConnectionStringBuilder = new SqlConnectionStringBuilder(ConnectionStringBuilder.ConnectionString)
                             {
                                 InitialCatalog = dailyBackup.DatabaseName
                             },

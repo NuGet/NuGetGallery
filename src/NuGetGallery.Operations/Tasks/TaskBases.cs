@@ -76,12 +76,12 @@ namespace NuGetGallery.Operations
     public abstract class DatabaseTaskBase : OpsTask
     {
         [Option("Connection string to the relevant database server", AltName = "db")]
-        public SqlConnectionStringBuilder ConnectionString { get; set; }
+        public SqlConnectionStringBuilder ConnectionStringBuilder { get; set; }
 
         [Option("Instead of -db, use this parameter to connect to a SQL LocalDb database of the specified name", AltName="ldb")]
         public string LocalDbName { get; set; }
 
-        protected string ServerName { get { return Util.GetDatabaseServerName(ConnectionString); } }
+        protected string ServerName { get { return Util.GetDatabaseServerName(ConnectionStringBuilder); } }
 
 
         public override void ValidateArguments()
@@ -89,26 +89,26 @@ namespace NuGetGallery.Operations
             base.ValidateArguments();
 
             // Load defaults from environment
-            if(ConnectionString == null) {
+            if(ConnectionStringBuilder == null) {
                 if (CurrentEnvironment != null)
                 {
-                    ConnectionString = GetConnectionFromEnvironment(CurrentEnvironment);
+                    ConnectionStringBuilder = GetConnectionFromEnvironment(CurrentEnvironment);
                 }
             }
             
             // Local Db Name overrides others
             if (!String.IsNullOrEmpty(LocalDbName))
             {
-                ConnectionString = new SqlConnectionStringBuilder()
+                ConnectionStringBuilder = new SqlConnectionStringBuilder()
                 {
                     DataSource = @"(LocalDB)\v11.0",
                     IntegratedSecurity = true,
                     InitialCatalog = LocalDbName
                 };
-                Log.Info("Using LocalDB connection: {0}", ConnectionString.ConnectionString);
+                Log.Info("Using LocalDB connection: {0}", ConnectionStringBuilder.ConnectionString);
             }
 
-            ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
+            ArgCheck.RequiredOrConfig(ConnectionStringBuilder, "ConnectionString");
         }
 
         protected void WithConnection(Action<SqlConnection> act)
@@ -187,14 +187,14 @@ namespace NuGetGallery.Operations
 
         protected SqlConnection OpenConnection()
         {
-            var c = new SqlConnection(ConnectionString.ConnectionString);
+            var c = new SqlConnection(ConnectionStringBuilder.ConnectionString);
             c.Open();
             return c;
         }
 
         protected SqlConnection OpenMasterConnection()
         {
-            var cstr = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
+            var cstr = Util.GetMasterConnectionString(ConnectionStringBuilder.ConnectionString);
             var c = new SqlConnection(cstr);
             c.Open();
             return c;
@@ -227,7 +227,7 @@ namespace NuGetGallery.Operations
             var gateway = new GalleryGateway();
 
             // Get a migrator from it
-            DbMigrator migrator = gateway.CreateMigrator(ConnectionString.ConnectionString, "System.Data.SqlClient");
+            DbMigrator migrator = gateway.CreateMigrator(ConnectionStringBuilder.ConnectionString, "System.Data.SqlClient");
 
             // Run the rest of the command
             ExecuteCommandCore(migrator);

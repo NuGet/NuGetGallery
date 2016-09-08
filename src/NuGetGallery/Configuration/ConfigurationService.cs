@@ -22,10 +22,10 @@ namespace NuGetGallery.Configuration
         protected const string SettingPrefix = "Gallery.";
         protected const string FeaturePrefix = "Feature.";
         private bool _notInCloud;
-        private readonly Lazy<Task<string>> _httpSiteRootThunk;
-        private readonly Lazy<Task<string>> _httpsSiteRootThunk;
         private ISecretReaderFactory _secretReaderFactory;
         private Lazy<ISecretInjector> _secretInjector;
+        private string _httpSiteRoot;
+        private string _httpsSiteRoot;
 
         public ConfigurationService(ISecretReaderFactory secretReaderFactory)
         {
@@ -37,8 +37,9 @@ namespace NuGetGallery.Configuration
             _secretReaderFactory = secretReaderFactory;
             _secretInjector = new Lazy<ISecretInjector>(InitSecretInjector, isThreadSafe: false);
 
-            _httpSiteRootThunk = new Lazy<Task<string>>(GetHttpSiteRoot);
-            _httpsSiteRootThunk = new Lazy<Task<string>>(GetHttpsSiteRoot);
+            _httpSiteRoot = GetHttpSiteRoot().Result;
+            // GetHttpsSiteRoot requires _httpSiteRoot is defined.
+            _httpsSiteRoot = GetHttpsSiteRoot();
         }
 
         public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
@@ -71,9 +72,9 @@ namespace NuGetGallery.Configuration
         /// </summary>
         /// <param name="useHttps">If true, the root will be returned in HTTPS form, otherwise, HTTP.</param>
         /// <returns></returns>
-        public async Task<string> GetSiteRoot(bool useHttps)
+        public string GetSiteRoot(bool useHttps)
         {
-            return await (useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value);
+            return (useHttps ? _httpsSiteRoot : _httpSiteRoot);
         }
 
         public async Task<T> ResolveConfigObject<T>(T instance, string prefix)
@@ -240,9 +241,9 @@ namespace NuGetGallery.Configuration
             return siteRoot;
         }
 
-        private async Task<string> GetHttpsSiteRoot()
+        private string GetHttpsSiteRoot()
         {
-            var siteRoot = await _httpSiteRootThunk.Value;
+            var siteRoot = _httpSiteRoot;
 
             if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
             {

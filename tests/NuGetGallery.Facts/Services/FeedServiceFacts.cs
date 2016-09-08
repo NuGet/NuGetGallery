@@ -157,32 +157,32 @@ namespace NuGetGallery
             [Theory]
             [InlineData("http://nuget.org", "http://nuget.org/")]
             [InlineData("http://nuget.org/", "http://nuget.org/")]
-            public async void AddsTrailingSlashes(string siteRoot, string expected)
+            public void AddsTrailingSlashes(string siteRoot, string expected)
             {
                 // Arrange
                 var config = new Mock<IGalleryConfigurationService>();
-                config.Setup(s => s.GetSiteRoot(false)).Returns(Task.FromResult(siteRoot));
+                config.Setup(s => s.GetSiteRoot(false)).Returns(siteRoot);
                 var feed = new TestableV1Feed(null, config.Object, null);
                 feed.Request = new HttpRequestMessage(HttpMethod.Get, siteRoot);
 
                 // Act
-                var actual = await feed.GetSiteRootForTest();
+                var actual = feed.GetSiteRootForTest();
 
                 // Assert
                 Assert.Equal(expected, actual);
             }
 
             [Fact]
-            public async void UsesCurrentRequestToDetermineSiteRoot()
+            public void UsesCurrentRequestToDetermineSiteRoot()
             {
                 // Arrange
                 var config = new Mock<IGalleryConfigurationService>();
-                config.Setup(s => s.GetSiteRoot(true)).Returns(Task.FromResult("https://nuget.org")).Verifiable();
+                config.Setup(s => s.GetSiteRoot(true)).Returns("https://nuget.org").Verifiable();
                 var feed = new TestableV2Feed(null, config.Object, null);
                 feed.Request = new HttpRequestMessage(HttpMethod.Get, "https://nuget.org");
 
                 // Act
-                var actual = await feed.GetSiteRootForTest();
+                var actual = feed.GetSiteRootForTest();
 
                 // Assert
                 Assert.Equal("https://nuget.org/", actual);
@@ -219,7 +219,7 @@ namespace NuGetGallery
                             },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
                         <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
@@ -270,7 +270,7 @@ namespace NuGetGallery
                             },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
                         <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
@@ -322,7 +322,7 @@ namespace NuGetGallery
                             },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
 
                     var v1Service = new TestableV1Feed(repo.Object, configuration.Object, null);
                     v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -368,7 +368,7 @@ namespace NuGetGallery
                             },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
 
                     var v1Service = new TestableV1Feed(repo.Object, configuration.Object, null);
                     v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -402,7 +402,7 @@ namespace NuGetGallery
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
@@ -441,7 +441,7 @@ namespace NuGetGallery
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
@@ -480,7 +480,7 @@ namespace NuGetGallery
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     bool called = false;
@@ -521,7 +521,7 @@ namespace NuGetGallery
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
@@ -560,7 +560,7 @@ namespace NuGetGallery
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
@@ -592,7 +592,7 @@ namespace NuGetGallery
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
@@ -622,7 +622,7 @@ namespace NuGetGallery
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
@@ -680,7 +680,7 @@ namespace NuGetGallery
                             },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -714,7 +714,7 @@ namespace NuGetGallery
                     repo.Setup(r => r.GetAll()).Returns(() => Enumerable.Empty<Package>().AsQueryable());
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
@@ -744,7 +744,7 @@ namespace NuGetGallery
                     var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
@@ -789,7 +789,7 @@ namespace NuGetGallery
                             },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
@@ -822,7 +822,7 @@ namespace NuGetGallery
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
@@ -867,7 +867,7 @@ namespace NuGetGallery
                     var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
@@ -951,7 +951,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -991,7 +991,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1040,7 +1040,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1078,7 +1078,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1121,7 +1121,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1165,7 +1165,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1208,7 +1208,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1245,7 +1245,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1288,7 +1288,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1330,7 +1330,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1369,7 +1369,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Deleted = true }
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1409,7 +1409,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1480,7 +1480,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -1558,7 +1558,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://localhost:8081/"));
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");

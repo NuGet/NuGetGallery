@@ -606,10 +606,11 @@ namespace NuGetGallery
             public Mock<IGalleryConfigurationService> MockConfigService { get; protected set; }
             public TestMailSender MockMailSender { get; protected set; }
 
-            public TestableMessageService()
+            public TestableMessageService() : base(new TestMailSender())
             {
+                MockMailSender = (TestMailSender)MailSender;
+
                 AuthService = (MockAuthService = new Mock<AuthenticationService>()).Object;
-                MailSender = MockMailSender = new TestMailSender();
 
                 var mockConfig = new Mock<IAppConfiguration>();
                 

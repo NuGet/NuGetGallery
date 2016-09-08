@@ -23,7 +23,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
             return FeedServiceHelpers.GetMockContext();
         }
 
-        public Task<string> GetSiteRootForTest()
+        public string GetSiteRootForTest()
         {
             return GetSiteRoot();
         }

@@ -46,9 +46,9 @@ namespace NuGetGallery.OData
             return Request.RequestUri.Scheme == "https";
         }
 
-        protected virtual async Task<string> GetSiteRoot()
+        protected virtual string GetSiteRoot()
         {
-            return (await _configurationService.GetSiteRoot(UseHttps())).TrimEnd('/') + '/';
+            return (_configurationService.GetSiteRoot(UseHttps())).TrimEnd('/') + '/';
         }
 
         /// <summary>

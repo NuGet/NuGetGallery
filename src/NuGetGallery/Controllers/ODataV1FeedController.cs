@@ -40,12 +40,12 @@ namespace NuGetGallery.Controllers
         [HttpGet]
         [HttpPost]
         [CacheOutput(NoCache = true)]
-        public async Task<IHttpActionResult> Get(ODataQueryOptions<V1FeedPackage> options)
+        public IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options)
         {
             var queryable = _packagesRepository.GetAll()
                 .Where(p => !p.IsPrerelease && !p.Deleted)
                 .WithoutVersionSort()
-                .ToV1FeedPackageQuery(await _configurationService.GetSiteRoot(UseHttps()));
+                .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
 
             return QueryResult(options, queryable, MaxPageSize);
         }
@@ -53,9 +53,9 @@ namespace NuGetGallery.Controllers
         // /api/v1/Packages/$count
         [HttpGet]
         [CacheOutput(NoCache = true)]
-        public async Task<IHttpActionResult> GetCount(ODataQueryOptions<V1FeedPackage> options)
+        public IHttpActionResult GetCount(ODataQueryOptions<V1FeedPackage> options)
         {
-            return (await Get(options)).FormattedAsCountResult<V1FeedPackage>();
+            return (Get(options)).FormattedAsCountResult<V1FeedPackage>();
         }
 
         // /api/v1/Packages(Id=,Version=)
@@ -109,7 +109,7 @@ namespace NuGetGallery.Controllers
 
                     var pagedQueryable = packages
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                        .ToV1FeedPackageQuery(await GetSiteRoot());
+                        .ToV1FeedPackageQuery(GetSiteRoot());
 
                     return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                        SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
@@ -127,7 +127,7 @@ namespace NuGetGallery.Controllers
                 return NotFound();
             }
 
-            var queryable = packages.ToV1FeedPackageQuery(await GetSiteRoot());
+            var queryable = packages.ToV1FeedPackageQuery(GetSiteRoot());
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -192,14 +192,14 @@ namespace NuGetGallery.Controllers
                 var totalHits = query.LongCount();
                 var pagedQueryable = query
                     .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                    .ToV1FeedPackageQuery(await GetSiteRoot());
+                    .ToV1FeedPackageQuery(GetSiteRoot());
 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                    SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework }, o, s));
             }
 
             // If not, just let OData handle things
-            var queryable = query.ToV1FeedPackageQuery(await GetSiteRoot());
+            var queryable = query.ToV1FeedPackageQuery(GetSiteRoot());
             return QueryResult(options, queryable, MaxPageSize);
         }
 

@@ -62,7 +62,7 @@ namespace NuGetGallery.Operations
             Log.Info(
                 "Populating frameworks for {0} packages on '{1}',",
                 totalCount,
-                ConnectionString);
+                ConnectionStringBuilder);
 
 
             packages
@@ -157,7 +157,7 @@ namespace NuGetGallery.Operations
         private void ResolveReport(PackageFrameworkReport report)
         {
             bool error = false;
-            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -241,7 +241,7 @@ namespace NuGetGallery.Operations
 
         IList<Package> GetAllPackages()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -258,7 +258,7 @@ namespace NuGetGallery.Operations
             Package package,
             PackageFrameworkReport report)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringBuilder.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();

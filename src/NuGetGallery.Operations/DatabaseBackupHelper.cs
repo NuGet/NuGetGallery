@@ -16,7 +16,7 @@ namespace NuGetGallery.Operations
         {
             CheckDatabaseStatusTask checkDatabaseStatusTask = new CheckDatabaseStatusTask
             {
-                ConnectionString = connectionString,
+                ConnectionStringBuilder = connectionString,
                 BackupName = backupName,
                 WhatIf = false // WhatIf isn't used by this task.
             };

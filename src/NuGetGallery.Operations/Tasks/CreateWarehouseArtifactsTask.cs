@@ -56,7 +56,7 @@ namespace NuGetGallery.Operations.Tasks
             IEnumerable<string> batches = ResourceHelper.GetBatchesFromSqlFile(name);
             foreach (string batch in batches)
             {
-                SqlHelper.ExecuteBatch(ConnectionString.ConnectionString, batch);
+                SqlHelper.ExecuteBatch(ConnectionStringBuilder.ConnectionString, batch);
             }
         }
     }

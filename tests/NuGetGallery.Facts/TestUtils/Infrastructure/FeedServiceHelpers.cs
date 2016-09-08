@@ -149,7 +149,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
             var repo = SetupTestPackageRepository();
 
             var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-            configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(Task.FromResult("https://nuget.org/"));
+            configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://nuget.org/");
             configuration.Setup(c => c.GetFeatures()).Returns(Task.FromResult(new FeatureConfiguration() { FriendlyLicenses = true }));
 
             var searchService = new Mock<ISearchService>(MockBehavior.Strict);

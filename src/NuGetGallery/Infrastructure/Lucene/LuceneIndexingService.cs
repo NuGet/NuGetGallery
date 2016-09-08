@@ -317,7 +317,7 @@ namespace NuGetGallery
         }
 
 
-        public async void RegisterBackgroundJobs(IList<IJob> jobs, IGalleryConfigurationService configService)
+        public async void RegisterBackgroundJobs(IList<IJob> jobs)
         {
             if (await GetShouldAutoUpdate())
             {

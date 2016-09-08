@@ -29,9 +29,9 @@ namespace NuGetGallery.TestUtils.Infrastructure
             return FeedServiceHelpers.GetMockContext();
         }
 
-        public async Task<string> GetSiteRootForTest()
+        public string GetSiteRootForTest()
         {
-            return await GetSiteRoot();
+            return GetSiteRoot();
         }
     }
 }

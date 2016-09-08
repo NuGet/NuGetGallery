@@ -50,7 +50,7 @@ namespace NuGetGallery.Operations.Tasks
                 var backups = db.Query<Db>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'WarehouseBackup_%' AND state = @state",
                     new { state = Util.OnlineState })
-                    .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
+                    .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionStringBuilder), d.Name, d.State))
                     .Where(b => b.Timestamp != null)
                     .OrderByDescending(b => b.Timestamp)
                     .ToList();
@@ -67,7 +67,7 @@ namespace NuGetGallery.Operations.Tasks
                     Log.Info("Exporting '{0}'...", dailyBackup.DatabaseName);
                     (new ExportDatabaseTask()
                     {
-                        ConnectionString = new SqlConnectionStringBuilder(ConnectionString.ConnectionString)
+                        ConnectionStringBuilder = new SqlConnectionStringBuilder(ConnectionStringBuilder.ConnectionString)
                         {
                             InitialCatalog = dailyBackup.DatabaseName
                         },

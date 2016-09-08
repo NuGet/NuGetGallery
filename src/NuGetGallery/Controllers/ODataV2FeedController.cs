@@ -75,7 +75,7 @@ namespace NuGetGallery.Controllers
                         var totalHits = packages.LongCount();
                         var pagedQueryable = packages
                             .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                            .ToV2FeedPackageQuery(await GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
+                            .ToV2FeedPackageQuery(GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
 
                         return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                            SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, null, o, s));
@@ -89,7 +89,7 @@ namespace NuGetGallery.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
-            var queryable = packages.ToV2FeedPackageQuery(await GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
+            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -119,7 +119,7 @@ namespace NuGetGallery.Controllers
             if (string.IsNullOrEmpty(id))
             {
                 var emptyResult = Enumerable.Empty<Package>().AsQueryable()
-                    .ToV2FeedPackageQuery(await GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
+                    .ToV2FeedPackageQuery(GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
 
                 return QueryResult(options, emptyResult, MaxPageSize);
             }
@@ -160,7 +160,7 @@ namespace NuGetGallery.Controllers
 
                     var pagedQueryable = packages
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                        .ToV2FeedPackageQuery(await GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
+                        .ToV2FeedPackageQuery(GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
 
                     return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                        SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
@@ -178,7 +178,7 @@ namespace NuGetGallery.Controllers
                 return NotFound();
             }
 
-            var queryable = packages.ToV2FeedPackageQuery(await GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
+            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -244,7 +244,7 @@ namespace NuGetGallery.Controllers
                 var totalHits = query.LongCount();
                 var pagedQueryable = query
                     .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                    .ToV2FeedPackageQuery(await GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
+                    .ToV2FeedPackageQuery(GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                 {
@@ -259,7 +259,7 @@ namespace NuGetGallery.Controllers
             }
 
             // If not, just let OData handle things
-            var queryable = query.ToV2FeedPackageQuery(await GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
+            var queryable = query.ToV2FeedPackageQuery(GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -347,7 +347,7 @@ namespace NuGetGallery.Controllers
 
             var queryable = GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions)
                 .AsQueryable()
-                .ToV2FeedPackageQuery(await GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
+                .ToV2FeedPackageQuery(GetSiteRoot(), (await _configurationService.GetFeatures()).FriendlyLicenses);
 
             return QueryResult(options, queryable, MaxPageSize);
         }

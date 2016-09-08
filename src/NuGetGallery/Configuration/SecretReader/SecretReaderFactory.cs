@@ -70,7 +70,8 @@ namespace NuGetGallery.Configuration.SecretReader
             {
                 cacheRefreshIntervalSeconds = int.Parse(configurationService.ReadSetting(
                     string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, CacheRefreshInterval)).Result);
-            } catch(Exception)
+            }
+            catch (Exception)
             {
                 cacheRefreshIntervalSeconds = 60 * 60 * 24; // one day in seconds
             }

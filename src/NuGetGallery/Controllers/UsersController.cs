@@ -472,13 +472,15 @@ namespace NuGetGallery
 
             // Set expiration
             var expiration = TimeSpan.Zero;
-            if ((await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1 > 0)
+            var maxExpiration = (await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1;
+
+            if (maxExpiration > 0)
             {
-                expiration = TimeSpan.FromDays((await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1);
+                expiration = TimeSpan.FromDays(maxExpiration);
 
                 if (expirationInDays.HasValue && expirationInDays.Value > 0)
                 {
-                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, (await ConfigService.GetCurrent()).ExpirationInDaysForApiKeyV1));
+                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, maxExpiration));
                 }
             }
 

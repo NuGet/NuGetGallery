@@ -84,7 +84,7 @@ namespace NuGetGallery.Operations
             //Get the list of packages if present and add the owner email Ids to Bcc.
             List<string> PackagesList = GetPackageIds();
             if(PackagesList != null && PackagesList.Count > 0)
-            message.Bcc.AddRange(GetOwnerMailAddressess(this.ConnectionString.ToString(),PackagesList));
+            message.Bcc.AddRange(GetOwnerMailAddressess(this.ConnectionStringBuilder.ToString(),PackagesList));
 
             message.Subject = string.Format(MailSubject);
             message.IsBodyHtml = true;
