@@ -789,6 +789,14 @@
     <Compile Include="Migrations\201608251939567_AddPackageTypes.Designer.cs">
       <DependentUpon>201608251939567_AddPackageTypes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201609092252096_AddIndexCredentialExpires.cs" />
+    <Compile Include="Migrations\201609092252096_AddIndexCredentialExpires.Designer.cs">
+      <DependentUpon>201609092252096_AddIndexCredentialExpires.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609092255576_AddIndexUsersEmail.cs" />
+    <Compile Include="Migrations\201609092255576_AddIndexUsersEmail.Designer.cs">
+      <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1902,6 +1910,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201608251939567_AddPackageTypes.resx">
       <DependentUpon>201608251939567_AddPackageTypes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609092252096_AddIndexCredentialExpires.resx">
+      <DependentUpon>201609092252096_AddIndexCredentialExpires.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609092255576_AddIndexUsersEmail.resx">
+      <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
