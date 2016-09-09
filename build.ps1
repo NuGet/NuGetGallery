@@ -93,6 +93,7 @@ Invoke-BuildStep 'Creating artifacts' {
 		New-Package (Join-Path $PSScriptRoot "src\NuGet.Indexing\NuGet.Indexing.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion 
 		New-Package (Join-Path $PSScriptRoot "src\Catalog\NuGet.Services.Metadata.Catalog.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion 
 		New-Package (Join-Path $PSScriptRoot "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion 
+		New-Package (Join-Path $PSScriptRoot "src\Ng\Ng.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion 
 	} `
 	-ev +BuildErrors
 
