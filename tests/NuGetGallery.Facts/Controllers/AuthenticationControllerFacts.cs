@@ -13,6 +13,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Configuration;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -264,8 +265,8 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { EmailAddress = "confirmed@example.com" },
-                    new Credential() { Type = "Foo" });
-                var externalCred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                    new Credential { Type = "Foo" });
+                var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
@@ -320,7 +321,7 @@ namespace NuGetGallery.Controllers
                     EnforcedAuthProviderForAdmin = enforcedProvider
                 });
 
-                var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
+                var externalCred = new CredentialBuilder().CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
 
                 var authUser = new AuthenticatedUser(
                     new User("theUsername")
@@ -569,7 +570,7 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n"
                     },
                     new Credential());
-                var externalCred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred))
@@ -631,7 +632,7 @@ namespace NuGetGallery.Controllers
                     EnforcedAuthProviderForAdmin = enforcedProvider
                 });
 
-                var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
+                var externalCred = new CredentialBuilder().CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
 
                 var authUser = new AuthenticatedUser(
                     new User("theUsername")
@@ -746,7 +747,7 @@ namespace NuGetGallery.Controllers
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
                     fakes.CreateUser("test", cred),
                     cred);
@@ -785,7 +786,7 @@ namespace NuGetGallery.Controllers
                 var fakes = Get<Fakes>();
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
-                var cred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
                     fakes.CreateUser("test", cred),
                     cred);
@@ -834,7 +835,7 @@ namespace NuGetGallery.Controllers
             public async Task GivenNoLinkAndNoClaimData_ItDisplaysLogOnViewWithNoPrefilledData()
             {
                 // Arrange
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
 
@@ -899,7 +900,7 @@ namespace NuGetGallery.Controllers
             public async Task GivenNoLinkAndEmailClaim_ItDisplaysLogOnViewWithEmailPrefilled()
             {
                 // Arrange
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
 
@@ -935,7 +936,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var existingUser = new User("existingUser") { EmailAddress = "existing@example.com" };
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
                 var authUser = new AuthenticatedUser(

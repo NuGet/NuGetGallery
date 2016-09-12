@@ -9,6 +9,7 @@ using Moq;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery.Framework
 {
@@ -93,6 +94,9 @@ namespace NuGetGallery.Framework
             builder.Register(_ => new TestGalleryConfigurationService())
                 .As<IGalleryConfigurationService>()
                 .SingleInstance();
+
+            builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
+            builder.RegisterType<CredentialValidator>().As<ICredentialValidator>().SingleInstance();
         }
     }
 }
