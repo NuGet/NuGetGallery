@@ -13,12 +13,12 @@ namespace NuGetGallery
     /// </summary>
     public class PasswordValidationRegexTests : TestContainer
     {
-        private readonly string defaultPasswordRegex;
+        private readonly string _defaultPasswordRegex;
 
         public PasswordValidationRegexTests()
         {
             var configuration = Get<ConfigurationService>();
-            defaultPasswordRegex = configuration.Current.UserPasswordRegex;
+            _defaultPasswordRegex = configuration.Current.UserPasswordRegex;
         }
 
         [Theory]
@@ -28,7 +28,7 @@ namespace NuGetGallery
         public void Accepts(string password)
         {
             
-            var match = new Regex(defaultPasswordRegex).IsMatch(password);
+            var match = new Regex(_defaultPasswordRegex).IsMatch(password);
             Assert.True(match);
         }
 
@@ -44,7 +44,7 @@ namespace NuGetGallery
         [InlineData("1aA")] // Too short
         public void DoesNotAccept(string password)
         {
-            var match = new Regex(defaultPasswordRegex).IsMatch(password);
+            var match = new Regex(_defaultPasswordRegex).IsMatch(password);
             Assert.False(match);
         }
     }

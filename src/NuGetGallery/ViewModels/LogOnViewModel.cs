@@ -99,7 +99,7 @@ namespace NuGetGallery
 
         [Required]
         [DataType(DataType.Password)]
-        [GalleryPasswordValidation]
+        [PasswordValidation]
         [AllowHtml]
         public string Password { get; set; }
     }

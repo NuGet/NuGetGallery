@@ -10,7 +10,7 @@ namespace NuGetGallery
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New password")]
-        [GalleryPasswordValidation]
+        [PasswordValidation]
         public string NewPassword { get; set; }
 
         [Required]

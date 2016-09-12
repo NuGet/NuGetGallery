@@ -174,6 +174,10 @@ namespace NuGetGallery.Configuration
         /// </summary>
         public string EnforcedAuthProviderForAdmin { get; set; }
 
+        /// <summary>
+        /// A regex to validate password format. The default regex requires the password to be atlease 8 characters, 
+        /// include at least one uppercase letter, one lowercase letter and a digit.
+        /// </summary>
         [Required]
         [DefaultValue("^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,64}$")]
         public string UserPasswordRegex { get; set; }

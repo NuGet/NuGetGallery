@@ -9,15 +9,15 @@ using NuGetGallery.Configuration;
 namespace NuGetGallery.Infrastructure
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class GalleryPasswordValidationAttribute : ValidationAttribute
+    public sealed class PasswordValidationAttribute : ValidationAttribute
     {
-        private readonly RegularExpressionAttribute _internalRegexAttribute;
+        private readonly RegularExpressionAttribute _regexAttribute;
 
-        public GalleryPasswordValidationAttribute()
+        public PasswordValidationAttribute()
         {
             var configuration = DependencyResolver.Current.GetService<IGalleryConfigurationService>().Current;
 
-            _internalRegexAttribute = new RegularExpressionAttribute(configuration.UserPasswordRegex)
+            _regexAttribute = new RegularExpressionAttribute(configuration.UserPasswordRegex)
             {
                 ErrorMessage = configuration.UserPasswordHint
             };
@@ -25,12 +25,12 @@ namespace NuGetGallery.Infrastructure
 
         public override bool IsValid(object value)
         {
-            return _internalRegexAttribute.IsValid(value);
+            return _regexAttribute.IsValid(value);
         }
 
         public override string FormatErrorMessage(string name)
         {
-            return _internalRegexAttribute.FormatErrorMessage(name);
+            return _regexAttribute.FormatErrorMessage(name);
         }
     }
 }

@@ -54,7 +54,7 @@ namespace NuGetGallery
 
         [Required]
         [Display(Name = "New Password")]
-        [GalleryPasswordValidation]
+        [PasswordValidation]
         [AllowHtml]
         public string NewPassword { get; set; }
 
