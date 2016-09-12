@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.ComponentModel.DataAnnotations;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
@@ -9,8 +10,7 @@ namespace NuGetGallery
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New password")]
-        [StringLength(64, MinimumLength = 7)]
-        [Hint("Passwords must be at least 7 characters long.")]
+        [PasswordValidation]
         public string NewPassword { get; set; }
 
         [Required]

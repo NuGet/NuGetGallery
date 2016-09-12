@@ -161,6 +161,16 @@ namespace NuGetGallery.Configuration
         string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
+        /// The required format for a user password.
+        /// </summary>
+        string UserPasswordRegex { get; set; }
+
+        /// <summary>
+        /// A message to show the user, to explain password requirements.
+        /// </summary>
+        string UserPasswordHint { get; set; }
+
+        /// <summary>
         /// Defines the time after which V1 API keys expire.
         /// </summary>
         int ExpirationInDaysForApiKeyV1 { get; set; }

@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
 using System.Web.Mvc;
 using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
@@ -74,40 +74,32 @@ namespace NuGetGallery
         internal const string EmailValidationRegex = "^" + FirstPart + "@" + SecondPart + "$";
 
         internal const string EmailValidationErrorMessage = "This doesn't appear to be a valid email address.";
+        public const string EmailHint = "Your email will not be public unless you choose to disclose it. " +
+                                          "It is required to verify your registration and for password retrieval, important notifications, etc. ";
 
         internal const string UsernameValidationRegex =
             @"[A-Za-z0-9][A-Za-z0-9_\.-]+[A-Za-z0-9]";
-
-        /// <summary>
-        /// Regex that matches INVALID username characters, to make it easy to strip those characters out.
-        /// </summary>
-        internal static readonly Regex UsernameNormalizationRegex =
-            new Regex(@"[^A-Za-z0-9_\.-]");
-
+        
         internal const string UsernameValidationErrorMessage =
             "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
+
+        public const string UserNameHint = "Choose something unique so others will know which contributions are yours.";
 
         [Required]
         [StringLength(255)]
         [Display(Name = "Email")]
-        //[DataType(DataType.EmailAddress)] - does not work with client side validation
         [RegularExpression(EmailValidationRegex, ErrorMessage = EmailValidationErrorMessage)]
-        [Hint(
-            "Your email will not be public unless you choose to disclose it. " +
-            "It is required to verify your registration and for password retrieval, important notifications, etc. ")]
         [Subtext("We use <a href=\"http://www.gravatar.com\" target=\"_blank\">Gravatar</a> to get your profile picture", AllowHtml = true)]
         public string EmailAddress { get; set; }
 
         [Required]
         [StringLength(64)]
         [RegularExpression(UsernameValidationRegex, ErrorMessage = UsernameValidationErrorMessage)]
-        [Hint("Choose something unique so others will know which contributions are yours.")]
         public string Username { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
-        [StringLength(64, MinimumLength = 7)]
-        [Hint("Passwords must be at least 7 characters long.")]
+        [PasswordValidation]
         [AllowHtml]
         public string Password { get; set; }
     }

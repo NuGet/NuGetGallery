@@ -316,7 +316,7 @@ The {2} Team</value>
   </data>
   <data name="NuGetPackageReleaseVersionContainsOnlyNumerics" xml:space="preserve">
     <value>Package {0} invalid: the release label can not only contain numerics.</value>
-  </data>  
+  </data>
   <data name="CopyExternalPackages_PackageFileBlobAlreadyExists" xml:space="preserve">
     <value>SKIPPED! Package file blob {0} already exists</value>
   </data>
