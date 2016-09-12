@@ -176,7 +176,7 @@ namespace NuGetGallery.Packaging
                     Strings.Manifest_InvalidVersionSemVer200,
                     version.ToFullString()));
             }
-            else if (!version.IsValidVersion())
+            else if (!version.IsValidVersionForLegacyClients())
             {
                 return new ValidationResult(string.Format(
                     CultureInfo.CurrentCulture,

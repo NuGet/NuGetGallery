@@ -37,7 +37,7 @@ namespace NuGetGallery
             return self.ReleaseLabels.Count() > 1 || self.HasMetadata;
         }
 
-        public static bool IsValidVersion(this NuGetVersion self)
+        public static bool IsValidVersionForLegacyClients(this NuGetVersion self)
         {
             var match = SemanticVersionRegex.Match(self.ToString().Trim());
 
