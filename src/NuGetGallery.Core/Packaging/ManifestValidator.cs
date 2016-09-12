@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using NuGet.Packaging;
+using NuGet.Versioning;
 
 namespace NuGetGallery.Packaging
 {
@@ -77,13 +78,10 @@ namespace NuGetGallery.Packaging
                     Strings.Manifest_InvalidVersion,
                     version));
             }
-            if (packageMetadata.Version.IsSemVer200())
-            {
 
-                yield return new ValidationResult(String.Format(
-                    CultureInfo.CurrentCulture,
-                    Strings.Manifest_InvalidVersionSemVer200,
-                    packageMetadata.Version.ToFullString()));
+            foreach (var validationResult in ValidateVersion(packageMetadata.Version))
+            {
+                yield return validationResult;
             }
 
             // Check framework reference groups
@@ -122,7 +120,7 @@ namespace NuGetGallery.Packaging
                             dependencyGroup.TargetFramework?.ToString()));
                     }
 
-                    // Verify package id's
+                    // Verify package id's and versions
                     foreach (var dependency in dependencyGroup.Packages)
                     {
                         bool duplicate = !dependencyIds.Add(dependency.Id);
@@ -143,8 +141,44 @@ namespace NuGetGallery.Packaging
                                 dependency.Id,
                                 dependency.VersionRange.OriginalString));
                         }
+
+                        // Versions
+                        if (dependency.VersionRange.MinVersion != null)
+                        {
+                            foreach (var validationResult in ValidateVersion(dependency.VersionRange.MinVersion))
+                            {
+                                yield return validationResult;
+                            }
+                        }
+
+                        if (dependency.VersionRange.MaxVersion != null 
+                            && dependency.VersionRange.MaxVersion != dependency.VersionRange.MinVersion)
+                        {
+                            foreach (var validationResult in ValidateVersion(dependency.VersionRange.MaxVersion))
+                            {
+                                yield return validationResult;
+                            }
+                        }
                     }
                 }
+            }
+        }
+
+        private static IEnumerable<ValidationResult> ValidateVersion(NuGetVersion version)
+        {
+            if (version.IsSemVer200())
+            {
+                yield return new ValidationResult(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.Manifest_InvalidVersionSemVer200,
+                    version.ToFullString()));
+            }
+            else if (!version.IsValidVersion())
+            {
+                yield return new ValidationResult(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.Manifest_InvalidVersion,
+                    version));
             }
         }
 
