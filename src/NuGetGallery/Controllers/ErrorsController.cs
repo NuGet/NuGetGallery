@@ -7,7 +7,7 @@ namespace NuGetGallery
 {
     public partial class ErrorsController : AppController
     {
-        [HttpGet]
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Head)]
         public virtual ActionResult NotFound()
         {
             return View();

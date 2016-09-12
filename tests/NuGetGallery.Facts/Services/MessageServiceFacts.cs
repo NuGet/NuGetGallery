@@ -11,6 +11,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery
@@ -418,11 +419,11 @@ namespace NuGetGallery
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() {
+                    .Returns(new CredentialViewModel {
                         AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account")
                     });
 
@@ -439,7 +440,7 @@ namespace NuGetGallery
             public void UsesTypeCaptionToDescribeCredentialIfNoProviderNounPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = CredentialBuilder.CreatePbkdf2Password("bogus");
+                var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
@@ -463,11 +464,11 @@ namespace NuGetGallery
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() {
+                    .Returns(new CredentialViewModel {
                         AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account")
                     });
 
@@ -484,11 +485,11 @@ namespace NuGetGallery
             public void UsesTypeCaptionToDescribeCredentialIfNoProviderNounPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = CredentialBuilder.CreatePbkdf2Password("bogus");
+                var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() {
+                    .Returns(new CredentialViewModel {
                         TypeCaption = "Password"
                     });
 

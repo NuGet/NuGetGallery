@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using NuGet.Packaging;
+using NuGet.Versioning;
 
 namespace NuGetGallery.Packaging
 {
@@ -77,13 +78,11 @@ namespace NuGetGallery.Packaging
                     Strings.Manifest_InvalidVersion,
                     version));
             }
-            if (packageMetadata.Version.IsSemVer200())
-            {
 
-                yield return new ValidationResult(String.Format(
-                    CultureInfo.CurrentCulture,
-                    Strings.Manifest_InvalidVersionSemVer200,
-                    packageMetadata.Version.ToFullString()));
+            var versionValidationResult = ValidateVersion(packageMetadata.Version);
+            if (versionValidationResult != null)
+            {
+                yield return versionValidationResult;
             }
 
             // Check framework reference groups
@@ -122,7 +121,7 @@ namespace NuGetGallery.Packaging
                             dependencyGroup.TargetFramework?.ToString()));
                     }
 
-                    // Verify package id's
+                    // Verify package id's and versions
                     foreach (var dependency in dependencyGroup.Packages)
                     {
                         bool duplicate = !dependencyIds.Add(dependency.Id);
@@ -143,9 +142,49 @@ namespace NuGetGallery.Packaging
                                 dependency.Id,
                                 dependency.VersionRange.OriginalString));
                         }
+
+                        // Versions
+                        if (dependency.VersionRange.MinVersion != null)
+                        {
+                            var versionRangeValidationResult = ValidateVersion(dependency.VersionRange.MinVersion);
+                            if (versionRangeValidationResult != null)
+                            {
+                                yield return versionRangeValidationResult;
+                            }
+                        }
+
+                        if (dependency.VersionRange.MaxVersion != null 
+                            && dependency.VersionRange.MaxVersion != dependency.VersionRange.MinVersion)
+                        {
+                            var versionRangeValidationResult = ValidateVersion(dependency.VersionRange.MaxVersion);
+                            if (versionRangeValidationResult != null)
+                            {
+                                yield return versionRangeValidationResult;
+                            }
+                        }
                     }
                 }
             }
+        }
+
+        private static ValidationResult ValidateVersion(NuGetVersion version)
+        {
+            if (version.IsSemVer200())
+            {
+                return new ValidationResult(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.Manifest_InvalidVersionSemVer200,
+                    version.ToFullString()));
+            }
+            else if (!version.IsValidVersionForLegacyClients())
+            {
+                return new ValidationResult(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.Manifest_InvalidVersion,
+                    version));
+            }
+
+            return null;
         }
 
         private static IEnumerable<ValidationResult> CheckUrls(params string[] urls)

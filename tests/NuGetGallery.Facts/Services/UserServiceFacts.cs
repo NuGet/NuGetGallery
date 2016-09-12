@@ -15,58 +15,6 @@ namespace NuGetGallery
 {
     public class UserServiceFacts
     {
-        public static bool VerifyPasswordHash(string hash, string algorithm, string password)
-        {
-            bool canAuthenticate = CryptographyService.ValidateSaltedHash(
-                hash,
-                password,
-                algorithm);
-
-            bool sanity = CryptographyService.ValidateSaltedHash(
-                hash,
-                "not_the_password",
-                algorithm);
-
-            return canAuthenticate && !sanity;
-        }
-
-        public static Credential CreatePasswordCredential(string password)
-        {
-            return new Credential(
-                type: CredentialTypes.Password.Pbkdf2,
-                value: CryptographyService.GenerateSaltedHash(
-                    password,
-                    Constants.PBKDF2HashAlgorithmId));
-        }
-
-        // Now only for things that actually need a MOCK UserService object.
-        private static UserService CreateMockUserService(Action<Mock<UserService>> setup, Mock<IEntityRepository<User>> userRepo = null, Mock<IAppConfiguration> config = null)
-        {
-            if (config == null)
-            {
-                config = new Mock<IAppConfiguration>();
-                config.Setup(x => x.ConfirmEmailAddresses).Returns(true);
-            }
-
-            userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
-            var credRepo = new Mock<IEntityRepository<Credential>>();
-
-            var userService = new Mock<UserService>(
-                config.Object,
-                userRepo.Object,
-                credRepo.Object)
-            {
-                CallBase = true
-            };
-
-            if (setup != null)
-            {
-                setup(userService);
-            }
-
-            return userService.Object;
-        }
-
         public class TheConfirmEmailAddressMethod
         {
             [Fact]
