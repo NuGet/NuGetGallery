@@ -43,13 +43,6 @@ namespace NuGetGallery
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
         public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
 
-        /// <summary>
-        /// The password should be between 8 and 64 characters, and contain at least one uppercase letter,
-        ///  one lowercase letter and a digit.
-        /// </summary>
-        public const string PasswordValidationRegex = @"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,64}$";
-        public const string PasswordHint = "Your password must be at least 8 characters, should include at least one uppercase letter, one lowercase letter and a digit.";
-
         internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
         internal const string WarningHeaderName = "X-NuGet-Warning";
 

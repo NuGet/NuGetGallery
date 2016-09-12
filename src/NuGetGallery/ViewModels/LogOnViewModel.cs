@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 using NuGetGallery.Authentication.Providers;
-using static NuGetGallery.Constants;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
@@ -99,7 +99,7 @@ namespace NuGetGallery
 
         [Required]
         [DataType(DataType.Password)]
-        [RegularExpression(PasswordValidationRegex, ErrorMessage = PasswordHint)]
+        [GalleryPasswordValidation]
         [AllowHtml]
         public string Password { get; set; }
     }

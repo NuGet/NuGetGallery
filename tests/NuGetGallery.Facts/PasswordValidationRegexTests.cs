@@ -2,23 +2,33 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Text.RegularExpressions;
+using NuGetGallery.Configuration;
+using NuGetGallery.Framework;
 using Xunit;
-using static NuGetGallery.Constants;
 
 namespace NuGetGallery
 {
     /// <summary>
     /// The regex checks that the password is at least 8 characters, one uppercase letter, one lowercase letter, and a digit.
     /// </summary>
-    public class PasswordValidationRegexTests
+    public class PasswordValidationRegexTests : TestContainer
     {
+        private readonly string defaultPasswordRegex;
+
+        public PasswordValidationRegexTests()
+        {
+            var configuration = Get<ConfigurationService>();
+            defaultPasswordRegex = configuration.Current.UserPasswordRegex;
+        }
+
         [Theory]
         [InlineData("aA1aaaaa")]
         [InlineData("abcdefg$0B")]
         [InlineData("****1bB***")]
         public void Accepts(string password)
         {
-            var match = new Regex(PasswordValidationRegex).IsMatch(password);
+            
+            var match = new Regex(defaultPasswordRegex).IsMatch(password);
             Assert.True(match);
         }
 
@@ -34,7 +44,7 @@ namespace NuGetGallery
         [InlineData("1aA")] // Too short
         public void DoesNotAccept(string password)
         {
-            var match = new Regex(PasswordValidationRegex).IsMatch(password);
+            var match = new Regex(defaultPasswordRegex).IsMatch(password);
             Assert.False(match);
         }
     }

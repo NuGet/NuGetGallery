@@ -174,6 +174,14 @@ namespace NuGetGallery.Configuration
         /// </summary>
         public string EnforcedAuthProviderForAdmin { get; set; }
 
+        [Required]
+        [DefaultValue("^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,64}$")]
+        public string UserPasswordRegex { get; set; }
+
+        [Required]
+        [DefaultValue("Your password must be at least 8 characters, should include at least one uppercase letter, one lowercase letter and a digit.")]
+        public string UserPasswordHint { get; set; }
+
         /// <summary>
         /// Defines the time after which V1 API keys expire.
         /// </summary>

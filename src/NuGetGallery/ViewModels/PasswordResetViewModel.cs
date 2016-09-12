@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.ComponentModel.DataAnnotations;
-using static NuGetGallery.Constants;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
@@ -10,7 +10,7 @@ namespace NuGetGallery
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New password")]
-        [RegularExpression(PasswordValidationRegex, ErrorMessage = PasswordHint)]
+        [GalleryPasswordValidation]
         public string NewPassword { get; set; }
 
         [Required]
