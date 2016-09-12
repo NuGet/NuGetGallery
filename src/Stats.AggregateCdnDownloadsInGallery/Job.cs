@@ -89,7 +89,8 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 _logger.LogDebug("Gathering Download Counts from {0}/{1}...", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog);
 
                 using (var statisticsDatabase = await _statisticsDatabase.ConnectTo())
-                using (var statisticsDatabaseTransaction = statisticsDatabase.BeginTransaction(IsolationLevel.Snapshot)) {
+                using (var statisticsDatabaseTransaction = statisticsDatabase.BeginTransaction(IsolationLevel.Snapshot))
+                {
                     downloadData = (
                         await statisticsDatabase.QueryWithRetryAsync<DownloadCountData>(
                             _storedProcedureName,
@@ -110,15 +111,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                     using (var destinationDatabase = await _destinationDatabase.ConnectTo())
                     {
                         // Fetch package registrations so we can match
-                        _logger.LogDebug("Retrieving package registrations...");
-                        var packageRegistrationLookup = (
-                            await destinationDatabase.QueryWithRetryAsync<PackageRegistrationData>(
-                                "SELECT [Key], LOWER([Id]) AS Id FROM [dbo].[PackageRegistrations]",
-                                commandTimeout: (int)TimeSpan.FromMinutes(10).TotalSeconds,
-                                maxRetries: 5))
-                            .Where(item => !string.IsNullOrEmpty(item.Id))
-                            .ToDictionary(item => item.Id, item => item.Key);
-                        _logger.LogInformation("Retrieved package registrations.");
+                        var packageRegistrationLookup = await GetPackageRegistrations(destinationDatabase);
 
                         // Create a temporary table
                         _logger.LogDebug("Creating temporary table...");
@@ -194,6 +187,47 @@ namespace Stats.AggregateCdnDownloadsInGallery
             }
 
             return true;
+        }
+
+        private async Task<IDictionary<string, string>> GetPackageRegistrations(SqlConnection sqlConnection)
+        {
+            _logger.LogDebug("Retrieving package registrations...");
+
+            var packageRegistrationDictionary = new Dictionary<string, string>();
+
+            // Ensure results are sorted deterministically.
+            var packageRegistrationData = (await sqlConnection.QueryWithRetryAsync<PackageRegistrationData>(
+                    "SELECT [Key], LOWER([Id]) AS LowercasedId, [Id] AS OriginalId FROM [dbo].[PackageRegistrations] (NOLOCK) ORDER BY [Id] ASC",
+                    commandTimeout: (int)TimeSpan.FromMinutes(10).TotalSeconds,
+                    maxRetries: 5)).ToList();
+
+            // We are not using .ToDictionary() and instead explicitly looping through these items to be able to detect
+            // and avoid potential duplicate keys caused by LOWER([Id]) conflicts that may occur.
+            foreach (var item in packageRegistrationData)
+            {
+                if (string.IsNullOrEmpty(item.LowercasedId))
+                {
+                    continue;
+                }
+
+                if (!packageRegistrationDictionary.ContainsKey(item.LowercasedId))
+                {
+                    packageRegistrationDictionary.Add(item.LowercasedId, item.Key);
+                }
+                else
+                {
+                    var conflictingPackageRegistration = packageRegistrationDictionary[item.LowercasedId];
+                    var conflictingPackageOriginalId = packageRegistrationData.Single(p => p.Key == conflictingPackageRegistration);
+
+                    // Lowercased package ID's should be unique, however, there's the case of the Turkish i...
+                    _logger.LogWarning($"Package registration conflict detected: skipping package registration with key {item.Key} and ID {item.LowercasedId}." +
+                                       $"Package {item.OriginalId} conflicts with package {conflictingPackageOriginalId}");
+                }
+            }
+
+            _logger.LogInformation("Retrieved package registrations.");
+
+            return packageRegistrationDictionary;
         }
     }
 }
