@@ -6,6 +6,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
     public class PackageRegistrationData
     {
         public string Key { get; set; }
-        public string Id { get; set; }
+        public string LowercasedId { get; set; }
+        public string OriginalId { get; set; }
     }
 }
