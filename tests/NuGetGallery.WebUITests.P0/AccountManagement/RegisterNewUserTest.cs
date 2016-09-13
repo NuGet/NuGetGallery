@@ -35,7 +35,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.AccountManagement
             registerNewUserFormPost.FormPostParameters.Add("LinkingAccount", "false");
             registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks + "@live.com"); //add a dummy mail account.
             registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, DateTime.Now.Ticks + "NewAccount");
-            registerNewUserFormPost.FormPostParameters.Add(Constants.RegisterPasswordFormField, "xxxxxxxx");
+            registerNewUserFormPost.FormPostParameters.Add(Constants.RegisterPasswordFormField, "Xxxxxxxx123");
             registerPagePostRequest.Body = registerNewUserFormPost;
 
             // Validate the response to make sure that it has the confirmation text in it.
