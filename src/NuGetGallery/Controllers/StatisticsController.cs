@@ -16,6 +16,19 @@ namespace NuGetGallery
         private readonly IStatisticsService _statisticsService = null;
         private readonly IAggregateStatsService _aggregateStatsService = null;
 
+        private static readonly string[] PackageDownloadsByVersionDimensions = new[] {
+            Constants.StatisticsDimensions.Version,
+            Constants.StatisticsDimensions.ClientName,
+            Constants.StatisticsDimensions.ClientVersion,
+            Constants.StatisticsDimensions.Operation
+        };
+
+        private static readonly string[] PackageDownloadsDetailDimensions = new [] {
+            Constants.StatisticsDimensions.ClientName,
+            Constants.StatisticsDimensions.ClientVersion,
+            Constants.StatisticsDimensions.Operation
+        };
+
         public StatisticsController(IAggregateStatsService aggregateStatsService)
         {
             _statisticsService = null;
@@ -148,16 +161,17 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var dimensions = new []
+            StatisticsPackagesReport report = null;
+            try
             {
-                Constants.StatisticsDimensions.Version,
-                Constants.StatisticsDimensions.ClientName,
-                Constants.StatisticsDimensions.ClientVersion,
-                Constants.StatisticsDimensions.Operation
-            };
+                report = await _statisticsService.GetPackageDownloadsByVersion(id);
 
-            StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
-            ProcessReport(report, groupby, dimensions, id);
+                ProcessReport(report, groupby, PackageDownloadsByVersionDimensions, id);
+            }
+            catch (StatisticsReportNotFoundException)
+            {
+                // no report found
+            }
 
             if (report != null)
             {
@@ -183,14 +197,17 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var dimensions = new[] {
-                Constants.StatisticsDimensions.ClientName,
-                Constants.StatisticsDimensions.ClientVersion,
-                Constants.StatisticsDimensions.Operation };
-            
-            StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
+            StatisticsPackagesReport report = null;
+            try
+            {
+                report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
-            ProcessReport(report, groupby, dimensions, null);
+                ProcessReport(report, groupby, PackageDownloadsDetailDimensions, null);
+            }
+            catch (StatisticsReportNotFoundException)
+            {
+                // no report found
+            }
 
             if (report != null)
             {
