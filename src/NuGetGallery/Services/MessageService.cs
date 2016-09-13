@@ -439,7 +439,7 @@ The {3} Team";
             {
                 if (MailSender == null)
                 {
-                    MailSender = await MailSenderFactory.CreateMailSender(ConfigService);
+                    MailSender = await MailSenderFactory.Create(ConfigService);
                 }
 
                 MailSender.Send(mailMessage);

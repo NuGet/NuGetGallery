@@ -13,16 +13,15 @@ namespace NuGetGallery
     {
         private readonly LuceneIndexingService _indexingService;
 
-        public LuceneIndexingJob(TimeSpan frequence, TimeSpan timeout, LuceneIndexingService indexingService)
-            : base("Lucene", frequence, timeout)
+        public static async Task<LuceneIndexingJob> Create(TimeSpan frequence, TimeSpan timeout, LuceneIndexingService indexingService)
         {
-            _indexingService = indexingService;
+            var job = new LuceneIndexingJob(frequence, timeout, indexingService);
 
             // Updates the index synchronously first time job is created.
             // For startup code resiliency, we should handle exceptions for the database being down.
             try
             {
-                _indexingService.UpdateIndex();
+                await job.Execute();
             }
             catch (SqlException e)
             {
@@ -32,11 +31,19 @@ namespace NuGetGallery
             {
                 QuietLog.LogHandledException(e);
             }
+
+            return job;
+        }
+
+        private LuceneIndexingJob(TimeSpan frequence, TimeSpan timeout, LuceneIndexingService indexingService)
+            : base("Lucene", frequence, timeout)
+        {
+            _indexingService = indexingService;
         }
 
         public override Task Execute()
         {
-            return new Task(_indexingService.UpdateIndex);
+            return _indexingService.UpdateIndex();
         }
     }
 }

@@ -11,6 +11,10 @@ namespace NuGetGallery.Configuration
 
         Task<FeatureConfiguration> GetFeatures();
 
+        IAppConfiguration Current { get; }
+
+        FeatureConfiguration Features { get; }
+
         /// <summary>
         /// Gets the site root using the specified protocol
         /// </summary>

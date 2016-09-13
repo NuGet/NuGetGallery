@@ -5,11 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace NuGetGallery.Configuration.Factories
+namespace NuGetGallery.Configuration
 {
     internal static class PagerDutyClientFactory
     {
-        public static async Task<PagerDutyClient> CreatePagerDutyClient(IGalleryConfigurationService configService)
+        public static async Task<PagerDutyClient> Create(IGalleryConfigurationService configService)
         {
             var currentConfig = await configService.GetCurrent();
 

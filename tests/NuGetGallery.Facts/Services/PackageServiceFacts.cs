@@ -493,7 +493,7 @@ namespace NuGetGallery
                 packageRegistrationRepository.Setup(r => r.CommitChangesAsync())
                     .Returns(Task.CompletedTask).Verifiable();
                 var indexingService = new Mock<IIndexingService>(MockBehavior.Strict);
-                indexingService.Setup(s => s.UpdateIndex()).Verifiable();
+                indexingService.Setup(s => s.UpdateIndex()).Returns(Task.FromResult<bool>(false)).Verifiable();
                 var service = CreateService(indexingService: indexingService, packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
                 var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");

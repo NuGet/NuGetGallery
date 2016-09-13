@@ -13,11 +13,10 @@ namespace NuGetGallery.Framework
     {
         public IDictionary<string, string> Settings = new Dictionary<string, string>();
 
-        private IAppConfiguration _currentConfig;
-
-        public TestGalleryConfigurationService(IAppConfiguration currentConfig) : base(new EmptySecretReaderFactory())
+        public TestGalleryConfigurationService(IAppConfiguration currentConfig) : base()
         {
             _currentConfig = currentConfig;
+            _featuresConfig = null;
         }
 
         protected override string GetAppSetting(string settingName)
@@ -34,6 +33,11 @@ namespace NuGetGallery.Framework
         public override async Task<IAppConfiguration> GetCurrent()
         {
             return await Task.FromResult(_currentConfig);
+        }
+
+        public override async Task<FeatureConfiguration> GetFeatures()
+        {
+            return await Task.FromResult(_featuresConfig);
         }
     }
 }

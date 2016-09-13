@@ -13,7 +13,7 @@ namespace NuGetGallery.Configuration
 {
     public static class MailSenderFactory
     {
-        public static async Task<IMailSender> CreateMailSender(IGalleryConfigurationService configService)
+        public static async Task<IMailSender> Create(IGalleryConfigurationService configService)
         {
             var configSmtpUri = (await configService.GetCurrent()).SmtpUri;
             if (configSmtpUri != null && configSmtpUri.IsAbsoluteUri)

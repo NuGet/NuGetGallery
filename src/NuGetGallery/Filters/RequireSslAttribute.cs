@@ -15,7 +15,7 @@ namespace NuGetGallery.Filters
     {
         public IGalleryConfigurationService ConfigService { get; set; }
 
-        public async void OnAuthorization(AuthorizationContext filterContext)
+        public void OnAuthorization(AuthorizationContext filterContext)
         {
             if (filterContext == null)
             {
@@ -23,13 +23,13 @@ namespace NuGetGallery.Filters
             }
 
             var request = filterContext.HttpContext.Request;
-            if ((await ConfigService.GetCurrent()).RequireSSL && !request.IsSecureConnection)
+            if (ConfigService.Current.RequireSSL && !request.IsSecureConnection)
             {
                 HandleNonHttpsRequest(filterContext);
             }
         }
 
-        private async void HandleNonHttpsRequest(AuthorizationContext filterContext)
+        private void HandleNonHttpsRequest(AuthorizationContext filterContext)
         {
             // only redirect for GET requests, otherwise the browser might not propagate the verb and request
             // body correctly.
@@ -42,7 +42,7 @@ namespace NuGetGallery.Filters
                 // redirect to HTTPS version of page
                 var portString = String.Empty;
 
-                var sslPort = (await ConfigService.GetCurrent()).SSLPort;
+                var sslPort = ConfigService.Current.SSLPort;
                 if (sslPort != 443)
                 {
                     portString = String.Format(CultureInfo.InvariantCulture, ":{0}", sslPort);

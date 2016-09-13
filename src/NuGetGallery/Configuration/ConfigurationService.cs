@@ -27,6 +27,18 @@ namespace NuGetGallery.Configuration
         private string _httpSiteRoot;
         private string _httpsSiteRoot;
 
+        protected IAppConfiguration _currentConfig;
+        protected FeatureConfiguration _featuresConfig;
+
+        /// <summary>
+        /// Constructor for testing.
+        /// </summary>
+        public ConfigurationService()
+        {
+            _secretReaderFactory = new EmptySecretReaderFactory();
+            _secretInjector = new Lazy<ISecretInjector>(InitSecretInjector, isThreadSafe: false);
+        }
+
         public ConfigurationService(ISecretReaderFactory secretReaderFactory)
         {
             if (secretReaderFactory == null)
@@ -36,10 +48,6 @@ namespace NuGetGallery.Configuration
 
             _secretReaderFactory = secretReaderFactory;
             _secretInjector = new Lazy<ISecretInjector>(InitSecretInjector, isThreadSafe: false);
-
-            _httpSiteRoot = GetHttpSiteRoot().Result;
-            // GetHttpsSiteRoot requires _httpSiteRoot is defined.
-            _httpsSiteRoot = GetHttpsSiteRoot();
         }
 
         public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
@@ -59,13 +67,29 @@ namespace NuGetGallery.Configuration
 
         public virtual async Task<IAppConfiguration> GetCurrent()
         {
-            return await ResolveSettings();
+            return _currentConfig = await ResolveSettings();
         }
 
-        public async Task<FeatureConfiguration> GetFeatures()
+        public virtual async Task<FeatureConfiguration> GetFeatures()
         {
-            return await ResolveFeatures();
+            return _featuresConfig = await ResolveFeatures();
         }
+
+        /// <summary>
+        /// Synchronously access current configuration in contexts that cannot be async.
+        /// Avoid accessing configuration that changes with this method (e.g. Azure connection strings).
+        /// </summary>
+        /// <returns>The cached current configuration.</returns>
+        [Obsolete("Use GetCurrent() unless a synchronous context is completely necessary.")]
+        public virtual IAppConfiguration Current => _currentConfig ?? GetCurrent().Result;
+
+        /// <summary>
+        /// Synchronously access features configuration in contexts that cannot be async.
+        /// Avoid accessing configuration that changes with this method (e.g. Azure connection strings).
+        /// </summary>
+        /// <returns>The cached features configuration.</returns>
+        [Obsolete("Use GetFeatures() unless a synchronous context is completely necessary.")]
+        public virtual FeatureConfiguration Features => _featuresConfig ?? GetFeatures().Result;
 
         /// <summary>
         /// Gets the site root using the specified protocol
@@ -74,6 +98,15 @@ namespace NuGetGallery.Configuration
         /// <returns></returns>
         public string GetSiteRoot(bool useHttps)
         {
+            if (useHttps && _httpsSiteRoot == null)
+            {
+                _httpsSiteRoot = GetHttpsSiteRoot().Result;
+            }
+            if (_httpSiteRoot == null)
+            {
+                _httpSiteRoot = GetHttpSiteRoot().Result;
+            }
+
             return (useHttps ? _httpsSiteRoot : _httpSiteRoot);
         }
 
@@ -241,9 +274,14 @@ namespace NuGetGallery.Configuration
             return siteRoot;
         }
 
-        private string GetHttpsSiteRoot()
+        private async Task<string> GetHttpsSiteRoot()
         {
             var siteRoot = _httpSiteRoot;
+
+            if (string.IsNullOrEmpty(siteRoot))
+            {
+                siteRoot = _httpSiteRoot = await GetHttpSiteRoot();
+            }
 
             if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
             {

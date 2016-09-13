@@ -1396,7 +1396,7 @@ namespace NuGetGallery
                 fakePackageFileService.Setup(x => x.SavePackageFileAsync(fakePackage, It.IsAny<Stream>())).Returns(Task.FromResult(0)).Verifiable();
 
                 var fakeIndexingService = new Mock<IIndexingService>(MockBehavior.Strict);
-                fakeIndexingService.Setup(f => f.UpdateIndex()).Verifiable();
+                fakeIndexingService.Setup(f => f.UpdateIndex()).Returns(Task.FromResult<bool>(false)).Verifiable();
 
                 var controller = CreateController(
                     packageService: fakePackageService,

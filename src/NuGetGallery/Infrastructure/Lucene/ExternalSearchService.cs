@@ -311,24 +311,28 @@ namespace NuGetGallery.Infrastructure.Lucene
         }
 
         // Bunch of no-ops to disable indexing because an external search service is doing that.
-        public void UpdateIndex()
+        public Task UpdateIndex()
         {
             // No-op
+            return Task.FromResult(false);
         }
 
-        public void UpdateIndex(bool forceRefresh)
+        public Task UpdateIndex(bool forceRefresh)
         {
             // No-op
+            return Task.FromResult(false);
         }
 
-        public void UpdatePackage(Package package)
+        public Task UpdatePackage(Package package)
         {
             // No-op
+            return Task.FromResult(false);
         }
 
-        public void RegisterBackgroundJobs(IList<WebBackgrounder.IJob> jobs)
+        public Task RegisterBackgroundJobs(IList<WebBackgrounder.IJob> jobs)
         {
             // No background jobs to register!
+            return Task.FromResult(false);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace NuGetGallery.App_Start
         {
             private class TestableConfigurationService : ConfigurationService
             {
-                public TestableConfigurationService() : base(new EmptySecretReaderFactory())
+                public TestableConfigurationService() : base()
                 {
                     StubConfiguredSiteRoot = "http://aSiteRoot/";
 
@@ -98,7 +98,9 @@ namespace NuGetGallery.App_Start
                 var configuration = new TestableConfigurationService();
                 configuration.StubConfiguredSiteRoot = "ftp://theSiteRoot/";
 
-                Assert.Throws<InvalidOperationException>(() => configuration.GetSiteRoot(useHttps: false));
+                // A task that is started by GetSiteRoot throws an InvalidOperationException
+                // but it propagates back to here as an AggregateException.
+                Assert.Throws<AggregateException>(() => configuration.GetSiteRoot(useHttps: false));
             }
 
             [Fact]

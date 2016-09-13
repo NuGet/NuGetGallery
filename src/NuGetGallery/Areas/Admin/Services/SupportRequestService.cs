@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration;
-using NuGetGallery.Configuration.Factories;
 
 namespace NuGetGallery.Areas.Admin
 {
@@ -202,7 +201,7 @@ namespace NuGetGallery.Areas.Admin
         {
             if (_pagerDutyClient == null)
             {
-                _pagerDutyClient = await PagerDutyClientFactory.CreatePagerDutyClient(_configService);
+                _pagerDutyClient = await PagerDutyClientFactory.Create(_configService);
             }
 
             var loggedInUser = user?.Username ?? "Anonymous";

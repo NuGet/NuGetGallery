@@ -331,7 +331,7 @@ namespace NuGetGallery
                         {
                             uploadStream.Position = 0;
                             await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
-                            IndexingService.UpdatePackage(package);
+                            await IndexingService.UpdatePackage(package);
                         }
 
                         // Write an audit record
@@ -393,7 +393,7 @@ namespace NuGetGallery
             }
 
             await PackageService.MarkPackageUnlistedAsync(package);
-            IndexingService.UpdatePackage(package);
+            await IndexingService.UpdatePackage(package);
             return new EmptyResult();
         }
 
@@ -417,7 +417,7 @@ namespace NuGetGallery
             }
 
             await PackageService.MarkPackageListedAsync(package);
-            IndexingService.UpdatePackage(package);
+            await IndexingService.UpdatePackage(package);
             return new EmptyResult();
         }
 

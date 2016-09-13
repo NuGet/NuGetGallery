@@ -67,15 +67,15 @@ namespace NuGetGallery
             return currentConfig == null || currentConfig.AutoUpdateSearchIndex;
         }
 
-        public async void UpdateIndex()
+        public async Task UpdateIndex()
         {
             if (await GetShouldAutoUpdate())
             {
-                UpdateIndex(forceRefresh: false);
+                await UpdateIndex(forceRefresh: false);
             }
         }
 
-        public async void UpdateIndex(bool forceRefresh)
+        public async Task UpdateIndex(bool forceRefresh)
         {
             // Always do it if we're asked to "force" a refresh (i.e. manually triggered)
             // Otherwise, no-op unless we're supporting background search indexing.
@@ -107,7 +107,7 @@ namespace NuGetGallery
             }
         }
 
-        public async void UpdatePackage(Package package)
+        public async Task UpdatePackage(Package package)
         {
             if (await GetShouldAutoUpdate())
             {
@@ -191,7 +191,7 @@ namespace NuGetGallery
             return packagesForIndexing.ToList();
         }
 
-        public async void AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
+        public async Task AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
         {
             if (await GetShouldAutoUpdate())
             {
@@ -317,12 +317,12 @@ namespace NuGetGallery
         }
 
 
-        public async void RegisterBackgroundJobs(IList<IJob> jobs)
+        public async Task RegisterBackgroundJobs(IList<IJob> jobs)
         {
             if (await GetShouldAutoUpdate())
             {
                 jobs.Add(
-                    new LuceneIndexingJob(
+                    await LuceneIndexingJob.Create(
                         frequence: TimeSpan.FromMinutes(10),
                         timeout: TimeSpan.FromMinutes(2),
                         indexingService: this));

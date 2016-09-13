@@ -1016,7 +1016,7 @@ namespace NuGetGallery
                 action);
 
             // Update the index
-            _indexingService.UpdatePackage(package);
+            await _indexingService.UpdatePackage(package);
             return Redirect(urlFactory(package));
         }
 
@@ -1183,7 +1183,7 @@ namespace NuGetGallery
                 await _entitiesContext.SaveChangesAsync();
 
                 // tell Lucene to update index for the new package
-                _indexingService.UpdateIndex();
+                await _indexingService.UpdateIndex();
 
                 // write an audit record
                 await _auditingService.SaveAuditRecord(
@@ -1284,7 +1284,7 @@ namespace NuGetGallery
                 visible ? "enabled" : "disabled");
 
             // Update the index
-            _indexingService.UpdatePackage(package);
+            await _indexingService.UpdatePackage(package);
 
             return Redirect(urlFactory(package));
         }

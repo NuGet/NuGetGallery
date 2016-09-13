@@ -139,10 +139,13 @@ namespace NuGetGallery.Infrastructure
 
     public class TableErrorLog : ErrorLog
     {
+        private static string CurrentConnectionString;
+        private static AzureEntityList<ErrorEntity> CurrentAzureEntityList;
+
         public const string TableName = "ElmahErrors";
 
-        protected string _connectionString;
-        protected AzureEntityList<ErrorEntity> _entityList;
+        private string _connectionString;
+        private AzureEntityList<ErrorEntity> _entityList;
 
         public TableErrorLog(IDictionary config)
         {
@@ -161,9 +164,15 @@ namespace NuGetGallery.Infrastructure
             _entityList = GetEntityList();
         }
 
-        protected AzureEntityList<ErrorEntity> GetEntityList()
+        private AzureEntityList<ErrorEntity> GetEntityList()
         {
-            return new AzureEntityList<ErrorEntity>(_connectionString, TableName);
+            if (_connectionString == CurrentConnectionString)
+            {
+                return CurrentAzureEntityList;
+            }
+
+            CurrentConnectionString = _connectionString;
+            return CurrentAzureEntityList = new AzureEntityList<ErrorEntity>(_connectionString, TableName);
         }
 
         public override ErrorLogEntry GetError(string id)

@@ -1,30 +1,20 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Data.Entity;
 using System.IO;
-using System.Net;
-using System.Net.Mail;
 using System.Security.Principal;
 using System.Web;
-using System.Web.Hosting;
 using System.Web.Mvc;
-using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Elmah;
-using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration.SecretReader;
-using NuGetGallery.Services;
-using Autofac.Core;
-using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -51,19 +41,17 @@ namespace NuGetGallery
                 .As<Lucene.Net.Store.Directory>()
                 .SingleInstance();
 
-            ConfigureSearch(builder, configService, currentConfig, diagnosticsService);
+            ConfigureSearch(builder, currentConfig, diagnosticsService);
 
             if (!string.IsNullOrEmpty(currentConfig.AzureStorageConnectionString))
             {
-                var tableErrorLogFactory = new ConfigObjectDelegate<TableErrorLog>(async () => new TableErrorLog((await configService.GetCurrent()).AzureStorageConnectionString), async () => (await configService.GetCurrent()).AzureStorageConnectionString);
-                builder.Register(c => tableErrorLogFactory.Get().Result)
+                builder.Register(c => Factories.TableErrorLog.Create(configService))
                     .As<ErrorLog>()
                     .InstancePerLifetimeScope();
             }
             else
             {
-                var sqlErrorLogFactory = new ConfigObjectDelegate<SqlErrorLog>(async () => new SqlErrorLog((await configService.GetCurrent()).SqlConnectionString), async () => (await configService.GetCurrent()).SqlConnectionString);
-                builder.Register(c => sqlErrorLogFactory.Get().Result)
+                builder.Register(c => Factories.SqlErrorLog.Create(configService))
                     .As<ErrorLog>()
                     .InstancePerLifetimeScope();
             }
@@ -77,8 +65,8 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IContentService>()
                 .SingleInstance();
-
-            builder.Register(c => new EntitiesContext(configService.GetCurrent().Result.SqlConnectionString, readOnly: configService.GetCurrent().Result.ReadOnlyMode))
+            
+            builder.Register(c => Factories.EntitiesContext.Create(configService))
                 .AsSelf()
                 .As<IEntitiesContext>()
                 .As<DbContext>()
@@ -133,8 +121,8 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
-
-            builder.Register(c => new SupportRequestDbContext(configService.GetCurrent().Result.SqlConnectionStringSupportRequest))
+            
+            builder.Register(c => Factories.SupportRequestDbContext.Create(configService))
                 .AsSelf()
                 .As<ISupportRequestDbContext>()
                 .InstancePerLifetimeScope();
@@ -239,10 +227,10 @@ namespace NuGetGallery
                 .As<IAutomaticallyCuratePackageCommand>()
                 .InstancePerLifetimeScope();
 
-            ConfigureAutocomplete(builder, configService, currentConfig);
+            ConfigureAutocomplete(builder, currentConfig);
         }
 
-        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration, IAppConfiguration currentConfig, IDiagnosticsService diagnosticsService)
+        private static void ConfigureSearch(ContainerBuilder builder, IAppConfiguration currentConfig, IDiagnosticsService diagnosticsService)
         {
             if (currentConfig.ServiceDiscoveryUri == null)
             {
@@ -257,24 +245,24 @@ namespace NuGetGallery
             }
             else
             {
-                builder.Register(c => new ExternalSearchService(diagnosticsService, configuration.GetCurrent().Result.ServiceDiscoveryUri, configuration.GetCurrent().Result.SearchServiceResourceType))
+                builder.Register(c => new ExternalSearchService(diagnosticsService, currentConfig.ServiceDiscoveryUri, currentConfig.SearchServiceResourceType))
                     .AsSelf()
                     .As<ISearchService>()
                     .As<IIndexingService>()
                     .InstancePerLifetimeScope();
             }
         }
-        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configService, IAppConfiguration currentConfig)
+        private static void ConfigureAutocomplete(ContainerBuilder builder, IAppConfiguration currentConfig)
         {
             if (currentConfig.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(currentConfig.AutocompleteServiceResourceType))
             {
-                builder.Register(c => new AutocompleteServicePackageIdsQuery(configService.GetCurrent().Result))
+                builder.Register(c => new AutocompleteServicePackageIdsQuery(currentConfig))
                     .AsSelf()
                     .As<IPackageIdsQuery>()
                     .SingleInstance();
 
-                builder.Register(c => new AutocompleteServicePackageVersionsQuery(configService.GetCurrent().Result))
+                builder.Register(c => new AutocompleteServicePackageVersionsQuery(currentConfig))
                     .AsSelf()
                     .As<IPackageVersionsQuery>()
                     .InstancePerLifetimeScope();
@@ -361,24 +349,8 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IStatisticsService>()
                 .SingleInstance();
-
-            string instanceId;
-            try
-            {
-                instanceId = RoleEnvironment.CurrentRoleInstance.Id;
-            }
-            catch
-            {
-                instanceId = Environment.MachineName;
-            }
-
-            var localIp = AuditActor.GetLocalIP().Result;
-
-            var cloudAuditingServiceFactory = new ConfigObjectDelegate<AuditingService>(
-                async () => new CloudAuditingService(instanceId, localIp, (await configService.GetCurrent()).AzureStorageConnectionString, CloudAuditingService.GetAspNetOnBehalfOf), 
-                async () => (await configService.GetCurrent()).AzureStorageConnectionString);
-
-            builder.Register(c => cloudAuditingServiceFactory.Get().Result)
+            
+            builder.Register(c => new CloudAuditingServiceWrapper(Factories.AuditingService.CreateAsync(configService)))
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();

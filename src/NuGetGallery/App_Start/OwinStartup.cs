@@ -32,7 +32,7 @@ namespace NuGetGallery
         public static bool HasRun { get; private set; }
 
         // This method is auto-detected by the OWIN pipeline. DO NOT RENAME IT!
-        public static async void Configuration(IAppBuilder app)
+        public static void Configuration(IAppBuilder app)
         {
             // Tune ServicePointManager
             // (based on http://social.technet.microsoft.com/Forums/en-US/windowsazuredata/thread/d84ba34b-b0e0-4961-a167-bbe7618beb83 and https://msdn.microsoft.com/en-us/library/system.net.servicepointmanager.aspx)
@@ -51,9 +51,10 @@ namespace NuGetGallery
             // Get config
             var config = dependencyResolver.GetService<IGalleryConfigurationService>();
             var auth = dependencyResolver.GetService<AuthenticationService>();
+            var currentConfig = config.GetCurrent().Result;
 
             // Setup telemetry
-            var instrumentationKey = (await config.GetCurrent()).AppInsightsInstrumentationKey;
+            var instrumentationKey = currentConfig.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(instrumentationKey))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
@@ -61,7 +62,7 @@ namespace NuGetGallery
                 // Note: sampling rate must be a factor 100/N where N is a whole number
                 // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
                 // https://azure.microsoft.com/en-us/documentation/articles/app-insights-sampling/
-                var instrumentationSamplingPercentage = (await config.GetCurrent()).AppInsightsSamplingPercentage;
+                var instrumentationSamplingPercentage = currentConfig.AppInsightsSamplingPercentage;
                 if (instrumentationSamplingPercentage > 0 && instrumentationSamplingPercentage < 100)
                 {
                     var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
@@ -76,11 +77,11 @@ namespace NuGetGallery
             // Remove X-AspNetMvc-Version header
             MvcHandler.DisableMvcResponseHeader = true;
 
-            if ((await config.GetCurrent()).RequireSSL)
+            if (currentConfig.RequireSSL)
             {
                 // Put a middleware at the top of the stack to force the user over to SSL
                 // if authenticated.
-                app.UseForceSslWhenAuthenticated((await config.GetCurrent()).SSLPort);
+                app.UseForceSslWhenAuthenticated(currentConfig.SSLPort);
             }
 
             // Get the local user auth provider, if present and attach it first

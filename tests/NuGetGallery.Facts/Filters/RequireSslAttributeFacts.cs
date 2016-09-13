@@ -23,7 +23,7 @@ namespace NuGetGallery.Filters
             var context = mockAuthContext.Object;
 
             var mockConfigService = new Mock<IGalleryConfigurationService>();
-            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockConfig.Object));
+            mockConfigService.Setup(x => x.Current).Returns(mockConfig.Object);
 
             var attribute = new RequireSslAttribute() { ConfigService = mockConfigService.Object };
             var result = new ViewResult();
@@ -46,7 +46,7 @@ namespace NuGetGallery.Filters
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsSecureConnection).Returns(true);
             var context = mockAuthContext.Object;
             var mockConfigService = new Mock<IGalleryConfigurationService>();
-            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockConfig.Object));
+            mockConfigService.Setup(x => x.Current).Returns(mockConfig.Object);
             var attribute = new RequireSslAttribute() { ConfigService = mockConfigService.Object };
             var result = new ViewResult();
             context.Result = result;
@@ -76,7 +76,7 @@ namespace NuGetGallery.Filters
             mockConfig.Setup(cfg => cfg.SSLPort).Returns(port);
 
             var mockConfigService = new Mock<IGalleryConfigurationService>();
-            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockConfig.Object));
+            mockConfigService.Setup(x => x.Current).Returns(mockConfig.Object);
 
             var attribute = new RequireSslAttribute()
             {
@@ -114,7 +114,7 @@ namespace NuGetGallery.Filters
             var mockConfig = new Mock<IAppConfiguration>();
             mockConfig.Setup(cfg => cfg.RequireSSL).Returns(true);
             var mockConfigService = new Mock<IGalleryConfigurationService>();
-            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockConfig.Object));
+            mockConfigService.Setup(x => x.Current).Returns(mockConfig.Object);
             var context = mockAuthContext.Object;
 
             var attribute = new RequireSslAttribute()

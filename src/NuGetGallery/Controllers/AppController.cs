@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin;
 using NuGetGallery.Configuration;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -53,12 +54,12 @@ namespace NuGetGallery
         /// Called before the action method is invoked.
         /// </summary>
         /// <param name="filterContext">Information about the current request and action.</param>
-        protected override async void OnActionExecuting(ActionExecutingContext filterContext)
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             if (!filterContext.IsChildAction)
             {
-                //no need to do the hassle for a child action
-                //set the culture from the request headers
+                // no need to do the hassle for a child action
+                // set the culture from the request headers
                 var clientCulture = Request.DetermineClientCulture();
                 if (clientCulture != null)
                 {
@@ -70,8 +71,8 @@ namespace NuGetGallery
             // (NuGetGallery.StatisticsControllerFacts+TheTotalsAllAction.UseClientCultureIfLanguageHeadersIsPresent)
             if (NuGetContext.Config != null)
             {
-                ViewBag.CurrentConfig = await NuGetContext.Config.GetCurrent();
-                ViewBag.CurrentFeatures = await NuGetContext.Config.GetFeatures();
+                ViewBag.CurrentConfig = NuGetContext.Config.Current;
+                ViewBag.CurrentFeatures = NuGetContext.Config.Features;
             }
 
             base.OnActionExecuting(filterContext);

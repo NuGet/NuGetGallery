@@ -10,14 +10,14 @@ namespace NuGetGallery
     public interface IIndexingService
     {
         Task<DateTime?> GetLastWriteTime();
-        void UpdateIndex();
-        void UpdateIndex(bool forceRefresh);
-        void UpdatePackage(Package package);
+        Task UpdateIndex();
+        Task UpdateIndex(bool forceRefresh);
+        Task UpdatePackage(Package package);
 
         Task<int> GetDocumentCount();
         Task<long> GetIndexSizeInBytes();
 
-        void RegisterBackgroundJobs(IList<IJob> jobs);
+        Task RegisterBackgroundJobs(IList<IJob> jobs);
 
         string IndexPath { get; }
 
