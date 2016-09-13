@@ -74,7 +74,7 @@ namespace NuGetGallery.Configuration
                 // If no task is in progress, start one.
                 if (_currentGetTask == null)
                 {
-                    _currentGetTask = GetAsyncInternal(configService);
+                    _currentGetTask = Task.Run(() => GetAsyncInternal(configService));
                 }
 
                 var currentGetTask = _currentGetTask;
