@@ -307,10 +307,8 @@ namespace Ng
                     // that corresponds to the operation's timestamp.
                     // This query string will ensure the package is not cached
                     // (e.g. on the CDN) and returns the "latest and greatest" package metadata.
-                    var packageUriBuilder = new UriBuilder(packageItem.ContentUri);
-                    packageUriBuilder.Query = "nuget-cache=" + entry.Key.ToString("O");
-
-                    var response = await client.GetAsync(packageUriBuilder.Uri, cancellationToken);
+                    var packageUri = Utilities.GetNugetCacheBustingUri(packageItem.ContentUri, entry.Key.ToString("O"));
+                    var response = await client.GetAsync(packageUri, cancellationToken);
 
                     if (response.IsSuccessStatusCode)
                     {

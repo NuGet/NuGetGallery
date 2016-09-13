@@ -64,8 +64,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         async Task UpdateMetadata(Storage storage, Action<HashSet<NuGetVersion>> updateAction, CancellationToken cancellationToken)
         {
             string relativeAddress = "index.json";
-
-            Uri resourceUri = new Uri(storage.BaseAddress, relativeAddress);
+            var resourceUri = new Uri(storage.BaseAddress, relativeAddress);
             HashSet<NuGetVersion> versions = GetVersions(await storage.LoadString(resourceUri, cancellationToken));
             updateAction(versions);
             List<NuGetVersion> result = new List<NuGetVersion>(versions);

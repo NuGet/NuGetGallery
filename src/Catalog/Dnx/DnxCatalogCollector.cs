@@ -40,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                     string nuspec = await LoadNuspec(client, id, version, cancellationToken);
                     if (nuspec != null)
                     {
-                        Uri requestUri = new Uri(ContentBaseAddress, string.Format("{0}.{1}.nupkg", id, version));
+                        var requestUri = Utilities.GetNugetCacheBustingUri(new Uri(ContentBaseAddress, string.Format("{0}.{1}.nupkg", id, version)));
                         using (Stream stream = await client.GetStreamAsync(requestUri))
                         {
                             await _dnxMaker.AddPackage(stream, nuspec, id, version, cancellationToken);
@@ -66,7 +66,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private async Task<string> LoadNuspec(HttpClient client, string id, string version, CancellationToken cancellationToken)
         {
-            Uri requestUri = new Uri(ContentBaseAddress, string.Format("{0}.{1}.nupkg", id, version));
+            var requestUri = Utilities.GetNugetCacheBustingUri(new Uri(ContentBaseAddress, string.Format("{0}.{1}.nupkg", id, version)));
             HttpResponseMessage httpResponseMessage = await client.GetAsync(requestUri, cancellationToken);
             if (httpResponseMessage.IsSuccessStatusCode)
             {

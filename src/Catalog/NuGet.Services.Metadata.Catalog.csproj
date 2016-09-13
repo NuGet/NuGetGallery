@@ -119,6 +119,7 @@
     <Compile Include="CloudBlobStorageExtensions.cs" />
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CommitMetadata.cs" />
+    <Compile Include="Utilities.cs" />
     <Compile Include="DeleteCatalogItem.cs" />
     <Compile Include="Dnx\DnxCatalogCollector.cs" />
     <Compile Include="Dnx\DnxMaker.cs" />
