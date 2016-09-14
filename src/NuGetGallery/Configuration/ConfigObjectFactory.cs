@@ -69,6 +69,7 @@ namespace NuGetGallery.Configuration
         /// <returns>The cached object.</returns>
         public Task<T> CreateAsync(IGalleryConfigurationService configService)
         {
+            // Prevent simultaneous accesses of _currentGetTask.
             lock (_lockObject)
             {
                 // If no task is in progress, start one.

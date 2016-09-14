@@ -224,7 +224,7 @@ namespace NuGetGallery
             if (credential != null && !forgot)
             {
                 // Setting a password, so notify the user
-                MessageService.SendCredentialAddedNotice(credential.User, credential);
+                await MessageService.SendCredentialAddedNotice(credential.User, credential);
             }
 
             return RedirectToAction(
@@ -280,7 +280,7 @@ namespace NuGetGallery
                 // Change notice not required for new accounts.
                 if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
                 {
-                    MessageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
+                    await MessageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
 
                     string returnUrl = HttpContext.GetConfirmationReturnUrl();
                     if (!String.IsNullOrEmpty(returnUrl))
@@ -362,7 +362,7 @@ namespace NuGetGallery
             {
                 var confirmationUrl = Url.ConfirmationUrl(
                     "Confirm", "Users", user.Username, user.EmailConfirmationToken);
-                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+                await MessageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
                 TempData["Message"] = Strings.EmailUpdated_ConfirmationRequired;
             }
@@ -512,7 +512,7 @@ namespace NuGetGallery
                 await AuthService.RemoveCredential(user, cred);
 
                 // Notify the user of the change
-                MessageService.SendCredentialRemovedNotice(user, cred);
+                await MessageService.SendCredentialRemovedNotice(user, cred);
 
                 TempData["Message"] = message;
             }

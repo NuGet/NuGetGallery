@@ -82,6 +82,7 @@ namespace NuGetGallery.Controllers
                         fakes.User,
                         fakes.Package,
                         "https://nuget.local/packages/FakePackage/owners/testUser/confirm/confirmation-code"))
+                    .Completes()
                     .Verifiable();
 
                 JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, fakes.User.Username);

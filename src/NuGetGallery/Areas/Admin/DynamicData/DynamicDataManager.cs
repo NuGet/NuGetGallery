@@ -3,11 +3,11 @@
 
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics.CodeAnalysis;
 using System.Web.DynamicData;
 using System.Web.Routing;
 using Microsoft.AspNet.DynamicData.ModelProviders;
 using NuGetGallery.Configuration;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NuGetGallery.Areas.Admin.DynamicData
 {
@@ -30,14 +30,17 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         private static void InitializeValidation()
         {
         }
-
+        
         private static void InitializeDynamicData(RouteCollection routes, string root, IGalleryConfigurationService configService)
         {
             try
             {
                 DefaultModel.RegisterContext(
                     new EFDataModelProvider(
-                        () => new EntitiesContext(configService.GetCurrent().Result.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
+                        // Disabled warning because dbContextFactory must be a synchronous method.
+#pragma warning disable CS0618 // Type or member is obsolete
+                        () => new EntitiesContext(configService.Current.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
+#pragma warning restore CS0618 // Type or member is obsolete
                         configuration: new ContextConfiguration { ScaffoldAllTables = true });
             }
             catch (SqlException e)

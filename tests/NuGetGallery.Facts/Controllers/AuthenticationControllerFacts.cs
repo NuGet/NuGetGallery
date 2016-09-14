@@ -276,6 +276,7 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
                 GetMock<IMessageService>()
                     .Setup(x => x.SendCredentialAddedNotice(authUser.User, externalCred))
+                    .Completes()
                     .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
@@ -344,6 +345,7 @@ namespace NuGetGallery.Controllers
 
                 GetMock<IMessageService>()
                     .Setup(x => x.SendCredentialAddedNotice(authUser.User, externalCred))
+                    .Completes()
                     .Verifiable();
 
                 EnableAllAuthenticators(Get<AuthenticationService>());
@@ -458,6 +460,11 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
                     .Returns(Task.FromResult(0))
+                    .Verifiable();
+
+                GetMock<IMessageService>()
+                    .Setup(x => x.SendNewAccountEmail(It.IsAny<MailAddress>(), It.IsAny<string>()))
+                    .Completes()
                     .Verifiable();
 
                 // Act

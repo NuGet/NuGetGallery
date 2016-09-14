@@ -89,7 +89,7 @@ namespace NuGetGallery
                 user.Username,
                 ownerRequest.ConfirmationCode,
                 new { id = package.Id });
-            _messageService.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl);
+            await _messageService.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl);
 
             return Json(new { success = true, name = user.Username, pending = true });
         }
@@ -118,7 +118,7 @@ namespace NuGetGallery
             }
 
             await _packageService.RemovePackageOwnerAsync(package, user);
-            _messageService.SendPackageOwnerRemovedNotice(currentUser, user, package);
+            await _messageService.SendPackageOwnerRemovedNotice(currentUser, user, package);
 
             return Json(new { success = true });
         }

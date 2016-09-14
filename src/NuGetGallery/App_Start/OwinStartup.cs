@@ -22,6 +22,7 @@ using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using Owin;
+using System.Diagnostics.CodeAnalysis;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
 
@@ -51,9 +52,15 @@ namespace NuGetGallery
             // Get config
             var config = dependencyResolver.GetService<IGalleryConfigurationService>();
             var auth = dependencyResolver.GetService<AuthenticationService>();
-            var currentConfig = config.GetCurrent().Result;
+            // Disabled method because this method must be synchronous and is only for initialization.
+#pragma warning disable CS0618 // Type or member is obsolete
+            var currentConfig = config.Current;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // Setup telemetry
+            //
+            // NOTE: if the App Insights key is rotated (the value changes in the configuration) there is no mechanism for refreshing the key.
+            // Do we want to support one?
             var instrumentationKey = currentConfig.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(instrumentationKey))
             {

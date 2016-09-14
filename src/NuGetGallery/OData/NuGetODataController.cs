@@ -48,7 +48,7 @@ namespace NuGetGallery.OData
 
         protected virtual string GetSiteRoot()
         {
-            return (_configurationService.GetSiteRoot(UseHttps())).TrimEnd('/') + '/';
+            return _configurationService.GetSiteRoot(UseHttps()).TrimEnd('/') + '/';
         }
 
         /// <summary>

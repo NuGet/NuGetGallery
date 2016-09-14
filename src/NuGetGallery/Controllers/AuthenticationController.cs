@@ -197,7 +197,7 @@ namespace NuGetGallery
             // Send a new account email
             if ((await NuGetContext.Config.GetCurrent()).ConfirmEmailAddresses && !String.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
             {
-                MessageService.SendNewAccountEmail(
+                await MessageService.SendNewAccountEmail(
                     new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
                     Url.ConfirmationUrl(
                         "Confirm",
@@ -349,7 +349,7 @@ namespace NuGetGallery
             await AuthService.AddCredential(user.User, result.Credential);
 
             // Notify the user of the change
-            MessageService.SendCredentialAddedNotice(user.User, result.Credential);
+            await MessageService.SendCredentialAddedNotice(user.User, result.Credential);
 
             return new AuthenticatedUser(user.User, result.Credential);
         }

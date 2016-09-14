@@ -21,13 +21,15 @@ namespace NuGetGallery
 
         public async Task<StatisticsReport> Load(string reportName)
         {
+            var currentConfig = await _configService.GetCurrent();
+
             // In NuGet we always use lowercase names for all blobs in Azure Storage
             reportName = reportName.ToLowerInvariant();
 
-            var storageAccount = CloudStorageAccount.Parse((await _configService.GetCurrent()).AzureStorageConnectionString);
+            var storageAccount = CloudStorageAccount.Parse(currentConfig.AzureStorageConnectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
 
-            if ((await _configService.GetCurrent()).AzureStorageReadAccessGeoRedundant)
+            if (currentConfig.AzureStorageReadAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }

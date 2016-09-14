@@ -242,9 +242,9 @@ namespace NuGetGallery
 
         internal async Task<Uri> GetRedirectUri(Uri requestUrl, Uri blobUri)
         {
-            var host = string.IsNullOrEmpty((await _configService.GetCurrent()).AzureCdnHost)
-                ? blobUri.Host 
-                : (await _configService.GetCurrent()).AzureCdnHost;
+            var azureCdnHost = (await _configService.GetCurrent()).AzureCdnHost;
+
+            var host = azureCdnHost ?? blobUri.Host;
 
             // When a blob query string is passed, that one always wins.
             // This will only happen on private NuGet gallery instances,

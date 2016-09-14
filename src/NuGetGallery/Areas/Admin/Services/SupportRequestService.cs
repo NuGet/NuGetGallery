@@ -201,7 +201,8 @@ namespace NuGetGallery.Areas.Admin
         {
             if (_pagerDutyClient == null)
             {
-                _pagerDutyClient = await PagerDutyClientFactory.Create(_configService);
+                var currentConfig = await _configService.GetCurrent();
+                _pagerDutyClient = new PagerDutyClient(currentConfig.PagerDutyAccountName, currentConfig.PagerDutyAPIKey, currentConfig.PagerDutyServiceKey);
             }
 
             var loggedInUser = user?.Username ?? "Anonymous";

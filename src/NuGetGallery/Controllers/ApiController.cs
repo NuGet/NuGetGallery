@@ -339,7 +339,7 @@ namespace NuGetGallery
                             new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));
 
                         // Notify user of push
-                        MessageService.SendPackageAddedNotice(package,
+                        await MessageService.SendPackageAddedNotice(package,
                             Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));

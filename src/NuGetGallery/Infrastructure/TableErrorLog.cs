@@ -10,7 +10,6 @@ using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Infrastructure
 {
@@ -139,40 +138,26 @@ namespace NuGetGallery.Infrastructure
 
     public class TableErrorLog : ErrorLog
     {
-        private static string CurrentConnectionString;
-        private static AzureEntityList<ErrorEntity> CurrentAzureEntityList;
-
         public const string TableName = "ElmahErrors";
 
-        private string _connectionString;
-        private AzureEntityList<ErrorEntity> _entityList;
+        private readonly string _connectionString;
+        private readonly AzureEntityList<ErrorEntity> _entityList;
 
         public TableErrorLog(IDictionary config)
         {
             _connectionString = (string)config["connectionString"] ?? RoleEnvironment.GetConfigurationSettingValue((string)config["connectionStringName"]);
-            _entityList = GetEntityList();
+            _entityList = new AzureEntityList<ErrorEntity>(_connectionString, TableName);
         }
 
         public TableErrorLog(string connectionString)
         {
             _connectionString = connectionString;
-            _entityList = GetEntityList();
+            _entityList = new AzureEntityList<ErrorEntity>(connectionString, TableName);
         }
 
         public TableErrorLog()
         {
-            _entityList = GetEntityList();
-        }
-
-        private AzureEntityList<ErrorEntity> GetEntityList()
-        {
-            if (_connectionString == CurrentConnectionString)
-            {
-                return CurrentAzureEntityList;
-            }
-
-            CurrentConnectionString = _connectionString;
-            return CurrentAzureEntityList = new AzureEntityList<ErrorEntity>(_connectionString, TableName);
+            _entityList = new AzureEntityList<ErrorEntity>(_connectionString, TableName);
         }
 
         public override ErrorLogEntry GetError(string id)
@@ -187,7 +172,7 @@ namespace NuGetGallery.Infrastructure
         {
             // A little math is required since the AzureEntityList is in ascending order
             // And we want to retrieve entries in descending order
-            long queryOffset = _entityList.LongCount - ((pageIndex+1) * pageSize);
+            long queryOffset = _entityList.LongCount - ((pageIndex + 1) * pageSize);
             if (queryOffset < 0)
             {
                 pageSize += (int)queryOffset;

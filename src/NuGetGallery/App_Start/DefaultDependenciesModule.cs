@@ -15,12 +15,13 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration.SecretReader;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NuGetGallery
 {
     public class DefaultDependenciesModule : Module
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
+        [SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
             var diagnosticsService = new DiagnosticsService();
@@ -245,7 +246,7 @@ namespace NuGetGallery
             }
             else
             {
-                builder.Register(c => new ExternalSearchService(diagnosticsService, currentConfig.ServiceDiscoveryUri, currentConfig.SearchServiceResourceType))
+                builder.Register(c => new ExternalSearchService(diagnosticsService, currentConfig))
                     .AsSelf()
                     .As<ISearchService>()
                     .As<IIndexingService>()

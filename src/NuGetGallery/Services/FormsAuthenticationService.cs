@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Web;
 using System.Web.Security;
 using NuGetGallery.Configuration;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -19,7 +20,7 @@ namespace NuGetGallery
 
         private const string ForceSSLCookieName = "ForceSSL";
 
-        public async void SetAuthCookie(
+        public void SetAuthCookie(
             string userName,
             bool createPersistentCookie,
             IEnumerable<string> roles)
@@ -42,20 +43,23 @@ namespace NuGetGallery
                 );
 
             string encryptedTicket = FormsAuthentication.Encrypt(ticket);
+            // Disabled warning because RequireSSL is a static configuration value (won't change).
+#pragma warning disable CS0618 // Type or member is obsolete
             var formsCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket)
             {
                 HttpOnly = true,
-                Secure = (await _configService.GetCurrent()).RequireSSL
+                Secure = _configService.Current.RequireSSL
             };
             context.Response.Cookies.Add(formsCookie);
 
-            if ((await _configService.GetCurrent()).RequireSSL)
+            if (_configService.Current.RequireSSL)
             {
                 // Drop a second cookie indicating that the user is logged in via SSL (no secret data, just tells us to redirect them to SSL)
                 HttpCookie responseCookie = new HttpCookie(ForceSSLCookieName, "true");
                 responseCookie.HttpOnly = true;
                 context.Response.Cookies.Add(responseCookie);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public void SignOut()

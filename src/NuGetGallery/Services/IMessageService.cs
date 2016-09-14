@@ -3,23 +3,24 @@
 
 using NuGetGallery.Services;
 using System.Net.Mail;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
     public interface IMessageService
     {
-        void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl, bool copyFromAddress);
-        void ReportAbuse(ReportPackageRequest report);
-        void ReportMyPackage(ReportPackageRequest report);
-        void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl);
-        void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl);
-        void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword);
-        void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress);
-        void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl);
-        void SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package);
-        void SendCredentialRemovedNotice(User user, Credential removed);
-        void SendCredentialAddedNotice(User user, Credential added);
-        void SendContactSupportEmail(ContactSupportRequest request);
-        void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
+        Task SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl, bool copyFromAddress);
+        Task ReportAbuse(ReportPackageRequest report);
+        Task ReportMyPackage(ReportPackageRequest report);
+        Task SendNewAccountEmail(MailAddress toAddress, string confirmationUrl);
+        Task SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl);
+        Task SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword);
+        Task SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress);
+        Task SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl);
+        Task SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package);
+        Task SendCredentialRemovedNotice(User user, Credential removed);
+        Task SendCredentialAddedNotice(User user, Credential added);
+        Task SendContactSupportEmail(ContactSupportRequest request);
+        Task SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
     }
 }

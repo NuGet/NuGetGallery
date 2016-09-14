@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 
 namespace NuGetGallery.Configuration
@@ -11,8 +12,10 @@ namespace NuGetGallery.Configuration
 
         Task<FeatureConfiguration> GetFeatures();
 
+        [Obsolete("Use GetCurrent() unless a synchronous context is required, especially if accessing a configuration that changes (through KeyVault).")]
         IAppConfiguration Current { get; }
 
+        [Obsolete("Use GetFeatures() unless a synchronous context is required, especially if accessing a configuration that changes (through KeyVault).")]
         FeatureConfiguration Features { get; }
 
         /// <summary>

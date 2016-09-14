@@ -52,7 +52,7 @@ namespace NuGetGallery
 
             MockPackageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
             MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
-                .Returns(Task.CompletedTask);
+                .Completes();
             PackageFileService = MockPackageFileService.Object;
 
             MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
@@ -103,7 +103,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(user);
                 controller.MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
                 controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
@@ -166,7 +166,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(user);
                 controller.MockMessageService.Setup(p => p.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Verifiable();
+                    .Completes().Verifiable();
                 controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
                     .Returns(Task.FromResult(package));
 
@@ -191,7 +191,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(user);
                 controller.MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
 

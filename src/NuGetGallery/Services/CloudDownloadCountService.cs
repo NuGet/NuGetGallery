@@ -84,7 +84,7 @@ namespace NuGetGallery
             return false;
         }
 
-        public void Refresh()
+        public async Task Refresh()
         {
             bool shouldRefresh = false;
             lock (_refreshLock)
@@ -100,7 +100,7 @@ namespace NuGetGallery
             {
                 try
                 {
-                    RefreshCore();
+                    await RefreshCore();
                 }
                 catch (WebException ex)
                 {
@@ -130,7 +130,7 @@ namespace NuGetGallery
             }
         }
 
-        private async void RefreshCore()
+        private async Task RefreshCore()
         {
             try
             {
@@ -212,10 +212,12 @@ namespace NuGetGallery
 
         private async Task<CloudBlockBlob> GetBlobReference()
         {
-            var storageAccount = CloudStorageAccount.Parse((await _configService.GetCurrent()).AzureStorageConnectionString);
+            var currentConfig = await _configService.GetCurrent();
+
+            var storageAccount = CloudStorageAccount.Parse(currentConfig.AzureStorageConnectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
 
-            if ((await _configService.GetCurrent()).AzureStorageReadAccessGeoRedundant)
+            if (currentConfig.AzureStorageReadAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }

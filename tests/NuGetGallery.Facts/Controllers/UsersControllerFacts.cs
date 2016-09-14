@@ -129,7 +129,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailSubscriptionAsync(user, false, true))
-                    .Returns(Task.CompletedTask);
+                    .Completes();
 
                 var result = await controller.ChangeEmailSubscription(false, true);
 
@@ -758,8 +758,7 @@ namespace NuGetGallery
                 string actualConfirmUrl = null;
                 GetMock<IMessageService>()
                     .Setup(a => a.SendPasswordResetInstructions(user, It.IsAny<string>(), false))
-                    .Callback<User, string, bool>((_, url, __) => actualConfirmUrl = url)
-                    .Verifiable();
+                    .Callback<User, string, bool>((_, url, __) => actualConfirmUrl = url);
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -829,6 +828,7 @@ namespace NuGetGallery
                     .Verifiable();
                 GetMock<IMessageService>()
                     .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Completes()
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -900,6 +900,7 @@ namespace NuGetGallery
                     .Verifiable();
                 GetMock<IMessageService>()
                     .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Completes()
                     .Verifiable();
 
                 var controller = GetController<UsersController>();

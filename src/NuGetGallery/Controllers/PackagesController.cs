@@ -594,7 +594,7 @@ namespace NuGetGallery
 
             await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, requestorEmailAddress, reason, user, package);
 
-            _messageService.ReportAbuse(request);
+            await _messageService.ReportAbuse(request);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
@@ -641,7 +641,7 @@ namespace NuGetGallery
 
             await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, requestorEmailAddress, reason, user, package);
 
-            _messageService.ReportMyPackage(request);
+            await _messageService.ReportMyPackage(request);
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
@@ -1190,7 +1190,7 @@ namespace NuGetGallery
                     new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
 
                 // notify user
-                _messageService.SendPackageAddedNotice(package,
+                await _messageService.SendPackageAddedNotice(package,
                     Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                     Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                     Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));

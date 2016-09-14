@@ -13,7 +13,10 @@ namespace NuGetGallery.Authentication.Providers.Cookie
     {
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
-            var cookieSecurity = config.GetCurrent().Result.RequireSSL ?
+            // Disabled warning because this method must be synchronous and is only called during initialization.
+#pragma warning disable CS0618 // Type or member is obsolete
+            var cookieSecurity = config.Current.RequireSSL ?
+#pragma warning restore CS0618 // Type or member is obsolete
                 CookieSecureOption.Always :
                 CookieSecureOption.Never;
 

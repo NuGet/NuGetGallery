@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using Microsoft.Owin;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NuGetGallery
 {
@@ -71,8 +72,11 @@ namespace NuGetGallery
             // (NuGetGallery.StatisticsControllerFacts+TheTotalsAllAction.UseClientCultureIfLanguageHeadersIsPresent)
             if (NuGetContext.Config != null)
             {
+                // Disabled warning because OnActionExecuting must be synchronous.
+#pragma warning disable CS0618 // Type or member is obsolete
                 ViewBag.CurrentConfig = NuGetContext.Config.Current;
                 ViewBag.CurrentFeatures = NuGetContext.Config.Features;
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             base.OnActionExecuting(filterContext);

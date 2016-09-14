@@ -644,7 +644,6 @@
   <ItemGroup>
     <Compile Include="Configuration\AuditingServiceWrapper.cs" />
     <Compile Include="Configuration\Factories.cs" />
-    <Compile Include="Configuration\MailSenderFactory.cs" />
     <Compile Include="App_Start\NuGetODataV2CuratedFeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
@@ -695,7 +694,6 @@
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
-    <Compile Include="Configuration\PagerDutyClientFactory.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\SecretReader\CachingSecretReader.cs" />
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />

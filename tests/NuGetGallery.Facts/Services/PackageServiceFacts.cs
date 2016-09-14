@@ -143,7 +143,7 @@ namespace NuGetGallery
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 packageRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 var service = CreateService(packageRepository: packageRepository);
 
                 await service.AddPackageOwnerAsync(package, pendingOwner);
@@ -161,7 +161,7 @@ namespace NuGetGallery
                 var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
                 repository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
                 repository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 repository.Setup(r => r.GetAll()).Returns(
                     new[]
                         {
@@ -206,7 +206,7 @@ namespace NuGetGallery
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 packageRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
                 repository.Setup(r => r.GetAll()).Returns(
                     new[]
@@ -432,7 +432,7 @@ namespace NuGetGallery
                 packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 packageRegistrationRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
                 var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
@@ -491,7 +491,7 @@ namespace NuGetGallery
                 packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 packageRegistrationRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 var indexingService = new Mock<IIndexingService>(MockBehavior.Strict);
                 indexingService.Setup(s => s.UpdateIndex()).Returns(Task.FromResult<bool>(false)).Verifiable();
                 var service = CreateService(indexingService: indexingService, packageRegistrationRepository: packageRegistrationRepository, setup:
@@ -516,7 +516,7 @@ namespace NuGetGallery
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>()))
                     .Returns(1).Verifiable();
                 packageRegistrationRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
                 var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
@@ -1055,7 +1055,7 @@ namespace NuGetGallery
                 packages.Add(package09);
                 var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
                 packageRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 var service = CreateService(packageRepository: packageRepository, setup:
                         mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package10A); });
 
@@ -1084,7 +1084,7 @@ namespace NuGetGallery
                 packages.Add(package09);
                 var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
                 packageRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 var service = CreateService(packageRepository: packageRepository, setup:
                         mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package100); });
 
@@ -1868,7 +1868,7 @@ namespace NuGetGallery
                 packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(new[] { packageOwnerRequest }.AsQueryable());
                 packageOwnerRequestRepository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
                 packageOwnerRequestRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
+                    .Completes().Verifiable();
                 var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
                 var pendingOwner = new User { Key = 200 };
                 var owner = new User();

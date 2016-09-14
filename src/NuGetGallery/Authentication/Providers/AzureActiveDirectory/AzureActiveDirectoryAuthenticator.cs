@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security.OpenIdConnect;
 using NuGetGallery.Configuration;
 using Owin;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
 {
@@ -18,8 +19,11 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             // Fetch site root from configuration
-            var siteRoot = config.GetCurrent().Result.SiteRoot.TrimEnd('/') + "/";
-            
+            // Disabled warning because this method must be synchronous and is only for initialization.
+#pragma warning disable CS0618 // Type or member is obsolete
+            var siteRoot = config.Current.SiteRoot.TrimEnd('/') + "/";
+#pragma warning restore CS0618 // Type or member is obsolete
+
             // We *always* require SSL for Azure Active Directory
             if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) 
             {

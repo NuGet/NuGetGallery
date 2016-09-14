@@ -84,7 +84,7 @@ namespace NuGetGallery
             var subject = $"Support Request for user '{user.Username}'";
             await _supportRequestService.AddNewSupportRequestAsync(subject, contactForm.Message, user.EmailAddress, "Other", user);
 
-            _messageService.SendContactSupportEmail(request);
+            await _messageService.SendContactSupportEmail(request);
 
             ModelState.Clear();
 

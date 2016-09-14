@@ -25,6 +25,7 @@ using NuGetGallery.Infrastructure.Jobs;
 using WebBackgrounder;
 using WebActivatorEx;
 using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 [assembly: PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
 [assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
@@ -67,7 +68,10 @@ namespace NuGetGallery
 
             // Get configuration from the kernel
             var configService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-            var currentConfig = configService.GetCurrent().Result;
+            // Disabled warning because this method must be synchronous and is only for initialization.
+#pragma warning disable CS0618 // Type or member is obsolete
+            var currentConfig = configService.Current;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             BackgroundJobsPostStart(currentConfig);
             AppPostStart(currentConfig);

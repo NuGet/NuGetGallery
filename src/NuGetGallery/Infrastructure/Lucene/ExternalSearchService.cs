@@ -56,9 +56,9 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
         }
 
-        public ExternalSearchService(IDiagnosticsService diagnostics, Uri serviceDiscoveryUri, string searchServiceResourceType)
+        public ExternalSearchService(IDiagnosticsService diagnostics, IAppConfiguration currentConfig)
         {
-            ServiceUri = serviceDiscoveryUri;
+            ServiceUri = currentConfig.ServiceDiscoveryUri;
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
@@ -90,7 +90,7 @@ namespace NuGetGallery.Infrastructure.Lucene
 
             if (_client == null)
             {
-                _client = new SearchClient(ServiceUri, searchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace), new CorrelatingHttpClientHandler());
+                _client = new SearchClient(ServiceUri, currentConfig.SearchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace), new CorrelatingHttpClientHandler());
             }
         }
 

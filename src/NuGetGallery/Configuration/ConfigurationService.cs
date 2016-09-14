@@ -65,11 +65,19 @@ namespace NuGetGallery.Configuration
             return ReadSetting(key.Replace("::", ".")).Result;
         }
 
+        /// <summary>
+        /// Asynchronously access current configuration.
+        /// </summary>
+        /// <returns>The current configuration.</returns>
         public virtual async Task<IAppConfiguration> GetCurrent()
         {
             return _currentConfig = await ResolveSettings();
         }
 
+        /// <summary>
+        /// Asynchronously access features configuration.
+        /// </summary>
+        /// <returns>The features configuration.</returns>
         public virtual async Task<FeatureConfiguration> GetFeatures()
         {
             return _featuresConfig = await ResolveFeatures();
@@ -98,6 +106,8 @@ namespace NuGetGallery.Configuration
         /// <returns></returns>
         public string GetSiteRoot(bool useHttps)
         {
+            // It is ok to call Result on these methods because initialization of the SiteRoot variables
+            // should occur early in initialization before any deadlock is possible.
             if (useHttps && _httpsSiteRoot == null)
             {
                 _httpsSiteRoot = GetHttpsSiteRoot().Result;
