@@ -239,6 +239,11 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
 
+            if (!ModelState.IsValid)
+            {
+                return ResetPassword(forgot);
+            }
+
             ViewBag.ForgotPassword = forgot;
 
             Credential credential = null;
