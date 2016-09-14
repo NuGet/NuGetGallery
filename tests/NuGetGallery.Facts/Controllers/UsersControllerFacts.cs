@@ -289,11 +289,29 @@ namespace NuGetGallery
                     ConfirmPassword = "pwd",
                     NewPassword = "newpwd"
                 };
-
+                
                 await controller.ResetPassword("user", "token", model, forgot: false);
 
                 GetMock<IMessageService>()
                     .Verify(m => m.SendCredentialAddedNotice(cred.User, cred));
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenModelIsInvalidItIsRetried(bool forgot)
+            {
+                var controller = GetController<UsersController>();
+
+                controller.ModelState.AddModelError("test", "test");
+
+                var result = await controller.ResetPassword("user", "token", new PasswordResetViewModel(), forgot);
+
+                Assert.NotNull(result);
+                Assert.IsType<ViewResult>(result);
+
+                var viewResult = result as ViewResult;
+                Assert.Equal(forgot, viewResult.ViewBag.ForgotPassword); 
             }
         }
 
