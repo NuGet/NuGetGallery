@@ -70,6 +70,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Note that your API key has also been updated..
+        /// </summary>
+        public static string ApiKeyAlsoUpdated {
+            get {
+                return ResourceManager.GetString("ApiKeyAlsoUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to API key can not be the default Guid..
         /// </summary>
         public static string ApiKeyCanNotBeDefaultGuid {
@@ -654,7 +663,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your password has been changed. Note that your API key has also been updated..
+        ///   Looks up a localized string similar to Your password has been changed..
         /// </summary>
         public static string PasswordChanged {
             get {

@@ -229,7 +229,7 @@
     <value>The credential has been removed</value>
   </data>
   <data name="PasswordChanged" xml:space="preserve">
-    <value>Your password has been changed. Note that your API key has also been updated.</value>
+    <value>Your password has been changed.</value>
   </data>
   <data name="PasswordRemoved" xml:space="preserve">
     <value>Your password has been removed</value>
@@ -394,5 +394,8 @@ The {2} Team</value>
   </data>
   <data name="PackageCreatedFromApi" xml:space="preserve">
     <value>Package created from API.</value>
+  </data>
+  <data name="ApiKeyAlsoUpdated" xml:space="preserve">
+    <value>Note that your API key has also been updated.</value>
   </data>
 </root>

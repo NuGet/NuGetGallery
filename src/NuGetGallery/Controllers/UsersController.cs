@@ -466,8 +466,15 @@ namespace NuGetGallery
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
                     return AccountView(model);
                 }
-
-                TempData["Message"] = Strings.PasswordChanged;
+                
+                if (model.ChangePassword.ResetApiKey)
+                {
+                    TempData["Message"] = Strings.PasswordChanged + " " + Strings.ApiKeyAlsoUpdated;
+                }
+                else
+                {
+                    TempData["Message"] = Strings.PasswordChanged;
+                }
 
                 return RedirectToAction("Account");
             }
