@@ -4,13 +4,13 @@
 using System;
 using System.Threading.Tasks;
 
-namespace NuGetGallery.Configuration
+namespace NuGetGallery.Configuration.Factory
 {
     /// <summary>
     /// A factory that distributes a cached instance of T and recreates it when configuration values have changed.
     /// </summary>
     /// <typeparam name="T">The type of the instance to cache.</typeparam>
-    public class ConfigObjectFactory<T>
+    public class ConfigObjectDelegate<T>
     {
         private Func<object[], T> _factoryMethod;
         private T _cachedObject;
@@ -31,14 +31,14 @@ namespace NuGetGallery.Configuration
         /// <param name="configService">The configuration service to fetch configuration from.</param>
         /// <param name="factoryMethod">A method that constructs an instance of T from the values returned from the configuration service.</param>
         /// <param name="configNames">Names of configuration to fetch from the configuration service.</param>
-        public ConfigObjectFactory(Func<object[], T> factoryMethod, string[] configNames)
+        public ConfigObjectDelegate(Func<object[], T> factoryMethod, string[] configNames)
         {
             _factoryMethod = factoryMethod;
             _configNames = configNames;
             _appConfigValues = new object[_configNames.Length];
         }
 
-        public ConfigObjectFactory(Func<object[], T> factoryMethod, string configName)
+        public ConfigObjectDelegate(Func<object[], T> factoryMethod, string configName)
             : this(factoryMethod, new string[] { configName })
         {
         }
@@ -48,10 +48,10 @@ namespace NuGetGallery.Configuration
         /// Starts an asynchronous task to refresh the cached object.
         /// </summary>
         /// <returns>The cached object.</returns>
-        public T Create(IGalleryConfigurationService configService)
+        public T Get(IGalleryConfigurationService configService)
         {
             // Queue a task to fetch and refresh the cached object
-            var getAsyncTask = CreateAsync(configService);
+            var getAsyncTask = GetAsync(configService);
             
             if (_cachedObject == null)
             {
@@ -67,7 +67,7 @@ namespace NuGetGallery.Configuration
         /// If the cached object is already in the process of being fetched and refreshed, it returns the result of that task.
         /// </summary>
         /// <returns>The cached object.</returns>
-        public Task<T> CreateAsync(IGalleryConfigurationService configService)
+        public Task<T> GetAsync(IGalleryConfigurationService configService)
         {
             // Prevent simultaneous accesses of _currentGetTask.
             lock (_lockObject)

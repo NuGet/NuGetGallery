@@ -1,9 +1,7 @@
 ﻿using Moq;
 using NuGetGallery.Configuration;
+using NuGetGallery.Configuration.Factory;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -21,11 +19,11 @@ namespace NuGetGallery.App_Start
             var configTuple = CreateConfigService();
             configTuple.Item2.Setup(x => x.AppInsightsInstrumentationKey).Returns(value);
 
-            var factory = new ConfigObjectFactory<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
+            var factory = new ConfigObjectDelegate<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
 
             // Act
-            var result = await factory.CreateAsync(configTuple.Item1.Object);
-            var result2 = await factory.CreateAsync(configTuple.Item1.Object);
+            var result = await factory.GetAsync(configTuple.Item1.Object);
+            var result2 = await factory.GetAsync(configTuple.Item1.Object);
 
             // Assert
             Assert.Equal(value, result);
@@ -35,8 +33,8 @@ namespace NuGetGallery.App_Start
             configTuple.Item2.Setup(x => x.ReadOnlyMode).Returns(true);
 
             // Act 2
-            result = await factory.CreateAsync(configTuple.Item1.Object);
-            result2 = await factory.CreateAsync(configTuple.Item1.Object);
+            result = await factory.GetAsync(configTuple.Item1.Object);
+            result2 = await factory.GetAsync(configTuple.Item1.Object);
 
             // Assert 2
             Assert.Equal(value, result);
@@ -52,10 +50,10 @@ namespace NuGetGallery.App_Start
             var configTuple = CreateConfigService();
             configTuple.Item2.Setup(x => x.AppInsightsInstrumentationKey).Returns(value);
 
-            var factory = new ConfigObjectFactory<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
+            var factory = new ConfigObjectDelegate<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
 
             // Act
-            var result = factory.Create(configTuple.Item1.Object);
+            var result = factory.Get(configTuple.Item1.Object);
 
             // Assert
             Assert.Equal(value, result);
@@ -76,11 +74,11 @@ namespace NuGetGallery.App_Start
             var configTuple = CreateConfigService();
             configTuple.Item2.Setup(x => x.AppInsightsInstrumentationKey).Returns(() => SleepAndReturn(value, 100));
 
-            var factory = new ConfigObjectFactory<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
+            var factory = new ConfigObjectDelegate<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
 
             // Act
-            var firstTask = factory.CreateAsync(configTuple.Item1.Object);
-            var secondTask = factory.CreateAsync(configTuple.Item1.Object);
+            var firstTask = factory.GetAsync(configTuple.Item1.Object);
+            var secondTask = factory.GetAsync(configTuple.Item1.Object);
 
             // Assert
             Assert.Equal(secondTask, firstTask);
@@ -104,18 +102,18 @@ namespace NuGetGallery.App_Start
             var configTuple = CreateConfigService();
             configTuple.Item2.Setup(x => x.AppInsightsInstrumentationKey).Returns(() => SleepAndReturn(value, 100));
 
-            var factory = new ConfigObjectFactory<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
+            var factory = new ConfigObjectDelegate<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
 
             // Act
 
             // Guarantee that a value has been cached.
-            var initial = factory.Create(configTuple.Item1.Object);
+            var initial = factory.Get(configTuple.Item1.Object);
 
             // Switch value, but it hasn't been cached yet.
             configTuple.Item2.Setup(x => x.AppInsightsInstrumentationKey).Returns(() => SleepAndReturn(value2, 100));
 
-            var cached = factory.Create(configTuple.Item1.Object);
-            var final = await factory.CreateAsync(configTuple.Item1.Object);
+            var cached = factory.Get(configTuple.Item1.Object);
+            var final = await factory.GetAsync(configTuple.Item1.Object);
 
             // Assert
             Assert.Equal(value, initial);
@@ -134,18 +132,18 @@ namespace NuGetGallery.App_Start
             var configTuple = CreateConfigService();
             configTuple.Item2.Setup(x => x.AppInsightsInstrumentationKey).Returns(() => SleepAndReturn(value, 100));
 
-            var factory = new ConfigObjectFactory<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
+            var factory = new ConfigObjectDelegate<string>(objects => (string)objects[0], "AppInsightsInstrumentationKey");
 
             // Act
 
             // Guarantee that a value has been cached.
-            var initial = factory.Create(configTuple.Item1.Object);
+            var initial = factory.Get(configTuple.Item1.Object);
 
             // Switch value, but it hasn't been cached yet.
             configTuple.Item2.Setup(x => x.AppInsightsInstrumentationKey).Returns(() => SleepAndReturn(value2, 100));
 
-            var finalTask = Task.Run(() => factory.CreateAsync(configTuple.Item1.Object));
-            var cached = factory.Create(configTuple.Item1.Object);
+            var finalTask = Task.Run(() => factory.GetAsync(configTuple.Item1.Object));
+            var cached = factory.Get(configTuple.Item1.Object);
             var final = await finalTask;
 
             // Assert

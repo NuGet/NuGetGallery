@@ -16,6 +16,7 @@ using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration.SecretReader;
 using System.Diagnostics.CodeAnalysis;
+using NuGetGallery.Configuration.Factory;
 
 namespace NuGetGallery
 {

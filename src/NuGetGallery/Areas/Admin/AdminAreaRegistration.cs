@@ -19,10 +19,10 @@ namespace NuGetGallery.Areas.Admin
 
         public override void RegisterArea(AreaRegistrationContext context)
         {
-            var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
+            var configService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
 
             context.Routes.Ignore("Admin/Errors.axd/{*pathInfo}"); // ELMAH owns this root
-            DynamicDataManager.Register(context.Routes, "Admin/Database", config);
+            DynamicDataManager.Register(context.Routes, "Admin/Database", configService);
 
             context.MapRoute(
                 "Admin_default",
