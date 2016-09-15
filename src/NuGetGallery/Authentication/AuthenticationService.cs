@@ -167,9 +167,9 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
         {
-            var currentConfig = await _configService.GetCurrent();
+            var appConfig = await _configService.GetCurrent();
 
-            if (currentConfig.FeedOnlyMode)
+            if (appConfig.FeedOnlyMode)
             {
                 throw new FeedOnlyModeException(FeedOnlyModeException.FeedOnlyModeError);
             }
@@ -199,10 +199,10 @@ namespace NuGetGallery.Authentication
             };
 
             // Add a credential for the password and the API Key
-            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey, TimeSpan.FromDays(currentConfig.ExpirationInDaysForApiKeyV1)));
+            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey, TimeSpan.FromDays(appConfig.ExpirationInDaysForApiKeyV1)));
             newUser.Credentials.Add(credential);
 
-            if (!currentConfig.ConfirmEmailAddresses)
+            if (!appConfig.ConfirmEmailAddresses)
             {
                 newUser.ConfirmEmailAddress();
             }

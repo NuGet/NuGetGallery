@@ -31,20 +31,20 @@ namespace NuGetGallery
                 .SingleInstance();
 
             var configService = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
-            var currentConfig = configService.GetCurrent().Result;
+            var appConfig = configService.GetCurrent().Result;
 
             builder.RegisterInstance(configService)
                 .AsSelf()
                 .As<PoliteCaptcha.IConfigurationSource>()
                 .As<IGalleryConfigurationService>();
 
-            builder.RegisterInstance(LuceneCommon.GetDirectory(currentConfig.LuceneIndexLocation))
+            builder.RegisterInstance(LuceneCommon.GetDirectory(appConfig.LuceneIndexLocation))
                 .As<Lucene.Net.Store.Directory>()
                 .SingleInstance();
 
-            ConfigureSearch(builder, currentConfig, diagnosticsService);
+            ConfigureSearch(builder, appConfig, diagnosticsService);
 
-            if (!string.IsNullOrEmpty(currentConfig.AzureStorageConnectionString))
+            if (!string.IsNullOrEmpty(appConfig.AzureStorageConnectionString))
             {
                 builder.Register(c => Factories.TableErrorLog.Create(configService))
                     .As<ErrorLog>()
@@ -185,11 +185,11 @@ namespace NuGetGallery
                 .As<IPrincipal>()
                 .InstancePerLifetimeScope();
 
-            switch (currentConfig.StorageType)
+            switch (appConfig.StorageType)
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
-                    ConfigureForLocalFileSystem(builder, currentConfig);
+                    ConfigureForLocalFileSystem(builder, appConfig);
                     break;
                 case StorageType.AzureStorage:
                     ConfigureForAzureStorage(builder, configService);
@@ -228,12 +228,12 @@ namespace NuGetGallery
                 .As<IAutomaticallyCuratePackageCommand>()
                 .InstancePerLifetimeScope();
 
-            ConfigureAutocomplete(builder, currentConfig);
+            ConfigureAutocomplete(builder, appConfig);
         }
 
-        private static void ConfigureSearch(ContainerBuilder builder, IAppConfiguration currentConfig, IDiagnosticsService diagnosticsService)
+        private static void ConfigureSearch(ContainerBuilder builder, IAppConfiguration appConfig, IDiagnosticsService diagnosticsService)
         {
-            if (currentConfig.ServiceDiscoveryUri == null)
+            if (appConfig.ServiceDiscoveryUri == null)
             {
                 builder.RegisterType<LuceneSearchService>()
                     .AsSelf()
@@ -246,24 +246,24 @@ namespace NuGetGallery
             }
             else
             {
-                builder.Register(c => new ExternalSearchService(diagnosticsService, currentConfig))
+                builder.Register(c => new ExternalSearchService(diagnosticsService, appConfig))
                     .AsSelf()
                     .As<ISearchService>()
                     .As<IIndexingService>()
                     .InstancePerLifetimeScope();
             }
         }
-        private static void ConfigureAutocomplete(ContainerBuilder builder, IAppConfiguration currentConfig)
+        private static void ConfigureAutocomplete(ContainerBuilder builder, IAppConfiguration appConfig)
         {
-            if (currentConfig.ServiceDiscoveryUri != null &&
-                !string.IsNullOrEmpty(currentConfig.AutocompleteServiceResourceType))
+            if (appConfig.ServiceDiscoveryUri != null &&
+                !string.IsNullOrEmpty(appConfig.AutocompleteServiceResourceType))
             {
-                builder.Register(c => new AutocompleteServicePackageIdsQuery(currentConfig))
+                builder.Register(c => new AutocompleteServicePackageIdsQuery(appConfig))
                     .AsSelf()
                     .As<IPackageIdsQuery>()
                     .SingleInstance();
 
-                builder.Register(c => new AutocompleteServicePackageVersionsQuery(currentConfig))
+                builder.Register(c => new AutocompleteServicePackageVersionsQuery(appConfig))
                     .AsSelf()
                     .As<IPackageVersionsQuery>()
                     .InstancePerLifetimeScope();
@@ -282,7 +282,7 @@ namespace NuGetGallery
             }
         }
 
-        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IAppConfiguration currentConfig)
+        private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IAppConfiguration appConfig)
         {
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
@@ -301,7 +301,7 @@ namespace NuGetGallery
 
             // Setup auditing
             var auditingPath = Path.Combine(
-                FileSystemFileStorageService.ResolvePath(currentConfig.FileStorageDirectory),
+                FileSystemFileStorageService.ResolvePath(appConfig.FileStorageDirectory),
                 FileSystemAuditingService.DefaultContainerName);
 
             builder.RegisterInstance(new FileSystemAuditingService(auditingPath, FileSystemAuditingService.GetAspNetOnBehalfOf))

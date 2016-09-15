@@ -30,9 +30,9 @@ namespace NuGetGallery.Filters
                 if (apiKeyCredential != null && apiKeyCredential.Expires.HasValue)
                 {
                     var configService = controller.NuGetContext.Config;
-                    var currentConfig = await configService.GetCurrent();
+                    var appConfig = await configService.GetCurrent();
 
-                    var accountUrl = (configService.GetSiteRoot(currentConfig.RequireSSL)).TrimEnd('/') + "/account";
+                    var accountUrl = (configService.GetSiteRoot(appConfig.RequireSSL)).TrimEnd('/') + "/account";
 
                     var expirationPeriod = apiKeyCredential.Expires.Value - DateTime.UtcNow;
                     if (apiKeyCredential.HasExpired)
@@ -42,7 +42,7 @@ namespace NuGetGallery.Filters
                             Constants.WarningHeaderName,
                             string.Format(CultureInfo.InvariantCulture, Strings.WarningApiKeyExpired, accountUrl));
                     }
-                    else if (expirationPeriod.TotalDays <= currentConfig.WarnAboutExpirationInDaysForApiKeyV1)
+                    else if (expirationPeriod.TotalDays <= appConfig.WarnAboutExpirationInDaysForApiKeyV1)
                     {
                         // about to expire warning
                         filterContext.HttpContext.Response.Headers.Add(

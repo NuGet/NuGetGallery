@@ -13,9 +13,9 @@ namespace NuGetGallery.Framework
     {
         public IDictionary<string, string> Settings = new Dictionary<string, string>();
 
-        public TestGalleryConfigurationService(IAppConfiguration currentConfig) : base()
+        public TestGalleryConfigurationService(IAppConfiguration appConfig) : base()
         {
-            _currentConfig = currentConfig;
+            _appConfig = appConfig;
             _featuresConfig = null;
         }
 
@@ -32,7 +32,7 @@ namespace NuGetGallery.Framework
 
         public override async Task<IAppConfiguration> GetCurrent()
         {
-            return await Task.FromResult(_currentConfig);
+            return await Task.FromResult(_appConfig);
         }
 
         public override async Task<FeatureConfiguration> GetFeatures()

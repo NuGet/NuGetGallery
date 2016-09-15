@@ -63,8 +63,8 @@ namespace NuGetGallery
         {
             if (_configService == null) return true;
 
-            var currentConfig = await _configService.GetCurrent();
-            return currentConfig == null || currentConfig.AutoUpdateSearchIndex;
+            var appConfig = await _configService.GetCurrent();
+            return appConfig == null || appConfig.AutoUpdateSearchIndex;
         }
 
         public async Task UpdateIndex()

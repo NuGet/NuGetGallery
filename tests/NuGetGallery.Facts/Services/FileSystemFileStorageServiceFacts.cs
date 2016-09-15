@@ -29,9 +29,9 @@ namespace NuGetGallery
             if (configuration == null)
             {
                 configuration = new Mock<IGalleryConfigurationService>();
-                var currentConfig = new Mock<IAppConfiguration>();
-                currentConfig.Setup(x => x.FileStorageDirectory).Returns(FakeConfiguredFileStorageDirectory);
-                configuration.Setup(x => x.GetCurrent()).Returns(Task.FromResult(currentConfig.Object));
+                var appConfig = new Mock<IAppConfiguration>();
+                appConfig.Setup(x => x.FileStorageDirectory).Returns(FakeConfiguredFileStorageDirectory);
+                configuration.Setup(x => x.GetCurrent()).Returns(Task.FromResult(appConfig.Object));
             }
 
             if (fileSystemService == null)

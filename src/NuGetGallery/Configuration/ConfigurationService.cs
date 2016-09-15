@@ -27,7 +27,7 @@ namespace NuGetGallery.Configuration
         private string _httpSiteRoot;
         private string _httpsSiteRoot;
 
-        protected IAppConfiguration _currentConfig;
+        protected IAppConfiguration _appConfig;
         protected FeatureConfiguration _featuresConfig;
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace NuGetGallery.Configuration
         /// <returns>The current configuration.</returns>
         public virtual async Task<IAppConfiguration> GetCurrent()
         {
-            return _currentConfig = await ResolveSettings();
+            return _appConfig = await ResolveSettings();
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace NuGetGallery.Configuration
         /// </summary>
         /// <returns>The cached current configuration.</returns>
         [Obsolete("Use GetCurrent() unless a synchronous context is completely necessary.")]
-        public virtual IAppConfiguration Current => _currentConfig ?? GetCurrent().Result;
+        public virtual IAppConfiguration Current => _appConfig ?? GetCurrent().Result;
 
         /// <summary>
         /// Synchronously access features configuration in contexts that cannot be async.

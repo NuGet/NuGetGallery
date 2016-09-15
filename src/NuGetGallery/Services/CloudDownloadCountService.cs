@@ -212,12 +212,12 @@ namespace NuGetGallery
 
         private async Task<CloudBlockBlob> GetBlobReference()
         {
-            var currentConfig = await _configService.GetCurrent();
+            var appConfig = await _configService.GetCurrent();
 
-            var storageAccount = CloudStorageAccount.Parse(currentConfig.AzureStorageConnectionString);
+            var storageAccount = CloudStorageAccount.Parse(appConfig.AzureStorageConnectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
 
-            if (currentConfig.AzureStorageReadAccessGeoRedundant)
+            if (appConfig.AzureStorageReadAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }

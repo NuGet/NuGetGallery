@@ -16,7 +16,7 @@ namespace NuGetGallery.Configuration
         private T _cachedObject;
 
         private string[] _configNames;
-        private object[] _currentConfigValues;
+        private object[] _appConfigValues;
 
         private Task<T> _currentGetTask;
 
@@ -35,7 +35,7 @@ namespace NuGetGallery.Configuration
         {
             _factoryMethod = factoryMethod;
             _configNames = configNames;
-            _currentConfigValues = new object[_configNames.Length];
+            _appConfigValues = new object[_configNames.Length];
         }
 
         public ConfigObjectFactory(Func<object[], T> factoryMethod, string configName)
@@ -102,13 +102,13 @@ namespace NuGetGallery.Configuration
             // Iterate through each config value and cache the values. We much recreate the object if the values have changed.
             for (int i = 0; i < _configNames.Length; i++)
             {
-                var oldConfigValue = _currentConfigValues[i];
+                var oldConfigValue = _appConfigValues[i];
 
-                var currentConfig = await configService.GetCurrent();
-                _currentConfigValues[i] = currentConfig.GetType().GetProperty(_configNames[i]).GetValue(currentConfig);
+                var appConfig = await configService.GetCurrent();
+                _appConfigValues[i] = appConfig.GetType().GetProperty(_configNames[i]).GetValue(appConfig);
                 
                 // No need to compare if we already know that we must regenerate.
-                if (!mustCreateAndCacheObject && !oldConfigValue.Equals(_currentConfigValues[i]))
+                if (!mustCreateAndCacheObject && !oldConfigValue.Equals(_appConfigValues[i]))
                 {
                     mustCreateAndCacheObject = true;
                 }
@@ -118,7 +118,7 @@ namespace NuGetGallery.Configuration
             {
                 try
                 {
-                    _cachedObject = _factoryMethod(_currentConfigValues);
+                    _cachedObject = _factoryMethod(_appConfigValues);
                 }
                 catch (Exception e)
                 {

@@ -126,7 +126,7 @@ namespace NuGetGallery
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
-            var currentConfig = await _configService.GetCurrent();
+            var appConfig = await _configService.GetCurrent();
 
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -143,12 +143,12 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageFile));
             }
 
-            if (!_fileSystemService.DirectoryExists(currentConfig.FileStorageDirectory))
+            if (!_fileSystemService.DirectoryExists(appConfig.FileStorageDirectory))
             {
-                _fileSystemService.CreateDirectory(currentConfig.FileStorageDirectory);
+                _fileSystemService.CreateDirectory(appConfig.FileStorageDirectory);
             }
 
-            var filePath = BuildPath(currentConfig.FileStorageDirectory, folderName, fileName);
+            var filePath = BuildPath(appConfig.FileStorageDirectory, folderName, fileName);
             var folderPath = Path.GetDirectoryName(filePath);
             if (_fileSystemService.FileExists(filePath))
             {

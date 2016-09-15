@@ -54,14 +54,14 @@ namespace NuGetGallery
             var auth = dependencyResolver.GetService<AuthenticationService>();
             // Disabled method because this method must be synchronous and is only for initialization.
 #pragma warning disable CS0618 // Type or member is obsolete
-            var currentConfig = config.Current;
+            var appConfig = config.Current;
 #pragma warning restore CS0618 // Type or member is obsolete
 
             // Setup telemetry
             //
             // NOTE: if the App Insights key is rotated (the value changes in the configuration) there is no mechanism for refreshing the key.
             // Do we want to support one?
-            var instrumentationKey = currentConfig.AppInsightsInstrumentationKey;
+            var instrumentationKey = appConfig.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(instrumentationKey))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
@@ -69,7 +69,7 @@ namespace NuGetGallery
                 // Note: sampling rate must be a factor 100/N where N is a whole number
                 // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
                 // https://azure.microsoft.com/en-us/documentation/articles/app-insights-sampling/
-                var instrumentationSamplingPercentage = currentConfig.AppInsightsSamplingPercentage;
+                var instrumentationSamplingPercentage = appConfig.AppInsightsSamplingPercentage;
                 if (instrumentationSamplingPercentage > 0 && instrumentationSamplingPercentage < 100)
                 {
                     var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
@@ -84,11 +84,11 @@ namespace NuGetGallery
             // Remove X-AspNetMvc-Version header
             MvcHandler.DisableMvcResponseHeader = true;
 
-            if (currentConfig.RequireSSL)
+            if (appConfig.RequireSSL)
             {
                 // Put a middleware at the top of the stack to force the user over to SSL
                 // if authenticated.
-                app.UseForceSslWhenAuthenticated(currentConfig.SSLPort);
+                app.UseForceSslWhenAuthenticated(appConfig.SSLPort);
             }
 
             // Get the local user auth provider, if present and attach it first

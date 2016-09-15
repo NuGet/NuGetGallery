@@ -119,11 +119,11 @@
     }
 }
 
-@helper InstrumentationScript(IAppConfiguration currentConfig)
+@helper InstrumentationScript(IAppConfiguration appConfig)
 {
     // Get instrumentation key
-    var iKey = currentConfig == null ? string.Empty : currentConfig.AppInsightsInstrumentationKey;
-    var samplingPct = currentConfig == null ? 100 : currentConfig.AppInsightsSamplingPercentage;
+    var iKey = appConfig == null ? string.Empty : appConfig.AppInsightsInstrumentationKey;
+    var samplingPct = appConfig == null ? 100 : appConfig.AppInsightsSamplingPercentage;
 
     if (!string.IsNullOrEmpty(iKey))
     {
@@ -154,11 +154,11 @@
     }
 }
 
-@helper ReleaseTag(IAppConfiguration currentConfig)
+@helper ReleaseTag(IAppConfiguration appConfig)
 {
     // Get Version info and gallery brand name
     var ver = ApplicationVersionHelper.GetVersion();
-    string brand = currentConfig == null ? "" : currentConfig.Brand;
+    string brand = appConfig == null ? "" : appConfig.Brand;
 
     <p id="releaseTag">
         This is the @brand
@@ -200,10 +200,10 @@
     </p>
 }
 
-@helper AnalyticsScript(IAppConfiguration currentConfig)
+@helper AnalyticsScript(IAppConfiguration appConfig)
 {
-    if(currentConfig != null) {
-        var propertyId = currentConfig.GoogleAnalyticsPropertyId;
+    if(appConfig != null) {
+        var propertyId = appConfig.GoogleAnalyticsPropertyId;
         if (propertyId != null)
         {
             @Analytics.GetGoogleAsyncHtml(propertyId)

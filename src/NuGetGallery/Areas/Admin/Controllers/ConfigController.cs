@@ -26,7 +26,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpGet]
         public virtual async Task<ActionResult> Index()
         {
-            var currentConfig = (await _config.GetCurrent());
+            var appConfig = (await _config.GetCurrent());
             var featuresConfig = (await _config.GetFeatures());
 
             var settings = (from p in typeof(IAppConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -35,7 +35,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                        .ToDictionary(p => p.Name, p =>
                        {
                            var propertyType = p.PropertyType;
-                           var propertyValue = p.GetValue(currentConfig);
+                           var propertyValue = p.GetValue(appConfig);
 
                            if (propertyValue != null && p.Name.ToLowerInvariant().Contains("connectionstring"))
                            {
