@@ -174,7 +174,7 @@ namespace NuGetGallery
                 {
                     EmailAddress = "some@example.com",
                     PasswordResetToken = "confirmation",
-                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddHours(Constants.DefaultPasswordResetTokenExpirationHours)
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddHours(Constants.PasswordResetTokenExpirationHours)
                 };
                 GetMock<IMessageService>()
                     .Setup(s => s.SendPasswordResetInstructions(user, resetUrl, true));
@@ -182,7 +182,7 @@ namespace NuGetGallery
                     .Setup(s => s.FindByEmailAddress("user"))
                     .Returns(user);
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.DefaultPasswordResetTokenExpirationHours * 60))
+                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
                     .CompletesWith(user);
                 var controller = GetController<UsersController>();
                 var model = new ForgotPasswordViewModel { Email = "user" };
@@ -198,7 +198,7 @@ namespace NuGetGallery
             {
                 var user = new User { EmailAddress = "some@example.com", Username = "somebody" };
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.DefaultPasswordResetTokenExpirationHours * 60))
+                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
                     .CompletesWith(user)
                     .Verifiable();
                 var controller = GetController<UsersController>();
@@ -209,14 +209,14 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 GetMock<AuthenticationService>()
-                    .Verify(s => s.GeneratePasswordResetToken("user", Constants.DefaultPasswordResetTokenExpirationHours * 60));
+                    .Verify(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60));
             }
 
             [Fact]
             public async Task ReturnsSameViewIfTokenGenerationFails()
             {
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.DefaultPasswordResetTokenExpirationHours * 60))
+                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
                     .CompletesWithNull();
                 var controller = GetController<UsersController>();
 
