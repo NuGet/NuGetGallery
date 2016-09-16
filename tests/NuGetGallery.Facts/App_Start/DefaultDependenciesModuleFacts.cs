@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using Autofac;
@@ -13,14 +14,11 @@ namespace NuGetGallery.App_Start
 {
     public class DefaultDependenciesModuleFacts
     {
-        private static Tuple<Mock<IGalleryConfigurationService>, Mock<IAppConfiguration>> CreateMockConfigTuple()
+        private static void SetupMockConfigService(Mock<IGalleryConfigurationService> mockConfigService,
+            IAppConfiguration appConfig)
         {
-            var mockAppConfig = new Mock<IAppConfiguration>();
-
-            var mockConfigService = new Mock<IGalleryConfigurationService>();
-            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(mockAppConfig.Object));
-
-            return Tuple.Create(mockConfigService, mockAppConfig);
+            mockConfigService.Setup(x => x.GetCurrent()).Returns(Task.FromResult(appConfig));
+            mockConfigService.Setup(x => x.Current).Returns(appConfig);
         }
 
         private static IContainer CreateContainerBuilder(IGalleryConfigurationService configService)
@@ -38,15 +36,16 @@ namespace NuGetGallery.App_Start
 
         public void ChangesWhenConfigurationChanges()
         {
-            var configTuple = CreateMockConfigTuple();
+            var mockAppConfig = new Mock<IAppConfiguration>();
+            var mockConfigService = new Mock<IGalleryConfigurationService>();
+            SetupMockConfigService(mockConfigService, mockAppConfig.Object);
 
-            var mockAppConfig = configTuple.Item2;
             foreach (var propertyInfo in mockAppConfig.GetType().GetProperties())
             {
                 mockAppConfig.Setup(x => propertyInfo.GetMethod.Invoke(x, null));
             }
 
-            var container = CreateContainerBuilder(configTuple.Item1.Object);
+            var container = CreateContainerBuilder(mockConfigService.Object);
         }
     }
 }

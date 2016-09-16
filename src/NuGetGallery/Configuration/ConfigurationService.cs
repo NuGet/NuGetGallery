@@ -30,15 +30,6 @@ namespace NuGetGallery.Configuration
         protected IAppConfiguration _appConfig;
         protected FeatureConfiguration _featuresConfig;
 
-        /// <summary>
-        /// Constructor for testing.
-        /// </summary>
-        public ConfigurationService()
-        {
-            _secretReaderFactory = new EmptySecretReaderFactory();
-            _secretInjector = new Lazy<ISecretInjector>(InitSecretInjector, isThreadSafe: false);
-        }
-
         public ConfigurationService(ISecretReaderFactory secretReaderFactory)
         {
             if (secretReaderFactory == null)

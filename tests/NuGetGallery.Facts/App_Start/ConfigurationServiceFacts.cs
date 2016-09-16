@@ -18,7 +18,7 @@ namespace NuGetGallery.App_Start
         {
             private class TestableConfigurationService : ConfigurationService
             {
-                public TestableConfigurationService() : base()
+                public TestableConfigurationService() : base(new EmptySecretReaderFactory())
                 {
                     StubConfiguredSiteRoot = "http://aSiteRoot/";
 

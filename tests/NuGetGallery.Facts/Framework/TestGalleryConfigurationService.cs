@@ -13,7 +13,7 @@ namespace NuGetGallery.Framework
     {
         public IDictionary<string, string> Settings = new Dictionary<string, string>();
 
-        public TestGalleryConfigurationService(IAppConfiguration appConfig) : base()
+        public TestGalleryConfigurationService(IAppConfiguration appConfig) : base(new EmptySecretReaderFactory())
         {
             _appConfig = appConfig;
             _featuresConfig = null;
