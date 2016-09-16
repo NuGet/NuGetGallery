@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Data.Entity;
 using System.IO;
 using System.Security.Principal;
@@ -22,6 +23,8 @@ namespace NuGetGallery
 {
     public class DefaultDependenciesModule : Module
     {
+        public Func<IDiagnosticsService, IGalleryConfigurationService> ConfigurationServiceFactory { get; set; } = d => new ConfigurationService(new SecretReaderFactory(d));
+
         [SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
@@ -31,7 +34,7 @@ namespace NuGetGallery
                 .As<IDiagnosticsService>()
                 .SingleInstance();
 
-            var configService = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
+            var configService = ConfigurationServiceFactory(diagnosticsService);
             var appConfig = configService.GetCurrent().Result;
 
             builder.RegisterInstance(configService)
@@ -352,10 +355,10 @@ namespace NuGetGallery
                 .As<IStatisticsService>()
                 .SingleInstance();
             
-            builder.Register(c => new CloudAuditingServiceWrapper(Factories.AuditingService.CreateAsync(configService)))
+            builder.Register(c => Factories.AuditingService.Create(configService))
                 .AsSelf()
                 .As<AuditingService>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
         }
     }
 }

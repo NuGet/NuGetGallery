@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Data;
-using System.Data.SqlClient;
-using System.Web.DynamicData;
-using System.Web.Routing;
 using Microsoft.AspNet.DynamicData.ModelProviders;
 using NuGetGallery.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
+using System.Web.DynamicData;
+using System.Web.Routing;
 
 namespace NuGetGallery.Areas.Admin.DynamicData
 {
@@ -37,7 +37,10 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             {
                 DefaultModel.RegisterContext(
                     new EFDataModelProvider(
-                        () => new EntitiesContext(configService.GetCurrent().Result.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
+                        // This action to construct an EntitiesContext is called through the EFDataModelProvider and must be static.
+#pragma warning disable CS0618 // Type or member is obsolete
+                        () => new EntitiesContext(configService.Current.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
+#pragma warning restore CS0618 // Type or member is obsolete
                         configuration: new ContextConfiguration { ScaffoldAllTables = true });
             }
             catch (SqlException e)

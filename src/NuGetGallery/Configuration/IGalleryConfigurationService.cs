@@ -12,10 +12,10 @@ namespace NuGetGallery.Configuration
 
         Task<FeatureConfiguration> GetFeatures();
 
-        [Obsolete("Use GetCurrent() unless a synchronous context is required, especially if accessing a configuration that changes (through KeyVault).")]
+        [Obsolete("Use GetCurrent() unless a synchronous context is completely necessary.")]
         IAppConfiguration Current { get; }
 
-        [Obsolete("Use GetFeatures() unless a synchronous context is required, especially if accessing a configuration that changes (through KeyVault).")]
+        [Obsolete("Use GetFeatures() unless a synchronous context is completely necessary.")]
         FeatureConfiguration Features { get; }
 
         /// <summary>

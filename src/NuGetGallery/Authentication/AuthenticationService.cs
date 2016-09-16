@@ -28,7 +28,11 @@ namespace NuGetGallery.Authentication
         {
         }
 
-        public AuthenticationService(IEntitiesContext entities, IGalleryConfigurationService configService, IDiagnosticsService diagnostics, AuditingService auditing, IEnumerable<Authenticator> providers)
+        public AuthenticationService(IEntitiesContext entities, 
+            IGalleryConfigurationService configService, 
+            IDiagnosticsService diagnostics, 
+            AuditingService auditing, 
+            IEnumerable<Authenticator> providers)
         {
             _credentialFormatters = new Dictionary<string, Func<string, string>>(StringComparer.OrdinalIgnoreCase) {
                 { "password", _ => Strings.CredentialType_Password },

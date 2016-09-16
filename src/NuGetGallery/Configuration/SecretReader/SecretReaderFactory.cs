@@ -14,7 +14,7 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string VaultNameConfigurationKey = "VaultName";
         internal const string ClientIdConfigurationKey = "ClientId";
         internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
-        internal const string CacheRefreshInterval = "CacheRefreshInterval";
+        internal const string CacheRefreshInterval = "CacheRefreshIntervalSec";
         private IDiagnosticsService _diagnosticsService;
 
         public SecretReaderFactory(IDiagnosticsService diagnosticsService)
@@ -68,8 +68,18 @@ namespace NuGetGallery.Configuration.SecretReader
             int cacheRefreshIntervalSeconds;
             try
             {
-                cacheRefreshIntervalSeconds = int.Parse(configurationService.ReadSetting(
-                    string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, CacheRefreshInterval)).Result);
+                var refreshIntervalString = configurationService.ReadSetting(
+                    string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, CacheRefreshInterval)).Result;
+
+                if (string.IsNullOrEmpty(refreshIntervalString))
+                {
+                    cacheRefreshIntervalSeconds = CachingSecretReader.DefaultRefreshIntervalSec;
+                }
+                else
+                {
+                    // If parse fails, let the exception be thrown
+                    cacheRefreshIntervalSeconds = int.Parse(refreshIntervalString);
+                }
             }
             catch (Exception)
             {

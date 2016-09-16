@@ -15,7 +15,7 @@ namespace NuGetGallery.Filters
 {
     public sealed class ApiAuthorizeAttribute : AuthorizeAttribute
     {
-        public override async void OnAuthorization(AuthorizationContext filterContext)
+        public override void OnAuthorization(AuthorizationContext filterContext)
         {
             // Add a warning header if the API key is about to expire (or has expired)
             var identity = filterContext.HttpContext.User.Identity as ClaimsIdentity;
@@ -30,7 +30,10 @@ namespace NuGetGallery.Filters
                 if (apiKeyCredential != null && apiKeyCredential.Expires.HasValue)
                 {
                     var configService = controller.NuGetContext.Config;
-                    var appConfig = await configService.GetCurrent();
+                    // Disabled warning because AuthorizeAttribute must be synchronous.
+#pragma warning disable CS0618 // Type or member is obsolete
+                    var appConfig = configService.Current;
+#pragma warning restore CS0618 // Type or member is obsolete
 
                     var accountUrl = (configService.GetSiteRoot(appConfig.RequireSSL)).TrimEnd('/') + "/account";
 

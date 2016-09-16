@@ -116,7 +116,7 @@
 
 
     @* ** FEATURE: License Reports ** *@
-    @if (ViewBag.CurrentFeatures.FriendlyLicenses || User.IsAdministrator())
+    @if (ViewBag.FeaturesConfig.FriendlyLicenses || User.IsAdministrator())
     {
         @* Package with license report enabled and at least one license field  OR  Owned by user *@
         if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || (Model.IsOwner(User) || User.IsAdministrator()))
@@ -128,7 +128,7 @@
                 {
                     <p class="block-notice">Visible only to owners</p>
                 }
-                @if (!ViewBag.CurrentFeatures.FriendlyLicenses && User.IsAdministrator())
+                @if (!ViewBag.FeaturesConfig.FriendlyLicenses && User.IsAdministrator())
                 {
                     <p class="block-notice">Visible only to admins</p>
                 }

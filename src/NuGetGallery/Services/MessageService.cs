@@ -454,6 +454,7 @@ The {3} Team";
                 await SendMessage(mailMessage);
             }
         }
+
         private static async Task<IMailSender> CreateMailSender(IGalleryConfigurationService configService)
         {
             var configSmtpUri = (await configService.GetCurrent()).SmtpUri;

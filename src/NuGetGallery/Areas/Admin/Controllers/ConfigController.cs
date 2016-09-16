@@ -14,20 +14,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
 {
     public partial class ConfigController : AdminControllerBase
     {
-        private readonly IGalleryConfigurationService _config;
+        private readonly IGalleryConfigurationService _configService;
         private readonly AuthenticationService _auth;
 
-        public ConfigController(IGalleryConfigurationService config, AuthenticationService auth)
+        public ConfigController(IGalleryConfigurationService configService, AuthenticationService auth)
         {
-            _config = config;
+            _configService = configService;
             _auth = auth;
         }
 
         [HttpGet]
         public virtual async Task<ActionResult> Index()
         {
-            var appConfig = (await _config.GetCurrent());
-            var featuresConfig = (await _config.GetFeatures());
+            var appConfig = (await _configService.GetCurrent());
+            var featuresConfig = (await _configService.GetFeatures());
 
             var settings = (from p in typeof(IAppConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                         where p.CanRead

@@ -59,8 +59,8 @@ namespace NuGetGallery
         {
             if (!filterContext.IsChildAction)
             {
-                // no need to do the hassle for a child action
-                // set the culture from the request headers
+                // No need to do the hassle for a child action.
+                // Set the culture from the request headers.
                 var clientCulture = Request.DetermineClientCulture();
                 if (clientCulture != null)
                 {
@@ -74,8 +74,8 @@ namespace NuGetGallery
             {
                 // Disabled warning because OnActionExecuting must be synchronous.
 #pragma warning disable CS0618 // Type or member is obsolete
-                ViewBag.CurrentConfig = NuGetContext.Config.Current;
-                ViewBag.CurrentFeatures = NuGetContext.Config.Features;
+                ViewBag.AppConfig = NuGetContext.Config.Current;
+                ViewBag.FeaturesConfig = NuGetContext.Config.Features;
 #pragma warning restore CS0618 // Type or member is obsolete
             }
 

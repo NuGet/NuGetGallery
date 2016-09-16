@@ -11,13 +11,14 @@ namespace NuGetGallery.Configuration.SecretReader
 {
     public class CachingSecretReader : ISecretReader
     {
+        public const int DefaultRefreshIntervalSec = 60 * 60 * 24; // 1 day
         private readonly int _refreshIntervalSeconds;
 
         private ISecretReader _internalReader;
         private Dictionary<string, Tuple<string, DateTime>> _cache;
         private IDiagnosticsSource _trace;
 
-        public CachingSecretReader(ISecretReader secretReader, IDiagnosticsService diagnosticsService, int refreshInterval)
+        public CachingSecretReader(ISecretReader secretReader, IDiagnosticsService diagnosticsService, int refreshInterval = DefaultRefreshIntervalSec)
         {
             if (secretReader == null)
             {

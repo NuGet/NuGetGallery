@@ -7,7 +7,7 @@
         @RenderSection("Meta", required: false)
 
         <title>
-            @(ViewBag.CurrentConfig.Brand)
+            @(ViewBag.AppConfig.Brand)
             @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
 
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon"/>
@@ -22,23 +22,23 @@
         @RenderSection("TopStyles", required: false)
 
         @Scripts.Render("~/Scripts/modernizr")
-        @ViewHelpers.AnalyticsScript(ViewBag.CurrentConfig)
+        @ViewHelpers.AnalyticsScript(ViewBag.AppConfig)
         @RenderSection("TopScripts", required: false)
         @ViewHelpers.ReleaseMeta()
-        @ViewHelpers.InstrumentationScript(ViewBag.CurrentConfig)
+        @ViewHelpers.InstrumentationScript(ViewBag.AppConfig)
     </head>
     <body class="s-noclickonce">
-        @if (!string.IsNullOrWhiteSpace(ViewBag.CurrentConfig.WarningBanner))
+        @if (!string.IsNullOrWhiteSpace(ViewBag.AppConfig.WarningBanner))
         {
             <div id="service-alert">
-                <div class="banner-warning">@ViewBag.CurrentConfig.WarningBanner</div>
+                <div class="banner-warning">@ViewBag.AppConfig.WarningBanner</div>
             </div>
         }
 
         <div id="outer-wrapper">
             <div id="content-wrapper">
                 <header class="main">
-                    <div id="logo"><a href="@Url.Home()">@(ViewBag.CurrentConfig.Brand)</a></div>
+                    <div id="logo"><a href="@Url.Home()">@(ViewBag.AppConfig.Brand)</a></div>
                     <div id="header-sidebox">
                         <div id="searchBox" role="search">
                             <form action="@Url.PackageList()" method="get">

@@ -384,6 +384,7 @@
   <ItemGroup>
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="App_Start\ConfigObjectFactoryFacts.cs" />
+    <Compile Include="App_Start\DefaultDependenciesModuleFacts.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />

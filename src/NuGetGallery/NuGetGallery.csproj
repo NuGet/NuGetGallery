@@ -642,7 +642,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\AuditingServiceWrapper.cs" />
     <Compile Include="Configuration\Factory\EntitiesContextFactory.cs" />
     <Compile Include="Configuration\Factory\Factories.cs" />
     <Compile Include="App_Start\NuGetODataV2CuratedFeedConfig.cs" />

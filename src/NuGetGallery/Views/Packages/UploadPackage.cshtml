@@ -14,7 +14,7 @@
         <legend>Upload a Package</legend>
         @Html.AntiForgeryToken()
 
-        <p class="message">Your package file will be uploaded and hosted on the @(ViewBag.CurrentConfig.Brand) server (@(ViewBag.CurrentConfig.SiteRoot)).</p>
+        <p class="message">Your package file will be uploaded and hosted on the @(ViewBag.AppConfig.Brand) server (@(ViewBag.AppConfig.SiteRoot)).</p>
 
         @Html.ValidationSummary(true)
 

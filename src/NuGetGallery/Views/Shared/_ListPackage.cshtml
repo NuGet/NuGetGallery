@@ -54,7 +54,7 @@
                 </div>
             }
 
-            @if (ViewBag.CurrentFeatures.FriendlyLicenses && !Model.HideLicenseReport && Model.LicenseNames.AnySafe())
+            @if (ViewBag.FeaturesConfig.FriendlyLicenses && !Model.HideLicenseReport && Model.LicenseNames.AnySafe())
             {
                 <div class="licenses">
                     <h2>Licenses</h2>
