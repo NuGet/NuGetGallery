@@ -195,7 +195,7 @@ namespace NuGetGallery
 
             if (ModelState.IsValid)
             {
-                var user = await _authService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                var user = await _authService.GeneratePasswordResetToken(model.Email, Constants.PasswordResetTokenExpirationHours * 60);
                 if (user != null)
                 {
                     return SendPasswordResetEmail(user, forgotPassword: true);
@@ -215,7 +215,7 @@ namespace NuGetGallery
             ViewData[Constants.ReturnUrlViewDataKey] = null;
 
             ViewBag.Email = TempData["Email"];
-            ViewBag.Expiration = Constants.DefaultPasswordResetTokenExpirationHours;
+            ViewBag.Expiration = Constants.PasswordResetTokenExpirationHours;
             return View();
         }
 
@@ -450,7 +450,7 @@ namespace NuGetGallery
             if (oldPassword == null)
             {
                 // User is requesting a password set email
-                await _authService.GeneratePasswordResetToken(user, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                await _authService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
 
                 return SendPasswordResetEmail(user, forgotPassword: false);
             }
