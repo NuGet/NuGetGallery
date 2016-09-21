@@ -497,11 +497,12 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual Task<ActionResult> RemoveCredential(string credentialType)
+        public virtual Task<ActionResult> RemoveCredential(string credentialType, int? credentialKey)
         {
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
-                c => String.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase));
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && (credentialKey == null || credentialKey == 0 || c.Key == credentialKey));
 
             return RemoveCredential(user, cred, Strings.CredentialRemoved);
         }
@@ -515,7 +516,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> GenerateApiKey(int? expirationInDays)
+        public virtual async Task<ActionResult> GenerateApiKey(string description, int? expirationInDays)
         {
             // Get the user
             var user = GetCurrentUser();
@@ -532,10 +533,16 @@ namespace NuGetGallery
                 }
             }
 
-            // Add/Replace the API Key credential, and save to the database
-            TempData["Message"] = Strings.ApiKeyReset;
-            await _authService.ReplaceCredential(user, _credentialBuilder.CreateApiKey(expiration));
+            // Create a new API Key credential, and save to the database
+            var newCredential = _credentialBuilder.CreateApiKey(expiration);
+            if (!string.IsNullOrEmpty(description))
+            {
+                newCredential.Description = description;
+            }
+            await _authService.AddCredential(user, newCredential);
 
+            TempData["Message"] = Strings.ApiKeyGenerated;
+            TempData["NewCredentialValue"] = newCredential.Value;
             return RedirectToAction("Account");
         }
 

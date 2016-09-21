@@ -97,6 +97,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A new API key has been generated. Check below and make sure to copy the value, as now is the only time it will be visible..
+        /// </summary>
+        public static string ApiKeyGenerated {
+            get {
+                return ResourceManager.GetString("ApiKeyGenerated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified API key is invalid, has expired, or does not have permission to access the specified package..
         /// </summary>
         public static string ApiKeyNotAuthorized {
@@ -111,15 +120,6 @@ namespace NuGetGallery {
         public static string ApiKeyRequired {
             get {
                 return ResourceManager.GetString("ApiKeyRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your API Key has been reset, check the new value below..
-        /// </summary>
-        public static string ApiKeyReset {
-            get {
-                return ResourceManager.GetString("ApiKeyReset", resourceCulture);
             }
         }
         

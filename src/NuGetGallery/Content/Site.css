@@ -632,6 +632,10 @@ ul.pager {
         text-align: left;
     }
 
+    .sexy-table.small th {
+        font-size: 1em;
+    }
+
         /* actions */
 
         .sexy-table th.actions {

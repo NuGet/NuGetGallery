@@ -219,8 +219,8 @@
   <data name="MicrosoftAccount_Caption" xml:space="preserve">
     <value>Microsoft account</value>
   </data>
-  <data name="ApiKeyReset" xml:space="preserve">
-    <value>Your API Key has been reset, check the new value below.</value>
+  <data name="ApiKeyGenerated" xml:space="preserve">
+    <value>A new API key has been generated. Check below and make sure to copy the value, as now is the only time it will be visible.</value>
   </data>
   <data name="CannotRemoveOnlyLoginCredential" xml:space="preserve">
     <value>Oops! You can't remove the only credential that can be used to log in to the website!</value>

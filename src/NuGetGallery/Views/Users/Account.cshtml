@@ -79,12 +79,6 @@
     ViewBag.Title = "Edit Profile";
     var credGroups = Model.Credentials.GroupBy(c => c.Kind).ToDictionary(g => g.Key, g => g.ToList());
 
-    CredentialViewModel apiKey = null;
-    if (credGroups.ContainsKey(CredentialKind.Token))
-    {
-        apiKey = credGroups[CredentialKind.Token].Single();
-    }
-
     var hasPassword = credGroups.ContainsKey(CredentialKind.Password);
 
     var loginCredentials = hasPassword ? 1 : 0;
@@ -422,38 +416,42 @@
         API Key
     **************************@
     @{
-        // has our API key been used in last ExpirationInDaysForApiKeyV1 days?
-        var apiKeyHasBeenUsedRecently = apiKey == null || apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1);
+        var apiKeys = credGroups.ContainsKey(CredentialKind.Token)
+            ? credGroups[CredentialKind.Token]
+            : new List<CredentialViewModel>();
+
+        // has one of our API keys been used in last ExpirationInDaysForApiKeyV1 days?
+        var apiKeyHasBeenUsedRecently = apiKeys.Count == 0 || apiKeys.Any(k => k.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1));
 
         // auto-expand when we just generated a new key
-        var shouldExpandApiKeyAccordion = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyReset, StringComparison.OrdinalIgnoreCase));
+        var shouldExpandApiKeyAccordion = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyGenerated, StringComparison.OrdinalIgnoreCase));
 
-        // or when the API key has expired
-        shouldExpandApiKeyAccordion = shouldExpandApiKeyAccordion || (apiKey != null && (apiKey.HasExpired || !apiKeyHasBeenUsedRecently));
+        // or when the legacy API key has expired
+        shouldExpandApiKeyAccordion = shouldExpandApiKeyAccordion || (apiKeys.Count > 0 && (apiKeys.Any(k => string.IsNullOrEmpty(k.Description) && k.HasExpired) || !apiKeyHasBeenUsedRecently));
     }
     @AccordionBar(
         groupName: "editprofile",
-        title: @<text>API Key</text>,
+        title: @<text>API Keys</text>,
         enabled: CurrentUser.Confirmed,
         expanded: shouldExpandApiKeyAccordion,
         actions: @<text>
                 @if (!CurrentUser.Confirmed)
                 {
-                    <text>You need to <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Key</text>
+                    <text>You need to <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Keys</text>
                 }
                 else
                 {
-                    if (apiKey == null)
+                    if (apiKeys.Count == 0)
                     {
-                        <text>You don't have an API key yet.</text>
+                        <text>You don't have any API keys yet.</text>
                     }
-                    else if (apiKey.HasExpired || !apiKeyHasBeenUsedRecently)
+                    else if (apiKeys.Any(k => k.HasExpired) || !apiKeyHasBeenUsedRecently)
                     {
-                        <span class="apiKeyExpired">Your API key has expired</span>
+                        <span class="apiKeyExpired">One of your API keys has expired</span>
                     }
                     else
                     {
-                        <text>(hidden for security purposes, <a href="#" title="Copy API key to clipboard" onclick="copyTextToClipboard('@apiKey.Value'); return false;"><i class="icon-copy"></i> copy to clipboard</a>)</text>
+                        <text>(hidden for security purposes)</text>
                     }
 
                     @item.ExpandLink("Show details", "Hide details")
@@ -461,7 +459,7 @@
             </text>,
         content: @<text>
             <p>
-                An API key provides you with a token that can identify you to @(Config.Current.Brand). The
+                An API key is a token that can identify you to @(Config.Current.Brand). The
                 <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
                 submit a NuGet package to the gallery using your API key to authenticate.
             </p>
@@ -475,54 +473,134 @@
 
             @if (CurrentUser.Confirmed)
             {
-                if (apiKey == null)
+                if (apiKeys.Count == 0)
                 {
                     <p>
-                        <strong>You don't have an API key yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
-                    </p>
-                }
-                else if (apiKey.HasExpired || !apiKeyHasBeenUsedRecently)
-                {
-                    <p>
-                        <strong>Your API key has expired</strong> and can no longer be used to publish packages to @(Config.Current.Brand). Use the button below to generate a new API key.
+                        <strong>You don't have any API keys yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
                     </p>
                 }
                 else
-                { 
+                {
                     <p>
-                        <strong>Always keep your API key a secret!</strong> If your key is accidentally revealed, you can always regenerate it at any time. You can also remove the API key if necessary.
+                        <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed, you can always generate a new one at any time. You can also remove existing API keys if necessary.
                     </p>
 
-                    <p>
-                        <span id="key" class="apiKey">
-                            @apiKey.Value
+                    var legacyApiKey = apiKeys.FirstOrDefault(k => string.IsNullOrEmpty(k.Description));
+                    if (legacyApiKey != null)
+                    {
+                        <hr />
 
-                            <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><i class="icon-copy"></i></button>
-                        </span>
+                        <h4>Legacy API key</h4>
 
-                        @if (apiKey.Expires.HasValue)
-                        {
-                            <text><br />Expires on: <span class="s-localtime" data-utc="@apiKey.Expires.Value.ToJavaScriptUTC()">@apiKey.Expires.Value.ToNuGetShortDateString()</span></text>
-                        }
-                        else if (Model.ExpirationInDaysForApiKeyV1 > 0)
-                        {
-                            <text><br/>Expires when not used for @Model.ExpirationInDaysForApiKeyV1 days.</text>
-                            if (apiKey.LastUsed.HasValue)
+                        <p>
+                            This is your legacy API key that is tied to your account and has full
+                            privileges to all packages. We recommend that you remove this key and
+                            create package and permission scoped API keys that are more secure.
+                            Removal of the legacy key is permanent.
+                        </p>
+
+                        <p>
+                            <span id="key" class="apiKey">
+                                @legacyApiKey.Value
+
+                                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@legacyApiKey.Value')"><i class="icon-copy"></i></button>
+                            </span>
+
+                            @if (legacyApiKey.Expires.HasValue)
                             {
-                                <text>The API key was last used <span class="s-localtime" data-utc="@apiKey.LastUsed.Value.ToJavaScriptUTC()">@apiKey.LastUsed.Value.ToNuGetShortDateString()</span>.</text>
+                                <text><br/>Expires on: <span class="s-localtime" data-utc="@legacyApiKey.Expires.Value.ToJavaScriptUTC()">@legacyApiKey.Expires.Value.ToNuGetShortDateString()</span></text>
                             }
-                        }
+                            else if (Model.ExpirationInDaysForApiKeyV1 > 0)
+                            {
+                                <text><br/>Expires when not used for @Model.ExpirationInDaysForApiKeyV1 days.</text>
+                                if (legacyApiKey.LastUsed.HasValue)
+                                {
+                                    <text>The API key was last used <span class="s-localtime" data-utc="@legacyApiKey.LastUsed.Value.ToJavaScriptUTC()">@legacyApiKey.LastUsed.Value.ToNuGetShortDateString()</span>.</text>
+                                }
+                            }
 
-                        @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new { @class = "form-inline" }))
-                        {
-                            <fieldset class="form">
-                                <legend>Remove API key</legend>
-                                @Html.AntiForgeryToken()
-                                @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
-                                <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit">Remove API key</button>
-                            </fieldset>
-                        }
-                    </p>
+                            @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new {@class = "form-inline"}))
+                            {
+                                <fieldset class="form">
+                                    <legend>Remove API key</legend>
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                    @Html.Hidden("credentialKey", legacyApiKey.Key)
+                                    <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit">Remove API key</button>
+                                </fieldset>
+                            }
+                        </p>
+                    }
+
+                    var otherApiKeys = apiKeys.Where(k => !string.IsNullOrEmpty(k.Description)).ToList();
+
+                    if (legacyApiKey != null && otherApiKeys.Count > 0)
+                    {
+                        <hr/>
+                    }
+
+                    if (otherApiKeys.Count > 0)
+                    {
+                        <h4>Manage API keys</h4>
+
+                        <table class="sexy-table small">
+                            <thead>
+                                <tr>
+                                    <th class="first actions">Actions</th>
+                                    <th>API key</th>
+                                    <th class="last">Expires</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var apiKey in otherApiKeys)
+                            {
+                                <tr>
+                                    <td class="actions">
+                                        @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                            @Html.Hidden("credentialKey", apiKey.Key)
+                                            <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit"><i class="icon-trash"></i></button>
+                                        }
+                                    </td>
+                                    <td>
+                                        @apiKey.Description
+                                    </td>
+                                    <td>
+                                        @if (apiKey.Expires.HasValue && !apiKey.HasExpired)
+                                        {
+                                            <span class="s-localtime" data-utc="@apiKey.Expires.Value.ToJavaScriptUTC()">@apiKey.Expires.Value.ToNuGetShortDateString()</span>
+                                        }
+                                        else if (apiKey.Expires.HasValue && apiKey.HasExpired)
+                                        {
+                                            <span class="apiKeyExpired">expired</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="s-localtime">never</span>
+                                        }
+                                    </td>
+                                </tr>
+                                if (TempData["NewCredentialValue"] != null && string.Equals(TempData["NewCredentialValue"].ToString(), apiKey.Value, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <tr>
+                                        <td class="actions"></td>
+                                        <td colspan="2">
+                                            @TempData["Message"]
+
+                                            <span id="key" class="apiKey">
+                                                @apiKey.Value
+
+                                                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><i class="icon-copy"></i></button>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            </tbody>
+                        </table>
+                    }
                 }
 
                 <hr/>
@@ -530,60 +608,38 @@
                 using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline" }))
                 {
                     <fieldset class="form">
-                        <h4>@(apiKey == null ? "Generate an API Key" : "Generate a new API Key")</h4>
+                        <h4>Generate an API Key</h4>
                         @Html.AntiForgeryToken()
-
-                        @if (Model.ExpirationInDaysForApiKeyV1 > 0)
-                        {
-                            <text>Expires in:</text>
-                            <select name="expirationInDays" id="expirationInDays">
-                                @if (Model.ExpirationInDaysForApiKeyV1 == 365) // Shorter dropdown for NuGet.org
-                                {
-                                    <option value="1">1 day</option>
-                                    <option value="90">90 days</option>
-                                    <option value="180">180 days</option>
-                                    <option value="270">270 days</option>
-                                    <option value="365" selected="selected">365 days</option>
-                                }
-                                else
-                                {
-                                    <option value="1">1 day</option>
-                                    for (int i = 10; i < Model.ExpirationInDaysForApiKeyV1; i += 10)
+    
+                        <div class="form-field">
+                            <input type="text" name="description" id="description" placeholder="Name (e.g. 'Build server')" data-val-required="The field is required." data-val="true" />
+                            
+                            @if (Model.ExpirationInDaysForApiKeyV1 > 0)
+                            {
+                                <select name="expirationInDays" id="expirationInDays">
+                                    @if (Model.ExpirationInDaysForApiKeyV1 == 365) // Shorter dropdown for NuGet.org
                                     {
-                                        <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
+                                        <option value="1">1 day</option>
+                                        <option value="90">90 days</option>
+                                        <option value="180">180 days</option>
+                                        <option value="270">270 days</option>
+                                        <option value="365" selected="selected">365 days</option>
                                     }
-                                    <option value="@Model.ExpirationInDaysForApiKeyV1" selected="selected">@Model.ExpirationInDaysForApiKeyV1 days</option>
-                                }
-                            </select>
-                        }
-
-                        <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to generate a new API key? The old API key will be rendered invalid." type="submit">@(apiKey == null ? "Generate an API Key" : "Generate a new API Key")</button>
-                    </fieldset><br/>
-                }
-
-                if (apiKey != null && !apiKey.HasExpired && apiKeyHasBeenUsedRecently)
-                {
-                    var siteRoot = Config.Current.RequireSSL
-                        ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
-                        : Config.Current.SiteRoot.TrimEnd('/');
-
-                    <hr/>
-
-                    <h4>Example usage</h4>
-                    <p>
-                        The following snippet demonstrates how you can use the <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a>
-                        command-line utility allows you to submit a NuGet package to the gallery:
-                    </p>
-                    <p>
-                        <div id="account-apikeysample">
-                            <div>
-                                nuget.exe setApiKey @apiKey.Value
-
-                                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('nuget.exe setApiKey @apiKey.Value -Source @siteRoot/api/v2/package')"><i class="icon-copy"></i></button>
-                            </div>
-                            <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
+                                    else
+                                    {
+                                        <option value="1">1 day</option>
+                                        for (int i = 10; i < Model.ExpirationInDaysForApiKeyV1; i += 10)
+                                        {
+                                            <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
+                                        }
+                                        <option value="@Model.ExpirationInDaysForApiKeyV1" selected="selected">@Model.ExpirationInDaysForApiKeyV1 days</option>
+                                    }
+                                </select>
+                            }
                         </div>
-                    </p>
+                        
+                        <button class="btn btn-veryflat" type="submit">Generate API Key</button>
+                    </fieldset><br/>
                 }
             }
             </text>)

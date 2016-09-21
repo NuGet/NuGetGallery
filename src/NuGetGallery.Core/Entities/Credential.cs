@@ -62,6 +62,9 @@ namespace NuGetGallery
         public string Value { get; set; }
 
         [StringLength(maximumLength: 256)]
+        public string Description { get; set; }
+
+        [StringLength(maximumLength: 256)]
         public string Identity { get; set; }
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]

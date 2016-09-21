@@ -65,6 +65,7 @@ namespace NuGetGallery
     
     public class CredentialViewModel
     {
+        public int Key { get; set; }
         public string Type { get; set; }
         public string TypeCaption { get; set; }
         public string Identity { get; set; }
@@ -74,6 +75,7 @@ namespace NuGetGallery
         public DateTime? LastUsed { get; set; }
         public CredentialKind Kind { get; set; }
         public AuthenticatorUI AuthUI { get; set; }
+        public string Description { get; set; }
 
         public bool HasExpired
         {

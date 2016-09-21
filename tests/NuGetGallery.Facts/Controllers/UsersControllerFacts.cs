@@ -502,17 +502,19 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var result = await controller.GenerateApiKey(expirationInDays: null);
+                var result = await controller.GenerateApiKey(
+                    description: null,
+                    expirationInDays: null);
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
             }
 
             [Fact]
-            public async Task ReplacesTheApiKeyCredential()
+            public async Task CreatesNewApiKeyCredential()
             {
                 var user = new User("the-username");
                 GetMock<AuthenticationService>()
-                    .Setup(u => u.ReplaceCredential(
+                    .Setup(u => u.AddCredential(
                         user,
                         It.Is<Credential>(c => c.Type == CredentialTypes.ApiKeyV1)))
                     .Completes()
@@ -520,7 +522,9 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                await controller.GenerateApiKey(expirationInDays: null);
+                await controller.GenerateApiKey(
+                    description: null, 
+                    expirationInDays: null);
 
                 GetMock<AuthenticationService>().VerifyAll();
             }
@@ -921,7 +925,9 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = await controller.RemoveCredential(cred.Type);
+                var result = await controller.RemoveCredential(
+                    credentialType: cred.Type,
+                    credentialKey: null);
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
@@ -940,7 +946,9 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = await controller.RemoveCredential(CredentialTypes.ExternalPrefix + "MicrosoftAccount");
+                var result = await controller.RemoveCredential(
+                    credentialType: CredentialTypes.ExternalPrefix + "MicrosoftAccount",
+                    credentialKey: null);
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
@@ -971,7 +979,9 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = await controller.RemoveCredential(cred.Type);
+                var result = await controller.RemoveCredential(
+                    credentialType: cred.Type,
+                    credentialKey: null);
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
