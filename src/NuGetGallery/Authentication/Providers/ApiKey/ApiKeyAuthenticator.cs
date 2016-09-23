@@ -10,10 +10,13 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
     {
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
-            app.UseApiKeyAuthentication(new ApiKeyAuthenticationOptions
+            app.Map("/api", api =>
             {
-                ApiKeyHeaderName = Config.HeaderName,
-                ApiKeyClaim = Config.Claim
+                api.UseApiKeyAuthentication(new ApiKeyAuthenticationOptions
+                {
+                    ApiKeyHeaderName = Config.HeaderName,
+                    ApiKeyClaim = Config.Claim
+                });
             });
         }
     }
