@@ -1,4 +1,5 @@
-﻿@model AccountViewModel
+﻿@using NuGetGallery.Authentication
+@model AccountViewModel
 
 @helper AccordionBar(
     string groupName,
@@ -548,6 +549,7 @@
                                 <tr>
                                     <th class="first actions">Actions</th>
                                     <th>API key</th>
+                                    <th>Scope</th>
                                     <th class="last">Expires</th>
                                 </tr>
                             </thead>
@@ -568,6 +570,18 @@
                                         @apiKey.Description
                                     </td>
                                     <td>
+                                        @{
+                                            if (apiKey.Scopes != null && apiKey.Scopes.Count > 0)
+                                            {
+                                                @(string.Join(", ", apiKey.Scopes.Select(s => NuGetScopes.Describe(s.AllowedAction))))
+                                            }
+                                            else
+                                            {
+                                                @:All
+                                            }
+                                        }
+                                    </td>
+                                    <td>
                                         @if (apiKey.Expires.HasValue && !apiKey.HasExpired)
                                         {
                                             <span class="s-localtime" data-utc="@apiKey.Expires.Value.ToJavaScriptUTC()">@apiKey.Expires.Value.ToNuGetShortDateString()</span>
@@ -586,7 +600,7 @@
                                 {
                                     <tr>
                                         <td class="actions"></td>
-                                        <td colspan="2">
+                                        <td colspan="3">
                                             @TempData["Message"]
 
                                             <span id="key" class="apiKey">
@@ -637,8 +651,16 @@
                                 </select>
                             }
                         </div>
+    
+                        <div class="form-field">
+                            <strong>Select scopes:</strong>
+
+                            <label><input type="checkbox" name="scopes" id="scopePushNew" value="@NuGetScopes.PackagePushNew" /> @NuGetScopes.Describe(NuGetScopes.PackagePushNew)</label>
+                            <label><input type="checkbox" name="scopes" id="scopePush" value="@NuGetScopes.PackagePush" /> @NuGetScopes.Describe(NuGetScopes.PackagePush)</label>
+                            <label><input type="checkbox" name="scopes" id="scopeList" value="@NuGetScopes.PackageList" /> @NuGetScopes.Describe(NuGetScopes.PackageList)</label>
+                        </div>
                         
-                        <button class="btn btn-veryflat" type="submit">Generate API Key</button>
+                        <button class="btn" type="submit">Generate API Key</button>
                     </fieldset><br/>
                 }
             }

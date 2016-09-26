@@ -76,6 +76,7 @@ namespace NuGetGallery
         public CredentialKind Kind { get; set; }
         public AuthenticatorUI AuthUI { get; set; }
         public string Description { get; set; }
+        public List<ScopeViewModel> Scopes { get; set; }
 
         public bool HasExpired
         {

@@ -81,6 +81,13 @@ namespace NuGetGallery
                     .WithMany(u => u.Credentials)
                     .HasForeignKey(c => c.UserKey);
 
+            modelBuilder.Entity<Credential>()
+                .HasMany(c => c.Scopes);
+
+            modelBuilder.Entity<Scope>()
+                .HasKey(c => c.Key)
+                .HasRequired(c => c.Credential);
+
             modelBuilder.Entity<PackageLicenseReport>()
                 .HasKey(r => r.Key)
                 .HasMany(r => r.Licenses)

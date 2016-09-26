@@ -504,6 +504,7 @@ namespace NuGetGallery
 
                 var result = await controller.GenerateApiKey(
                     description: null,
+                    scopes: null,
                     expirationInDays: null);
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
@@ -523,7 +524,8 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 await controller.GenerateApiKey(
-                    description: null, 
+                    description: null,
+                    scopes: null,
                     expirationInDays: null);
 
                 GetMock<AuthenticationService>().VerifyAll();

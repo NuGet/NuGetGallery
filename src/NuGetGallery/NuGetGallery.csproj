@@ -699,6 +699,7 @@
     <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
+    <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
@@ -746,6 +747,7 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
@@ -820,6 +822,10 @@
     <Compile Include="Migrations\201609211206577_ApiKeyDescription.cs" />
     <Compile Include="Migrations\201609211206577_ApiKeyDescription.Designer.cs">
       <DependentUpon>201609211206577_ApiKeyDescription.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609260823310_ScopedCredential.cs" />
+    <Compile Include="Migrations\201609260823310_ScopedCredential.Designer.cs">
+      <DependentUpon>201609260823310_ScopedCredential.cs</DependentUpon>
     </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
@@ -1403,6 +1409,7 @@
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
+    <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultExtensions.cs" />
@@ -1943,6 +1950,9 @@
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
     <EmbeddedResource Include="Migrations\201609211206577_ApiKeyDescription.resx">
       <DependentUpon>201609211206577_ApiKeyDescription.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609260823310_ScopedCredential.resx">
+      <DependentUpon>201609260823310_ScopedCredential.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

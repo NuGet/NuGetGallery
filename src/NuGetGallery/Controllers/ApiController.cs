@@ -9,6 +9,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
@@ -18,6 +19,7 @@ using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Auditing.AuditedEntities;
+using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
@@ -212,6 +214,7 @@ namespace NuGetGallery
         [HttpPut]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.All, NuGetScopes.PackagePushNew, NuGetScopes.PackagePush)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePut()
         {
@@ -221,6 +224,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.All, NuGetScopes.PackagePushNew, NuGetScopes.PackagePush)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost()
         {
@@ -277,8 +281,21 @@ namespace NuGetGallery
 
                         // Ensure that the user can push packages for this partialId.
                         var packageRegistration = PackageService.FindPackageRegistrationById(nuspec.GetId());
-                        if (packageRegistration != null)
+                        if (packageRegistration == null)
                         {
+                            // Check if API key allows pushing a new package id
+                            var identity = User.Identity as ClaimsIdentity;
+                            if (!identity.HasScope(NuGetScopes.All, NuGetScopes.PackagePushNew))
+                            {
+                                // User cannot push a new package ID as the API key scope does not allow it
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
+                                    String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
+                                        nuspec.GetId()));
+                            }
+                        }
+                        else
+                        {
+                            // Is the user allowed to push this Id?
                             if (!packageRegistration.IsOwner(user))
                             {
                                 // Audit that a non-owner tried to push the package
@@ -377,6 +394,7 @@ namespace NuGetGallery
         [HttpDelete]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.All, NuGetScopes.PackageList)]
         [ActionName("DeletePackageApi")]
         public virtual async Task<ActionResult> DeletePackage(string id, string version)
         {
@@ -401,6 +419,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.All, NuGetScopes.PackageList)]
         [ActionName("PublishPackageApi")]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
         {

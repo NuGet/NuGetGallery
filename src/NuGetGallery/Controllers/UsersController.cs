@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -516,7 +517,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> GenerateApiKey(string description, int? expirationInDays)
+        public virtual async Task<ActionResult> GenerateApiKey(string description, string[] scopes = null, int? expirationInDays = null)
         {
             // Get the user
             var user = GetCurrentUser();
@@ -538,6 +539,13 @@ namespace NuGetGallery
             if (!string.IsNullOrEmpty(description))
             {
                 newCredential.Description = description;
+                if (scopes != null)
+                {
+                    foreach (var scope in scopes)
+                    {
+                        newCredential.Scopes.Add(new Scope(scope));
+                    }
+                }
             }
             await _authService.AddCredential(user, newCredential);
 

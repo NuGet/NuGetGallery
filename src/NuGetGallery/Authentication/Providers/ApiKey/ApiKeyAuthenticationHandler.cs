@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Owin;
@@ -98,11 +99,17 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     // Set the current user
                     Context.Set(Constants.CurrentUserOwinEnvironmentKey, authUser);
 
+                    // Fetch scopes
+                    var scopes = string.Join(";", authUser.CredentialUsed.Scopes
+                        .Select(s => s.AllowedAction));
+
+                    // Create authentication ticket
                     return new AuthenticationTicket(
                             AuthenticationService.CreateIdentity(
                                 authUser.User, 
                                 AuthenticationTypes.ApiKey, 
-                                new Claim(NuGetClaims.ApiKey, apiKey)),
+                                new Claim(NuGetClaims.ApiKey, apiKey),
+                                new Claim(NuGetClaims.Scope, scopes)),
                             new AuthenticationProperties());
                 }
                 else

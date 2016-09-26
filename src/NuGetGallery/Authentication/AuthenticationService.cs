@@ -476,7 +476,8 @@ namespace NuGetGallery.Authentication
                 LastUsed = credential.LastUsed,
                 Kind = kind,
                 AuthUI = auther?.GetUI(),
-                Description = credential.Description
+                Description = credential.Description,
+                Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, s.AllowedAction)).ToList()
             };
         }
 
@@ -648,6 +649,7 @@ namespace NuGetGallery.Authentication
                 .Set<Credential>()
                 .Include(u => u.User)
                 .Include(u => u.User.Roles)
+                .Include(u => u.Scopes)
                 .Where(c => c.Type == credential.Type && c.Value == credential.Value)
                 .ToList();
 

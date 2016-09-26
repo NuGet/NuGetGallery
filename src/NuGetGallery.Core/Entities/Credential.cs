@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -30,6 +31,7 @@ namespace NuGetGallery
         {
             Type = type;
             Value = value;
+            Scopes = new List<Scope>();
         }
 
         /// <summary>
@@ -75,6 +77,8 @@ namespace NuGetGallery
         public DateTime? LastUsed { get; set; }
 
         public virtual User User { get; set; }
+
+        public virtual ICollection<Scope> Scopes { get; set; }
 
         [NotMapped]
         public bool HasExpired

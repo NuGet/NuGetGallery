@@ -19,6 +19,7 @@ using Microsoft.Owin;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
@@ -360,9 +361,23 @@ namespace NuGetGallery
         public static string GetClaimOrDefault(this IEnumerable<Claim> self, string claimType)
         {
             return self
-                .Where(c => String.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
+                .Where(c => string.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
                 .Select(c => c.Value)
                 .FirstOrDefault();
+        }
+
+        public static bool HasScope(this ClaimsIdentity self, params string[] scopes)
+        {
+            var scopeClaim = self.GetClaimOrDefault(NuGetClaims.Scope);
+
+            if (string.IsNullOrEmpty(scopeClaim))
+            {
+                // Legacy API key, allow access...
+                return true;
+            }
+
+            return scopeClaim.Split(';').AnySafe(scope => scopes.Any(s =>
+                string.Equals(s, scope, StringComparison.OrdinalIgnoreCase)));
         }
 
         // This is a method because the first call will perform a database call
