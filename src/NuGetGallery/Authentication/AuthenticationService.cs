@@ -781,5 +781,12 @@ namespace NuGetGallery.Authentication
             // Save changes, if any
             await Entities.SaveChangesAsync();
         }
+
+        public virtual async Task ExpireCredential(User user, Credential credential)
+        {
+            credential.Expires = DateTime.UtcNow;
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.ExpireCredential, credential));
+            await Entities.SaveChangesAsync();
+        }
     }
 }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -47,6 +48,7 @@ namespace NuGetGallery
             if (expiration.HasValue && expiration.Value > TimeSpan.Zero)
             {
                 Expires = DateTime.UtcNow.Add(expiration.Value);
+                ExpirationTicks = expiration.Value.Ticks;
             }
         }
 
@@ -73,6 +75,8 @@ namespace NuGetGallery
         public DateTime Created { get; set; }
 
         public DateTime? Expires { get; set; }
+
+        public long? ExpirationTicks { get; set; }
 
         public DateTime? LastUsed { get; set; }
 

@@ -215,6 +215,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The credential has been expired..
+        /// </summary>
+        public static string CredentialExpired {
+            get {
+                return ResourceManager.GetString("CredentialExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The credential has been removed.
         /// </summary>
         public static string CredentialRemoved {

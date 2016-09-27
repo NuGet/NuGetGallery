@@ -619,6 +619,10 @@ ul.pager {
     font-size: 1.1em;
 }
 
+.sexy-table.fullwidth {
+    width: 100%;
+}
+
     /* header */
 
     .sexy-table thead tr {
@@ -644,6 +648,10 @@ ul.pager {
 
     .sexy-table td.actions {
         width: 32px;
+    }
+
+    .sexy-table td.actions-wide {
+        width: 48px;
     }
 
         .sexy-table td.actions a.table-action-link {
@@ -920,6 +928,7 @@ fieldset.form {
         -moz-box-sizing: border-box;
         -webkit-box-sizing: border-box;
         box-sizing: border-box;
+        height: 2.25em;
     }
 
     .form-field.form-field-full input {
@@ -946,10 +955,17 @@ fieldset.form {
     }
 
     .form-field select {
+        background: #fff url("../content/images/inputBackground.png") repeat-x;
+        border: solid 1px #ccc;
         color: #7f8c7d;
         font-size: 1.25em;
-        padding: 2px;
-        margin: 0px 0px 10px 0;
+        padding: 5px 5px 5px 10px;
+        vertical-align: middle;
+        /* This won't work in IE7, but it will only produce a minor layout quirk */
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        height: 2.25em;
     }
 
         .form-field select[data-edited=true] {

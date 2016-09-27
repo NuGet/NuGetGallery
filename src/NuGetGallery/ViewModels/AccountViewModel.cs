@@ -19,10 +19,13 @@ namespace NuGetGallery
             {
                 ResetApiKey = true
             };
+
+            Packages = new List<string>();
         }
 
         public IEnumerable<string> CuratedFeeds { get; set; }
         public IList<CredentialViewModel> Credentials { get; set; }
+        public IList<string> Packages { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
         public ChangeEmailViewModel ChangeEmail { get; set; }
         public int ExpirationInDaysForApiKeyV1 { get; set; }

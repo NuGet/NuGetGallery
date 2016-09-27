@@ -508,6 +508,60 @@ namespace NuGetGallery
             return RemoveCredential(user, cred, Strings.CredentialRemoved);
         }
 
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> RegenerateCredential(string credentialType, int? credentialKey)
+        {
+            if (credentialType != CredentialTypes.ApiKeyV1)
+            {
+                return RedirectToAction("Account");
+            }
+
+            var user = GetCurrentUser();
+            var cred = user.Credentials.SingleOrDefault(
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && (credentialKey == null || credentialKey == 0 || c.Key == credentialKey));
+
+            if (cred != null)
+            {
+                await GenerateApiKey(
+                    cred.Description,
+                    cred.Scopes.Select(s => s.AllowedAction).ToArray(),
+                    cred.Scopes.Select(s => s.Subject).ToArray(),
+                    cred.ExpirationTicks.HasValue ? (int)new TimeSpan(cred.ExpirationTicks.Value).TotalDays : new int?());
+
+                await _authService.RemoveCredential(user, cred);
+            }
+
+            return RedirectToAction("Account");
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ExpireCredential(string credentialType, int? credentialKey)
+        {
+            if (credentialType != CredentialTypes.ApiKeyV1)
+            {
+                return RedirectToAction("Account");
+            }
+
+            var user = GetCurrentUser();
+            var cred = user.Credentials.SingleOrDefault(
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && (credentialKey == null || credentialKey == 0 || c.Key == credentialKey));
+
+            if (cred != null)
+            {
+                await _authService.ExpireCredential(user, cred);
+
+                TempData["Message"] = Strings.CredentialExpired;
+            }
+
+            return RedirectToAction("Account");
+        }
+
         [HttpGet]
         public virtual ActionResult PasswordChanged()
         {
@@ -517,7 +571,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> GenerateApiKey(string description, string[] scopes = null, int? expirationInDays = null)
+        public virtual async Task<ActionResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
         {
             // Get the user
             var user = GetCurrentUser();
@@ -539,12 +593,34 @@ namespace NuGetGallery
             if (!string.IsNullOrEmpty(description))
             {
                 newCredential.Description = description;
+                
                 if (scopes != null)
                 {
                     foreach (var scope in scopes)
                     {
-                        newCredential.Scopes.Add(new Scope(scope));
+                        if (subjects != null)
+                        {
+                            foreach (var subject in subjects)
+                            {
+                                newCredential.Scopes.Add(new Scope(subject, scope));
+                            }
+                        }
+                        else
+                        {
+                            newCredential.Scopes.Add(new Scope(null, scope));
+                        }
                     }
+                }
+                else if (subjects != null)
+                {
+                    foreach (var subject in subjects)
+                    {
+                        newCredential.Scopes.Add(new Scope(subject, NuGetScopes.All));
+                    }
+                }
+                else
+                {
+                    newCredential.Scopes.Add(new Scope(null, NuGetScopes.All));
                 }
             }
             await _authService.AddCredential(user, newCredential);
@@ -584,16 +660,23 @@ namespace NuGetGallery
 
         private ActionResult AccountView(AccountViewModel model)
         {
-            // Load Credential info
+            // Load user info
             var user = GetCurrentUser();
             var curatedFeeds = _curatedFeedService.GetFeedsForManager(user.Key);
             var creds = user.Credentials.Select(c => _authService.DescribeCredential(c)).ToList();
+            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
+                .Where(p => !p.Deleted)
+                .GroupBy(p => p.PackageRegistration.Id)
+                .OrderBy(g => g.Key)
+                .Select(g => g.Key)
+                .ToList();
 
             model.Credentials = creds;
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
+            model.Packages = packages;
 
             model.ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1;
-
+            
             return View("Account", model);
         }
 

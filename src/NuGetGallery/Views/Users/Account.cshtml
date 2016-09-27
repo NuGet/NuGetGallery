@@ -489,7 +489,7 @@
                     var legacyApiKey = apiKeys.FirstOrDefault(k => string.IsNullOrEmpty(k.Description));
                     if (legacyApiKey != null)
                     {
-                        <hr />
+                        <hr/>
 
                         <h4>Legacy API key</h4>
 
@@ -544,26 +544,45 @@
                     {
                         <h4>Manage API keys</h4>
 
-                        <table class="sexy-table small">
+                        <table class="sexy-table fullwidth small">
                             <thead>
-                                <tr>
-                                    <th class="first actions">Actions</th>
-                                    <th>API key</th>
-                                    <th>Scope</th>
-                                    <th class="last">Expires</th>
-                                </tr>
+                            <tr>
+                                <th class="first actions actions-wide">Actions</th>
+                                <th>API key</th>
+                                <th>Scope</th>
+                                <th class="last">Expires</th>
+                            </tr>
                             </thead>
                             <tbody>
-                            @foreach (var apiKey in otherApiKeys)
+                            @foreach (var apiKey in otherApiKeys.OrderBy(e => e.Description))
                             {
                                 <tr>
-                                    <td class="actions">
+                                    <td class="actions actions-wide">
+                                        @using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                            @Html.Hidden("credentialKey", apiKey.Key)
+                                            <button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="submit"><i class="icon-refresh"></i></button>
+                                        }
+
+                                        @if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
+                                        {
+                                            using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                                @Html.Hidden("credentialKey", apiKey.Key)
+                                                <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="submit"><i class="icon-off"></i></button>
+                                            }
+                                        }
+
                                         @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new { @class = "form-inline" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
                                             @Html.Hidden("credentialKey", apiKey.Key)
-                                            <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit"><i class="icon-trash"></i></button>
+                                            <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit"><i class="icon-remove"></i></button>
                                         }
                                     </td>
                                     <td>
@@ -588,11 +607,11 @@
                                         }
                                         else if (apiKey.Expires.HasValue && apiKey.HasExpired)
                                         {
-                                            <span class="apiKeyExpired">expired</span>
+                                            <span class="apiKeyExpired">Expired</span>
                                         }
                                         else
                                         {
-                                            <span class="s-localtime">never</span>
+                                            <span class="s-localtime">Never</span>
                                         }
                                     </td>
                                 </tr>
@@ -619,15 +638,15 @@
 
                 <hr/>
 
-                using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new {@class = "form-inline"}))
                 {
                     <fieldset class="form">
                         <h4>Generate an API Key</h4>
                         @Html.AntiForgeryToken()
-    
+
                         <div class="form-field">
-                            <input type="text" name="description" id="description" placeholder="Name (e.g. 'Build server')" data-val-required="The field is required." data-val="true" />
-                            
+                            <input type="text" name="description" id="description" placeholder="Name (e.g. 'Build server')" data-val-required="The field is required." data-val="true"/>
+
                             @if (Model.ExpirationInDaysForApiKeyV1 > 0)
                             {
                                 <select name="expirationInDays" id="expirationInDays">
@@ -651,7 +670,7 @@
                                 </select>
                             }
                         </div>
-    
+
                         <div class="form-field">
                             <strong>Select scopes:</strong>
 
@@ -659,9 +678,48 @@
                             <label><input type="checkbox" name="scopes" id="scopePush" value="@NuGetScopes.PackagePush" /> @NuGetScopes.Describe(NuGetScopes.PackagePush)</label>
                             <label><input type="checkbox" name="scopes" id="scopeList" value="@NuGetScopes.PackageList" /> @NuGetScopes.Describe(NuGetScopes.PackageList)</label>
                         </div>
-                        
+
+                        <div class="form-field">
+                            <strong>Select packages:</strong>
+                            
+                            <div style="max-height: 200px; overflow: auto; border: 1px solid black; background-color: white;">
+                                @foreach (var package in Model.Packages)
+                                {
+                                    <label><input type="checkbox" name="subjects" value="@package" /> @package</label>
+                                }
+                            </div>
+                        </div>
+
                         <button class="btn" type="submit">Generate API Key</button>
-                    </fieldset><br/>
+                    </fieldset>
+                    <br/>
+                }
+
+                if (apiKeys.Count > 0)
+                {
+                    var siteRoot = Config.Current.RequireSSL
+                        ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
+                        : Config.Current.SiteRoot.TrimEnd('/');
+
+                    var exampleApiKey = "<your API key>";
+
+                    <hr/>
+
+                    <h4>Example usage</h4>
+                    <p>
+                        The following snippet demonstrates how you can use the <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a>
+                        command-line utility allows you to submit a NuGet package to the gallery:
+                    </p>
+                    <p>
+                        <div id="account-apikeysample">
+                            <div>
+                                nuget.exe setApiKey @exampleApiKey
+
+                                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('nuget.exe setApiKey @exampleApiKey -Source @siteRoot/api/v2/package')"><i class="icon-copy"></i></button>
+                            </div>
+                            <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
+                        </div>
+                    </p>
                 }
             }
             </text>)

@@ -991,6 +991,121 @@ namespace NuGetGallery
                 GetMock<IMessageService>().VerifyAll();
             }
         }
+
+        public class TheRegenerateCredentialAction : TestContainer
+        {
+            [Fact]
+            public async Task GivenNoCredential_ItRedirectsBackWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var cred = user.Credentials.First();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RegenerateCredential(
+                    credentialType: cred.Type,
+                    credentialKey: 123);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(1, user.Credentials.Count);
+            }
+
+            [Fact]
+            public async Task GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var cred = user.Credentials.First();
+                cred.Key = 123;
+
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.AddCredential(
+                        user,
+                        It.Is<Credential>(c => c.Type == CredentialTypes.ApiKeyV1)))
+                    .Completes()
+                    .Verifiable();
+
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.RemoveCredential(user, cred))
+                    .Completes()
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RegenerateCredential(
+                    credentialType: cred.Type,
+                    credentialKey: 123);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.ApiKeyGenerated, controller.TempData["Message"]);
+                GetMock<AuthenticationService>().VerifyAll();
+            }
+        }
+
+        public class TheExpireCredentialAction : TestContainer
+        {
+            [Fact]
+            public async Task GivenNoCredential_ItRedirectsBackWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var cred = user.Credentials.First();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.ExpireCredential(
+                    credentialType: cred.Type,
+                    credentialKey: 123);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(1, user.Credentials.Count);
+            }
+
+            [Fact]
+            public async Task GivenValidRequest_ItExpiresCred()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var cred = user.Credentials.First();
+                cred.Key = 123;
+
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.ExpireCredential(user, cred))
+                    .Completes()
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.ExpireCredential(
+                    credentialType: cred.Type,
+                    credentialKey: 123);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.CredentialExpired, controller.TempData["Message"]);
+                GetMock<AuthenticationService>().VerifyAll();
+            }
+        }
     }
 }
 

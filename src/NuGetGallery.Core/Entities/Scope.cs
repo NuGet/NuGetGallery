@@ -22,8 +22,9 @@ namespace NuGetGallery
         {
         }
 
-        public Scope(string allowedAction)
+        public Scope(string subject, string allowedAction)
         {
+            Subject = subject;
             AllowedAction = allowedAction;
         }
     }
