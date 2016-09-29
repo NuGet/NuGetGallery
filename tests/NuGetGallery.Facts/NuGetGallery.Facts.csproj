@@ -410,6 +410,7 @@
     <Compile Include="SearchClient\WebApiCorrelationHandlerFacts.cs" />
     <Compile Include="Services\PagerDutyClientFacts.cs" />
     <Compile Include="Services\ReflowPackageServiceFacts.cs" />
+    <Compile Include="Services\ScopeEvaluatorFacts.cs" />
     <Compile Include="Services\SearchAdaptorFacts.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV1Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV2Feed.cs" />
