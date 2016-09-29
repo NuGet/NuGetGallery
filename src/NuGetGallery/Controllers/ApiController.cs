@@ -285,12 +285,12 @@ namespace NuGetGallery
                         {
                             // Check if API key allows pushing a new package id
                             var identity = User.Identity as ClaimsIdentity;
-                            if (!identity.HasScope(NuGetScopes.All, NuGetScopes.PackagePushNew))
+                            if (!identity.HasScopeThatAllowsActionForSubject(
+                                subject: null, 
+                                requestedActions: new[] { NuGetScopes.All, NuGetScopes.PackagePushNew }))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
-                                    String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
-                                        nuspec.GetId()));
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
                             }
                         }
                         else
@@ -310,6 +310,16 @@ namespace NuGetGallery
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
                                     String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
                                         nuspec.GetId()));
+                            }
+
+                            // Check if API key allows pushing the current package id
+                            var identity = User.Identity as ClaimsIdentity;
+                            if (!identity.HasScopeThatAllowsActionForSubject(
+                                subject: null,
+                                requestedActions: new[] { NuGetScopes.All, NuGetScopes.PackagePush }))
+                            {
+                                // User cannot push a package as the API key scope does not allow it
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
                             }
 
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
@@ -411,6 +421,15 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
+            // Check if API key allows listing/unlisting the current package id
+            var identity = User.Identity as ClaimsIdentity;
+            if (!identity.HasScopeThatAllowsActionForSubject(
+                subject: null,
+                requestedActions: new[] { NuGetScopes.All, NuGetScopes.PackageList }))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
+
             await PackageService.MarkPackageUnlistedAsync(package);
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
@@ -434,6 +453,15 @@ namespace NuGetGallery
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
+            }
+
+            // Check if API key allows listing/unlisting the current package id
+            var identity = User.Identity as ClaimsIdentity;
+            if (!identity.HasScopeThatAllowsActionForSubject(
+                subject: null,
+                requestedActions: new[] { NuGetScopes.All, NuGetScopes.PackageList }))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
             await PackageService.MarkPackageListedAsync(package);

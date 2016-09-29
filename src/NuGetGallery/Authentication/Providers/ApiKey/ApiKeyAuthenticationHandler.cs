@@ -99,9 +99,10 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     // Set the current user
                     Context.Set(Constants.CurrentUserOwinEnvironmentKey, authUser);
 
-                    // Fetch scopes
-                    var scopes = string.Join(";", authUser.CredentialUsed.Scopes
-                        .Select(s => s.AllowedAction));
+                    // Fetch scopes and store them in a claim
+                    // e.g. packageid;package:list|packageid2;package:push
+                    var scopes = string.Join("|", authUser.CredentialUsed.Scopes
+                        .Select(s => $"{s.Subject ?? string.Empty};{s.AllowedAction ?? NuGetScopes.All}")); 
 
                     // Create authentication ticket
                     return new AuthenticationTicket(

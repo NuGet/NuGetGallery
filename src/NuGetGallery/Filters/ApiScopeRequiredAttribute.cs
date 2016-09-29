@@ -26,7 +26,9 @@ namespace NuGetGallery.Filters
             var identity = httpContext.User.Identity as ClaimsIdentity;
             if (identity != null && identity.IsAuthenticated)
             {
-                return identity.HasScope(Scopes.ToArray());
+                return identity.HasScopeThatAllowsActionForSubject(
+                    subject: null, 
+                    requestedActions: Scopes.ToArray());
             }
 
             return base.AuthorizeCore(httpContext);

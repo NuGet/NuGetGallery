@@ -18,7 +18,6 @@ using System.Web.WebPages;
 using Microsoft.Owin;
 using NuGet.Frameworks;
 using NuGet.Packaging;
-using NuGet.Packaging.Core;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery
@@ -366,18 +365,14 @@ namespace NuGetGallery
                 .FirstOrDefault();
         }
 
-        public static bool HasScope(this ClaimsIdentity self, params string[] scopes)
+        public static bool HasScopeThatAllowsActionForSubject(
+            this ClaimsIdentity self, 
+            string subject,
+            string[] requestedActions)
         {
             var scopeClaim = self.GetClaimOrDefault(NuGetClaims.Scope);
 
-            if (string.IsNullOrEmpty(scopeClaim))
-            {
-                // Legacy API key, allow access...
-                return true;
-            }
-
-            return scopeClaim.Split(';').AnySafe(scope => scopes.Any(s =>
-                string.Equals(s, scope, StringComparison.OrdinalIgnoreCase)));
+            return ScopeEvaluator.HasScopeThatAllowsActionForSubject(scopeClaim, subject, requestedActions);
         }
 
         // This is a method because the first call will perform a database call

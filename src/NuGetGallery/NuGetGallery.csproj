@@ -1412,6 +1412,7 @@
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
+    <Compile Include="ScopeEvaluator.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
