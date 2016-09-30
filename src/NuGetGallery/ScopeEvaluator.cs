@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public static class ScopeEvaluator
     {
-        public static bool HasScopeThatAllowsActionForSubject(
+        public static bool ScopeClaimsAllowsActionForSubject(
             string scopeClaim,
             string subject,
             string[] requestedActions)
@@ -19,21 +19,19 @@ namespace NuGetGallery
                 return true;
             }
 
-            // Split scope claim
-            var scopesFromClaim = scopeClaim.Split('|');
+            // Deserialize scope claim
+            var scopesFromClaim = ScopeSerializer.DeserializeScopes(scopeClaim);
             foreach (var scopeFromClaim in scopesFromClaim)
             {
-                var temp = scopeFromClaim.Split(new[] { ';' }, 2);
-
-                var subjectMatches = string.IsNullOrEmpty(temp[0])
+                var subjectMatches = string.IsNullOrEmpty(scopeFromClaim.Subject)
                                      || string.IsNullOrEmpty(subject)
-                                     || temp[0] == subject;
+                                     || scopeFromClaim.Subject == subject;
 
                 var actionMatches = requestedActions.Any(
                     allowed => string.IsNullOrEmpty(allowed)
-                               || string.IsNullOrEmpty(temp[1])
-                               || temp[1] == allowed
-                               || temp[1] == NuGetScopes.All);
+                               || string.IsNullOrEmpty(scopeFromClaim.AllowedAction)
+                               || scopeFromClaim.AllowedAction == allowed
+                               || scopeFromClaim.AllowedAction == NuGetScopes.All);
 
                 if (subjectMatches && actionMatches)
                 {

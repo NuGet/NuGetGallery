@@ -372,7 +372,7 @@ namespace NuGetGallery
         {
             var scopeClaim = self.GetClaimOrDefault(NuGetClaims.Scope);
 
-            return ScopeEvaluator.HasScopeThatAllowsActionForSubject(scopeClaim, subject, requestedActions);
+            return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject, requestedActions);
         }
 
         // This is a method because the first call will perform a database call

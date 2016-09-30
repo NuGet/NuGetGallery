@@ -37,10 +37,10 @@ namespace NuGetGallery
         // Push new package with scoped API key which allows NuGetScopes.PackagePushNew for all packages,
         // and no subject known
         [InlineData(";package:pushnew", "", new[] { NuGetScopes.All, NuGetScopes.PackagePushNew }, true)]
-        public void HasScopeThatAllowsActionForSubjectEvaluatesCorrectly(
+        public void ScopeClaimsAllowsActionForSubjectEvaluatesCorrectly(
             string scopeClaims, string subject, string[] requestedActions, bool expectedResult)
         {
-            var result = ScopeEvaluator.HasScopeThatAllowsActionForSubject(
+            var result = ScopeEvaluator.ScopeClaimsAllowsActionForSubject(
                 scopeClaims, 
                 subject, 
                 requestedActions);
