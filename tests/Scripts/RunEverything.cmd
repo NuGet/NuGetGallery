@@ -56,10 +56,6 @@ REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfileP2.trx
 if not "%errorlevel%"=="0" set exitCode=-1
 
-REM Run web UI tests
-call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfileP2.trx
-if not "%errorlevel%"=="0" set exitCode=-1
-
 REM Run Load tests
 call %mstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:loadtests-resultsfile.trx /category:%testCategory%
 if not "%errorlevel%"=="0" set exitCode=-1
