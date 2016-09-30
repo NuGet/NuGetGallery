@@ -37,14 +37,14 @@ Echo Done.
 Echo.
 
 Echo Build the NuGet Gallery test solution...
-%WinDir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe ..\NuGetGallery.FunctionalTests.sln
+%WinDir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe Tests\NuGetGallery.FunctionalTests.sln
 Echo Done.
 Echo.
 
 Echo Start running all NuGet Gallery Functional tests...
 Echo The path to mstest.exe is "%toolpath%..\IDE\mstest.exe"
-"%toolpath%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testContainer:"tests\NuGetGallery.FunctionalTests\bin\Debug\NuGetGallery.FunctionalTests.dll"
-"%toolpath%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testContainer:"tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll"
+"%toolpath%..\IDE\mstest.exe"  /testsettings:"tests\Local.testsettings" /testContainer:"tests\NuGetGallery.FunctionalTests\bin\Debug\NuGetGallery.FunctionalTests.dll"
+"%toolpath%..\IDE\mstest.exe"  /testsettings:"tests\Local.testsettings" /testContainer:"tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll"
 Echo Finished running NuGet Gallery Functional tests...
 Echo Exit.
 
