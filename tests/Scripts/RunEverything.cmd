@@ -34,8 +34,13 @@ if not "%errorlevel%"=="0" goto failure
 
 REM Run functional tests
 set testDir="NuGetGallery.FunctionalTests\bin\%config%"
+set fluentTestDir="NuGetGallery.FunctionalTests.Fluent\bin\%config%"
 copy %nuget% %testDir%
 call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -teamcity
+if not "%errorlevel%"=="0" goto failure
+
+call %xunit% "%fluentTestDir%\NuGetGallery.FunctionalTests.Fluent.dll" -teamcity
+if not "%errorlevel%"=="0" goto failure
 
 REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P0\bin\%config%\NuGetGallery.WebUITests.P0.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfileP0.trx
@@ -43,6 +48,10 @@ if not "%errorlevel%"=="0" goto failure
 
 REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P1.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfileP1.trx
+if not "%errorlevel%"=="0" goto failure
+
+REM Run web UI tests
+call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfileP2.trx
 if not "%errorlevel%"=="0" goto failure
 
 REM Run web UI tests
