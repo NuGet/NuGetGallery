@@ -532,7 +532,14 @@ namespace NuGetGallery
                 .AsPackageDependencyEnumerable()
                 .ToList();
 
+            package.PackageTypes = packageMetadata
+                .GetPackageTypes()
+                .AsPackageTypeEnumerable()
+                .ToList();
+
             package.FlattenedDependencies = package.Dependencies.Flatten();
+
+            package.FlattenedPackageTypes = package.PackageTypes.Flatten();
 
             return package;
         }

@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
@@ -53,6 +54,7 @@ namespace NuGetGallery
 
         [Required]
         [Display(Name = "New Password")]
+        [PasswordValidation]
         [AllowHtml]
         public string NewPassword { get; set; }
 

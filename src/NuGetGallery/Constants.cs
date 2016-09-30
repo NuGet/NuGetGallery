@@ -11,7 +11,7 @@ namespace NuGetGallery
         public const string AlphabeticSortOrder = "package-title";
         public const int DefaultPackageListPageSize = 20;
         public const string DefaultPackageListSortOrder = "package-download-count";
-        public const int DefaultPasswordResetTokenExpirationHours = 24;
+        public const int PasswordResetTokenExpirationHours = 1;
         public const int MaxEmailSubjectLength = 255;
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("3.4.0.0");
         public const string PackageContentType = "binary/octet-stream";

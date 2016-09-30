@@ -229,7 +229,7 @@
     <value>The credential has been removed</value>
   </data>
   <data name="PasswordChanged" xml:space="preserve">
-    <value>Your password has been changed. Note that your API key has also been updated.</value>
+    <value>Your password has been changed.</value>
   </data>
   <data name="PasswordRemoved" xml:space="preserve">
     <value>Your password has been removed</value>
@@ -241,12 +241,12 @@
     <value>The word on the street is you lost your password. Sorry to hear it!
 If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
 
-Click the following link within the next {0} hours to reset your password:
+Click the following link within the next hour to reset your password:
 
-[{1}]({1})
+[{0}]({0})
 
 Thanks,
-The {2} Team</value>
+The {1} Team</value>
   </data>
   <data name="Emails_ForgotPassword_Subject" xml:space="preserve">
     <value>[{0}] Please reset your password.</value>
@@ -255,12 +255,12 @@ The {2} Team</value>
     <value>The word on the street is you want to set a password for your account.
 If you didn't request a password, you can safely ignore this message. A password has not yet been set.
 
-Click the following link within the next {0} hours to set your password:
+Click the following link within the next hour to set your password:
 
-[{1}]({1})
+[{0}]({0})
 
 Thanks,
-The {2} Team</value>
+The {1} Team</value>
   </data>
   <data name="Emails_SetPassword_Subject" xml:space="preserve">
     <value>[{0}] Please set your password.</value>
@@ -316,7 +316,7 @@ The {2} Team</value>
   </data>
   <data name="NuGetPackageReleaseVersionContainsOnlyNumerics" xml:space="preserve">
     <value>Package {0} invalid: the release label can not only contain numerics.</value>
-  </data>  
+  </data>
   <data name="CopyExternalPackages_PackageFileBlobAlreadyExists" xml:space="preserve">
     <value>SKIPPED! Package file blob {0} already exists</value>
   </data>
@@ -394,5 +394,8 @@ The {2} Team</value>
   </data>
   <data name="PackageCreatedFromApi" xml:space="preserve">
     <value>Package created from API.</value>
+  </data>
+  <data name="ApiKeyAlsoUpdated" xml:space="preserve">
+    <value>Note that your API key has also been updated.</value>
   </data>
 </root>

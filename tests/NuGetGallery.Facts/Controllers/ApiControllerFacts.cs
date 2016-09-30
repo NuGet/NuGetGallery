@@ -262,6 +262,38 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillReturnConflictIfAPackageWithTheIdExistsBelongingToAnotherUser()
+            {
+                // Arrange
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                var packageId = "theId";
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = packageId;
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                controller.SetCurrentUser(new User());
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.Conflict,
+                    String.Format(Strings.PackageIdNotAvailable, packageId));
+            }
+
+            [Fact]
             public void WillCreateAPackageFromTheNuGetPackage()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");

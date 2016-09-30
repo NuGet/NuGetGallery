@@ -264,14 +264,16 @@ The {0} Team";
 
         public void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword)
         {
-            string body = String.Format(
+            string body = string.Format(
                 CultureInfo.CurrentCulture,
                 forgotPassword ? Strings.Emails_ForgotPassword_Body : Strings.Emails_SetPassword_Body,
-                Constants.DefaultPasswordResetTokenExpirationHours,
                 resetPasswordUrl,
                 Config.GalleryOwner.DisplayName);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject, Config.GalleryOwner.DisplayName);
+            string subject = string.Format(
+                CultureInfo.CurrentCulture, forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject,
+                Config.GalleryOwner.DisplayName);
+
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
@@ -282,7 +284,6 @@ The {0} Team";
                 SendMessage(mailMessage);
             }
         }
-
 
         public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
         {

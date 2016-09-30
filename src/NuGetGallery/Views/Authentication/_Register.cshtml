@@ -1,4 +1,5 @@
-﻿@model LogOnViewModel
+﻿@using NuGetGallery.Configuration
+@model LogOnViewModel
 
 <div id="register-form">
     @using (Html.BeginForm("Register", "Authentication"))
@@ -20,6 +21,7 @@
                 @Html.LabelFor(m => m.Register.Username)
                 @Html.EditorFor(m => m.Register.Username)
                 @Html.ValidationMessageFor(m => m.Register.Username)
+                <span class="field-hint-message">@RegisterViewModel.UserNameHint</span>
             </div>
 
             @if (Model.External == null)
@@ -28,6 +30,7 @@
                     @Html.LabelFor(m => m.Register.Password)
                     @Html.EditorFor(m => m.Register.Password)
                     @Html.ValidationMessageFor(m => m.Register.Password)
+                    <span class="field-hint-message">@PasswordHint()</span>
                 </div>
             }
 
@@ -35,6 +38,7 @@
                 <label for="EmailAddress">Email (<a href="http://www.gravatar.com">Gravatar</a>, notifications, and password recovery)</label>
                 @Html.EditorFor(m => m.Register.EmailAddress)
                 @Html.ValidationMessageFor(m => m.Register.EmailAddress)
+                <span class="field-hint-message">@RegisterViewModel.EmailHint</span>
             </div>
 
             <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
@@ -47,4 +51,11 @@
             <input class="btn btn-big" type="submit" value="Register" title="Register" />
         </fieldset>
     }
+
+    @helper PasswordHint() {
+        var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
+        string hint = config.Current.UserPasswordHint;
+        @hint
+    }
+
 </div>

@@ -366,7 +366,9 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Service References\SqlDac\Microsoft.SqlServer.Management.Dac.Services.wsdl" />
     <None Include="Service References\SqlDac\Microsoft.SqlServer.Management.Dac.ServiceTypes.xsd">
       <SubType>Designer</SubType>

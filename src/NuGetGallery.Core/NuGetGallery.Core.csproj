@@ -81,13 +81,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Common, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Common.3.5.0-beta-final\lib\net45\NuGet.Common.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Common.3.5.0-rc1-final\lib\net45\NuGet.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Frameworks, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Frameworks.3.5.0-beta-final\lib\net45\NuGet.Frameworks.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Frameworks.3.5.0-rc1-final\lib\net45\NuGet.Frameworks.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Logging, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -96,23 +94,19 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Packaging.3.5.0-beta-final\lib\net45\NuGet.Packaging.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.3.5.0-rc1-final\lib\net45\NuGet.Packaging.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Packaging.Core.3.5.0-beta-final\lib\net45\NuGet.Packaging.Core.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.Core.3.5.0-rc1-final\lib\net45\NuGet.Packaging.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging.Core.Types, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Packaging.Core.Types.3.5.0-beta-final\lib\net45\NuGet.Packaging.Core.Types.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.Core.Types.3.5.0-rc1-final\lib\net45\NuGet.Packaging.Core.Types.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Versioning.3.5.0-beta-final\lib\net45\NuGet.Versioning.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Versioning.3.5.0-rc1-final\lib\net45\NuGet.Versioning.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -184,6 +178,7 @@
     <Compile Include="Entities\PackageLicenseReport.cs" />
     <Compile Include="Entities\PackageOwnerRequest.cs" />
     <Compile Include="Entities\PackageRegistration.cs" />
+    <Compile Include="Entities\PackageType.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
@@ -209,7 +204,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="NuGetGallery.Core.nuspec" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Strings.resx">

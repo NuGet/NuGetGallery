@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
@@ -35,7 +36,8 @@ namespace NuGetGallery
             Uri projectUrl = null,
             Uri iconUrl = null,
             bool requireLicenseAcceptance = true,
-            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null)
+            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null)
         {
             licenseUrl = licenseUrl ?? new Uri("http://thelicenseurl/");
             projectUrl = projectUrl ?? new Uri("http://theprojecturl/");
@@ -72,11 +74,20 @@ namespace NuGetGallery
                 };
             }
 
+            if (packageTypes == null)
+            {
+                packageTypes = new[]
+                {
+                    new NuGet.Packaging.Core.PackageType("dependency", new Version("1.0.0")),
+                    new NuGet.Packaging.Core.PackageType("DotNetCliTool", new Version("2.1.1"))
+                };
+            }
+
             var testPackage = TestPackage.CreateTestPackageStream(
                 id, version, title, summary, authors, owners,
                 description, tags, language, copyright, releaseNotes,
                 minClientVersion, licenseUrl, projectUrl, iconUrl,
-                requireLicenseAcceptance, packageDependencyGroups);
+                requireLicenseAcceptance, packageDependencyGroups, packageTypes);
 
             var mock = new Mock<TestPackageReader>(testPackage);
             mock.CallBase = true;

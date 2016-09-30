@@ -8,18 +8,20 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery
 {
     public partial class UsersController
         : AppController
     {
-        public ICuratedFeedService CuratedFeedService { get; protected set; }
-        public IUserService UserService { get; protected set; }
-        public IMessageService MessageService { get; protected set; }
-        public IPackageService PackageService { get; protected set; }
-        public IAppConfiguration Config { get; protected set; }
-        public AuthenticationService AuthService { get; protected set; }
+        private readonly ICuratedFeedService _curatedFeedService;
+        private readonly IUserService _userService;
+        private readonly IMessageService _messageService;
+        private readonly IPackageService _packageService;
+        private readonly IAppConfiguration _config;
+        private readonly AuthenticationService _authService;
+        private readonly ICredentialBuilder _credentialBuilder;
 
         public UsersController(
             ICuratedFeedService feedsQuery,
@@ -27,14 +29,51 @@ namespace NuGetGallery
             IPackageService packageService,
             IMessageService messageService,
             IAppConfiguration config,
-            AuthenticationService authService)
+            AuthenticationService authService,
+            ICredentialBuilder credentialBuilder)
         {
-            CuratedFeedService = feedsQuery;
-            UserService = userService;
-            PackageService = packageService;
-            MessageService = messageService;
-            Config = config;
-            AuthService = authService;
+            if (feedsQuery == null)
+            {
+                throw new ArgumentNullException(nameof(feedsQuery));
+            }
+
+            if (userService == null)
+            {
+                throw new ArgumentNullException(nameof(userService));
+            }
+
+            if (packageService == null)
+            {
+                throw new ArgumentNullException(nameof(packageService));
+            }
+
+            if (messageService == null)
+            {
+                throw new ArgumentNullException(nameof(messageService));
+            }
+
+            if (config == null)
+            {
+                throw new ArgumentNullException(nameof(config));
+            }
+
+            if (authService == null)
+            {
+                throw new ArgumentNullException(nameof(authService));
+            }
+
+            if (credentialBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(credentialBuilder));
+            }
+
+            _curatedFeedService = feedsQuery;
+            _userService = userService;
+            _packageService = packageService;
+            _messageService = messageService;
+            _config = config;
+            _authService = authService;
+            _credentialBuilder = credentialBuilder;
         }
 
         [HttpGet]
@@ -65,7 +104,7 @@ namespace NuGetGallery
             ConfirmationViewModel model;
             if (!alreadyConfirmed)
             {
-                MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+                _messageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
                 model = new ConfirmationViewModel
                 {
@@ -99,7 +138,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
             
-            await UserService.ChangeEmailSubscriptionAsync(user, 
+            await _userService.ChangeEmailSubscriptionAsync(user, 
                 emailAllowed.HasValue && emailAllowed.Value, 
                 notifyPackagePushed.HasValue && notifyPackagePushed.Value);
 
@@ -122,7 +161,7 @@ namespace NuGetGallery
         public virtual ActionResult Packages()
         {
             var user = GetCurrentUser();
-            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: true)
+            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
                 .Select(p => new PackageViewModel(p)
                 {
                     DownloadCount = p.PackageRegistration.DownloadCount,
@@ -156,7 +195,7 @@ namespace NuGetGallery
 
             if (ModelState.IsValid)
             {
-                var user = await AuthService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                var user = await _authService.GeneratePasswordResetToken(model.Email, Constants.PasswordResetTokenExpirationHours * 60);
                 if (user != null)
                 {
                     return SendPasswordResetEmail(user, forgotPassword: true);
@@ -176,7 +215,7 @@ namespace NuGetGallery
             ViewData[Constants.ReturnUrlViewDataKey] = null;
 
             ViewBag.Email = TempData["Email"];
-            ViewBag.Expiration = Constants.DefaultPasswordResetTokenExpirationHours;
+            ViewBag.Expiration = Constants.PasswordResetTokenExpirationHours;
             return View();
         }
 
@@ -200,12 +239,17 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
 
+            if (!ModelState.IsValid)
+            {
+                return ResetPassword(forgot);
+            }
+
             ViewBag.ForgotPassword = forgot;
 
             Credential credential = null;
             try
             {
-                credential = await AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
+                credential = await _authService.ResetPasswordWithToken(username, token, model.NewPassword);
             }
             catch (InvalidOperationException ex)
             {
@@ -224,7 +268,7 @@ namespace NuGetGallery
             if (credential != null && !forgot)
             {
                 // Setting a password, so notify the user
-                MessageService.SendCredentialAddedNotice(credential.User, credential);
+                _messageService.SendCredentialAddedNotice(credential.User, credential);
             }
 
             return RedirectToAction(
@@ -265,7 +309,7 @@ namespace NuGetGallery
 
                 try
                 {
-                    if (!(await UserService.ConfirmEmailAddress(user, token)))
+                    if (!(await _userService.ConfirmEmailAddress(user, token)))
                     {
                         model.SuccessfulConfirmation = false;
                     }
@@ -280,7 +324,7 @@ namespace NuGetGallery
                 // Change notice not required for new accounts.
                 if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
                 {
-                    MessageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
+                    _messageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
 
                     string returnUrl = HttpContext.GetConfirmationReturnUrl();
                     if (!String.IsNullOrEmpty(returnUrl))
@@ -297,13 +341,13 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult Profiles(string username, int page = 1, bool showAllPackages = false)
         {
-            var user = UserService.FindByUsername(username);
+            var user = _userService.FindByUsername(username);
             if (user == null)
             {
                 return HttpNotFound();
             }
 
-            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
+            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .Select(p => new PackageViewModel(p)
                 {
@@ -333,7 +377,7 @@ namespace NuGetGallery
                     return AccountView(model);
                 }
 
-                var authUser = await AuthService.Authenticate(User.Identity.Name, model.ChangeEmail.Password);
+                var authUser = await _authService.Authenticate(User.Identity.Name, model.ChangeEmail.Password);
                 if (authUser == null)
                 {
                     ModelState.AddModelError("ChangeEmail.Password", Strings.CurrentPasswordIncorrect);
@@ -350,7 +394,7 @@ namespace NuGetGallery
 
             try
             {
-                await UserService.ChangeEmailAddress(user, model.ChangeEmail.NewEmail);
+                await _userService.ChangeEmailAddress(user, model.ChangeEmail.NewEmail);
             }
             catch (EntityException e)
             {
@@ -362,7 +406,7 @@ namespace NuGetGallery
             {
                 var confirmationUrl = Url.ConfirmationUrl(
                     "Confirm", "Users", user.Username, user.EmailConfirmationToken);
-                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+                _messageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
                 TempData["Message"] = Strings.EmailUpdated_ConfirmationRequired;
             }
@@ -385,7 +429,7 @@ namespace NuGetGallery
                 return RedirectToAction(actionName: "Account", controllerName: "Users");
             }
 
-            await UserService.CancelChangeEmailAddress(user);
+            await _userService.CancelChangeEmailAddress(user);
 
             TempData["Message"] = Strings.CancelEmailAddress;
 
@@ -406,7 +450,7 @@ namespace NuGetGallery
             if (oldPassword == null)
             {
                 // User is requesting a password set email
-                await AuthService.GeneratePasswordResetToken(user, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                await _authService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
 
                 return SendPasswordResetEmail(user, forgotPassword: false);
             }
@@ -417,13 +461,20 @@ namespace NuGetGallery
                     return AccountView(model);
                 }
 
-                if (!(await AuthService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword, model.ChangePassword.ResetApiKey)))
+                if (!(await _authService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword, model.ChangePassword.ResetApiKey)))
                 {
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
                     return AccountView(model);
                 }
-
-                TempData["Message"] = Strings.PasswordChanged;
+                
+                if (model.ChangePassword.ResetApiKey)
+                {
+                    TempData["Message"] = Strings.PasswordChanged + " " + Strings.ApiKeyAlsoUpdated;
+                }
+                else
+                {
+                    TempData["Message"] = Strings.PasswordChanged;
+                }
 
                 return RedirectToAction("Account");
             }
@@ -467,25 +518,21 @@ namespace NuGetGallery
             // Get the user
             var user = GetCurrentUser();
 
-            // Generate an API Key
-            var apiKey = Guid.NewGuid();
-
             // Set expiration
             var expiration = TimeSpan.Zero;
-            if (Config.ExpirationInDaysForApiKeyV1 > 0)
+            if (_config.ExpirationInDaysForApiKeyV1 > 0)
             {
-                expiration = TimeSpan.FromDays(Config.ExpirationInDaysForApiKeyV1);
+                expiration = TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1);
 
                 if (expirationInDays.HasValue && expirationInDays.Value > 0)
                 {
-                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, Config.ExpirationInDaysForApiKeyV1));
+                    expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, _config.ExpirationInDaysForApiKeyV1));
                 }
             }
 
             // Add/Replace the API Key credential, and save to the database
             TempData["Message"] = Strings.ApiKeyReset;
-            await AuthService.ReplaceCredential(user, 
-                CredentialBuilder.CreateV1ApiKey(apiKey, expiration));
+            await _authService.ReplaceCredential(user, _credentialBuilder.CreateApiKey(expiration));
 
             return RedirectToAction("Account");
         }
@@ -507,10 +554,10 @@ namespace NuGetGallery
             }
             else
             {
-                await AuthService.RemoveCredential(user, cred);
+                await _authService.RemoveCredential(user, cred);
 
                 // Notify the user of the change
-                MessageService.SendCredentialRemovedNotice(user, cred);
+                _messageService.SendCredentialRemovedNotice(user, cred);
 
                 TempData["Message"] = message;
             }
@@ -522,13 +569,13 @@ namespace NuGetGallery
         {
             // Load Credential info
             var user = GetCurrentUser();
-            var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
-            var creds = user.Credentials.Select(c => AuthService.DescribeCredential(c)).ToList();
+            var curatedFeeds = _curatedFeedService.GetFeedsForManager(user.Key);
+            var creds = user.Credentials.Select(c => _authService.DescribeCredential(c)).ToList();
 
             model.Credentials = creds;
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
 
-            model.ExpirationInDaysForApiKeyV1 = Config.ExpirationInDaysForApiKeyV1;
+            model.ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1;
 
             return View("Account", model);
         }
@@ -548,7 +595,7 @@ namespace NuGetGallery
                 user.Username,
                 user.PasswordResetToken,
                 new { forgot = forgotPassword });
-            MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
+            _messageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
 
             return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
         }
