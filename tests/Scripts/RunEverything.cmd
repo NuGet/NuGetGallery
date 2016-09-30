@@ -3,6 +3,8 @@
 REM Working directory one level up
 cd ..
 
+set exitCode=0
+
 REM Configuration
 set config=Release
 set solutionPath="NuGetGallery.FunctionalTests.sln"
@@ -37,33 +39,35 @@ set testDir="NuGetGallery.FunctionalTests\bin\%config%"
 set fluentTestDir="NuGetGallery.FunctionalTests.Fluent\bin\%config%"
 copy %nuget% %testDir%
 call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -teamcity
-if not "%errorlevel%"=="0" goto failure
+if not "%errorlevel%"=="0" set exitCode=-1
 
 call %xunit% "%fluentTestDir%\NuGetGallery.FunctionalTests.Fluent.dll" -teamcity
-if not "%errorlevel%"=="0" goto failure
+if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P0\bin\%config%\NuGetGallery.WebUITests.P0.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfileP0.trx
-if not "%errorlevel%"=="0" goto failure
+if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P1.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfileP1.trx
-if not "%errorlevel%"=="0" goto failure
+if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfileP2.trx
-if not "%errorlevel%"=="0" goto failure
+if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfileP2.trx
-if not "%errorlevel%"=="0" goto failure
+if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run Load tests
 call %mstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:loadtests-resultsfile.trx /category:%testCategory%
-if not "%errorlevel%"=="0" goto failure
+if not "%errorlevel%"=="0" set exitCode=-1
 
-:success
-exit 0
+goto end
 
 :failure
-exit -1
+set exitCode=-1
+
+:end
+exit %exitCode%
