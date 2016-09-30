@@ -697,6 +697,7 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
+    <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
@@ -809,6 +810,10 @@
     <Compile Include="Migrations\201609092255576_AddIndexUsersEmail.cs" />
     <Compile Include="Migrations\201609092255576_AddIndexUsersEmail.Designer.cs">
       <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609292232241_AddFailedLoginData.cs" />
+    <Compile Include="Migrations\201609292232241_AddFailedLoginData.Designer.cs">
+      <DependentUpon>201609292232241_AddFailedLoginData.cs</DependentUpon>
     </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
@@ -1927,6 +1932,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201609092255576_AddIndexUsersEmail.resx">
       <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609292232241_AddFailedLoginData.resx">
+      <DependentUpon>201609292232241_AddFailedLoginData.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

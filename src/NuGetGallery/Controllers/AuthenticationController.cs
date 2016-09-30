@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Claims;
@@ -95,16 +96,26 @@ namespace NuGetGallery
                 return LogOnView(model);
             }
 
-            var user = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
+            var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
 
-            if (user == null)
+            if (authenticationResult.Status == UserAuthenticationResult.AuthenticationStatus.BadCredentials)
             {
-                ModelState.AddModelError(
-                    "SignIn",
-                    Strings.UsernameAndPasswordNotFound);
-
+                ModelState.AddModelError("SignIn", Strings.UsernameAndPasswordNotFound);
                 return LogOnView(model);
             }
+
+            if (authenticationResult.Status == UserAuthenticationResult.AuthenticationStatus.AccountLocked)
+            {
+                string timeRemaining =
+                    authenticationResult.LockTimeRemainingMinutes == 1
+                        ? Strings.Minute
+                        : string.Format(CultureInfo.CurrentCulture, Strings.Minutes, authenticationResult.LockTimeRemainingMinutes);
+
+                ModelState.AddModelError("SignIn", string.Format(CultureInfo.CurrentCulture, Strings.UserAccountLocked, timeRemaining));
+                return LogOnView(model);
+            }
+
+            var user = authenticationResult.AuthenticatedUser;
             
             if (linkingAccount)
             {

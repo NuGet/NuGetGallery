@@ -100,7 +100,7 @@ namespace NuGetGallery.Authentication
             };
         }
 
-        public virtual async Task<AuthenticatedUser> Authenticate(string userNameOrEmail, string password)
+        public virtual async Task<UserAuthenticationResult> Authenticate(string userNameOrEmail, string password)
         {
             using (_trace.Activity("Authenticate:" + userNameOrEmail))
             {
@@ -115,20 +115,30 @@ namespace NuGetGallery.Authentication
                         new FailedAuthenticatedOperationAuditRecord(
                             userNameOrEmail, AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser));
 
-                    return null;
+                    return new UserAuthenticationResult(UserAuthenticationResult.AuthenticationStatus.BadCredentials);
+                }
+
+                int remainingMinutes;
+
+                if (IsAccountLocked(user, out remainingMinutes))
+                {
+                    _trace.Information($"Login failed. User account {userNameOrEmail} is locked for the next {remainingMinutes} minutes.");
+
+                    return new UserAuthenticationResult(UserAuthenticationResult.AuthenticationStatus.AccountLocked,
+                        authenticatedUser: null, lockTimeRemainingMinutes: remainingMinutes);
                 }
 
                 // Validate the password
                 Credential matched;
                 if (!ValidatePasswordCredential(user.Credentials, password, out matched))
                 {
-                    _trace.Information("Password validation failed: " + userNameOrEmail);
+                    _trace.Information($"Password validation failed: {userNameOrEmail}");
 
                     await Auditing.SaveAuditRecord(
                         new FailedAuthenticatedOperationAuditRecord(
                             userNameOrEmail, AuditedAuthenticatedOperationAction.FailedLoginInvalidPassword));
 
-                    return null;
+                    return new UserAuthenticationResult(UserAuthenticationResult.AuthenticationStatus.BadCredentials);
                 }
 
                 var passwordCredentials = user
@@ -144,7 +154,7 @@ namespace NuGetGallery.Authentication
 
                 // Return the result
                 _trace.Verbose("Successfully authenticated '" + user.Username + "' with '" + matched.Type + "' credential");
-                return new AuthenticatedUser(user, matched);
+                return new UserAuthenticationResult(UserAuthenticationResult.AuthenticationStatus.Success, new AuthenticatedUser(user, matched));
             }
         }
 
@@ -670,6 +680,24 @@ namespace NuGetGallery.Authentication
                 }
             }
             return user;
+        }
+
+        private bool IsAccountLocked(User user, out int remainingMinutes)
+        {
+            if (user.FailedLoginCount > 0)
+            {
+                var currentTime = DateTime.UtcNow;
+                var unlockTime = CalculateAccountUnlockTime(user.FailedLoginCount, user.LastFailedLogin);
+
+                if (unlockTime > currentTime)
+                {
+                    remainingMinutes = (int)Math.Ceiling((unlockTime - currentTime).TotalMinutes);
+                    return true;
+                }
+            }
+
+            remainingMinutes = 0;
+            return false;
         }
 
         public bool ValidatePasswordCredential(IEnumerable<Credential> creds, string password, out Credential matched)
