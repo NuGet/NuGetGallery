@@ -1,8 +1,5 @@
 @echo off
 
-Echo Clear previulsly defined GalleryUrl
-set GalleryURl=
-
 SET Param=%1
 if "%Param%" NEQ "" (
 ECHO Param is defined. Setting GalleryUrl to %Param%.
@@ -12,7 +9,7 @@ SET GalleryUrl=%Param%
 REM If GalleryUrl is still not defined, the default is to use int.nugettest.org
 if "%GalleryUrl%"=="" (
 ECHO Setting GalleryUrl to the default - int.nugettest.org
-SET GalleryUrl=https://int.nugettest.org/
+SET GalleryUrl=https://dev.nugettest.org/
 )
 ECHO The NuGet gallery tests are running against %GalleryUrl%
 
@@ -35,7 +32,7 @@ goto End
 :Run
 Echo.
 Echo. Build the NuGet Gallery solution...
-call ..\..\build.cmd
+call build.cmd
 Echo Done.
 Echo.
 
@@ -46,8 +43,8 @@ Echo.
 
 Echo Start running all NuGet Gallery Functional tests...
 Echo The path to mstest.exe is "%toolpath%..\IDE\mstest.exe"
-"%toolpath%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testContainer:"..\NuGetGallery.FunctionalTests\bin\Debug\NuGetGallery.FunctionalTests.dll"
-"%toolpath%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testContainer:"..\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll"
+"%toolpath%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testContainer:"tests\NuGetGallery.FunctionalTests\bin\Debug\NuGetGallery.FunctionalTests.dll"
+"%toolpath%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testContainer:"tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll"
 Echo Finished running NuGet Gallery Functional tests...
 Echo Exit.
 
