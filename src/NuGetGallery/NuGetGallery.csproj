@@ -696,6 +696,7 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
+    <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />

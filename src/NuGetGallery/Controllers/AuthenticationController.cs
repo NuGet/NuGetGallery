@@ -98,17 +98,17 @@ namespace NuGetGallery
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
 
-            if (authenticationResult.Status == UserAuthenticationResult.AuthenticationStatus.BadCredentials)
+            if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
             {
                 ModelState.AddModelError("SignIn", Strings.UsernameAndPasswordNotFound);
                 return LogOnView(model);
             }
 
-            if (authenticationResult.Status == UserAuthenticationResult.AuthenticationStatus.AccountLocked)
+            if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.AccountLocked)
             {
                 string timeRemaining =
                     authenticationResult.LockTimeRemainingMinutes == 1
-                        ? Strings.Minute
+                        ? Strings.AMinute
                         : string.Format(CultureInfo.CurrentCulture, Strings.Minutes, authenticationResult.LockTimeRemainingMinutes);
 
                 ModelState.AddModelError("SignIn", string.Format(CultureInfo.CurrentCulture, Strings.UserAccountLocked, timeRemaining));

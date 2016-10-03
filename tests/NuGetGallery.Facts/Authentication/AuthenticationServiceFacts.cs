@@ -18,6 +18,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
+using Microsoft.QualityTools.Testing.Fakes;
 
 namespace NuGetGallery.Authentication
 {
@@ -25,84 +26,78 @@ namespace NuGetGallery.Authentication
     {
         public class TheAuthenticateMethod : TestContainer
         {
-            [Fact]
-            public async Task GivenNoUserWithName_ItReturnsNull()
-            {
-                // Arrange
-                var service = Get<AuthenticationService>();
+            private Fakes _fakes;
+            private AuthenticationService _authenticationService;
 
+            public TheAuthenticateMethod()
+            {
+                _fakes = Get<Fakes>();
+                _authenticationService = Get<AuthenticationService>();
+            }
+
+            [Fact]
+            public async Task GivenNoUserWithName_ItReturnsFailure()
+            {
                 // Act
-                var result = await service.Authenticate("notARealUser", "password");
+                var result = await _authenticationService.Authenticate("notARealUser", "password");
 
                 // Assert
-                Assert.Null(result);
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.BadCredentials, result.Result);
             }
 
             [Fact]
             public async Task WritesAuditRecordWhenGivenNoUserWithName()
             {
-                // Arrange
-                var service = Get<AuthenticationService>();
-
                 // Act
-                await service.Authenticate("notARealUser", "password");
+                await _authenticationService.Authenticate("notARealUser", "password");
 
                 // Assert
-                Assert.True(service.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
+                Assert.True(_authenticationService.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
                     ar.Action == AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser &&
                     ar.UsernameOrEmail == "notARealUser"));
             }
 
             [Fact]
-            public async Task GivenUserNameDoesNotMatchPassword_ItReturnsNull()
+            public async Task GivenUserNameDoesNotMatchPassword_ItReturnsFailure()
             {
-                // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
-
                 // Act
-                var result = await service.Authenticate(fakes.User.Username, "bogus password!!");
+                var result = await _authenticationService.Authenticate(_fakes.User.Username, "bogus password!!");
 
                 // Assert
-                Assert.Null(result);
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.BadCredentials, result.Result);
             }
 
             [Fact]
             public async Task WritesAuditRecordWhenGivenUserNameDoesNotMatchPassword()
             {
-                // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
-
                 // Act
-                await service.Authenticate(fakes.User.Username, "bogus password!!");
+                await _authenticationService.Authenticate(_fakes.User.Username, "bogus password!!");
 
                 // Assert
-                Assert.True(service.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
+                Assert.True(_authenticationService.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
                     ar.Action == AuditedAuthenticatedOperationAction.FailedLoginInvalidPassword &&
-                    ar.UsernameOrEmail == fakes.User.Username));
+                    ar.UsernameOrEmail == _fakes.User.Username));
             }
 
             [Fact]
             public async Task GivenUserNameWithMatchingPasswordCredential_ItReturnsAuthenticatedUser()
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
-                var user = fakes.User;
+                var user = _fakes.User;
 
                 // Act
-                var result = await service.Authenticate(user.Username, Fakes.Password);
+                var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
 
                 // Assert
                 var expectedCred = user.Credentials.SingleOrDefault(
                     c => string.Equals(c.Type, CredentialBuilder.LatestPasswordType, StringComparison.OrdinalIgnoreCase));
-                Assert.NotNull(result);
-                Assert.Same(user, result.User);
-                Assert.Same(expectedCred, result.CredentialUsed);
+                Assert.Equal(result.Result, PasswordAuthenticationResult.AuthenticationResult.Success);
+                Assert.Same(user, result.AuthenticatedUser.User);
+                Assert.Same(expectedCred, result.AuthenticatedUser.CredentialUsed);
             }
 
-            public static IEnumerable<object[]> GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest_Input
+            public static IEnumerable<object[]>
+                GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest_Input
             {
                 get
                 {
@@ -115,15 +110,14 @@ namespace NuGetGallery.Authentication
             }
 
             [Theory, MemberData("GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest_Input")]
-            public async Task GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest(Func<Fakes, User> getUser)
+            public async Task GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest(
+                Func<Fakes, User> getUser)
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
-                var user = getUser(fakes);
+                var user = getUser(_fakes);
 
                 // Act
-                var result = await service.Authenticate(user.Username, Fakes.Password);
+                var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
 
                 // Assert
                 var expectedCred = user.Credentials.SingleOrDefault(
@@ -132,7 +126,8 @@ namespace NuGetGallery.Authentication
                 Assert.True(VerifyPasswordHash(expectedCred.Value, CredentialBuilder.LatestPasswordType, Fakes.Password));
             }
 
-            public static IEnumerable<object[]> GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration_Input
+            public static IEnumerable<object[]>
+                GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration_Input
             {
                 get
                 {
@@ -145,26 +140,25 @@ namespace NuGetGallery.Authentication
             }
 
             [Theory, MemberData("GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration_Input")]
-            public async Task GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration(Func<Fakes, User> getUser)
+            public async Task GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration(
+                Func<Fakes, User> getUser)
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
-                var user = getUser(fakes);
+                var user = getUser(_fakes);
                 var oldCredentialType = user.Credentials.First().Type;
 
                 // Act
-                var result = await service.Authenticate(user.Username, Fakes.Password);
+                var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
 
                 // Assert
-                Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                Assert.True(_authenticationService.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.RemoveCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == oldCredentialType &&
                     ar.AffectedCredential[0].Value == null));
 
-                Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                Assert.True(_authenticationService.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.AddCredential &&
                     ar.Username == user.Username &&
                     ar.AffectedCredential.Length == 1 &&
@@ -180,25 +174,23 @@ namespace NuGetGallery.Authentication
             public async Task GivenPasswordCredential_ItThrowsArgumentException()
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
                 var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
 
                 // Act
-                var ex = await Assert.ThrowsAsync<ArgumentException>(async () => await service.Authenticate(cred));
+                var ex = await Assert.ThrowsAsync<ArgumentException>(async () => await _authenticationService.Authenticate(cred));
 
                 // Assert
-                Assert.Equal(Strings.PasswordCredentialsCannotBeUsedHere + Environment.NewLine + "Parameter name: credential", ex.Message);
+                Assert.Equal(
+                    Strings.PasswordCredentialsCannotBeUsedHere + Environment.NewLine + "Parameter name: credential",
+                    ex.Message);
                 Assert.Equal("credential", ex.ParamName);
             }
 
             [Fact]
             public async Task GivenInvalidApiKeyCredential_ItReturnsNull()
             {
-                // Arrange
-                var service = Get<AuthenticationService>();
-
                 // Act
-                var result = await service.Authenticate(
+                var result = await _authenticationService.Authenticate(
                     TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1));
 
                 // Assert
@@ -208,14 +200,11 @@ namespace NuGetGallery.Authentication
             [Fact]
             public async Task WritesAuditRecordWhenGivenInvalidApiKeyCredential()
             {
-                // Arrange
-                var service = Get<AuthenticationService>();
-
                 // Act
-                await service.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.Zero));
+                await _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.Zero));
 
                 // Assert
-                Assert.True(service.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
+                Assert.True(_authenticationService.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
                     ar.Action == AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser &&
                     string.IsNullOrEmpty(ar.UsernameOrEmail)));
             }
@@ -224,18 +213,19 @@ namespace NuGetGallery.Authentication
             public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential()
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
-                var cred = fakes.User.Credentials.Single(
+                var cred = _fakes.User.Credentials.Single(
                     c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result = await service.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
+                var result =
+                    await
+                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
+                            Fakes.ExpirationForApiKeyV1));
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Same(fakes.User, result.User);
+                Assert.Same(_fakes.User, result.User);
                 Assert.Same(cred, result.CredentialUsed);
             }
 
@@ -243,9 +233,7 @@ namespace NuGetGallery.Authentication
             public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
-                var cred = fakes.User.Credentials.Single(
+                var cred = _fakes.User.Credentials.Single(
                     c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
 
                 var referenceTime = DateTime.UtcNow;
@@ -253,7 +241,10 @@ namespace NuGetGallery.Authentication
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result = await service.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
+                var result =
+                    await
+                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
+                            Fakes.ExpirationForApiKeyV1));
 
                 // Assert
                 Assert.NotNull(result);
@@ -265,30 +256,32 @@ namespace NuGetGallery.Authentication
             public async Task GivenExpiredMatchingApiKeyCredential_ItReturnsNull()
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
-                var cred = fakes.User.Credentials.Single(
+                var cred = _fakes.User.Credentials.Single(
                     c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
 
                 cred.Expires = DateTime.UtcNow.AddDays(-1);
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result = await service.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
+                var result =
+                    await
+                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
+                            Fakes.ExpirationForApiKeyV1));
 
                 // Assert
                 Assert.Null(result);
             }
-            
+
             [Fact]
-            public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord()
+            public async Task
+                GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord
+                ()
             {
                 // Arrange
                 var config = GetMock<IAppConfiguration>();
                 config.SetupGet(m => m.ExpirationInDaysForApiKeyV1).Returns(10);
 
-                var fakes = Get<Fakes>();
-                var cred = fakes.User.Credentials.Single(
+                var cred = _fakes.User.Credentials.Single(
                     c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
 
                 // credential was last used < allowed last used
@@ -307,14 +300,13 @@ namespace NuGetGallery.Authentication
                 Assert.True(cred.HasExpired);
                 Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.ExpireCredential &&
-                    ar.Username == fakes.User.Username));
+                    ar.Username == _fakes.User.Username));
             }
 
             [Fact]
             public async Task GivenMultipleMatchingCredentials_ItThrows()
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
                 var entities = Get<IEntitiesContext>();
                 var cred = TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1);
                 cred.Key = 42;
@@ -323,8 +315,10 @@ namespace NuGetGallery.Authentication
                 creds.Add(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
 
                 // Act
-                var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => 
-                    await service.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1)));
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                    await
+                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
+                            Fakes.ExpirationForApiKeyV1)));
 
                 // Assert
                 Assert.Equal(string.Format(
@@ -332,6 +326,97 @@ namespace NuGetGallery.Authentication
                     Strings.MultipleMatchingCredentials,
                     cred.Type,
                     cred.Key), ex.Message);
+            }
+
+            [Fact]
+            public async Task WhenUserLoginFailsUserRecordIsUpdatedWithFailureDetails()
+            {
+                using (ShimsContext.Create())
+                {
+                    // Arrange
+                    var currentTime = DateTime.UtcNow;
+                    System.Fakes.ShimDateTime.UtcNowGet = () => currentTime;
+                    _fakes.User.FailedLoginCount = 7;
+                    _fakes.User.LastFailedLogin = DateTime.UtcNow;
+
+                    // Act
+                    await _authenticationService.Authenticate(_fakes.User.Username, "bogus password!!");
+
+                    // Assert
+                    Assert.Equal(currentTime, _fakes.User.LastFailedLogin);
+                    Assert.Equal(8, _fakes.User.FailedLoginCount);
+                }
+            }
+
+            [Fact]
+            public async Task WhenUserLoginSucceedsFailureDetailsAreReset()
+            {
+                // Arrange
+                var user = _fakes.User;
+                user.FailedLoginCount = 8;
+                user.LastFailedLogin = DateTime.UtcNow;
+
+                // Act
+                var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
+
+                // Assert
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.Success, result.Result);
+                Assert.Same(user, result.AuthenticatedUser.User);
+                Assert.Equal(0, user.FailedLoginCount);
+                Assert.Null(user.LastFailedLogin);
+            }
+
+            [Theory]
+            [MemberData("VerifyAccountLockoutTimeCalculation_Data")]
+            public async Task VerifyAccountLockoutTimeCalculation(int failureCount, DateTime? lastFailedLoginTime, DateTime currentTime, int expectedLockoutMinutesLeft)
+            {
+                // Arrange
+                var user = _fakes.User;
+                user.FailedLoginCount = failureCount;
+                user.LastFailedLogin = lastFailedLoginTime;
+
+                using (ShimsContext.Create())
+                {
+                    System.Fakes.ShimDateTime.UtcNowGet = () => currentTime;
+
+                    // Act
+                    var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
+
+                    // Assert
+                    var expectedResult = expectedLockoutMinutesLeft == 0
+                        ? PasswordAuthenticationResult.AuthenticationResult.Success
+                        : PasswordAuthenticationResult.AuthenticationResult.AccountLocked;
+
+                    Assert.Equal(expectedResult, result.Result);
+                    Assert.Equal(expectedLockoutMinutesLeft, result.LockTimeRemainingMinutes);
+                }
+            }
+
+            public static IEnumerable<object[]> VerifyAccountLockoutTimeCalculation_Data
+            {
+                get
+                {
+                    return new[]
+                    {
+                        // No failed logins
+                        new object[] {0, null, DateTime.UtcNow, 0}, 
+                        // Small number of failed logins, no lock required
+                        new object[] {1, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 0, 1), 0},
+                        new object[] {5, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 0, 1), 0},
+                        new object[] {9, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 0, 1), 0},
+                        // Initial lockout period
+                        new object[] {10, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 0, 1), 1},
+                        new object[] {19, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 0, 59), 1},
+                        // Exponentially increasing lockout period
+                        new object[] {21, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 0, 1), 10},
+                        new object[] {25, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 9, 0), 1},
+                        new object[] {29, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 5, 30), 5},
+                        new object[] {30, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 0, 1), 100},
+                        // Lockout expired
+                        new object[] {10, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 10, 0), 0},
+                        new object[] {20, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 1, 40, 0), 0}
+                    };
+                }
             }
         }
 

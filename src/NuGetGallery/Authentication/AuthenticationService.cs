@@ -16,6 +16,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
 
+using static NuGetGallery.Constants;
+
 namespace NuGetGallery.Authentication
 {
     public class AuthenticationService
@@ -100,7 +102,7 @@ namespace NuGetGallery.Authentication
             };
         }
 
-        public virtual async Task<UserAuthenticationResult> Authenticate(string userNameOrEmail, string password)
+        public virtual async Task<PasswordAuthenticationResult> Authenticate(string userNameOrEmail, string password)
         {
             using (_trace.Activity("Authenticate:" + userNameOrEmail))
             {
@@ -115,7 +117,7 @@ namespace NuGetGallery.Authentication
                         new FailedAuthenticatedOperationAuditRecord(
                             userNameOrEmail, AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser));
 
-                    return new UserAuthenticationResult(UserAuthenticationResult.AuthenticationStatus.BadCredentials);
+                    return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.BadCredentials);
                 }
 
                 int remainingMinutes;
@@ -124,7 +126,7 @@ namespace NuGetGallery.Authentication
                 {
                     _trace.Information($"Login failed. User account {userNameOrEmail} is locked for the next {remainingMinutes} minutes.");
 
-                    return new UserAuthenticationResult(UserAuthenticationResult.AuthenticationStatus.AccountLocked,
+                    return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.AccountLocked,
                         authenticatedUser: null, lockTimeRemainingMinutes: remainingMinutes);
                 }
 
@@ -134,11 +136,13 @@ namespace NuGetGallery.Authentication
                 {
                     _trace.Information($"Password validation failed: {userNameOrEmail}");
 
+                    await UpdateFailedLoginAttempt(user);
+
                     await Auditing.SaveAuditRecord(
                         new FailedAuthenticatedOperationAuditRecord(
                             userNameOrEmail, AuditedAuthenticatedOperationAction.FailedLoginInvalidPassword));
 
-                    return new UserAuthenticationResult(UserAuthenticationResult.AuthenticationStatus.BadCredentials);
+                    return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.BadCredentials);
                 }
 
                 var passwordCredentials = user
@@ -152,9 +156,12 @@ namespace NuGetGallery.Authentication
                     await MigrateCredentials(user, passwordCredentials, password);
                 }
 
+                // Reset failed login count upon successful login
+                await UpdateSuccessfulLoginAttempt(user);
+
                 // Return the result
                 _trace.Verbose("Successfully authenticated '" + user.Username + "' with '" + matched.Type + "' credential");
-                return new UserAuthenticationResult(UserAuthenticationResult.AuthenticationStatus.Success, new AuthenticatedUser(user, matched));
+                return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, matched));
             }
         }
 
@@ -682,12 +689,31 @@ namespace NuGetGallery.Authentication
             return user;
         }
 
+        private async Task UpdateFailedLoginAttempt(User user)
+        {
+            user.FailedLoginCount += 1;
+            user.LastFailedLogin = DateTime.UtcNow;
+
+            await Entities.SaveChangesAsync();
+        }
+
+        private async Task UpdateSuccessfulLoginAttempt(User user)
+        {
+            if (user.FailedLoginCount > 0)
+            {
+                user.FailedLoginCount = 0;
+                user.LastFailedLogin = null;
+
+                await Entities.SaveChangesAsync();
+            }
+        }
+
         private bool IsAccountLocked(User user, out int remainingMinutes)
         {
             if (user.FailedLoginCount > 0)
             {
                 var currentTime = DateTime.UtcNow;
-                var unlockTime = CalculateAccountUnlockTime(user.FailedLoginCount, user.LastFailedLogin);
+                var unlockTime = CalculateAccountUnlockTime(user.FailedLoginCount, user.LastFailedLogin.Value);
 
                 if (unlockTime > currentTime)
                 {
@@ -700,7 +726,14 @@ namespace NuGetGallery.Authentication
             return false;
         }
 
-        public bool ValidatePasswordCredential(IEnumerable<Credential> creds, string password, out Credential matched)
+        private DateTime CalculateAccountUnlockTime(int failedLoginCount, DateTime lastFailedLogin)
+        {
+            int lockoutPeriodInMinutes = (int)Math.Pow(AccountLockoutMultiplierInMinutes, (int) ((double)failedLoginCount/AllowedLoginAttempts) - 1);
+
+            return lastFailedLogin + TimeSpan.FromMinutes(lockoutPeriodInMinutes);
+        }
+
+        public virtual bool ValidatePasswordCredential(IEnumerable<Credential> creds, string password, out Credential matched)
         {
             matched = creds.FirstOrDefault(c => _credentialValidator.ValidatePasswordCredential(c, password));
             return matched != null;
@@ -735,13 +768,5 @@ namespace NuGetGallery.Authentication
             // Save changes, if any
             await Entities.SaveChangesAsync();
         }
-    }
-
-    public class AuthenticateExternalLoginResult
-    {
-        public AuthenticatedUser Authentication { get; set; }
-        public ClaimsIdentity ExternalIdentity { get; set; }
-        public Authenticator Authenticator { get; set; }
-        public Credential Credential { get; set; }
     }
 }

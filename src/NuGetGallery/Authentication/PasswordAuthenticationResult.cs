@@ -3,9 +3,9 @@
 
 namespace NuGetGallery.Authentication
 {
-    public class UserAuthenticationResult
+    public class PasswordAuthenticationResult
     {
-        public enum AuthenticationStatus
+        public enum AuthenticationResult
         {
             AccountLocked, // The account is locked
             BadCredentials, // Bad user name or password provided
@@ -15,7 +15,7 @@ namespace NuGetGallery.Authentication
         /// <summary>
         ///  The authentication status
         /// </summary>
-        public AuthenticationStatus Status { get; }
+        public AuthenticationResult Result { get; }
 
         /// <summary>
         /// If the account is locked, this is the period of time until unlock.
@@ -27,9 +27,9 @@ namespace NuGetGallery.Authentication
         /// </summary>
         public AuthenticatedUser AuthenticatedUser { get; }
 
-        public UserAuthenticationResult(AuthenticationStatus status, AuthenticatedUser authenticatedUser = null, int lockTimeRemainingMinutes = 0)
+        public PasswordAuthenticationResult(AuthenticationResult result, AuthenticatedUser authenticatedUser = null, int lockTimeRemainingMinutes = 0)
         {
-            Status = status;
+            Result = result;
             LockTimeRemainingMinutes = lockTimeRemainingMinutes;
             AuthenticatedUser = authenticatedUser;
         }
