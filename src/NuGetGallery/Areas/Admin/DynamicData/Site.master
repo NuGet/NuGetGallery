@@ -19,14 +19,17 @@
 <body>
     <% 
         // Cheap and easy DI. Not too clean :)
-        var config = DependencyResolver.Current.GetService<IAppConfiguration>();
+        var configService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
         string cls = "banner-warning";
         string message = "You are working with Live Data. Be careful!";
-        if (String.Equals(config.Environment, "Production"))
+        // Disabled warning because Razor views must be synchronous.
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (String.Equals(configService.Current.Environment, "Production"))
         {
             cls = "banner-urgent";
             message = "YOU ARE WORKING ON LIVE PRODUCTION DATA. USE EXTREME CAUTION";
         }
+#pragma warning restore CS0618 // Type or member is obsolete
      %>
     <div class="<%: cls %>"><%: message %></div>
     <div id="outer-wrapper">
