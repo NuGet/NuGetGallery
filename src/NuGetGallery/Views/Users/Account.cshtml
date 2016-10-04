@@ -678,17 +678,20 @@
                             <label><input type="checkbox" name="scopes" id="scopePush" value="@NuGetScopes.PackagePush" /> @NuGetScopes.Describe(NuGetScopes.PackagePush)</label>
                             <label><input type="checkbox" name="scopes" id="scopeList" value="@NuGetScopes.PackageList" /> @NuGetScopes.Describe(NuGetScopes.PackageList)</label>
                         </div>
+                        
+                        @if (Model.Packages != null && Model.Packages.Count > 0)
+                        {
+                            <div class="form-field">
+                                <strong>Select packages:</strong>
 
-                        <div class="form-field">
-                            <strong>Select packages:</strong>
-                            
-                            <div style="max-height: 200px; overflow: auto; border: 1px solid black; background-color: white;">
-                                @foreach (var package in Model.Packages)
-                                {
-                                    <label><input type="checkbox" name="subjects" value="@package" /> @package</label>
-                                }
+                                <div style="max-height: 200px; overflow: auto; border: 1px solid black; background-color: white;">
+                                    @foreach (var package in Model.Packages)
+                                    {
+                                        <label><input type="checkbox" name="subjects" value="@package" /> @package</label>
+                                    }
+                                </div>
                             </div>
-                        </div>
+                        }
 
                         <button class="btn" type="submit">Generate API Key</button>
                     </fieldset>
