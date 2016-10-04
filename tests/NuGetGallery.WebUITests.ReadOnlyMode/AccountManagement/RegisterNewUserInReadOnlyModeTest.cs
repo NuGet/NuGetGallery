@@ -37,7 +37,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.ReadOnlyMode
                 registerNewUserFormPost.FormPostParameters.Add("LinkingAccount", "false");
                 registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks + "@live.com"); //add a dummy mail account. This will be fixed once we incorporate the logic to delete user.
                 registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, DateTime.Now.Ticks + "NewAccount");
-                registerNewUserFormPost.FormPostParameters.Add(Constants.RegisterPasswordFormField, "xxxxxxxx");
+                registerNewUserFormPost.FormPostParameters.Add(Constants.RegisterPasswordFormField, "xxXxx1xx");
                 registerPagePostRequest.Body = registerNewUserFormPost;
                 registerPagePostRequest.ExpectedHttpStatusCode = 503;
                 // Validate the response to make sure that it shows the error message for read-only mode.
