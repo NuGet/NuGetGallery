@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Web;
 using System.Web.Mvc;
@@ -38,8 +39,8 @@ namespace NuGetGallery.Filters
         {
             var owinContext = filterContext.HttpContext.GetOwinContext();
             owinContext.Authentication.Challenge(AuthenticationTypes.ApiKey);
-            owinContext.Response.StatusCode = 401;
-            filterContext.Result = new HttpUnauthorizedResult();
+            owinContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+            filterContext.Result = new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
         }
     }
 }

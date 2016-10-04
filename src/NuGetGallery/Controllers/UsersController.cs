@@ -503,7 +503,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
-                    && (credentialKey == null || credentialKey == 0 || c.Key == credentialKey));
+                    && CredentialKeyMatches(credentialKey, c));
 
             return RemoveCredential(user, cred, Strings.CredentialRemoved);
         }
@@ -521,7 +521,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
-                    && (credentialKey == null || credentialKey == 0 || c.Key == credentialKey));
+                    && CredentialKeyMatches(credentialKey, c));
 
             if (cred != null)
             {
@@ -537,6 +537,11 @@ namespace NuGetGallery
             return RedirectToAction("Account");
         }
 
+        private static bool CredentialKeyMatches(int? credentialKey, Credential c)
+        {
+            return (credentialKey == null || credentialKey == 0 || c.Key == credentialKey);
+        }
+
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -550,7 +555,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
-                    && (credentialKey == null || credentialKey == 0 || c.Key == credentialKey));
+                    && CredentialKeyMatches(credentialKey, c));
 
             if (cred != null)
             {
