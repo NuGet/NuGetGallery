@@ -486,7 +486,7 @@
                         <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed, you can always generate a new one at any time. You can also remove existing API keys if necessary.
                     </p>
 
-                    var legacyApiKey = apiKeys.FirstOrDefault(k => string.IsNullOrEmpty(k.Description));
+                    var legacyApiKey = apiKeys.FirstOrDefault(k => k.IsLegacyApiKey);
                     if (legacyApiKey != null)
                     {
                         <hr/>

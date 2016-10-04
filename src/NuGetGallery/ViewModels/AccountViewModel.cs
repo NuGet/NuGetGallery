@@ -94,6 +94,16 @@ namespace NuGetGallery
             }
         }
 
+        public bool IsLegacyApiKey
+        {
+            get
+            {
+                return string.Equals(Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)
+                       && string.IsNullOrEmpty(Description)
+                       && !Scopes.AnySafe();
+            }
+        }
+
         public bool HasBeenUsedInLastDays(int numberOfDays)
         {
             if (numberOfDays > 0 && LastUsed.HasValue)
