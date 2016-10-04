@@ -628,6 +628,7 @@ namespace NuGetGallery
                     newCredential.Scopes.Add(new Scope(null, NuGetScopes.All));
                 }
             }
+
             await _authService.AddCredential(user, newCredential);
 
             TempData["Message"] = Strings.ApiKeyGenerated;

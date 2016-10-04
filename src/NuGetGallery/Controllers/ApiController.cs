@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
+using Microsoft.Owin.Security;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -284,10 +285,9 @@ namespace NuGetGallery
                         if (packageRegistration == null)
                         {
                             // Check if API key allows pushing a new package id
-                            var identity = User.Identity as ClaimsIdentity;
-                            if (!identity.HasScopeThatAllowsActionForSubject(
+                            if (!ApiKeyScopeAllows(
                                 subject: null, 
-                                requestedActions: new[] { NuGetScopes.PackagePushNew }))
+                                requestedAction: NuGetScopes.PackagePushNew))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
@@ -313,10 +313,9 @@ namespace NuGetGallery
                             }
 
                             // Check if API key allows pushing the current package id
-                            var identity = User.Identity as ClaimsIdentity;
-                            if (!identity.HasScopeThatAllowsActionForSubject(
-                                subject: packageRegistration.Id,
-                                requestedActions: new[] { NuGetScopes.PackagePush }))
+                            if (!ApiKeyScopeAllows(
+                                subject: packageRegistration.Id, 
+                                requestedAction: NuGetScopes.PackagePush))
                             {
                                 // User cannot push a package as the API key scope does not allow it
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
@@ -394,6 +393,15 @@ namespace NuGetGallery
             }
         }
 
+        private bool ApiKeyScopeAllows(string subject, string requestedAction)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+
+            return identity.HasScopeThatAllowsActionForSubject(
+                subject: null,
+                requestedActions: new[] { requestedAction });
+        }
+
         private static ActionResult BadRequestForExceptionMessage(Exception ex)
         {
             return new HttpStatusCodeWithBodyResult(
@@ -422,10 +430,9 @@ namespace NuGetGallery
             }
 
             // Check if API key allows listing/unlisting the current package id
-            var identity = User.Identity as ClaimsIdentity;
-            if (!identity.HasScopeThatAllowsActionForSubject(
-                subject: id,
-                requestedActions: new[] { NuGetScopes.PackageList }))
+            if (!ApiKeyScopeAllows(
+                subject: id, 
+                requestedAction: NuGetScopes.PackageList))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -456,10 +463,9 @@ namespace NuGetGallery
             }
 
             // Check if API key allows listing/unlisting the current package id
-            var identity = User.Identity as ClaimsIdentity;
-            if (!identity.HasScopeThatAllowsActionForSubject(
-                subject: id,
-                requestedActions: new[] { NuGetScopes.PackageList }))
+            if (!ApiKeyScopeAllows(
+                subject: id, 
+                requestedAction: NuGetScopes.PackageList))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }

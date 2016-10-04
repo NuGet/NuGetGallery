@@ -819,6 +819,7 @@
     <Compile Include="Migrations\201610042351343_AddUserFailedLogin.cs" />
     <Compile Include="Migrations\201610042351343_AddUserFailedLogin.Designer.cs">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\201609211206577_ApiKeyDescription.cs" />
     <Compile Include="Migrations\201609211206577_ApiKeyDescription.Designer.cs">
       <DependentUpon>201609211206577_ApiKeyDescription.cs</DependentUpon>
@@ -1953,6 +1954,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201610042351343_AddUserFailedLogin.resx">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201609211206577_ApiKeyDescription.resx">
       <DependentUpon>201609211206577_ApiKeyDescription.cs</DependentUpon>
     </EmbeddedResource>

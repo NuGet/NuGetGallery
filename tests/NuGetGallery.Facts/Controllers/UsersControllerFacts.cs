@@ -1001,6 +1001,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var fakes = Get<Fakes>();
+
                 var user = fakes.CreateUser("test",
                     new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
                 var cred = user.Credentials.First();
