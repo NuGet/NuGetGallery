@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -26,13 +27,13 @@ namespace NuGetGallery
             foreach (var scopeFromClaim in scopesFromClaim)
             {
                 var subjectMatches = string.IsNullOrEmpty(scopeFromClaim.Subject)
-                    || (!string.IsNullOrEmpty(subject) && scopeFromClaim.Subject == subject);
+                    || (!string.IsNullOrEmpty(subject) && string.Equals(scopeFromClaim.Subject, subject, StringComparison.OrdinalIgnoreCase));
 
                 var actionMatches = requestedActions.Any(
                     allowed => string.IsNullOrEmpty(allowed)
                                || string.IsNullOrEmpty(scopeFromClaim.AllowedAction)
-                               || scopeFromClaim.AllowedAction == allowed
-                               || scopeFromClaim.AllowedAction == NuGetScopes.All);
+                               || string.Equals(scopeFromClaim.AllowedAction, allowed, StringComparison.OrdinalIgnoreCase)
+                               || string.Equals(scopeFromClaim.AllowedAction, NuGetScopes.All, StringComparison.OrdinalIgnoreCase));
 
                 if (subjectMatches && actionMatches)
                 {
