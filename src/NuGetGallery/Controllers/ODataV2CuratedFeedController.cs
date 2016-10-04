@@ -198,7 +198,7 @@ namespace NuGetGallery.Controllers
                 }
             }
 
-            // Peform actual search
+            // Perform actual search
             var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);

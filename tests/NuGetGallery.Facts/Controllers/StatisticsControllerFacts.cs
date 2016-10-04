@@ -383,7 +383,7 @@ namespace NuGetGallery
                                     {
                                         { "ClientName", "NuGet" },
                                         { "ClientVersion", "2.1" },
-                                        { "Operation", "unknow" },
+                                        { "Operation", "unknown" },
                                         { "Downloads", 301 }
                                     }
                                 }
@@ -465,7 +465,7 @@ namespace NuGetGallery
                                     {
                                         { "ClientName", "NuGet" },
                                         { "ClientVersion", "2.1" },
-                                        { "Operation", "unknow" },
+                                        { "Operation", "unknown" },
                                         { "Downloads", 301 }
                                     }
                                 }
@@ -551,7 +551,7 @@ namespace NuGetGallery
                                     {
                                         { "ClientName", "NuGet" },
                                         { "ClientVersion", "2.1" },
-                                        { "Operation", "unknow" },
+                                        { "Operation", "unknown" },
                                         { "Downloads", 301 }
                                     }
                                 }
@@ -616,7 +616,7 @@ namespace NuGetGallery
                     // Act
                     var result = await controller.Totals() as JsonResult;
 
-                    // Asssert
+                    // Assert
                     Assert.NotNull(result);
                     dynamic data = result.Data;
 
@@ -652,7 +652,7 @@ namespace NuGetGallery
 
                 var result = await InvokeAction(() => (controller.Totals()), controller) as JsonResult;
 
-                // Asssert
+                // Assert
                 Assert.NotNull(result);
                 dynamic data = result.Data;
 

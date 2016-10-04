@@ -170,7 +170,7 @@ namespace NuGetGallery.Controllers
                 }
             }
 
-            // Peform actual search
+            // Perform actual search
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)

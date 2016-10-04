@@ -26,7 +26,7 @@ namespace NuGetGallery.Areas.Admin.Models
 
         /// <summary>
         /// The NuGet Gallery code should usually use this constructor,
-        /// so that we can configure the connection via the Cloud Service configuraton.
+        /// so that we can configure the connection via the Cloud Service configuration.
         /// </summary>
         public SupportRequestDbContext(string connectionString)
             : base(connectionString)

@@ -73,7 +73,7 @@ namespace NuGetGallery.Diagnostics
                     double max = Double.MinValue;
 
                     // Start at _position-1 and work backwards. 
-                    // In order to avoid negative indicies, we do this by ADDING the distance between the end of ring and i, 
+                    // In order to avoid negative indices, we do this by ADDING the distance between the end of ring and i, 
                     //  then we use mod to get a real offset
                     for (int i = 0; i < _count; i++)
                     {

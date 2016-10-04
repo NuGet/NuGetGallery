@@ -136,7 +136,7 @@ namespace NuGetGallery
             }
         }
 
-        // The count in the tree is the count of values. It is equivallent to the count of rows if we
+        // The count in the tree is the count of values. It is equivalent to the count of rows if we
         // were to represent this in a table.
 
         private static int Count(Level level)
@@ -223,7 +223,7 @@ namespace NuGetGallery
 
             public int Count { get; set; }
 
-            // Total is the sum Total of all the Amounts in all the decendents. (See Total function above.)
+            // Total is the sum Total of all the Amounts in all the descendants. (See Total function above.)
 
             public int Total { get; set; }
 

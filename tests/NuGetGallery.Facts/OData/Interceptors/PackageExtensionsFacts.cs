@@ -51,7 +51,7 @@ namespace NuGetGallery.OData.Interceptors
                 Assert.Equal("Mostly Harmless", actual.ReleaseNotes);
                 Assert.True(actual.RequireLicenseAcceptance);
                 Assert.Equal(new DateTime(1979, 10, 12), actual.Published);
-                Assert.Equal("A truely remarkable book", actual.Summary);
+                Assert.Equal("A truly remarkable book", actual.Summary);
                 Assert.Equal("Guide, Harmless, Mostly", actual.Tags);
                 Assert.Equal("The Hitchhiker's Guide to the Galaxy", actual.Title);
                 Assert.Equal(421, actual.VersionDownloadCount);
@@ -158,7 +158,7 @@ namespace NuGetGallery.OData.Interceptors
                 ReleaseNotes = "Mostly Harmless",
                 RequiresLicenseAcceptance = true,
                 Published = new DateTime(1979, 10, 12),
-                Summary = "A truely remarkable book",
+                Summary = "A truly remarkable book",
                 Tags = "Guide, Harmless, Mostly",
                 Title = "The Hitchhiker's Guide to the Galaxy",
                 DownloadCount = 421,
