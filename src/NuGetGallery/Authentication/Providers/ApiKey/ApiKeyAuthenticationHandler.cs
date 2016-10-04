@@ -10,6 +10,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
+using Newtonsoft.Json;
 using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery.Authentication.Providers.ApiKey
@@ -100,7 +101,8 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     Context.Set(Constants.CurrentUserOwinEnvironmentKey, authUser);
 
                     // Fetch scopes and store them in a claim
-                    var scopes = ScopeSerializer.SerializeScopes(authUser.CredentialUsed.Scopes);
+                    var scopes = JsonConvert.SerializeObject(
+                        authUser.CredentialUsed.Scopes, Formatting.None);
 
                     // Create authentication ticket
                     return new AuthenticationTicket(

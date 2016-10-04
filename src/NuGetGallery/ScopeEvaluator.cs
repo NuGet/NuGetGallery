@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery
@@ -13,19 +15,18 @@ namespace NuGetGallery
             string subject,
             string[] requestedActions)
         {
-            if (string.IsNullOrEmpty(scopeClaim))
+            if (string.IsNullOrEmpty(scopeClaim) || scopeClaim == "[]")
             {
                 // Legacy API key, allow access...
                 return true;
             }
 
             // Deserialize scope claim
-            var scopesFromClaim = ScopeSerializer.DeserializeScopes(scopeClaim);
+            var scopesFromClaim = JsonConvert.DeserializeObject<List<Scope>>(scopeClaim);
             foreach (var scopeFromClaim in scopesFromClaim)
             {
                 var subjectMatches = string.IsNullOrEmpty(scopeFromClaim.Subject)
-                                     || string.IsNullOrEmpty(subject)
-                                     || scopeFromClaim.Subject == subject;
+                    || (!string.IsNullOrEmpty(subject) && scopeFromClaim.Subject == subject);
 
                 var actionMatches = requestedActions.Any(
                     allowed => string.IsNullOrEmpty(allowed)
