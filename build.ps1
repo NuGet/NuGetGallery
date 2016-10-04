@@ -75,7 +75,20 @@ Invoke-BuildStep 'Restoring solution packages' { `
     -skip:$SkipRestore `
     -ev +BuildErrors
 	
-		
+Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
+	param($Path, $Version, $Branch, $Commit)
+	Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
+	} `
+	-args (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.cs"), $SimpleVersion, $Branch, $CommitSHA `
+	-ev +BuildErrors
+	
+Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
+	param($Path, $Version, $Branch, $Commit)
+	Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
+	} `
+	-args (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.cs"), $SimpleVersion, $Branch, $CommitSHA `
+	-ev +BuildErrors
+	
 Invoke-BuildStep 'Building solution' { 
 	param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
 	Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
