@@ -726,6 +726,51 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All.
+        /// </summary>
+        public static string ScopeDescription_All {
+            get {
+                return ResourceManager.GetString("ScopeDescription_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to List/unlist package.
+        /// </summary>
+        public static string ScopeDescription_ListUnlistPackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_ListUnlistPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push new package registration.
+        /// </summary>
+        public static string ScopeDescription_PushNewPackageRegistration {
+            get {
+                return ResourceManager.GetString("ScopeDescription_PushNewPackageRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push package version.
+        /// </summary>
+        public static string ScopeDescription_PushPackageVersion {
+            get {
+                return ResourceManager.GetString("ScopeDescription_PushPackageVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown.
+        /// </summary>
+        public static string ScopeDescription_Unknown {
+            get {
+                return ResourceManager.GetString("ScopeDescription_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via SSL..
         /// </summary>
         public static string SSLRequired {
