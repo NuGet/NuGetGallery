@@ -601,17 +601,17 @@
                                         }
                                     </td>
                                     <td>
-                                        @if (apiKey.Expires.HasValue && !apiKey.HasExpired)
+                                        @if (!apiKey.Expires.HasValue)
+                                         {
+                                            <span class="s-localtime">Never</span>
+                                        }
+                                        else if (!apiKey.HasExpired)
                                         {
                                             <span class="s-localtime" data-utc="@apiKey.Expires.Value.ToJavaScriptUTC()">@apiKey.Expires.Value.ToNuGetShortDateString()</span>
                                         }
-                                        else if (apiKey.Expires.HasValue && apiKey.HasExpired)
-                                        {
-                                            <span class="apiKeyExpired">Expired</span>
-                                        }
                                         else
                                         {
-                                            <span class="s-localtime">Never</span>
+                                            <span class="apiKeyExpired">Expired</span>
                                         }
                                     </td>
                                 </tr>
