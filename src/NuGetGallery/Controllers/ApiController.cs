@@ -315,7 +315,7 @@ namespace NuGetGallery
                             // Check if API key allows pushing the current package id
                             var identity = User.Identity as ClaimsIdentity;
                             if (!identity.HasScopeThatAllowsActionForSubject(
-                                subject: null,
+                                subject: packageRegistration.Id,
                                 requestedActions: new[] { NuGetScopes.PackagePush }))
                             {
                                 // User cannot push a package as the API key scope does not allow it
@@ -424,7 +424,7 @@ namespace NuGetGallery
             // Check if API key allows listing/unlisting the current package id
             var identity = User.Identity as ClaimsIdentity;
             if (!identity.HasScopeThatAllowsActionForSubject(
-                subject: null,
+                subject: id,
                 requestedActions: new[] { NuGetScopes.PackageList }))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
@@ -458,7 +458,7 @@ namespace NuGetGallery
             // Check if API key allows listing/unlisting the current package id
             var identity = User.Identity as ClaimsIdentity;
             if (!identity.HasScopeThatAllowsActionForSubject(
-                subject: null,
+                subject: id,
                 requestedActions: new[] { NuGetScopes.PackageList }))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
