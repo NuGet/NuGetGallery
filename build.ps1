@@ -43,10 +43,10 @@ Function Run-Tests {
 	
 	Trace-Log 'Running tests'
 	
-    $vstestExe = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
+	$xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
 	
-    & $vstestExe (Join-Path $PSScriptRoot "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll") /TestAdapterPath:"."
-    & $vstestExe (Join-Path $PSScriptRoot "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll") /TestAdapterPath:"."
+	& $xUnitExe (Join-Path $PSScriptRoot "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll")
+	& $xUnitExe (Join-Path $PSScriptRoot "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll")
 }
 	
 Write-Host ("`r`n" * 3)
@@ -88,7 +88,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
 	} `
 	-args (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.cs"), $SimpleVersion, $Branch, $CommitSHA `
 	-ev +BuildErrors
-	
+		
 Invoke-BuildStep 'Building solution' { 
 	param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
 	Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `

@@ -18,7 +18,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
-using Microsoft.QualityTools.Testing.Fakes;
 
 namespace NuGetGallery.Authentication
 {
@@ -28,10 +27,12 @@ namespace NuGetGallery.Authentication
         {
             private Fakes _fakes;
             private AuthenticationService _authenticationService;
+            private Mock<IDateTimeProvider> _dateTimeProviderMock;
 
             public TheAuthenticateMethod()
             {
                 _fakes = Get<Fakes>();
+                _dateTimeProviderMock = GetMock<IDateTimeProvider>();
                 _authenticationService = Get<AuthenticationService>();
             }
 
@@ -237,6 +238,8 @@ namespace NuGetGallery.Authentication
                     c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
 
                 var referenceTime = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
+                
                 Assert.False(cred.LastUsed.HasValue);
 
                 // Act
@@ -248,7 +251,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.True(cred.LastUsed > referenceTime);
+                Assert.True(cred.LastUsed == referenceTime);
                 Assert.True(cred.LastUsed.HasValue);
             }
 
@@ -331,21 +334,19 @@ namespace NuGetGallery.Authentication
             [Fact]
             public async Task WhenUserLoginFailsUserRecordIsUpdatedWithFailureDetails()
             {
-                using (ShimsContext.Create())
-                {
-                    // Arrange
-                    var currentTime = DateTime.UtcNow;
-                    System.Fakes.ShimDateTime.UtcNowGet = () => currentTime;
-                    _fakes.User.FailedLoginCount = 7;
-                    _fakes.User.LastFailedLogin = DateTime.UtcNow;
+                // Arrange
+                var currentTime = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(currentTime);
 
-                    // Act
-                    await _authenticationService.Authenticate(_fakes.User.Username, "bogus password!!");
+                _fakes.User.FailedLoginCount = 7;
+                _fakes.User.LastFailedLogin = currentTime - TimeSpan.FromMinutes(1);
 
-                    // Assert
-                    Assert.Equal(currentTime, _fakes.User.LastFailedLogin);
-                    Assert.Equal(8, _fakes.User.FailedLoginCount);
-                }
+                // Act
+                await _authenticationService.Authenticate(_fakes.User.Username, "bogus password!!");
+
+                // Assert
+                Assert.Equal(currentTime, _fakes.User.LastFailedLogin);
+                Assert.Equal(8, _fakes.User.FailedLoginCount);
             }
 
             [Fact]
@@ -355,6 +356,7 @@ namespace NuGetGallery.Authentication
                 var user = _fakes.User;
                 user.FailedLoginCount = 8;
                 user.LastFailedLogin = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(user.LastFailedLogin.Value + TimeSpan.FromSeconds(10));
 
                 // Act
                 var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
@@ -375,21 +377,18 @@ namespace NuGetGallery.Authentication
                 user.FailedLoginCount = failureCount;
                 user.LastFailedLogin = lastFailedLoginTime;
 
-                using (ShimsContext.Create())
-                {
-                    System.Fakes.ShimDateTime.UtcNowGet = () => currentTime;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(currentTime);
 
-                    // Act
-                    var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
+                // Act
+                var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
 
-                    // Assert
-                    var expectedResult = expectedLockoutMinutesLeft == 0
-                        ? PasswordAuthenticationResult.AuthenticationResult.Success
-                        : PasswordAuthenticationResult.AuthenticationResult.AccountLocked;
+                // Assert
+                var expectedResult = expectedLockoutMinutesLeft == 0
+                    ? PasswordAuthenticationResult.AuthenticationResult.Success
+                    : PasswordAuthenticationResult.AuthenticationResult.AccountLocked;
 
-                    Assert.Equal(expectedResult, result.Result);
-                    Assert.Equal(expectedLockoutMinutesLeft, result.LockTimeRemainingMinutes);
-                }
+                Assert.Equal(expectedResult, result.Result);
+                Assert.Equal(expectedLockoutMinutesLeft, result.LockTimeRemainingMinutes);
             }
 
             public static IEnumerable<object[]> VerifyAccountLockoutTimeCalculation_Data
@@ -825,6 +824,8 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(CredentialBuilder.LatestPasswordType, newCred.Type);
                 Assert.True(VerifyPasswordHash(newCred.Value, CredentialBuilder.LatestPasswordType, "new-password"));
                 authService.Entities.VerifyCommitChanges();
+                Assert.Equal(0, user.FailedLoginCount);
+                Assert.Null(user.LastFailedLogin);
             }
 
 

@@ -27,6 +27,7 @@ namespace NuGetGallery.Authentication
         private readonly IAppConfiguration _config;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ICredentialValidator _credentialValidator;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
         /// <summary>
         /// This ctor is used for test only.
@@ -41,7 +42,7 @@ namespace NuGetGallery.Authentication
         public AuthenticationService(
             IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics,
             AuditingService auditing, IEnumerable<Authenticator> providers, ICredentialBuilder credentialBuilder,
-            ICredentialValidator credentialValidator)
+            ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider)
         {
             if (entities == null)
             {
@@ -78,6 +79,11 @@ namespace NuGetGallery.Authentication
                 throw new ArgumentNullException(nameof(credentialValidator));
             }
 
+            if (dateTimeProvider == null)
+            {
+                throw new ArgumentNullException(nameof(dateTimeProvider));
+            }
+
             InitCredentialFormatters();
 
             Entities = entities;
@@ -87,6 +93,7 @@ namespace NuGetGallery.Authentication
             Authenticators = providers.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
             _credentialBuilder = credentialBuilder;
             _credentialValidator = credentialValidator;
+            _dateTimeProvider = dateTimeProvider;
         }
 
         public IEntitiesContext Entities { get; private set; }
@@ -201,7 +208,7 @@ namespace NuGetGallery.Authentication
                     await Auditing.SaveAuditRecord(
                         new UserAuditRecord(matched.User, AuditedUserAction.ExpireCredential, matched));
 
-                    matched.Expires = DateTime.UtcNow;
+                    matched.Expires = _dateTimeProvider.UtcNow;
                     await Entities.SaveChangesAsync();
 
                     _trace.Verbose(
@@ -214,7 +221,7 @@ namespace NuGetGallery.Authentication
                 }
 
                 // update last used timestamp
-                matched.LastUsed = DateTime.UtcNow;
+                matched.LastUsed = _dateTimeProvider.UtcNow;
                 await Entities.SaveChangesAsync();
 
                 _trace.Verbose("Successfully authenticated '" + matched.User.Username + "' with '" + matched.Type + "' credential");
@@ -264,7 +271,7 @@ namespace NuGetGallery.Authentication
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
                 NotifyPackagePushed = true,
-                CreatedUtc = DateTime.UtcNow
+                CreatedUtc = _dateTimeProvider.UtcNow
             };
 
             // Add a credential for the password and the API Key
@@ -306,7 +313,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task<Credential> ResetPasswordWithToken(string username, string token, string newPassword)
         {
-            if (String.IsNullOrEmpty(newPassword))
+            if (string.IsNullOrEmpty(newPassword))
             {
                 throw new ArgumentNullException(nameof(newPassword));
             }
@@ -316,7 +323,7 @@ namespace NuGetGallery.Authentication
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
 
-            if (user != null && String.Equals(user.PasswordResetToken, token, StringComparison.Ordinal) && !user.PasswordResetTokenExpirationDate.IsInThePast())
+            if (user != null && string.Equals(user.PasswordResetToken, token, StringComparison.Ordinal) && !user.PasswordResetTokenExpirationDate.IsInThePast())
             {
                 if (!user.Confirmed)
                 {
@@ -327,6 +334,8 @@ namespace NuGetGallery.Authentication
                 await ReplaceCredentialInternal(user, cred);
                 user.PasswordResetToken = null;
                 user.PasswordResetTokenExpirationDate = null;
+                user.FailedLoginCount = 0;
+                user.LastFailedLogin = null;
                 await Entities.SaveChangesAsync();
                 return cred;
             }
@@ -377,7 +386,7 @@ namespace NuGetGallery.Authentication
             }
 
             user.PasswordResetToken = CryptographyService.GenerateToken();
-            user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(expirationInMinutes);
+            user.PasswordResetTokenExpirationDate = _dateTimeProvider.UtcNow.AddMinutes(expirationInMinutes);
 
             await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.RequestPasswordReset));
 
@@ -692,7 +701,7 @@ namespace NuGetGallery.Authentication
         private async Task UpdateFailedLoginAttempt(User user)
         {
             user.FailedLoginCount += 1;
-            user.LastFailedLogin = DateTime.UtcNow;
+            user.LastFailedLogin = _dateTimeProvider.UtcNow;
 
             await Entities.SaveChangesAsync();
         }
@@ -712,7 +721,7 @@ namespace NuGetGallery.Authentication
         {
             if (user.FailedLoginCount > 0)
             {
-                var currentTime = DateTime.UtcNow;
+                var currentTime = _dateTimeProvider.UtcNow;
                 var unlockTime = CalculateAccountUnlockTime(user.FailedLoginCount, user.LastFailedLogin.Value);
 
                 if (unlockTime > currentTime)
