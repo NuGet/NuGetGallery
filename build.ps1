@@ -43,10 +43,10 @@ Function Run-Tests {
 	
 	Trace-Log 'Running tests'
 	
-	$xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
+    $vstestExe = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
 	
-	& $xUnitExe (Join-Path $PSScriptRoot "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll")
-	& $xUnitExe (Join-Path $PSScriptRoot "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll")
+    & $vstestExe (Join-Path $PSScriptRoot "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll") /TestAdapterPath:"."
+    & $vstestExe (Join-Path $PSScriptRoot "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll") /TestAdapterPath:"."
 }
 	
 Write-Host ("`r`n" * 3)
@@ -75,19 +75,6 @@ Invoke-BuildStep 'Restoring solution packages' { `
     -skip:$SkipRestore `
     -ev +BuildErrors
 	
-Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-	param($Path, $Version, $Branch, $Commit)
-	Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
-	} `
-	-args (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.cs"), $SimpleVersion, $Branch, $CommitSHA `
-	-ev +BuildErrors
-	
-Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-	param($Path, $Version, $Branch, $Commit)
-	Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
-	} `
-	-args (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.cs"), $SimpleVersion, $Branch, $CommitSHA `
-	-ev +BuildErrors
 		
 Invoke-BuildStep 'Building solution' { 
 	param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
