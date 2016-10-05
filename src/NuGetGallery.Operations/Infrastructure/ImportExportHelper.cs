@@ -141,7 +141,7 @@ namespace WASDImportExport
                 }
                 catch (WebException responseException)
                 {
-                    _log.Error("Request Falied:{0}", responseException.Message);
+                    _log.Error("Request Failed:{0}", responseException.Message);
                     if (responseException.Response != null)
                     {
                         _log.Error("Status Code: {0}", ((HttpWebResponse)responseException.Response).StatusCode);
@@ -227,7 +227,7 @@ namespace WASDImportExport
         //    }
         //    catch (WebException responseException)
         //    {
-        //        Console.WriteLine("Request Falied: {0}", responseException.Message);
+        //        Console.WriteLine("Request Failed: {0}", responseException.Message);
         //        {
         //            Console.WriteLine("Status Code: {0}", ((HttpWebResponse)responseException.Response).StatusCode);
         //            Console.WriteLine("Status Description: {0}\n\r", ((HttpWebResponse)responseException.Response).StatusDescription);

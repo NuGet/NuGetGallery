@@ -62,7 +62,7 @@ namespace NuGetGallery
                     // Must have AspNetWebPages tag
                     ContainsAspNetWebPagesTag(galleryPackage) ||
 
-                    // OR: Must not contain powershell or T4
+                    // OR: Must not contain PowerShell or T4
                     DoesNotContainUnsupportedFiles(packageArchiveReader)
                 ) &&
 

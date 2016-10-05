@@ -39,7 +39,7 @@ namespace NuGetGallery
         [InlineData("89984214214")] // Just numbers
         [InlineData("%*`~&*()%#@$!@<>?\"")] // Special characters
         [InlineData("aaAAaaAAaaAA")] // No digit
-        [InlineData("12345678a")] // No upperscase letter
+        [InlineData("12345678a")] // No uppercase letter
         [InlineData("12345678A")] // No lowercase letter
         [InlineData("1aA")] // Too short
         public void DoesNotAccept(string password)

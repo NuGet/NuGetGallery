@@ -126,7 +126,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(id));
             }
 
-            // Optimization: Everytime we look at a package we almost always want to see
+            // Optimization: Every time we look at a package we almost always want to see
             // all the other packages with the same ID via the PackageRegistration property.
             // This resulted in a gnarly query.
             // Instead, we can always query for all packages with the ID.
@@ -502,7 +502,7 @@ namespace NuGetGallery
             package.ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull();
             package.MinClientVersion = packageMetadata.MinClientVersion.ToStringOrNull();
 
-#pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
+#pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
             foreach (var author in packageMetadata.Authors)
             {
                 package.Authors.Add(new PackageAuthor { Name = author });
