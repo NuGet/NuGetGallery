@@ -56,7 +56,7 @@ namespace NuGetGallery
 
         public DateTime? CreatedUtc { get; set; }
 
-        public DateTime? LastFailedLogin { get; set; }
+        public DateTime? LastFailedLoginUtc { get; set; }
 
         public int FailedLoginCount { get; set; }
 

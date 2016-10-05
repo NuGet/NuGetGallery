@@ -814,9 +814,9 @@
     <Compile Include="Migrations\201609092255576_AddIndexUsersEmail.Designer.cs">
       <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201609292232241_AddFailedLoginData.cs" />
-    <Compile Include="Migrations\201609292232241_AddFailedLoginData.Designer.cs">
-      <DependentUpon>201609292232241_AddFailedLoginData.cs</DependentUpon>
+    <Compile Include="Migrations\201610042351343_AddUserFailedLogin.cs" />
+    <Compile Include="Migrations\201610042351343_AddUserFailedLogin.Designer.cs">
+      <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
     </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
@@ -1936,8 +1936,8 @@
     <EmbeddedResource Include="Migrations\201609092255576_AddIndexUsersEmail.resx">
       <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201609292232241_AddFailedLoginData.resx">
-      <DependentUpon>201609292232241_AddFailedLoginData.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201610042351343_AddUserFailedLogin.resx">
+      <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

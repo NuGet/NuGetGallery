@@ -98,20 +98,27 @@ namespace NuGetGallery
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
 
-            if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
-            {
-                ModelState.AddModelError("SignIn", Strings.UsernameAndPasswordNotFound);
-                return LogOnView(model);
-            }
 
-            if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.AccountLocked)
+            if (authenticationResult.Result != PasswordAuthenticationResult.AuthenticationResult.Success)
             {
-                string timeRemaining =
-                    authenticationResult.LockTimeRemainingMinutes == 1
-                        ? Strings.AMinute
-                        : string.Format(CultureInfo.CurrentCulture, Strings.Minutes, authenticationResult.LockTimeRemainingMinutes);
+                string modelErrorMessage = string.Empty;
 
-                ModelState.AddModelError("SignIn", string.Format(CultureInfo.CurrentCulture, Strings.UserAccountLocked, timeRemaining));
+                if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
+                {
+                    modelErrorMessage = Strings.UsernameAndPasswordNotFound;
+                }
+                else if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.AccountLocked)
+                {
+                    string timeRemaining =
+                        authenticationResult.LockTimeRemainingMinutes == 1
+                            ? Strings.AMinute
+                            : string.Format(CultureInfo.CurrentCulture, Strings.Minutes,
+                                authenticationResult.LockTimeRemainingMinutes);
+
+                    modelErrorMessage = string.Format(CultureInfo.CurrentCulture, Strings.UserAccountLocked, timeRemaining);
+                }
+
+                ModelState.AddModelError("SignIn", modelErrorMessage);
                 return LogOnView(model);
             }
 

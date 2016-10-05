@@ -332,31 +332,49 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task WhenUserLoginFailsUserRecordIsUpdatedWithFailureDetails()
+            public async Task WhenUserLoginFailsAfterFailureUserRecordIsUpdatedWithFailureDetails()
             {
                 // Arrange
                 var currentTime = DateTime.UtcNow;
                 _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(currentTime);
 
                 _fakes.User.FailedLoginCount = 7;
-                _fakes.User.LastFailedLogin = currentTime - TimeSpan.FromMinutes(1);
+                _fakes.User.LastFailedLoginUtc = currentTime - TimeSpan.FromMinutes(1);
 
                 // Act
                 await _authenticationService.Authenticate(_fakes.User.Username, "bogus password!!");
 
                 // Assert
-                Assert.Equal(currentTime, _fakes.User.LastFailedLogin);
+                Assert.Equal(currentTime, _fakes.User.LastFailedLoginUtc);
                 Assert.Equal(8, _fakes.User.FailedLoginCount);
             }
 
             [Fact]
-            public async Task WhenUserLoginSucceedsFailureDetailsAreReset()
+            public async Task WhenUserLoginFailsAfterSuccessUserRecordIsUpdatedWithFailureDetails()
+            {
+                // Arrange
+                var currentTime = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(currentTime);
+
+                _fakes.User.FailedLoginCount = 0;
+                _fakes.User.LastFailedLoginUtc = null;
+
+                // Act
+                await _authenticationService.Authenticate(_fakes.User.Username, "bogus password!!");
+
+                // Assert
+                Assert.Equal(currentTime, _fakes.User.LastFailedLoginUtc);
+                Assert.Equal(1, _fakes.User.FailedLoginCount);
+            }
+
+            [Fact]
+            public async Task WhenUserLoginSucceedsAfterFailureFailureDetailsAreReset()
             {
                 // Arrange
                 var user = _fakes.User;
                 user.FailedLoginCount = 8;
-                user.LastFailedLogin = DateTime.UtcNow;
-                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(user.LastFailedLogin.Value + TimeSpan.FromSeconds(10));
+                user.LastFailedLoginUtc = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(user.LastFailedLoginUtc.Value + TimeSpan.FromSeconds(10));
 
                 // Act
                 var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
@@ -365,7 +383,7 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.Success, result.Result);
                 Assert.Same(user, result.AuthenticatedUser.User);
                 Assert.Equal(0, user.FailedLoginCount);
-                Assert.Null(user.LastFailedLogin);
+                Assert.Null(user.LastFailedLoginUtc);
             }
 
             [Theory]
@@ -375,7 +393,7 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 var user = _fakes.User;
                 user.FailedLoginCount = failureCount;
-                user.LastFailedLogin = lastFailedLoginTime;
+                user.LastFailedLoginUtc = lastFailedLoginTime;
 
                 _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(currentTime);
 
@@ -825,7 +843,7 @@ namespace NuGetGallery.Authentication
                 Assert.True(VerifyPasswordHash(newCred.Value, CredentialBuilder.LatestPasswordType, "new-password"));
                 authService.Entities.VerifyCommitChanges();
                 Assert.Equal(0, user.FailedLoginCount);
-                Assert.Null(user.LastFailedLogin);
+                Assert.Null(user.LastFailedLoginUtc);
             }
 
 

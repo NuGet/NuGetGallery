@@ -335,7 +335,7 @@ namespace NuGetGallery.Authentication
                 user.PasswordResetToken = null;
                 user.PasswordResetTokenExpirationDate = null;
                 user.FailedLoginCount = 0;
-                user.LastFailedLogin = null;
+                user.LastFailedLoginUtc = null;
                 await Entities.SaveChangesAsync();
                 return cred;
             }
@@ -701,7 +701,7 @@ namespace NuGetGallery.Authentication
         private async Task UpdateFailedLoginAttempt(User user)
         {
             user.FailedLoginCount += 1;
-            user.LastFailedLogin = _dateTimeProvider.UtcNow;
+            user.LastFailedLoginUtc = _dateTimeProvider.UtcNow;
 
             await Entities.SaveChangesAsync();
         }
@@ -711,7 +711,7 @@ namespace NuGetGallery.Authentication
             if (user.FailedLoginCount > 0)
             {
                 user.FailedLoginCount = 0;
-                user.LastFailedLogin = null;
+                user.LastFailedLoginUtc = null;
 
                 await Entities.SaveChangesAsync();
             }
@@ -722,7 +722,7 @@ namespace NuGetGallery.Authentication
             if (user.FailedLoginCount > 0)
             {
                 var currentTime = _dateTimeProvider.UtcNow;
-                var unlockTime = CalculateAccountUnlockTime(user.FailedLoginCount, user.LastFailedLogin.Value);
+                var unlockTime = CalculateAccountUnlockTime(user.FailedLoginCount, user.LastFailedLoginUtc.Value);
 
                 if (unlockTime > currentTime)
                 {

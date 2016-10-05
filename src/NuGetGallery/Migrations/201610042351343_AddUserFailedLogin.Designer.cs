@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class AddFailedLoginData : IMigrationMetadata
+    public sealed partial class AddUserFailedLogin : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddFailedLoginData));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddUserFailedLogin));
         
         string IMigrationMetadata.Id
         {
-            get { return "201609292232241_AddFailedLoginData"; }
+            get { return "201610042351343_AddUserFailedLogin"; }
         }
         
         string IMigrationMetadata.Source
