@@ -398,4 +398,13 @@ The {1} Team</value>
   <data name="ApiKeyAlsoUpdated" xml:space="preserve">
     <value>Note that your API key has also been updated.</value>
   </data>
+  <data name="AMinute" xml:space="preserve">
+    <value>a minute</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>{0} minutes</value>
+  </data>
+  <data name="UserAccountLocked" xml:space="preserve">
+    <value>Your account was locked after too many unsuccessful sign-in attempts. Please try again in {0}.</value>
+  </data>
 </root>

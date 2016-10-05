@@ -70,6 +70,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to a minute.
+        /// </summary>
+        public static string AMinute {
+            get {
+                return ResourceManager.GetString("AMinute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Note that your API key has also been updated..
         /// </summary>
         public static string ApiKeyAlsoUpdated {
@@ -501,6 +510,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} minutes.
+        /// </summary>
+        public static string Minutes {
+            get {
+                return ResourceManager.GetString("Minutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing required configuration value: &apos;{0}&apos;.
         /// </summary>
         public static string MissingRequiredConfigurationValue {
@@ -794,6 +812,15 @@ namespace NuGetGallery {
         public static string UploadPackage_MinClientVersionOutOfRange {
             get {
                 return ResourceManager.GetString("UploadPackage_MinClientVersionOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your account was locked after too many unsuccessful sign-in attempts. Please try again in {0}..
+        /// </summary>
+        public static string UserAccountLocked {
+            get {
+                return ResourceManager.GetString("UserAccountLocked", resourceCulture);
             }
         }
         

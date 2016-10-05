@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Claims;
@@ -95,16 +96,33 @@ namespace NuGetGallery
                 return LogOnView(model);
             }
 
-            var user = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
+            var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
 
-            if (user == null)
+
+            if (authenticationResult.Result != PasswordAuthenticationResult.AuthenticationResult.Success)
             {
-                ModelState.AddModelError(
-                    "SignIn",
-                    Strings.UsernameAndPasswordNotFound);
+                string modelErrorMessage = string.Empty;
 
+                if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
+                {
+                    modelErrorMessage = Strings.UsernameAndPasswordNotFound;
+                }
+                else if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.AccountLocked)
+                {
+                    string timeRemaining =
+                        authenticationResult.LockTimeRemainingMinutes == 1
+                            ? Strings.AMinute
+                            : string.Format(CultureInfo.CurrentCulture, Strings.Minutes,
+                                authenticationResult.LockTimeRemainingMinutes);
+
+                    modelErrorMessage = string.Format(CultureInfo.CurrentCulture, Strings.UserAccountLocked, timeRemaining);
+                }
+
+                ModelState.AddModelError("SignIn", modelErrorMessage);
                 return LogOnView(model);
             }
+
+            var user = authenticationResult.AuthenticatedUser;
             
             if (linkingAccount)
             {

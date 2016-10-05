@@ -78,6 +78,8 @@ namespace NuGetGallery
                     .SingleInstance();
             }
 
+            builder.RegisterType<DateTimeProvider>().AsSelf().As<IDateTimeProvider>().SingleInstance();
+
             builder.RegisterType<HttpContextCacheService>()
                 .AsSelf()
                 .As<ICacheService>()
