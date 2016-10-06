@@ -41,6 +41,7 @@ copy %nuget% %testDir%
 call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -teamcity
 if not "%errorlevel%"=="0" set exitCode=-1
 
+copy %nuget% %fluentTestDir%
 call %xunit% "%fluentTestDir%\NuGetGallery.FunctionalTests.Fluent.dll" -teamcity
 if not "%errorlevel%"=="0" set exitCode=-1
 
