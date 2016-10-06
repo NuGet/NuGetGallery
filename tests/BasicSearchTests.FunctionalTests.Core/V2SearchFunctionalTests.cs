@@ -6,26 +6,17 @@ using System.Threading.Tasks;
 using BasicSearchTests.FunctionalTests.Core.Models;
 using BasicSearchTests.FunctionalTests.Core.TestSupport;
 using Xunit;
-using System;
 using System.Net;
 
 namespace BasicSearchTests.FunctionalTests.Core
 {
-    public class V2SearchFunctionalTests
+    public class V2SearchFunctionalTests : BaseFunctionalTests
     {
-        private HttpClient _client;
-
-        public V2SearchFunctionalTests()
-        {
-            // Arrange
-            _client = new HttpClient(new RetryHandler(new HttpClientHandler())) { BaseAddress = new Uri(EnvironmentSettings.SearchServiceBaseUrl) };
-        }
-
         [Fact]
         public async Task CanGetEmptyResult()
         {
             // Act
-            var response = await _client.GetAsync(new V2SearchBuilder { Query = Constants.NonExistentSearchString }.RequestUri);
+            var response = await Client.GetAsync(new V2SearchBuilder { Query = Constants.NonExistentSearchString }.RequestUri);
             var result = await response.Content.ReadAsAsync<V2SearchResult>();
 
             // Assert
@@ -38,7 +29,7 @@ namespace BasicSearchTests.FunctionalTests.Core
         public async Task ShouldGetResultsForEmptyString()
         {
             // Act
-            var response = await _client.GetAsync(new V2SearchBuilder().RequestUri);
+            var response = await Client.GetAsync(new V2SearchBuilder().RequestUri);
             var result = await response.Content.ReadAsAsync<V2SearchResult>();
 
             // Assert

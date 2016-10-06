@@ -23,7 +23,7 @@ namespace BasicSearchTests.FunctionalTests.Core
             {
                 if (string.IsNullOrEmpty(_searchServiceBaseurl))
                 {
-                    _searchServiceBaseurl = GetEnvironmentVariable("SearchServiceUrl", "http://nuget-int-0-v2v3search.cloudapp.net/");
+                    _searchServiceBaseurl = GetEnvironmentVariable("SearchServiceUrl", "https://nuget-int-0-v2v3search.cloudapp.net/");
                 }
 
                 return _searchServiceBaseurl;
@@ -40,7 +40,7 @@ namespace BasicSearchTests.FunctionalTests.Core
             {
                 if (string.IsNullOrEmpty(_indexBaseUrl))
                 {
-                    _indexBaseUrl = GetEnvironmentVariable("IndexBaseUrl", "http://api.int.nugettest.org/v3-index/index.json");
+                    _indexBaseUrl = GetEnvironmentVariable("IndexBaseUrl", "https://api.int.nugettest.org/v3-index/index.json");
                 }
 
                 return _indexBaseUrl;
