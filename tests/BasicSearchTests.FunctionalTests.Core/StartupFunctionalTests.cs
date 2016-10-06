@@ -8,28 +8,19 @@ using System;
 using System.Net.Http;
 using BasicSearchTests.FunctionalTests.Core.Models;
 using Newtonsoft.Json;
-using BasicSearchTests.FunctionalTests.Core.TestSupport;
 
 namespace BasicSearchTests.FunctionalTests.Core
 {
-    public class StartupFunctionalTests
+    public class StartupFunctionalTests : BaseFunctionalTests
     {
-        private HttpClient _client;
-        private RetryHandler _retryHandler;
         private static string RegistrationBaseUrl = "RegistrationsBaseUrl";
         private const int IndexDifferenceLimitInHrs = 1;
-        public StartupFunctionalTests()
-        {
-            // Arrange
-            _retryHandler = new RetryHandler(new HttpClientHandler());
-            _client = new HttpClient(_retryHandler) { BaseAddress = new Uri(EnvironmentSettings.SearchServiceBaseUrl) };
-        }
 
         [Fact]
         public async Task Ready()
         {
             // Act
-            var response = await _client.GetAsync("/");
+            var response = await Client.GetAsync("/");
             var content = await response.Content.ReadAsStringAsync();
 
             // Assert
@@ -41,7 +32,7 @@ namespace BasicSearchTests.FunctionalTests.Core
         public async Task InvalidEndpoint()
         {
             // Act
-            var response = await _client.GetAsync("/invalid");
+            var response = await Client.GetAsync("/invalid");
             var content = await response.Content.ReadAsStringAsync();
 
             // Assert
@@ -53,7 +44,7 @@ namespace BasicSearchTests.FunctionalTests.Core
         public async Task IndexIsFresh()
         {
 
-            var response = await _client.GetAsync("/search/diag");
+            var response = await Client.GetAsync("/search/diag");
             var content = await response.Content.ReadAsAsync<SearchDiagResult>();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(content);
@@ -66,7 +57,7 @@ namespace BasicSearchTests.FunctionalTests.Core
 
         private async Task<DateTime> GetLastRegistrationCommitTime()
         {
-            var httpClient = new HttpClient(_retryHandler);
+            var httpClient = new HttpClient(RetryHandler);
             var indexResponse = await httpClient.GetAsync(EnvironmentSettings.IndexBaseUrl);
             indexResponse.EnsureSuccessStatusCode();
 
