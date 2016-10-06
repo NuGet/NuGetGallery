@@ -67,4 +67,4 @@ goto end
 set exitCode=-1
 
 :end
-exit %exitCode%
+exit /B %exitCode%
