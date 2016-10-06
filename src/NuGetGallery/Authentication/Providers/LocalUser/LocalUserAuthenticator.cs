@@ -25,7 +25,8 @@ namespace NuGetGallery.Authentication.Providers.Cookie
                 CookieHttpOnly = true,
                 CookieSecure = cookieSecurity,
                 LoginPath = new PathString("/users/account/LogOn"),
-                ExpireTimeSpan = TimeSpan.FromHours(6)
+                ExpireTimeSpan = TimeSpan.FromHours(6),
+                SlidingExpiration = true
             };
 
             BaseConfig.ApplyToOwinSecurityOptions(options);
