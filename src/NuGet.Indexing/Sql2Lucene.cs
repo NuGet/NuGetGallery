@@ -225,12 +225,12 @@ namespace NuGet.Indexing
             stopwatch.Start();
 
             var batches = CalculateBatches(sourceConnectionString);
-            logger.LogVerbose("Calculated {BatchCount} batches (took {BatchCalculationTime} seconds)", batches.Count, stopwatch.Elapsed.TotalSeconds);
+            logger.LogInformation("Calculated {BatchCount} batches (took {BatchCalculationTime} seconds)", batches.Count, stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
 
             var packageFrameworks = LoadPackageFrameworks(sourceConnectionString);
-            logger.LogVerbose("Loaded package frameworks (took {PackageFrameworksLoadTime} seconds)", stopwatch.Elapsed.TotalSeconds);
+            logger.LogInformation("Loaded package frameworks (took {PackageFrameworksLoadTime} seconds)", stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
 
@@ -251,7 +251,7 @@ namespace NuGet.Indexing
                 throw;
             }
 
-            logger.LogVerbose("Partition indexes generated (took {PartitionIndexGenerationTime} seconds", stopwatch.Elapsed.TotalSeconds);
+            logger.LogInformation("Partition indexes generated (took {PartitionIndexGenerationTime} seconds", stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
 
