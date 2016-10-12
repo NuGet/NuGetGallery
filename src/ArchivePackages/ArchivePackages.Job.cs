@@ -85,8 +85,7 @@ namespace ArchivePackages
 
                 SourceContainer = Source.CreateCloudBlobClient().GetContainerReference(SourceContainerName);
                 PrimaryDestinationContainer = PrimaryDestination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
-                SecondaryDestinationContainer = SecondaryDestination == null ? null :
-                    SecondaryDestination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
+                SecondaryDestinationContainer = SecondaryDestination?.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
 
                 CursorBlobName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CursorBlob) ?? DefaultCursorBlobName;
 
@@ -122,16 +121,16 @@ namespace ArchivePackages
             return true;
         }
 
-        private async Task<JObject> GetJObject(CloudBlobContainer container, string blobName)
+        private static async Task<JObject> GetJObject(CloudBlobContainer container, string blobName)
         {
-            CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
-            string json = await blob.DownloadTextAsync();
+            var blob = container.GetBlockBlobReference(blobName);
+            var json = await blob.DownloadTextAsync();
             return JObject.Parse(json);
         }
 
-        private async Task SetJObject(CloudBlobContainer container, string blobName, JObject jObject)
+        private static async Task SetJObject(CloudBlobContainer container, string blobName, JObject jObject)
         {
-            CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
+            var blob = container.GetBlockBlobReference(blobName);
             blob.Properties.ContentType = ContentTypeJson;
             await blob.UploadTextAsync(jObject.ToString());
         }
@@ -143,7 +142,7 @@ namespace ArchivePackages
 
             JobEventSourceLog.CursorData(cursorDateTime.ToString(DateTimeFormatSpecifier));
 
-            JobEventSourceLog.GatheringPackagesToArchiveFromDB(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
+            JobEventSourceLog.GatheringPackagesToArchiveFromDb(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
             List<PackageRef> packages;
             using (var connection = await PackageDatabase.ConnectTo())
             {
@@ -154,7 +153,7 @@ namespace ArchivePackages
 			    WHERE Published > @cursorDateTime OR LastEdited > @cursorDateTime", new { cursorDateTime = cursorDateTime }))
                     .ToList();
             }
-            JobEventSourceLog.GatheredPackagesToArchiveFromDB(packages.Count, PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
+            JobEventSourceLog.GatheredPackagesToArchiveFromDb(packages.Count, PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
 
             var archiveSet = packages
                 .AsParallel()
@@ -242,18 +241,18 @@ namespace ArchivePackages
         [Event(
             eventId: 4,
             Level = EventLevel.Informational,
-            Task = Tasks.GatheringDBPackages,
+            Task = Tasks.GatheringDbPackages,
             Opcode = EventOpcode.Start,
             Message = "Gathering list of packages to archive from {0}/{1}")]
-        public void GatheringPackagesToArchiveFromDB(string dbServer, string dbName) { WriteEvent(4, dbServer, dbName); }
+        public void GatheringPackagesToArchiveFromDb(string dbServer, string dbName) { WriteEvent(4, dbServer, dbName); }
 
         [Event(
             eventId: 5,
             Level = EventLevel.Informational,
-            Task = Tasks.GatheringDBPackages,
+            Task = Tasks.GatheringDbPackages,
             Opcode = EventOpcode.Stop,
             Message = "Gathered {0} packages to archive from {1}/{2}")]
-        public void GatheredPackagesToArchiveFromDB(int gathered, string dbServer, string dbName) { WriteEvent(5, gathered, dbServer, dbName); }
+        public void GatheredPackagesToArchiveFromDb(int gathered, string dbServer, string dbName) { WriteEvent(5, gathered, dbServer, dbName); }
 
         [Event(
             eventId: 6,
@@ -308,7 +307,7 @@ namespace ArchivePackages
 
     public static class Tasks
     {
-        public const EventTask GatheringDBPackages = (EventTask)0x1;
+        public const EventTask GatheringDbPackages = (EventTask)0x1;
         public const EventTask ArchivingPackages = (EventTask)0x2;
         public const EventTask StartingPackageCopy = (EventTask)0x3;
     }

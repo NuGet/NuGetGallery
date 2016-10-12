@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>HandlePackageEdits.$branch$</id>
+    <version>$version$</version>
+    <title>HandlePackageEdits</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>HandlePackageEdits</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="bin"/>
+	
+    <file src="Scripts\HandlePackageEdits.cmd" />
+	
+    <file src="Scripts\Functions.ps1" />
+    <file src="Scripts\PreDeploy.ps1" />
+    <file src="Scripts\PostDeploy.ps1" />
+    <file src="Scripts\nssm.exe" />
+  </files>
+</package>

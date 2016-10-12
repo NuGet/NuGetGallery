@@ -162,7 +162,7 @@ namespace HandlePackageEdits
             try
             {
                 TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetService", "HandlePackageEdits");
-                string directory = Path.Combine(TempDirectory, edit.Id, edit.Version);
+                var directory = Path.Combine(TempDirectory, edit.Id, edit.Version);
                 if (!Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
@@ -281,9 +281,9 @@ namespace HandlePackageEdits
                 });
 
                 // Prep SQL for merging in authors
-                StringBuilder loadAuthorsSql = new StringBuilder();
+                var loadAuthorsSql = new StringBuilder();
                 var authors = edit.Authors.Split(',');
-                for (int i = 0; i < authors.Length; i++)
+                for (var i = 0; i < authors.Length; i++)
                 {
                     loadAuthorsSql.Append("INSERT INTO [PackageAuthors]([PackageKey],[Name]) VALUES(@PackageKey, @Author" + i + ")");
                     parameters.Add("Author" + i, authors[i]);
