@@ -127,22 +127,6 @@ namespace NuGetGallery
             return searchService;
         }
 
-        public class HandleUnknownAction
-        {
-            [Fact]
-            public void ActionNotFoundReturns404()
-            {
-                var controller = CreateController();
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                // Act
-                var result = controller.ActionNotFound();
-
-                // Assert
-                Assert.True(result is HttpNotFoundResult);
-            }
-        }
-
         public class TheCancelVerifyPackageAction
         {
             [Fact]
