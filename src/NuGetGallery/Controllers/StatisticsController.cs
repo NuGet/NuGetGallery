@@ -47,12 +47,11 @@ namespace NuGetGallery
             _aggregateStatsService = aggregateStatsService;
         }
 
-        [HttpGet]
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Head)]
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
         public virtual async Task<ActionResult> Totals()
         {
             var stats = await _aggregateStatsService.GetAggregateStats();
-
 
             return Json(
                 new
@@ -64,8 +63,6 @@ namespace NuGetGallery
                 },
                 JsonRequestBehavior.AllowGet);
         }
-
-
 
         //
         // GET: /stats

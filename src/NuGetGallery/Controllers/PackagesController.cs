@@ -85,6 +85,17 @@ namespace NuGetGallery
             _auditingService = auditingService;
         }
 
+        protected override void HandleUnknownAction(string actionName)
+        {
+            RedirectToAction("ActionNotFound").ExecuteResult(ControllerContext);
+        }
+
+        [HttpGet]
+        public virtual ActionResult ActionNotFound()
+        {
+            return HttpNotFound();
+        }
+
         [HttpGet]
         [Authorize]
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
