@@ -1,4 +1,5 @@
-﻿@model UserProfileModel
+﻿@using NuGet.Packaging
+@model UserProfileModel
 @{
     ViewBag.Title = @Model.Username;
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
@@ -9,7 +10,7 @@
     @if (!String.IsNullOrEmpty(Model.EmailAddress))
     {
         <p>
-            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, NuGet.Packaging.PackageIdValidator.MaxPackageIdLength)
+            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, PackageIdValidator.MaxPackageIdLength)
         </p>
     }
     <div id="stats">

@@ -155,7 +155,6 @@
     <Compile Include="Auditing\PackageAuditRecord.cs" />
     <Compile Include="Auditing\UserAuditAction.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
-    <Compile Include="CoreConstants.cs" />
     <Compile Include="CredentialTypes.cs" />
     <Compile Include="Completion.cs" />
     <Compile Include="DisposableAction.cs" />
@@ -193,7 +192,6 @@
     <Compile Include="Packaging\ManifestEdit.cs" />
     <Compile Include="Packaging\ManifestValidator.cs" />
     <Compile Include="Packaging\NupkgRewriter.cs" />
-    <Compile Include="Packaging\PackageIdValidator.cs" />
     <Compile Include="Packaging\PackageMetadata.cs" />
     <Compile Include="Packaging\PackageStreamMetadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
