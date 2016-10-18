@@ -75,7 +75,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KeyVaultReaderFormatterTests.cs" />
+    <Compile Include="CachingSecretReaderFacts.cs" />
+    <Compile Include="KeyVaultReaderFormatterFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

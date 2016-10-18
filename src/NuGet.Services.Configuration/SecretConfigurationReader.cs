@@ -54,8 +54,7 @@ namespace NuGet.Services.Configuration
                 _configuration[key] = value;
             }
         }
-
-
+        
         public void Reload()
         {
             _configuration.Reload();

@@ -1,0 +1,23 @@
+﻿{
+  "dependencies": {
+    "Moq": "4.5.23",
+    "NuGet.Services.Configuration": "1.0.0-*",
+    "xunit": "2.1.0",
+    "xunit.runner.visualstudio": "2.1.0"
+  },
+
+  "frameworks": {
+    "net452": {
+      "dependencies": {
+        "NuGet.Services.KeyVault": {
+          "target": "project"
+        }
+      }
+    }
+  },
+  "packOptions": {
+    "owners": [ "nuget" ],
+    "licenseUrl": "https://github.com/NuGet/ServerCommon/blob/master/License.md"
+  },
+  "version": "1.0.0-*"
+}

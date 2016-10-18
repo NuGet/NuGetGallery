@@ -9,7 +9,7 @@ using Xunit;
 
 namespace NuGet.Services.KeyVault.Tests
 {
-    public class KeyVaultReaderFormatterTests
+    public class KeyVaultReaderFormatterFacts
     {
         private ISecretInjector _secretInjector;
 
@@ -52,7 +52,7 @@ namespace NuGet.Services.KeyVault.Tests
             }
         };
 
-        public KeyVaultReaderFormatterTests()
+        public KeyVaultReaderFormatterFacts()
         {
             var mockKeyVault = new Mock<ISecretReader>();
             mockKeyVault.Setup(x => x.GetSecretAsync(It.IsAny<string>())).Returns((string s) => Task.FromResult(s.ToUpper()));
