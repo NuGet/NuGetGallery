@@ -10,7 +10,7 @@
     @if (!String.IsNullOrEmpty(Model.EmailAddress))
     {
         <p>
-            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, PackageIdValidator.MaxPackageIdLength)
+            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128)
         </p>
     }
     <div id="stats">
