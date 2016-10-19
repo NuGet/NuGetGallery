@@ -6,11 +6,6 @@
 
   "frameworks": {
     "net452": {
-      "frameworkAssemblies": {
-        "System.Data": "",
-        "System.Threading.Tasks": "",
-        "System.Runtime": ""
-      },
       "dependencies": {
         "NuGet.Services.KeyVault": {
           "target": "project"

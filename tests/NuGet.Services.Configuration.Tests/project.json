@@ -8,6 +8,11 @@
 
   "frameworks": {
     "net452": {
+      "frameworkAssemblies": {
+        "System.Threading.Tasks": {
+          "type": "build"
+        }
+      },
       "dependencies": {
         "NuGet.Services.KeyVault": {
           "target": "project"
