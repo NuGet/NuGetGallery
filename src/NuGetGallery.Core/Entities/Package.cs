@@ -13,13 +13,14 @@ namespace NuGetGallery
         : IEntity
     {
 
-#pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
+#pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
         public Package()
         {
             Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
             PackageEdits = new HashSet<PackageEdit>();
             PackageHistories = new HashSet<PackageHistory>();
+            PackageTypes = new HashSet<PackageType>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             Listed = true;
         }
@@ -40,6 +41,8 @@ namespace NuGetGallery
         public DateTime Created { get; set; }
 
         public virtual ICollection<PackageDependency> Dependencies { get; set; }
+
+        public virtual ICollection<PackageType> PackageTypes { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed but *IS* used for searches. Db column is nvarchar(max).
@@ -139,7 +142,7 @@ namespace NuGetGallery
 
         public virtual ICollection<PackageLicenseReport> LicenseReports { get; set; }
 
-        // Pre-calcuated data for the feed
+        // Pre-calculated data for the feed
         public string LicenseNames { get; set; }
         public string LicenseReportUrl { get; set; }
 
@@ -150,6 +153,9 @@ namespace NuGetGallery
         public string FlattenedAuthors { get; set; }
 
         public string FlattenedDependencies { get; set; }
+
+        public string FlattenedPackageTypes { get; set; }
+
         public int Key { get; set; }
 
         [StringLength(44)]

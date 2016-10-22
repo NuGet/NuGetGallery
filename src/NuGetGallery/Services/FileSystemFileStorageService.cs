@@ -141,6 +141,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageFile));
             }
 
+            if (!_fileSystemService.DirectoryExists(_configuration.FileStorageDirectory))
+            {
+                _fileSystemService.CreateDirectory(_configuration.FileStorageDirectory);
+            }
+
             var filePath = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
             var folderPath = Path.GetDirectoryName(filePath);
             if (_fileSystemService.FileExists(filePath))

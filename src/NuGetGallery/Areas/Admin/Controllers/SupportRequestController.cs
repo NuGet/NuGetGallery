@@ -36,6 +36,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _userService = userService;
         }
 
+        [HttpGet]
         public ViewResult Admins()
         {
             var viewModel = new SupportRequestAdminsViewModel();
@@ -43,6 +44,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return View(viewModel);
         }
 
+        [HttpGet]
         public ActionResult GetAdmins()
         {
             var admins = _supportRequestService.GetAllAdmins().Select(a => new SupportRequestAdminViewModel(a));
@@ -202,6 +204,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return View(viewModel);
         }
 
+        [HttpGet]
         public ActionResult History(int id)
         {
             var historyEntries = _supportRequestService.GetHistoryEntriesByIssueKey(id).OrderByDescending(h => h.EntryDate);

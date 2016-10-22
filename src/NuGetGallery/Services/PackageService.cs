@@ -126,7 +126,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(id));
             }
 
-            // Optimization: Everytime we look at a package we almost always want to see
+            // Optimization: Every time we look at a package we almost always want to see
             // all the other packages with the same ID via the PackageRegistration property.
             // This resulted in a gnarly query.
             // Instead, we can always query for all packages with the ID.
@@ -502,30 +502,44 @@ namespace NuGetGallery
             package.ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull();
             package.MinClientVersion = packageMetadata.MinClientVersion.ToStringOrNull();
 
-#pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
+#pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
             foreach (var author in packageMetadata.Authors)
             {
                 package.Authors.Add(new PackageAuthor { Name = author });
             }
 #pragma warning restore 618
 
-            var supportedFrameworks = GetSupportedFrameworks(packageArchive).Select(fn => fn.ToShortNameOrNull()).ToArray();
-            if (!supportedFrameworks.AnySafe(sf => sf == null))
-            {
-                ValidateSupportedFrameworks(supportedFrameworks);
+            var supportedFrameworks = GetSupportedFrameworks(packageArchive)
+                .ToArray();
 
-                foreach (var supportedFramework in supportedFrameworks)
+            if (!supportedFrameworks.Any(fx => fx != null && fx.IsAny))
+            {
+                var supportedFrameworkNames = supportedFrameworks
+                                .Select(fn => fn.ToShortNameOrNull())
+                                .Where(fn => fn != null)
+                                .ToArray();
+
+                ValidateSupportedFrameworks(supportedFrameworkNames);
+
+                foreach (var supportedFramework in supportedFrameworkNames)
                 {
-                    package.SupportedFrameworks.Add(new PackageFramework {TargetFramework = supportedFramework});
+                    package.SupportedFrameworks.Add(new PackageFramework { TargetFramework = supportedFramework });
                 }
             }
-
+            
             package.Dependencies = packageMetadata
                 .GetDependencyGroups()
                 .AsPackageDependencyEnumerable()
                 .ToList();
 
+            package.PackageTypes = packageMetadata
+                .GetPackageTypes()
+                .AsPackageTypeEnumerable()
+                .ToList();
+
             package.FlattenedDependencies = package.Dependencies.Flatten();
+
+            package.FlattenedPackageTypes = package.PackageTypes.Flatten();
 
             return package;
         }

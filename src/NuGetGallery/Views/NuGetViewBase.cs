@@ -16,7 +16,7 @@ namespace NuGetGallery.Views
             get { return _nugetContext.Value; }
         }
 
-        public ConfigurationService Config
+        public IGalleryConfigurationService Config
         {
             get { return NuGetContext.Config; }
         }
@@ -54,7 +54,7 @@ namespace NuGetGallery.Views
             get { return _nugetContext.Value; }
         }
 
-        public ConfigurationService Config
+        public IGalleryConfigurationService Config
         {
             get { return NuGetContext.Config; }
         }

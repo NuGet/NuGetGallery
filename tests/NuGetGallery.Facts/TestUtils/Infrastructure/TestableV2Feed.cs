@@ -11,7 +11,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
     {
         public TestableV2Feed(
             IEntityRepository<Package> repo,
-            ConfigurationService configuration,
+            IGalleryConfigurationService configuration,
             ISearchService searchService)
             : base(repo, configuration, searchService)
         {

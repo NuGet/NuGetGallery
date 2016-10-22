@@ -8,6 +8,8 @@ using Microsoft.Owin;
 using Moq;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery.Framework
 {
@@ -72,9 +74,8 @@ namespace NuGetGallery.Framework
                 mockService.Setup(u => u.FindByUsername(fakes.Owner.Username)).Returns(fakes.Owner);
                 mockService.Setup(u => u.FindByUsername(fakes.Admin.Username)).Returns(fakes.Admin);
                 return mockService.Object;
-            })
-                .As<IUserService>()
-                .SingleInstance();
+            }).As<IUserService>()
+              .SingleInstance();
 
             builder.Register(_ =>
                     {
@@ -88,6 +89,14 @@ namespace NuGetGallery.Framework
             builder.Register(_ => Fakes.CreateOwinContext())
                 .As<IOwinContext>()
                 .SingleInstance();
+
+            builder.Register(_ => new TestGalleryConfigurationService())
+                .As<IGalleryConfigurationService>()
+                .SingleInstance();
+
+            builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
+            builder.RegisterType<CredentialValidator>().As<ICredentialValidator>().SingleInstance();
+            builder.RegisterType<DateTimeProvider>().As<IDateTimeProvider>().SingleInstance();
         }
     }
 }

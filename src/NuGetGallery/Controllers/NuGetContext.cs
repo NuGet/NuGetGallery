@@ -13,12 +13,12 @@ namespace NuGetGallery
 
         public NuGetContext(AppController ctrl)
         {
-            Config = DependencyResolver.Current.GetService<ConfigurationService>();
+            Config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
 
             _currentUser = new Lazy<User>(() => ctrl.OwinContext.GetCurrentUser());
         }
 
-        public ConfigurationService Config { get; internal set; }
+        public IGalleryConfigurationService Config { get; internal set; }
         public User CurrentUser { get { return _currentUser.Value; } }
     }
 }

@@ -16,6 +16,19 @@ namespace NuGetGallery
         private readonly IStatisticsService _statisticsService = null;
         private readonly IAggregateStatsService _aggregateStatsService = null;
 
+        private static readonly string[] PackageDownloadsByVersionDimensions = new[] {
+            Constants.StatisticsDimensions.Version,
+            Constants.StatisticsDimensions.ClientName,
+            Constants.StatisticsDimensions.ClientVersion,
+            Constants.StatisticsDimensions.Operation
+        };
+
+        private static readonly string[] PackageDownloadsDetailDimensions = new [] {
+            Constants.StatisticsDimensions.ClientName,
+            Constants.StatisticsDimensions.ClientVersion,
+            Constants.StatisticsDimensions.Operation
+        };
+
         public StatisticsController(IAggregateStatsService aggregateStatsService)
         {
             _statisticsService = null;
@@ -34,12 +47,11 @@ namespace NuGetGallery
             _aggregateStatsService = aggregateStatsService;
         }
 
-        [HttpGet]
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Head)]
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
         public virtual async Task<ActionResult> Totals()
         {
             var stats = await _aggregateStatsService.GetAggregateStats();
-
 
             return Json(
                 new
@@ -51,8 +63,6 @@ namespace NuGetGallery
                 },
                 JsonRequestBehavior.AllowGet);
         }
-
-
 
         //
         // GET: /stats
@@ -148,9 +158,17 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
+            StatisticsPackagesReport report = null;
+            try
+            {
+                report = await _statisticsService.GetPackageDownloadsByVersion(id);
 
-            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
+                ProcessReport(report, groupby, PackageDownloadsByVersionDimensions, id);
+            }
+            catch (StatisticsReportNotFoundException)
+            {
+                // no report found
+            }
 
             if (report != null)
             {
@@ -176,9 +194,17 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
+            StatisticsPackagesReport report = null;
+            try
+            {
+                report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
-            ProcessReport(report, groupby, new[] { "ClientName", "ClientVersion", "Operation" }, null);
+                ProcessReport(report, groupby, PackageDownloadsDetailDimensions, null);
+            }
+            catch (StatisticsReportNotFoundException)
+            {
+                // no report found
+            }
 
             if (report != null)
             {
@@ -204,7 +230,7 @@ namespace NuGetGallery
             var pivot = new string[4];
             if (groupby != null)
             {
-                //  process and validate the groupby query. unrecognized fields are ignored. others fields regarded for existance
+                // process and validate the groupby query. unrecognized fields are ignored. others fields regarded for existence
                 var dim = 0;
 
                 foreach (var dimension in dimensions)
@@ -222,7 +248,10 @@ namespace NuGetGallery
                     // the pivot array is used as the Columns in the report so we resize because this was the final set of columns
                     Array.Resize(ref pivot, dim);
                 }
+            }
 
+            if (groupby != null)
+            {
                 Tuple<StatisticsPivot.TableEntry[][], string> result = StatisticsPivot.GroupBy(report.Facts, pivot);
 
                 if (id != null)
@@ -252,7 +281,15 @@ namespace NuGetGallery
 
                 foreach (string dimension in dimensions)
                 {
-                    report.Dimensions.Add(new StatisticsDimension { Value = dimension, DisplayName = GetDimensionDisplayName(dimension), IsChecked = false });
+                    if (!report.Dimensions.Any(d => d.Value == dimension))
+                    {
+                        report.Dimensions.Add(new StatisticsDimension
+                        {
+                            Value = dimension,
+                            DisplayName = GetDimensionDisplayName(dimension),
+                            IsChecked = false
+                        });
+                    }
                 }
 
                 report.Table = null;

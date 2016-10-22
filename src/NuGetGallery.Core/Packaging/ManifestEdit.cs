@@ -1,6 +1,11 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+
 namespace NuGetGallery.Packaging
 {
-    public class ManifestEdit
+    public class ManifestEdit : ICloneable
     {
         public string Title { get; set; }
         public string Authors { get; set; }
@@ -13,5 +18,10 @@ namespace NuGetGallery.Packaging
         public bool RequireLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
     }
 }

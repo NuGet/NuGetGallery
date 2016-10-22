@@ -28,12 +28,12 @@ namespace NuGetGallery.Controllers
         private const int MaxPageSize = SearchAdaptor.MaxPageSize;
 
         private readonly IEntityRepository<Package> _packagesRepository;
-        private readonly ConfigurationService _configurationService;
+        private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
 
         public ODataV2FeedController(
             IEntityRepository<Package> packagesRepository,
-            ConfigurationService configurationService,
+            IGalleryConfigurationService configurationService,
             ISearchService searchService)
             : base(configurationService)
         {
@@ -59,7 +59,7 @@ namespace NuGetGallery.Controllers
             try
             {
                 HijackableQueryParameters hijackableQueryParameters = null;
-                if (SearchHijacker.IsHijackable(options, out hijackableQueryParameters) && _searchService is ExternalSearchService)
+                if (_searchService is ExternalSearchService && SearchHijacker.IsHijackable(options, out hijackableQueryParameters))
                 {
                     var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                         _searchService, GetTraditionalHttpContext().Request, packages,
@@ -222,7 +222,7 @@ namespace NuGetGallery.Controllers
                 }
             }
 
-            // Peform actual search
+            // Perform actual search
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
@@ -296,7 +296,7 @@ namespace NuGetGallery.Controllers
             // Workaround https://github.com/NuGet/NuGetGallery/issues/674 for NuGet 2.1 client.
             // Can probably eventually be retired (when nobody uses 2.1 anymore...)
             // Note - it was URI un-escaping converting + to ' ', undoing that is actually a pretty conservative substitution because
-            // space characters are never acepted as valid by VersionUtility.ParseFrameworkName.
+            // space characters are never accepted as valid by VersionUtility.ParseFrameworkName.
             if (!string.IsNullOrEmpty(targetFrameworks))
             {
                 targetFrameworks = targetFrameworks.Replace(' ', '+');

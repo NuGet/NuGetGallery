@@ -15,11 +15,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _content = content;
         }
 
+        [HttpGet]
         public virtual ActionResult Index()
         {
             return View();
         }
 
+        [HttpGet]
         [SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords", MessageId = "Throw", Justification="This is an admin action")]
         [SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes", Justification = "This is an admin action")]
         public virtual ActionResult Throw()
@@ -27,6 +29,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             throw new Exception("KA BOOM!");
         }
 
+        [HttpGet]
         public virtual ActionResult ClearContentCache()
         {
             _content.ClearCache();

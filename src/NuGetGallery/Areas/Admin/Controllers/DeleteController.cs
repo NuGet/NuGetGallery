@@ -21,6 +21,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _packageService = packageService;
         }
 
+        [HttpGet]
         public virtual ActionResult Index()
         {
             var model = new DeletePackagesRequest
@@ -37,6 +38,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             ReportPackageReason.Other
         };
 
+        [HttpGet]
         public virtual ActionResult Search(string query)
         {
             // Search suports several options:

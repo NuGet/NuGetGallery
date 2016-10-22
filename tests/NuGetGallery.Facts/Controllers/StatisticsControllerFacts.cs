@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -288,7 +289,7 @@ namespace NuGetGallery
                 sum += item.Downloads;
             }
 
-            Assert.Equal<int>(106, sum);
+            Assert.Equal(106, sum);
         }
 
         [Fact]
@@ -382,7 +383,7 @@ namespace NuGetGallery
                                     {
                                         { "ClientName", "NuGet" },
                                         { "ClientVersion", "2.1" },
-                                        { "Operation", "unknow" },
+                                        { "Operation", "unknown" },
                                         { "Downloads", 301 }
                                     }
                                 }
@@ -406,7 +407,7 @@ namespace NuGetGallery
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsByVersion(PackageId, new string[] { "Version" })).Model;
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsByVersion(PackageId, new[] { Constants.StatisticsDimensions.Version })).Model;
 
             int sum = 0;
 
@@ -419,6 +420,91 @@ namespace NuGetGallery
             Assert.Equal("603", model.Report.Total);
             Assert.True(model.LastUpdatedUtc.HasValue);
             Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
+        }
+
+        [Fact]
+        public async void StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailabilityInvalidGroupBy()
+        {
+            string PackageId = "A";
+
+            JObject report = new JObject
+            {
+                { "Downloads", 603 },
+                { "Items", new JArray
+                    {
+                        new JObject
+                        {
+                            { "Version", "1.0" },
+                            { "Downloads", 101 },
+                            { "Items", new JArray
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 101 }
+                                    },
+                                }
+                            }
+                        },
+                        new JObject
+                        {
+                            { "Version", "2.0" },
+                            { "Downloads", 502 },
+                            { "Items", new JArray
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 201 }
+                                    },
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "unknown" },
+                                        { "Downloads", 301 }
+                                    }
+                                }
+                            }
+                        },
+                    }
+                }
+            };
+
+            var fakeReport = report.ToString();
+
+            var fakeReportService = new Mock<IReportService>();
+
+            string reportName = "recentpopularity/RecentPopularityDetail_" + PackageId + ".json";
+            reportName = reportName.ToLowerInvariant();
+
+            var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
+            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new StatisticsReport(fakeReport, updatedUtc)));
+
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+
+            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+            var invalidDimension = "this_dimension_does_not_exist";
+
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsByVersion(PackageId, new[] { Constants.StatisticsDimensions.Version, invalidDimension })).Model;
+
+            int sum = 0;
+
+            foreach (var row in model.Report.Table)
+            {
+                sum += int.Parse(row[row.GetLength(0) - 1].Data);
+            }
+
+            Assert.Equal(603, sum);
+            Assert.Equal("603", model.Report.Total);
+            Assert.True(model.LastUpdatedUtc.HasValue);
+            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
+            Assert.DoesNotContain(invalidDimension, model.Report.Columns);
         }
 
         [Fact]
@@ -465,7 +551,7 @@ namespace NuGetGallery
                                     {
                                         { "ClientName", "NuGet" },
                                         { "ClientVersion", "2.1" },
-                                        { "Operation", "unknow" },
+                                        { "Operation", "unknown" },
                                         { "Downloads", 301 }
                                     }
                                 }
@@ -530,7 +616,7 @@ namespace NuGetGallery
                     // Act
                     var result = await controller.Totals() as JsonResult;
 
-                    // Asssert
+                    // Assert
                     Assert.NotNull(result);
                     dynamic data = result.Data;
 
@@ -566,7 +652,7 @@ namespace NuGetGallery
 
                 var result = await InvokeAction(() => (controller.Totals()), controller) as JsonResult;
 
-                // Asssert
+                // Assert
                 Assert.NotNull(result);
                 dynamic data = result.Data;
 

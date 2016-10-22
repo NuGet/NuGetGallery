@@ -101,22 +101,22 @@ namespace NuGetGallery
 
             var uploadPackageRoute = routes.MapRoute(
                 RouteName.UploadPackage,
-                "packages/upload",
+                "packages/manage/upload",
                 new { controller = "Packages", action = "UploadPackage" });
 
             routes.MapRoute(
                 RouteName.UploadPackageProgress,
-                "packages/upload-progress",
+                "packages/manage/upload-progress",
                 new { controller = "Packages", action = "UploadPackageProgress" });
 
             routes.MapRoute(
                 RouteName.VerifyPackage,
-                "packages/verify-upload",
+                "packages/manage/verify-upload",
                 new { controller = "Packages", action = "VerifyPackage" });
 
             routes.MapRoute(
                 RouteName.CancelUpload,
-                "packages/cancel-upload",
+                "packages/manage/cancel-upload",
                 new { controller = "Packages", action = "CancelUpload" });
 
             routes.MapRoute(

@@ -31,6 +31,7 @@ namespace NuGetGallery
         }
 
         // This will let you add 'static' cshtml pages to the site under View/Pages or Branding/Views/Pages
+        [HttpGet]
         public virtual ActionResult Page(string pageName)
         {
             // Prevent traversal attacks and serving non-pages by disallowing ., /, %, and more!
@@ -42,23 +43,27 @@ namespace NuGetGallery
             return View(pageName);
         }
 
+        [HttpGet]
         public virtual ActionResult About()
         {
             return View();
         }
 
+        [HttpGet]
         public virtual ActionResult Contact()
         {
             return View();
         }
 
+        [HttpGet]
         public virtual ActionResult Downloads()
         {
             return Redirect("https://dist.nuget.org/index.html");
         }
 
-        [Authorize]
         [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Contact(ContactSupportViewModel contactForm)
         {
             if (!ModelState.IsValid)
@@ -103,6 +108,7 @@ namespace NuGetGallery
             return View();
         }
 
+        [HttpGet]
         public virtual ActionResult EmptyHome()
         {
             return new HttpStatusCodeResult(HttpStatusCode.OK, "Empty Home");

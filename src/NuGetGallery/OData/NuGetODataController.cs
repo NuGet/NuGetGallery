@@ -15,9 +15,9 @@ namespace NuGetGallery.OData
     public abstract class NuGetODataController 
         : ODataController
     {
-        private readonly ConfigurationService _configurationService;
+        private readonly IGalleryConfigurationService _configurationService;
 
-        protected NuGetODataController(ConfigurationService configurationService)
+        protected NuGetODataController(IGalleryConfigurationService configurationService)
         {
             _configurationService = configurationService;
         }

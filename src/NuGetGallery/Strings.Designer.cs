@@ -70,6 +70,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to a minute.
+        /// </summary>
+        public static string AMinute {
+            get {
+                return ResourceManager.GetString("AMinute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note that your API key has also been updated..
+        /// </summary>
+        public static string ApiKeyAlsoUpdated {
+            get {
+                return ResourceManager.GetString("ApiKeyAlsoUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to API key can not be the default Guid..
         /// </summary>
         public static string ApiKeyCanNotBeDefaultGuid {
@@ -308,12 +326,12 @@ namespace NuGetGallery {
         ///   Looks up a localized string similar to The word on the street is you lost your password. Sorry to hear it!
         ///If you haven&apos;t forgotten your password you can safely ignore this email. Your password has not been changed.
         ///
-        ///Click the following link within the next {0} hours to reset your password:
+        ///Click the following link within the next hour to reset your password:
         ///
-        ///[{1}]({1})
+        ///[{0}]({0})
         ///
         ///Thanks,
-        ///The {2} Team.
+        ///The {1} Team.
         /// </summary>
         public static string Emails_ForgotPassword_Body {
             get {
@@ -334,12 +352,12 @@ namespace NuGetGallery {
         ///   Looks up a localized string similar to The word on the street is you want to set a password for your account.
         ///If you didn&apos;t request a password, you can safely ignore this message. A password has not yet been set.
         ///
-        ///Click the following link within the next {0} hours to set your password:
+        ///Click the following link within the next hour to set your password:
         ///
-        ///[{1}]({1})
+        ///[{0}]({0})
         ///
         ///Thanks,
-        ///The {2} Team.
+        ///The {1} Team.
         /// </summary>
         public static string Emails_SetPassword_Body {
             get {
@@ -488,6 +506,15 @@ namespace NuGetGallery {
         public static string MicrosoftAccount_SignInMessage {
             get {
                 return ResourceManager.GetString("MicrosoftAccount_SignInMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} minutes.
+        /// </summary>
+        public static string Minutes {
+            get {
+                return ResourceManager.GetString("Minutes", resourceCulture);
             }
         }
         
@@ -654,7 +681,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your password has been changed. Note that your API key has also been updated..
+        ///   Looks up a localized string similar to Your password has been changed..
         /// </summary>
         public static string PasswordChanged {
             get {
@@ -785,6 +812,15 @@ namespace NuGetGallery {
         public static string UploadPackage_MinClientVersionOutOfRange {
             get {
                 return ResourceManager.GetString("UploadPackage_MinClientVersionOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your account was locked after too many unsuccessful sign-in attempts. Please try again in {0}..
+        /// </summary>
+        public static string UserAccountLocked {
+            get {
+                return ResourceManager.GetString("UserAccountLocked", resourceCulture);
             }
         }
         

@@ -493,6 +493,7 @@ namespace NuGetGallery.Infrastructure
                 DownloadCount = 12345,
                 FlattenedDependencies = "adjunct-System.FluentCast:1.0.0.4|xunit:1.8.0.1545|adjunct-XUnit.Assertions:1.0.0.5|adjunct-XUnit.Assertions.Linq2Xml:1.0.0.3",
                 HashAlgorithm = "SHA512",
+                // This is a test hash
                 Hash = "Ii4+Gr44RAClAno38k5MYAkcBE6yn2LE2xO+/ViKco45+hoxtwKAytmPWEMCJWhH8FyitjebvS5Fsf+ixI5xIg==",
                 IsLatest = true,
                 IsLatestStable = true,

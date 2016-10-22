@@ -8,6 +8,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 
 namespace NuGetGallery
 {
@@ -32,7 +33,8 @@ namespace NuGetGallery
             Uri projectUrl = null,
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
-            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null)
+            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null)
         {
             using (var streamWriter = new StreamWriter(stream, new UTF8Encoding(false, true), 1024, leaveStreamOpen))
             {
@@ -54,10 +56,37 @@ namespace NuGetGallery
                             <licenseUrl>" + (licenseUrl?.ToString() ?? string.Empty) + @"</licenseUrl>
                             <projectUrl>" + (projectUrl?.ToString() ?? string.Empty) + @"</projectUrl>
                             <iconUrl>" + (iconUrl?.ToString() ?? string.Empty) + @"</iconUrl>
+                            <packageTypes>" + WritePackageTypes(packageTypes) + @"</packageTypes>
                             <dependencies>" + WriteDependencies(packageDependencyGroups) + @"</dependencies>
                         </metadata>
                     </package>");
             }
+        }
+
+        private static string WritePackageTypes(IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes)
+        {
+            if (packageTypes == null || !packageTypes.Any())
+            {
+                return string.Empty;
+            }
+
+            var output = new StringBuilder();
+            foreach(var packageType in packageTypes)
+            {
+                output.Append("<packageType");
+                if (packageType.Name != null)
+                {
+                    output.AppendFormat(" name=\"{0}\"", packageType.Name);
+                }
+
+                if (packageType.Version != null)
+                {
+                    output.AppendFormat(" version=\"{0}\"", packageType.Version.ToString());
+                }
+
+                output.Append("/>");
+            }
+            return output.ToString();
         }
 
         private static string WriteDependencies(IEnumerable<PackageDependencyGroup> packageDependencyGroups)
@@ -112,6 +141,7 @@ namespace NuGetGallery
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
             Action<ZipArchive> populatePackage = null)
         {
             return CreateTestPackageStream(packageArchive =>
@@ -121,7 +151,7 @@ namespace NuGetGallery
                 {
                     WriteNuspec(stream, true, id, version, title, summary, authors, owners, description, tags, language,
                         copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl, iconUrl,
-                        requireLicenseAcceptance, packageDependencyGroups);
+                        requireLicenseAcceptance, packageDependencyGroups, packageTypes);
                 }
 
                 if (populatePackage != null)

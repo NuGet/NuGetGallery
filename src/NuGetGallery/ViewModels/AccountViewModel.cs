@@ -3,14 +3,24 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
     public class AccountViewModel
     {
+        public AccountViewModel()
+        {
+            ChangePassword = new ChangePasswordViewModel
+            {
+                ResetApiKey = true
+            };
+        }
+
         public IEnumerable<string> CuratedFeeds { get; set; }
         public IList<CredentialViewModel> Credentials { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
@@ -44,8 +54,13 @@ namespace NuGetGallery
 
         [Required]
         [Display(Name = "New Password")]
+        [PasswordValidation]
         [AllowHtml]
         public string NewPassword { get; set; }
+
+        [DefaultValue(true)]
+        [Display(Name = "Reset my API key")]
+        public bool ResetApiKey { get; set; }
     }
     
     public class CredentialViewModel
@@ -56,6 +71,7 @@ namespace NuGetGallery
         public string Value { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Expires { get; set; }
+        public DateTime? LastUsed { get; set; }
         public CredentialKind Kind { get; set; }
         public AuthenticatorUI AuthUI { get; set; }
 
@@ -70,6 +86,16 @@ namespace NuGetGallery
 
                 return false;
             }
+        }
+
+        public bool HasBeenUsedInLastDays(int numberOfDays)
+        {
+            if (numberOfDays > 0 && LastUsed.HasValue)
+            {
+                return LastUsed.Value.AddDays(numberOfDays) > DateTime.UtcNow;
+            }
+
+            return true;
         }
     }
 

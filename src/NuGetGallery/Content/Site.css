@@ -1261,12 +1261,12 @@ ul.actionlist {
                 text-decoration: none;
             }
 
-ul.accordeon {
+ul.accordion {
     margin: 0;
     padding: 5px;
 }
 
-    ul.accordeon li.accordeon-item {
+    ul.accordion li.accordion-item {
         background-color: #eff7fa;
         margin: 0.5em 0;
         padding: 0.5em;
@@ -1276,41 +1276,41 @@ ul.accordeon {
         min-height: 32px;
     }
 
-        ul.accordeon li.accordeon-item .accordeon-item-actions {
+        ul.accordion li.accordion-item .accordion-item-actions {
             float: right;
             margin-top: 3px;
         }
 
-        ul.accordeon li.accordeon-item .accordeon-item-title {
+        ul.accordion li.accordion-item .accordion-item-title {
             font-size: 16pt;
             margin-bottom: 1em;
         }
 
-        ul.accordeon li.accordeon-item .accordeon-item-subtitle {
+        ul.accordion li.accordion-item .accordion-item-subtitle {
             font-size: 12pt;
             margin-left: 1em;
         }
 
-            ul.accordeon li.accordeon-item .accordeon-item-subtitle .owner-image {
+            ul.accordion li.accordion-item .accordion-item-subtitle .owner-image {
                 margin-bottom: -8px;
             }
 
-        ul.accordeon li.accordeon-item .accordeon-item-content {
+        ul.accordion li.accordion-item .accordion-item-content {
             padding-top: 1em;
         }
 
-        ul.accordeon li.accordeon-item .accordeon-expand-link {
+        ul.accordion li.accordion-item .accordion-expand-link {
             display: inline-block;
             margin-top: 0.25em;
         }
 
-        ul.accordeon li.accordeon-item.accordeon-item-disabled {
+        ul.accordion li.accordion-item.accordion-item-disabled {
             background-color: white;
             border: 1px dashed silver;
             box-shadow: none;
         }
 
-            ul.accordeon li.accordeon-item.accordeon-item-disabled .accordeon-item-title, li.accordeon-item-disabled .accordeon-item-subtitle {
+            ul.accordion li.accordion-item.accordion-item-disabled .accordion-item-title, li.accordion-item-disabled .accordion-item-subtitle {
                 font-style: italic;
             }
 

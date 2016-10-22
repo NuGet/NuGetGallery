@@ -11,6 +11,7 @@ using Moq;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery
@@ -53,12 +54,13 @@ namespace NuGetGallery
             public void LoadsDescriptionsOfCredentialsInToViewModel()
             {
                 // Arrange
+                var credentialBuilder = new CredentialBuilder();
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser(
                     "test",
-                    CredentialBuilder.CreatePbkdf2Password("hunter2"),
-                    CredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
-                    CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
+                    credentialBuilder.CreatePasswordCredential("hunter2"),
+                    TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -172,7 +174,7 @@ namespace NuGetGallery
                 {
                     EmailAddress = "some@example.com",
                     PasswordResetToken = "confirmation",
-                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddHours(Constants.PasswordResetTokenExpirationHours)
                 };
                 GetMock<IMessageService>()
                     .Setup(s => s.SendPasswordResetInstructions(user, resetUrl, true));
@@ -180,7 +182,7 @@ namespace NuGetGallery
                     .Setup(s => s.FindByEmailAddress("user"))
                     .Returns(user);
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", 1440))
+                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
                     .CompletesWith(user);
                 var controller = GetController<UsersController>();
                 var model = new ForgotPasswordViewModel { Email = "user" };
@@ -196,7 +198,7 @@ namespace NuGetGallery
             {
                 var user = new User { EmailAddress = "some@example.com", Username = "somebody" };
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", 1440))
+                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
                     .CompletesWith(user)
                     .Verifiable();
                 var controller = GetController<UsersController>();
@@ -207,14 +209,14 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 GetMock<AuthenticationService>()
-                    .Verify(s => s.GeneratePasswordResetToken("user", 1440));
+                    .Verify(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60));
             }
 
             [Fact]
             public async Task ReturnsSameViewIfTokenGenerationFails()
             {
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", 1440))
+                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
                     .CompletesWithNull();
                 var controller = GetController<UsersController>();
 
@@ -287,11 +289,29 @@ namespace NuGetGallery
                     ConfirmPassword = "pwd",
                     NewPassword = "newpwd"
                 };
-
+                
                 await controller.ResetPassword("user", "token", model, forgot: false);
 
                 GetMock<IMessageService>()
                     .Verify(m => m.SendCredentialAddedNotice(cred.User, cred));
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenModelIsInvalidItIsRetried(bool forgot)
+            {
+                var controller = GetController<UsersController>();
+
+                controller.ModelState.AddModelError("test", "test");
+
+                var result = await controller.ResetPassword("user", "token", new PasswordResetViewModel(), forgot);
+
+                Assert.NotNull(result);
+                Assert.IsType<ViewResult>(result);
+
+                var viewResult = result as ViewResult;
+                Assert.Equal(forgot, viewResult.ViewBag.ForgotPassword); 
             }
         }
 
@@ -518,9 +538,13 @@ namespace NuGetGallery
                     Key = 1,
                 };
 
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success,
+                                                    new AuthenticatedUser(user, new Credential()));
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
-                    .CompletesWith(new AuthenticatedUser(user, new Credential()));
+                    .CompletesWith(authResult);
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
                     .Throws(new EntityException("msg"));
@@ -549,9 +573,14 @@ namespace NuGetGallery
                     EmailAllowed = true
                 };
 
+                var authResult =
+                    new PasswordAuthenticationResult(
+                        PasswordAuthenticationResult.AuthenticationResult.Success,
+                        new AuthenticatedUser(user, new Credential()));
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.Authenticate("theUsername", "password"))
-                    .CompletesWith(new AuthenticatedUser(user, new Credential()));
+                    .CompletesWith(authResult);
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
                     .Callback(() => user.UpdateEmailAddress("new@example.com", () => "token"))
@@ -583,9 +612,12 @@ namespace NuGetGallery
                     Username = "aUsername",
                 };
 
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, new Credential()));
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.Authenticate("aUsername", "password"))
-                    .CompletesWith(new AuthenticatedUser(user, new Credential()));
+                    .CompletesWith(authResult);
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
                     .Callback(() => user.UpdateEmailAddress("old@example.com", () => "new-token"));
@@ -620,7 +652,8 @@ namespace NuGetGallery
 
                 GetMock<AuthenticationService>()
                     .Setup(u => u.Authenticate("aUsername", "password"))
-                    .CompletesWith(new AuthenticatedUser(user, new Credential()));
+                    .CompletesWith(new PasswordAuthenticationResult(
+                        PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, new Credential())));
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
                     .Callback(() => user.UpdateEmailAddress("new@example.com", () => "new-token"))
@@ -645,6 +678,40 @@ namespace NuGetGallery
                 GetMock<IMessageService>()
                     .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
             }
+
+            [Fact]
+            public async Task WhenPasswordValidationFailsErrorIsReturned()
+            {
+                // Arrange
+                var user = new User
+                {
+                    Username = "theUsername",
+                    EmailAddress = "test@example.com",
+                    Credentials = new [] { new Credential(CredentialTypes.Password.V3, "abc") }
+                };
+
+                Credential credential;
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.ValidatePasswordCredential(It.IsAny<IEnumerable<Credential>>(), It.IsAny<string>(), out credential))
+                    .Returns(false);
+               
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var model = new AccountViewModel
+                {
+                    ChangeEmail = new ChangeEmailViewModel
+                    {
+                        NewEmail = "new@example.com",
+                        Password = "password"
+                    }
+                };
+
+                var result = await controller.ChangeEmail(model);
+
+                Assert.IsType<ViewResult>(result);
+                Assert.IsType<AccountViewModel>(((ViewResult) result).Model);
+            }
         }
 
         public class TheChangePasswordAction : TestContainer
@@ -658,8 +725,8 @@ namespace NuGetGallery
                 var inputModel = new AccountViewModel();
                 controller.SetCurrentUser(new User()
                 {
-                    Credentials = new List<Credential>() {
-                        CredentialBuilder.CreatePbkdf2Password("abc")
+                    Credentials = new List<Credential> {
+                        new CredentialBuilder().CreatePasswordCredential("abc")
                     }
                 });
 
@@ -676,10 +743,10 @@ namespace NuGetGallery
             {
                 // Arrange
                 var user = new User("foo");
-                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("old"));
+                user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(u => u.ChangePassword(user, "old", "new"))
+                    .Setup(u => u.ChangePassword(user, "old", "new", false))
                     .CompletesWith(false);
 
                 var controller = GetController<UsersController>();
@@ -714,10 +781,10 @@ namespace NuGetGallery
             {
                 // Arrange
                 var user = new User("foo");
-                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("old"));
+                user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(u => u.ChangePassword(user, "old", "new"))
+                    .Setup(u => u.ChangePassword(user, "old", "new", false))
                     .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -777,7 +844,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test",
-                    CredentialBuilder.CreatePbkdf2Password("password"));
+                    new CredentialBuilder().CreatePasswordCredential("password"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -796,7 +863,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test",
-                    CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
+                    new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -813,11 +880,12 @@ namespace NuGetGallery
             public async Task GivenValidRequest_ItRemovesCredAndSendsNotificationToUser()
             {
                 // Arrange
+                var credentialBuilder = new CredentialBuilder();
                 var fakes = Get<Fakes>();
-                var cred = CredentialBuilder.CreatePbkdf2Password("password");
+                var cred = credentialBuilder.CreatePasswordCredential("password");
                 var user = fakes.CreateUser("test",
                     cred,
-                    CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
+                    credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
 
                 GetMock<AuthenticationService>()
                     .Setup(a => a.RemoveCredential(user, cred))
@@ -847,7 +915,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
                 var user = fakes.CreateUser("test", cred);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -867,7 +935,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test",
-                    CredentialBuilder.CreatePbkdf2Password("password"));
+                    new CredentialBuilder().CreatePasswordCredential("password"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -884,11 +952,12 @@ namespace NuGetGallery
             public async Task GivenValidRequest_ItRemovesCredAndSendsNotificationToUser()
             {
                 // Arrange
+                var credentialBuilder = new CredentialBuilder();
                 var fakes = Get<Fakes>();
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
+                var cred = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
                 var user = fakes.CreateUser("test",
                     cred,
-                    CredentialBuilder.CreatePbkdf2Password("password"));
+                    credentialBuilder.CreatePasswordCredential("password"));
 
                 GetMock<AuthenticationService>()
                     .Setup(a => a.RemoveCredential(user, cred))

@@ -11,7 +11,7 @@ namespace NuGetGallery.Auditing
         public const string Api = "Created via API.";
 
         /// <summary>
-        /// Package has been created via Nuget web interface (browser)
+        /// Package has been created via NuGet web interface (browser)
         /// </summary>
         public const string Web = "Created via web.";
     }

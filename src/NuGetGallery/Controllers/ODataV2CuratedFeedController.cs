@@ -23,13 +23,13 @@ namespace NuGetGallery.Controllers
         private const int MaxPageSize = 40;
 
         private readonly IEntitiesContext _entities;
-        private readonly ConfigurationService _configurationService;
+        private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
         private readonly ICuratedFeedService _curatedFeedService;
 
         public ODataV2CuratedFeedController(
             IEntitiesContext entities,
-            ConfigurationService configurationService,
+            IGalleryConfigurationService configurationService,
             ISearchService searchService,
             ICuratedFeedService curatedFeedService)
             : base(configurationService)
@@ -198,7 +198,7 @@ namespace NuGetGallery.Controllers
                 }
             }
 
-            // Peform actual search
+            // Perform actual search
             var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);

@@ -195,7 +195,7 @@ The {0} Team";
             {
                 mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your account.", Config.GalleryOwner.DisplayName);
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(toAddress);
                 SendMessage(mailMessage);
@@ -225,7 +225,7 @@ The {0} Team";
                 mailMessage.Subject = String.Format(
                     CultureInfo.CurrentCulture, "[{0}] Please verify your new email address.", Config.GalleryOwner.DisplayName);
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(newEmailAddress);
                 SendMessage(mailMessage);
@@ -255,7 +255,7 @@ The {0} Team";
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
                 SendMessage(mailMessage);
@@ -264,25 +264,26 @@ The {0} Team";
 
         public void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword)
         {
-            string body = String.Format(
+            string body = string.Format(
                 CultureInfo.CurrentCulture,
                 forgotPassword ? Strings.Emails_ForgotPassword_Body : Strings.Emails_SetPassword_Body,
-                Constants.DefaultPasswordResetTokenExpirationHours,
                 resetPasswordUrl,
                 Config.GalleryOwner.DisplayName);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject, Config.GalleryOwner.DisplayName);
+            string subject = string.Format(
+                CultureInfo.CurrentCulture, forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject,
+                Config.GalleryOwner.DisplayName);
+
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(user.ToMailAddress());
                 SendMessage(mailMessage);
             }
         }
-
 
         public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
         {
@@ -309,7 +310,7 @@ The {3} Team";
             {
                 mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
@@ -338,7 +339,7 @@ The {3} Team";
             {
                 mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
@@ -491,7 +492,7 @@ The {3} Team";
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = Config.GalleryOwner;
+                mailMessage.From = Config.GalleryNoReplyAddress;
 
                 AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
 

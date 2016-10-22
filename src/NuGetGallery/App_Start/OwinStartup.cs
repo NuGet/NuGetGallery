@@ -49,7 +49,7 @@ namespace NuGetGallery
             ServiceCenter.Current = _ => elmahServiceCenter;
 
             // Get config
-            var config = dependencyResolver.GetService<ConfigurationService>();
+            var config = dependencyResolver.GetService<IGalleryConfigurationService>();
             var auth = dependencyResolver.GetService<AuthenticationService>();
 
             // Setup telemetry
@@ -84,11 +84,11 @@ namespace NuGetGallery
             }
 
             // Get the local user auth provider, if present and attach it first
-            Authenticator localUserAuther;
-            if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out localUserAuther))
+            Authenticator localUserAuthenticator;
+            if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out localUserAuthenticator))
             {
                 // Configure cookie auth now
-                localUserAuther.Startup(config, app);
+                localUserAuthenticator.Startup(config, app).Wait();
             }
 
             // Attach external sign-in cookie middleware
@@ -111,7 +111,7 @@ namespace NuGetGallery
                 .Select(p => p.Value);
             foreach (var auther in nonCookieAuthers)
             {
-                auther.Startup(config, app);
+                auther.Startup(config, app).Wait();
             }
 
             // Catch unobserved exceptions from threads before they cause IIS to crash:

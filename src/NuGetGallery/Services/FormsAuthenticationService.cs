@@ -52,7 +52,9 @@ namespace NuGetGallery
             if (_configuration.RequireSSL)
             {
                 // Drop a second cookie indicating that the user is logged in via SSL (no secret data, just tells us to redirect them to SSL)
-                context.Response.Cookies.Add(new HttpCookie(ForceSSLCookieName, "true"));
+                HttpCookie responseCookie = new HttpCookie(ForceSSLCookieName, "true");
+                responseCookie.HttpOnly = true;
+                context.Response.Cookies.Add(responseCookie);
             }
         }
 

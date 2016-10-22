@@ -11,6 +11,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery
@@ -18,6 +19,7 @@ namespace NuGetGallery
     public class MessageServiceFacts
     {
         public static readonly MailAddress TestGalleryOwner = new MailAddress("joe@example.com", "Joe Shmoe");
+        public static readonly MailAddress TestGalleryNoReplyAddress = new MailAddress("noreply@example.com", "No Reply");
 
         public class TheReportAbuseMethod
         {
@@ -315,7 +317,7 @@ namespace NuGetGallery
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
-                Assert.Equal(TestGalleryOwner.Address, message.From.Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal("[Joe Shmoe] Please verify your account.", message.Subject);
                 Assert.Contains("http://example.com/confirmation-token-url", message.Body);
             }
@@ -336,7 +338,7 @@ namespace NuGetGallery
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
-                Assert.Equal(TestGalleryOwner.Address, message.From.Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
                 Assert.Equal("[Joe Shmoe] The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Subject);
                 Assert.Contains(confirmationUrl, message.Body);
@@ -372,7 +374,7 @@ namespace NuGetGallery
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("old-owner@example.com", message.To[0].Address);
-                Assert.Equal(TestGalleryOwner.Address, message.From.Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
                 Assert.Contains("The user 'Existing' has removed you as an owner of the package 'CoolStuff'.", message.Subject);
                 Assert.Contains("The user 'Existing' removed you as an owner of the package 'CoolStuff'", message.Body);
@@ -404,7 +406,7 @@ namespace NuGetGallery
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
-                Assert.Equal(TestGalleryOwner.Address, message.From.Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal("[Joe Shmoe] Please reset your password.", message.Subject);
                 Assert.Contains("Click the following link within the next", message.Body);
                 Assert.Contains("http://example.com/pwd-reset-token-url", message.Body);
@@ -417,11 +419,11 @@ namespace NuGetGallery
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() {
+                    .Returns(new CredentialViewModel {
                         AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account")
                     });
 
@@ -438,7 +440,7 @@ namespace NuGetGallery
             public void UsesTypeCaptionToDescribeCredentialIfNoProviderNounPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = CredentialBuilder.CreatePbkdf2Password("bogus");
+                var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
@@ -462,11 +464,11 @@ namespace NuGetGallery
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() {
+                    .Returns(new CredentialViewModel {
                         AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account")
                     });
 
@@ -483,11 +485,11 @@ namespace NuGetGallery
             public void UsesTypeCaptionToDescribeCredentialIfNoProviderNounPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = CredentialBuilder.CreatePbkdf2Password("bogus");
+                var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() {
+                    .Returns(new CredentialViewModel {
                         TypeCaption = "Password"
                     });
 
@@ -532,7 +534,7 @@ namespace NuGetGallery
 
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
-                Assert.Equal(TestGalleryOwner, message.From);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
                 Assert.Contains("[Joe Shmoe] Package published - smangit 1.2.3", message.Subject);
                 Assert.Contains(
                     "The package [smangit 1.2.3](http://dummy1) was just published on Joe Shmoe. If this was not intended, please [contact support](http://dummy2).", message.Body);
@@ -611,6 +613,7 @@ namespace NuGetGallery
                 MailSender = MockMailSender = new TestMailSender();
 
                 MockConfig.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
+                MockConfig.Setup(x => x.GalleryNoReplyAddress).Returns(TestGalleryNoReplyAddress);
             }
         }
 

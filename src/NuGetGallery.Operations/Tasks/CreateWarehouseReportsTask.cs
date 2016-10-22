@@ -192,7 +192,7 @@ namespace NuGetGallery.Operations
                 bag[index++] = packageId;
             }
 
-            // limit the potential concurrency becasue this is against SQL
+            // limit the potential concurrency because this is against SQL
 
             ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
 

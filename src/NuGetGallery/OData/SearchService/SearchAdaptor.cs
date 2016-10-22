@@ -101,10 +101,12 @@ namespace NuGetGallery.OData
             //  b) The sort order is something Lucene can handle
             if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, searchService.ContainsAllVersions, out searchFilter))
             {
-                var searchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\"", id);
+                var normalizedRegistrationId = id.Normalize(NormalizationForm.FormC);
+
+                var searchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\"", normalizedRegistrationId);
                 if (!string.IsNullOrEmpty(version))
                 {
-                    searchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\" AND Version:\"{1}\"", id, version);
+                    searchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\" AND Version:\"{1}\"", normalizedRegistrationId, version);
 
                     searchFilter.Take = 1; // only one result is needed in this case
                 }

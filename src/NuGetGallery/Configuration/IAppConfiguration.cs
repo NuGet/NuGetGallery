@@ -89,6 +89,11 @@ namespace NuGetGallery.Configuration
         MailAddress GalleryOwner { get; set; }
 
         /// <summary>
+        /// Gets the gallery e-mail from name and email address
+        /// </summary>
+        MailAddress GalleryNoReplyAddress { get; set; }
+
+        /// <summary>
         /// Gets the storage mechanism used by this instance of the gallery
         /// </summary>
         StorageType StorageType { get; set; }
@@ -154,6 +159,16 @@ namespace NuGetGallery.Configuration
         /// Blank means any authentication provider can be used by administrators.
         /// </summary>
         string EnforcedAuthProviderForAdmin { get; set; }
+
+        /// <summary>
+        /// The required format for a user password.
+        /// </summary>
+        string UserPasswordRegex { get; set; }
+
+        /// <summary>
+        /// A message to show the user, to explain password requirements.
+        /// </summary>
+        string UserPasswordHint { get; set; }
 
         /// <summary>
         /// Defines the time after which V1 API keys expire.

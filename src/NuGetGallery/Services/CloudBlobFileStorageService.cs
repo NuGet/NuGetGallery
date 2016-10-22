@@ -242,11 +242,29 @@ namespace NuGetGallery
 
         internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri)
         {
-            string host = String.IsNullOrEmpty(_configuration.AzureCdnHost) ? blobUri.Host : _configuration.AzureCdnHost;
+            var host = string.IsNullOrEmpty(_configuration.AzureCdnHost)
+                ? blobUri.Host 
+                : _configuration.AzureCdnHost;
+
+            // When a blob query string is passed, that one always wins.
+            // This will only happen on private NuGet gallery instances,
+            // not on NuGet.org.
+            // When no blob query string is passed, we forward the request
+            // URI's query string to the CDN. See https://github.com/NuGet/NuGetGallery/issues/3168
+            // and related PR's.
+            var queryString = !string.IsNullOrEmpty(blobUri.Query)
+                ? blobUri.Query
+                : requestUrl.Query;
+
+            if (!string.IsNullOrEmpty(queryString))
+            {
+                queryString = queryString.TrimStart('?');
+            }
+
             var urlBuilder = new UriBuilder(requestUrl.Scheme, host)
             {
                 Path = blobUri.LocalPath,
-                Query = blobUri.Query
+                Query = queryString
             };
 
             return urlBuilder.Uri;

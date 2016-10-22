@@ -13,6 +13,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Configuration;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -127,7 +128,7 @@ namespace NuGetGallery.Controllers
             {
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
-                    .CompletesWithNull();
+                    .CompletesWith(new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.BadCredentials));
                 var controller = GetController<AuthenticationController>();
 
                 var result = await controller.SignIn(
@@ -145,10 +146,14 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { EmailAddress = "confirmed@example.com" },
-                    new Credential() { Type = "Foo" });
+                    new Credential { Type = "Foo" });
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
-                    .CompletesWith(authUser);
+                    .CompletesWith(authResult);
+
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
                     .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser))
@@ -175,9 +180,12 @@ namespace NuGetGallery.Controllers
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { EmailAddress = "confirmed@example.com" },
                     new Credential() { Type = "Foo" });
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .CompletesWith(authUser);
+                    .CompletesWith(authResult);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
                     .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser))
@@ -203,10 +211,12 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" },
-                    new Credential() { Type = "Foo" });
+                    new Credential { Type = "Foo" });
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .CompletesWith(authUser);
+                    .CompletesWith(authResult);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
                     .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser))
@@ -232,11 +242,14 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { EmailAddress = "confirmed@example.com" },
-                    new Credential() { Type = "Foo" });
+                    new Credential { Type = "Foo" });
+
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
-                    .CompletesWith(authUser);
+                    .CompletesWith(authResult);
 
                 var controller = GetController<AuthenticationController>();
 
@@ -264,12 +277,14 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { EmailAddress = "confirmed@example.com" },
-                    new Credential() { Type = "Foo" });
-                var externalCred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                    new Credential { Type = "Foo" });
+                var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
-                    .CompletesWith(authUser);
+                    .CompletesWith(authResult);
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AddCredential(authUser.User, externalCred))
                     .Completes()
@@ -313,14 +328,14 @@ namespace NuGetGallery.Controllers
             {
                 var enforcedProvider = "AzureActiveDirectory";
 
-                var config = Get<ConfigurationService>();
-                config.Current = new AppConfiguration()
+                var mockConfig = GetMock<IGalleryConfigurationService>();
+                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration
                 {
                     ConfirmEmailAddresses = false,
                     EnforcedAuthProviderForAdmin = enforcedProvider
-                };
+                });
 
-                var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
+                var externalCred = new CredentialBuilder().CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
 
                 var authUser = new AuthenticatedUser(
                     new User("theUsername")
@@ -332,10 +347,13 @@ namespace NuGetGallery.Controllers
                         }
                     },
                     externalCred);
-                
+
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
-                    .CompletesWith(authUser);
+                    .CompletesWith(authResult);
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AddCredential(authUser.User, externalCred))
@@ -489,11 +507,10 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n"
                     },
                     new Credential());
-                var config = Get<ConfigurationService>();
-                config.Current = new AppConfiguration()
-                {
-                    ConfirmEmailAddresses = false
-                };
+
+                var mockConfig = GetMock<IGalleryConfigurationService>();
+                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration { ConfirmEmailAddresses = false });
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
                     .CompletesWith(authUser);
@@ -570,7 +587,7 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n"
                     },
                     new Credential());
-                var externalCred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred))
@@ -582,6 +599,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
@@ -624,14 +642,14 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var enforcedProvider = "AzureActiveDirectory";
 
-                var config = Get<ConfigurationService>();
-                config.Current = new AppConfiguration()
+                var mockConfig = GetMock<IGalleryConfigurationService>();
+                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration
                 {
                     ConfirmEmailAddresses = false,
                     EnforcedAuthProviderForAdmin = enforcedProvider
-                };
+                });
 
-                var externalCred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
+                var externalCred = new CredentialBuilder().CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
 
                 var authUser = new AuthenticatedUser(
                     new User("theUsername")
@@ -709,7 +727,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
 
                 // Act
-                var result = controller.Authenticate("/theReturnUrl", "MicrosoftAccount");
+                var result = controller.ChallengeAuthentication("/theReturnUrl", "MicrosoftAccount");
 
                 // Assert
                 ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=%2FtheReturnUrl");
@@ -740,9 +758,13 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var fakes = Get<Fakes>();
+
+                var mockConfig = GetMock<IGalleryConfigurationService>();
+                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration());
+
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
                     fakes.CreateUser("test", cred),
                     cred);
@@ -771,17 +793,17 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var enforcedProvider = "AzureActiveDirectory";
 
-                var config = Get<ConfigurationService>();
-                config.Current = new AppConfiguration()
+                var mockConfig = GetMock<IGalleryConfigurationService>();
+                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration
                 {
                     ConfirmEmailAddresses = false,
                     EnforcedAuthProviderForAdmin = enforcedProvider
-                };
+                });
 
                 var fakes = Get<Fakes>();
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
-                var cred = CredentialBuilder.CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
                     fakes.CreateUser("test", cred),
                     cred);
@@ -830,7 +852,7 @@ namespace NuGetGallery.Controllers
             public async Task GivenNoLinkAndNoClaimData_ItDisplaysLogOnViewWithNoPrefilledData()
             {
                 // Arrange
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
 
@@ -895,7 +917,7 @@ namespace NuGetGallery.Controllers
             public async Task GivenNoLinkAndEmailClaim_ItDisplaysLogOnViewWithEmailPrefilled()
             {
                 // Arrange
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
 
@@ -931,7 +953,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var existingUser = new User("existingUser") { EmailAddress = "existing@example.com" };
-                var cred = CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
                 var authUser = new AuthenticatedUser(

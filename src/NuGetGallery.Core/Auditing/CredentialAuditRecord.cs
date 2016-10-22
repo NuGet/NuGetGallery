@@ -13,6 +13,7 @@ namespace NuGetGallery.Auditing
         public string Identity { get; }
         public DateTime Created { get; }
         public DateTime? Expires { get; }
+        public DateTime? LastUsed { get; }
 
         public CredentialAuditRecord(Credential credential, bool removed)
         {
@@ -20,13 +21,14 @@ namespace NuGetGallery.Auditing
             Type = credential.Type;
             Identity = credential.Identity;
 
-            // Track the value for credentials that are definitely revokable (API Key, etc.) and have been removed
+            // Track the value for credentials that are definitely revocable (API Key, etc.) and have been removed
             if (removed && !CredentialTypes.IsPassword(credential.Type))
             {
                 Value = credential.Value;
             }
             Created = credential.Created;
             Expires = credential.Expires;
+            LastUsed = credential.LastUsed;
         }
     }
 }

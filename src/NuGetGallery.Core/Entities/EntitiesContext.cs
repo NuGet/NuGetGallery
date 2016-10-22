@@ -72,7 +72,7 @@ namespace NuGetGallery
             return Database;
         }
 
-#pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
+#pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Credential>()
@@ -145,6 +145,11 @@ namespace NuGetGallery
                 .HasMany<PackageDependency>(p => p.Dependencies)
                 .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
+
+            modelBuilder.Entity<Package>()
+                .HasMany<PackageType>(p => p.PackageTypes)
+                .WithRequired(pt => pt.Package)
+                .HasForeignKey(pt => pt.PackageKey);
 
             modelBuilder.Entity<PackageEdit>()
                 .HasKey(pm => pm.Key);

@@ -15,7 +15,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
         {
         }
 
-        [Fact]
+        [Fact(Skip = "Test Account is already confirmed")]
         [Description("Covers scenarios around the Resend Confirmation link.")]
         [Priority(2)]
         public void ResendConfirmation()

@@ -103,7 +103,10 @@ namespace WASDImportExport
                     //Initialize the WebResponse to the response from the WebRequest
                     webResponse = webRequest.GetResponse();
 
-                    xmlStreamReader = XmlReader.Create(webResponse.GetResponseStream());
+                    // See CA3053. Default XmlReaderSettings contains an insecure XmlResolver. Best to specify null.
+                    XmlReaderSettings xmlSettings = new XmlReaderSettings();
+                    xmlSettings.XmlResolver = null;
+                    xmlStreamReader = XmlReader.Create(webResponse.GetResponseStream(), xmlSettings);
                     xmlStreamReader.ReadToFollowing("guid");
                     requestGuid = xmlStreamReader.ReadElementContentAsString();
                     _log.Info($"Export Request '{requestGuid}' submitted");
@@ -138,7 +141,7 @@ namespace WASDImportExport
                 }
                 catch (WebException responseException)
                 {
-                    _log.Error("Request Falied:{0}", responseException.Message);
+                    _log.Error("Request Failed:{0}", responseException.Message);
                     if (responseException.Response != null)
                     {
                         _log.Error("Status Code: {0}", ((HttpWebResponse)responseException.Response).StatusCode);
@@ -224,7 +227,7 @@ namespace WASDImportExport
         //    }
         //    catch (WebException responseException)
         //    {
-        //        Console.WriteLine("Request Falied: {0}", responseException.Message);
+        //        Console.WriteLine("Request Failed: {0}", responseException.Message);
         //        {
         //            Console.WriteLine("Status Code: {0}", ((HttpWebResponse)responseException.Response).StatusCode);
         //            Console.WriteLine("Status Description: {0}\n\r", ((HttpWebResponse)responseException.Response).StatusDescription);
@@ -245,7 +248,10 @@ namespace WASDImportExport
             webRequest.Method = WebRequestMethods.Http.Get;
             webRequest.ContentType = @"application/xml";
             WebResponse webResponse = webRequest.GetResponse();
-            XmlReader xmlStreamReader = XmlReader.Create(webResponse.GetResponseStream());
+            // See CA3053. Default XmlReaderSettings contains an insecure XmlResolver. Best to specify null.
+            XmlReaderSettings xmlSettings = new XmlReaderSettings();
+            xmlSettings.XmlResolver = null;
+            XmlReader xmlStreamReader = XmlReader.Create(webResponse.GetResponseStream(), xmlSettings);
             DataContractSerializer dataContractSerializer = new DataContractSerializer(typeof(List<StatusInfo>));
 
             return (List<StatusInfo>)dataContractSerializer.ReadObject(xmlStreamReader, true);

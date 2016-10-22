@@ -9,6 +9,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery.Authentication.Providers.ApiKey
 {
@@ -18,14 +19,32 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
         protected ILogger Logger { get; set; }
         protected AuthenticationService Auth { get; set; }
+        protected ICredentialBuilder CredentialBuilder { get; set; }
 
         private ApiKeyAuthenticationOptions TheOptions { get { return _options ?? Options; } }
 
         internal ApiKeyAuthenticationHandler() { }
-        public ApiKeyAuthenticationHandler(ILogger logger, AuthenticationService auth)
+
+        public ApiKeyAuthenticationHandler(ILogger logger, AuthenticationService auth, ICredentialBuilder credentialBuilder)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (auth == null)
+            {
+                throw new ArgumentNullException(nameof(auth));
+            }
+
+            if (credentialBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(credentialBuilder));
+            }
+
             Logger = logger;
             Auth = auth;
+            CredentialBuilder = credentialBuilder;
         }
 
         internal Task InitializeAsync(ApiKeyAuthenticationOptions options, IOwinContext context)
@@ -70,10 +89,10 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
         protected override async Task<AuthenticationTicket> AuthenticateCoreAsync()
         {
             var apiKey = Request.Headers[TheOptions.ApiKeyHeaderName];
-            if (!String.IsNullOrEmpty(apiKey))
+            if (!string.IsNullOrEmpty(apiKey))
             {
                 // Get the user
-                var authUser = await Auth.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey, TimeSpan.Zero));
+                var authUser = await Auth.Authenticate(CredentialBuilder.ParseApiKeyCredential(apiKey));
                 if (authUser != null)
                 {
                     // Set the current user

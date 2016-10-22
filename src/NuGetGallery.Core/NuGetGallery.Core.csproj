@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -25,7 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>..\Frontend.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\FrontendSDL.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -95,7 +94,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Packaging.3.6.0-rc-1986\lib\net45\NuGet.Packaging.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.3.6.0-rc-1997\lib\net45\NuGet.Packaging.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Packaging.Core, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -178,6 +177,7 @@
     <Compile Include="Entities\PackageLicenseReport.cs" />
     <Compile Include="Entities\PackageOwnerRequest.cs" />
     <Compile Include="Entities\PackageRegistration.cs" />
+    <Compile Include="Entities\PackageType.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
@@ -187,6 +187,7 @@
     <Compile Include="Packaging\ManifestValidator.cs" />
     <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="Packaging\PackageMetadata.cs" />
+    <Compile Include="Packaging\PackageMetadataStrings.cs" />
     <Compile Include="Packaging\PackageStreamMetadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="NuGetVersionExtensions.cs" />
@@ -213,12 +214,4 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.props'))" />
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets'))" />
-  </Target>
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.13\build\NuGet.Services.Build.targets')" />
 </Project>

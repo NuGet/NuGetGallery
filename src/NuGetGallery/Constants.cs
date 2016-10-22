@@ -11,7 +11,15 @@ namespace NuGetGallery
         public const string AlphabeticSortOrder = "package-title";
         public const int DefaultPackageListPageSize = 20;
         public const string DefaultPackageListSortOrder = "package-download-count";
-        public const int DefaultPasswordResetTokenExpirationHours = 24;
+        public const int PasswordResetTokenExpirationHours = 1;
+
+        /// <summary>
+        /// Parameters for calculating account lockout period after 
+        /// wrong password entry.
+        /// </summary>
+        public const double AccountLockoutMultiplierInMinutes = 10;
+        public const double AllowedLoginAttempts = 10;
+
         public const int MaxEmailSubjectLength = 255;
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("3.4.0.0");
         public const string PackageContentType = "binary/octet-stream";
@@ -56,6 +64,14 @@ namespace NuGetGallery
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";
             public static readonly string Team = "Team";
+        }
+
+        public static class StatisticsDimensions
+        {
+            public const string Version = "Version";
+            public const string ClientName = "ClientName";
+            public const string ClientVersion = "ClientVersion";
+            public const string Operation = "Operation";
         }
     }
 }

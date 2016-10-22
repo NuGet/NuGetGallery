@@ -40,7 +40,7 @@ namespace NuGetGallery
         public IStatusService StatusService { get; set; }
         public IMessageService MessageService { get; set; }
         public AuditingService AuditingService { get; set; }
-        public ConfigurationService ConfigurationService { get; set; }
+        public IGalleryConfigurationService ConfigurationService { get; set; }
 
         protected ApiController()
         {
@@ -60,7 +60,7 @@ namespace NuGetGallery
             IStatusService statusService,
             IMessageService messageService,
             AuditingService auditingService,
-            ConfigurationService configurationService)
+            IGalleryConfigurationService configurationService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -92,7 +92,7 @@ namespace NuGetGallery
             IStatisticsService statisticsService,
             IMessageService messageService,
             AuditingService auditingService,
-            ConfigurationService configurationService)
+            IGalleryConfigurationService configurationService)
             : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService)
         {
             StatisticsService = statisticsService;
@@ -288,9 +288,10 @@ namespace NuGetGallery
                                         attemptedPackage: new AuditedPackageIdentifier(
                                             nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe())));
 
-                                // User can not push this package
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden,
-                                    Strings.ApiKeyNotAuthorized);
+                                // User cannot push a package to an ID owned by another user.
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
+                                    String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
+                                        nuspec.GetId()));
                             }
 
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.

@@ -15,7 +15,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.Statistics
         {
         }
 
-        [Fact]
+        [Fact(Skip = "Checkboxes currently aren't visible in some scenarios on the test project stats page in some cases. Disable until stability")]
         [Description("Toggle checkboxes on a Package's Stats page, verify layout.")]
         [Priority(2)]
         public void PackageStats()

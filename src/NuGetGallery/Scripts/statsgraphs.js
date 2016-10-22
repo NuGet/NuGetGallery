@@ -1,5 +1,4 @@
-﻿
-var drawNugetClientVersionBarChart = function () {
+﻿var drawNugetClientVersionBarChart = function () {
 
     var margin = { top: 20, right: 30, bottom: 80, left: 80 },
         width = 460 - margin.left - margin.right,

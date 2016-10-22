@@ -8,6 +8,8 @@ using System.Security.Claims;
 using System.Security.Principal;
 using Microsoft.Owin;
 using Moq;
+using NuGetGallery.Authentication;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery.Framework
 {
@@ -21,12 +23,24 @@ namespace NuGetGallery.Framework
         {
             User = new User("testUser")
             {
-                Key = 42,
+                Key = 40,
+                EmailAddress = "confirmed0@example.com",
+                Credentials = new List<Credential>
+                {
+                    new CredentialBuilder().CreatePasswordCredential(Password),
+                    TestCredentialBuilder.CreateV1ApiKey(Guid.Parse("669e180e-335c-491a-ac26-e83c4bd31d65"),
+                        ExpirationForApiKeyV1)
+                }
+            };
+
+            Pbkdf2User = new User("testPbkdf2User")
+            {
+                Key = 41,
                 EmailAddress = "confirmed1@example.com",
                 Credentials = new List<Credential>
                 {
-                    CredentialBuilder.CreatePbkdf2Password(Password),
-                    CredentialBuilder.CreateV1ApiKey(Guid.Parse("519e180e-335c-491a-ac26-e83c4bd31d65"),
+                    TestCredentialBuilder.CreatePbkdf2Password(Password),
+                    TestCredentialBuilder.CreateV1ApiKey(Guid.Parse("519e180e-335c-491a-ac26-e83c4bd31d65"),
                         ExpirationForApiKeyV1)
                 }
             };
@@ -37,8 +51,8 @@ namespace NuGetGallery.Framework
                 EmailAddress = "confirmed2@example.com",
                 Credentials = new List<Credential>
                 {
-                    CredentialBuilder.CreateSha1Password(Password),
-                    CredentialBuilder.CreateV1ApiKey(Guid.Parse("b9704a41-4107-4cd2-bcfa-70d84e021ab2"),
+                    TestCredentialBuilder.CreateSha1Password(Password),
+                    TestCredentialBuilder.CreateV1ApiKey(Guid.Parse("b9704a41-4107-4cd2-bcfa-70d84e021ab2"),
                         ExpirationForApiKeyV1)
                 }
             };
@@ -47,14 +61,14 @@ namespace NuGetGallery.Framework
             {
                 Key = 43,
                 EmailAddress = "confirmed3@example.com",
-                Credentials = new List<Credential> {CredentialBuilder.CreatePbkdf2Password(Password)},
+                Credentials = new List<Credential> { TestCredentialBuilder.CreatePbkdf2Password(Password)},
                 Roles = new List<Role> {new Role {Name = Constants.AdminRoleName}}
             };
 
             Owner = new User("testPackageOwner")
             {
                 Key = 44,
-                Credentials = new List<Credential> {CredentialBuilder.CreatePbkdf2Password(Password)},
+                Credentials = new List<Credential> { TestCredentialBuilder.CreatePbkdf2Password(Password)},
                 EmailAddress = "confirmed@example.com" //package owners need confirmed email addresses, obviously.
             };
 
@@ -73,6 +87,8 @@ namespace NuGetGallery.Framework
         public User User { get; }
 
         public User ShaUser { get; }
+
+        public User Pbkdf2User { get; }
 
         public User Admin { get; }
 
@@ -112,6 +128,7 @@ namespace NuGetGallery.Framework
             // Add Users
             var users = ctxt.Set<User>();
             users.Add(User);
+            users.Add(Pbkdf2User);
             users.Add(ShaUser);
             users.Add(Admin);
             users.Add(Owner);
