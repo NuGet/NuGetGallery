@@ -14,9 +14,6 @@ namespace NuGetGallery.Packaging
 {
     public class ManifestValidator
     {
-        // Copy-pasta from NuGet: src/Core/Utility/PackageIdValidator.cs because that constant is internal :(
-        public static readonly int MaxPackageIdLength = 100;
-        
         public static IEnumerable<ValidationResult> Validate(Stream nuspecStream, out NuspecReader nuspecReader)
         {
             try
@@ -46,7 +43,7 @@ namespace NuGetGallery.Packaging
             }
             else
             {
-                if (packageMetadata.Id.Length > MaxPackageIdLength)
+                if (packageMetadata.Id.Length > PackageIdValidator.MaxPackageIdLength)
                 {
                     yield return new ValidationResult(Strings.Manifest_IdTooLong);
                 }
