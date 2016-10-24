@@ -67,7 +67,7 @@ namespace NuGet.Services.Search.Client
             // Create requests queue
             var tasks = CreateRequestQueue(healthyEndpoints, httpClient, cancellationTokenSource);
 
-            // When the first succesful task comes in, return it. If no succesfull tasks are returned, throw an AggregateException.
+            // When the first successful task comes in, return it. If no successful tasks are returned, throw an AggregateException.
             var exceptions = new List<Exception>();
 
             var taskList = tasks.ToList();

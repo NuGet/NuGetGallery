@@ -22,7 +22,7 @@ namespace NuGetGallery.Helpers
     }
 
     /// <summary>
-    /// Create an HTML tree from a resursive collection of items
+    /// Create an HTML tree from a recursive collection of items
     /// </summary>
     public class TreeView<T> : IHtmlString
     {

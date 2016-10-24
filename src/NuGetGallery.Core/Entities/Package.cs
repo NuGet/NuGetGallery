@@ -13,7 +13,7 @@ namespace NuGetGallery
         : IEntity
     {
 
-#pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
+#pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
         public Package()
         {
             Authors = new HashSet<PackageAuthor>();
@@ -142,7 +142,7 @@ namespace NuGetGallery
 
         public virtual ICollection<PackageLicenseReport> LicenseReports { get; set; }
 
-        // Pre-calcuated data for the feed
+        // Pre-calculated data for the feed
         public string LicenseNames { get; set; }
         public string LicenseReportUrl { get; set; }
 

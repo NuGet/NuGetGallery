@@ -581,7 +581,7 @@ namespace NuGetGallery
                 var package = new Package();
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "", false)).Throws(new DataException("Oh noes, database broked!"));
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "", false)).Throws(new DataException("Oh noes, database broken!"));
  		        controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
                              .Returns(Task.FromResult<ActionResult>(actionResult))
                              .Verifiable();

@@ -8,7 +8,7 @@ using NuGetGallery.Services.Authentication;
 namespace NuGetGallery.Authentication
 {
     /// <summary>
-    /// Builds all kinds of supported credentials for test puposes.
+    /// Builds all kinds of supported credentials for test purposes.
     /// </summary>
     public class TestCredentialBuilder
     {

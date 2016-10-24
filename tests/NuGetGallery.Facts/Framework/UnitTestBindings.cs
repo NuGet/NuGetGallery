@@ -74,9 +74,8 @@ namespace NuGetGallery.Framework
                 mockService.Setup(u => u.FindByUsername(fakes.Owner.Username)).Returns(fakes.Owner);
                 mockService.Setup(u => u.FindByUsername(fakes.Admin.Username)).Returns(fakes.Admin);
                 return mockService.Object;
-            })
-                .As<IUserService>()
-                .SingleInstance();
+            }).As<IUserService>()
+              .SingleInstance();
 
             builder.Register(_ =>
                     {
@@ -97,6 +96,7 @@ namespace NuGetGallery.Framework
 
             builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
             builder.RegisterType<CredentialValidator>().As<ICredentialValidator>().SingleInstance();
+            builder.RegisterType<DateTimeProvider>().As<IDateTimeProvider>().SingleInstance();
         }
     }
 }

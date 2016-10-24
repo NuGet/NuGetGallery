@@ -105,7 +105,7 @@ namespace NuGetGallery.Operations.Tasks
                 }
                 else
                 {
-                    // Select the most recent pacakge
+                    // Select the most recent package
                     var selected = packages.OrderByDescending(p => p.Published).FirstOrDefault();
                     if (selected == null)
                     {

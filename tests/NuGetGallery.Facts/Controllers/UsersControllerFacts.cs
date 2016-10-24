@@ -538,9 +538,13 @@ namespace NuGetGallery
                     Key = 1,
                 };
 
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success,
+                                                    new AuthenticatedUser(user, new Credential()));
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
-                    .CompletesWith(new AuthenticatedUser(user, new Credential()));
+                    .CompletesWith(authResult);
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
                     .Throws(new EntityException("msg"));
@@ -569,9 +573,14 @@ namespace NuGetGallery
                     EmailAllowed = true
                 };
 
+                var authResult =
+                    new PasswordAuthenticationResult(
+                        PasswordAuthenticationResult.AuthenticationResult.Success,
+                        new AuthenticatedUser(user, new Credential()));
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.Authenticate("theUsername", "password"))
-                    .CompletesWith(new AuthenticatedUser(user, new Credential()));
+                    .CompletesWith(authResult);
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
                     .Callback(() => user.UpdateEmailAddress("new@example.com", () => "token"))
@@ -603,9 +612,12 @@ namespace NuGetGallery
                     Username = "aUsername",
                 };
 
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, new Credential()));
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.Authenticate("aUsername", "password"))
-                    .CompletesWith(new AuthenticatedUser(user, new Credential()));
+                    .CompletesWith(authResult);
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
                     .Callback(() => user.UpdateEmailAddress("old@example.com", () => "new-token"));
@@ -640,7 +652,8 @@ namespace NuGetGallery
 
                 GetMock<AuthenticationService>()
                     .Setup(u => u.Authenticate("aUsername", "password"))
-                    .CompletesWith(new AuthenticatedUser(user, new Credential()));
+                    .CompletesWith(new PasswordAuthenticationResult(
+                        PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, new Credential())));
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
                     .Callback(() => user.UpdateEmailAddress("new@example.com", () => "new-token"))
@@ -664,6 +677,40 @@ namespace NuGetGallery
                     .Verify(u => u.ChangeEmailAddress(user, "new@example.com"));
                 GetMock<IMessageService>()
                     .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
+            public async Task WhenPasswordValidationFailsErrorIsReturned()
+            {
+                // Arrange
+                var user = new User
+                {
+                    Username = "theUsername",
+                    EmailAddress = "test@example.com",
+                    Credentials = new [] { new Credential(CredentialTypes.Password.V3, "abc") }
+                };
+
+                Credential credential;
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.ValidatePasswordCredential(It.IsAny<IEnumerable<Credential>>(), It.IsAny<string>(), out credential))
+                    .Returns(false);
+               
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var model = new AccountViewModel
+                {
+                    ChangeEmail = new ChangeEmailViewModel
+                    {
+                        NewEmail = "new@example.com",
+                        Password = "password"
+                    }
+                };
+
+                var result = await controller.ChangeEmail(model);
+
+                Assert.IsType<ViewResult>(result);
+                Assert.IsType<AccountViewModel>(((ViewResult) result).Model);
             }
         }
 

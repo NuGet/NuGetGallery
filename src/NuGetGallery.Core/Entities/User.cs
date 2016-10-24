@@ -9,8 +9,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
-    public class User
-        : IEntity
+    public class User : IEntity
     {
         public User() : this(null)
         {
@@ -56,6 +55,10 @@ namespace NuGetGallery
         public int Key { get; set; }
 
         public DateTime? CreatedUtc { get; set; }
+
+        public DateTime? LastFailedLoginUtc { get; set; }
+
+        public int FailedLoginCount { get; set; }
 
         public string LastSavedEmailAddress
         {

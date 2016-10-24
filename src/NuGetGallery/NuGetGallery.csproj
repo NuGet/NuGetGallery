@@ -696,7 +696,9 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
+    <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
+    <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
@@ -749,6 +751,8 @@
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
     <Compile Include="Infrastructure\Authentication\ICredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\ICredentialValidator.cs" />
+    <Compile Include="Infrastructure\DateTimeProvider.cs" />
+    <Compile Include="Infrastructure\IDateTimeProvider.cs" />
     <Compile Include="Infrastructure\PasswordValidationAttribute.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.Designer.cs">
@@ -809,6 +813,10 @@
     <Compile Include="Migrations\201609092255576_AddIndexUsersEmail.cs" />
     <Compile Include="Migrations\201609092255576_AddIndexUsersEmail.Designer.cs">
       <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610042351343_AddUserFailedLogin.cs" />
+    <Compile Include="Migrations\201610042351343_AddUserFailedLogin.Designer.cs">
+      <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
     </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
@@ -1927,6 +1935,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201609092255576_AddIndexUsersEmail.resx">
       <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610042351343_AddUserFailedLogin.resx">
+      <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

@@ -34,7 +34,7 @@ const string ControllersFolder = "Controllers";
 // The folder under the project that contains the views
 const string ViewsRootFolder = "Views";
 
-// Views in DisplayTemplates and EditorTemplates folders shouldn't be fully qualifed as it breaks
+// Views in DisplayTemplates and EditorTemplates folders shouldn't be fully qualified as it breaks
 // the templated helper code
 readonly string[]  NonQualifiedViewFolders = new string[] {
   "DisplayTemplates",

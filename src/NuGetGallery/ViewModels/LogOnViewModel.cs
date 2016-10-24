@@ -62,7 +62,7 @@ namespace NuGetGallery
 
     public class RegisterViewModel
     {
-        // Note: regexes must be tested to work in javascript
+        // Note: regexes must be tested to work in JavaScript
         // We do NOT follow strictly the RFCs at this time, and we choose not to support many obscure email address variants.
         // Specifically the following are not supported by-design:
         //  * Addresses containing () or []

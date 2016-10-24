@@ -377,16 +377,18 @@ namespace NuGetGallery
                     return AccountView(model);
                 }
 
-                var authUser = await _authService.Authenticate(User.Identity.Name, model.ChangeEmail.Password);
-                if (authUser == null)
+                Credential _;
+
+                if (!_authService.ValidatePasswordCredential(user.Credentials, model.ChangeEmail.Password, out _))
                 {
                     ModelState.AddModelError("ChangeEmail.Password", Strings.CurrentPasswordIncorrect);
                     return AccountView(model);
                 }
             }
+
             // No password? We can't do any additional verification...
 
-            if (String.Equals(model.ChangeEmail.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(model.ChangeEmail.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
             {
                 // email address unchanged - accept
                 return RedirectToAction(actionName: "Account", controllerName: "Users");
@@ -461,7 +463,7 @@ namespace NuGetGallery
                     return AccountView(model);
                 }
 
-                if (!(await _authService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword, model.ChangePassword.ResetApiKey)))
+                if (!await _authService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword, model.ChangePassword.ResetApiKey))
                 {
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
                     return AccountView(model);

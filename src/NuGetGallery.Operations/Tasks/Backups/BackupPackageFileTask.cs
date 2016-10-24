@@ -59,7 +59,7 @@ namespace NuGetGallery.Operations
             var downloadedPackageFilePath = Path.Combine(Util.GetTempFolder(), packageFileName);
 
             // Why are we still downloading/uploading instead of using Async Blob Copy?
-            // Because it feels a little safer to ensure we know the copy is truely complete before continuing.
+            // Because it feels a little safer to ensure we know the copy is truly complete before continuing.
             // I could be convinced otherwise though 
             //  - anurse
             Log.Trace("Downloading package file '{0}' to temporary file '{1}'.", packageFileName, downloadedPackageFilePath);

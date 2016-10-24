@@ -67,7 +67,7 @@ namespace NuGet.Services.Search.Client.Correlation
             if (response != null)
             {
                 // Do not allow overriding the header - if any code wants to set the correlation id
-                // it shoud set the request property instead.
+                // it should set the request property instead.
                 if (response.Headers.Contains(CorrelationIdHttpHeaderName))
                 {
                     response.Headers.Remove(CorrelationIdHttpHeaderName);

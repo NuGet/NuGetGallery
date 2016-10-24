@@ -12,6 +12,14 @@ namespace NuGetGallery
         public const int DefaultPackageListPageSize = 20;
         public const string DefaultPackageListSortOrder = "package-download-count";
         public const int PasswordResetTokenExpirationHours = 1;
+
+        /// <summary>
+        /// Parameters for calculating account lockout period after 
+        /// wrong password entry.
+        /// </summary>
+        public const double AccountLockoutMultiplierInMinutes = 10;
+        public const double AllowedLoginAttempts = 10;
+
         public const int MaxEmailSubjectLength = 255;
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("3.4.0.0");
         public const string PackageContentType = "binary/octet-stream";

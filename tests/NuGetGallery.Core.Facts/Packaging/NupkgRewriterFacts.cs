@@ -63,7 +63,7 @@ namespace NuGetGallery.Packaging
                 var metadataDescendants = nuspec.Xml.Document.Descendants().Where(d => d.Name.LocalName == PackageMetadataStrings.Metadata).Descendants();
                 foreach (var element in metadataDescendants)
                 {
-                    Assert.False(string.IsNullOrEmpty(element.Value), $"Nuspec contains a null or emtpy tag <{element.Name.LocalName}>");
+                    Assert.False(string.IsNullOrEmpty(element.Value), $"Nuspec contains a null or empty tag <{element.Name.LocalName}>");
                 }
             }
         }

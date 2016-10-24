@@ -70,7 +70,7 @@ namespace NuGetGallery.Operations
             ServicePointManager.ServerCertificateValidationCallback = delegate(object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
             System.Net.Mail.MailMessage message = new System.Net.Mail.MailMessage();
 
-            //Set the from and to mail addressess.
+            //Set the from and to mail addresses.
             message.From = new MailAddress(UserAccount, "NuGet Gallery Support");
 
             string[] replyTo = ReplyToList.Split(new char[] { ',' });
