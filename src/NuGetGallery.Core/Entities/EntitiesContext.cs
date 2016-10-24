@@ -134,7 +134,8 @@ namespace NuGetGallery
                            .MapRightKey("UserKey"));
 
             modelBuilder.Entity<Package>()
-                .HasKey(p => p.Key);
+                .HasKey(p => p.Key)
+                .MapToStoredProcedures();
 
             modelBuilder.Entity<Package>()
                 .HasMany<PackageAuthor>(p => p.Authors)
