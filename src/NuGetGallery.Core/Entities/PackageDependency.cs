@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
-using NuGet.Packaging;
 
 namespace NuGetGallery
 {
@@ -16,7 +15,7 @@ namespace NuGetGallery
         ///     We insert a record with a null Id to indicate an empty package dependency set. In such a case, the Id would be empty and hence
         ///     we cannot mandate that it is required.
         /// </remarks>
-        [StringLength(PackageIdValidator.MaxPackageIdLength)]
+        [StringLength(Packaging.PackagingConstants.PackageIdDatabaseLength)]
         public string Id { get; set; }
 
         [StringLength(256)]

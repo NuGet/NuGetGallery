@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using NuGet.Packaging;
 
 namespace NuGetGallery
 {
@@ -13,7 +12,7 @@ namespace NuGetGallery
         public int Key { get; set; }
 
         [Required]
-        [StringLength(PackageIdValidator.MaxPackageIdLength)]
+        [StringLength(128)]
         public string Name { get; set; }
 
         public virtual ICollection<PackageLicenseReport> Reports { get; set; }

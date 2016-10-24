@@ -16,7 +16,7 @@ namespace NuGetGallery
             Packages = new HashSet<Package>();
         }
 
-        [StringLength(PackageIdValidator.MaxPackageIdLength)]
+        [StringLength(Packaging.PackagingConstants.PackageIdDatabaseLength)]
         [Required]
         public string Id { get; set; }
 
