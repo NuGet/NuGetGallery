@@ -32,15 +32,15 @@ namespace NuGet.Jobs.Validation.Runner
             try
             {
                 // Configure job
-                _galleryBaseAddress = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
+                _galleryBaseAddress = jobArgsDictionary[JobArgumentNames.GalleryBaseAddress];
 
-                var storageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
+                var storageConnectionString = jobArgsDictionary[JobArgumentNames.DataStorageAccount];
                 _cloudStorageAccount = CreateCloudStorageAccount(JobArgumentNames.DataStorageAccount, storageConnectionString);
 
-                _containerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
+                _containerName = jobArgsDictionary[JobArgumentNames.ContainerName];
 
-                _runValidationTasks = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.RunValidationTasks).Split(';');
-                _requestValidationTasks = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.RequestValidationTasks).Split(';');
+                _runValidationTasks = jobArgsDictionary[JobArgumentNames.RunValidationTasks].Split(';');
+                _requestValidationTasks = jobArgsDictionary[JobArgumentNames.RequestValidationTasks].Split(';');
 
                 // Add validators
                 if (_runValidationTasks.Contains(UnzipValidator.ValidatorName))
@@ -50,10 +50,10 @@ namespace NuGet.Jobs.Validation.Runner
                 if (_runValidationTasks.Contains(VcsValidator.ValidatorName))
                 {
                     _validators.Add(new VcsValidator(
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorServiceUrl),
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorCallbackUrl),
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorAlias),
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsPackageUrlTemplate)));
+                        jobArgsDictionary[JobArgumentNames.VcsValidatorServiceUrl],
+                        jobArgsDictionary[JobArgumentNames.VcsValidatorCallbackUrl],
+                        jobArgsDictionary[JobArgumentNames.VcsValidatorAlias],
+                        jobArgsDictionary[JobArgumentNames.VcsPackageUrlTemplate]));
                 }
 
                 return true;

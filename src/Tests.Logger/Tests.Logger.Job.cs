@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Jobs;
+using NuGet.Services.Configuration;
 
 namespace Tests.AzureJobTraceListener
 {
@@ -30,27 +31,27 @@ namespace Tests.AzureJobTraceListener
         private int? LogCount { get; set; }
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
-            JobScenario = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, ScenarioArgumentName);
+            JobScenario = jobArgsDictionary.GetOrNull<int>(ScenarioArgumentName);
             if(JobScenario == null)
             {
                 throw new ArgumentException("Argument '"+ ScenarioArgumentName +"' is mandatory." + HelpMessage);
             }
 
-            LogCount = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, LogCountArgumentName);
+            LogCount = jobArgsDictionary.GetOrNull<int>(LogCountArgumentName);
 
             return true;
         }
 
-        public async override Task<bool> Run()
+        public override Task<bool> Run()
         {
             LogCount = LogCount ?? AzureBlobJobTraceListener.MaxLogBatchSize * 2;
             switch(JobScenario)
             {
                 case 1:
-                    return true;
+                    return Task.FromResult(true);
 
                 case 2:
-                    return false;
+                    return Task.FromResult(false);
 
                 case 3:
                     throw new Exception("Job crashed test");
@@ -60,13 +61,13 @@ namespace Tests.AzureJobTraceListener
                     {
                         Trace.WriteLine("Message number : " + i);
                     }
-                    return true;
+                    return Task.FromResult(true);
 
                 case 5:
 	                Trace.TraceInformation("Started");
                     LogALotSetup(3);
 	                Trace.TraceInformation("Ended");
-                    return true;
+                    return Task.FromResult(true);
 
                 case 6:
                     // Imitates the scenario where Trace.Close (consequently, AzureBlobJobTraceListener.Close is called from multiple threads)
@@ -81,7 +82,7 @@ namespace Tests.AzureJobTraceListener
                         traceCloseTasks[i] = TraceClose();
                     }
                     Task.WaitAll(traceCloseTasks);
-                    return true;
+                    return Task.FromResult(true);
 
                 case 7:
                     // Imitates the scenario where JobBase.JobTraceListener.Close is called directly from multiple threads,
@@ -95,7 +96,7 @@ namespace Tests.AzureJobTraceListener
                         jobTraceListenerCloseTasks[i] = JobTraceListenerClose();
                     }
                     Task.WaitAll(jobTraceListenerCloseTasks);
-                    return true;
+                    return Task.FromResult(true);
 
                 default:
                     throw new ArgumentException("Unknown scenario. " + HelpMessage);

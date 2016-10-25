@@ -13,6 +13,7 @@ using ICSharpCode.SharpZipLib.GZip;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
+using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using Stats.AzureCdnLogs.Common;
 using Stats.CollectAzureCdnLogs.Blob;
@@ -38,19 +39,19 @@ namespace Stats.CollectAzureCdnLogs
         {
             try
             {
-                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
+                var instrumentationKey = jobArgsDictionary.GetOrNull(JobArgumentNames.InstrumentationKey);
                 ApplicationInsights.Initialize(instrumentationKey);
 
                 _loggerFactory = LoggingSetup.CreateLoggerFactory();
                 _logger = _loggerFactory.CreateLogger<Job>();
 
-                var ftpLogFolder = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUri);
-                var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
-                var cloudStorageAccount = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-                _cloudStorageContainerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName);
-                _azureCdnAccountNumber = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
-                _ftpUsername = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUsername);
-                _ftpPassword = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourcePassword);
+                var ftpLogFolder = jobArgsDictionary[JobArgumentNames.FtpSourceUri];
+                var azureCdnPlatform = jobArgsDictionary[JobArgumentNames.AzureCdnPlatform];
+                var cloudStorageAccount = jobArgsDictionary[JobArgumentNames.AzureCdnCloudStorageAccount];
+                _cloudStorageContainerName = jobArgsDictionary[JobArgumentNames.AzureCdnCloudStorageContainerName];
+                _azureCdnAccountNumber = jobArgsDictionary[JobArgumentNames.AzureCdnAccountNumber];
+                _ftpUsername = jobArgsDictionary[JobArgumentNames.FtpSourceUsername];
+                _ftpPassword = jobArgsDictionary[JobArgumentNames.FtpSourcePassword];
 
                 _ftpServerUri = ValidateFtpUri(ftpLogFolder);
                 _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);

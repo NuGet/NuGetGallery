@@ -144,12 +144,12 @@
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.Configuration, Version=1.0.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Configuration.1.0.53-r-develop\lib\net452\NuGet.Services.Configuration.dll</HintPath>
+    <Reference Include="NuGet.Services.Configuration, Version=1.0.68.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Configuration.1.0.68-r-develop\lib\net452\NuGet.Services.Configuration.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.KeyVault, Version=1.0.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.53-r-develop\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
+    <Reference Include="NuGet.Services.KeyVault, Version=1.0.68.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.68-r-develop\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

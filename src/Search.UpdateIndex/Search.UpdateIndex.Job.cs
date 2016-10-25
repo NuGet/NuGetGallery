@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Indexing;
 using NuGet.Jobs;
+using NuGet.Services.Configuration;
 
 namespace Search.UpdateIndex
 {
@@ -37,23 +38,19 @@ namespace Search.UpdateIndex
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             PackageDatabase =
-            new SqlConnectionStringBuilder(
-                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
+            new SqlConnectionStringBuilder(jobArgsDictionary[JobArgumentNames.PackageDatabase]);
 
             DataStorageAccount =
-                CloudStorageAccount.Parse(
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount));
+                CloudStorageAccount.Parse(jobArgsDictionary[JobArgumentNames.DataStorageAccount]);
 
-            DataContainerName =
-                JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DataContainerName);
+            DataContainerName = jobArgsDictionary.GetOrNull(JobArgumentNames.DataContainerName);
 
             if (string.IsNullOrEmpty(DataContainerName))
             {
                 DataContainerName = DefaultDataContainerName;
             }
 
-            ContainerName =
-               JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
+            ContainerName = jobArgsDictionary.GetOrNull(JobArgumentNames.ContainerName);
 
             // Initialized successfully, return true
             return true;

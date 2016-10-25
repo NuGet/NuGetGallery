@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Services.Configuration;
 
 namespace NuGet.Jobs
 {
@@ -63,11 +64,11 @@ namespace NuGet.Jobs
                 // Set JobTraceListener. This will be done on every job run as well
                 SetJobTraceListener(job, consoleLogOnly, jobArgsDictionary);
 
-                var runContinuously = !JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
-                var sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep); // sleep is in milliseconds
+                var runContinuously = !jobArgsDictionary.GetOrNull<bool>(JobArgumentNames.Once) ?? true;
+                var sleepDuration = jobArgsDictionary.GetOrNull<int>(JobArgumentNames.Sleep); // sleep is in milliseconds
                 if (!sleepDuration.HasValue)
                 {
-                    sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Interval);
+                    sleepDuration = jobArgsDictionary.GetOrNull<int>(JobArgumentNames.Interval);
                     if (sleepDuration.HasValue)
                     {
                         sleepDuration = sleepDuration.Value * 1000; // interval is in seconds
@@ -119,19 +120,19 @@ namespace NuGet.Jobs
             }
             else
             {
-                var connectionString = JobConfigurationManager.GetArgument(argsDictionary, JobArgumentNames.LogsAzureStorageConnectionString);
+                var connectionString = argsDictionary[JobArgumentNames.LogsAzureStorageConnectionString];
                 job.SetJobTraceListener(new AzureBlobJobTraceListener(job.JobName, connectionString));
             }
         }
 
         private static void JobSetup(JobBase job, bool consoleLogOnly, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
         {
-            if (JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, "dbg"))
+            if (jobArgsDictionary.GetOrNull<bool>("dbg") ?? false)
             {
                 throw new ArgumentException("-dbg is a special argument and should be the first argument...");
             }
 
-            if (JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, "ConsoleLogOnly"))
+            if (jobArgsDictionary.GetOrNull<bool>("ConsoleLogOnly") ?? false)
             {
                 throw new ArgumentException("-ConsoleLogOnly is a special argument and should be the first argument (can be the second if '-dbg' is used)...");
             }

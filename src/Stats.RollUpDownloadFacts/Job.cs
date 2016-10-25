@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
+using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 
 namespace Stats.RollUpDownloadFacts
@@ -30,16 +31,16 @@ namespace Stats.RollUpDownloadFacts
         {
             try
             {
-                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
+                var instrumentationKey = jobArgsDictionary.GetOrNull(JobArgumentNames.InstrumentationKey);
                 ApplicationInsights.Initialize(instrumentationKey);
 
                 _loggerFactory = LoggingSetup.CreateLoggerFactory();
                 _logger = _loggerFactory.CreateLogger<Job>();
 
-                var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+                var databaseConnectionString = jobArgsDictionary[JobArgumentNames.StatisticsDatabase];
                 _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
 
-                _minAgeInDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, "MinAgeInDays") ?? DefaultMinAgeInDays;
+                _minAgeInDays = jobArgsDictionary.GetOrNull<int>(JobArgumentNames.MinAgeInDays) ?? DefaultMinAgeInDays;
                 Trace.TraceInformation("Min age in days: " + _minAgeInDays);
 
                 return true;
