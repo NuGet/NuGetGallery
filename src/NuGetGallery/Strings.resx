@@ -229,16 +229,16 @@
     <value>Oops! You can't remove the only credential that can be used to log in to the website!</value>
   </data>
   <data name="CredentialRemoved" xml:space="preserve">
-    <value>The credential has been removed</value>
+    <value>The credential has been removed.</value>
   </data>
   <data name="PasswordChanged" xml:space="preserve">
     <value>Your password has been changed.</value>
   </data>
   <data name="PasswordRemoved" xml:space="preserve">
-    <value>Your password has been removed</value>
+    <value>Your password has been removed.</value>
   </data>
   <data name="PasswordSet" xml:space="preserve">
-    <value>Your password has been set</value>
+    <value>Your password has been set.</value>
   </data>
   <data name="Emails_ForgotPassword_Body" xml:space="preserve">
     <value>The word on the street is you lost your password. Sorry to hear it!
@@ -425,10 +425,7 @@ The {1} Team</value>
   <data name="ScopeDescription_Unknown" xml:space="preserve">
     <value>Unknown</value>
   </data>
-  <data name="ScopeDescription_ListUnlistPackage" xml:space="preserve">
-    <value>List/unlist package</value>
-  </data>
-  <data name="ScopeDescription_Unknown" xml:space="preserve">
-    <value>Unknown</value>
+  <data name="ApiKeyDescriptionRequired" xml:space="preserve">
+    <value>Can't generate an API key without a description.</value>
   </data>
 </root>

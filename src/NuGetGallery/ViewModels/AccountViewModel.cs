@@ -72,46 +72,21 @@ namespace NuGetGallery
         public string Type { get; set; }
         public string TypeCaption { get; set; }
         public string Identity { get; set; }
-        public string Value { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Expires { get; set; }
-        public DateTime? LastUsed { get; set; }
         public CredentialKind Kind { get; set; }
         public AuthenticatorUI AuthUI { get; set; }
         public string Description { get; set; }
         public List<ScopeViewModel> Scopes { get; set; }
-
-        public bool HasExpired
-        {
-            get
-            {
-                if (Expires.HasValue)
-                {
-                    return DateTime.UtcNow > Expires.Value;
-                }
-
-                return false;
-            }
-        }
+        public bool HasExpired { get; set; }
 
         public bool IsLegacyApiKey
         {
             get
             {
                 return string.Equals(Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)
-                       && string.IsNullOrEmpty(Description)
                        && !Scopes.AnySafe();
             }
-        }
-
-        public bool HasBeenUsedInLastDays(int numberOfDays)
-        {
-            if (numberOfDays > 0 && LastUsed.HasValue)
-            {
-                return LastUsed.Value.AddDays(numberOfDays) > DateTime.UtcNow;
-            }
-
-            return true;
         }
     }
 

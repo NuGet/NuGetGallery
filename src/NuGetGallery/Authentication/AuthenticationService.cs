@@ -455,30 +455,33 @@ namespace NuGetGallery.Authentication
         {
             var kind = GetCredentialKind(credential.Type);
             Authenticator auther = null;
+
             if (kind == CredentialKind.External)
             {
                 string providerName = credential.Type.Split('.')[1];
-                if (!Authenticators.TryGetValue(providerName, out auther))
-                {
-                    auther = null;
-                }
+                Authenticators.TryGetValue(providerName, out auther);
             }
 
-            return new CredentialViewModel
+            var credentialViewModel = new CredentialViewModel
             {
                 Key = credential.Key,
                 Type = credential.Type,
                 TypeCaption = FormatCredentialType(credential.Type),
                 Identity = credential.Identity,
-                Value = kind == CredentialKind.Token ? credential.Value : String.Empty,
                 Created = credential.Created,
                 Expires = credential.Expires,
-                LastUsed = credential.LastUsed,
                 Kind = kind,
                 AuthUI = auther?.GetUI(),
-                Description = credential.Description,
-                Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, s.AllowedAction)).ToList()
+                // Set the description as the value for legacy API keys
+                Description = kind == CredentialKind.Token && credential.Description == null ? credential.Value : credential.Description, 
+                Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, s.AllowedAction)).ToList(),
             };
+
+            credentialViewModel.HasExpired = credential.HasExpired ||
+                                             (credentialViewModel.IsLegacyApiKey &&
+                                              !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
+
+            return credentialViewModel;
         }
 
         public virtual async Task RemoveCredential(User user, Credential cred)

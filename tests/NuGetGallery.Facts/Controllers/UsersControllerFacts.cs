@@ -497,6 +497,146 @@ namespace NuGetGallery
 
         public class TheGenerateApiKeyAction : TestContainer
         {
+            [InlineData(null)]
+            [InlineData(" ")]
+            [Theory]
+            public async Task WhenEmptyDescriptionProvidedRedirectsToAccountPageWithError(string description)
+            {
+                // Arrange 
+                var user = new User { Username = "the-username" };
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.GenerateApiKey(
+                    description: description,
+                    scopes: null,
+                    expirationInDays: null);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.ApiKeyDescriptionRequired, controller.TempData["Message"]);
+            }
+
+            [InlineData(180, 180)]
+            [InlineData(700, 365)]
+            [InlineData(-1, 365)]
+            [InlineData(0, 365)]
+            [InlineData(null, 365)]
+            [Theory]
+            public async Task WhenExpirationInDaysIsProvidedItsUsed(int? inputExpirationInDays, int expectedExpirationInDays)
+            {
+                // Arrange 
+                var user = new User("the-username");
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var config = GetMock<IAppConfiguration>();
+                config.SetupGet(x => x.ExpirationInDaysForApiKeyV1).Returns(365);
+
+                // Act
+                await controller.GenerateApiKey(
+                    description: "my new api key",
+                    scopes: new [] { NuGetScopes.PackageList },
+                    subjects: null,
+                    expirationInDays: inputExpirationInDays);
+                
+                // Assert
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
+
+                Assert.NotNull(apiKey);
+                Assert.NotNull(apiKey.Expires);
+                Assert.Equal(expectedExpirationInDays, TimeSpan.FromTicks(apiKey.ExpirationTicks.Value).Days);
+            }
+
+            public static IEnumerable<object[]> CreatesNewApiKeyCredential_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            "permissions to several scopes, several packages",
+                            new[] {NuGetScopes.PackageList, NuGetScopes.PackagePush},
+                            new[] {"abc", "def"},
+                            new []
+                            {
+                                new Scope("abc", NuGetScopes.PackageList),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageList),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            }
+                        },
+                        new object[]
+                        {
+                            "permissions to several scopes, all packages",
+                            new [] { NuGetScopes.PackageList, NuGetScopes.PackagePushNew },
+                            null,
+                            new []
+                            {
+                                new Scope(null, NuGetScopes.PackageList),
+                                new Scope(null, NuGetScopes.PackagePushNew)
+                            }
+                        },
+                        new object[]
+                        {
+                            "permissions to single scope, all packages",
+                            new [] { NuGetScopes.PackageList },
+                            null,
+                            new []
+                            {
+                                new Scope(null, NuGetScopes.PackageList)
+                            }
+                        },
+                        new object[]
+                        {
+                            "permissions to everything",
+                            null,
+                            null,
+                            new []
+                            {
+                                new Scope(null, NuGetScopes.All)
+                            } 
+                        } 
+                    };
+                }
+            }
+                
+            [MemberData(nameof(CreatesNewApiKeyCredential_Input))]
+            [Theory]
+            public async Task CreatesNewApiKeyCredential(string description, string[] scopes, string[] subjects, Scope[] expectedScopes)
+            {
+                // Arrange 
+                var user = new User("the-username");
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                await controller.GenerateApiKey(
+                    description: description,
+                    scopes: scopes,
+                    subjects: subjects,
+                    expirationInDays: null);
+
+                // Assert
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
+
+                Assert.NotNull(apiKey);
+                Assert.Equal(description, apiKey.Description);
+                Assert.Equal(expectedScopes.Length, apiKey.Scopes.Count);
+
+                foreach (var expectedScope in expectedScopes)
+                {
+                    var actualScope =
+                        apiKey.Scopes.First(x => x.AllowedAction == expectedScope.AllowedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
+            }
+
             [Fact]
             public async Task RedirectsToAccountPage()
             {
@@ -505,32 +645,12 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 var result = await controller.GenerateApiKey(
-                    description: null,
+                    description: "description",
                     scopes: null,
                     expirationInDays: null);
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-            }
-
-            [Fact]
-            public async Task CreatesNewApiKeyCredential()
-            {
-                var user = new User("the-username");
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.AddCredential(
-                        user,
-                        It.Is<Credential>(c => c.Type == CredentialTypes.ApiKeyV1)))
-                    .Completes()
-                    .Verifiable();
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                await controller.GenerateApiKey(
-                    description: null,
-                    scopes: null,
-                    expirationInDays: null);
-
-                GetMock<AuthenticationService>().VerifyAll();
+                Assert.Equal(Strings.ApiKeyGenerated, controller.TempData["Message"]);
             }
         }
 
@@ -1021,12 +1141,84 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser()
+            public async Task GivenANonApiKeyCredential_ItRedirectsBackWithNoChangesMade()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+
+                // Act
+                var result = await controller.RegenerateCredential(
+                    credentialType: "not api key",
+                    credentialKey: CredentialKey);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+            }
+
+            [Fact]
+            public async Task GivenLegacyApiKey_ItRedirectsBackWithNoChangesMade()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-                var user = fakes.CreateUser("test",
-                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1));
+                var user = fakes.CreateUser("test", apiKey);
+                var cred = user.Credentials.First();
+                cred.Key = CredentialKey;
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RegenerateCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.ApiKeyDescriptionRequired, controller.TempData["Message"]);
+            }
+
+            public static IEnumerable<object[]> RegenerateApiKeyCredential_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            "permissions to several scopes, several packages",
+                            new []
+                            {
+                                new Scope("abc", NuGetScopes.PackageList),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageList),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            }
+                        },
+                        new object[]
+                        {
+                            "permissions to everything",
+                            new []
+                            {
+                                new Scope(null, NuGetScopes.All)
+                            }
+                        }
+                    };
+                }
+            }
+
+            [MemberData(nameof(RegenerateApiKeyCredential_Input))]
+            [Theory]
+            public async Task GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser(
+                string description, Scope[] scopes)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1));
+                apiKey.Description = description;
+                apiKey.Scopes = scopes;
+
+                var user = fakes.CreateUser("test", apiKey);
                 var cred = user.Credentials.First();
                 cred.Key = CredentialKey;
 
@@ -1054,6 +1246,20 @@ namespace NuGetGallery
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.ApiKeyGenerated, controller.TempData["Message"]);
                 GetMock<AuthenticationService>().VerifyAll();
+
+                var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
+
+                Assert.NotNull(newApiKey);
+                Assert.Equal(description, newApiKey.Description);
+                Assert.Equal(scopes.Length, newApiKey.Scopes.Count);
+
+                foreach (var expectedScope in scopes)
+                {
+                    var actualScope =
+                        newApiKey.Scopes.First(x => x.AllowedAction == expectedScope.AllowedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
             }
         }
 

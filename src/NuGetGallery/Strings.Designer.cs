@@ -97,6 +97,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t generate an API key without a description..
+        /// </summary>
+        public static string ApiKeyDescriptionRequired {
+            get {
+                return ResourceManager.GetString("ApiKeyDescriptionRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A new API key has been generated. Check below and make sure to copy the value, as now is the only time it will be visible..
         /// </summary>
         public static string ApiKeyGenerated {
@@ -224,7 +233,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The credential has been removed.
+        ///   Looks up a localized string similar to The credential has been removed..
         /// </summary>
         public static string CredentialRemoved {
             get {
@@ -708,7 +717,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your password has been removed.
+        ///   Looks up a localized string similar to Your password has been removed..
         /// </summary>
         public static string PasswordRemoved {
             get {
@@ -717,7 +726,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your password has been set.
+        ///   Looks up a localized string similar to Your password has been set..
         /// </summary>
         public static string PasswordSet {
             get {

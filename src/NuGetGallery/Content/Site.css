@@ -619,85 +619,74 @@ ul.pager {
     font-size: 1.1em;
 }
 
-.sexy-table.fullwidth {
-    width: 100%;
+
+/* header */
+
+.sexy-table thead tr {
+    border-bottom: solid 1px #333;
 }
 
-    /* header */
+.sexy-table th {
+    font-size: 1.25em;
+    font-weight: normal;
+    padding: 5px 15px 0px 0px;
+    text-align: left;
+}
 
-    .sexy-table thead tr {
-        border-bottom: solid 1px #333;
-    }
+/* actions */
 
-    .sexy-table th {
-        font-size: 1.25em;
-        font-weight: normal;
-        padding: 5px 15px 0px 0px;
-        text-align: left;
-    }
+.sexy-table th.actions {
+    text-indent: -9999px;
+}
 
-    .sexy-table.small th {
-        font-size: 1em;
-    }
+.sexy-table td.actions {
+    width: 32px;
+}
 
-        /* actions */
+.sexy-table td.actions a.table-action-link {
+    text-decoration: none;
+}
 
-        .sexy-table th.actions {
-            text-indent: -9999px;
-        }
+/* body */
 
-    .sexy-table td.actions {
-        width: 32px;
-    }
+.sexy-table tbody tr {
+    margin-bottom: 10px;
+}
 
-    .sexy-table td.actions-wide {
-        width: 48px;
-    }
+.sexy-table tbody tr:hover {
+    background-color: #f4f5f6;
+}
 
-        .sexy-table td.actions a.table-action-link {
-            text-decoration: none;
-        }
+.sexy-table tbody tr.recommended {
+    font-weight: 800;
+}
 
-    /* body */
+.sexy-table tbody td {
+    padding: 5px 25px 5px 0;
+}
 
-    .sexy-table tbody tr {
-        margin-bottom: 10px;
-    }
+.sexy-table tbody td.actions {
+    padding: 2px 5px;
+}
 
-        .sexy-table tbody tr:hover {
-            background-color: #f4f5f6;
-        }
+.sexy-table tbody td.package-version-downloads {
+    text-align: right
+}
 
-        .sexy-table tbody tr.recommended {
-            font-weight: 800;
-        }
+/* footer */
 
-    .sexy-table tbody td {
-        padding: 5px 25px 5px 0;
-    }
+.sexy-table tfoot {
+    border-bottom: solid 1px #333;
+    font-weight: 600;
+}
 
-        .sexy-table tbody td.actions {
-            padding: 2px 5px;
-        }
+.sexy-table tfoot td {
+    padding: 3px 0;
+}
 
-        .sexy-table tbody td.package-version-downloads {
-           text-align: right
-        }
-
-    /* footer */
-
-    .sexy-table tfoot {
-        border-bottom: solid 1px #333;
-        font-weight: 600;
-    }
-
-        .sexy-table tfoot td {
-            padding: 3px 0;
-        }
-
-        .sexy-table tfoot tr {
-            border-top: 2px solid #333;
-        }
+.sexy-table tfoot tr {
+    border-top: 2px solid #333;
+}
 
 
 /* Pivot Table */
@@ -883,9 +872,9 @@ fieldset.form {
     padding: 0;
 }
 
-    fieldset.form legend {
-        display: none;
-    }
+fieldset.form legend {
+    display: none;
+}
 
 .form-field p {
     margin-left: 10px;
@@ -895,99 +884,112 @@ fieldset.form {
     color: #52a4ca;
 }
 
+.form-field h4 {
+    color: #52a4ca;
+    font-size: 1.3em;
+    margin-bottom: 5px;
+}
+
 .form-field {
     margin-bottom: 10px;
     position: relative;
 }
 
-    .form-field label {
-        color: #52a4ca;
-        display: block;
-        font-size: 1.25em;
-        margin-bottom: 5px;
-    }
+.form-field label {
+    color: #52a4ca;
+    display: block;
+    font-size: 1.25em;
+    margin-bottom: 5px;
+}
 
-        .form-field label.checkbox {
-            display: inline;
-        }
+.form-field label.checkoboxsmall {
+    color: #333;
+    font-size: 100%;
+    display: block;
+    margin-bottom: 5px;
+}
 
-    .form-field textarea,
-    .form-field input[type="email"],
-    .form-field input[type="text"],
-    .form-field input[type="file"],
-    .form-field input[type="url"],
-    .form-field input[type="password"] {
-        background: #fff url("../content/images/inputBackground.png") repeat-x;
-        border: solid 1px #ccc;
-        color: #7f8c7d;
-        font-size: 1.25em;
-        padding: 5px 0 5px 10px;
-        vertical-align: middle;
-        width: 400px;
-        /* This won't work in IE7, but it will only produce a minor layout quirk */
-        -moz-box-sizing: border-box;
-        -webkit-box-sizing: border-box;
-        box-sizing: border-box;
-        height: 2.25em;
-    }
+.form-field label.checkbox {
+    display: inline;
+}
 
-    .form-field.form-field-full input {
-        width: 100%;
-    }
+.form-field textarea,
+.form-field input[type="email"],
+.form-field input[type="text"],
+.form-field input[type="file"],
+.form-field input[type="url"],
+.form-field input[type="password"] {
+    background: #fff url("../content/images/inputBackground.png") repeat-x;
+    border: solid 1px #ccc;
+    color: #7f8c7d;
+    font-size: 1.25em;
+    padding: 5px 0 5px 10px;
+    vertical-align: middle;
+    width: 400px;
+    /* This won't work in IE7, but it will only produce a minor layout quirk */
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    height: 2.25em;
+}
 
-    .form-field input[data-val-required],
-    .form-field textarea[data-val-required] {
-        border-left: solid 5px #52a4ca;
-    }
+.form-field.form-field-full input {
+    width: 100%;
+}
 
-    .form-field input[data-edited=true],
-    .form-field textarea[data-edited=true] {
-        border-left: solid 5px #2ef12e;
-        padding-left: 6px;
-    }
+.form-field input[data-val-required],
+.form-field textarea[data-val-required] {
+    border-left: solid 5px #52a4ca;
+}
 
-    .form-field input[type="checkbox"] {
-        border-left: none;
-    }
+.form-field input[data-edited=true],
+.form-field textarea[data-edited=true] {
+    border-left: solid 5px #2ef12e;
+    padding-left: 6px;
+}
 
-    .form-field input[type="url"] {
-        width: 100%;
-    }
+.form-field input[type="checkbox"] {
+    border-left: none;
+}
 
-    .form-field select {
-        background: #fff url("../content/images/inputBackground.png") repeat-x;
-        border: solid 1px #ccc;
-        color: #7f8c7d;
-        font-size: 1.25em;
-        padding: 5px 5px 5px 10px;
-        vertical-align: middle;
-        /* This won't work in IE7, but it will only produce a minor layout quirk */
-        -moz-box-sizing: border-box;
-        -webkit-box-sizing: border-box;
-        box-sizing: border-box;
-        height: 2.25em;
-    }
+.form-field input[type="url"] {
+    width: 100%;
+}
 
-        .form-field select[data-edited=true] {
-            border-left: solid 4px #2ef12e;
-            padding-left: 0px;
-        }
+.form-field select {
+    background: #fff url("../content/images/inputBackground.png") repeat-x;
+    border: solid 1px #ccc;
+    color: #7f8c7d;
+    font-size: 1.25em;
+    padding: 5px 5px 5px 10px;
+    vertical-align: middle;
+    /* This won't work in IE7, but it will only produce a minor layout quirk */
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    height: 2.25em;
+}
 
-    .form-field textarea[disabled],
-    .form-field input[type="email"][disabled],
-    .form-field input[type="text"][disabled],
-    .form-field input[type="file"][disabled],
-    .form-field input[type="password"][disabled],
-    .form input[type="submit"][disabled],
-    .form input[type="submit"][disabled]:hover {
-        background: silver;
-        cursor: not-allowed;
-        border: none;
-        opacity: 0.65;
-        filter: alpha(opacity=65);
-        color: #333;
-        background-color: #e6e6e6;
-    }
+.form-field select[data-edited=true] {
+    border-left: solid 4px #2ef12e;
+    padding-left: 0px;
+}
+
+.form-field textarea[disabled],
+.form-field input[type="email"][disabled],
+.form-field input[type="text"][disabled],
+.form-field input[type="file"][disabled],
+.form-field input[type="password"][disabled],
+.form input[type="submit"][disabled],
+.form input[type="submit"][disabled]:hover {
+    background: silver;
+    cursor: not-allowed;
+    border: none;
+    opacity: 0.65;
+    filter: alpha(opacity=65);
+    color: #333;
+    background-color: #e6e6e6;
+}
 
     .form-field select[data-edited=true] {
         border-left: solid 4px #2ef12e;
@@ -1084,7 +1086,7 @@ a.btn {
     display: inline-block;
     background: none !important;
     border: none;
-    padding: 0 !important;
+    padding: 2px !important;
     font: inherit;
     cursor: pointer;
     color: #0071bc;
@@ -1418,3 +1420,51 @@ img.contributors-contributor-avatar {
         color: white;
         border: solid 1px #7F0000;
     }
+
+/* Fancy table*/
+.fancy-table
+{
+    table-layout: fixed;
+}
+
+.fancy-table tbody {
+    background-color: white;
+}
+
+.fancy-table th {
+    text-align: left;
+    font-weight: 600;
+}
+
+.fancy-table tr {
+    height: 0;
+
+}
+
+.fancy-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fancy-table.selectable tbody tr:hover {
+     background-color: #98AFC7;
+}
+
+.fancy-table.selectable tbody tr.highlight td{
+    background-color: #357EC7;
+}
+
+.scrollable-div {
+  overflow: auto;
+  overflow-y: scroll;
+  background-color: white;
+  width:100%;
+  border: solid white 2px
+}
+
+.disabled-div {
+    pointer-events: none;
+    opacity: 0.4;
+}
+

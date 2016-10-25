@@ -1227,16 +1227,28 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(cred.Type, description.Type);
                 Assert.Equal(Strings.CredentialType_Password, description.TypeCaption);
                 Assert.Null(description.Identity);
-                Assert.True(string.IsNullOrEmpty(description.Value));
                 Assert.Equal(CredentialKind.Password, description.Kind);
                 Assert.Null(description.AuthUI);
             }
 
-            [Fact]
-            public void GivenATokenCredential_ItDescribesItCorrectly()
+            [InlineData(false, false, true)]
+            [InlineData(false, true, false)]
+            [InlineData(true, true, true)]
+            [Theory]
+            public void GivenATokenCredential_LegacyApiKey_ItDescribesItCorrectly(bool hasExpired, bool hasBeenUsedInLastDays, bool expectedHasExpired)
             {
                 // Arrange
+                const int expirationForApiKeyV1 = 365;
+
+                var mockConfig = GetMock<IAppConfiguration>();
+                mockConfig.SetupGet(x => x.ExpirationInDaysForApiKeyV1).Returns(expirationForApiKeyV1);
+
                 var cred = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                cred.LastUsed = hasBeenUsedInLastDays
+                    ? DateTime.UtcNow
+                    : DateTime.UtcNow - TimeSpan.FromDays(expirationForApiKeyV1 + 1);
+                cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
+
                 var authService = Get<AuthenticationService>();
 
                 // Act
@@ -1246,19 +1258,52 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(cred.Type, description.Type);
                 Assert.Equal(Strings.CredentialType_ApiKey, description.TypeCaption);
                 Assert.Null(description.Identity);
-                Assert.Equal(cred.Value, description.Value);
+                Assert.Equal(cred.Created, description.Created);
+                Assert.Equal(cred.Expires, description.Expires);
+                Assert.Equal(CredentialKind.Token, description.Kind);
+                Assert.Null(description.AuthUI);
+                Assert.Equal(cred.Value, description.Description);
+                Assert.Equal(expectedHasExpired, description.HasExpired);
+            }
+
+            [InlineData(false)]
+            [InlineData(true)]
+            [Theory]
+            public void GivenATokenCredential_ScopedApiKey_ItDescribesItCorrectly(bool hasExpired)
+            {
+                // Arrange
+                var cred = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                cred.Description = "description";
+                cred.Scopes = new[] {new Scope("123", "abc")};
+                cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
+
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                var description = authService.DescribeCredential(cred);
+
+                // Assert
+                Assert.Equal(cred.Type, description.Type);
+                Assert.Equal(Strings.CredentialType_ApiKey, description.TypeCaption);
+                Assert.Null(description.Identity);
                 Assert.Equal(cred.Created, description.Created);
                 Assert.Equal(cred.Expires, description.Expires);
                 Assert.Equal(cred.HasExpired, description.HasExpired);
                 Assert.Equal(CredentialKind.Token, description.Kind);
                 Assert.Null(description.AuthUI);
+                Assert.Equal(cred.Description, description.Description);
+                Assert.Equal(hasExpired, description.HasExpired);
             }
 
-            [Fact]
-            public void GivenAnExternalCredential_ItDescribesItCorrectly()
+            [InlineData(false)]
+            [InlineData(true)]
+            [Theory]
+            public void GivenAnExternalCredential_ItDescribesItCorrectly(bool hasExpired)
             {
                 // Arrange
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
+                cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
+                 
                 var msftAuther = new MicrosoftAccountAuthenticator();
                 var authService = Get<AuthenticationService>();
 
@@ -1269,10 +1314,10 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(cred.Type, description.Type);
                 Assert.Equal(msftAuther.GetUI().Caption, description.TypeCaption);
                 Assert.Equal(cred.Identity, description.Identity);
-                Assert.True(string.IsNullOrEmpty(description.Value));
                 Assert.Equal(CredentialKind.External, description.Kind);
                 Assert.NotNull(description.AuthUI);
                 Assert.Equal(msftAuther.GetUI().AccountNoun, description.AuthUI.AccountNoun);
+                Assert.Equal(hasExpired, description.HasExpired);
             }
         }
 

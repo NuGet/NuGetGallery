@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -581,6 +580,12 @@ namespace NuGetGallery
             // Get the user
             var user = GetCurrentUser();
 
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                TempData["Message"] = Strings.ApiKeyDescriptionRequired;
+                return RedirectToAction("Account");
+            }
+
             // Set expiration
             var expiration = TimeSpan.Zero;
             if (_config.ExpirationInDaysForApiKeyV1 > 0)
@@ -595,38 +600,35 @@ namespace NuGetGallery
 
             // Create a new API Key credential, and save to the database
             var newCredential = _credentialBuilder.CreateApiKey(expiration);
-            if (!string.IsNullOrEmpty(description))
-            {
-                newCredential.Description = description;
+            newCredential.Description = description;
                 
-                if (scopes != null)
+            if (scopes != null)
+            {
+                foreach (var scope in scopes)
                 {
-                    foreach (var scope in scopes)
+                    if (subjects != null)
                     {
-                        if (subjects != null)
+                        foreach (var subject in subjects)
                         {
-                            foreach (var subject in subjects)
-                            {
-                                newCredential.Scopes.Add(new Scope(subject, scope));
-                            }
-                        }
-                        else
-                        {
-                            newCredential.Scopes.Add(new Scope(null, scope));
+                            newCredential.Scopes.Add(new Scope(subject, scope));
                         }
                     }
-                }
-                else if (subjects != null)
-                {
-                    foreach (var subject in subjects)
+                    else
                     {
-                        newCredential.Scopes.Add(new Scope(subject, NuGetScopes.All));
+                        newCredential.Scopes.Add(new Scope(null, scope));
                     }
                 }
-                else
+            }
+            else if (subjects != null)
+            {
+                foreach (var subject in subjects)
                 {
-                    newCredential.Scopes.Add(new Scope(null, NuGetScopes.All));
+                    newCredential.Scopes.Add(new Scope(subject, NuGetScopes.All));
                 }
+            }
+            else
+            {
+                newCredential.Scopes.Add(new Scope(null, NuGetScopes.All));
             }
 
             await _authService.AddCredential(user, newCredential);

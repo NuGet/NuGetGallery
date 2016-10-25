@@ -45,7 +45,7 @@
 
 .apiKeyExpired {
     color: red;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .apiKey {
@@ -76,16 +76,16 @@
     padding-bottom: 10px;
 }
 
-    .package-page-heading h1,
-    .package-page-heading h2 {
-        margin: 0;
-        padding: 0;
-        display: inline;
-    }
+.package-page-heading h1,
+.package-page-heading h2 {
+    margin: 0;
+    padding: 0;
+    display: inline;
+}
 
-    .package-page-heading h2 {
-        padding-left: 7px;
-    }
+.package-page-heading h2 {
+    padding-left: 7px;
+}
 
 /* NuGet Badge (Display Package) */
 
@@ -145,11 +145,11 @@
     padding: 0;
 }
 
-    #dependencySets > li > h4 {
-        border-bottom: solid 1px #333;
-        display: inline;
-        margin: 2px 0;
-    }
+#dependencySets > li > h4 {
+    border-bottom: solid 1px #333;
+    display: inline;
+    margin: 2px 0;
+}
 
 ul.dependencySet {
     list-style: none;
