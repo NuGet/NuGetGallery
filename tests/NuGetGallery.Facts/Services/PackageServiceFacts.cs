@@ -701,7 +701,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", PackageIdValidator.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
@@ -765,12 +765,19 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var versionSpec = VersionRange.Parse("[1.0]");
+
+                var numDependencies = 5000;
+                var packageDependencies = new List<NuGet.Packaging.Core.PackageDependency>();
+                for (int i = 0; i < numDependencies; i++)
+                {
+                    packageDependencies.Add(new NuGet.Packaging.Core.PackageDependency("dependency" + i, versionSpec));
+                }
+
                 var nugetPackage = CreateNuGetPackage(packageDependencyGroups: new[]
                 {
                     new PackageDependencyGroup(
                         new NuGetFramework("net40"),
-                        Enumerable.Repeat(
-                            new NuGet.Packaging.Core.PackageDependency("theFirstDependency", versionSpec), 5000)),
+                        packageDependencies),
                 });
 
                 var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
@@ -797,7 +804,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", PackageIdValidator.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]

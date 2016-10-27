@@ -17,7 +17,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
         {
         }
 
-        [Fact]
+        [Fact(Skip = "Mail Check is not happening correctly at this time")]
         [Description("Verify the gallery options for reporting abuse.")]
         [Priority(2)]
         public async Task ContactEmailAbuse()
@@ -35,6 +35,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
             I.Enter("testnuget@gmail.com").In("#Email");
             I.Select("Other").From("#Reason");
             I.Enter(GetMessage()).In("#Message");
+            I.Enter("testnuget").In("#Signature");
             I.Click("input[value='Report']");
 
             // Validate in-site message to owner
@@ -55,7 +56,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
             Assert.True(received, userMessage);
         }
 
-        [Fact]
+        [Fact(Skip = "Mail Check is not happening correctly at this time")]
         [Description("Verify the gallery options for contacting owners.")]
         [Priority(2)]
         public void ContactEmailOwners()
@@ -89,7 +90,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
             Assert.True(received, userMessage);
         }
 
-        [Fact]
+        [Fact(Skip = "Mail Check is not happening correctly at this time")]
         [Description("Verify the gallery options for contacting us.")]
         [Priority(2)]
         public void ContactEmailSupport()

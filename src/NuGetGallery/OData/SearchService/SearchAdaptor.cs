@@ -99,7 +99,7 @@ namespace NuGetGallery.OData
             // We can only use Lucene if:
             //  a) The Index contains all versions of each package
             //  b) The sort order is something Lucene can handle
-            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, searchService.ContainsAllVersions, out searchFilter))
+            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, searchService.ContainsAllVersions, out searchFilter) && !string.IsNullOrWhiteSpace(id))
             {
                 var normalizedRegistrationId = id.Normalize(NormalizationForm.FormC);
 
