@@ -80,7 +80,7 @@ namespace NuGetGallery
         public List<ScopeViewModel> Scopes { get; set; }
         public bool HasExpired { get; set; }
 
-        public bool IsLegacyApiKey
+        public bool IsNonScopedV1ApiKey
         {
             get
             {

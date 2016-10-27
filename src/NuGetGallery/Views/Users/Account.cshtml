@@ -422,11 +422,11 @@
         // Sort the api keys by description, when a legacy api key appears first
         apiKeys.Sort((k1, k2) =>
         {
-            if (k1.IsLegacyApiKey)
+            if (k1.IsNonScopedV1ApiKey)
             {
                 return -1;
             }
-            if (k2.IsLegacyApiKey)
+            if (k2.IsNonScopedV1ApiKey)
             {
                 return 1;
             }
@@ -460,7 +460,7 @@
                 @item.ExpandLink("Show details", "Hide details")
             }
         </text>,
-        content: @<text> @Html.Partial("ApiKeys", Model); </text>)
+        content: @<text> @Html.Partial("ApiKeys", Model) </text>)
 </ul>
 
 @section bottomScripts {

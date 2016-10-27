@@ -9,11 +9,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
-using Microsoft.Owin.Security;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -308,7 +306,7 @@ namespace NuGetGallery
 
                                 // User cannot push a package to an ID owned by another user.
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
-                                    String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
+                                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
                                         nuspec.GetId()));
                             }
 
@@ -395,10 +393,8 @@ namespace NuGetGallery
 
         private bool ApiKeyScopeAllows(string subject, string requestedAction)
         {
-            var identity = User.Identity as ClaimsIdentity;
-
-            return identity.HasScopeThatAllowsActionForSubject(
-                subject: null,
+            return User.Identity.HasScopeThatAllowsActionForSubject(
+                subject: subject,
                 requestedActions: new[] { requestedAction });
         }
 

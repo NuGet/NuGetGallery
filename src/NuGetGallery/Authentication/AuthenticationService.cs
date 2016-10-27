@@ -480,7 +480,7 @@ namespace NuGetGallery.Authentication
             };
 
             credentialViewModel.HasExpired = credential.HasExpired ||
-                                             (credentialViewModel.IsLegacyApiKey &&
+                                             (credentialViewModel.IsNonScopedV1ApiKey &&
                                               !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
 
             return credentialViewModel;

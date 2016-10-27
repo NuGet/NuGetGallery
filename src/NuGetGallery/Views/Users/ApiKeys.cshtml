@@ -15,11 +15,11 @@
     // Sort the api keys by description, when a legacy api key appears first
     apiKeys.Sort((k1, k2) =>
     {
-        if (k1.IsLegacyApiKey)
+        if (k1.IsNonScopedV1ApiKey)
         {
             return -1;
         }
-        if (k2.IsLegacyApiKey)
+        if (k2.IsNonScopedV1ApiKey)
         {
             return 1;
         }
@@ -108,11 +108,11 @@
                                             }
                                         </td>
                                         <td class="actions actions-wide">
-                                            @if (apiKey.IsLegacyApiKey)
+                                            @if (apiKey.IsNonScopedV1ApiKey)
                                             {
                                                 <button class="btn btn-veryflat" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Description')"><i class="icon-copy"></i></button>
                                             }
-                                            @if (!apiKey.IsLegacyApiKey)
+                                            @if (!apiKey.IsNonScopedV1ApiKey)
                                             {
                                                 if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
                                                 {
@@ -344,4 +344,3 @@
         }
     }
 </script>
-}

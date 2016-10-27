@@ -356,6 +356,97 @@ namespace NuGetGallery
                 controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
+
+            [InlineData("[{\"a\":\"package:pushnew\", \"s\":null}]", true)]
+            [InlineData("[{\"a\":\"package:push\", \"s\":\"abc\"}]", false)]
+            [Theory]
+            public async Task WillVerifyScopesForNewPackageId(string apiKeyScopes, bool isPushAllowed)
+            {
+                // Arrange
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+
+                var user = new User {EmailAddress = "confirmed@email.com", Username = "username"};
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user, apiKeyScopes);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                if (isPushAllowed)
+                {
+                    controller.MockPackageService.Verify(
+                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
+                    controller.MockEntitiesContext.VerifyCommitted();
+                }
+                else
+                {
+                    controller.MockPackageService.Verify(
+                        x => x.CreatePackageAsync(
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()),
+                        Times.Never);
+
+                    ResultAssert.IsStatusCode(
+                        result,
+                        HttpStatusCode.Unauthorized,
+                        Strings.ApiKeyNotAuthorized);
+                }
+            }
+
+            [InlineData("[{\"a\":\"package:pushnew\", \"s\":null}]", false)]
+            [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", true)]
+            [Theory]
+            public async Task WillVerifyScopesForExistingPackageId(string apiKeyScopes, bool isPushAllowed)
+            {
+                // Arrange
+                const string packageId = "theId";
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+
+                var user = new User { EmailAddress = "confirmed@email.com", Username = "username", Key = 1 };
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user, apiKeyScopes);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = packageId;
+                packageRegistration.Owners.Add(user);
+
+                controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(packageId))
+                    .Returns(packageRegistration);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                if (isPushAllowed)
+                {
+                    controller.MockPackageService.Verify(
+                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
+                    controller.MockEntitiesContext.VerifyCommitted();
+                }
+                else
+                {
+                    controller.MockPackageService.Verify(
+                        x => x.CreatePackageAsync(
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()),
+                        Times.Never);
+
+                    ResultAssert.IsStatusCode(
+                        result,
+                        HttpStatusCode.Unauthorized,
+                        Strings.ApiKeyNotAuthorized);
+                }
+            }
         }
 
         public class TheDeletePackageAction
@@ -393,9 +484,44 @@ namespace NuGetGallery
 
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
+                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
 
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true), Times.Never());
+            }
+
+            [InlineData("[{\"a\":\"all\", \"s\":null}]", true)]
+            [InlineData("[{\"a\":\"package:list\", \"s\":\"theId\"}]", true)]
+            [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", false)]
+            [Theory]
+            public async Task WillVerifyApiKeyScopeBeforeDelete(string apiKeyScope, bool isDeleteAllowed)
+            {
+                var owner = new User {Key = 1, Username = "owner"};
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration {Owners = new[] {owner}}
+                };
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(owner, apiKeyScope);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true))
+                    .Returns(package);
+
+                var result = await controller.DeletePackage("theId", "1.0.42");
+
+                if (!isDeleteAllowed)
+                {
+                    Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                    var statusCodeResult = (HttpStatusCodeWithBodyResult) result;
+                    Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"),
+                        statusCodeResult.StatusDescription);
+
+                    controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true), Times.Never());
+                }
+                else
+                {
+                    controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true));
+                    controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
+                }
             }
 
             [Fact]

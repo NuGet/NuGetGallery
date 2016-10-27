@@ -366,11 +366,18 @@ namespace NuGetGallery
         }
 
         public static bool HasScopeThatAllowsActionForSubject(
-            this ClaimsIdentity self, 
+            this IIdentity self, 
             string subject,
             string[] requestedActions)
         {
-            var scopeClaim = self.GetClaimOrDefault(NuGetClaims.Scope);
+            var identity = self as ClaimsIdentity;
+
+            if (identity == null)
+            {
+                return false;
+            }
+
+            var scopeClaim = identity.GetClaimOrDefault(NuGetClaims.Scope);
 
             return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject, requestedActions);
         }
