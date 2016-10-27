@@ -413,26 +413,11 @@
             ? credGroups[CredentialKind.Token]
             : new List<CredentialViewModel>();
 
-        // auto-expand when we just generated a new key
+        // Auto-expand when we just generated a new key
         var shouldExpandApiKeyAccordion = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyGenerated, StringComparison.OrdinalIgnoreCase));
 
-        // or when the API keys has expired
+        // Or when an API key has expired
         shouldExpandApiKeyAccordion = shouldExpandApiKeyAccordion || apiKeys.Any(k => k.HasExpired);
-
-        // Sort the api keys by description, when a legacy api key appears first
-        apiKeys.Sort((k1, k2) =>
-        {
-            if (k1.IsNonScopedV1ApiKey)
-            {
-                return -1;
-            }
-            if (k2.IsNonScopedV1ApiKey)
-            {
-                return 1;
-            }
-
-            return k1.Description.CompareTo(k2.Description);
-        });
     }
 
     @AccordionBar(

@@ -6,12 +6,6 @@
 @{
     var apiKeys = Model.Credentials.Where(c => c.Kind == CredentialKind.Token).ToList();
 
-    // auto-expand when we just generated a new key
-    var shouldExpandApiKeyAccordion = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyGenerated, StringComparison.OrdinalIgnoreCase));
-
-    // or when the API keys has expired
-    shouldExpandApiKeyAccordion = shouldExpandApiKeyAccordion || apiKeys.Any(k => k.HasExpired);
-
     // Sort the api keys by description, when a legacy api key appears first
     apiKeys.Sort((k1, k2) =>
     {
@@ -324,9 +318,9 @@
 </script>
 <script>
     function onScopeSelected() {
-        var anyChecked = document.getElementById("scopeList").checked || document.getElementById("scopePush").checked;
+        var scopeListOrPushChecked = document.getElementById("scopeList").checked || document.getElementById("scopePush").checked;
 
-        if (anyChecked) {
+        if (scopeListOrPushChecked) {
             $('#selectablePackagesList').removeClass('disabled-div');
         }
         else
@@ -334,7 +328,7 @@
             $('#selectablePackagesList').addClass('disabled-div');
         }
 
-        var anyChecked = anyChecked || document.getElementById("scopePushNew").checked;
+        var anyChecked = scopeListOrPushChecked || document.getElementById("scopePushNew").checked;
 
         if (anyChecked) {
             $('#generateKey').removeClass('disabled-div');
