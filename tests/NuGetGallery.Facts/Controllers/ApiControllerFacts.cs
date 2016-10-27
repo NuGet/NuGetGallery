@@ -367,9 +367,17 @@ namespace NuGetGallery
 
                 var user = new User {EmailAddress = "confirmed@email.com", Username = "username"};
 
+                var package = new Package();
+                package.PackageRegistration = new PackageRegistration();
+                package.Version = "1.0.42";
+
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(user, apiKeyScopes);
                 controller.SetupPackageFromInputStream(nuGetPackage);
+                controller.MockPackageService.Setup(
+                    x =>
+                        x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user,
+                            It.IsAny<bool>())).Returns(Task.FromResult(package));
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -418,8 +426,16 @@ namespace NuGetGallery
                 packageRegistration.Id = packageId;
                 packageRegistration.Owners.Add(user);
 
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(packageId))
                     .Returns(packageRegistration);
+                controller.MockPackageService.Setup(
+                    x =>
+                        x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user,
+                            It.IsAny<bool>())).Returns(Task.FromResult(package));
 
                 // Act
                 var result = await controller.CreatePackagePut();
