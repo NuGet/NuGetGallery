@@ -13,6 +13,8 @@ namespace NuGet.Services.Configuration.Tests
         {
             new object[] {true},
             new object[] {false},
+            new object[] {"hello"},
+            new object[] {"123456789"},
             new object[] {-1},
             new object[] {1259},
             new object[] {DateTime.MinValue},
