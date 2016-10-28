@@ -13,6 +13,7 @@ namespace NuGetGallery
         PackageRegistration FindPackageRegistrationById(string id);
         Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true);
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted);
+        IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);
 
         Task UpdateIsLatestAsync(PackageRegistration packageRegistration, bool commitChanges = true);

@@ -222,8 +222,14 @@
                     {
                     <div class="form-field">
                         <strong>Select packages</strong>
+                        
+                        @if (Model.Packages.Count > 100)
+                        {
+                            <text>(Only the first 100 are presented)</text>
+                        }
+
                         <div class="scrollable-div" id="selectablePackagesList" style="max-height: 150px;">
-                            @foreach (var package in Model.Packages)
+                            @foreach (var package in Model.Packages.Take(100))
                             {
                                 <label class="checkoboxsmall"><input type="checkbox" name="subjects" value="@package" /> @package</label>
                             }

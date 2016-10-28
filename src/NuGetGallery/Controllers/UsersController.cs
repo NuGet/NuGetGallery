@@ -672,16 +672,13 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var curatedFeeds = _curatedFeedService.GetFeedsForManager(user.Key);
             var creds = user.Credentials.Select(c => _authService.DescribeCredential(c)).ToList();
-            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
-                .Where(p => !p.Deleted)
-                .GroupBy(p => p.PackageRegistration.Id)
-                .OrderBy(g => g.Key)
-                .Select(g => g.Key)
-                .ToList();
+            var packageNames = _packageService.FindPackageRegistrationsByOwner(user).Select(p => p.Id).ToList();
+
+            packageNames.Sort();
 
             model.Credentials = creds;
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
-            model.Packages = packages;
+            model.Packages = packageNames;
 
             model.ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1;
             

@@ -25,7 +25,7 @@ namespace NuGetGallery
 
         public IEnumerable<string> CuratedFeeds { get; set; }
         public IList<CredentialViewModel> Credentials { get; set; }
-        public IList<string> Packages { get; set; }
+        public List<string> Packages { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
         public ChangeEmailViewModel ChangeEmail { get; set; }
         public int ExpirationInDaysForApiKeyV1 { get; set; }
