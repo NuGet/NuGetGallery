@@ -244,6 +244,7 @@
     <Compile Include="Infrastructure\JobLogBlob.cs" />
     <Compile Include="Infrastructure\JobLogEntry.cs" />
     <Compile Include="Infrastructure\LogLevelConverter.cs" />
+    <Compile Include="Infrastructure\MonitoringHelpers.cs" />
     <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
     <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
     <Compile Include="Infrastructure\TableValuedParameter.cs" />
