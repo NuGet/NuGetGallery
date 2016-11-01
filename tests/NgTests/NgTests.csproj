@@ -91,7 +91,7 @@
     <Compile Include="Infrastructure\ODataPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegistrationCollectorTests.cs" />
-    <Compile Include="TestableFeed2Catalog.cs" />
+    <Compile Include="TestableFeed2CatalogJob.cs" />
     <Compile Include="Data\TestCatalogEntries.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

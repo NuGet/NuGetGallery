@@ -42,8 +42,8 @@ namespace NgTests
             mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
 
             // Act
-            var target = new TestableFeed2Catalog(mockServer);
-            await target.InvokeProcessFeed("http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true, CancellationToken.None);
+            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
+            await feed2catalogTestJob.RunOnce(CancellationToken.None);
 
             // Assert
             Assert.Equal(5, catalogStorage.Content.Count);
@@ -120,8 +120,8 @@ namespace NgTests
             mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
 
             // Act
-            var target = new TestableFeed2Catalog(mockServer);
-            await target.InvokeProcessFeed("http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true, CancellationToken.None);
+            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
+            await feed2catalogTestJob.RunOnce(CancellationToken.None);
 
             // Assert
             Assert.Equal(6, catalogStorage.Content.Count);
@@ -207,8 +207,8 @@ namespace NgTests
             mockServer.SetAction("/package/OtherPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
 
             // Act
-            var target = new TestableFeed2Catalog(mockServer);
-            await target.InvokeProcessFeed("http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true, CancellationToken.None);
+            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
+            await feed2catalogTestJob.RunOnce(CancellationToken.None);
 
             // Assert
             Assert.Equal(7, catalogStorage.Content.Count);

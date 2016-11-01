@@ -46,8 +46,8 @@ namespace NuGet.Services.Metadata.Catalog
         {
             InReqCount();
 
-            Task<string> task = GetStringAsync(address, token);
-            return task.ContinueWith<JObject>((t) =>
+            var task = GetStringAsync(address, token);
+            return task.ContinueWith((t) =>
             {
                 try
                 {
@@ -57,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog
                 {
                     throw new Exception(string.Format("GetJObjectAsync({0})", address), e);
                 }
-            });
+            }, token);
         }
 
         private JObject ParseJObject(string json)
@@ -77,24 +77,24 @@ namespace NuGet.Services.Metadata.Catalog
 
         public virtual Task<IGraph> GetGraphAsync(Uri address, CancellationToken token)
         {
-            Task<JObject> task = GetJObjectAsync(address, token);
-            return task.ContinueWith<IGraph>((t) =>
+            var task = GetJObjectAsync(address, token);
+            return task.ContinueWith((t) =>
             {
                 try
                 {
-                    return NuGet.Services.Metadata.Catalog.Utils.CreateGraph(t.Result);
+                    return Utils.CreateGraph(t.Result);
                 }
                 catch (Exception e)
                 {
                     throw new Exception(string.Format("GetGraphAsync({0})", address), e);
                 }
-            });
+            }, token);
         }
 
         public virtual Task<string> GetStringAsync(Uri address, CancellationToken token)
         {
-            Task<HttpResponseMessage> task = GetAsync(address, token);
-            return task.ContinueWith<string>((t) =>
+            var task = GetAsync(address, token);
+            return task.ContinueWith((t) =>
             {
                 try
                 {
@@ -104,7 +104,7 @@ namespace NuGet.Services.Metadata.Catalog
                 {
                     throw new Exception(string.Format("GetStringAsync({0})", address), e);
                 }
-            });
+            }, token);
         }
     }
 }

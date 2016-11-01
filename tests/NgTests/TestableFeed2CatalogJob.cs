@@ -3,20 +3,28 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Ng;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using Ng.Jobs;
 
 namespace NgTests
 {
-    public class TestableFeed2Catalog
-        : Feed2Catalog
+    public class TestableFeed2CatalogJob
+        : Feed2CatalogJob
     {
         private readonly HttpMessageHandler _handler;
 
-        public TestableFeed2Catalog(HttpMessageHandler handler)
+        public TestableFeed2CatalogJob(HttpMessageHandler handler, string gallery, Storage catalogStorage, Storage auditingStorage, DateTime? startDate, TimeSpan timeout, int top, bool verbose)
             : base(new TestLoggerFactory())
         {
             _handler = handler;
+
+            Gallery = gallery;
+            CatalogStorage = catalogStorage;
+            AuditingStorage = auditingStorage;
+            StartDate = startDate;
+            Timeout = timeout;
+            Top = top;
+            Verbose = verbose;
         }
 
         protected override HttpClient CreateHttpClient(bool verbose)
@@ -24,9 +32,9 @@ namespace NgTests
             return new HttpClient(_handler);
         }
 
-        public async Task InvokeProcessFeed(string gallery, Storage catalogStorage, Storage auditingStorage, DateTime? startDate, TimeSpan timeout, int top, bool verbose, CancellationToken cancellationToken)
+        public async Task RunOnce(CancellationToken cancellationToken)
         {
-            await ProcessFeed(gallery, catalogStorage, auditingStorage, startDate, timeout, top, verbose, cancellationToken);
+            await RunInternal(cancellationToken);
         }
     }
 

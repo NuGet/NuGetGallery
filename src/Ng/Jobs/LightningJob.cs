@@ -1,0 +1,431 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
+using System.IO;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
+using Microsoft.WindowsAzure.Storage;
+using NuGet.Services.Configuration;
+using VDS.RDF;
+using NuGet.Services.Metadata.Catalog.Registration;
+
+namespace Ng.Jobs
+{
+    public class LightningJob : NgJob
+    {
+        public LightningJob(ILoggerFactory loggerFactory) : base(loggerFactory)
+        {
+        }
+
+        private static void PrintLightning()
+        {
+            var currentColor = Console.ForegroundColor;
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("                ,/");
+            Console.WriteLine("              ,'/");
+            Console.WriteLine("            ,' /");
+            Console.WriteLine("          ,'  /_____,");
+            Console.WriteLine("        .'____    ,'        NuGet - ng.exe lightning");
+            Console.WriteLine("             /  ,'");
+            Console.WriteLine("            / ,'            The lightning fast catalog2registration.");
+            Console.WriteLine("           /,'");
+            Console.WriteLine("          /'");
+            Console.ForegroundColor = currentColor;
+            Console.WriteLine();
+        }
+
+        public override string GetUsage()
+        {
+            var usageStringWriter = new StringWriter();
+            usageStringWriter.WriteLine("Usage: ng lightning -command prepare|strike");
+            usageStringWriter.WriteLine();
+            usageStringWriter.WriteLine("The prepare command:");
+            usageStringWriter.WriteLine("  ng lightning -command prepare -outputFolder <output-folder> -catalogIndex <catalog-index-url> -contentBaseAddress <content-address> -templateFile <template-file> -batchSize 2000 -storageAccount <connection-string> -storageContainer <container> -storageBaseAddress <storage-base-address> -compress true|false [-verbose true|false]");
+            usageStringWriter.WriteLine();
+            usageStringWriter.WriteLine("  -outputFolder <output-folder>");
+            usageStringWriter.WriteLine("      The folder to generate files in.");
+            usageStringWriter.WriteLine("  -catalogIndex <catalog-index-url>");
+            usageStringWriter.WriteLine("      The catalog index.json URL to work with.");
+            usageStringWriter.WriteLine("  -contentBaseAddress <content-address>");
+            usageStringWriter.WriteLine("      The base address for package contents.");
+            usageStringWriter.WriteLine("  -templateFile <template-file>");
+            usageStringWriter.WriteLine("      The lightning-template.txt that calls the strike command per batch.");
+            usageStringWriter.WriteLine("  -batchSize 2000");
+            usageStringWriter.WriteLine("      The batch size.");
+            usageStringWriter.WriteLine("  -storageAccount <connection-string>");
+            usageStringWriter.WriteLine("      Azure Storage connection string.");
+            usageStringWriter.WriteLine("  -storageContainer <container>");
+            usageStringWriter.WriteLine("      Container to generate registrations in.");
+            usageStringWriter.WriteLine("  -storageBaseAddress <base-address>");
+            usageStringWriter.WriteLine("      Base address to write into registration blobs.");
+            usageStringWriter.WriteLine("  -compress true|false");
+            usageStringWriter.WriteLine("      Compress blobs?");
+            usageStringWriter.WriteLine("  -verbose true|false");
+            usageStringWriter.WriteLine("      Switch output verbosity on/off.");
+            usageStringWriter.WriteLine();
+            usageStringWriter.WriteLine("Traverses the given catalog and, using a template file and batch size,");
+            usageStringWriter.WriteLine("generates executable commands that can be run in parallel.");
+            usageStringWriter.WriteLine("The generated index.txt contains an alphabetical listing of all packages");
+            usageStringWriter.WriteLine("in the catalog with their entries.");
+            usageStringWriter.WriteLine();
+            usageStringWriter.WriteLine();
+            usageStringWriter.WriteLine("The strike command:");
+            usageStringWriter.WriteLine("  ng lightning -command strike -indexFile <index-file> -cursorFile <cursor-file> -contentBaseAddress <content-address> -storageAccount <connection-string> -storageContainer <container> -storageBaseAddress <base-address> -compress true|false [-verbose true|false]");
+            usageStringWriter.WriteLine();
+            usageStringWriter.WriteLine("  -indexFile <index-file>");
+            usageStringWriter.WriteLine("      Index file generated by the lightning prepare command.");
+            usageStringWriter.WriteLine("  -cursorFile <cursor-file>");
+            usageStringWriter.WriteLine("      Cursor file containing range of the batch.");
+            usageStringWriter.WriteLine("  -contentBaseAddress <content-address>");
+            usageStringWriter.WriteLine("      The base address for package contents.");
+            usageStringWriter.WriteLine("  -storageAccount <connection-string>");
+            usageStringWriter.WriteLine("      Azure Storage connection string.");
+            usageStringWriter.WriteLine("  -storageContainer <container>");
+            usageStringWriter.WriteLine("      Container to generate registrations in.");
+            usageStringWriter.WriteLine("  -storageBaseAddress <base-address>");
+            usageStringWriter.WriteLine("      Base address to write into registration blobs.");
+            usageStringWriter.WriteLine("  -compress true|false");
+            usageStringWriter.WriteLine("      Compress blobs?");
+            usageStringWriter.WriteLine("  -verbose true|false");
+            usageStringWriter.WriteLine("      Switch output verbosity on/off.");
+            usageStringWriter.WriteLine();
+            usageStringWriter.WriteLine("The lightning strike command is used by the batch files generated with");
+            usageStringWriter.WriteLine("the prepare command. It creates registrations for a given batch of catalog");
+            usageStringWriter.WriteLine("entries.");
+            return usageStringWriter.ToString();
+        }
+
+        #region Shared Arguments
+        private string _command;
+        private bool _verbose;
+
+        private TextWriter _log;
+
+        private string _contentBaseAddress;
+        private string _storageAccount;
+        private string _storageContainer;
+        private string _storageBaseAddress;
+        private bool _compress;
+        #endregion
+
+        #region Prepare Arguments
+        private string _outputFolder;
+        private string _catalogIndex;
+        private string _templateFile;
+        private string _batchSize;
+        #endregion
+
+        #region Strike Arguments
+        private string _indexFile;
+        private string _cursorFile;
+        #endregion
+
+        protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
+        {
+            PrintLightning();
+
+            _command = arguments.GetOrThrow<string>(Arguments.Command);
+            _verbose = arguments.GetOrDefault(Arguments.Verbose, false);
+
+            _log = _verbose ? Console.Out : new StringWriter();
+
+            switch (_command.ToLowerInvariant())
+            {
+                case "charge":
+                case "prepare":
+                    InitPrepare(arguments);
+                    break;
+                case "strike":
+                    InitStrike(arguments);
+                    break;
+                default:
+                    throw new ArgumentNullException();
+            }
+
+            _contentBaseAddress = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
+            _storageAccount = arguments.GetOrThrow<string>(Arguments.StorageAccount);
+            _storageContainer = arguments.GetOrThrow<string>(Arguments.StorageContainer);
+            _storageBaseAddress = arguments.GetOrThrow<string>(Arguments.StorageBaseAddress);
+            _compress = arguments.GetOrDefault(Arguments.Compress, false);
+        }
+
+        private void InitPrepare(IDictionary<string, string> arguments)
+        {
+            _outputFolder = arguments.GetOrThrow<string>(Arguments.OutputFolder);
+            _catalogIndex = arguments.GetOrThrow<string>(Arguments.CatalogIndex);
+            _templateFile = arguments.GetOrThrow<string>(Arguments.TemplateFile);
+            _batchSize = arguments.GetOrThrow<string>(Arguments.BatchSize);
+        }
+
+        private void InitStrike(IDictionary<string, string> arguments)
+        {
+            _indexFile = arguments.GetOrThrow<string>(Arguments.IndexFile);
+            _cursorFile = arguments.GetOrThrow<string>(Arguments.CursorFile);
+        }
+
+        protected override async Task RunInternal(CancellationToken cancellationToken)
+        {
+            switch (_command.ToLowerInvariant())
+            {
+                case "charge":
+                case "prepare":
+                    await PrepareAsync();
+                    break;
+                case "strike":
+                    await StrikeAsync();
+                    break;
+                default:
+                    throw new ArgumentNullException();
+            }
+        }
+
+        private async Task PrepareAsync()
+        {
+            _log.WriteLine("Making sure folder {0} exists.", _outputFolder);
+            if (!Directory.Exists(_outputFolder))
+            {
+                Directory.CreateDirectory(_outputFolder);
+            }
+
+            // Create reindex file
+            _log.WriteLine("Start preparing lightning reindex file...");
+
+            var latestCommit = DateTime.MinValue;
+            int numberOfEntries = 0;
+            string indexFile = Path.Combine(_outputFolder, "index.txt");
+            using (var streamWriter = new StreamWriter(indexFile, false))
+            {
+                var collectorHttpClient = new CollectorHttpClient();
+                var catalogIndexReader = new CatalogIndexReader(new Uri(_catalogIndex), collectorHttpClient);
+
+                var catalogIndexEntries = await catalogIndexReader.GetEntries();
+
+                foreach (var packageRegistrationGroup in catalogIndexEntries
+                    .OrderBy(x => x.CommitTimeStamp)
+                    .ThenBy(x => x.Id)
+                    .ThenBy(x => x.Version)
+                    .GroupBy(x => x.Id))
+                {
+                    streamWriter.WriteLine("Element@{0}. {1}", numberOfEntries++, packageRegistrationGroup.Key);
+
+                    var latestCatalogPages = new Dictionary<string, Uri>();
+
+                    foreach (CatalogIndexEntry catalogIndexEntry in packageRegistrationGroup)
+                    {
+                        string key = catalogIndexEntry.Version.ToNormalizedString();
+                        if (latestCatalogPages.ContainsKey(key))
+                        {
+                            latestCatalogPages[key] = catalogIndexEntry.Uri;
+                        }
+                        else
+                        {
+                            latestCatalogPages.Add(key, catalogIndexEntry.Uri);
+                        }
+
+                        if (latestCommit < catalogIndexEntry.CommitTimeStamp)
+                        {
+                            latestCommit = catalogIndexEntry.CommitTimeStamp;
+                        }
+                    }
+
+                    foreach (var latestCatalogPage in latestCatalogPages)
+                    {
+                        streamWriter.WriteLine("{0}", latestCatalogPage.Value);
+                    }
+                }
+            }
+
+            _log.WriteLine("Finished preparing lightning reindex file. Output file: {0}", indexFile);
+
+            // Write cursor to storage
+            _log.WriteLine("Start writing new cursor...");
+
+            var account = CloudStorageAccount.Parse(_storageAccount);
+            var storageFactory = (StorageFactory)new AzureStorageFactory(account, _storageContainer);
+            var storage = storageFactory.Create();
+            var cursor = new DurableCursor(storage.ResolveUri("cursor.json"), storage, latestCommit);
+            cursor.Value = latestCommit;
+            await cursor.Save(CancellationToken.None);
+
+            _log.WriteLine("Finished writing new cursor.");
+
+            // Write command files
+            _log.WriteLine("Start preparing lightning reindex command files...");
+
+            string templateFileContents;
+            using (var templateStreamReader = new StreamReader(_templateFile))
+            {
+                templateFileContents = await templateStreamReader.ReadToEndAsync();
+            }
+
+            int batchNumber = 0;
+            int batchSizeValue = int.Parse(_batchSize);
+            for (int batchStart = 0; batchStart < numberOfEntries; batchStart += batchSizeValue)
+            {
+                var batchEnd = (batchStart + batchSizeValue - 1);
+                if (batchEnd >= numberOfEntries)
+                {
+                    batchEnd = numberOfEntries - 1;
+                }
+
+                var cursorCommandFileName = "cursor" + batchNumber + ".cmd";
+                var cursorTextFileName = "cursor" + batchNumber + ".txt";
+
+                using (var cursorCommandStreamWriter = new StreamWriter(Path.Combine(_outputFolder, cursorCommandFileName)))
+                {
+                    using (var cursorTextStreamWriter = new StreamWriter(Path.Combine(_outputFolder, cursorTextFileName)))
+                    {
+                        var commandStreamContents = templateFileContents
+                            .Replace("[index]", indexFile)
+                            .Replace("[cursor]", cursorTextFileName)
+                            .Replace("[contentbaseaddress]", _contentBaseAddress)
+                            .Replace("[storageaccount]", _storageAccount)
+                            .Replace("[storagecontainer]", _storageContainer)
+                            .Replace("[storagebaseaddress]", _storageBaseAddress)
+                            .Replace("[compress]", _compress.ToString().ToLowerInvariant());
+
+                        await cursorCommandStreamWriter.WriteLineAsync(commandStreamContents);
+                        await cursorTextStreamWriter.WriteLineAsync(batchStart + "," + batchEnd);
+                    }
+                }
+
+                batchNumber++;
+            }
+
+            _log.WriteLine("Finished preparing lightning reindex command files.");
+
+            _log.WriteLine("You can now copy the {0} file and all cursor*.cmd, cursor*.txt", indexFile);
+            _log.WriteLine("to multiple machines and run the cursor*.cmd files in parallel.");
+        }
+
+        private async Task StrikeAsync()
+        {
+
+            _log.WriteLine("Start lightning strike for {0}...", _cursorFile);
+
+            // Get batch range
+            int batchStart;
+            int batchEnd;
+            using (var cursorStreamReader = new StreamReader(_cursorFile))
+            {
+                var batchRange = (await cursorStreamReader.ReadLineAsync()).Split(',');
+                batchStart = int.Parse(batchRange[0]);
+                batchEnd = int.Parse(batchRange[1]);
+
+                _log.WriteLine("Batch range: {0} - {1}", batchStart, batchEnd);
+            }
+            if (batchStart > batchEnd)
+            {
+                _log.WriteLine("Batch already finished.");
+                return;
+            }
+
+            // Time to strike
+            var collectorHttpClient = new CollectorHttpClient();
+            var account = CloudStorageAccount.Parse(_storageAccount);
+            var storageFactory = (StorageFactory)new AzureStorageFactory(account, _storageContainer, null, new Uri(_storageBaseAddress))
+            {
+                CompressContent = _compress
+            };
+
+            var startElement = string.Format("Element@{0}.", batchStart);
+            var endElement = string.Format("Element@{0}.", batchEnd + 1);
+            using (var indexStreamReader = new StreamReader(_indexFile))
+            {
+                string line;
+
+                // Skip entries that are not in the current batch bounds
+                do
+                {
+                    line = await indexStreamReader.ReadLineAsync();
+                }
+                while (!line.Contains(startElement));
+
+                // Run until we're outside the current batch bounds
+                while (!string.IsNullOrEmpty(line) && !line.Contains(endElement) && !indexStreamReader.EndOfStream)
+                {
+                    _log.WriteLine(line);
+
+                    try
+                    {
+                        var packageId = line.Split(new[] { ". " }, StringSplitOptions.None).Last().Trim();
+
+                        var sortedGraphs = new Dictionary<string, IGraph>();
+
+                        line = await indexStreamReader.ReadLineAsync();
+                        while (!string.IsNullOrEmpty(line) && !line.Contains("Element@") && !indexStreamReader.EndOfStream)
+                        {
+                            // Fetch graph for package version
+                            var url = line.TrimEnd();
+                            var graph = await collectorHttpClient.GetGraphAsync(new Uri(url));
+                            if (sortedGraphs.ContainsKey(url))
+                            {
+                                sortedGraphs[url] = graph;
+                            }
+                            else
+                            {
+                                sortedGraphs.Add(url, graph);
+                            }
+
+                            // To reduce memory footprint, we're flushing out large registrations
+                            // in very small batches.
+                            if (graph.Nodes.Count() > 3000 && sortedGraphs.Count >= 2)
+                            {
+                                // Process graphs
+                                await ProcessGraphsAsync(packageId, sortedGraphs, storageFactory, _contentBaseAddress);
+
+                                // Destroy!
+                                sortedGraphs = new Dictionary<string, IGraph>();
+                            }
+
+                            // Read next line
+                            line = await indexStreamReader.ReadLineAsync();
+                        }
+
+                        // Process graphs
+                        if (sortedGraphs.Any())
+                        {
+                            await ProcessGraphsAsync(packageId, sortedGraphs, storageFactory, _contentBaseAddress);
+                        }
+
+                        // Update cursor file so next time we have less work to do
+                        batchStart++;
+                        await UpdateCursorFileAsync(_cursorFile, batchStart, batchEnd);
+                    }
+                    catch (Exception)
+                    {
+                        UpdateCursorFileAsync(_cursorFile, batchStart, batchEnd).Wait();
+                        throw;
+                    }
+                }
+            }
+
+            await UpdateCursorFileAsync("DONE" + _cursorFile, batchStart, batchEnd);
+            _log.WriteLine("Finished lightning strike for {0}.", _cursorFile);
+        }
+
+        private static Task UpdateCursorFileAsync(string cursorFileName, int startIndex, int endIndex)
+        {
+            using (var streamWriter = new StreamWriter(cursorFileName))
+            {
+                streamWriter.Write(startIndex);
+                streamWriter.Write(",");
+                streamWriter.Write(endIndex);
+            }
+
+            return Task.FromResult(true);
+        }
+
+        private static Task ProcessGraphsAsync(string packageId, IDictionary<string, IGraph> sortedGraphs, StorageFactory storageFactory, string contentBaseAddress)
+        {
+            return RegistrationMaker.Process(new RegistrationKey(packageId), sortedGraphs, storageFactory, new Uri(contentBaseAddress), 64, 128, CancellationToken.None);
+        }
+    }
+}
