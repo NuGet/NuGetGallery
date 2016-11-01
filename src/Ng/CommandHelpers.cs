@@ -158,7 +158,7 @@ namespace Ng
                 var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
                 var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
-                var storagePath = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StoragePath]);
+                var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
 
                 var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
                 var account = new CloudStorageAccount(credentials, true);
