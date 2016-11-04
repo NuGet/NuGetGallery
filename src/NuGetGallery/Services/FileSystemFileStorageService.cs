@@ -141,20 +141,15 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageFile));
             }
 
-            if (!_fileSystemService.DirectoryExists(_configuration.FileStorageDirectory))
-            {
-                _fileSystemService.CreateDirectory(_configuration.FileStorageDirectory);
-            }
-
             var filePath = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            var folderPath = Path.GetDirectoryName(filePath);
+
+            var dirPath = System.IO.Path.GetDirectoryName(filePath);
+
+            _fileSystemService.CreateDirectory(dirPath);
+
             if (_fileSystemService.FileExists(filePath))
             {
                 _fileSystemService.DeleteFile(filePath);
-            }
-            else
-            {
-                _fileSystemService.CreateDirectory(folderPath);
             }
 
             using (var file = _fileSystemService.OpenWrite(filePath))
