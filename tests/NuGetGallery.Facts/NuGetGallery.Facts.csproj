@@ -188,8 +188,8 @@
       <HintPath>..\..\packages\MvcHaack.Ajax.MVC4.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Common, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -393,7 +393,6 @@
     <Compile Include="AutocompleteServicePackageVersionsQueryFacts.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationServiceFacts.cs" />
-    <Compile Include="App_Start\CachingSecretReaderFacts.cs" />
     <Compile Include="Controllers\AppControllerFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
