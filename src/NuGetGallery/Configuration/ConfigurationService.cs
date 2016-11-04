@@ -13,7 +13,6 @@ using System.Web;
 using System.Web.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.KeyVault;
-using NuGetGallery.Configuration.SecretReader;
 
 namespace NuGetGallery.Configuration
 {
@@ -56,38 +55,18 @@ namespace NuGetGallery.Configuration
             return ReadSetting(key.Replace("::", ".")).Result;
         }
 
-        /// <summary>
-        /// Asynchronously access current configuration.
-        /// </summary>
-        /// <returns>The current configuration.</returns>
         public virtual async Task<IAppConfiguration> GetCurrent()
         {
             return _appConfig = await ResolveSettings();
         }
 
-        /// <summary>
-        /// Asynchronously access features configuration.
-        /// </summary>
-        /// <returns>The features configuration.</returns>
         public virtual async Task<FeatureConfiguration> GetFeatures()
         {
             return _featuresConfig = await ResolveFeatures();
         }
 
-        /// <summary>
-        /// Synchronously access current configuration in contexts that cannot be async.
-        /// Avoid accessing configuration that changes with this method (e.g. Azure connection strings).
-        /// </summary>
-        /// <returns>The cached current configuration.</returns>
-        [Obsolete("Use GetCurrent() unless a synchronous context is completely necessary.")]
         public virtual IAppConfiguration Current => _appConfig ?? GetCurrent().Result;
 
-        /// <summary>
-        /// Synchronously access features configuration in contexts that cannot be async.
-        /// Avoid accessing configuration that changes with this method (e.g. Azure connection strings).
-        /// </summary>
-        /// <returns>The cached features configuration.</returns>
-        [Obsolete("Use GetFeatures() unless a synchronous context is completely necessary.")]
         public virtual FeatureConfiguration Features => _featuresConfig ?? GetFeatures().Result;
 
         /// <summary>
@@ -191,7 +170,7 @@ namespace NuGetGallery.Configuration
 
         private ISecretInjector InitSecretInjector()
         {
-            return _secretReaderFactory.CreateSecretInjector(_secretReaderFactory.CreateSecretReader(new ConfigurationService(new EmptySecretReaderFactory())));
+            return _secretReaderFactory.CreateSecretInjector(_secretReaderFactory.CreateSecretReader());
         }
 
         private async Task<FeatureConfiguration> ResolveFeatures()

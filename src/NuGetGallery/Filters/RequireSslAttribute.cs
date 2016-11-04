@@ -24,13 +24,10 @@ namespace NuGetGallery.Filters
             }
 
             var request = filterContext.HttpContext.Request;
-            // Disabled warning because IAuthorizationFilter must be synchronous.
-#pragma warning disable CS0618 // Type or member is obsolete
             if (ConfigService.Current.RequireSSL && !request.IsSecureConnection)
             {
                 HandleNonHttpsRequest(filterContext);
             }
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private void HandleNonHttpsRequest(AuthorizationContext filterContext)
@@ -45,11 +42,8 @@ namespace NuGetGallery.Filters
             {
                 // redirect to HTTPS version of page
                 var portString = String.Empty;
-
-                // Disabled warning because IAuthorizationFilter must be synchronous.
-#pragma warning disable CS0618 // Type or member is obsolete
+                
                 var sslPort = ConfigService.Current.SSLPort;
-#pragma warning restore CS0618 // Type or member is obsolete
                 if (sslPort != 443)
                 {
                     portString = String.Format(CultureInfo.InvariantCulture, ":{0}", sslPort);

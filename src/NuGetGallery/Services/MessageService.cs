@@ -20,12 +20,10 @@ namespace NuGetGallery
     public class MessageService : IMessageService
     {
         /// <summary>
-        /// Constructor for tests to specify a custom MailSender
+        /// Empty constructor for tests.
         /// </summary>
-        /// <param name="mailSender">MailSender to use to send mail</param>
-        protected MessageService(IMailSender mailSender)
+        protected MessageService()
         {
-            MailSender = mailSender;
         }
 
         public MessageService(IGalleryConfigurationService configService, AuthenticationService authService)

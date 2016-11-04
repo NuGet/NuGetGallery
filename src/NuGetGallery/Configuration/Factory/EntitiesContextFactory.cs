@@ -7,7 +7,8 @@ namespace NuGetGallery.Configuration.Factory
     {
         public EntitiesContextFactory()
             : base(new ConfigObjectDelegate<EntitiesContext>(
-                objects => new EntitiesContext((string)objects[0], (bool)objects[1]), new string[] { "SqlConnectionString", "ReadOnlyMode" }))
+                objects => new EntitiesContext((string) objects[0], (bool) objects[1]),
+                new string[] {nameof(IAppConfiguration.SqlConnectionString), nameof(IAppConfiguration.ReadOnlyMode)}))
         {
         }
     }

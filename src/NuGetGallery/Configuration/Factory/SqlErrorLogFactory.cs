@@ -9,7 +9,7 @@ namespace NuGetGallery.Configuration.Factory
     {
         public SqlErrorLogFactory()
             : base(new ConfigObjectDelegate<SqlErrorLog>(
-                objects => new SqlErrorLog((string)objects[0]), "SqlConnectionString"))
+                objects => new SqlErrorLog((string) objects[0]), nameof(IAppConfiguration.SqlConnectionString)))
         {
         }
     }

@@ -19,10 +19,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             // Fetch site root from configuration
-            // Disabled warning because this method must be synchronous and is only for initialization.
-#pragma warning disable CS0618 // Type or member is obsolete
             var siteRoot = config.Current.SiteRoot.TrimEnd('/') + "/";
-#pragma warning restore CS0618 // Type or member is obsolete
 
             // We *always* require SSL for Azure Active Directory
             if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) 

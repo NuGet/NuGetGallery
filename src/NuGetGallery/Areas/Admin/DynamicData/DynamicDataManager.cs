@@ -37,10 +37,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             {
                 DefaultModel.RegisterContext(
                     new EFDataModelProvider(
-                        // This action to construct an EntitiesContext is called through the EFDataModelProvider and must be static.
-#pragma warning disable CS0618 // Type or member is obsolete
                         () => new EntitiesContext(configService.Current.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
-#pragma warning restore CS0618 // Type or member is obsolete
                         configuration: new ContextConfiguration { ScaffoldAllTables = true });
             }
             catch (SqlException e)

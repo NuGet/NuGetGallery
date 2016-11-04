@@ -52,10 +52,7 @@ namespace NuGetGallery
             // Get config
             var config = dependencyResolver.GetService<IGalleryConfigurationService>();
             var auth = dependencyResolver.GetService<AuthenticationService>();
-            // Disabled method because this method must be synchronous and is only for initialization.
-#pragma warning disable CS0618 // Type or member is obsolete
             var appConfig = config.Current;
-#pragma warning restore CS0618 // Type or member is obsolete
 
             // Setup telemetry
             //

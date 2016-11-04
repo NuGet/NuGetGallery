@@ -187,7 +187,7 @@ namespace NuGetGallery.App_Start
                                   .Returns<string>(s => Task.FromResult(s + "parsed"));
 
                 var secretReaderFactory = new Mock<ISecretReaderFactory>();
-                secretReaderFactory.Setup(x => x.CreateSecretReader(It.IsAny<IGalleryConfigurationService>()))
+                secretReaderFactory.Setup(x => x.CreateSecretReader())
                     .Returns(new EmptySecretReader());
                 secretReaderFactory.Setup(x => x.CreateSecretInjector(It.IsAny<ISecretReader>()))
                     .Returns(secretInjectorMock.Object);

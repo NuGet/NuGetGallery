@@ -28,7 +28,8 @@ namespace NuGetGallery.Configuration.Factory
 
         public CloudAuditingServiceFactory()
             : base(new ConfigObjectDelegate<CloudAuditingService>(
-                objects => CloudAuditingServiceConstructorWrapper((string)objects[0]), "AzureStorageConnectionString"))
+                objects => CloudAuditingServiceConstructorWrapper((string) objects[0]),
+                nameof(IAppConfiguration.AzureStorageConnectionString)))
         {
         }
     }

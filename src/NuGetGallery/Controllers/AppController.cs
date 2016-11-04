@@ -72,11 +72,8 @@ namespace NuGetGallery
             // (NuGetGallery.StatisticsControllerFacts+TheTotalsAllAction.UseClientCultureIfLanguageHeadersIsPresent)
             if (NuGetContext.Config != null)
             {
-                // Disabled warning because OnActionExecuting must be synchronous.
-#pragma warning disable CS0618 // Type or member is obsolete
                 ViewBag.AppConfig = NuGetContext.Config.Current;
                 ViewBag.FeaturesConfig = NuGetContext.Config.Features;
-#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             base.OnActionExecuting(filterContext);

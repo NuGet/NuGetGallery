@@ -43,8 +43,6 @@ namespace NuGetGallery
                 );
 
             string encryptedTicket = FormsAuthentication.Encrypt(ticket);
-            // Disabled warning because RequireSSL is a static configuration value (won't change).
-#pragma warning disable CS0618 // Type or member is obsolete
             var formsCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket)
             {
                 HttpOnly = true,
@@ -59,7 +57,6 @@ namespace NuGetGallery
                 responseCookie.HttpOnly = true;
                 context.Response.Cookies.Add(responseCookie);
             }
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public void SignOut()

@@ -12,7 +12,7 @@ namespace NuGetGallery.Configuration.SecretReader
             return new SecretInjector(secretReader);
         }
 
-        public ISecretReader CreateSecretReader(IGalleryConfigurationService configurationService)
+        public ISecretReader CreateSecretReader()
         {
             return new EmptySecretReader();
         }

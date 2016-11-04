@@ -28,7 +28,6 @@ namespace NuGetGallery.Configuration.Factory
         /// Note that the array of configNames is aligned with the array of objects passed to the factory method.
         /// In other words, the value returned from the configuration service for configNames[0] is passed to the factory method as objects[0].
         /// </summary>
-        /// <param name="configService">The configuration service to fetch configuration from.</param>
         /// <param name="factoryMethod">A method that constructs an instance of T from the values returned from the configuration service.</param>
         /// <param name="configNames">Names of configuration to fetch from the configuration service.</param>
         public ConfigObjectDelegate(Func<object[], T> factoryMethod, string[] configNames)

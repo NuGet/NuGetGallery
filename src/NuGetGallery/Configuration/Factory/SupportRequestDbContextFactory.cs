@@ -9,7 +9,8 @@ namespace NuGetGallery.Configuration.Factory
     {
         public SupportRequestDbContextFactory()
             : base(new ConfigObjectDelegate<SupportRequestDbContext>(
-                objects => new SupportRequestDbContext((string)objects[0]), "SqlConnectionStringSupportRequest"))
+                objects => new SupportRequestDbContext((string) objects[0]),
+                nameof(IAppConfiguration.SqlConnectionStringSupportRequest)))
         {
         }
     }

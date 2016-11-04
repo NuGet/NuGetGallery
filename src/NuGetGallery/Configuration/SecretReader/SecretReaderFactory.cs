@@ -3,6 +3,9 @@
 
 using System;
 using System.Globalization;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
+using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGetGallery.Diagnostics;
 
@@ -13,19 +16,10 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string KeyVaultConfigurationPrefix = "KeyVault.";
         internal const string VaultNameConfigurationKey = "VaultName";
         internal const string ClientIdConfigurationKey = "ClientId";
+        internal const string StoreNameKey = "StoreName";
+        internal const string StoreLocationKey = "StoreLocation";
         internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
         internal const string CacheRefreshInterval = "CacheRefreshIntervalSec";
-        private IDiagnosticsService _diagnosticsService;
-
-        public SecretReaderFactory(IDiagnosticsService diagnosticsService)
-        {
-            if (diagnosticsService == null)
-            {
-                throw new ArgumentNullException(nameof(diagnosticsService));
-            }
-
-            _diagnosticsService = diagnosticsService;
-        }
 
         public ISecretInjector CreateSecretInjector(ISecretReader secretReader)
         {
@@ -37,26 +31,39 @@ namespace NuGetGallery.Configuration.SecretReader
             return new SecretInjector(secretReader);
         }
 
-        public ISecretReader CreateSecretReader(IGalleryConfigurationService configurationService)
+        private static Task<string> ReadKeyVaultSetting(IGalleryConfigurationService configService, string key)
         {
-            if (configurationService == null)
-            {
-                throw new ArgumentNullException(nameof(configurationService));
-            }
+            return configService.ReadSetting(
+                string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix,
+                    key));
+        }
+
+        private async Task<ISecretReader> CreateSecretReaderAsync()
+        {
+            var configService = new ConfigurationService(new EmptySecretReaderFactory());
 
             ISecretReader secretReader;
 
-            var vaultName = configurationService.ReadSetting(
-                string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, VaultNameConfigurationKey)).Result;
+            var vaultName = await ReadKeyVaultSetting(configService, VaultNameConfigurationKey);
 
             if (!string.IsNullOrEmpty(vaultName))
             {
-                var clientId = configurationService.ReadSetting(
-                    string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, ClientIdConfigurationKey)).Result;
-                var certificateThumbprint = configurationService.ReadSetting(
-                    string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, CertificateThumbprintConfigurationKey)).Result;
+                var clientId = await ReadKeyVaultSetting(configService, ClientIdConfigurationKey);
+                var certificateThumbprint =
+                    await ReadKeyVaultSetting(configService, CertificateThumbprintConfigurationKey);
 
-                var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, validateCertificate: true);
+                var storeNameString = await ReadKeyVaultSetting(configService, StoreNameKey);
+                var storeName = string.IsNullOrEmpty(storeNameString)
+                    ? ConfigurationUtility.ConvertFromString<StoreName>(storeNameString)
+                    : StoreName.My;
+
+                var storeLocationString = await ReadKeyVaultSetting(configService, StoreLocationKey);
+                var storeLocation = string.IsNullOrEmpty(storeLocationString)
+                    ? ConfigurationUtility.ConvertFromString<StoreLocation>(storeLocationString)
+                    : StoreLocation.LocalMachine;
+
+                var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint,
+                    storeName, storeLocation, validateCertificate: true);
 
                 secretReader = new KeyVaultReader(keyVaultConfiguration);
             }
@@ -68,25 +75,25 @@ namespace NuGetGallery.Configuration.SecretReader
             int cacheRefreshIntervalSeconds;
             try
             {
-                var refreshIntervalString = configurationService.ReadSetting(
-                    string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, CacheRefreshInterval)).Result;
+                var refreshIntervalString = await ReadKeyVaultSetting(configService, CacheRefreshInterval);
 
-                if (string.IsNullOrEmpty(refreshIntervalString))
-                {
-                    cacheRefreshIntervalSeconds = CachingSecretReader.DefaultRefreshIntervalSec;
-                }
-                else
-                {
-                    // If parse fails, let the exception be thrown
-                    cacheRefreshIntervalSeconds = int.Parse(refreshIntervalString);
-                }
+                cacheRefreshIntervalSeconds = string.IsNullOrEmpty(refreshIntervalString)
+                    ? CachingSecretReader.DefaultRefreshIntervalSec
+                    : int.Parse(refreshIntervalString);
             }
             catch (Exception)
             {
                 cacheRefreshIntervalSeconds = 60 * 60 * 24; // one day in seconds
             }
 
-            return new CachingSecretReader(secretReader, _diagnosticsService, cacheRefreshIntervalSeconds);
+            return new CachingSecretReader(secretReader, cacheRefreshIntervalSeconds);
+        }
+
+        public ISecretReader CreateSecretReader()
+        {
+            // It is ok to call ".Result" here because we are initializing.
+            // You should NEVER call ".Result" on a method that accesses KeyVault in normal circumstances.
+            return CreateSecretReaderAsync().Result;
         }
     }
 }

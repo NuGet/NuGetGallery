@@ -9,7 +9,7 @@ namespace NuGetGallery.Configuration.Factory
     {
         public TableErrorLogFactory()
             : base(new ConfigObjectDelegate<TableErrorLog>(
-                objects => new TableErrorLog((string)objects[0]), "AzureStorageConnectionString"))
+                objects => new TableErrorLog((string)objects[0]), nameof(IAppConfiguration.AzureStorageConnectionString)))
         {
         }
     }

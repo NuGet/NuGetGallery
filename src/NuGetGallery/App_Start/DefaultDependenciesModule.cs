@@ -23,8 +23,6 @@ namespace NuGetGallery
 {
     public class DefaultDependenciesModule : Module
     {
-        public Func<IDiagnosticsService, IGalleryConfigurationService> ConfigurationServiceFactory { get; set; } = d => new ConfigurationService(new SecretReaderFactory(d));
-
         [SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
@@ -34,7 +32,7 @@ namespace NuGetGallery
                 .As<IDiagnosticsService>()
                 .SingleInstance();
 
-            var configService = ConfigurationServiceFactory(diagnosticsService);
+            var configService = new ConfigurationService(new SecretReaderFactory());
             var appConfig = configService.GetCurrent().Result;
 
             builder.RegisterInstance(configService)

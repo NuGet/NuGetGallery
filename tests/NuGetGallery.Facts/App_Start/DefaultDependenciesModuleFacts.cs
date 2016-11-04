@@ -27,7 +27,7 @@ namespace NuGetGallery.App_Start
 
             var defaultDependenciesModule = new DefaultDependenciesModule
             {
-                ConfigurationServiceFactory = d => configService
+                //ConfigurationServiceFactory = d => configService
             };
             builder.RegisterModule(defaultDependenciesModule);
 

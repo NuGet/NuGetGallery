@@ -5,39 +5,40 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGetGallery.Configuration;
 using System.Threading.Tasks;
+using NuGetGallery.Configuration.Factory;
 
 namespace NuGetGallery
 {
     public class CloudBlobClientWrapper : ICloudBlobClient
     {
-        private IGalleryConfigurationService _configService;
-        private string _storageConnectionString;
-        private bool _readAccessGeoRedundant;
-        private CloudBlobClient _blobClient;
+        private readonly ConfigObjectDelegate<CloudBlobClient> _blobClientDelgate;
+        private readonly IGalleryConfigurationService _configService;
 
         public CloudBlobClientWrapper(IGalleryConfigurationService configService)
         {
             _configService = configService;
+
+            _blobClientDelgate = new ConfigObjectDelegate<CloudBlobClient>(parameters =>
+                {
+                    var blobClient = CloudStorageAccount.Parse((string) parameters[0]).CreateCloudBlobClient();
+
+                    if ((bool) parameters[1])
+                    {
+                        blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+                    }
+
+                    return blobClient;
+                },
+                new[]
+                {
+                    nameof(IAppConfiguration.AzureStorageConnectionString),
+                    nameof(IAppConfiguration.AzureStorageReadAccessGeoRedundant)
+                });
         }
 
         public async Task<ICloudBlobContainer> GetContainerReference(string containerAddress)
         {
-            var oldStorageConnectionString = _storageConnectionString;
-            var oldReadAccessGeoRedundant = _readAccessGeoRedundant;
-
-            _storageConnectionString = (await _configService.GetCurrent()).AzureStorageConnectionString;
-            _readAccessGeoRedundant = (await _configService.GetCurrent()).AzureStorageReadAccessGeoRedundant;
-
-            if (_blobClient == null || oldStorageConnectionString != _storageConnectionString || oldReadAccessGeoRedundant != _readAccessGeoRedundant)
-            {
-                _blobClient = CloudStorageAccount.Parse(_storageConnectionString).CreateCloudBlobClient();
-
-                if (_readAccessGeoRedundant)
-                {
-                    _blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
-                }
-            }
-            return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
+            return new CloudBlobContainerWrapper((await _blobClientDelgate.GetAsync(_configService)).GetContainerReference(containerAddress));
         }
     }
 }

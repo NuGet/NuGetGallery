@@ -27,13 +27,10 @@ namespace NuGetGallery.Filters
                 var user = controller.GetCurrentUser();
 
                 var apiKeyCredential = user.Credentials.FirstOrDefault(c => c.Value == apiKey);
-                if (apiKeyCredential != null && apiKeyCredential.Expires.HasValue)
+                if (apiKeyCredential?.Expires != null)
                 {
                     var configService = controller.NuGetContext.Config;
-                    // Disabled warning because AuthorizeAttribute must be synchronous.
-#pragma warning disable CS0618 // Type or member is obsolete
                     var appConfig = configService.Current;
-#pragma warning restore CS0618 // Type or member is obsolete
 
                     var accountUrl = (configService.GetSiteRoot(appConfig.RequireSSL)).TrimEnd('/') + "/account";
 

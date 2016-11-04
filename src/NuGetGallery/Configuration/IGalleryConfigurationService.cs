@@ -8,14 +8,32 @@ namespace NuGetGallery.Configuration
 {
     public interface IGalleryConfigurationService
     {
+        /// <summary>
+        /// Asynchronously access current configuration.
+        /// </summary>
+        /// <returns>The current configuration.</returns>
         Task<IAppConfiguration> GetCurrent();
 
+        /// <summary>
+        /// Asynchronously access features configuration.
+        /// </summary>
+        /// <returns>The features configuration.</returns>
         Task<FeatureConfiguration> GetFeatures();
 
-        [Obsolete("Use GetCurrent() unless a synchronous context is completely necessary.")]
+        /// <summary>
+        /// Synchronously access current configuration in contexts that cannot be async.
+        /// Use GetCurrent if possible because this method exclusively uses cached values.
+        /// Avoid accessing configuration that changes with this method (e.g. Azure connection strings).
+        /// </summary>
+        /// <returns>The cached current configuration.</returns>
         IAppConfiguration Current { get; }
 
-        [Obsolete("Use GetFeatures() unless a synchronous context is completely necessary.")]
+        /// <summary>
+        /// Synchronously access features configuration in contexts that cannot be async.
+        /// Use GetFeatures if possible because this method exclusively uses cached values.
+        /// Avoid accessing configuration that changes with this method (e.g. Azure connection strings).
+        /// </summary>
+        /// <returns>The cached features configuration.</returns>
         FeatureConfiguration Features { get; }
 
         /// <summary>
@@ -32,6 +50,11 @@ namespace NuGetGallery.Configuration
         /// <param name="prefix">The prefix of the properties in the config.</param>
         Task<T> ResolveConfigObject<T>(T instance, string prefix);
 
+        /// <summary>
+        /// Reads a setting by name.
+        /// </summary>
+        /// <param name="settingName">The name of the desired setting.</param>
+        /// <returns>The value of the setting with the specified name.</returns>
         Task<string> ReadSetting(string settingName);
     }
 }
