@@ -33,7 +33,7 @@ namespace NuGetGallery
                 .SingleInstance();
 
             var configService = new ConfigurationService(new SecretReaderFactory());
-            var appConfig = configService.GetCurrent().Result;
+            var appConfig = configService.Current;
 
             builder.RegisterInstance(configService)
                 .AsSelf()

@@ -38,7 +38,7 @@ namespace NuGetGallery.Configuration.SecretReader
                     key));
         }
 
-        private async Task<ISecretReader> CreateSecretReaderAsync()
+        private static async Task<ISecretReader> CreateSecretReaderAsync()
         {
             var configService = new ConfigurationService(new EmptySecretReaderFactory());
 
@@ -53,12 +53,12 @@ namespace NuGetGallery.Configuration.SecretReader
                     await ReadKeyVaultSetting(configService, CertificateThumbprintConfigurationKey);
 
                 var storeNameString = await ReadKeyVaultSetting(configService, StoreNameKey);
-                var storeName = string.IsNullOrEmpty(storeNameString)
+                var storeName = !string.IsNullOrEmpty(storeNameString)
                     ? ConfigurationUtility.ConvertFromString<StoreName>(storeNameString)
                     : StoreName.My;
 
                 var storeLocationString = await ReadKeyVaultSetting(configService, StoreLocationKey);
-                var storeLocation = string.IsNullOrEmpty(storeLocationString)
+                var storeLocation = !string.IsNullOrEmpty(storeLocationString)
                     ? ConfigurationUtility.ConvertFromString<StoreLocation>(storeLocationString)
                     : StoreLocation.LocalMachine;
 
