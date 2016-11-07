@@ -31,6 +31,16 @@ namespace NuGet.Indexing
             return ConstructQuery(grouping, owners);
         }
 
+        public static Query MakeAutoCompleteQuery(string q)
+        {
+            if (string.IsNullOrEmpty(q))
+            {
+                return new MatchAllDocsQuery();
+            }
+
+            return ExecuteAnalyzer(new PackageAnalyzer(), "IdAutocomplete", q);
+        }
+
         // Lucene Query creation logic
 
         private static Query ConstructQuery(Dictionary<QueryField, HashSet<string>> clauses, OwnersResult owners)
@@ -218,7 +228,7 @@ namespace NuGet.Indexing
             AuthorClause(query, analyzer, values, Occur.SHOULD);
         }
 
-        static Query ExecuteAnalyzer(Analyzer analyzer, string field, string text)
+        private static Query ExecuteAnalyzer(Analyzer analyzer, string field, string text)
         {
             TokenStream tokenStream = analyzer.TokenStream(field, new StringReader(text));
 

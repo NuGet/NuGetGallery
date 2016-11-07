@@ -130,17 +130,9 @@ namespace NuGet.Indexing
             RankingResult rankings,
             QueryBoostingContext context)
         {
-            if (string.IsNullOrEmpty(q))
-            {
-                return new MatchAllDocsQuery();
-            }
+            var query = NuGetQuery.MakeAutoCompleteQuery(q);
 
-            var queryParser = new QueryParser(Lucene.Net.Util.Version.LUCENE_30,
-                "IdAutocomplete",
-                new PackageAnalyzer());
-
-            Query query = queryParser.Parse(q);
-            Query boostedQuery = new DownloadsBoostedQuery(query,
+            var boostedQuery = new DownloadsBoostedQuery(query,
                 docIdMapping,
                 downloads,
                 rankings,
