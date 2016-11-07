@@ -274,8 +274,7 @@ namespace NuGetGallery.Authentication
                 CreatedUtc = _dateTimeProvider.UtcNow
             };
 
-            // Add a credential for the password and the API Key
-            newUser.Credentials.Add(_credentialBuilder.CreateApiKey(TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1)));
+            // Add a credential for the password
             newUser.Credentials.Add(credential);
 
             if (!_config.ConfirmEmailAddresses)

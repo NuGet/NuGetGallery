@@ -593,26 +593,6 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task SetsAnApiKey()
-            {
-                // Arrange
-                var auth = Get<AuthenticationService>();
-
-                // Arrange
-                var authUser = await auth.Register(
-                    "newUser",
-                    "theEmailAddress",
-                    new CredentialBuilder().CreatePasswordCredential("thePassword"));
-
-                // Assert
-                Assert.True(auth.Entities.Users.Contains(authUser.User));
-                auth.Entities.VerifyCommitChanges();
-
-                var apiKeyCred = authUser.User.Credentials.FirstOrDefault(c => c.Type == CredentialTypes.ApiKeyV1);
-                Assert.NotNull(apiKeyCred);
-            }
-
-            [Fact]
             public async Task SetsAConfirmationToken()
             {
                 // Arrange
