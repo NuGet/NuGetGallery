@@ -69,6 +69,20 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 That's it! You should now be able to press Ctrl-F5 to run the site!
 
+Be aware that you might detect a change in the __applicationhost.config__:
+
+Unfortunately Visual Studio will replace the relative path with an absolute path. The committed applicationhost.config-file is currently the easiest way to setup the localtest.me-binding for IIS Express.
+
+However, you can force Git to ignore the change with this command:
+
+    git update-index --assume-unchanged .vs/config/applicationhost.config
+
+You can undo this with this command:
+
+	git update-index --no-assume-unchanged .vs/config/applicationhost.config
+
+This should help to prevent unwanted file commits.
+	
 ## Contribute
 If you find a bug with the gallery, please visit the [Issue tracker](https://github.com/NuGet/NuGetGallery/issues) and 
 create an issue. If you're feeling generous, please search to see if the issue is already logged before creating a 
