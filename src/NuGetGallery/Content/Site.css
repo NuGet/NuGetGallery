@@ -1438,7 +1438,6 @@ img.contributors-contributor-avatar {
 
 .fancy-table tr {
     height: 0;
-
 }
 
 .fancy-table td {
@@ -1453,6 +1452,11 @@ img.contributors-contributor-avatar {
 
 .fancy-table.selectable tbody tr.highlight td{
     background-color: #357EC7;
+}
+
+.fancy-table.selectable tbody tr.emphasise td{
+     font-weight: bold;
+     font-style: oblique;
 }
 
 .scrollable-div {

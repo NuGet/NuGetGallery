@@ -1,80 +1,5 @@
 ﻿@model AccountViewModel
 
-@helper AccordionBar(
-    string groupName,
-    string title,
-    string subtitle = null,
-    bool enabled = true,
-    string formModelStatePrefix = null,
-    Func<AccordionHelper, HelperResult> actions = null,
-    Func<AccordionHelper, HelperResult> content = null
-)
-{
-    Func<AccordionHelper, HelperResult> titleTemplate = null;
-    if (!string.IsNullOrEmpty(title))
-    {
-        titleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@title</text>);
-    }
-
-    Func<AccordionHelper, HelperResult> subtitleTemplate = null;
-    if (!string.IsNullOrEmpty(subtitle))
-    {
-        subtitleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@subtitle</text>);
-    }
-
-    @AccordionBar(groupName,
-        titleTemplate,
-        subtitleTemplate,
-        enabled,
-        formModelStatePrefix,
-        actions,
-        content)
-}
-
-@helper AccordionBar(
-    string groupName,
-    Func<AccordionHelper, HelperResult> title,
-    Func<AccordionHelper, HelperResult> subtitle = null,
-    bool enabled = true,
-    string formModelStatePrefix = null,
-    Func<AccordionHelper, HelperResult> actions = null,
-    Func<AccordionHelper, HelperResult> content = null,
-    bool expanded = false
-)
-{
-    @* Calculate Accordion Index *@
-    string dataKey = "___AccordionCounter_" + groupName;
-    int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
-    int id = lastId + 1;
-    HttpContext.Current.Items[dataKey] = id;
-    string name = groupName + "-" + id.ToString();
-
-    var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, this);
-    <li id="@hlp.ItemId" class="accordion-item @(enabled ? "accordion-item-enabled" : "accordion-item-disabled")">
-        @if (actions != null)
-        {
-            <div class="accordion-item-actions">
-                @actions(hlp)
-            </div>
-        }
-        <span class="accordion-item-title">
-            @title(hlp)
-        </span>
-        @if (subtitle != null)
-        {
-            <span class="accordion-item-subtitle">
-                @subtitle(hlp)
-            </span>
-        }
-        @if (content != null)
-        {
-            <div id="@hlp.ContentDropDownId" class="accordion-item-content @(!expanded ? hlp.ContentHiddenClass : string.Empty)">
-                @content(hlp)
-            </div>
-        }
-    </li>
-}
-
 @{
     ViewBag.Title = "Edit Profile";
     var credGroups = Model.Credentials.GroupBy(c => c.Kind).ToDictionary(g => g.Key, g => g.ToList());
@@ -156,11 +81,12 @@
     @**************************
             Email Address
     **************************@
-    @AccordionBar(
+    @ViewHelpers.AccordionBar(
         groupName: "editprofile",
-        title: (String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) ? "Email Address" : "Pending Email Address"),
+        page: this,
+        title: (string.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) ? "Email Address" : "Pending Email Address"),
         subtitle: currentEmailAddress,
-        enabled: String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress),
+        enabled: string.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress),
         formModelStatePrefix: "ChangeEmail",
         actions: @<text>@item.ExpandButton("Change", "Cancel")
                      @if (!String.IsNullOrEmpty(CurrentUser.EmailAddress) && !String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
@@ -209,8 +135,9 @@
     @**************************
         Email Notifications
     **************************@
-    @AccordionBar(
+    @ViewHelpers.AccordionBar(
         groupName: "editprofile",
+        page: this,
         title: "Email Notifications",
         enabled: true,
         actions: @<text>
@@ -254,8 +181,9 @@
     @**************************
         Profile Picture
     **************************@
-    @AccordionBar(
+    @ViewHelpers.AccordionBar(
         groupName: "editprofile",
+        page: this,
         title: @<text>
                    Profile Picture
                    @if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
@@ -285,8 +213,9 @@
     {
         foreach (var curatedFeed in Model.CuratedFeeds)
         {
-            @AccordionBar(
+            @ViewHelpers.AccordionBar(
                 groupName: "editprofile",
+                page: this,
                 title: "Curated Feed",
                 subtitle: curatedFeed,
                 actions: @<text>
@@ -315,96 +244,98 @@
     {
         foreach (var cred in credGroups[CredentialKind.External])
         {
-            @AccordionBar(
+            @ViewHelpers.AccordionBar(
                 groupName: "editprofile",
+                page: this,
                 title: cred.TypeCaption,
                 subtitle: cred.Identity,
                 actions: @<text>
-                    @item.ExpandLink("More Info", "Less Info")
-                    @if (loginCredentials > 1)
-                    {
-                        using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type }, FormMethod.Post, new { @class = "form-inline" }))
-                        {
-                            <fieldset class="form">
-                                <legend>Remove @cred.TypeCaption Credential</legend>
-                                @Html.AntiForgeryToken()
-                                @Html.Hidden(cred.Type)
-                                <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disassociate your @cred.AuthUI.AccountNoun? This is an irreversable action!">Remove</button>
-                            </fieldset>
-                        }
-                    }
-                </text>,
+                             @item.ExpandLink("More Info", "Less Info")
+                             @if (loginCredentials > 1)
+                             {
+                                 using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type }, FormMethod.Post, new { @class = "form-inline" }))
+                                 {
+                                     <fieldset class="form">
+                                         <legend>Remove @cred.TypeCaption Credential</legend>
+                                         @Html.AntiForgeryToken()
+                                         @Html.Hidden(cred.Type)
+                                         <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disassociate your @cred.AuthUI.AccountNoun? This is an irreversable action!">Remove</button>
+                                     </fieldset>
+                                 }
+                             }
+                          </text>,
                 content: @<p>
-            You can use this @cred.AuthUI.AccountNoun to sign in to @Config.Current.Brand
-        </p>)
+                             You can use this @cred.AuthUI.AccountNoun to sign in to @Config.Current.Brand
+                         </p>)
         }
     }
 
     @**************************
             Password
     **************************@
-    @AccordionBar(
+    @ViewHelpers.AccordionBar(
         groupName: "editprofile",
+        page: this,
         title: (hasPassword ? "Password Login" : "Password Login Disabled"),
         enabled: hasPassword,
         formModelStatePrefix: "ChangePassword",
         actions: @<text>
-            @if (hasPassword)
-            {
-                @item.ExpandButton("Change", "Cancel")
-                if (loginCredentials > 1)
-                {
-                    using (Html.BeginForm("RemovePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
-                    {
-                        <fieldset class="form">
-                            <legend>Disable Password Login</legend>
-                            @Html.AntiForgeryToken()
-                            <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disable password login and remove your password? This is an irreversable action!">Disable</button>
-                        </fieldset>
-                    }
-                }
-            }
-            else
-            {
-                using (Html.BeginForm("ChangePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
-                {
-                    <fieldset class="form">
-                        <legend>Enable Password Login</legend>
-                        @Html.AntiForgeryToken()
-                        <button class="btn btn-inline" type="submit">Enable</button>
-                    </fieldset>
-                }
-            }
-        </text>,
+                     @if (hasPassword)
+                     {
+                         @item.ExpandButton("Change", "Cancel")
+                         if (loginCredentials > 1)
+                         {
+                             using (Html.BeginForm("RemovePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                             {
+                                 <fieldset class="form">
+                                     <legend>Disable Password Login</legend>
+                                     @Html.AntiForgeryToken()
+                                     <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disable password login and remove your password? This is an irreversable action!">Disable</button>
+                                 </fieldset>
+                             }
+                         }
+                     }
+                     else
+                     {
+                         using (Html.BeginForm("ChangePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                         {
+                             <fieldset class="form">
+                                 <legend>Enable Password Login</legend>
+                                 @Html.AntiForgeryToken()
+                                 <button class="btn btn-inline" type="submit">Enable</button>
+                             </fieldset>
+                         }
+                     }
+                  </text>,
         content: @<text>
-        @using (Html.BeginForm("ChangePassword", "Users"))
-            {
-            <fieldset id="account-changepassword-fieldset" class="form">
-                <legend>Change Password Form</legend>
-                <p>
-                    Using this form, you can change your password for @(Config.Current.Brand).
-                </p>
-                @Html.AntiForgeryToken()
-                @Html.ValidationSummaryFor("ChangePassword")
-                <div class="form-field">
-                    @Html.LabelFor(m => m.ChangePassword.OldPassword)
-                    @Html.PasswordFor(m => m.ChangePassword.OldPassword)
-                    @Html.ValidationMessageFor(m => m.ChangePassword.OldPassword)
-                </div>
-                <div class="form-field">
-                    @Html.LabelFor(m => m.ChangePassword.NewPassword)
-                    @Html.PasswordFor(m => m.ChangePassword.NewPassword)
-                    @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
-                </div>
-                <div class="form-field">
-                    @Html.CheckBoxFor(m => m.ChangePassword.ResetApiKey)
-                    @Html.LabelFor(m => m.ChangePassword.ResetApiKey, new { @class = "checkbox" })
-                </div>
-                <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
-                <input type="submit" value="Change" title="Change password" />
-            </fieldset>
-        }
-        </text>)
+                     @using (Html.BeginForm("ChangePassword", "Users"))
+                     {
+                         <fieldset id="account-changepassword-fieldset" class="form">
+                             <legend>Change Password Form</legend>
+                             <p>
+                                 Using this form, you can change your password for @(Config.Current.Brand).
+                             </p>
+                             @Html.AntiForgeryToken()
+                             @Html.ValidationSummaryFor("ChangePassword")
+                             <div class="form-field">
+                                 @Html.LabelFor(m => m.ChangePassword.OldPassword)
+                                 @Html.PasswordFor(m => m.ChangePassword.OldPassword)
+                                 @Html.ValidationMessageFor(m => m.ChangePassword.OldPassword)
+                             </div>
+                             <div class="form-field">
+                                 @Html.LabelFor(m => m.ChangePassword.NewPassword)
+                                 @Html.PasswordFor(m => m.ChangePassword.NewPassword)
+                                 @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
+                             </div>
+                             <div class="form-field">
+                                 @Html.CheckBoxFor(m => m.ChangePassword.ResetApiKey)
+                                 @Html.LabelFor(m => m.ChangePassword.ResetApiKey, new { @class = "checkbox" })
+                             </div>
+                             <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
+                             <input type="submit" value="Change" title="Change password" />
+                         </fieldset>
+                     }
+                  </text>)
     @**************************
             API Key
     **************************@
@@ -413,38 +344,36 @@
             ? credGroups[CredentialKind.Token]
             : new List<CredentialViewModel>();
 
-        // Auto-expand when we just generated a new key
-        var shouldExpandApiKeyAccordion = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyGenerated, StringComparison.OrdinalIgnoreCase));
-
-        // Or when an API key has expired
-        shouldExpandApiKeyAccordion = shouldExpandApiKeyAccordion || apiKeys.Any(k => k.HasExpired);
+        // Auto-expand when we just generated a new key or when an API key has expired
+        var shouldExpandApiKeyAccordion = TempData["NewCredentialValue"] != null || apiKeys.Any(k => k.HasExpired);
     }
 
-    @AccordionBar(
+    @ViewHelpers.AccordionBar(
         groupName: "editprofile",
+        page: this,
         title: @<text>API Keys</text>,
         enabled: CurrentUser.Confirmed,
         expanded: shouldExpandApiKeyAccordion,
         actions: @<text>
-            @if (!CurrentUser.Confirmed)
-            {
-                <text>You need to
-                    <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Keys</text>
-            }
-            else
-            {
-                if (apiKeys.Count == 0)
-                {
-                    <text>You don't have any API keys yet.</text>
-                }
-                else if (apiKeys.Any(k => k.HasExpired))
-                {
-                    <span class="apiKeyExpired">One of your API keys has expired</span>
-                }
+                     @if (!CurrentUser.Confirmed)
+                     {
+                         <text>You need to
+                             <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Keys</text>
+                     }
+                     else
+                     {
+                         if (apiKeys.Count == 0)
+                         {
+                             <text>You don't have any API keys yet.</text>
+                         }
+                         else if (apiKeys.Any(k => k.HasExpired))
+                         {
+                             <span class="apiKeyExpired">One of your API keys has expired</span>
+                         }
 
-                @item.ExpandLink("Show details", "Hide details")
-            }
-        </text>,
+                         @item.ExpandLink("Show details", "Hide details")
+                     }
+                  </text>,
         content: @<text> @Html.Partial("ApiKeys", Model) </text>)
 </ul>
 

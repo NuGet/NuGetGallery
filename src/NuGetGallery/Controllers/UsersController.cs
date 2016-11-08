@@ -561,6 +561,7 @@ namespace NuGetGallery
                 await _authService.ExpireCredential(user, cred);
 
                 TempData["Message"] = Strings.CredentialExpired;
+                TempData["ModifiedCredentialKey"] = cred.Key;
             }
 
             return RedirectToAction("Account");
@@ -635,6 +636,7 @@ namespace NuGetGallery
 
             TempData["Message"] = Strings.ApiKeyGenerated;
             TempData["NewCredentialValue"] = newCredential.Value;
+            TempData["ModifiedCredentialKey"] = newCredential.Key;
             return RedirectToAction("Account");
         }
 
