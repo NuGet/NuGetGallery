@@ -72,11 +72,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return false;
         }
 
-        public override async Task<IEnumerable<Uri>> List(CancellationToken cancellationToken)
+        public override async Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
         {
             var files = await _directory.ListBlobsAsync(cancellationToken);
 
-            return files.Select(file => file.Uri).AsEnumerable();
+            return files.Select(GetStorageListItem).AsEnumerable();
+        }
+
+        private StorageListItem GetStorageListItem(IListBlobItem listBlobItem)
+        {
+            var lastModified = (listBlobItem as CloudBlockBlob)?.Properties.LastModified?.UtcDateTime;
+
+            return new StorageListItem(listBlobItem.Uri, lastModified);
         }
 
         //  save

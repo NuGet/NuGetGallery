@@ -13,7 +13,9 @@ namespace NgTests.Infrastructure
     public class MemoryStorage 
         : Storage
     {
-        public Dictionary<Uri, StorageContent> Content { get; private set;  }
+        public Dictionary<Uri, StorageContent> Content { get; }
+
+        public Dictionary<Uri, StorageListItem> ListMock { get; }
 
         public MemoryStorage()
             : this(new Uri("http://tempuri.org"))
@@ -24,6 +26,7 @@ namespace NgTests.Infrastructure
           : base(baseAddress)
         {
             Content = new Dictionary<Uri, StorageContent>();
+            ListMock = new Dictionary<Uri, StorageListItem>();
         }
 
         private MemoryStorage(Uri baseAddress, Dictionary<Uri, StorageContent> content)
@@ -64,9 +67,10 @@ namespace NgTests.Infrastructure
             return Content.Keys.Any(k => k.PathAndQuery.EndsWith(fileName));
         }
 
-        public override Task<IEnumerable<Uri>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
         {
-            return Task.FromResult(Content.Keys.AsEnumerable());
+            return Task.FromResult(Content.Keys.AsEnumerable().Select(x => 
+                ListMock.ContainsKey(x) ? ListMock[x] : new StorageListItem(x, DateTime.UtcNow)));
         }
     }
 }
