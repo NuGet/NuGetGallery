@@ -322,6 +322,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillCreateTheConfiguredFileStorageDirectoryIfItDoesNotExist()
             {
+                const string folderName = "theFolderName";
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(false);
                 fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
@@ -329,7 +330,7 @@ namespace NuGetGallery
 
                 await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
 
-                fakeFileSystemService.Verify(x => x.CreateDirectory(FakeConfiguredFileStorageDirectory));
+                fakeFileSystemService.Verify(x => x.CreateDirectory($"{FakeConfiguredFileStorageDirectory}\\{folderName}"));
             }
 
             [Fact]
