@@ -178,7 +178,8 @@ namespace Ng
                 var fileName = GetFileName(auditRecord.Uri);
 
                 // over time, we have had three "deleted" file names. Try working with them all.
-                if (fileName.EndsWith("-Deleted.audit.v1.json") || fileName.EndsWith("-deleted.audit.v1.json") || fileName.EndsWith("-softdeleted.audit.v1.json"))
+                if (fileName.EndsWith("-Deleted.audit.v1.json") || fileName.EndsWith("-deleted.audit.v1.json") || fileName.EndsWith("-softdeleted.audit.v1.json") 
+                    || fileName.EndsWith("-softdelete.audit.v1.json") || fileName.EndsWith("-delete.audit.v1.json"))
                 {
                     return auditRecord.LastModifiedUtc.Value >= minimumFileTime;
                 }
