@@ -84,7 +84,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return _primaryStorage.Exists(fileName);
         }
 
-        public override Task<IEnumerable<Uri>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
         {
             return _primaryStorage.List(cancellationToken);
         }

@@ -217,7 +217,7 @@ namespace Ng.Jobs
             // NOTE we're getting more files than needed (to account for a time difference between servers)
             var minimumFileTime = since.AddMinutes(-15);
             var auditRecordUris = (await auditingStorage.List(CancellationToken.None))
-                .Where(recordUri => FilterDeletedPackage(minimumFileTime, recordUri));
+                 .Where(record => FilterDeletedPackage(minimumFileTime, record)).Select(record => record.Uri);
 
             foreach (var auditRecordUri in auditRecordUris)
             {
@@ -267,26 +267,23 @@ namespace Ng.Jobs
             return result;
         }
 
-        private bool FilterDeletedPackage(DateTime minimumFileTime, Uri auditRecordUri)
+        private bool FilterDeletedPackage(DateTime minimumFileTime, StorageListItem auditRecord)
         {
-            var fileName = GetFileName(auditRecordUri);
-
-            // over time, we have had three "deleted" file names. Try working with them all.
-            if (fileName.EndsWith("-Deleted.audit.v1.json") || fileName.EndsWith("-deleted.audit.v1.json") || fileName.EndsWith("-softdeleted.audit.v1.json"))
+            // Nothing we can do if the last modified time in not available
+            if (auditRecord.LastModifiedUtc == null)
             {
-                var deletedDateTimeString = fileName
-                    .Replace("-Deleted.audit.v1.json", string.Empty)
-                    .Replace("-deleted.audit.v1.json", string.Empty)
-                    .Replace("-softdeleted.audit.v1.json", string.Empty)
-                    .Replace("_", ":");
+                Logger.LogWarning("Could not get date for filename in FilterDeletedPackage. Uri: {AuditRecordUri}", auditRecord.Uri);
+            }
+            else
+            {
+                var fileName = GetFileName(auditRecord.Uri);
 
-                DateTime recordTime;
-                if (DateTime.TryParse(deletedDateTimeString, out recordTime))
+                // over time, we have had three "deleted" file names. Try working with them all.
+                if (fileName.EndsWith("-Deleted.audit.v1.json") || fileName.EndsWith("-deleted.audit.v1.json") || fileName.EndsWith("-softdeleted.audit.v1.json")
+                    || fileName.EndsWith("-softdelete.audit.v1.json") || fileName.EndsWith("-delete.audit.v1.json"))
                 {
-                    return recordTime >= minimumFileTime;
+                    return auditRecord.LastModifiedUtc.Value >= minimumFileTime;
                 }
-
-                Logger.LogWarning("Could not parse date from filename in FilterDeletedPackage. Uri: {AuditRecordUri}", auditRecordUri);
             }
 
             return false;

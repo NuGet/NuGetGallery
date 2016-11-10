@@ -31,14 +31,15 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         //File exists
         public override bool Exists(string fileName)
         {
-            return System.IO.File.Exists(fileName);
+            return File.Exists(fileName);
         }
 
-        public override Task<IEnumerable<Uri>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
         {
             DirectoryInfo directoryInfo = new DirectoryInfo(Path);
             var files = directoryInfo.GetFiles("*", SearchOption.AllDirectories)
-                .Select(file => GetUri(file.FullName.Replace(Path, string.Empty)));
+                .Select(file => 
+                    new StorageListItem(GetUri(file.FullName.Replace(Path, string.Empty)), file.LastWriteTimeUtc));
 
             return Task.FromResult(files.AsEnumerable());
         }

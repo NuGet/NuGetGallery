@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -14,7 +15,8 @@ namespace NgTests.Infrastructure
     {
         public static async Task AddStorage(this MockServerHttpClientHandler handler, IStorage storage)
         {
-            var files = await storage.List(CancellationToken.None);
+            var files = (await storage.List(CancellationToken.None)).Select(x => x.Uri);
+
             foreach (var file in files)
             {
                 var storageFileUrl = file;

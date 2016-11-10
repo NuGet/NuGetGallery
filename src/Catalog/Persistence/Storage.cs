@@ -118,7 +118,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public Uri BaseAddress { get; protected set; }
         public abstract bool Exists(string fileName);
-        public abstract Task<IEnumerable<Uri>> List(CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken);
 
         public bool Verbose
         {
