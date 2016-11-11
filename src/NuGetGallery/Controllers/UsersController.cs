@@ -529,8 +529,7 @@ namespace NuGetGallery
                     cred.Description,
                     cred.Scopes,
                     cred.ExpirationTicks.HasValue
-                        ? (int) new TimeSpan(cred.ExpirationTicks.Value).TotalDays
-                        : new int?());
+                        ? new TimeSpan(cred.ExpirationTicks.Value) : new TimeSpan?());
 
                 await _authService.RemoveCredential(user, cred);
             }
@@ -586,15 +585,6 @@ namespace NuGetGallery
                 return RedirectToAction("Account");
             }
 
-            await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects), expirationInDays);
-
-            return RedirectToAction("Account");
-        }
-
-        private async Task GenerateApiKeyInternal(string description, ICollection<Scope> scopes, int? expirationInDays = null)
-        {
-            var user = GetCurrentUser();
-
             // Set expiration
             var expiration = TimeSpan.Zero;
             if (_config.ExpirationInDaysForApiKeyV1 > 0)
@@ -606,6 +596,15 @@ namespace NuGetGallery
                     expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, _config.ExpirationInDaysForApiKeyV1));
                 }
             }
+
+            await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects), expiration);
+
+            return RedirectToAction("Account");
+        }
+
+        private async Task GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
+        {
+            var user = GetCurrentUser();
 
             // Create a new API Key credential, and save to the database
             var newCredential = _credentialBuilder.CreateApiKey(expiration);

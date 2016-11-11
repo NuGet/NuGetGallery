@@ -1188,7 +1188,7 @@ namespace NuGetGallery
                 authenticationService.Verify(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
             }
 
-            public static IEnumerable<object[]>RegenerateApiKeyCredential_Input
+            public static IEnumerable<object[]> RegenerateApiKeyCredential_Input
             {
                 get
                 {
@@ -1227,6 +1227,7 @@ namespace NuGetGallery
                 var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1));
                 apiKey.Description = description;
                 apiKey.Scopes = scopes;
+                apiKey.Expires -= TimeSpan.FromDays(1);
 
                 var user = fakes.CreateUser("test", apiKey);
                 var cred = user.Credentials.First();
@@ -1267,6 +1268,7 @@ namespace NuGetGallery
                
                 Assert.Equal(description, newApiKey.Description);
                 Assert.Equal(scopes.Length, newApiKey.Scopes.Count);
+                Assert.True(newApiKey.Expires > DateTime.UtcNow);
 
                 foreach (var expectedScope in scopes)
                 {
