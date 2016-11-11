@@ -357,7 +357,7 @@ namespace NuGetGallery
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
-            [InlineData("[{\"a\":\"package:pushnew\", \"s\":null}]", true)]
+            [InlineData("[{\"a\":\"package:pushnew\", \"s\":\"*\"}]", true)]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"abc\"}]", false)]
             [Theory]
             public async Task WillVerifyScopesForNewPackageId(string apiKeyScopes, bool isPushAllowed)
@@ -406,7 +406,7 @@ namespace NuGetGallery
                 }
             }
 
-            [InlineData("[{\"a\":\"package:pushnew\", \"s\":null}]", false)]
+            [InlineData("[{\"a\":\"package:pushnew\", \"s\":\"*\"}]", false)]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", true)]
             [Theory]
             public async Task WillVerifyScopesForExistingPackageId(string apiKeyScopes, bool isPushAllowed)
@@ -505,7 +505,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true), Times.Never());
             }
 
-            [InlineData("[{\"a\":\"all\", \"s\":null}]", true)]
+            [InlineData("[{\"a\":\"all\", \"s\":\"*\"}]", true)]
             [InlineData("[{\"a\":\"package:list\", \"s\":\"theId\"}]", true)]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", false)]
             [Theory]

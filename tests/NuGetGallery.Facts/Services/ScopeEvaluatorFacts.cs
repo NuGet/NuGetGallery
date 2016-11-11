@@ -46,6 +46,16 @@ namespace NuGetGallery
                     new object[] {
                         BuildScopeClaim(),
                         "SomePackage",
+                        new[] { NuGetScopes.PackagePush },
+                        true
+                    },
+
+                    new object[]
+                    {
+                        BuildScopeClaim(
+                            new Scope("SomePackage", NuGetScopes.PackagePushNew),
+                            new Scope("SomePackage", NuGetScopes.PackagePush)),
+                        null,
                         new[] { NuGetScopes.PackagePushNew },
                         true
                     }, 
@@ -64,7 +74,7 @@ namespace NuGetGallery
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope(null, NuGetScopes.All)),
+                            new Scope("*", NuGetScopes.All)),
                         "SomePackage",
                         new[] { NuGetScopes.PackagePushNew },
                         true
@@ -74,7 +84,7 @@ namespace NuGetGallery
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope(null, NuGetScopes.PackageList)),
+                            new Scope("*", NuGetScopes.PackageList)),
                         "SomePackage",
                         new[] { NuGetScopes.PackagePushNew },
                         false
@@ -85,7 +95,7 @@ namespace NuGetGallery
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope(null, NuGetScopes.PackageList), 
+                            new Scope("*", NuGetScopes.PackageList), 
                             new Scope("SomePackage", NuGetScopes.PackagePushNew)),
                         "SomePackage",
                         new[] { NuGetScopes.PackagePushNew },
@@ -113,7 +123,7 @@ namespace NuGetGallery
                             new Scope("SomeOtherPackage", NuGetScopes.All)),
                         "",
                         new[] { NuGetScopes.PackagePushNew },
-                        false
+                        true
                     }, 
 
                     // Push new package with scoped API key which allows NuGetScopes.PackagePushNew for all packages,
@@ -121,11 +131,41 @@ namespace NuGetGallery
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope(null, NuGetScopes.PackagePushNew)),
+                            new Scope("*", NuGetScopes.PackagePushNew)),
                         "",
                         new[] { NuGetScopes.PackagePushNew },
                         true
                     },
+
+                    // Push package with a matching package pattern
+                    new object[]
+                    {
+                        BuildScopeClaim(
+                            new Scope("Microsoft.*.Abstract", NuGetScopes.PackagePush)),
+                        "Microsoft.Configuration.Abstract",
+                        new [] { NuGetScopes.PackagePush },
+                        true
+                    },
+
+                    // Push package with a non-matching package pattern
+                    new object[]
+                    {
+                        BuildScopeClaim(
+                            new Scope("Microsoft.*.Abstract", NuGetScopes.PackagePush)),
+                        "Microsoft.Configuration",
+                        new [] { NuGetScopes.PackagePush },
+                        false
+                    },
+
+                    // Push package when package pattern subject contains invalid characters 
+                    new object[]
+                    {
+                        BuildScopeClaim(
+                            new Scope("%@~!>^/\"*", NuGetScopes.PackagePush)),
+                        "Microsoft.Configuration",
+                        new [] { NuGetScopes.PackagePush },
+                        false
+                    }
                 };
             }
         }

@@ -244,19 +244,16 @@
                                              </label>
                                          </div>
                                      </div>
+                                     <div class="form-field" id="packagePatternInput">
+                                         <input type="text" name="subjects" id="packagePattern" placeholder="Package pattern (e.g. '*' for any package)" />
+                                     </div>
 
                                      @if (Model.Packages != null && Model.Packages.Count > 0)
                                      {
                                          <div class="form-field">
                                              <strong>Select packages</strong>
-
-                                             @if (Model.Packages.Count > 100)
-                                             {
-                                                 <text>(Only the first 100 are presented)</text>
-                                             }
-
                                              <div class="scrollable-div" id="selectablePackagesList" style="max-height: 150px;">
-                                                 @foreach (var package in Model.Packages.Take(100))
+                                                 @foreach (var package in Model.Packages)
                                                  {
                                                      <label class="checkoboxsmall"><input type="checkbox" name="subjects" value="@package" /> @package</label>
                                                  }
@@ -334,6 +331,7 @@
     $(document).ready(function () {
         $('#selectablePackagesList').addClass('disabled-div');
         $('#generateKey').addClass('disabled-div');
+        $('#packagePatternInput').addClass('disabled-div');
     })
 </script>
 <script>
@@ -352,9 +350,11 @@
 
         if (anyChecked) {
             $('#generateKey').removeClass('disabled-div');
+            $('#packagePatternInput').removeClass('disabled-div');
         }
         else {
             $('#generateKey').addClass('disabled-div');
+            $('#packagePatternInput').addClass('disabled-div');
         }
     }
 </script>

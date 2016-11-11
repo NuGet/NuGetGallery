@@ -698,6 +698,7 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
     <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
+    <Compile Include="Authentication\NuGetPackagePattern.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
@@ -1413,7 +1414,7 @@
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
-    <Compile Include="ScopeEvaluator.cs" />
+    <Compile Include="Authentication\ScopeEvaluator.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -522,13 +523,14 @@ namespace NuGetGallery
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
                     && CredentialKeyMatches(credentialKey, c));
 
-            if (cred != null)
+            if (cred != null && cred.Scopes.AnySafe())
             {
-                await GenerateApiKey(
+                await GenerateApiKeyInternal(
                     cred.Description,
-                    cred.Scopes.Select(s => s.AllowedAction).ToArray(),
-                    cred.Scopes.Select(s => s.Subject).ToArray(),
-                    cred.ExpirationTicks.HasValue ? (int)new TimeSpan(cred.ExpirationTicks.Value).TotalDays : new int?());
+                    cred.Scopes,
+                    cred.ExpirationTicks.HasValue
+                        ? (int) new TimeSpan(cred.ExpirationTicks.Value).TotalDays
+                        : new int?());
 
                 await _authService.RemoveCredential(user, cred);
             }
@@ -578,14 +580,20 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
         {
-            // Get the user
-            var user = GetCurrentUser();
-
             if (string.IsNullOrWhiteSpace(description))
             {
                 TempData["Message"] = Strings.ApiKeyDescriptionRequired;
                 return RedirectToAction("Account");
             }
+
+            await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects), expirationInDays);
+
+            return RedirectToAction("Account");
+        }
+
+        private async Task GenerateApiKeyInternal(string description, ICollection<Scope> scopes, int? expirationInDays = null)
+        {
+            var user = GetCurrentUser();
 
             // Set expiration
             var expiration = TimeSpan.Zero;
@@ -602,42 +610,41 @@ namespace NuGetGallery
             // Create a new API Key credential, and save to the database
             var newCredential = _credentialBuilder.CreateApiKey(expiration);
             newCredential.Description = description;
-                
-            if (scopes != null)
-            {
-                foreach (var scope in scopes)
-                {
-                    if (subjects != null)
-                    {
-                        foreach (var subject in subjects)
-                        {
-                            newCredential.Scopes.Add(new Scope(subject, scope));
-                        }
-                    }
-                    else
-                    {
-                        newCredential.Scopes.Add(new Scope(null, scope));
-                    }
-                }
-            }
-            else if (subjects != null)
-            {
-                foreach (var subject in subjects)
-                {
-                    newCredential.Scopes.Add(new Scope(subject, NuGetScopes.All));
-                }
-            }
-            else
-            {
-                newCredential.Scopes.Add(new Scope(null, NuGetScopes.All));
-            }
+
+            newCredential.Scopes = scopes;
 
             await _authService.AddCredential(user, newCredential);
 
             TempData["Message"] = Strings.ApiKeyGenerated;
             TempData["NewCredentialValue"] = newCredential.Value;
             TempData["ModifiedCredentialKey"] = newCredential.Key;
-            return RedirectToAction("Account");
+        }
+
+        private static IList<Scope> BuildScopes(string[] scopes, string[] subjects)
+        {
+            var result = new List<Scope>();
+
+            var subjectsList = subjects?.ToList() ?? new List<string>();
+
+            // No package filtering information was provided. So allow any pattern.
+            if (!subjectsList.Any())
+            {
+                subjectsList.Add(NuGetPackagePattern.AllInclusivePattern);
+            }
+
+            if (scopes != null)
+            {
+                foreach (var scope in scopes)
+                {
+                    result.AddRange(subjectsList.Select(subject => new Scope(subject, scope)));
+                }
+            }
+            else
+            {
+                result.AddRange(subjectsList.Select(subject => new Scope(subject, NuGetScopes.All)));
+            }
+
+            return result;
         }
 
         private async Task<ActionResult> RemoveCredential(User user, Credential cred, string message)

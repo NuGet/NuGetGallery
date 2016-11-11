@@ -5,12 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using NuGetGallery.Authentication;
 
-namespace NuGetGallery
+namespace NuGetGallery.Authentication
 {
     public static class ScopeEvaluator
     {
+        /// <summary>
+        /// Evaluates if a scope claim allows at least one of the requested actions for a subject.
+        /// </summary>
+        /// <param name="scopeClaim">Json serialized array of <see cref="Scope"/></param>
+        /// <param name="subject">The subject.</param>
+        /// <param name="requestedActions">A list of requested actions <see cref="NuGetScopes"/></param>
         public static bool ScopeClaimsAllowsActionForSubject(
             string scopeClaim,
             string subject,
@@ -26,8 +31,7 @@ namespace NuGetGallery
             var scopesFromClaim = JsonConvert.DeserializeObject<List<Scope>>(scopeClaim);
             foreach (var scopeFromClaim in scopesFromClaim)
             {
-                var subjectMatches = string.IsNullOrEmpty(scopeFromClaim.Subject)
-                    || (!string.IsNullOrEmpty(subject) && string.Equals(scopeFromClaim.Subject, subject, StringComparison.OrdinalIgnoreCase));
+                var subjectMatches = string.IsNullOrEmpty(subject) || (!string.IsNullOrEmpty(subject) && subject.MatchesPackagePattern(scopeFromClaim.Subject));
 
                 var actionMatches = requestedActions.Any(
                     allowed => string.IsNullOrEmpty(allowed)

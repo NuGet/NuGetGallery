@@ -576,8 +576,8 @@ namespace NuGetGallery
                             null,
                             new []
                             {
-                                new Scope(null, NuGetScopes.PackageList),
-                                new Scope(null, NuGetScopes.PackagePushNew)
+                                new Scope("*", NuGetScopes.PackageList),
+                                new Scope("*", NuGetScopes.PackagePushNew)
                             }
                         },
                         new object[]
@@ -587,7 +587,7 @@ namespace NuGetGallery
                             null,
                             new []
                             {
-                                new Scope(null, NuGetScopes.PackageList)
+                                new Scope("*", NuGetScopes.PackageList)
                             }
                         },
                         new object[]
@@ -597,7 +597,7 @@ namespace NuGetGallery
                             null,
                             new []
                             {
-                                new Scope(null, NuGetScopes.All)
+                                new Scope("*", NuGetScopes.All)
                             } 
                         } 
                     };
@@ -641,6 +641,7 @@ namespace NuGetGallery
             public async Task RedirectsToAccountPage()
             {
                 var user = new User { Username = "the-username" };
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -651,6 +652,10 @@ namespace NuGetGallery
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.ApiKeyGenerated, controller.TempData["Message"]);
+
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
+                Assert.Equal(apiKey.Value, controller.TempData["NewCredentialValue"]);
+                Assert.Equal(apiKey.Key, controller.TempData["ModifiedCredentialKey"]);
             }
         }
 
@@ -1165,9 +1170,14 @@ namespace NuGetGallery
                 var cred = user.Credentials.First();
                 cred.Key = CredentialKey;
 
+                var authenticationService = GetMock<AuthenticationService>();
+                authenticationService
+                    .Setup(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Verifiable();
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-
+                
                 // Act
                 var result = await controller.RegenerateCredential(
                     credentialType: cred.Type,
@@ -1175,10 +1185,10 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.ApiKeyDescriptionRequired, controller.TempData["Message"]);
+                authenticationService.Verify(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
             }
 
-            public static IEnumerable<object[]> RegenerateApiKeyCredential_Input
+            public static IEnumerable<object[]>RegenerateApiKeyCredential_Input
             {
                 get
                 {
@@ -1226,11 +1236,13 @@ namespace NuGetGallery
                     .Setup(u => u.AddCredential(
                         user,
                         It.Is<Credential>(c => c.Type == CredentialTypes.ApiKeyV1)))
+                    .Callback<User, Credential>((u, c) => u.Credentials.Add(c))
                     .Completes()
                     .Verifiable();
 
                 GetMock<AuthenticationService>()
                     .Setup(a => a.RemoveCredential(user, cred))
+                     .Callback<User, Credential>((u, c) => u.Credentials.Remove(c))
                     .Completes()
                     .Verifiable();
 
@@ -1250,6 +1262,9 @@ namespace NuGetGallery
                 var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
 
                 Assert.NotNull(newApiKey);
+                Assert.Equal(newApiKey.Value, controller.TempData["NewCredentialValue"]);
+                Assert.Equal(newApiKey.Key, controller.TempData["ModifiedCredentialKey"]);
+               
                 Assert.Equal(description, newApiKey.Description);
                 Assert.Equal(scopes.Length, newApiKey.Scopes.Count);
 
@@ -1313,6 +1328,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CredentialExpired, controller.TempData["Message"]);
+                Assert.Equal(cred.Key, controller.TempData["ModifiedCredentialKey"]);
                 GetMock<AuthenticationService>().VerifyAll();
             }
         }
