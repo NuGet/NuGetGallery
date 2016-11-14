@@ -75,7 +75,7 @@
                         id: viewModel.package.id
                     };
 
-                    var headers = { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
+                    var headers = { '__RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() };
 
                     $.ajax({
                         url: '@Url.Action("AddPackageOwner", "JsonApi")',
@@ -95,18 +95,17 @@
 
                                 // when an operation succeeds, always clear the error message
                                 viewModel.message('');
-                            }
-                            else {
+                            } else {
                                 viewModel.message(data.message);
                             }
-                        }
-                    })
-                    .error(failHandler);
+                        },
+                        error: failHandler
+                    });
                 },
 
                 removeOwner: function (item) {
                     var package = viewModel.package;
-                    var headers = { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
+                    var headers = { '__RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() };
 
                     $.ajax({
                         url: '@Url.Action("RemovePackageOwner", "JsonApi")?id=' + package.id + '&username=' + item.name(),
@@ -124,9 +123,9 @@
                             } else {
                                 viewModel.message(data.message);
                             }
-                        }
-                    })
-                    .error(failHandler);
+                        },
+                        error: failHandler
+                    });
                 }
             };
 
@@ -136,14 +135,12 @@
             $.ajax({
                 url: '@Url.Action("GetPackageOwners", "JsonApi")?id=' + viewModel.package.id,
                 cache: false,
-                dataType: 'json',
-                type: 'GET',
                 contentType: 'application/json; charset=utf-8',
                 success: function (data) {
                     viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.pending, item.current); }));
-                }
-            })
-            .error(failHandler);
+                },
+                error: failHandler
+            });
 
             function Owner(name, pending, current) {
                 this.name = ko.observable(name);
