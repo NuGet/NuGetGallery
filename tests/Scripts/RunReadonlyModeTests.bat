@@ -36,7 +36,7 @@ if not "%errorlevel%"=="0" goto failure
 REM Run functional tests
 set testDir="NuGetGallery.FunctionalTests\bin\%config%"
 copy %nuget% %testDir%
-call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%testCategory%" -teamcity
+call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%testCategory%" -teamcity -html functionaltestsreadonly.html
 
 REM Run web UI and load tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.ReadOnlyMode\bin\%config%\NuGetGallery.WebUITests.ReadOnlyMode.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.trx

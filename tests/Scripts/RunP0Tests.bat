@@ -36,7 +36,7 @@ if not "%errorlevel%"=="0" goto failure
 REM Run functional tests
 set testDir="NuGetGallery.FunctionalTests\bin\%config%"
 copy %nuget% %testDir%
-call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%testCategory%" -teamcity
+call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%testCategory%" -teamcity -html functionaltestsP0.html
 
 REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P0\bin\%config%\NuGetGallery.WebUITests.P0.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.trx

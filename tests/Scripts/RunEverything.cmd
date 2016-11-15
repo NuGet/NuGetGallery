@@ -42,7 +42,7 @@ call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -teamcity
 if not "%errorlevel%"=="0" set exitCode=-1
 
 copy %nuget% %fluentTestDir%
-call %xunit% "%fluentTestDir%\NuGetGallery.FunctionalTests.Fluent.dll" -teamcity
+call %xunit% "%fluentTestDir%\NuGetGallery.FunctionalTests.Fluent.dll" -teamcity -html functionaltestseverything.html
 if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI tests
