@@ -8,51 +8,30 @@ using System.Threading.Tasks;
 namespace NuGet.Services.Configuration
 {
     /// <summary>
-    /// Asynchronously provides configuration or command line arguments.
+    /// Asynchronously provides configuration.
+    /// Used when all possible configuration cannot be cached, for example RoleEnvironment.
     /// </summary>
     public interface IConfigurationProvider
     {
         /// <summary>
-        /// Gets an argument from the service.
+        /// Gets configuration using a <param name="key">key</param> from the service.
         /// </summary>
-        /// <typeparam name="T">Converts the argument from a string into this type.</typeparam>
+        /// <typeparam name="T">Converts the configuration from a string into this type.</typeparam>
         /// <param name="key">The key mapping to the desired argument.</param>
-        /// <returns>The argument mapped to by the key converted to type T.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown when the key is not mapped to an argument.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when the argument mapped to by the key is null or empty.</exception>
-        /// <exception cref="NotSupportedException">Thrown when the argument mapped to by the key cannot be converted into an object of type T.</exception>
-        Task<T> GetOrThrow<T>(string key);
+        /// <returns>The configuration specified by the key converted to <typeparam name="T">type T</typeparam>.</returns>
+        /// <exception cref="KeyNotFoundException">Thrown when <param name="key">the key</param> is not mapped to any configuration.</exception>
+        /// <exception cref="ConfigurationNullOrEmptyException">Thrown when the configuration mapped to by <param name="key">the key</param> is null or empty.</exception>
+        /// <exception cref="ArgumentException">Thrown when <param name="key">the key</param> is null or empty.</exception>
+        /// <exception cref="NotSupportedException">Thrown when the configuration mapped to by <param name="key">the key</param> cannot be converted into an object of <typeparam name="T">type T</typeparam>.</exception>
+        Task<T> GetOrThrowAsync<T>(string key);
 
         /// <summary>
-        /// Gets an argument from the service.
+        /// Gets configuration using a <param name="key">key</param> from the service.
         /// </summary>
-        /// <typeparam name="T">Converts the argument from a string into this type.</typeparam>
+        /// <typeparam name="T">Converts the configuration from a string into this type.</typeparam>
         /// <param name="key">The key mapping to the desired argument.</param>
-        /// <param name="defaultValue">The value returned if there is an issue getting the argument from the cache.</param>
-        /// <returns>The argument mapped to by the key converted to type T or defaultValue if the argument could not be acquired and converted.</returns>
-        Task<T> GetOrDefault<T>(string key, T defaultValue = default(T));
-
-        /// <summary>
-        /// Gets an argument from the service synchronously.
-        /// Should use <see cref="GetOrThrow{T}"/> unless a synchronous context is completely necessary.
-        /// </summary>
-        /// <typeparam name="T">Converts the argument from a string into this type.</typeparam>
-        /// <param name="key">The key mapping to the desired argument.</param>
-        /// <returns>The argument mapped to by the key converted to type T.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown when the key is not mapped to an argument.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when the argument mapped to by the key is null or empty.</exception>
-        /// <exception cref="NotSupportedException">Thrown when the argument mapped to by the key cannot be converted into an object of type T.</exception>
-        T GetOrThrowSync<T>(string key);
-
-        /// <summary>
-        /// Gets an argument from the service synchronously.
-        /// Should use <see cref="GetOrDefault{T}"/> unless a synchronous context is completely necessary.
-        /// </summary>
-        /// <typeparam name="T">Converts the argument from a string into this type.</typeparam>
-        /// <param name="key">The key mapping to the desired argument.</param>
-        /// <param name="defaultValue">The value returned if there is an issue getting the argument from the cache.</param>
-        /// <returns>The argument mapped to by the key converted to type T or defaultValue if the argument could not be acquired and converted.</returns>
-        [Obsolete("Use GetOrDefault unless a synchronous context is completely necessary.")]
-        T GetOrDefaultSync<T>(string key, T defaultValue = default(T));
+        /// <param name="defaultValue">The value returned if the configuration cannot be found or is malformed.</param>
+        /// <returns>The configuration specified by the key converted to <typeparam name="T">type T</typeparam> or <param name="defaultValue">defaultValue</param> if the configuration cannot be found or is malformed.</returns>
+        Task<T> GetOrDefaultAsync<T>(string key, T defaultValue = default(T));
     }
 }

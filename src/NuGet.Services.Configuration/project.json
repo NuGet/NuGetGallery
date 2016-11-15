@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0"
+    "Microsoft.Extensions.Configuration.Json": "1.0.0",
+    "System.ComponentModel.Annotations": "4.0.0"
   },
 
   "frameworks": {
@@ -10,6 +11,9 @@
         "NuGet.Services.KeyVault": {
           "target": "project"
         }
+      },
+      "frameworkAssemblies": {
+        "System.ComponentModel.DataAnnotations": "4.0.0.0"
       }
     }
   },
