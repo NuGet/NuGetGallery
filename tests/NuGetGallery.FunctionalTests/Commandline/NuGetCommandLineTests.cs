@@ -39,7 +39,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
             // Temporary work around for the SSL issue, which keeps the upload tests from working on sites with cloudapp.net
             if (UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org"))
             {
-                string packageId = Constants.TestPackageId; //try to down load a pre-defined test package.
+                string packageId = Constants.TestPackageId; //try to download a pre-defined test package.
                 _clientSdkHelper.ClearLocalPackageFolder(packageId);
 
                 var result = await _commandlineHelper.InstallPackageAsync(packageId, UrlHelper.V2FeedRootUrl, Environment.CurrentDirectory);
