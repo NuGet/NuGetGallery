@@ -8,7 +8,7 @@ Please read the following information before posting the issue.
 ## Frequently Asked Questions
 
 * **I want to delete my package** - please contact support instead via the [NuGet.org website](https://www.nuget.org)
-* **I am having connectivity issues** - include an MTR and/or Fiddler trace - steps to capture this are [in our FAQ])(https://docs.nuget.org/ndocs/policies/nuget-faq#managing-packages-on-nuget-org)
+* **I am having connectivity issues** - include an MTR and/or Fiddler trace - steps to capture this are [in our FAQ](https://docs.nuget.org/ndocs/policies/nuget-faq#managing-packages-on-nuget-org)
 
 ## All set!
 
