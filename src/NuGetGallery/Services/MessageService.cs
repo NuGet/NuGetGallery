@@ -285,7 +285,7 @@ The {0} Team";
             }
         }
 
-        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
+        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl, string message)
         {
             if (!toUser.EmailAllowed)
             {
@@ -301,10 +301,14 @@ To accept this request and become a listed owner of the package, click the follo
 
 [{2}]({2})
 
+The user '{0}' added the following message for you:
+
+'{4}'
+
 Thanks,
 The {3} Team";
 
-            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, Config.GalleryOwner.DisplayName);
+            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, Config.GalleryOwner.DisplayName, message);
 
             using (var mailMessage = new MailMessage())
             {

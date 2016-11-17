@@ -332,9 +332,9 @@ namespace NuGetGallery
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
-
+                const string userMessage = "Hello World!";
                 var messageService = new TestableMessageService();
-                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
+                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl, userMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
@@ -342,6 +342,7 @@ namespace NuGetGallery
                 Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
                 Assert.Equal("[Joe Shmoe] The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Subject);
                 Assert.Contains(confirmationUrl, message.Body);
+                Assert.Contains(userMessage, message.Body);
                 Assert.Contains("The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Body);
             }
 
@@ -354,7 +355,7 @@ namespace NuGetGallery
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
 
                 var messageService = new TestableMessageService();
-                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
+                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl, string.Empty);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
