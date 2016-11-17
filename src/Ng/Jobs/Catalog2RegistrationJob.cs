@@ -96,7 +96,7 @@ namespace Ng.Jobs
                     : new Uri(contentBaseAddress)
             };
 
-            var storage = storageFactory.Create();
+            var storage = storageFactoryToUse.Create();
             _front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
             _back = MemoryCursor.CreateMax();
         }
