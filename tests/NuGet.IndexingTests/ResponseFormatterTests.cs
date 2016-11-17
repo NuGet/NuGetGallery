@@ -74,7 +74,7 @@ namespace NuGet.IndexingTests
             {
                 ResponseFormatter.WriteStatsResult(writer, searcher);
 
-                Assert.Equal(string.Format(expected, searcher.LastReopen), sb.ToString());
+                Assert.Equal(string.Format(expected, searcher.LastReopen.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'FFFFFFFK")), sb.ToString());
             }
         }
 
@@ -264,7 +264,7 @@ namespace NuGet.IndexingTests
                         { "user1", "value1" },
                         { "user2", "value2" }
                     },
-                    "{{\"numDocs\":100,\"indexName\":\"mockIndexName\",\"lastReopen\":\"{0:o}\",\"CommitUserData\":{{\"user1\":\"value1\",\"user2\":\"value2\"}}}}"
+                    "{{\"numDocs\":100,\"indexName\":\"mockIndexName\",\"lastReopen\":\"{0}\",\"CommitUserData\":{{\"user1\":\"value1\",\"user2\":\"value2\"}}}}"
                 };
 
                 // no userData
@@ -273,7 +273,7 @@ namespace NuGet.IndexingTests
                     "mockNoUser",
                     10,
                     new Dictionary<string, string> {},
-                    "{{\"numDocs\":10,\"indexName\":\"mockNoUser\",\"lastReopen\":\"{0:o}\",\"CommitUserData\":{{}}}}"
+                    "{{\"numDocs\":10,\"indexName\":\"mockNoUser\",\"lastReopen\":\"{0}\",\"CommitUserData\":{{}}}}"
                 };
             }
         }
