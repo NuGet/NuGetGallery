@@ -294,17 +294,23 @@ The {0} Team";
 
             const string subject = "[{0}] The user '{1}' wants to add you as an owner of the package '{2}'.";
 
-            string body = @"The user '{0}' wants to add you as an owner of the package '{1}'.
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{fromUser.Username}' wants to add you as an owner of the package '{package.Id}'.
 If you do not want to be listed as an owner of this package, simply delete this email.
 
 To accept this request and become a listed owner of the package, click the following URL:
 
-[{2}]({2})
+[{confirmationUrl}]({confirmationUrl})");
 
-Thanks,
-The {3} Team";
 
-            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, Config.GalleryOwner.DisplayName);
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                body += Environment.NewLine + Environment.NewLine + string.Format(CultureInfo.CurrentCulture, $@"The user '{fromUser.Username}' added the following message for you:
+
+'{message}'");
+            }
+
+            body += Environment.NewLine + Environment.NewLine + $@"Thanks,
+The {Config.GalleryOwner.DisplayName} Team";
 
             using (var mailMessage = new MailMessage())
             {
@@ -440,15 +446,15 @@ The {3} Team";
                     var senderCopy = new MailMessage(
                         Config.GalleryOwner,
                         mailMessage.ReplyToList.First())
-                        {
-                            Subject = mailMessage.Subject + " [Sender Copy]",
-                            Body = String.Format(
+                    {
+                        Subject = mailMessage.Subject + " [Sender Copy]",
+                        Body = String.Format(
                                 CultureInfo.CurrentCulture,
                                 "You sent the following message via {0}: {1}{1}{2}",
                                 Config.GalleryOwner.DisplayName,
                                 Environment.NewLine,
                                 mailMessage.Body),
-                        };
+                    };
                     senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
                     MailSender.Send(senderCopy);
                 }
@@ -479,8 +485,8 @@ The {3} Team";
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                Config.GalleryOwner.DisplayName, 
-                package.PackageRegistration.Id, 
+                Config.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
                 package.Version,
                 packageUrl,
                 packageSupportUrl,
