@@ -481,12 +481,12 @@
       <HintPath>..\..\packages\NuGet.Packaging.Core.Types.3.5.0-rc1-final\lib\net45\NuGet.Packaging.Core.Types.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.Configuration, Version=1.0.75.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Configuration.1.0.75-r-develop\lib\net452\NuGet.Services.Configuration.dll</HintPath>
+    <Reference Include="NuGet.Services.Configuration, Version=1.0.88.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Configuration.1.0.88-r-sb-testingcache\lib\net452\NuGet.Services.Configuration.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.KeyVault, Version=1.0.75.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.75-r-develop\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
+    <Reference Include="NuGet.Services.KeyVault, Version=1.0.88.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.88-r-sb-testingcache\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Services.Platform.Client, Version=3.0.29.0, Culture=neutral, processorArchitecture=MSIL">

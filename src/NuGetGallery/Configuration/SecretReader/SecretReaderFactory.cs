@@ -18,6 +18,7 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string ClientIdConfigurationKey = "ClientId";
         internal const string StoreNameKey = "StoreName";
         internal const string StoreLocationKey = "StoreLocation";
+        internal const string ValidateCertificate = "ValidateCertificate";
         internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
         internal const string CacheRefreshInterval = "CacheRefreshIntervalSec";
 
@@ -62,8 +63,12 @@ namespace NuGetGallery.Configuration.SecretReader
                     ? ConfigurationUtility.ConvertFromString<StoreLocation>(storeLocationString)
                     : StoreLocation.LocalMachine;
 
+                var validateCertificateString = await ReadKeyVaultSetting(configService, ValidateCertificate);
+                var validateCertificate = string.IsNullOrEmpty(validateCertificateString) ||
+                                          ConfigurationUtility.ConvertFromString<bool>(validateCertificateString);
+
                 var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint,
-                    storeName, storeLocation, validateCertificate: true);
+                    storeName, storeLocation, validateCertificate);
 
                 secretReader = new KeyVaultReader(keyVaultConfiguration);
             }
@@ -77,9 +82,9 @@ namespace NuGetGallery.Configuration.SecretReader
             {
                 var refreshIntervalString = await ReadKeyVaultSetting(configService, CacheRefreshInterval);
 
-                cacheRefreshIntervalSeconds = string.IsNullOrEmpty(refreshIntervalString)
-                    ? CachingSecretReader.DefaultRefreshIntervalSec
-                    : int.Parse(refreshIntervalString);
+                cacheRefreshIntervalSeconds = !string.IsNullOrEmpty(refreshIntervalString)
+                    ? ConfigurationUtility.ConvertFromString<int>(refreshIntervalString)
+                    : CachingSecretReader.DefaultRefreshIntervalSec;
             }
             catch (Exception)
             {

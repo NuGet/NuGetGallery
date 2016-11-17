@@ -6,9 +6,6 @@ using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin;
-using NuGetGallery.Configuration;
-using NuGetGallery.Filters;
-using System.Diagnostics.CodeAnalysis;
 
 namespace NuGetGallery
 {
