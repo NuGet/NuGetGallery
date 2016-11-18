@@ -11,7 +11,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class FileSystemFileStorageServiceFacts
+    public class FileSystemFileStorgeServiceFacts
     {
         private static readonly Uri HttpRequestUrl = new Uri("http://nuget.org/something");
 
