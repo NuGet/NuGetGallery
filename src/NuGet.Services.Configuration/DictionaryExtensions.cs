@@ -29,12 +29,20 @@ namespace NuGet.Services.Configuration
         /// <typeparam name="T">Type to convert value into.</typeparam>
         /// <param name="dictionary">Dictionary to get value from.</param>
         /// <param name="key">The key associated with the desired value.</param>
-        /// <returns>The value associated with key converted into T.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown when there is no value associated with key in the dictionary.</exception>
+        /// <returns>The value associated with the key converted into T.</returns>
+        /// <exception cref="KeyNotFoundException">Thrown when the key cannot be found in the dictionary.</exception>
         /// <exception cref="NotSupportedException">Thrown when a conversion from string to T is impossible.</exception>
+        /// <exception cref="ArgumentException">Thrown when the value associated with the key in the dictionary is null or empty.</exception>
         public static T GetOrThrow<T>(this IDictionary<string, string> dictionary, string key)
         {
-            return ConfigurationUtility.ConvertFromString<T>(dictionary[key]);
+            var value = dictionary[key];
+
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException($"Value associated with key {key} in the dictionary is null or empty.");
+            }
+
+            return ConfigurationUtility.ConvertFromString<T>(value);
         }
     }
 }

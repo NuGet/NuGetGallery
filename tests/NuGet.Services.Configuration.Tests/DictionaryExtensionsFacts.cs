@@ -16,18 +16,23 @@ namespace NuGet.Services.Configuration.Tests
             new object[] {"hello"},
             new object[] {"123456789"},
             new object[] {-1},
-            new object[] {1259},    
+            new object[] {1259},
             new object[] {DateTime.MinValue},
-            new object[] {DateTime.MinValue.AddYears(100).AddDays(50).AddHours(5).AddSeconds(62)} 
+            new object[] {DateTime.MinValue.AddYears(100).AddDays(50).AddHours(5).AddSeconds(62)}
+        };
+
+        public static IEnumerable<object[]> NullEmptyData => new[]
+        {
+            new object[] {""},
+            new object[] {null}
         };
 
         [Theory]
         [MemberData(nameof(ValueData))]
-        public void GetOrDefaultConvertsAndDoesNotThrow<T>(T value)
+        public void GetOrDefaultReturnsValueInDictionaryConverted<T>(T value)
         {
             // Arrange
             const string key = "key";
-            const string notKey = "notAKey";
             IDictionary<string, string> dictionary = new Dictionary<string, string>
             {
                 {key, value.ToString()}
@@ -36,11 +41,23 @@ namespace NuGet.Services.Configuration.Tests
             // Act
             var valueFromDictionary = dictionary.GetOrDefault<T>(key);
 
+            // Assert
+            Assert.Equal(value, valueFromDictionary);
+        }
+
+        [Theory]
+        [MemberData(nameof(ValueData))]
+        public void GetOrDefaultReturnsDefaultIfKeyNotFound<T>(T value)
+        {
+            // Arrange
+            const string notKey = "notAKey";
+            IDictionary<string, string> dictionary = new Dictionary<string, string>();
+
+            // Act
             var notFoundFromDictionary = dictionary.GetOrDefault<T>(notKey);
             var notFoundFromDictionaryWithDefault = dictionary.GetOrDefault(notKey, value);
 
             // Assert
-            Assert.Equal(value, valueFromDictionary);
             Assert.Equal(default(T), notFoundFromDictionary);
             Assert.Equal(value, notFoundFromDictionaryWithDefault);
         }
@@ -56,7 +73,7 @@ namespace NuGet.Services.Configuration.Tests
         }
 
         [Fact]
-        public void GetOrDefaultWithNotSupportedConversion()
+        public void GetOrDefaultReturnsDefaultIfConversionUnsupported()
         {
             // Arrange
             const string key = "key";
@@ -67,28 +84,40 @@ namespace NuGet.Services.Configuration.Tests
             };
 
             // Act
-            var notFoundFromDictionary = dictionary.GetOrDefault<NoConversionFromStringToThisClass>(notKey);
+            var unsupportedFromDictionary = dictionary.GetOrDefault<NoConversionFromStringToThisClass>(notKey);
 
             // default(NoConversionFromStringToThisClass) has value = false because default(bool) is false
             // Therefore, create a NoConversionFromStringToThisClass with a true value so it is different than the default.
             var defaultNoConversion = new NoConversionFromStringToThisClass(true);
-            var notFoundFromDictionaryWithDefault = dictionary.GetOrDefault(notKey, defaultNoConversion);
+            var unsupportedFromDictionaryWithDefault = dictionary.GetOrDefault(notKey, defaultNoConversion);
 
             // Assert
             Assert.Throws<NotSupportedException>(() => dictionary.GetOrDefault<NoConversionFromStringToThisClass>(key));
-            Assert.Equal(default(NoConversionFromStringToThisClass), notFoundFromDictionary);
-            Assert.Equal(defaultNoConversion, notFoundFromDictionaryWithDefault);
+            Assert.Equal(default(NoConversionFromStringToThisClass), unsupportedFromDictionary);
+            Assert.Equal(defaultNoConversion, unsupportedFromDictionaryWithDefault);
             // Safety check to prevent the test from passing if defaultNoConversion is equal to default(NoConversionFromStringToThisClass)
             Assert.NotEqual(defaultNoConversion, default(NoConversionFromStringToThisClass));
         }
 
         [Theory]
         [MemberData(nameof(ValueData))]
-        public void GetOrThrowConvertsValueAndThrows<T>(T value)
+        public void GetOrThrowThrowsIfKeyNotFound<T>(T value)
+        {
+            // Arrange
+            const string notKey = "notKey";
+
+            IDictionary<string, string> dictionary = new Dictionary<string, string>();
+
+            // Assert
+            Assert.Throws<KeyNotFoundException>(() => dictionary.GetOrThrow<T>(notKey));
+        }
+
+        [Theory]
+        [MemberData(nameof(ValueData))]
+        public void GetOrThrowThrowsIfConversionUnsupported<T>(T value)
         {
             // Arrange
             const string key = "key";
-            const string notKey = "notAKey";
             IDictionary<string, string> dictionary = new Dictionary<string, string>
             {
                 {key, value.ToString()}
@@ -99,8 +128,22 @@ namespace NuGet.Services.Configuration.Tests
 
             // Assert
             Assert.Equal(value, valueFromDictionary);
-            Assert.Throws<KeyNotFoundException>(() => dictionary.GetOrThrow<T>(notKey));
             Assert.Throws<NotSupportedException>(() => dictionary.GetOrThrow<NoConversionFromStringToThisClass>(key));
+        }
+
+        [Theory]
+        [MemberData(nameof(NullEmptyData))]
+        public void GetOrThrowThrowsIfNullOrEmptyValueForKey(string value)
+        {
+            // Arrange
+            const string key = "key";
+            IDictionary<string, string> dictionary = new Dictionary<string, string>
+            {
+                {key, value}
+            };
+
+            // Assert
+            Assert.Throws<ArgumentException>(() => dictionary.GetOrThrow<string>(key));
         }
     }
 }
