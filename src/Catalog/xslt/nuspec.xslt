@@ -11,6 +11,12 @@
   <xsl:param name="base" />
   <xsl:param name="extension" />
 
+  <xsl:template match="*">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+  </xsl:template>
+
   <xsl:template match="/nuget:package/nuget:metadata">
     
     <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
