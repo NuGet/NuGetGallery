@@ -597,7 +597,7 @@ namespace NuGetGallery
                 }
             }
 
-            await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects), expiration);
+            await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects?.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()), expiration);
 
             return RedirectToAction("Account");
         }

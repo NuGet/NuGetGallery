@@ -599,7 +599,18 @@ namespace NuGetGallery
                             {
                                 new Scope("*", NuGetScopes.All)
                             } 
-                        } 
+                        },
+                        new object[]
+                        {
+                            "empty subjects are ignored",
+                            new [] { NuGetScopes.PackageList },
+                            new[] {"abc", "def", string.Empty, null, "   "},
+                            new []
+                            {
+                                new Scope("abc", NuGetScopes.PackageList),
+                                new Scope("def", NuGetScopes.PackageList)
+                            }
+                        }
                     };
                 }
             }

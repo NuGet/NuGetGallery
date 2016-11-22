@@ -1332,9 +1332,41 @@ ul.accordion {
             box-shadow: none;
         }
 
-            ul.accordion li.accordion-item.accordion-item-disabled .accordion-item-title, li.accordion-item-disabled .accordion-item-subtitle {
-                font-style: italic;
-            }
+        ul.accordion li.accordion-item.accordion-item-disabled .accordion-item-title, li.accordion-item-disabled .accordion-item-subtitle {
+            font-style: italic;
+        }
+
+        ul.accordion.enhanced {
+            margin: 0;
+            padding: 0px;
+        }
+
+        ul.accordion.enhanced li.accordion-item {
+             border: none;
+             box-shadow: none;
+             margin: 0px;
+             padding: 0;
+        }
+
+        ul.accordion.enhanced li.accordion-item .accordion-item-header {
+            background-color: #3a6e8b;
+            color: white;
+            padding: 0.5em;
+            list-style-type: none;
+            min-height: 32px;
+        }
+
+         ul.accordion.enhanced li.accordion-item .accordion-item-content {
+            background-color: white;
+        }
+
+        ul.accordion.enhanced .accordion-expand-button{
+            font-weight: 400;
+        }
+
+        ul.accordion.enhanced button{
+            font-weight: 400;
+        }
 
 /* Script-related Classes */
 .s-hidden {
@@ -1422,42 +1454,62 @@ img.contributors-contributor-avatar {
     }
 
 /* Fancy table*/
-.fancy-table
+.details-table
 {
     table-layout: fixed;
+    border-spacing: 0px;
 }
 
-.fancy-table tbody {
+.details-table tbody {
     background-color: white;
 }
 
-.fancy-table th {
-    text-align: left;
+.details-table td{
+    border-top:1px solid #ccc;
+    border-collapse: collapse;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left:10px;
+    vertical-align: top;
+}
+
+.details-table tr:last-child td {
+    border-bottom:1px solid #ccc;
+}
+
+.details-table b {
     font-weight: 600;
 }
 
-.fancy-table tr {
-    height: 0;
+.details-table .longlist{
+    list-style-position: inside;
+    list-style-type: none;
 }
 
-.fancy-table td {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+.details-table .longlist li{
+    display: none;
+} 
 
-.fancy-table.selectable tbody tr:hover {
-     background-color: #98AFC7;
-}
+.details-table .longlist ul{
+    list-style-position: inside;
+    list-style-type: none;
+} 
 
-.fancy-table.selectable tbody tr.highlight td{
-    background-color: #357EC7;
-}
+.details-table .hidden{
+    display: none;
+} 
 
-.fancy-table.selectable tbody tr.emphasise td{
+.details-table tr.emphasise td {
      font-weight: bold;
      font-style: oblique;
 }
+
+.details-table  td.actions {
+    text-align: right;
+    padding-right: 10px;
+}
+
+/* divs*/
 
 .scrollable-div {
   overflow: auto;

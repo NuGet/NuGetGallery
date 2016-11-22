@@ -344,8 +344,11 @@
             ? credGroups[CredentialKind.Token]
             : new List<CredentialViewModel>();
 
-        // Auto-expand when we just generated a new key or when an API key has expired
-        var shouldExpandApiKeyAccordion = TempData["NewCredentialValue"] != null || apiKeys.Any(k => k.HasExpired);
+        // Auto-expand when we just generated a new key or when an API key has expired or api key deleted
+        var shouldExpandApiKeyAccordion = 
+            TempData["NewCredentialValue"] != null ||
+            apiKeys.Any(k => k.HasExpired) ||
+            string.Equals(TempData["Message"], Strings.CredentialRemoved);
     }
 
     @ViewHelpers.AccordionBar(
