@@ -109,7 +109,7 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 
                                 await _packageValidationAuditor.WriteAuditEntriesAsync(
                                     validationEntity.ValidationId, validationEntity.PackageId, validationEntity.PackageVersion, auditEntries);
-                                
+
                                 // Notify
                                 await _notificationService.SendNotificationAsync(
                                     $"vcscallback-notclean/{validationEntity.Created.ToString("yyyy-MM-dd")}",
@@ -117,7 +117,7 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                                     body);
                             }
                             else
-                            { 
+                            {
                                 // To investigate
                                 await _notificationService.SendNotificationAsync(
                                     $"vcscallback-investigate/{validationEntity.Created.ToString("yyyy-MM-dd")}",
@@ -184,22 +184,23 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                     }
                 }
 
-                // "OK"
-                context.Response.ContentType = "text/plain";
-                await context.Response.WriteAsync("Thank you, come again.");
+                // The VCS caller requires a SOAP response.
+                context.Response.ContentType = "text/xml";
+                await context.Response.WriteAsync(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
+  <soap:Body>
+    <StatusChangedResponse xmlns=""http://roq/"" />
+  </soap:Body>
+</soap:Envelope>");
             }
             else if (context.Request.Method == "GET")
             {
-                // "OK"
                 context.Response.ContentType = "text/plain";
-                await context.Response.WriteAsync("Running.");
+                await context.Response.WriteAsync("OK");
             }
             else
             {
-                // Bad request
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                context.Response.ContentType = "text/plain";
-                await context.Response.WriteAsync("An invalid request has been attempted.");
             }
         }
     }
