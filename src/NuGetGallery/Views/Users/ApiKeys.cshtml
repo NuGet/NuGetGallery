@@ -481,7 +481,7 @@
         .ready(function() {
             if ($('.copyapikeybutton').length) {
                 // Increment the idle time counter every minute.
-                idleInterval = setInterval(timerIncrement, /*60000*/1000); // 1 minute
+                idleInterval = setInterval(timerIncrement, 60000); // 1 minute
 
                 // Zero the idle timer on mouse movement.
                 $(this)
