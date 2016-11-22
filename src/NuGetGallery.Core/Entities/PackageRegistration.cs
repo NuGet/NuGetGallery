@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using NuGet.Packaging;
 
 namespace NuGetGallery
 {
@@ -15,7 +16,7 @@ namespace NuGetGallery
             Packages = new HashSet<Package>();
         }
 
-        [StringLength(CoreConstants.MaxPackageIdLength)]
+        [StringLength(PackageIdValidator.MaxPackageIdLength)]
         [Required]
         public string Id { get; set; }
 

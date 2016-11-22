@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
+using NuGet.Packaging;
 using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations
@@ -255,7 +256,7 @@ namespace NuGetGallery.Operations
 
         private JObject CreateJsonContent(string packageId)
         {
-            Tuple<string[], List<object[]>> data = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetailByPackage.sql", new Tuple<string, int, string>("@packageId", 128, packageId));
+            Tuple<string[], List<object[]>> data = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetailByPackage.sql", new Tuple<string, int, string>("@packageId", PackageIdValidator.MaxPackageIdLength, packageId));
             JObject content = MakeReportJson(data);
             TotalDownloads(content);
             SortItems(content);
