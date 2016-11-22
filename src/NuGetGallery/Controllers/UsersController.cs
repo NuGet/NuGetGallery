@@ -527,7 +527,7 @@ namespace NuGetGallery
             {
                 await GenerateApiKeyInternal(
                     cred.Description,
-                    cred.Scopes,
+                    BuildScopes(cred.Scopes),
                     cred.ExpirationTicks.HasValue
                         ? new TimeSpan(cred.ExpirationTicks.Value) : new TimeSpan?());
 
@@ -644,6 +644,11 @@ namespace NuGetGallery
             }
 
             return result;
+        }
+
+        private static IList<Scope> BuildScopes(IEnumerable<Scope> scopes)
+        {
+            return scopes.Select(scope => new Scope {AllowedAction = scope.AllowedAction, Subject = scope.Subject}).ToList();
         }
 
         private async Task<ActionResult> RemoveCredential(User user, Credential cred, string message)
