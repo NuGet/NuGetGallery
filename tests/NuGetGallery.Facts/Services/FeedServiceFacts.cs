@@ -806,6 +806,43 @@ namespace NuGetGallery
                     // Assert
                     Assert.Equal(0, result.Count());
                 }
+
+
+                [Fact]
+                public async Task V2FeedFindPackagesByIdForbiddenODataQueries()
+                {
+                    string[] allowedOperators = new string[] { "skip" };
+                    NuGetGallery.OData.QueryWhitelist.ODataWhitelistFindPackagesById.GetInstance(allowedOperators);
+                    string testNotAllowedArgs = "?$skip=10&$orderby=version des";
+                    string testAllowedArgs = "?$skip=10";
+                    string host = "https://localhost:8081/";
+
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, $"{host}{testNotAllowedArgs}");
+
+                    // Act
+                    var resultNotAllowed = (await v2Service.FindPackagesById(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        "Foo"))
+                        .ExpectResult<PlainTextResult>();
+                    // Assert
+                    Assert.Equal(System.Net.HttpStatusCode.Forbidden, resultNotAllowed.StatusCode);
+
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, $"{host}{testAllowedArgs}");
+                    var resultAllowed = (await v2Service.FindPackagesById(
+                       new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                       "Foo"))
+                       .ExpectQueryResult<V2FeedPackage>();
+                    var count = resultAllowed.GetInnerResult().ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>().Count();
+
+                    // Assert
+                    Assert.Equal(0, count);
+                }
             }
 
             public class TheSearchMethod

@@ -10,28 +10,36 @@ namespace NuGetGallery
     internal static class Telemetry
     {
         private static readonly TelemetryClient _telemetryClient = new TelemetryClient();
+        //a list of all telemetry events
+        internal static Dictionary<string, string> _events = new Dictionary<string, string>() { { "QueryWhitelist", "ODataQueryWhitelist" } };
 
         public static void TrackEvent(string eventName, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
         {
-            try
+            if (_telemetryClient.IsEnabled())
             {
-                _telemetryClient.TrackEvent(eventName, properties, metrics);
-            }
-            catch
-            {
-                // logging failed, don't allow exception to escape
+                try
+                {
+                    _telemetryClient.TrackEvent(eventName, properties, metrics);
+                }
+                catch
+                {
+                    // logging failed, don't allow exception to escape
+                }
             }
         }
 
         public static void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
         {
-            try
+            if (_telemetryClient.IsEnabled())
             {
-                _telemetryClient.TrackException(exception, properties, metrics);
-            }
-            catch
-            {
-                // logging failed, don't allow exception to escape
+                try
+                {
+                    _telemetryClient.TrackException(exception, properties, metrics);
+                }
+                catch
+                {
+                    // logging failed, don't allow exception to escape
+                }
             }
         }
     }
