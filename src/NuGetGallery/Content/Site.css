@@ -1471,6 +1471,9 @@ img.contributors-contributor-avatar {
     padding-bottom: 10px;
     padding-left:10px;
     vertical-align: top;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .details-table tr:last-child td {
@@ -1498,11 +1501,6 @@ img.contributors-contributor-avatar {
 .details-table .hidden{
     display: none;
 } 
-
-.details-table tr.emphasise td {
-     font-weight: bold;
-     font-style: oblique;
-}
 
 .details-table  td.actions {
     text-align: right;

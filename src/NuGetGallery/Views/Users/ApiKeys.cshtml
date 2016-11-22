@@ -42,7 +42,7 @@
         submit a NuGet package to the gallery using your API key to authenticate.
     </p>
     @if (!CurrentUser.Confirmed)
-            {
+    {
         <p>
             To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
         </p>
@@ -71,11 +71,10 @@
                         expanded: !apiKeys.Any(),
                         actions:  @<text> @item.ExpandButton("New API key", "Cancel") </text>,
                         content:  @<text>
-            @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%" }))
+                            @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%" }))
                             {
-                <fieldset class="form" style="width:500px">
+                             <fieldset class="form" style="width:500px">
                     @Html.AntiForgeryToken()
-
                     <div class="form-field">
                         <table>
                             <tr>
@@ -89,7 +88,7 @@
                                 <td>
                                     @if (Model.ExpirationInDaysForApiKeyV1 > 0)
                                     {
-                                    <select name="expirationInDays" id="expirationInDays">
+                                        <select name="expirationInDays" id="expirationInDays">
                                         @if (Model.ExpirationInDaysForApiKeyV1 == 365) // Shorter dropdown for NuGet.org
                                             {
                                             <option value="1">1 day</option>
@@ -100,14 +99,14 @@
                                             }
                                             else
                                             {
-                                            <option value="1">1 day</option>
+                                                <option value="1">1 day</option>
                                                 for (int i = 10; i < Model.ExpirationInDaysForApiKeyV1; i += 10)
                                                 {
-                                            <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
+                                                    <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
                                                 }
-                                            <option value="@Model.ExpirationInDaysForApiKeyV1" selected="selected">@Model.ExpirationInDaysForApiKeyV1 days</option>
+                                                <option value="@Model.ExpirationInDaysForApiKeyV1" selected="selected">@Model.ExpirationInDaysForApiKeyV1 days</option>
                                             }
-                                    </select>
+                                        </select>
                                     }
                                 </td>
                             </tr>
@@ -174,38 +173,46 @@
 
                     <button class="btn" type="submit" id="generateKey">Add key</button>
                 </fieldset>
-                                <br />
-            }
+                             <br />
+                            }
                         </text>)
-                </ul>
+            </ul>
 
-                <table class="details-table" width="100%">
-                    <colgroup>
-                        <col span="1" style="width: 5%;">
-                        <col span="1" style="width: 85%;">
-                        <col span="1" style="width: 10%;">
-                    </colgroup>
-                    <tr>
-                        @foreach (var apiKey in apiKeys)
-                    {
-                        <tr class="apiKeyRow">
-                            <td>
-                                @if (apiKey.Key == newCredentialKey)
+            <table class="details-table" width="100%">
+                <colgroup>
+                    <col span="1" style="width: 5%;">
+                    <col span="1" style="width: 85%;">
+                    <col span="1" style="width: 15%;">
+                </colgroup>
+                <tr>
+                @foreach (var apiKey in apiKeys)
+                {
+                    <tr class="apiKeyRow">
+                        <td>
+                            @if (apiKey.Key == newCredentialKey)
+                            {
+                                <img src="~/Content/Images/icons/apiKeyNew.png"/>
+                            }
+                            else if (apiKey.HasExpired)
+                            {
+                                <img src="~/Content/Images/icons/apiKeyExpired.png" />
+                            }
+                            else
+                            {
+                                <img src="~/Content/Images/icons/apiKey.png" />
+                            }
+
+                        </td>
+                        <td>
+                                @if (apiKey.IsNonScopedV1ApiKey)
                                 {
-                                    <img src="~/Content/Images/icons/apiKeyNew.png"/>
-                                }
-                                else if (apiKey.HasExpired)
-                                {
-                                    <img src="~/Content/Images/icons/apiKeyExpired.png" />
+                                    <b>Full access API key</b>
+                                    <br />
                                 }
                                 else
                                 {
-                                    <img src="~/Content/Images/icons/apiKey.png" />
+                                    <b title="@apiKey.Description">@apiKey.Description</b><br />
                                 }
-
-                            </td>
-                            <td>
-                                <b title="@apiKey.Description">@apiKey.Description</b><br />
                                 <span>
                                     <b>Expires:</b>
                                     @if (!apiKey.Expires.HasValue)
@@ -293,7 +300,7 @@
                                     <b>Packages: </b><span>All</span>
                                 }
                             </td>
-                            <td class="actions actions-wide">
+                        <td class="actions actions-wide">
                                 @if (apiKey.IsNonScopedV1ApiKey)
                                 {
                                     <button class="btn btn-veryflat" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Description')"><img src="~/Content/Images/icons/copy.png" /></button>
@@ -301,7 +308,7 @@
                                 
                                 @if (apiKey.Key == newCredentialKey)
                                 {
-                                    <button class="btn btn-veryflat" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@TempData["NewCredentialValue"]')"><img src="~/Content/Images/icons/copy.png" /></button>
+                                    <button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@TempData["NewCredentialValue"]')"><img src="~/Content/Images/icons/copy.png" /></button>
                                 }
                                 @if (!apiKey.IsNonScopedV1ApiKey)
                                 {
@@ -333,39 +340,34 @@
                                     <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit"><img src="~/Content/Images/icons/delete.png" /></button>
                                 }
                             </td>
-                        </tr>
-                        }
-                    </table>
-                    }
+                    </tr>
+                }
+             </table>
+         }
 
-                    if (apiKeys.Count > 0)
-                    {
-                    var siteRoot = Config.Current.RequireSSL
-                    ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
-                    : Config.Current.SiteRoot.TrimEnd('/');
+        if (apiKeys.Count > 0)
+        {
+            var siteRoot = Config.Current.RequireSSL
+            ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
+            : Config.Current.SiteRoot.TrimEnd('/');
 
-                    var exampleApiKey = "[your API key]";
-                    <hr />
-
-                    <h4>Example usage</h4>
-                    <p>
-                        The following snippet demonstrates how you can use the <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a>
-                        command-line utility to submit a NuGet package to the gallery:
-                    </p>
-                    <p>
-                        <div id="account-apikeysample">
-                            <div>nuget.exe setApiKey @exampleApiKey </div>
-                            <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
-                        </div>
-                    </p>
-                    }
-                    }
-                    </text>
+            var exampleApiKey = "[your API key]";
+            <hr />
+            <h4>Example usage</h4>
+            <p>
+                The following snippet demonstrates how you can use the <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a>
+                command-line utility to submit a NuGet package to the gallery:
+            </p>
+            <p>
+                <div id="account-apikeysample">
+                    <div>nuget.exe setApiKey @exampleApiKey </div>
+                    <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
+                </div>
+            </p>
+         }
+    }
+</span>
     
-    
-    
-
-
 <script>
     $(document).ready(function () {
         $('#selectablePackagesList').addClass('disabled-div');
@@ -470,4 +472,33 @@
 
         $(this).text(text);
     });
+</script>
+<script>
+    var idleTime = 0;
+    var idleInterval;
+
+    $(document)
+        .ready(function() {
+            if ($('.copyapikeybutton').length) {
+                // Increment the idle time counter every minute.
+                idleInterval = setInterval(timerIncrement, /*60000*/1000); // 1 minute
+
+                // Zero the idle timer on mouse movement.
+                $(this)
+                    .mousemove(function() {
+                        idleTime = 0;
+                    });
+                $(this)
+                    .keypress(function() {
+                        idleTime = 0;
+                    });
+            }});
+
+    function timerIncrement() {
+        idleTime = idleTime + 1;
+        if (idleTime > 9) { // 10 minutes
+            $('.copyapikeybutton').addClass('disabled-div');
+            clearInterval(idleInterval);
+        }
+    }
 </script>
