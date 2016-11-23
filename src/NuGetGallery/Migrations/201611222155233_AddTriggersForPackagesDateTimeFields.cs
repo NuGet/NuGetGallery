@@ -7,16 +7,6 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             Sql(@"
-CREATE TRIGGER [dbo].[LastUpdatedTrigger] ON [dbo].[Packages]
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    UPDATE [dbo].[Packages]
-    SET LastUpdated = GETUTCDATE()
-	FROM INSERTED
-    WHERE [dbo].[Packages].[Key] = INSERTED.[Key]
-END
-
 CREATE TRIGGER [dbo].[LastEditedTrigger] ON [dbo].[Packages]
 AFTER UPDATE
 AS
@@ -30,9 +20,7 @@ END");
 
         public override void Down()
         {
-            Sql(@"
-DROP TRIGGER [dbo].[LastUpdatedTrigger]
-DROP TRIGGER [dbo].[LastEditedTrigger]");
+            Sql(@"DROP TRIGGER [dbo].[LastEditedTrigger]");
         }
     }
 }
