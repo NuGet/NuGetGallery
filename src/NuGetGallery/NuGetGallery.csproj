@@ -818,9 +818,6 @@
     <Compile Include="Migrations\201610042351343_AddUserFailedLogin.Designer.cs">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201611222155233_AddTriggersForPackagesDateTimeFields.cs" />
-    <Compile Include="Migrations\201611222155233_AddTriggersForPackagesDateTimeFields.Designer.cs">
-      <DependentUpon>201611222155233_AddTriggersForPackagesDateTimeFields.cs</DependentUpon>
     </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
@@ -1943,8 +1940,6 @@
     <EmbeddedResource Include="Migrations\201610042351343_AddUserFailedLogin.resx">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201611222155233_AddTriggersForPackagesDateTimeFields.resx">
-      <DependentUpon>201611222155233_AddTriggersForPackagesDateTimeFields.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
