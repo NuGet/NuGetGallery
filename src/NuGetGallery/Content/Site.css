@@ -1482,6 +1482,7 @@ img.contributors-contributor-avatar {
 
 .details-table b {
     font-weight: 600;
+    color: #333;
 }
 
 .details-table .longlist{
@@ -1507,6 +1508,10 @@ img.contributors-contributor-avatar {
     padding-right: 10px;
 }
 
+.details-table span {
+    color: #555
+}
+
 /* divs*/
 
 .scrollable-div {
@@ -1514,7 +1519,7 @@ img.contributors-contributor-avatar {
   overflow-y: scroll;
   background-color: white;
   width:100%;
-  border: solid white 2px
+  border: 1px solid #ccc
 }
 
 .disabled-div {

@@ -206,12 +206,12 @@
                         <td>
                                 @if (apiKey.IsNonScopedV1ApiKey)
                                 {
-                                    <b>Full access API key</b>
+                                    <strong>Full access API key</strong>
                                     <br />
                                 }
                                 else
                                 {
-                                    <b title="@apiKey.Description">@apiKey.Description</b><br />
+                                    <strong title="@apiKey.Description">@apiKey.Description</strong><br />
                                 }
                                 <span>
                                     <b>Expires:</b>
@@ -271,7 +271,7 @@
 
                                         <span>
                                             <b>Packages: </b>
-                                            <span class="shortlist">@string.Join(",", subjectsList.Take(3))</span>
+                                            <span class="shortlist">@string.Join(", ", subjectsList.Take(3))</span>
                                             @if (subjectsList.Count > 3)
                                             {
                                                 <a class="moredetails first">More...</a>
@@ -319,7 +319,7 @@
                                             @Html.AntiForgeryToken()
                                             @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
                                             @Html.Hidden("credentialKey", apiKey.Key)
-                                            <button title="Disable" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to disable the API key?" type="submit"><img src="~/Content/Images/icons/expire.png" /></button>
+                                            <button title="Disable" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to disable the API key?" type="submit"><img src="~/Content/Images/icons/disabled_16.png" /></button>
                                         }
                                     }
 
