@@ -16,7 +16,7 @@ BEGIN
     BEGIN
         UPDATE [dbo].[Packages]
         SET LastEdited = GETUTCDATE()
-	    FROM INSERTED
+        FROM INSERTED
         WHERE [dbo].[Packages].[Key] = INSERTED.[Key]
     END
 END");
