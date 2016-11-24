@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class AddTriggersForPackagesDateTimeFields : IMigrationMetadata
+    public sealed partial class AddTriggerForPackagesLastEdited : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddTriggersForPackagesDateTimeFields));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddTriggerForPackagesLastEdited));
         
         string IMigrationMetadata.Id
         {
-            get { return "201611222155233_AddTriggersForPackagesDateTimeFields"; }
+            get { return "201611240011320_AddTriggerForPackagesLastEdited"; }
         }
         
         string IMigrationMetadata.Source

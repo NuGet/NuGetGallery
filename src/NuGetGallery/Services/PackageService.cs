@@ -328,6 +328,7 @@ namespace NuGetGallery
 
             package.Listed = true;
             package.LastUpdated = DateTime.UtcNow;
+            // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
             package.LastEdited = DateTime.UtcNow;
 
             await UpdateIsLatestAsync(package.PackageRegistration, false);
@@ -353,6 +354,7 @@ namespace NuGetGallery
 
             package.Listed = false;
             package.LastUpdated = DateTime.UtcNow;
+            // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
             package.LastEdited = DateTime.UtcNow;
 
             if (package.IsLatest || package.IsLatestStable)
