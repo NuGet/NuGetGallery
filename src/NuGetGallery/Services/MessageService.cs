@@ -285,7 +285,7 @@ The {0} Team";
             }
         }
 
-        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
+        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl, string message)
         {
             if (!toUser.EmailAllowed)
             {

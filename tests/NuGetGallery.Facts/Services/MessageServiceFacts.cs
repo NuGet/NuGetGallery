@@ -344,6 +344,7 @@ namespace NuGetGallery
                 Assert.Contains("The user 'Existing' added the following message for you", message.Body);
                 Assert.Contains(userMessage, message.Body);
                 Assert.Contains(confirmationUrl, message.Body);
+                Assert.Contains(userMessage, message.Body);
                 Assert.Contains("The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Body);
             }
 
