@@ -31,7 +31,11 @@
         <legend>Add Owner</legend>
         <div class="form-field">
             <label for="newOwnerUserName">Username</label>
-            <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername" />
+            <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername"/>
+        </div>
+        <div class="form-field">
+            <label for="newOwnerUserName">Message</label>
+            <textarea id="newOwnerMessage" name="newOwnerUserName" data-bind="value: newOwnerMessage"></textarea>
         </div>
         <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: addOwner" />
     </fieldset>
@@ -50,10 +54,13 @@
                 package: { id: '@Model.Id' },
                 owners: ko.observableArray([]),
                 newOwnerUsername: ko.observable(''),
+                newOwnerMessage: ko.observable(''),
+
                 message: ko.observable(''),
 
                 addOwner: function () {
                     var newUsername = viewModel.newOwnerUsername();
+                    var message = viewModel.newOwnerMessage();
 
                     if (!newUsername) {
                         viewModel.message("Please enter a valid user name.");
@@ -72,7 +79,8 @@
                     var ownerInputModel =
                     {
                         username: newUsername,
-                        id: viewModel.package.id
+                        id: viewModel.package.id,
+                        message: message
                     };
 
                     var headers = { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
@@ -92,6 +100,7 @@
 
                                 // reset the Username textbox
                                 viewModel.newOwnerUsername('');
+                                viewModel.newOwnerMessage('');
 
                                 // when an operation succeeds, always clear the error message
                                 viewModel.message('');
