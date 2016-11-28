@@ -12,7 +12,7 @@
     <li>
         <span data-bind="text: name"></span> <em data-bind="visible: current">(that&#8217;s you!)</em>
         <em data-bind="visible: pending">(pending approval)</em>
-        <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current, click: $root.removeOwner">Remove</a>
+        <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current  || $parent.hasMoreThanOneOwner, click: $root.removeOwner">Remove</a>
     </li>
 </ul>
 
@@ -51,6 +51,10 @@
                 owners: ko.observableArray([]),
                 newOwnerUsername: ko.observable(''),
                 message: ko.observable(''),
+
+                hasMoreThanOneOwner: function() {
+                    return true;
+                },
 
                 addOwner: function () {
                     var newUsername = viewModel.newOwnerUsername();
@@ -108,6 +112,15 @@
                     var package = viewModel.package;
                     var headers = { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
 
+                    var proceedToRemoveFunction = true;
+
+                    if (item.current) {
+                        proceedToRemoveFunction = confirm("Are you sure you want to remove yourself from the owners?");
+                    }
+
+                    if (proceedToRemoveFunction === false)
+                        return;
+
                     $.ajax({
                         url: '@Url.Action("RemovePackageOwner", "JsonApi")?id=' + package.id + '&username=' + item.name(),
                         cache: false,
@@ -117,6 +130,10 @@
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             if (data.success) {
+                                if (item.current) {
+                                    window.location.href = '@Url.Package(Model.Id)';
+                                }
+
                                 viewModel.owners.remove(item);
 
                                 // when an operation succeeds, always clear the error message
@@ -129,6 +146,24 @@
                     .error(failHandler);
                 }
             };
+
+            viewModel.hasMoreThanOneOwner = ko.computed(function () {
+
+                if (this.owners().length < 2)
+                    return false;
+
+                var approvedOwner = 0;
+
+                ko.utils.arrayForEach(this.owners(), function (owner) {
+                    if (owner.pending() === false)
+                        approvedOwner++;
+                });
+
+                if (approvedOwner >= 2)
+                    return true;
+
+                return false;
+            }, viewModel);
 
             ko.applyBindings(viewModel);
 
