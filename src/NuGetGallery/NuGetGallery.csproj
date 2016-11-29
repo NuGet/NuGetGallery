@@ -1400,6 +1400,7 @@
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
+    <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultExtensions.cs" />
