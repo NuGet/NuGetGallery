@@ -837,7 +837,7 @@ namespace NuGetGallery
                 [Fact]
                 public async Task V2FeedFindPackagesByIdForbiddenODataQueriesReject()
                 {
-                    var testNotAllowedArgs = "?$orderby=DownloadCount+desc&$top2=12";
+                    var testNotAllowedArgs = "?$orderby=DownloadCount+desc&$top=12";
                     var host = "https://localhost:8081/";
 
                     var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);

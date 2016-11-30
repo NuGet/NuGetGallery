@@ -67,7 +67,7 @@ namespace NuGetGallery.OData.QueryFilter
         }
 
         /// <summary>
-        /// Reads the odataOptions used parameters and returns an integer that represents the operators used by this options
+        /// Reads the odataOptions used parameters and returns an integer that represents the set of operators used by this odataOptions
         /// The integer values for the single operators are:
         ///    expand = 1;
         ///    filter = 2;
@@ -82,7 +82,8 @@ namespace NuGetGallery.OData.QueryFilter
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="odataOptions"></param>
-        /// <returns>The integer represantation of the operators in the OData options. If no opertor used the result will be 0.</returns>
+        /// <returns>The integer representation of the operators in the OData options. 
+        /// If no operator is used the result will be 0.</returns>
         public static int ODataOptionsMap<T>(ODataQueryOptions<T> odataOptions)
         {
             int result = 0;

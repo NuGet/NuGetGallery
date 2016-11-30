@@ -14,11 +14,11 @@ using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;
+using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
 using QueryInterceptor;
 using WebApi.OutputCache.V2;
-using NuGetGallery.OData.QueryFilter;
 
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
