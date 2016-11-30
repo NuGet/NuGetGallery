@@ -822,9 +822,9 @@
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
     <Compile Include="OData\QueryInterceptors\NormalizeVersionInterceptor.cs" />
-    <Compile Include="OData\QueryWhitelist\IODataQueryOptionsWhitelist.cs" />
-    <Compile Include="OData\QueryWhitelist\ODataQueryVerifier.cs" />
-    <Compile Include="OData\QueryWhitelist\ODataWhitelistFindPackagesById.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryFilter.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryVerifier.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryRequest.cs" />
     <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -1632,14 +1632,12 @@
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
-    <Content Include="OData\QueryWhitelist\Data\ODataWhitelistFindPackagesById.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Public\Blocked.html" />
     <Content Include="Scripts\d3.v3.js" />
     <Content Include="Scripts\d3.v3.min.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2FindPackagesById.json" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />

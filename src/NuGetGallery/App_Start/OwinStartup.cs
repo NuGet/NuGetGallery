@@ -53,9 +53,6 @@ namespace NuGetGallery
             var auth = dependencyResolver.GetService<AuthenticationService>();
 
             // Setup telemetry
-#if DEBUG
-            TelemetryConfiguration.Active.DisableTelemetry = true;
-#endif
             var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(instrumentationKey))
             {

@@ -18,7 +18,7 @@ using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
 using QueryInterceptor;
 using WebApi.OutputCache.V2;
-using NuGetGallery.OData.QueryWhitelist;
+using NuGetGallery.OData.QueryFilter;
 
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
@@ -125,11 +125,11 @@ namespace NuGetGallery.Controllers
                 return QueryResult(options, emptyResult, MaxPageSize);
             }
 
-            if(!ODataQueryVerifier.AreODataOptionsAllowed<V2FeedPackage>(options, ODataWhitelistFindPackagesById.Instance, nameof(FindPackagesById)))
+            if(!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2FindPackagesByIdQueryFilter, nameof(FindPackagesById)))
             {
-                //todo: does the message need to be localized?Is this a good message? Is this a good status code?
-                return new PlainTextResult("Query not supported.", this.Request, System.Net.HttpStatusCode.Forbidden);
+                return BadRequest($"A query with \"{ODataQueryFilter.GetFriendlyReadQueryPattern(ODataQueryFilter.ODataOptionsMap(options))} \" set of operators is not supported.");
             }
+
             return await GetCore(options, id, version: null, return404NotFoundWhenNoResults: false);
         }
 

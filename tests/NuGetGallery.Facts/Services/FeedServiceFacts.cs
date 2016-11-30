@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -13,6 +14,7 @@ using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;
+using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.TestUtils.Infrastructure;
 using NuGetGallery.WebApi;
 using Xunit;
@@ -807,15 +809,36 @@ namespace NuGetGallery
                     Assert.Equal(0, result.Count());
                 }
 
+                [Fact]
+                public async Task V2FeedFindPackagesByIdForbiddenODataQueriesAllow()
+                {
+                    var testAllowedArgs = "?$skip=10";
+                    var host = "https://localhost:8081/";
+
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, $"{host}{testAllowedArgs}");
+                    var resultAllowed = (await v2Service.FindPackagesById(
+                       new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(),
+                                                                                  typeof(V2FeedPackage)),
+                                                                                  v2Service.Request),
+                       "Foo"))
+                       .ExpectQueryResult<V2FeedPackage>();
+                    var count = resultAllowed.GetInnerResult().ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>().Count();
+
+                    // Assert
+                    Assert.Equal(0, count);
+                }
 
                 [Fact]
-                public async Task V2FeedFindPackagesByIdForbiddenODataQueries()
+                public async Task V2FeedFindPackagesByIdForbiddenODataQueriesReject()
                 {
-                    string[] allowedOperators = new string[] { "skip" };
-                    NuGetGallery.OData.QueryWhitelist.ODataWhitelistFindPackagesById.GetInstance(allowedOperators);
-                    string testNotAllowedArgs = "?$skip=10&$orderby=version des";
-                    string testAllowedArgs = "?$skip=10";
-                    string host = "https://localhost:8081/";
+                    var testNotAllowedArgs = "?$orderby=DownloadCount+desc&$top2=12";
+                    var host = "https://localhost:8081/";
 
                     var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
@@ -827,21 +850,14 @@ namespace NuGetGallery
 
                     // Act
                     var resultNotAllowed = (await v2Service.FindPackagesById(
-                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
-                        "Foo"))
-                        .ExpectResult<PlainTextResult>();
-                    // Assert
-                    Assert.Equal(System.Net.HttpStatusCode.Forbidden, resultNotAllowed.StatusCode);
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(),
+                                                             typeof(V2FeedPackage)),
+                                                             v2Service.Request),
+                        "Foo"));
 
-                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, $"{host}{testAllowedArgs}");
-                    var resultAllowed = (await v2Service.FindPackagesById(
-                       new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
-                       "Foo"))
-                       .ExpectQueryResult<V2FeedPackage>();
-                    var count = resultAllowed.GetInnerResult().ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>().Count();
+                    var badRequest = resultNotAllowed as BadRequestErrorMessageResult;
 
-                    // Assert
-                    Assert.Equal(0, count);
+                    Assert.NotEqual(null, badRequest);
                 }
             }
 
