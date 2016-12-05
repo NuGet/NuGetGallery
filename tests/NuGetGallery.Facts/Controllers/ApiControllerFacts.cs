@@ -357,8 +357,10 @@ namespace NuGetGallery
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
-            [InlineData("[{\"a\":\"package:pushnew\", \"s\":\"*\"}]", true)]
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"abc\"}]", false)]
+            [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", true)]
+            [InlineData("[{\"a\":\"package:push\", \"s\":\"*\"}]", true)]
+            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]", false)]
+            [InlineData("[{\"a\":\"package:push\", \"s\":\"cbd\"}]", false)]
             [Theory]
             public async Task WillVerifyScopesForNewPackageId(string apiKeyScopes, bool isPushAllowed)
             {
@@ -406,8 +408,9 @@ namespace NuGetGallery
                 }
             }
 
-            [InlineData("[{\"a\":\"package:pushnew\", \"s\":\"*\"}]", false)]
+            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"differentid\"}]", false)]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", true)]
+            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]", true)]
             [Theory]
             public async Task WillVerifyScopesForExistingPackageId(string apiKeyScopes, bool isPushAllowed)
             {
@@ -506,7 +509,7 @@ namespace NuGetGallery
             }
 
             [InlineData("[{\"a\":\"all\", \"s\":\"*\"}]", true)]
-            [InlineData("[{\"a\":\"package:list\", \"s\":\"theId\"}]", true)]
+            [InlineData("[{\"a\":\"package:unlist\", \"s\":\"theId\"}]", true)]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", false)]
             [Theory]
             public async Task WillVerifyApiKeyScopeBeforeDelete(string apiKeyScope, bool isDeleteAllowed)

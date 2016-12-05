@@ -6,9 +6,9 @@ namespace NuGetGallery.Authentication
     public static class NuGetScopes
     {
         public const string All = "all";
+        public const string PackagePushVersion = "package:pushversion";
         public const string PackagePush = "package:push";
-        public const string PackagePushNew = "package:pushnew";
-        public const string PackageList = "package:list";
+        public const string PackageUnlist = "package:unlist";
 
         public static string Describe(string scope)
         {
@@ -16,12 +16,12 @@ namespace NuGetGallery.Authentication
             {
                 case All:
                     return Strings.ScopeDescription_All;
-                case PackagePushNew:
-                    return Strings.ScopeDescription_PushNewPackageRegistration;
                 case PackagePush:
+                    return Strings.ScopeDescription_PushPackage;
+                case PackagePushVersion:
                     return Strings.ScopeDescription_PushPackageVersion;
-                case PackageList:
-                    return Strings.ScopeDescription_ListUnlistPackage;
+                case PackageUnlist:
+                    return Strings.ScopeDescription_UnlistPackage;
             }
 
             return Strings.ScopeDescription_Unknown;

@@ -1432,7 +1432,7 @@
     <Content Include="Content\Images\icons\apiKeyNew.png" />
     <Content Include="Content\Images\icons\copy.png" />
     <Content Include="Content\Images\icons\delete.png" />
-    <Content Include="Content\Images\icons\disable.png" />
+    <Content Include="Content\Images\icons\expire.png" />
     <Content Include="Content\Images\icons\regenerate.png" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />

@@ -212,7 +212,7 @@ namespace NuGetGallery
         [HttpPut]
         [RequireSsl]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackagePushNew, NuGetScopes.PackagePush)]
+        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePut()
         {
@@ -222,7 +222,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackagePushNew, NuGetScopes.PackagePush)]
+        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost()
         {
@@ -283,8 +283,8 @@ namespace NuGetGallery
                         {
                             // Check if API key allows pushing a new package id
                             if (!ApiKeyScopeAllows(
-                                subject: null, 
-                                requestedAction: NuGetScopes.PackagePushNew))
+                                subject: nuspec.GetId(), 
+                                requestedActions: NuGetScopes.PackagePush))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
@@ -311,8 +311,8 @@ namespace NuGetGallery
 
                             // Check if API key allows pushing the current package id
                             if (!ApiKeyScopeAllows(
-                                subject: packageRegistration.Id, 
-                                requestedAction: NuGetScopes.PackagePush))
+                                packageRegistration.Id, 
+                                NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
                             {
                                 // User cannot push a package as the API key scope does not allow it
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
@@ -322,7 +322,7 @@ namespace NuGetGallery
                             string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
                             bool packageExists =
                                 packageRegistration.Packages.Any(
-                                    p => String.Equals(
+                                    p => string.Equals(
                                         p.NormalizedVersion,
                                         normalizedVersion,
                                         StringComparison.OrdinalIgnoreCase));
@@ -331,7 +331,7 @@ namespace NuGetGallery
                             {
                                 return new HttpStatusCodeWithBodyResult(
                                     HttpStatusCode.Conflict,
-                                    String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
+                                    string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
                                         nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe()));
                             }
                         }
@@ -390,11 +390,11 @@ namespace NuGetGallery
             }
         }
 
-        private bool ApiKeyScopeAllows(string subject, string requestedAction)
+        private bool ApiKeyScopeAllows(string subject, params string[] requestedActions)
         {
             return User.Identity.HasScopeThatAllowsActionForSubject(
                 subject: subject,
-                requestedActions: new[] { requestedAction });
+                requestedActions: requestedActions);
         }
 
         private static ActionResult BadRequestForExceptionMessage(Exception ex)
@@ -407,7 +407,7 @@ namespace NuGetGallery
         [HttpDelete]
         [RequireSsl]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackageList)]
+        [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("DeletePackageApi")]
         public virtual async Task<ActionResult> DeletePackage(string id, string version)
         {
@@ -427,7 +427,7 @@ namespace NuGetGallery
             // Check if API key allows listing/unlisting the current package id
             if (!ApiKeyScopeAllows(
                 subject: id, 
-                requestedAction: NuGetScopes.PackageList))
+                requestedActions: NuGetScopes.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -440,7 +440,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackageList)]
+        [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("PublishPackageApi")]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
         {
@@ -460,7 +460,7 @@ namespace NuGetGallery
             // Check if API key allows listing/unlisting the current package id
             if (!ApiKeyScopeAllows(
                 subject: id, 
-                requestedAction: NuGetScopes.PackageList))
+                requestedActions: NuGetScopes.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }

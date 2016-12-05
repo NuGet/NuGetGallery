@@ -413,14 +413,14 @@ The {1} Team</value>
   <data name="ScopeDescription_All" xml:space="preserve">
     <value>All</value>
   </data>
-  <data name="ScopeDescription_PushNewPackageRegistration" xml:space="preserve">
-    <value>Push new package registration</value>
+  <data name="ScopeDescription_PushPackage" xml:space="preserve">
+    <value>Push packages</value>
   </data>
   <data name="ScopeDescription_PushPackageVersion" xml:space="preserve">
-    <value>Push package version</value>
+    <value>Push package versions only</value>
   </data>
-  <data name="ScopeDescription_ListUnlistPackage" xml:space="preserve">
-    <value>List/unlist package</value>
+  <data name="ScopeDescription_UnlistPackage" xml:space="preserve">
+    <value>Unlist package</value>
   </data>
   <data name="ScopeDescription_Unknown" xml:space="preserve">
     <value>Unknown</value>

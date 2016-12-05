@@ -38,7 +38,7 @@ namespace NuGetGallery
                     new object[] {
                         string.Empty,
                         "SomePackage",
-                        new[] { NuGetScopes.PackagePushNew },
+                        new[] { NuGetScopes.PackagePush },
                         true
                     }, 
 
@@ -53,20 +53,20 @@ namespace NuGetGallery
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope("SomePackage", NuGetScopes.PackagePushNew),
+                            new Scope("SomePackage", NuGetScopes.PackagePush),
                             new Scope("SomePackage", NuGetScopes.PackagePush)),
                         null,
-                        new[] { NuGetScopes.PackagePushNew },
+                        new[] { NuGetScopes.PackagePush },
                         true
                     }, 
 
-                    // Push new package with scoped API key which allows NuGetScopes.PackagePushNew for the given package
+                    // Push new package with scoped API key which allows NuGetScopes.PackagePush for the given package
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope("SomePackage", NuGetScopes.PackagePushNew)),
+                            new Scope("SomePackage", NuGetScopes.PackagePush)),
                         "SomePackage",
-                        new[] { NuGetScopes.PackagePushNew },
+                        new[] { NuGetScopes.PackagePush },
                         true
                     }, 
 
@@ -76,7 +76,7 @@ namespace NuGetGallery
                         BuildScopeClaim(
                             new Scope("*", NuGetScopes.All)),
                         "SomePackage",
-                        new[] { NuGetScopes.PackagePushNew },
+                        new[] { NuGetScopes.PackagePush },
                         true
                     }, 
 
@@ -84,33 +84,33 @@ namespace NuGetGallery
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope("*", NuGetScopes.PackageList)),
+                            new Scope("*", NuGetScopes.PackageUnlist)),
                         "SomePackage",
-                        new[] { NuGetScopes.PackagePushNew },
+                        new[] { NuGetScopes.PackagePush },
                         false
                     }, 
 
                     // Push new package with scoped API key which allows NuGetScopes.List for all packages,
-                    // and NuGetScopes.PackagePushNew for the given package
+                    // and NuGetScopes.PackagePush for the given package
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope("*", NuGetScopes.PackageList), 
-                            new Scope("SomePackage", NuGetScopes.PackagePushNew)),
+                            new Scope("*", NuGetScopes.PackageUnlist), 
+                            new Scope("SomePackage", NuGetScopes.PackagePush)),
                         "SomePackage",
-                        new[] { NuGetScopes.PackagePushNew },
+                        new[] { NuGetScopes.PackagePush },
                         true
                     }, 
 
                     // Push new package with scoped API key which allows NuGetScopes.List for the given package,
-                    // and NuGetScopes.PackagePushNew for another package
+                    // and NuGetScopes.PackagePush for another package
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope("SomePackage", NuGetScopes.PackageList),
+                            new Scope("SomePackage", NuGetScopes.PackageUnlist),
                             new Scope("SomeOtherPackage", NuGetScopes.All)),
                         "SomePackage",
-                        new[] { NuGetScopes.PackagePushNew },
+                        new[] { NuGetScopes.PackagePush },
                         false
                     }, 
 
@@ -119,21 +119,21 @@ namespace NuGetGallery
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope("SomePackage", NuGetScopes.PackageList),
+                            new Scope("SomePackage", NuGetScopes.PackageUnlist),
                             new Scope("SomeOtherPackage", NuGetScopes.All)),
                         "",
-                        new[] { NuGetScopes.PackagePushNew },
+                        new[] { NuGetScopes.PackagePush },
                         true
                     }, 
 
-                    // Push new package with scoped API key which allows NuGetScopes.PackagePushNew for all packages,
+                    // Push new package with scoped API key which allows NuGetScopes.PackagePush for all packages,
                     // and no subject known
                     new object[]
                     {
                         BuildScopeClaim(
-                            new Scope("*", NuGetScopes.PackagePushNew)),
+                            new Scope("*", NuGetScopes.PackagePush)),
                         "",
-                        new[] { NuGetScopes.PackagePushNew },
+                        new[] { NuGetScopes.PackagePush },
                         true
                     },
 

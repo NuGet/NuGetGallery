@@ -121,13 +121,13 @@
                                 <td>
                                     <div class="scrollable-div" style="height: 75px">
                                         <label class="checkoboxsmall scopecheckbox">
-                                            <input type="checkbox" name="scopes" id="scopePushNew" value="@NuGetScopes.PackagePushNew" /> @NuGetScopes.Describe(NuGetScopes.PackagePushNew)
-                                        </label>
-                                        <label class="checkoboxsmall scopecheckbox">
                                             <input type="checkbox" name="scopes" id="scopePush" value="@NuGetScopes.PackagePush" /> @NuGetScopes.Describe(NuGetScopes.PackagePush)
                                         </label>
                                         <label class="checkoboxsmall scopecheckbox">
-                                            <input type="checkbox" name="scopes" id="scopeList" value="@NuGetScopes.PackageList" /> @NuGetScopes.Describe(NuGetScopes.PackageList)
+                                            <input type="checkbox" name="scopes" id="scopePushVersion" value="@NuGetScopes.PackagePushVersion" /> @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
+                                        </label>
+                                        <label class="checkoboxsmall scopecheckbox">
+                                            <input type="checkbox" name="scopes" id="scopeUnlist" value="@NuGetScopes.PackageUnlist" /> @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
                                         </label>
                                     </div>
                                 </td>
@@ -319,7 +319,7 @@
                                             @Html.AntiForgeryToken()
                                             @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
                                             @Html.Hidden("credentialKey", apiKey.Key)
-                                            <button title="Disable" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to disable the API key?" type="submit"><img src="~/Content/Images/icons/disable.png" /></button>
+                                            <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="submit"><img src="~/Content/Images/icons/expire.png" /></button>
                                         }
                                     }
 
@@ -381,16 +381,16 @@
             $('.scopecheckbox')
                 .on('click',
                     function() {
-                        var scopeListOrPushChecked = document.getElementById("scopeList").checked ||
+                        var scopeUnlistOrPushChecked = document.getElementById("scopeUnlist").checked ||
                             document.getElementById("scopePush").checked;
 
-                        if (scopeListOrPushChecked) {
+                        if (scopeUnlistOrPushChecked) {
                             $('#selectablePackagesList').removeClass('disabled-div');
                         } else {
                             $('#selectablePackagesList').addClass('disabled-div');
                         }
 
-                        var anyChecked = scopeListOrPushChecked || document.getElementById("scopePushNew").checked;
+                        var anyChecked = scopeUnlistOrPushChecked || document.getElementById("scopePush").checked;
 
                         if (anyChecked) {
                             $('#packagePatternInput').removeClass('disabled-div');

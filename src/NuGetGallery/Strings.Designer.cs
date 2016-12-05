@@ -744,25 +744,16 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to List/unlist package.
+        ///   Looks up a localized string similar to Push packages.
         /// </summary>
-        public static string ScopeDescription_ListUnlistPackage {
+        public static string ScopeDescription_PushPackage {
             get {
-                return ResourceManager.GetString("ScopeDescription_ListUnlistPackage", resourceCulture);
+                return ResourceManager.GetString("ScopeDescription_PushPackage", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Push new package registration.
-        /// </summary>
-        public static string ScopeDescription_PushNewPackageRegistration {
-            get {
-                return ResourceManager.GetString("ScopeDescription_PushNewPackageRegistration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Push package version.
+        ///   Looks up a localized string similar to Push package versions only.
         /// </summary>
         public static string ScopeDescription_PushPackageVersion {
             get {
@@ -776,6 +767,15 @@ namespace NuGetGallery {
         public static string ScopeDescription_Unknown {
             get {
                 return ResourceManager.GetString("ScopeDescription_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlist package.
+        /// </summary>
+        public static string ScopeDescription_UnlistPackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_UnlistPackage", resourceCulture);
             }
         }
         
