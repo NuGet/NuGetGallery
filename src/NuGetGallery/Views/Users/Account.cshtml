@@ -370,7 +370,7 @@
                     }
                 }
             }
-            else
+            else if (CurrentUser.Confirmed)
             {
                 using (Html.BeginForm("ChangePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
                 {
