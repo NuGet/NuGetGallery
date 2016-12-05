@@ -61,7 +61,7 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Checks if the given package version is present in the source.
         /// </summary>
-        public bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl, bool isListed)
+        public bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
         {
             var found = false;
             var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
@@ -92,17 +92,7 @@ namespace NuGetGallery.FunctionalTests
                         found = package != null;
                         if (found)
                         {
-                            var packageIsListedCorrectly = true; // package.Listed == isListed;
-
-                            WriteLine(packageIsListedCorrectly
-                                ? "Found!"
-                                : $"Found but is {(package.Listed ? "" : "not ")}listed. Expected package to be {(isListed ? "" : "not ")}listed.");
-
-                            if (!packageIsListedCorrectly)
-                            {
-                                found = false;
-                                break;
-                            }
+                            WriteLine("Found!");
                         }
                         else
                         {
@@ -127,7 +117,7 @@ namespace NuGetGallery.FunctionalTests
         {
             await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
 
-            VerifyPackage(packageId, true, version);
+            VerifyPackage(packageId, version);
         }
 
         public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
@@ -167,7 +157,7 @@ namespace NuGetGallery.FunctionalTests
         {
             await DeletePackage(packageId, version);
 
-            VerifyPackage(packageId, false, version);
+            VerifyPackage(packageId, version);
         }
 
         public async Task DeletePackage(string packageId, string version = "1.0.0")
@@ -187,9 +177,9 @@ namespace NuGetGallery.FunctionalTests
                 processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
         }
 
-        public void VerifyPackage(string packageId, bool listed, string version = "1.0.0")
+        public void VerifyPackage(string packageId, string version = "1.0.0")
         {
-            var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl, listed);
+            var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
             Assert.True(packageExistsInSource,
                 $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl}.");
         }
