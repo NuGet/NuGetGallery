@@ -20,6 +20,7 @@ namespace NuGetGallery.FunctionalTests
         internal static string PackCommandString = " pack ";
         internal static string UpdateCommandString = " update ";
         internal static string InstallCommandString = " install ";
+        internal static string DeleteCommandString = " delete ";
         internal static string PushCommandString = " push ";
         internal static string OutputDirectorySwitchString = " -OutputDirectory ";
         internal static string PreReleaseSwitchString = " -Prerelease ";
@@ -48,6 +49,19 @@ namespace NuGetGallery.FunctionalTests
             var arguments = string.Join(string.Empty, PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName, ApiKeySwitchString, EnvironmentSettings.TestAccountApiKey);
             WriteLine("nuget.exe " + arguments);
 
+            return await InvokeNugetProcess(arguments);
+        }
+
+        /// <summary>
+        ///  Delete the specified package using Nuget.exe
+        /// </summary>
+        /// <param name="packageId">package to be deleted</param>
+        /// <param name="version">version of package to be deleted</param>
+        /// <param name="sourceName">source url</param>
+        /// <returns></returns>
+        public async Task<ProcessResult> DeletePackageAsync(string packageId, string version, string sourceName)
+        {
+            var arguments = string.Join(string.Empty, DeleteCommandString, packageId, " ", version, SourceSwitchString, sourceName, ApiKeySwitchString, EnvironmentSettings.TestAccountApiKey);
             return await InvokeNugetProcess(arguments);
         }
 

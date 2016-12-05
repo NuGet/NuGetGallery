@@ -2,12 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace NuGetGallery.FunctionalTests.ODataFeeds
 {
@@ -41,8 +44,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
                 TestOutputHelper.WriteLine("Uploading package '{0}'", packageId);
                 await _clientSdkHelper.UploadNewPackageAndVerify(packageId);
-                TestOutputHelper.WriteLine("Uploaded package '{0}'", packageId);
 
+                TestOutputHelper.WriteLine("Uploaded package '{0}'", packageId);
                 await _clientSdkHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
 
                 string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
@@ -54,6 +57,123 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 var containsResponseText = await _odataHelper.ContainsResponseText(url, expectedTexts);
                 Assert.True(containsResponseText);
             }
+        }
+
+        private const int PackagesInOrderNumPackages = 10;
+        private const int PackagesInOrderNumRetries = 30;
+        private const int PackagesInOrderRefreshTimeSec = 30*1000;
+
+        [Fact]
+        [Description("Upload multiple packages and verify that they appear in the feed in the correct order")]
+        [Priority(1)]
+        [Category("P0Tests")]
+        public async Task PackagesAppearInFeedInOrderTest()
+        {
+            // Temporary workaround for the SSL issue, which keeps the upload test from working with cloudapp.net sites
+            if (UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org"))
+            {
+                var basePackageId = $"TestV2FeedPackagesAppearInFeedInOrderTest.{DateTime.UtcNow.Ticks}";
+                
+                var packageIds = new List<string>(PackagesInOrderNumPackages);
+                
+                var triesAvailable = PackagesInOrderNumRetries;
+
+                // Upload the packages in order.
+                for (var i = 0; i < PackagesInOrderNumPackages; i++)
+                {
+                    var packageId = $"{basePackageId}.{i}";
+                    await _clientSdkHelper.UploadNewPackage(packageId);
+                    packageIds.Add(packageId);
+                }
+
+                // Check that the packages appear in the feed in the correct order
+                var lastCreatedTimestamp = DateTime.MinValue;
+                for (var i = 0; i < PackagesInOrderNumPackages; i++)
+                {
+                    triesAvailable -= await RepeatUntilSuccessAsync(async () =>
+                    {
+                        var packageId = packageIds[i];
+                        TestOutputHelper.WriteLine($"Attempting to check order of package #{i} in feed.");
+
+                        var createdTimestamp =
+                            await
+                                _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(packageId), "Created",
+                                    packageId);
+                        Assert.True(createdTimestamp > lastCreatedTimestamp,
+                            $"Package #{i} was uploaded after package #{i - 1} but has an earlier Created timestamp ({createdTimestamp} should be greater than {lastCreatedTimestamp}).");
+                        lastCreatedTimestamp = createdTimestamp;
+                    }, triesAvailable, PackagesInOrderRefreshTimeSec);
+                }
+
+                // Unlist the packages in order.
+                for (var i = 0; i < PackagesInOrderNumPackages; i++)
+                {
+                    var packageId = packageIds[i];
+                    await _clientSdkHelper.DeletePackage(packageId);
+                }
+
+                // Check that the packages appear in the feed in the correct order
+                var lastLastEditedTimestamp = DateTime.MinValue;
+                for (var i = 0; i < PackagesInOrderNumPackages; i++)
+                {
+                    triesAvailable -= await RepeatUntilSuccessAsync(async () =>
+                    {
+                        var packageId = packageIds[i];
+                        TestOutputHelper.WriteLine($"Attempting to check order of package #{i} in feed.");
+
+                        var lastEditedTimestamp =
+                            await
+                                _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(packageId), "LastEdited",
+                                    packageId);
+                        Assert.True(lastEditedTimestamp > lastLastEditedTimestamp,
+                            $"Package #{i} was edited after package #{i - 1} but has an earlier LastEdited timestamp ({lastEditedTimestamp} should be greater than {lastLastEditedTimestamp}).");
+                        lastLastEditedTimestamp = lastEditedTimestamp;
+                    }, PackagesInOrderNumRetries, PackagesInOrderRefreshTimeSec);
+                }
+            }
+        }
+
+        private static string GetPackageUrl(string packageId, string version = "1.0.0")
+        {
+            return UrlHelper.V2FeedRootUrl + @"/Packages(Id='" + packageId + "',Version='" + version + "')";
+            // return UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
+        }
+
+        /// <summary>
+        /// Repeats <paramref name="func"/> until it succeeds.
+        /// </summary>
+        /// <param name="func">Function to repeat.</param>
+        /// <param name="maxRetries">Maximum number of attempts.</param>
+        /// <param name="delayMs">Delay between each repeat.</param>
+        /// <returns>The number of attempts before the function succeeded.</returns>
+        private async Task<int> RepeatUntilSuccessAsync(Func<Task> func, int maxRetries, int delayMs)
+        {
+            var success = false;
+            var tries = 0;
+            do
+            {
+                tries++;
+                try
+                {
+                    await func();
+                    success = true;
+                }
+                catch (Exception)
+                {
+                    TestOutputHelper.WriteLine($"Attempt #{tries} failed.");
+
+                    // Rethrow the exception if we have exceeded the maximum number of attempts
+                    if (tries >= maxRetries)
+                    {
+                        TestOutputHelper.WriteLine("Max attempts exceeded.");
+                        throw;
+                    }
+
+                    Thread.Sleep(delayMs);
+                }
+            } while (!success);
+
+            return tries;
         }
 
         /// <summary>

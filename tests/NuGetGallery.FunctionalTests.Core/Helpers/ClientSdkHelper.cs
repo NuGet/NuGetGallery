@@ -61,7 +61,7 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Checks if the given package version is present in the source.
         /// </summary>
-        public bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
+        public bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl, bool isListed)
         {
             var found = false;
             var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
@@ -89,10 +89,20 @@ namespace NuGetGallery.FunctionalTests
 
                         WriteLine("[verification attempt {0}]: Checking if package {1} with version {2} exists in source {3}... ", i, packageId, version, sourceUrl);
                         IPackage package = repo.FindPackage(packageId, semVersion);
-                        found = (package != null);
+                        found = package != null;
                         if (found)
                         {
-                            WriteLine("Found!");
+                            var packageIsListedCorrectly = true; // package.Listed == isListed;
+
+                            WriteLine(packageIsListedCorrectly
+                                ? "Found!"
+                                : $"Found but is {(package.Listed ? "" : "not ")}listed. Expected package to be {(isListed ? "" : "not ")}listed.");
+
+                            if (!packageIsListedCorrectly)
+                            {
+                                found = false;
+                                break;
+                            }
                         }
                         else
                         {
@@ -110,10 +120,19 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// Creates a package with the specified Id and Version and uploads it and checks if the upload has suceeded.
+        /// Creates a package with the specified Id and Version and uploads it and checks if the upload has succeeded.
         /// This will be used by test classes which tests scenarios on top of upload.
         /// </summary>
         public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
+        {
+            await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
+
+            VerifyPackage(packageId, true, version);
+        }
+
+        public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
+            string title = null, string tags = null, string description = null, string licenseUrl = null,
+            string dependencies = null)
         {
             if (string.IsNullOrEmpty(packageId))
             {
@@ -128,11 +147,9 @@ namespace NuGetGallery.FunctionalTests
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
             var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
 
-            Assert.True(processResult.ExitCode == 0, "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " + processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
-
-            var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
-            var userMessage = string.Format("Package {0} with version {1} is not found in the site {2} after uploading.", packageId, version, UrlHelper.V2FeedRootUrl);
-            Assert.True(packageExistsInSource, userMessage);
+            Assert.True(processResult.ExitCode == 0,
+                "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
 
             // Delete package from local disk so once it gets uploaded
             if (File.Exists(packageFullPath))
@@ -140,6 +157,41 @@ namespace NuGetGallery.FunctionalTests
                 File.Delete(packageFullPath);
                 Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
             }
+        }
+
+        /// <summary>
+        /// Deletes (unlists) a package with the specified Id and Version and checks if the delete has succeeded.
+        /// This will be used by test classes which tests scenarios on top of delete/unlist.
+        /// </summary>
+        public async Task DeletePackageAndVerify(string packageId, string version = "1.0.0")
+        {
+            await DeletePackage(packageId, version);
+
+            VerifyPackage(packageId, false, version);
+        }
+
+        public async Task DeletePackage(string packageId, string version = "1.0.0")
+        {
+            if (string.IsNullOrEmpty(packageId))
+            {
+                packageId = DateTime.Now.Ticks.ToString();
+            }
+
+            WriteLine("Deleting package '{0}', version '{1}'", packageId, version);
+
+            var commandlineHelper = new CommandlineHelper(TestOutputHelper);
+            var processResult = await commandlineHelper.DeletePackageAsync(packageId, version, UrlHelper.V2FeedPushSourceUrl);
+
+            Assert.True(processResult.ExitCode == 0,
+                "The package delete via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+        }
+
+        public void VerifyPackage(string packageId, bool listed, string version = "1.0.0")
+        {
+            var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl, listed);
+            Assert.True(packageExistsInSource,
+                $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl}.");
         }
 
         /// <summary>
