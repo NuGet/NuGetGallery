@@ -28,6 +28,12 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void IsHijackableReturnsFalseWhenValidSubstringOfInBinaryOperatorWithConvertNode()
+            {
+                AssertIsNotHijackable("https://nuget.localtest.me/api/v2/Packages()?$filter=substringof(Id,%27MyPackage%27)%20and%20Id%20eq%20%27MyPackageId%27");
+            }
+
+            [Fact]
             public void IsHijackableReturnsFalseWhenInvalidSubstringOfInSingleValueExpression()
             {
                 AssertIsNotHijackable("https://localhost:8081/api/v2/Packages?$filter=substringof(null,Tags)");

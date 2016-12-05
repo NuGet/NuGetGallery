@@ -127,6 +127,12 @@ namespace NuGetGallery.OData
 
         private static bool IsSubstringOfFunctionCall(SingleValueNode expression)
         {
+            // If necessary, unwrap SingleValueFunctionCall from ConvertNode
+            if (expression.Kind == QueryNodeKind.Convert)
+            {
+                expression = ((ConvertNode)expression).Source;
+            }
+
             if (expression.Kind == QueryNodeKind.SingleValueFunctionCall)
             {
                 var functionCallExpression = (SingleValueFunctionCallNode)expression;
