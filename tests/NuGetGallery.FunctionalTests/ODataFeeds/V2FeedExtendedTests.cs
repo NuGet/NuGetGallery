@@ -136,7 +136,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         private static string GetPackageUrl(string packageId, string version = "1.0.0")
         {
             return UrlHelper.V2FeedRootUrl + @"/Packages(Id='" + packageId + "',Version='" + version + "')";
-            // return UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
         }
 
         /// <summary>
