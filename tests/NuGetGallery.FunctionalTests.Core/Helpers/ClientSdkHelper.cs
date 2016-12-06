@@ -117,7 +117,7 @@ namespace NuGetGallery.FunctionalTests
         {
             await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
 
-            VerifyPackage(packageId, version);
+            VerifyPackageExistsInSource(packageId, version);
         }
 
         public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
@@ -150,17 +150,17 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// Deletes (unlists) a package with the specified Id and Version and checks if the delete has succeeded.
-        /// This will be used by test classes which tests scenarios on top of delete/unlist.
+        /// Unlists a package with the specified Id and Version and checks if the unlist has succeeded.
+        /// This will be used by test classes which tests scenarios on top of unlist.
         /// </summary>
-        public async Task DeletePackageAndVerify(string packageId, string version = "1.0.0")
+        public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0")
         {
-            await DeletePackage(packageId, version);
+            await UnlistPackage(packageId, version);
 
-            VerifyPackage(packageId, version);
+            VerifyPackageExistsInSource(packageId, version);
         }
 
-        public async Task DeletePackage(string packageId, string version = "1.0.0")
+        public async Task UnlistPackage(string packageId, string version = "1.0.0")
         {
             if (string.IsNullOrEmpty(packageId))
             {
@@ -177,7 +177,7 @@ namespace NuGetGallery.FunctionalTests
                 processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
         }
 
-        public void VerifyPackage(string packageId, string version = "1.0.0")
+        public void VerifyPackageExistsInSource(string packageId, string version = "1.0.0")
         {
             var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
             Assert.True(packageExistsInSource,

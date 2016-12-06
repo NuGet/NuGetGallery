@@ -60,7 +60,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         private const int PackagesInOrderNumPackages = 10;
-        private const int PackagesInOrderNumRetries = 30;
+        private const int PackagesInOrderNumRetries = 50;
         private const int PackagesInOrderRefreshTimeSec = 30*1000;
 
         [Fact]
@@ -93,15 +93,16 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     triesAvailable -= await RepeatUntilSuccessAsync(async () =>
                     {
                         var packageId = packageIds[i];
-                        TestOutputHelper.WriteLine($"Attempting to check order of package #{i} in feed.");
+                        TestOutputHelper.WriteLine($"Attempting to check order of package #{i} Created timestamp in feed.");
 
                         var createdTimestamp =
                             await
                                 _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(packageId), "Created",
                                     packageId);
-                        Assert.True(createdTimestamp > lastCreatedTimestamp,
+                        Assert.True(createdTimestamp.HasValue);
+                        Assert.True(createdTimestamp.Value > lastCreatedTimestamp,
                             $"Package #{i} was uploaded after package #{i - 1} but has an earlier Created timestamp ({createdTimestamp} should be greater than {lastCreatedTimestamp}).");
-                        lastCreatedTimestamp = createdTimestamp;
+                        lastCreatedTimestamp = createdTimestamp.Value;
                     }, triesAvailable, PackagesInOrderRefreshTimeSec);
                 }
 
@@ -109,7 +110,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 for (var i = 0; i < PackagesInOrderNumPackages; i++)
                 {
                     var packageId = packageIds[i];
-                    await _clientSdkHelper.DeletePackage(packageId);
+                    await _clientSdkHelper.UnlistPackage(packageId);
                 }
 
                 // Check that the packages appear in the feed in the correct order
@@ -119,16 +120,17 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     triesAvailable -= await RepeatUntilSuccessAsync(async () =>
                     {
                         var packageId = packageIds[i];
-                        TestOutputHelper.WriteLine($"Attempting to check order of package #{i} in feed.");
+                        TestOutputHelper.WriteLine($"Attempting to check order of package #{i} LastEdited timestamp in feed.");
 
                         var lastEditedTimestamp =
                             await
                                 _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(packageId), "LastEdited",
                                     packageId);
-                        Assert.True(lastEditedTimestamp > lastLastEditedTimestamp,
+                        Assert.True(lastEditedTimestamp.HasValue);
+                        Assert.True(lastEditedTimestamp.Value > lastLastEditedTimestamp,
                             $"Package #{i} was edited after package #{i - 1} but has an earlier LastEdited timestamp ({lastEditedTimestamp} should be greater than {lastLastEditedTimestamp}).");
-                        lastLastEditedTimestamp = lastEditedTimestamp;
-                    }, PackagesInOrderNumRetries, PackagesInOrderRefreshTimeSec);
+                        lastLastEditedTimestamp = lastEditedTimestamp.Value;
+                    }, triesAvailable, PackagesInOrderRefreshTimeSec);
                 }
             }
         }
@@ -157,9 +159,10 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     await func();
                     success = true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    TestOutputHelper.WriteLine($"Attempt #{tries} failed.");
+                    TestOutputHelper.WriteLine($"Attempt #{tries} failed because {ex}.");
+                    TestOutputHelper.WriteLine($"{maxRetries - tries} attempts remaining.");
 
                     // Rethrow the exception if we have exceeded the maximum number of attempts
                     if (tries >= maxRetries)

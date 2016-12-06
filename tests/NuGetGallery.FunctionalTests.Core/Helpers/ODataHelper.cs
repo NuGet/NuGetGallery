@@ -59,30 +59,31 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        public async Task<DateTime> GetTimestampOfPackageFromResponse(string url, string propertyName, string packageId, string version = "1.0.0")
+        public async Task<DateTime?> GetTimestampOfPackageFromResponse(string url, string propertyName, string packageId, string version = "1.0.0")
         {
             WriteLine($"Getting '{propertyName}' timestamp of package '{packageId}' with version '{version}'.");
 
             var packageResponse = await GetPackageDataInResponse(url, packageId, version);
             if (string.IsNullOrEmpty(packageResponse))
             {
-                return DateTime.MinValue;
+                return null;
             }
 
             var timestampStartTag = "<d:" + propertyName + " m:type=\"Edm.DateTime\">";
             var timestampEndTag = "</d:" + propertyName + ">";
-            var timestampStartIndex = packageResponse.IndexOf(timestampStartTag) + timestampStartTag.Length;
 
-            if (timestampStartIndex < 0)
+            var timestampTagIndex = packageResponse.IndexOf(timestampStartTag);
+            if (timestampTagIndex < 0)
             {
                 WriteLine($"Package data does not contain '{propertyName}' timestamp!");
-                return DateTime.MinValue;
+                return null;
             }
 
-            var timestampEndIndex = packageResponse.IndexOf(timestampEndTag);
+            var timestampStartIndex = timestampTagIndex + timestampStartTag.Length;
+            var timestampLength = packageResponse.Substring(timestampStartIndex).IndexOf(timestampEndTag);
 
             var timestamp =
-                DateTime.Parse(packageResponse.Substring(timestampStartIndex, timestampEndIndex - timestampStartIndex));
+                DateTime.Parse(packageResponse.Substring(timestampStartIndex, timestampLength));
             WriteLine($"'{propertyName}' timestamp of package '{packageId}' with version '{version}' is '{timestamp}'");
             return timestamp;
         }
