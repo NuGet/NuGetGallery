@@ -553,9 +553,9 @@ namespace NuGetGallery
         private static void ValidateNuGetPackageMetadata(PackageMetadata packageMetadata)
         {
             // TODO: Change this to use DataAnnotations
-            if (packageMetadata.Id.Length > PackageIdValidator.MaxPackageIdLength)
+            if (packageMetadata.Id.Length > CoreConstants.MaxPackageIdLength)
             {
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", PackageIdValidator.MaxPackageIdLength);
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength);
             }
             if (packageMetadata.Version.IsPrerelease)
             {
@@ -626,13 +626,13 @@ namespace NuGetGallery
 
                 foreach (var dependency in packageDependencies.SelectMany(s => s.Packages))
                 {
-                    // NuGet.Core compatibility - dependency package id cannot be more than PackageIdValidator.MaxPackageIdLength characters long!
-                    if (dependency.Id != null && dependency.Id.Length > PackageIdValidator.MaxPackageIdLength)
+                    // NuGet.Core compatibility - dependency package id can not be > 128 characters
+                    if (dependency.Id != null && dependency.Id.Length > CoreConstants.MaxPackageIdLength)
                     {
-                        throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", PackageIdValidator.MaxPackageIdLength);
+                        throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength);
                     }
 
-                    // NuGet.Core compatibility - dependency versionspec cannot be more than 256 characters long!
+                    // NuGet.Core compatibility - dependency versionspec can not be > 256 characters
                     if (dependency.VersionRange != null && dependency.VersionRange.ToString().Length > 256)
                     {
                         throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", "256");
