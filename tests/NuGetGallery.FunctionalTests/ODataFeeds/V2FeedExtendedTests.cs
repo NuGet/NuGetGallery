@@ -60,7 +60,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         private const int PackagesInOrderNumPackages = 10;
-        private const int PackagesInOrderNumRetries = 50;
+        private const int PackagesInOrderNumRetries = 60;
         private const int PackagesInOrderRefreshTimeSec = 30*1000;
 
         [Fact]
