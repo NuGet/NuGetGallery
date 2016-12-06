@@ -10,6 +10,7 @@ using System.Web.Http.OData.Query;
 using Microsoft.Data.Edm;
 using Microsoft.Data.OData;
 using Microsoft.Data.OData.Query;
+using Microsoft.Data.OData.Query.SemanticAst;
 using NuGetGallery.WebApi;
 
 namespace NuGetGallery.OData
@@ -102,21 +103,42 @@ namespace NuGetGallery.OData
             }
 
             // If the filter clause can be read, it may not be a valid expression tree.
-            // Verify "function cannot be applied to an enumeration-typed argument" type of errors.
-            // An example of such error: /api/v2/Packages?$filter=substringof(null,Id)
+            // Example is '/api/v2/Packages?$filter=substringof(null,Id)' which throws ODataException:
+            //     "The 'substringof' function cannot be applied to an enumeration-typed argument."
+            // Skip hijacking queries that use a substringof filter due to the cost of validating PropertyAccess nodes
             if (options.Filter?.FilterClause != null
-                && options.Filter.FilterClause.Expression.Kind == QueryNodeKind.SingleValueFunctionCall
                 && options.Filter.FilterClause.ItemType.Definition.TypeKind == EdmTypeKind.Entity)
             {
-                var functionCallExpression = (SingleValueFunctionCallNode) options.Filter.FilterClause.Expression;
-                if (string.Equals(functionCallExpression.Name, "substringof", StringComparison.OrdinalIgnoreCase))
+                var current = options.Filter.FilterClause.Expression;
+                while (current.Kind == QueryNodeKind.BinaryOperator)
                 {
-                    // The function cannot be applied to an enumeration-typed argument
-                    return false;
+                    var currentBinaryNode = ((BinaryOperatorNode)current);
+                    if (IsSubstringOfFunctionCall(currentBinaryNode.Right))
+                    {
+                        return false;
+                    }
+                    current = currentBinaryNode.Left;
                 }
+                return !IsSubstringOfFunctionCall(current);
             }
 
             return true;
+        }
+
+        private static bool IsSubstringOfFunctionCall(SingleValueNode expression)
+        {
+            // If necessary, unwrap SingleValueFunctionCall from ConvertNode
+            if (expression.Kind == QueryNodeKind.Convert)
+            {
+                expression = ((ConvertNode)expression).Source;
+            }
+
+            if (expression.Kind == QueryNodeKind.SingleValueFunctionCall)
+            {
+                var functionCallExpression = (SingleValueFunctionCallNode)expression;
+                return string.Equals(functionCallExpression.Name, "substringof", StringComparison.OrdinalIgnoreCase);
+            }
+            return false;
         }
 
         private static IEnumerable<Tuple<Target, string>> ExtractComparison(MethodCallExpression outerWhere)
