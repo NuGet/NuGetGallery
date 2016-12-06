@@ -12,6 +12,8 @@ namespace NuGetGallery.Migrations
             //
             // Multiple instances of the gallery running simultaneously will have slightly different local machine times.
             // Therefore, one source must generate all "LastEdited" timestamps because otherwise there will be slight discrepancies in "LastEdited" which can lead to packages being inserted out of order into the feed.
+            //
+            // Note that UPDATE(LastEdited) is true when a row is inserted for the first time, so we must add a INSERTED.LastEdited IS NOT NULL check to the UPDATE statement.
 
             Sql(@"
 CREATE TRIGGER [dbo].[LastEditedTrigger] ON [dbo].[Packages]
@@ -23,7 +25,7 @@ BEGIN
         UPDATE [dbo].[Packages]
         SET LastEdited = GETUTCDATE()
         FROM INSERTED
-        WHERE [dbo].[Packages].[Key] = INSERTED.[Key]
+        WHERE [dbo].[Packages].[Key] = INSERTED.[Key] AND INSERTED.LastEdited IS NOT NULL
     END
 END");
         }
