@@ -77,7 +77,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
                 Assert.True(processResult.ExitCode == 0, Constants.UploadFailureMessage);
 
-                var packageVersionExistsInSource = _clientSdkHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl, true);
+                var packageVersionExistsInSource = _clientSdkHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
                 var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageId, UrlHelper.V2FeedRootUrl);
                 Assert.True(packageVersionExistsInSource, userMessage);
 
