@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
@@ -21,37 +22,29 @@ namespace NuGetGallery
 
         public class TheIsHijackableMethod
         {
-            [Fact]
-            public void IsHijackableReturnsFalseWhenValidSubstringOfInSingleValueExpression()
+            public static IEnumerable<object[]> IsHijackableReturnsFalseIfFilterContainsSubstringOf_Input
             {
-                AssertIsNotHijackable("https://nuget.localtest.me/api/v2/Packages()?$filter=substringof(Id,%27MyPackage%27)");
+                get
+                {
+                    return new []
+                    {
+                        // Valid substringof in SingleValueExpression
+                        new object[] { "https://nuget.localtest.me/api/v2/Packages()?$filter=substringof(Id,%27MyPackage%27)" },
+                        // Valid substringof in BinaryOperatorExpression, nested in ConvertNode
+                        new object[] { "https://nuget.localtest.me/api/v2/Packages()?$filter=substringof(Id,%27MyPackage%27)%20and%20Id%20eq%20%27MyPackageId%27" },
+                        // Invalid substringof in SingleValueExpression
+                        new object[] { "https://localhost:8081/api/v2/Packages?$filter=substringof(null,Tags)" },
+                        // Invalid substringof in left-most node of BinaryOperationExpression (traversal is right to left)
+                        new object[] { "https://nuget.localtest.me/api/v2/Packages()?$filter=substringof(null,Tags)%20and%20IsLatestVersion%20and%20IsLatestVersion" },
+                        // Invalid substringof in right node of BinaryOperationExpression (traversal is right to left)
+                        new object[] { "https://nuget.localtest.me/api/v2/Packages()?$filter=IsLatestVersion%20and%20substringof(null,Tags)" }
+                    };
+                }
             }
 
-            [Fact]
-            public void IsHijackableReturnsFalseWhenValidSubstringOfInBinaryOperatorWithConvertNode()
-            {
-                AssertIsNotHijackable("https://nuget.localtest.me/api/v2/Packages()?$filter=substringof(Id,%27MyPackage%27)%20and%20Id%20eq%20%27MyPackageId%27");
-            }
-
-            [Fact]
-            public void IsHijackableReturnsFalseWhenInvalidSubstringOfInSingleValueExpression()
-            {
-                AssertIsNotHijackable("https://localhost:8081/api/v2/Packages?$filter=substringof(null,Tags)");
-            }
-
-            [Fact]
-            public void IsHijackableReturnsFalseWhenInvalidSubstringOfInBinaryOperatorExpressionLeft()
-            {
-                AssertIsNotHijackable("https://nuget.localtest.me/api/v2/Packages()?$filter=substringof(null,Tags)%20and%20IsLatestVersion%20and%20IsLatestVersion");
-            }
-
-            [Fact]
-            public void IsHijackableReturnsFalseWhenInvalidSubstringOfInBinaryOperatorExpressionRight()
-            {
-                AssertIsNotHijackable("https://nuget.localtest.me/api/v2/Packages()?$filter=IsLatestVersion%20and%20substringof(null,Tags)");
-            }
-
-            private void AssertIsNotHijackable(string uri)
+            [Theory]
+            [MemberData("IsHijackableReturnsFalseIfFilterContainsSubstringOf_Input")]
+            public void IsHijackableReturnsFalseIfFilterContainsSubstringOf(string uri)
             {
                 // Arrange
                 var requestUri = new Uri(uri);
