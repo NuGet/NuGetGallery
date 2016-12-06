@@ -15,7 +15,7 @@ namespace NuGetGallery.Migrations
 
             Sql(@"
 CREATE TRIGGER [dbo].[LastEditedTrigger] ON [dbo].[Packages]
-AFTER UPDATE
+AFTER INSERT, UPDATE
 AS
 BEGIN
     IF (UPDATE(LastEdited))
