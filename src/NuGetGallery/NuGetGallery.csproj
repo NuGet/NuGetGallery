@@ -819,6 +819,10 @@
     <Compile Include="Migrations\201610042351343_AddUserFailedLogin.Designer.cs">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201610172352082_AddIndexPackagesCreated.cs" />
+    <Compile Include="Migrations\201610172352082_AddIndexPackagesCreated.Designer.cs">
+      <DependentUpon>201610172352082_AddIndexPackagesCreated.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1939,6 +1943,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201610042351343_AddUserFailedLogin.resx">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610172352082_AddIndexPackagesCreated.resx">
+      <DependentUpon>201610172352082_AddIndexPackagesCreated.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
