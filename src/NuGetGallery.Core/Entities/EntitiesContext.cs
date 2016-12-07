@@ -1,7 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -33,7 +37,10 @@ namespace NuGetGallery
             : base(connectionString)
         {
             ReadOnly = readOnly;
+            _dirtyPackages = new HashSet<int>();
         }
+
+        private HashSet<int> _dirtyPackages;
 
         public bool ReadOnly { get; private set; }
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
@@ -54,6 +61,24 @@ namespace NuGetGallery
                 throw new ReadOnlyModeException("Save changes unavailable: the gallery is currently in read only mode, with limited service. Please try again later.");
             }
 
+            await base.SaveChangesAsync();
+
+            foreach (var id in _dirtyPackages)
+            {
+                await Database.ExecuteSqlCommandAsync("exec Update_IsLatest @PackageRegistrationKey", new SqlParameter
+                {
+                    ParameterName = "PackageRegistrationKey",
+                    Value = id.ToString()
+                });
+                await Database.ExecuteSqlCommandAsync("exec Update_IsLatestStable @PackageRegistrationKey", new SqlParameter
+                {
+                    ParameterName = "PackageRegistrationKey",
+                    Value = id.ToString()
+                });
+            }
+
+            _dirtyPackages.Clear();
+
             return await base.SaveChangesAsync();
         }
 
@@ -70,6 +95,11 @@ namespace NuGetGallery
         public Database GetDatabase()
         {
             return Database;
+        }
+
+        public void MarkPackageIdAsDirty(int packageId)
+        {
+            _dirtyPackages.Add(packageId);
         }
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it

@@ -20,6 +20,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
+        private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly AuditingService _auditingService;
 
@@ -28,6 +29,7 @@ namespace NuGetGallery
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IIndexingService indexingService,
+            IEntitiesContext entitiesContext,
             IPackageNamingConflictValidator packageNamingConflictValidator,
             AuditingService auditingService)
         {
@@ -67,6 +69,7 @@ namespace NuGetGallery
             _indexingService = indexingService;
             _packageNamingConflictValidator = packageNamingConflictValidator;
             _auditingService = auditingService;
+            _entitiesContext = entitiesContext;
         }
 
         public void EnsureValid(PackageArchiveReader packageArchiveReader)
@@ -679,38 +682,39 @@ namespace NuGetGallery
             }
 
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
-            foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
-            {
-                pv.IsLatest = false;
-                pv.IsLatestStable = false;
-                pv.LastUpdated = DateTime.UtcNow;
-            }
+            //foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
+            //{
+            //    pv.IsLatest = false;
+            //    pv.IsLatestStable = false;
+            //    pv.LastUpdated = DateTime.UtcNow;
+            //}
 
             // If the last listed package was just unlisted, then we won't find another one
-            var latestPackage = FindPackage(packageRegistration.Packages, p => !p.Deleted && p.Listed);
+            var packageWithRegistrationKey = FindPackage(packageRegistration.Packages, p => p.PackageRegistrationKey != 0);
 
-            if (latestPackage != null)
+            if (packageWithRegistrationKey != null)
             {
-                latestPackage.IsLatest = true;
-                latestPackage.LastUpdated = DateTime.UtcNow;
+                this._entitiesContext.MarkPackageIdAsDirty(packageWithRegistrationKey.PackageRegistrationKey);
+                //latestPackage.IsLatest = true;
+                //latestPackage.LastUpdated = DateTime.UtcNow;
 
-                if (latestPackage.IsPrerelease)
-                {
-                    // If the newest uploaded package is a prerelease package, we need to find an older package that is
-                    // a release version and set it to IsLatest.
-                    var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
-                    if (latestReleasePackage != null)
-                    {
-                        // We could have no release packages
-                        latestReleasePackage.IsLatestStable = true;
-                        latestReleasePackage.LastUpdated = DateTime.UtcNow;
-                    }
-                }
-                else
-                {
-                    // Only release versions are marked as IsLatestStable.
-                    latestPackage.IsLatestStable = true;
-                }
+                //if (latestPackage.IsPrerelease)
+                //{
+                //    // If the newest uploaded package is a prerelease package, we need to find an older package that is
+                //    // a release version and set it to IsLatest.
+                //    var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
+                //    if (latestReleasePackage != null)
+                //    {
+                //        // We could have no release packages
+                //        latestReleasePackage.IsLatestStable = true;
+                //        latestReleasePackage.LastUpdated = DateTime.UtcNow;
+                //    }
+                //}
+                //else
+                //{
+                //    // Only release versions are marked as IsLatestStable.
+                //    latestPackage.IsLatestStable = true;
+                //}
             }
 
             if (commitChanges)
