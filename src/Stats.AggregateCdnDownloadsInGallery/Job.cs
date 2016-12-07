@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
-using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 
 namespace Stats.AggregateCdnDownloadsInGallery
@@ -59,14 +58,17 @@ namespace Stats.AggregateCdnDownloadsInGallery
         {
             try
             {
-                var instrumentationKey = jobArgsDictionary.GetOrNull(JobArgumentNames.InstrumentationKey);
+                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
                 ApplicationInsights.Initialize(instrumentationKey);
 
                 _loggerFactory = LoggingSetup.CreateLoggerFactory();
                 _logger = _loggerFactory.CreateLogger<Job>();
-                
-                _statisticsDatabase = new SqlConnectionStringBuilder(jobArgsDictionary[JobArgumentNames.StatisticsDatabase]);
-                _destinationDatabase = new SqlConnectionStringBuilder(jobArgsDictionary[JobArgumentNames.DestinationDatabase]);
+
+                var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+                _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
+
+                var destinationDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DestinationDatabase);
+                _destinationDatabase = new SqlConnectionStringBuilder(destinationDatabaseConnectionString);
             }
             catch (Exception exception)
             {

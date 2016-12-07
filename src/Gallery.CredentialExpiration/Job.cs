@@ -14,7 +14,6 @@ using Gallery.CredentialExpiration.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NuGet.Jobs;
-using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 
 namespace Gallery.CredentialExpiration
@@ -44,28 +43,28 @@ namespace Gallery.CredentialExpiration
         {
             try
             {
-                var instrumentationKey = jobArgsDictionary.GetOrNull(JobArgumentNames.InstrumentationKey);
+                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
                 ApplicationInsights.Initialize(instrumentationKey);
 
                 var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(ConsoleLogOnly);
                 var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
                 _logger = loggerFactory.CreateLogger<Job>();
 
-                _whatIf = jobArgsDictionary.GetOrNull<bool>(JobArgumentNames.WhatIf) ?? false;
+                _whatIf = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.WhatIf);
 
-                var databaseConnectionString = jobArgsDictionary[JobArgumentNames.GalleryDatabase];
+                var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryDatabase);
                 _galleryDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
 
-                _galleryBrand = jobArgsDictionary[MyJobArgumentNames.GalleryBrand];
-                _galleryAccountUrl = jobArgsDictionary[MyJobArgumentNames.GalleryAccountUrl];
+                _galleryBrand = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryBrand);
+                _galleryAccountUrl = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryAccountUrl);
 
-                _mailFrom = jobArgsDictionary[JobArgumentNames.MailFrom];
+                _mailFrom = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.MailFrom);
 
-                var smtpConnectionString = jobArgsDictionary[JobArgumentNames.SmtpUri];
+                var smtpConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SmtpUri);
                 var smtpUri = new SmtpUri(new Uri(smtpConnectionString));
                 _smtpClient = CreateSmtpClient(smtpUri);
 
-                var temp = jobArgsDictionary.GetOrNull<int>(MyJobArgumentNames.WarnDaysBeforeExpiration);
+                var temp = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.WarnDaysBeforeExpiration);
                 if (temp.HasValue)
                 {
                     _warnDaysBeforeExpiration = temp.Value;

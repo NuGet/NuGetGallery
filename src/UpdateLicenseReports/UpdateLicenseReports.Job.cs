@@ -11,7 +11,6 @@ using Dapper;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using NuGet.Jobs;
-using NuGet.Services.Configuration;
 
 namespace UpdateLicenseReports
 {
@@ -57,13 +56,22 @@ namespace UpdateLicenseReports
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
-            _packageDatabase = new SqlConnectionStringBuilder(jobArgsDictionary[JobArgumentNames.PackageDatabase]);
+            _packageDatabase = new SqlConnectionStringBuilder(
+                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
 
-            _retryCount = jobArgsDictionary.GetOrNull<int>(JobArgumentNames.RetryCount);
+            var retryCountString = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.RetryCount);
+            if (string.IsNullOrEmpty(retryCountString))
+            {
+                _retryCount = _defaultRetryCount;
+            }
+            else
+            {
+                _retryCount = Convert.ToInt32(retryCountString);
+            }
 
-            _licenseReportService = new Uri(jobArgsDictionary.GetOrNull(JobArgumentNames.LicenseReportService));
-            _licenseReportUser = jobArgsDictionary.GetOrNull(JobArgumentNames.LicenseReportUser);
-            _licenseReportPassword = jobArgsDictionary.GetOrNull(JobArgumentNames.LicenseReportPassword);
+            _licenseReportService = new Uri(JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.LicenseReportService));
+            _licenseReportUser = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.LicenseReportUser);
+            _licenseReportPassword = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.LicenseReportPassword);
 
             // Build credentials
             if (!string.IsNullOrEmpty(_licenseReportUser))

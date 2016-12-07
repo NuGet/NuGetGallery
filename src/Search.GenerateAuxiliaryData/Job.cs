@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Jobs;
-using NuGet.Services.Configuration;
 
 namespace Search.GenerateAuxiliaryData
 {
@@ -39,19 +38,22 @@ namespace Search.GenerateAuxiliaryData
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
-            var packageDatabaseConnString = new SqlConnectionStringBuilder(jobArgsDictionary[JobArgumentNames.PackageDatabase]).ToString();
+            var packageDatabaseConnString = new SqlConnectionStringBuilder(
+                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase)).ToString();
 
-            var statisticsDatabaseConnString = new SqlConnectionStringBuilder(jobArgsDictionary[JobArgumentNames.StatisticsDatabase]).ToString();
+            var statisticsDatabaseConnString = new SqlConnectionStringBuilder(
+                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase)).ToString();
 
-            var destination = CloudStorageAccount.Parse(jobArgsDictionary[JobArgumentNames.PrimaryDestination]);
+            var destination = CloudStorageAccount.Parse(
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PrimaryDestination));
 
             var destinationContainerName =
-                            jobArgsDictionary.GetOrNull(JobArgumentNames.DestinationContainerName)
+                            JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName)
                             ?? DefaultContainerName;
 
             _destContainer = destination.CreateCloudBlobClient().GetContainerReference(destinationContainerName);
 
-            _sqlExportScriptsToRun = new List<SqlExporter> {
+            _sqlExportScriptsToRun = new List<GenerateAuxiliaryData.SqlExporter> {
                 new NestedJArrayExporter(packageDatabaseConnString, _destContainer, ScriptCuratedFeed, OutputNameCuratedFeed, Col0CuratedFeed, Col1CuratedFeed),
                 new NestedJArrayExporter(packageDatabaseConnString, _destContainer, ScriptOwners, OutputNameOwners, Col0Owners, Col1Owners),
                 new RankingsExporter(statisticsDatabaseConnString, _destContainer, ScriptRankingsTotal, ScriptRankingsProjectTypes, ScriptRankingsDistinctProjectTypes, OutputNameRankings)
@@ -64,7 +66,7 @@ namespace Search.GenerateAuxiliaryData
         {
             var result = true;
 
-            foreach (var exporter in _sqlExportScriptsToRun)
+            foreach (SqlExporter exporter in _sqlExportScriptsToRun)
             {
                 result &= await exporter.RunSqlExportAsync();
             }

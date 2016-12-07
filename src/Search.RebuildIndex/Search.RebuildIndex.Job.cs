@@ -9,7 +9,6 @@ using NuGet.Indexing;
 using Lucene.Net.Store;
 using System.IO;
 using NuGet.Jobs;
-using NuGet.Services.Configuration;
 
 namespace Search.RebuildIndex
 {
@@ -40,19 +39,23 @@ namespace Search.RebuildIndex
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             PackageDatabase =
-            new SqlConnectionStringBuilder(jobArgsDictionary[JobArgumentNames.PackageDatabase]);
+            new SqlConnectionStringBuilder(
+                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
 
             DataStorageAccount =
-                CloudStorageAccount.Parse(jobArgsDictionary[JobArgumentNames.DataStorageAccount]);
+                CloudStorageAccount.Parse(
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount));
 
-            DataContainerName = jobArgsDictionary.GetOrNull(JobArgumentNames.DataContainerName);
+            DataContainerName =
+                JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DataContainerName);
 
             if (string.IsNullOrEmpty(DataContainerName))
             {
                 DataContainerName = DefaultDataContainerName;
             }
 
-            LocalIndexFolder = jobArgsDictionary[JobArgumentNames.LocalIndexFolder];
+            LocalIndexFolder =
+                JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.LocalIndexFolder);
 
             // Initialized successfully, return true
             return true;

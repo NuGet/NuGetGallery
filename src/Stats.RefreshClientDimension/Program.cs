@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Jobs;
-using NuGet.Services.Configuration;
 using Stats.ImportAzureCdnStatistics;
 
 namespace Stats.RefreshClientDimension
@@ -139,15 +138,15 @@ namespace Stats.RefreshClientDimension
             return results;
         }
 
-        private static bool Init(IDictionary<string, string> jobArgsDictionary)
+        private static bool Init(IDictionary<string, string> argsDictionary)
         {
             try
             {
-                var databaseConnectionString = jobArgsDictionary[JobArgumentNames.StatisticsDatabase];
+                var databaseConnectionString = JobConfigurationManager.GetArgument(argsDictionary, JobArgumentNames.StatisticsDatabase);
                 _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
 
-                _targetClientName = jobArgsDictionary.GetOrNull("TargetClientName");
-                _userAgentFilter = jobArgsDictionary.GetOrNull("UserAgentFilter");
+                _targetClientName = JobConfigurationManager.TryGetArgument(argsDictionary, "TargetClientName");
+                _userAgentFilter = JobConfigurationManager.TryGetArgument(argsDictionary, "UserAgentFilter");
 
                 return true;
             }
