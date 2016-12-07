@@ -4,14 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace NuGetGallery.FunctionalTests.ODataFeeds
 {
