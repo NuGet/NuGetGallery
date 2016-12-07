@@ -66,7 +66,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
         private const int PackagesInOrderNumPackages = 100;
         private const int PackagesInOrderNumRetries = 12;
-        private const int PackagesInOrderRefreshTimeSec = 10*1000;
+        private const int PackagesInOrderRefreshTimeMs = 10*1000;
 
         [Fact]
         [Description("Upload multiple packages and verify that they appear in the feed in the correct order")]
@@ -80,7 +80,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 var packageIds = new List<string>(PackagesInOrderNumPackages);
                 var startingTime = DateTime.UtcNow;
 
-                // We set a maximum amount of tries so that we never wait more than PackagesInOrderNumRetries * PackagesInOrderRefreshTimeSec on this test case.
+                // We set a maximum amount of tries so that we never wait more than (PackagesInOrderNumRetries * PackagesInOrderRefreshTimeMs) milliseconds on this test case.
                 var triesAvailable = PackagesInOrderNumRetries;
 
                 // Upload the packages.
@@ -110,7 +110,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                         Assert.True(createdTimestamp.Value > lastCreatedTimestamp,
                             $"Package #{i} was uploaded after package #{i - 1} but has an earlier Created timestamp ({createdTimestamp} should be greater than {lastCreatedTimestamp}).");
                         lastCreatedTimestamp = createdTimestamp.Value;
-                    }, triesAvailable, PackagesInOrderRefreshTimeSec);
+                    }, triesAvailable, PackagesInOrderRefreshTimeMs);
                 }
 
                 // Unlist the packages in order.
@@ -138,7 +138,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                         Assert.True(lastEditedTimestamp.Value > lastLastEditedTimestamp,
                             $"Package #{i} was edited after package #{i - 1} but has an earlier LastEdited timestamp ({lastEditedTimestamp} should be greater than {lastLastEditedTimestamp}).");
                         lastLastEditedTimestamp = lastEditedTimestamp.Value;
-                    }, triesAvailable, PackagesInOrderRefreshTimeSec);
+                    }, triesAvailable, PackagesInOrderRefreshTimeMs);
                 }
             }
         }
