@@ -1637,7 +1637,11 @@
     <Content Include="Scripts\d3.v3.min.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
-    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2FindPackagesById.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />

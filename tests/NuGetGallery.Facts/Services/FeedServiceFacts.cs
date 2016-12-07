@@ -222,6 +222,7 @@ namespace NuGetGallery
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
                         <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
@@ -273,6 +274,7 @@ namespace NuGetGallery
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
                         <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
@@ -387,6 +389,60 @@ namespace NuGetGallery
                     Assert.Equal(0, result.Count());
                 }
             }
+
+            public class TheODataFilter
+            {
+                [Fact]
+                public async Task ODataQueryFilterV2Search()
+                {
+                    ODataQueryVerifier.V1Search = GetQueryFilter<V1FeedPackage>(false);
+                    var v1Service = GetService("https://localhost:8081/");
+                    var result = (await v1Service.Search(
+                       new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(
+                           NuGetODataV1FeedConfig.GetEdmModel(),
+                           typeof(V1FeedPackage)),
+                           v1Service.Request)));
+                    var badRequest = result as BadRequestErrorMessageResult;
+                    Assert.NotEqual(null, badRequest);
+                }
+
+                [Fact]
+                public void ODataQueryFilterV1Packages()
+                {
+                    ODataQueryVerifier.V1Packages = GetQueryFilter<V1FeedPackage>(false);
+                    var service = GetService("https://localhost:8081/");
+                    var result = service.Get(
+                       new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(
+                           NuGetODataV1FeedConfig.GetEdmModel(),
+                           typeof(V1FeedPackage)),
+                           service.Request));
+                    var badRequest = result as BadRequestErrorMessageResult;
+                    Assert.NotEqual(null, badRequest);
+                }
+
+                private TestableV1Feed GetService(string host, string arguments = "?$skip=10")
+                {
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = true });
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+                    var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
+                    v1Service.Request = new HttpRequestMessage(HttpMethod.Get, $"{host}{arguments}");
+
+                    return v1Service;
+                }
+
+                private ODataQueryFilter GetQueryFilter<T>(bool allow)
+                {
+                    var mockODataQueryFilter = new Mock<ODataQueryFilter>();
+                    mockODataQueryFilter.Setup(qf => qf.IsAllowed(It.IsAny<ODataQueryOptions<T>>())).Returns(allow);
+                    return mockODataQueryFilter.Object;
+                }
+            }
         }
 
         public class TheV2Feed
@@ -406,6 +462,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -445,6 +502,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
 
                     var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
                     searchService.CallBase = true;
@@ -484,6 +542,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
 
                     bool called = false;
                     var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
@@ -525,6 +584,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -564,6 +624,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -596,6 +657,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -626,6 +688,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -808,57 +871,6 @@ namespace NuGetGallery
                     // Assert
                     Assert.Equal(0, result.Count());
                 }
-
-                [Fact]
-                public async Task V2FeedFindPackagesByIdForbiddenODataQueriesAllow()
-                {
-                    var testAllowedArgs = "?$skip=10";
-                    var host = "https://localhost:8081/";
-
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
-                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
-                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
-                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, $"{host}{testAllowedArgs}");
-                    var resultAllowed = (await v2Service.FindPackagesById(
-                       new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(),
-                                                                                  typeof(V2FeedPackage)),
-                                                                                  v2Service.Request),
-                       "Foo"))
-                       .ExpectQueryResult<V2FeedPackage>();
-                    var count = resultAllowed.GetInnerResult().ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>().Count();
-
-                    // Assert
-                    Assert.Equal(0, count);
-                }
-
-                [Fact]
-                public async Task V2FeedFindPackagesByIdForbiddenODataQueriesReject()
-                {
-                    var testNotAllowedArgs = "?$orderby=DownloadCount+desc&$top=12";
-                    var host = "https://localhost:8081/";
-
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
-                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
-                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
-                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, $"{host}{testNotAllowedArgs}");
-
-                    // Act
-                    var resultNotAllowed = (await v2Service.FindPackagesById(
-                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(),
-                                                             typeof(V2FeedPackage)),
-                                                             v2Service.Request),
-                        "Foo"));
-
-                    var badRequest = resultNotAllowed as BadRequestErrorMessageResult;
-
-                    Assert.NotEqual(null, badRequest);
-                }
             }
 
             public class TheSearchMethod
@@ -877,6 +889,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -922,6 +935,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -968,8 +982,9 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var repo = Mock.Of<IEntityRepository<Package>>();
-                    var configuration = Mock.Of<IGalleryConfigurationService>();
-                    var v2Service = new TestableV2Feed(repo, configuration, null);
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Default);
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    var v2Service = new TestableV2Feed(repo, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
@@ -1006,6 +1021,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1046,6 +1062,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1095,6 +1112,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1133,6 +1151,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1176,6 +1195,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1220,6 +1240,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1263,6 +1284,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1300,6 +1322,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1343,6 +1366,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1385,6 +1409,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1424,6 +1449,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1464,6 +1490,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1535,7 +1562,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1614,6 +1641,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1635,6 +1663,78 @@ namespace NuGetGallery
                     Assert.Equal(2, result.Length);
                     AssertPackage(new { Id = "Foo", Version = "1.3.0-alpha" }, result[0]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
+                }
+            }
+
+            public class TheODataFilter
+            {
+                [Fact]
+                public void ODataQueryFilterV2FeedGetUpdates()
+                {
+                    ODataQueryVerifier.V2GetUpdates = GetQueryFilter<V2FeedPackage>(false);
+                    var v2Service = GetService("https://localhost:8081/");
+                    var result = (v2Service.GetUpdates(
+                       new ODataQueryOptions<V2FeedPackage>(
+                           new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(),
+                           typeof(V2FeedPackage)),
+                           v2Service.Request),
+                       "Pid", "Version", false, false));
+                    var badRequest = result as BadRequestErrorMessageResult;
+                    Assert.NotEqual(null, badRequest);
+                }
+
+                [Fact]
+                public async Task ODataQueryFilterV2Search()
+                {
+                    ODataQueryVerifier.V2Search = GetQueryFilter<V2FeedPackage>(false);
+                    var v2Service = GetService("https://localhost:8081/");
+                    var result = (await v2Service.Search(
+                       new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(
+                           NuGetODataV2FeedConfig.GetEdmModel(),
+                           typeof(V2FeedPackage)),
+                           v2Service.Request)));
+                    var badRequest = result as BadRequestErrorMessageResult;
+                    Assert.NotEqual(null, badRequest);
+                }
+
+                [Fact]
+                public async Task ODataQueryFilterV2Packages()
+                {
+                    ODataQueryVerifier.V2Packages = GetQueryFilter<V2FeedPackage>(false);
+                    var v2Service = GetService("https://localhost:8081/");
+                    var result = (await v2Service.Get(
+                       new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(
+                           NuGetODataV2FeedConfig.GetEdmModel(),
+                           typeof(V2FeedPackage)),
+                           v2Service.Request)));
+                    var badRequest = result as BadRequestErrorMessageResult;
+                    Assert.NotEqual(null, badRequest);
+                }
+
+                private TestableV2Feed GetService(string host, string arguments = "?$skip=10")
+                {
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Default);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, $"{host}{arguments}");
+
+                    return v2Service;
+                }
+
+                private ODataQueryFilter GetQueryFilter<T>(bool allow)
+                {
+                    var mockODataQueryFilter = new Mock<ODataQueryFilter>();
+                    mockODataQueryFilter.Setup(qf => qf.IsAllowed(It.IsAny<ODataQueryOptions<T>>())).Returns(allow);
+                    return mockODataQueryFilter.Object;
                 }
             }
         }

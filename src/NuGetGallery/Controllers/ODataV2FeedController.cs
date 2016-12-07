@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
+using System.Web.Http.Results;
 using NuGet.Frameworks;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
@@ -90,6 +91,13 @@ namespace NuGetGallery.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
+            //reject only when try to reach database
+            if (_configurationService.Current.ODataFilterEnabled &&
+               !ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2Packages, nameof(Get)))
+            {
+                return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
+            }
+
             var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
             return QueryResult(options, queryable, MaxPageSize);
         }
@@ -123,11 +131,6 @@ namespace NuGetGallery.Controllers
                     .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
 
                 return QueryResult(options, emptyResult, MaxPageSize);
-            }
-
-            if(!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2FindPackagesByIdQueryFilter, nameof(FindPackagesById)))
-            {
-                return BadRequest($"A query with \"{ODataQueryFilter.GetFriendlyReadQueryPattern(ODataQueryFilter.ODataOptionsMap(options))} \" set of operators is not supported.");
             }
 
             return await GetCore(options, id, version: null, return404NotFoundWhenNoResults: false);
@@ -264,6 +267,12 @@ namespace NuGetGallery.Controllers
                 });
             }
 
+            if (_configurationService.Current.ODataFilterEnabled &&
+                !ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2Search, nameof(Search)))
+            {
+                return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
+            }
+
             // If not, just let OData handle things
             var queryable = query.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
             return QueryResult(options, queryable, MaxPageSize);
@@ -297,6 +306,12 @@ namespace NuGetGallery.Controllers
             if (string.IsNullOrEmpty(packageIds) || string.IsNullOrEmpty(versions))
             {
                 return Ok(Enumerable.Empty<V2FeedPackage>().AsQueryable());
+            }
+
+            if (_configurationService.Current.ODataFilterEnabled && 
+                !ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2GetUpdates, nameof(GetUpdates)))
+            {
+                return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
 
             // Workaround https://github.com/NuGet/NuGetGallery/issues/674 for NuGet 2.1 client.

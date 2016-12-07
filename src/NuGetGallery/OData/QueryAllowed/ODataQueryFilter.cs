@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Web.Http.OData.Query;
 using Newtonsoft.Json;
 
@@ -15,179 +16,113 @@ namespace NuGetGallery.OData.QueryFilter
     /// </summary>
     public class ODataQueryFilter
     {
-        private static readonly string resourcesNamespace = "NuGetGallery.OData.QueryAllowed.Data";
-        private static readonly int expand = 1;
-        private static readonly int filter = 2;
-        private static readonly int format = 4;
-        private static readonly int inlinecount = 8;
-        private static readonly int orderby = 16;
-        private static readonly int select = 32;
-        private static readonly int skip = 64;
-        private static readonly int skiptoken = 128;
-        private static readonly int top = 256;
+        [Flags]
+        public enum ODataOperators
+        {
+            none = 0,
+            expand = 1,
+            filter = 1 << 1,
+            format = 1 << 2,
+            inlinecount = 1 << 3,
+            orderby = 1 << 4,
+            select = 1 << 5,
+            skip = 1 << 6,
+            skiptoken = 1 << 7,
+            top = 1 << 8
+        }
 
-        private HashSet<int> allowedOperatorPatterns = null;
+        private static readonly string ResourcesNamespace = "NuGetGallery.OData.QueryAllowed.Data";
+        private HashSet<ODataOperators> _allowedOperatorPatterns = null;
 
         /// <summary>
-        /// Initialization for a query filter
+        /// Initialization for a query filter.
         /// </summary>
         /// <param name="fileName"></param>
         public ODataQueryFilter(string fileName)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            StreamReader sr = new StreamReader(assembly.GetManifestResourceStream($"{resourcesNamespace}.{fileName}"));
+            StreamReader sr = new StreamReader(assembly.GetManifestResourceStream($"{ResourcesNamespace}.{fileName}"));
             string json = sr.ReadToEnd(); 
             ODataQueryRequest data = JsonConvert.DeserializeObject<ODataQueryRequest>(json);
-            allowedOperatorPatterns = new HashSet<int>(data.AllowedOperatorPatterns);
+            _allowedOperatorPatterns = new HashSet<ODataOperators>(data.AllowedOperatorPatterns
+                .Select( (op) => { return (ODataOperators)Enum.Parse(typeof(ODataOperators), op, true); } ));
+            if (!_allowedOperatorPatterns.Contains(ODataOperators.none)) { _allowedOperatorPatterns.Add(ODataOperators.none); }
+        }
+
+        public ODataQueryFilter()
+        {
         }
 
         /// <summary>
-        /// Returns true if the queryFormat is accepted
+        /// Verifies if queryFormat is allowed.
         /// </summary>
-        /// <param name="queryFormat">The integer representing the odata operators in the request representing the query to be validated.</param>
-        /// <returns></returns>
-        public bool IsAllowed<T>(ODataQueryOptions<T> odataOptions)
+        /// <param name="odataOptions">The <see cref="ODataQueryOptions"/> to be validated.</param>
+        /// <returns>Returns true if the queryFormat is allowed.</returns>
+        public virtual bool IsAllowed<T>(ODataQueryOptions<T> odataOptions)
         {
             if(odataOptions == null)
             {
                 return true;
             }
-            return allowedOperatorPatterns.Contains(ODataOptionsMap(odataOptions));
+            return _allowedOperatorPatterns.Contains(ODataOptionsMap(odataOptions));
         }
 
         /// <summary>
         /// The allowed operators for this API
         /// </summary>
-        public HashSet<int> AllowedOperatorPatterns
-        {
-            get
-            {
-                return allowedOperatorPatterns;
-            }
-        }
+        public HashSet<ODataOperators> AllowedOperatorPatterns => _allowedOperatorPatterns;
 
         /// <summary>
-        /// Reads the odataOptions used parameters and returns an integer that represents the set of operators used by this odataOptions
-        /// The integer values for the single operators are:
-        ///    expand = 1;
-        ///    filter = 2;
-        ///    format = 4;
-        ///    inlinecount = 8;
-        ///    orderby = 16;
-        ///    select = 32;
-        ///    skip = 64;
-        ///    skiptoken = 128;
-        ///    top = 256;
-        /// An option that will have "expand" and "filter" will have a return result with value of 3
+        /// Reads the odataOptions used parameters and returns <see cref="ODataOperators"/> 
+        /// that represents the set of operators used by this odataOptions.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="odataOptions"></param>
-        /// <returns>The integer representation of the operators in the OData options. 
-        /// If no operator is used the result will be 0.</returns>
-        public static int ODataOptionsMap<T>(ODataQueryOptions<T> odataOptions)
+        /// <returns>The <see cref="ODataOperators"/> representation of the operators in the OData options. 
+        /// If no operator is used the result will be <see cref="ODataOperators.none"/>.</returns>
+        public static ODataOperators ODataOptionsMap<T>(ODataQueryOptions<T> odataOptions)
         {
-            int result = 0;
+            ODataOperators result = ODataOperators.none;
             if(odataOptions == null)
             {
                 return 0;
             }
             if (odataOptions.RawValues.Expand != null)
             {
-                result |= expand;
+                result |= ODataOperators.expand;
             }
             if (odataOptions.RawValues.Filter != null)
             {
-                result |= filter;
+                result |= ODataOperators.filter;
             }
             if (odataOptions.RawValues.Format != null)
             {
-                result |= format;
+                result |= ODataOperators.format;
             }
             if (odataOptions.RawValues.InlineCount != null)
             {
-                result |= inlinecount;
+                result |= ODataOperators.inlinecount;
             }
             if (odataOptions.RawValues.OrderBy != null)
             {
-                result |= orderby;
+                result |= ODataOperators.orderby;
             }
             if (odataOptions.RawValues.Select != null)
             {
-                result |= select;
+                result |= ODataOperators.select;
             }
             if (odataOptions.RawValues.Skip != null)
             {
-                result |= skip;
+                result |= ODataOperators.skip;
             }
             if (odataOptions.RawValues.SkipToken != null)
             {
-                result |= skiptoken;
+                result |= ODataOperators.skiptoken;
             }
             if (odataOptions.RawValues.Top != null)
             {
-                result |= top;
+                result |= ODataOperators.top;
             }
-            return result;
-        }
-
-        /// <summary>
-        /// For an integer representing the OData option operators set, 
-        /// will return the string readable version. 
-        /// For example for a value of 6 will return "filter format"
-        /// </summary>
-        /// <param name="pattern"></param>
-        /// <returns></returns>
-        public static string GetFriendlyReadQueryPattern(int pattern)
-        {
-            StringBuilder sb = new StringBuilder();
-            if ((pattern & expand) != 0)
-            {
-                sb.Append($"{nameof(expand)}");
-            }
-            if ((pattern & filter) != 0)
-            {
-                sb.Append($"{nameof(filter)}");
-            }
-            if ((pattern & format) != 0)
-            {
-                sb.Append($"{nameof(format)}");
-            }
-            if ((pattern & inlinecount) != 0)
-            {
-                sb.Append($"{nameof(inlinecount)}");
-            }
-            if ((pattern & orderby) != 0)
-            {
-                sb.Append($"{nameof(orderby)}");
-            }
-            if ((pattern & select) != 0)
-            {
-                sb.Append($"{nameof(select)}");
-            }
-            if ((pattern & skip) != 0)
-            {
-                sb.Append($"{nameof(skip)}");
-            }
-            if ((pattern & skiptoken) != 0)
-            {
-                sb.Append($"{nameof(skiptoken)}");
-            }
-            if ((pattern & top) != 0)
-            {
-                sb.Append($"{nameof(top)}");
-            }
-
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns a readable form of the supported operators
-        /// </summary>
-        /// <param name="pattern"></param>
-        /// <returns></returns>
-        public static string GetFriendlyReadQueryPattern(IEnumerable<int> patterns)
-        {
-            var result = string.Join("\n", patterns);
             return result;
         }
     }
