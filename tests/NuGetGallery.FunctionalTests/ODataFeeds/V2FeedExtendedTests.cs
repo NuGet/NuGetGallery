@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -31,14 +32,20 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             _packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
         }
 
+        private bool CanUploadToSite()
+        {
+            // Temporary workaround for the SSL issue, which keeps the upload test from working with cloudapp.net sites
+            return UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org") ||
+                   UrlHelper.BaseUrl.Contains("nuget.localtest.me");
+        }
+
         [Fact]
         [Description("Upload two packages and then issue the FindPackagesById request, expect to return both versions")]
         [Priority(1)]
         [Category("P0Tests")]
         public async Task FindPackagesByIdTest()
         {
-            // Temporary workaround for the SSL issue, which keeps the upload test from working with cloudapp.net sites
-            if (UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org"))
+            if (CanUploadToSite())
             {
                 string packageId = string.Format("TestV2FeedFindPackagesById.{0}", DateTime.UtcNow.Ticks);
 
@@ -59,9 +66,9 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
         }
 
-        private const int PackagesInOrderNumPackages = 10;
-        private const int PackagesInOrderNumRetries = 60;
-        private const int PackagesInOrderRefreshTimeSec = 30*1000;
+        private const int PackagesInOrderNumPackages = 100;
+        private const int PackagesInOrderNumRetries = 12;
+        private const int PackagesInOrderRefreshTimeSec = 10*1000;
 
         [Fact]
         [Description("Upload multiple packages and verify that they appear in the feed in the correct order")]
@@ -70,18 +77,19 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         public async Task PackagesAppearInFeedInOrderTest()
         {
             // Temporary workaround for the SSL issue, which keeps the upload test from working with cloudapp.net sites
-            if (UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org"))
+            if (CanUploadToSite())
             {
-                var basePackageId = $"TestV2FeedPackagesAppearInFeedInOrderTest.{DateTime.UtcNow.Ticks}";
-                
                 var packageIds = new List<string>(PackagesInOrderNumPackages);
-                
+                var startingTime = DateTime.UtcNow;
+
+                // We set a maximum amount of tries so that we never wait more than PackagesInOrderNumRetries * PackagesInOrderRefreshTimeSec on this test case.
                 var triesAvailable = PackagesInOrderNumRetries;
 
-                // Upload the packages in order.
+                // Upload the packages.
+                var uploadStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
                 for (var i = 0; i < PackagesInOrderNumPackages; i++)
                 {
-                    var packageId = $"{basePackageId}.{i}";
+                    var packageId = GetPackagesAppearInFeedInOrderPackageId(startingTime, i);
                     await _clientSdkHelper.UploadNewPackage(packageId);
                     packageIds.Add(packageId);
                 }
@@ -97,9 +105,10 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
                         var createdTimestamp =
                             await
-                                _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(packageId), "Created",
+                                _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(uploadStartTimestamp, "Created"), "Created",
                                     packageId);
                         Assert.True(createdTimestamp.HasValue);
+                        Assert.True(createdTimestamp.Value > uploadStartTimestamp);
                         Assert.True(createdTimestamp.Value > lastCreatedTimestamp,
                             $"Package #{i} was uploaded after package #{i - 1} but has an earlier Created timestamp ({createdTimestamp} should be greater than {lastCreatedTimestamp}).");
                         lastCreatedTimestamp = createdTimestamp.Value;
@@ -107,10 +116,10 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 }
 
                 // Unlist the packages in order.
+                var unlistStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
                 for (var i = 0; i < PackagesInOrderNumPackages; i++)
                 {
-                    var packageId = packageIds[i];
-                    await _clientSdkHelper.UnlistPackage(packageId);
+                    await _clientSdkHelper.UnlistPackage(packageIds[i]);
                 }
 
                 // Check that the packages appear in the feed in the correct order
@@ -124,9 +133,10 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
                         var lastEditedTimestamp =
                             await
-                                _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(packageId), "LastEdited",
+                                _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(unlistStartTimestamp, "LastEdited"), "LastEdited",
                                     packageId);
                         Assert.True(lastEditedTimestamp.HasValue);
+                        Assert.True(lastEditedTimestamp.Value > unlistStartTimestamp);
                         Assert.True(lastEditedTimestamp.Value > lastLastEditedTimestamp,
                             $"Package #{i} was edited after package #{i - 1} but has an earlier LastEdited timestamp ({lastEditedTimestamp} should be greater than {lastLastEditedTimestamp}).");
                         lastLastEditedTimestamp = lastEditedTimestamp.Value;
@@ -135,9 +145,14 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
         }
 
-        private static string GetPackageUrl(string packageId, string version = "1.0.0")
+        private static string GetPackagesAppearInFeedInOrderPackageId(DateTime startingTime, int i)
         {
-            return UrlHelper.V2FeedRootUrl + @"/Packages(Id='" + packageId + "',Version='" + version + "')";
+            return $"TestV2FeedPackagesAppearInFeedInOrderTest.{startingTime.Ticks}.{i}";
+        }
+
+        private static string GetPackageUrl(DateTime time, string timestamp)
+        {
+            return $"{UrlHelper.V2FeedRootUrl}/Packages?$filter={timestamp} gt DateTime'{time:o}'&$orderby={timestamp} desc&$select={timestamp}";
         }
 
         /// <summary>
@@ -153,7 +168,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             var tries = 0;
             do
             {
-                tries++;
                 try
                 {
                     await func();
@@ -161,6 +175,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 }
                 catch (Exception ex)
                 {
+                    tries++;
                     TestOutputHelper.WriteLine($"Attempt #{tries} failed because {ex}.");
                     TestOutputHelper.WriteLine($"{maxRetries - tries} attempts remaining.");
 

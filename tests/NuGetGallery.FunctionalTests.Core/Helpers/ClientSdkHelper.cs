@@ -141,7 +141,7 @@ namespace NuGetGallery.FunctionalTests
                 "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
                 processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
 
-            // Delete package from local disk so once it gets uploaded
+            // Delete package from local disk once it gets uploaded
             if (File.Exists(packageFullPath))
             {
                 File.Delete(packageFullPath);
