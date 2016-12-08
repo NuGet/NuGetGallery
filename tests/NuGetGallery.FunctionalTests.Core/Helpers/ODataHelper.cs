@@ -148,7 +148,7 @@ namespace NuGetGallery.FunctionalTests
             string responseText;
             using (var sr = new StreamReader(response.GetResponseStream()))
             {
-                responseText = await sr.ReadToEndAsync().ConfigureAwait(false);
+                responseText = await sr.ReadToEndAsync();
             }
 
             return responseText;

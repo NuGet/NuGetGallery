@@ -64,26 +64,24 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
         }
 
-        private const int PackagesInOrderNumPackages = 100;
-        private const int PackagesInOrderNumRetries = 12;
-        private const int PackagesInOrderRefreshTimeMs = 10*1000;
+        private const int PackagesInOrderNumPackages = 10;
 
         [Fact]
-        [Description("Upload multiple packages and verify that they appear in the feed in the correct order")]
+        [Description("Upload multiple packages and then unlist them and verify that they appear in the feed in the correct order")]
         [Priority(1)]
-        [Category("P0Tests")]
+        [Category("P0Tests")] 
         public async Task PackagesAppearInFeedInOrderTest()
         {
-            // Temporary workaround for the SSL issue, which keeps the upload test from working with cloudapp.net sites
+            // This test uploads/unlists packages in a particular order to test the timestamps of the packages in the feed.
+            // Because it waits for previous requests to finish before starting new ones, it will only catch ordering issues if these issues are greater than a second or two.
+            // This is consistent with the time frame in which we've seen these issues in the past, but if new issues arise that are on a smaller scale, this test will not catch it!
+
             if (CanUploadToSite())
             {
                 var packageIds = new List<string>(PackagesInOrderNumPackages);
                 var startingTime = DateTime.UtcNow;
-
-                // We set a maximum amount of tries so that we never wait more than (PackagesInOrderNumRetries * PackagesInOrderRefreshTimeMs) milliseconds on this test case.
-                var triesAvailable = PackagesInOrderNumRetries;
-
-                // Upload the packages.
+                
+                // Upload the packages in order.
                 var uploadStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
                 for (var i = 0; i < PackagesInOrderNumPackages; i++)
                 {
@@ -91,27 +89,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     await _clientSdkHelper.UploadNewPackage(packageId);
                     packageIds.Add(packageId);
                 }
-
-                // Check that the packages appear in the feed in the correct order
-                var lastCreatedTimestamp = DateTime.MinValue;
-                for (var i = 0; i < PackagesInOrderNumPackages; i++)
-                {
-                    triesAvailable -= await RepeatUntilSuccessAsync(async () =>
-                    {
-                        var packageId = packageIds[i];
-                        TestOutputHelper.WriteLine($"Attempting to check order of package #{i} Created timestamp in feed.");
-
-                        var createdTimestamp =
-                            await
-                                _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(uploadStartTimestamp, "Created"), "Created",
-                                    packageId);
-                        Assert.True(createdTimestamp.HasValue);
-                        Assert.True(createdTimestamp.Value > uploadStartTimestamp);
-                        Assert.True(createdTimestamp.Value > lastCreatedTimestamp,
-                            $"Package #{i} was uploaded after package #{i - 1} but has an earlier Created timestamp ({createdTimestamp} should be greater than {lastCreatedTimestamp}).");
-                        lastCreatedTimestamp = createdTimestamp.Value;
-                    }, triesAvailable, PackagesInOrderRefreshTimeMs);
-                }
+                
+                await CheckPackageTimestampsInOrder(packageIds, "Created", uploadStartTimestamp);
 
                 // Unlist the packages in order.
                 var unlistStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
@@ -119,27 +98,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 {
                     await _clientSdkHelper.UnlistPackage(packageIds[i]);
                 }
-
-                // Check that the packages appear in the feed in the correct order
-                var lastLastEditedTimestamp = DateTime.MinValue;
-                for (var i = 0; i < PackagesInOrderNumPackages; i++)
-                {
-                    triesAvailable -= await RepeatUntilSuccessAsync(async () =>
-                    {
-                        var packageId = packageIds[i];
-                        TestOutputHelper.WriteLine($"Attempting to check order of package #{i} LastEdited timestamp in feed.");
-
-                        var lastEditedTimestamp =
-                            await
-                                _odataHelper.GetTimestampOfPackageFromResponse(GetPackageUrl(unlistStartTimestamp, "LastEdited"), "LastEdited",
-                                    packageId);
-                        Assert.True(lastEditedTimestamp.HasValue);
-                        Assert.True(lastEditedTimestamp.Value > unlistStartTimestamp);
-                        Assert.True(lastEditedTimestamp.Value > lastLastEditedTimestamp,
-                            $"Package #{i} was edited after package #{i - 1} but has an earlier LastEdited timestamp ({lastEditedTimestamp} should be greater than {lastLastEditedTimestamp}).");
-                        lastLastEditedTimestamp = lastEditedTimestamp.Value;
-                    }, triesAvailable, PackagesInOrderRefreshTimeMs);
-                }
+                
+                await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp);
             }
         }
 
@@ -148,47 +108,38 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             return $"TestV2FeedPackagesAppearInFeedInOrderTest.{startingTime.Ticks}.{i}";
         }
 
-        private static string GetPackageUrl(DateTime time, string timestamp)
+        private static string GetPackagesAppearInFeedInOrderUrl(DateTime time, string timestamp)
         {
             return $"{UrlHelper.V2FeedRootUrl}/Packages?$filter={timestamp} gt DateTime'{time:o}'&$orderby={timestamp} desc&$select={timestamp}";
         }
 
         /// <summary>
-        /// Repeats <paramref name="func"/> until it succeeds.
+        /// Verifies if a set of packages in the feed have timestamps in a particular order.
         /// </summary>
-        /// <param name="func">Function to repeat.</param>
-        /// <param name="maxRetries">Maximum number of attempts.</param>
-        /// <param name="delayMs">Delay between each repeat.</param>
-        /// <returns>The number of attempts before the function succeeded.</returns>
-        private async Task<int> RepeatUntilSuccessAsync(Func<Task> func, int maxRetries, int delayMs)
+        /// <param name="packageIds">An ordered list of package ids. Each package id in the list must have a timestamp in the feed earlier than all package ids after it.</param>
+        /// <param name="timestampPropertyName">The timestamp property to test the ordering of. For example, "Created" or "LastEdited".</param>
+        /// <param name="operationStartTimestamp">A timestamp that is before all of the timestamps expected to be found in the feed. This is used in a request to the feed.</param>
+        private async Task CheckPackageTimestampsInOrder(List<string> packageIds, string timestampPropertyName,
+            DateTime operationStartTimestamp)
         {
-            var success = false;
-            var tries = 0;
-            do
+            var lastTimestamp = DateTime.MinValue;
+            for (var i = 0; i < PackagesInOrderNumPackages; i++)
             {
-                try
-                {
-                    await func();
-                    success = true;
-                }
-                catch (Exception ex)
-                {
-                    tries++;
-                    TestOutputHelper.WriteLine($"Attempt #{tries} failed because {ex}.");
-                    TestOutputHelper.WriteLine($"{maxRetries - tries} attempts remaining.");
+                var packageId = packageIds[i];
+                TestOutputHelper.WriteLine($"Attempting to check order of package #{i} {timestampPropertyName} timestamp in feed.");
 
-                    // Rethrow the exception if we have exceeded the maximum number of attempts
-                    if (tries >= maxRetries)
-                    {
-                        TestOutputHelper.WriteLine("Max attempts exceeded.");
-                        throw;
-                    }
+                var newTimestamp =
+                    await
+                        _odataHelper.GetTimestampOfPackageFromResponse(
+                            GetPackagesAppearInFeedInOrderUrl(operationStartTimestamp, timestampPropertyName),
+                            timestampPropertyName,
+                            packageId);
 
-                    Thread.Sleep(delayMs);
-                }
-            } while (!success);
-
-            return tries;
+                Assert.True(newTimestamp.HasValue);
+                Assert.True(newTimestamp.Value > lastTimestamp,
+                    $"Package #{i} was last modified after package #{i - 1} but has an earlier {timestampPropertyName} timestamp ({newTimestamp} should be greater than {lastTimestamp}).");
+                lastTimestamp = newTimestamp.Value;
+            }
         }
 
         /// <summary>

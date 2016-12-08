@@ -111,7 +111,7 @@ namespace NuGetGallery.FunctionalTests
 
         /// <summary>
         /// Creates a package with the specified Id and Version and uploads it and checks if the upload has succeeded.
-        /// This will be used by test classes which tests scenarios on top of upload.
+        /// Throws if the upload fails or cannot be verified in the source.
         /// </summary>
         public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
         {
@@ -151,7 +151,7 @@ namespace NuGetGallery.FunctionalTests
 
         /// <summary>
         /// Unlists a package with the specified Id and Version and checks if the unlist has succeeded.
-        /// This will be used by test classes which tests scenarios on top of unlist.
+        /// Throws if the unlist fails or cannot be verified in the source.
         /// </summary>
         public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0")
         {
@@ -164,19 +164,24 @@ namespace NuGetGallery.FunctionalTests
         {
             if (string.IsNullOrEmpty(packageId))
             {
-                packageId = DateTime.Now.Ticks.ToString();
+                throw new ArgumentException($"{nameof(packageId)} cannot be null or empty!");
             }
 
-            WriteLine("Deleting package '{0}', version '{1}'", packageId, version);
+            WriteLine("Unlisting package '{0}', version '{1}'", packageId, version);
 
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
             var processResult = await commandlineHelper.DeletePackageAsync(packageId, version, UrlHelper.V2FeedPushSourceUrl);
 
             Assert.True(processResult.ExitCode == 0,
-                "The package delete via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
                 processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
         }
 
+        /// <summary>
+        /// Throws if the specified package cannot be found in the source.
+        /// </summary>
+        /// <param name="packageId">Id of the package.</param>
+        /// <param name="version">Version of the package.</param>
         public void VerifyPackageExistsInSource(string packageId, string version = "1.0.0")
         {
             var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
