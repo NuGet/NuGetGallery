@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Entity.Infrastructure;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -1178,9 +1179,18 @@ namespace NuGetGallery
                 // save package to blob storage
                 uploadFile.Position = 0;
                 await _packageFileService.SavePackageFileAsync(package, uploadFile.AsSeekableStream());
-
-                // commit all changes to database as an atomic transaction
-                await _entitiesContext.SaveChangesAsync();
+                
+                try
+                {
+                    // commit all changes to database as an atomic transaction
+                    await _entitiesContext.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // another package upload modified IsLatest state for packages in this registration
+                    TempData["Message"] = "Your attempt to verify the package submission failed, because of a conflict with another upload. Please try again.";
+                    return new RedirectResult(Url.VerifyPackage());
+                }
 
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();
