@@ -120,23 +120,20 @@ namespace NuGetGallery.OData.QueryFilter
             // If validation of the ODataQueryOptions fails, we will not reject the request.
             var isAllowed = true;
 
-            if (isFeatureEnabled)
+            try
             {
-                try
-                {
-                    isAllowed = allowedQueryStructure.IsAllowed(odataOptions);
-                }
-                catch (Exception ex)
-                {
-                    //log and do not throw
-                    Telemetry.TrackException(ex, telemetryProperties);
-                }
+                isAllowed = allowedQueryStructure.IsAllowed(odataOptions);
+            }
+            catch (Exception ex)
+            {
+                //log and do not throw
+                Telemetry.TrackException(ex, telemetryProperties);
             }
 
             telemetryProperties.Add("IsAllowed", isAllowed.ToString());
             telemetryProperties.Add("QueryPattern", ODataQueryFilter.ODataOptionsMap(odataOptions).ToString());
             Telemetry.TrackEvent("ODataQueryFilter", telemetryProperties, metrics: null);
-            return isAllowed;
+            return isFeatureEnabled ? isAllowed : true;
         }
 
         internal static string GetValidationFailedMessage<T>(ODataQueryOptions<T> options)
