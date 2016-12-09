@@ -19,16 +19,16 @@ namespace NuGetGallery.OData.QueryFilter
         [Flags]
         public enum ODataOperators
         {
-            none = 0,
-            expand = 1,
-            filter = 1 << 1,
-            format = 1 << 2,
-            inlinecount = 1 << 3,
-            orderby = 1 << 4,
-            select = 1 << 5,
-            skip = 1 << 6,
-            skiptoken = 1 << 7,
-            top = 1 << 8
+            None = 0,
+            Expand = 1,
+            Filter = 1 << 1,
+            Format = 1 << 2,
+            InlineCount = 1 << 3,
+            OrderBy = 1 << 4,
+            Select = 1 << 5,
+            Skip = 1 << 6,
+            SkipToken = 1 << 7,
+            Top = 1 << 8
         }
 
         private static readonly string ResourcesNamespace = "NuGetGallery.OData.QueryAllowed.Data";
@@ -46,7 +46,7 @@ namespace NuGetGallery.OData.QueryFilter
             ODataQueryRequest data = JsonConvert.DeserializeObject<ODataQueryRequest>(json);
             _allowedOperatorPatterns = new HashSet<ODataOperators>(data.AllowedOperatorPatterns
                 .Select( (op) => { return (ODataOperators)Enum.Parse(typeof(ODataOperators), op, true); } ));
-            if (!_allowedOperatorPatterns.Contains(ODataOperators.none)) { _allowedOperatorPatterns.Add(ODataOperators.none); }
+            if (!_allowedOperatorPatterns.Contains(ODataOperators.None)) { _allowedOperatorPatterns.Add(ODataOperators.None); }
         }
 
         public ODataQueryFilter()
@@ -60,11 +60,7 @@ namespace NuGetGallery.OData.QueryFilter
         /// <returns>Returns true if the queryFormat is allowed.</returns>
         public virtual bool IsAllowed<T>(ODataQueryOptions<T> odataOptions)
         {
-            if(odataOptions == null)
-            {
-                return true;
-            }
-            return _allowedOperatorPatterns.Contains(ODataOptionsMap(odataOptions));
+            return odataOptions == null ? true : _allowedOperatorPatterns.Contains(ODataOptionsMap(odataOptions));
         }
 
         /// <summary>
@@ -73,7 +69,7 @@ namespace NuGetGallery.OData.QueryFilter
         public HashSet<ODataOperators> AllowedOperatorPatterns => _allowedOperatorPatterns;
 
         /// <summary>
-        /// Reads the odataOptions used parameters and returns <see cref="ODataOperators"/> 
+        /// Parses <paramref name="odataOptions"/> used parameters and returns <see cref="ODataOperators"/> 
         /// that represents the set of operators used by this odataOptions.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -82,47 +78,21 @@ namespace NuGetGallery.OData.QueryFilter
         /// If no operator is used the result will be <see cref="ODataOperators.none"/>.</returns>
         public static ODataOperators ODataOptionsMap<T>(ODataQueryOptions<T> odataOptions)
         {
-            ODataOperators result = ODataOperators.none;
+            ODataOperators result = ODataOperators.None;
             if(odataOptions == null)
             {
                 return 0;
             }
-            if (odataOptions.RawValues.Expand != null)
+
+            foreach (var odataOperator in Enum.GetNames(typeof(ODataOperators)))
             {
-                result |= ODataOperators.expand;
+                var rawValuesProperty = typeof(ODataRawQueryOptions).GetProperty(odataOperator);
+                if (rawValuesProperty != null && rawValuesProperty.GetValue(odataOptions.RawValues, null) != null)
+                {
+                    result |= (ODataOperators)Enum.Parse(typeof(ODataOperators), odataOperator);
+                }
             }
-            if (odataOptions.RawValues.Filter != null)
-            {
-                result |= ODataOperators.filter;
-            }
-            if (odataOptions.RawValues.Format != null)
-            {
-                result |= ODataOperators.format;
-            }
-            if (odataOptions.RawValues.InlineCount != null)
-            {
-                result |= ODataOperators.inlinecount;
-            }
-            if (odataOptions.RawValues.OrderBy != null)
-            {
-                result |= ODataOperators.orderby;
-            }
-            if (odataOptions.RawValues.Select != null)
-            {
-                result |= ODataOperators.select;
-            }
-            if (odataOptions.RawValues.Skip != null)
-            {
-                result |= ODataOperators.skip;
-            }
-            if (odataOptions.RawValues.SkipToken != null)
-            {
-                result |= ODataOperators.skiptoken;
-            }
-            if (odataOptions.RawValues.Top != null)
-            {
-                result |= ODataOperators.top;
-            }
+
             return result;
         }
     }

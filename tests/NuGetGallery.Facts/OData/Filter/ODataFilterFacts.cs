@@ -11,6 +11,8 @@ namespace NuGetGallery.OData.Filter
 {
     public class ODataFilterFacts
     {
+        static readonly string Host = "https://localhost:8081/";
+
         [Theory]
         [InlineData("apiv2getupdates.json")]
         [InlineData("apiv2packages.json")]
@@ -18,14 +20,14 @@ namespace NuGetGallery.OData.Filter
         public void ODataNoOperatorsAreAllowedV2(string apiResourceFileName)
         {
             // Arrange
-            ODataQueryOptions<V2FeedPackage> odataOptions = new ODataQueryOptions<V2FeedPackage>(
+            var odataOptions = new ODataQueryOptions<V2FeedPackage>(
                 new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), 
-                new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/"));
+                new HttpRequestMessage(HttpMethod.Get, Host));
 
-            ODataQueryFilter queryFilter = new ODataQueryFilter(apiResourceFileName);
+            var queryFilter = new ODataQueryFilter(apiResourceFileName);
 
             // Act
-            bool result = ODataQueryVerifier.AreODataOptionsAllowed(odataOptions, queryFilter,"TestContext");
+            var result = ODataQueryVerifier.AreODataOptionsAllowed(odataOptions, queryFilter,"TestContext");
 
             // Assert
             Assert.True(result, "A request with no OData operators should be allowed.");
@@ -37,14 +39,14 @@ namespace NuGetGallery.OData.Filter
         public void ODataNoOperatorsAreAllowedV1(string apiResourceFileName)
         {
             // Arrange
-            ODataQueryOptions<V1FeedPackage> odataOptions = new ODataQueryOptions<V1FeedPackage>(
+            var odataOptions = new ODataQueryOptions<V1FeedPackage>(
                 new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)),
-                new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/"));
+                new HttpRequestMessage(HttpMethod.Get, Host));
 
-            ODataQueryFilter queryFilter = new ODataQueryFilter(apiResourceFileName);
+            var queryFilter = new ODataQueryFilter(apiResourceFileName);
 
             // Act
-            bool result = ODataQueryVerifier.AreODataOptionsAllowed(odataOptions, queryFilter, "TestContext");
+            var result = ODataQueryVerifier.AreODataOptionsAllowed(odataOptions, queryFilter, "TestContext");
 
             // Assert
             Assert.True(result, "A request with no OData operators should be allowed.");

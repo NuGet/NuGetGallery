@@ -26,13 +26,13 @@ namespace NuGetGallery
         public static void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
         {
             try
-                {
-                    _telemetryClient.TrackException(exception, properties, metrics);
-                }
-                catch
-                {
-                    // logging failed, don't allow exception to escape
-                }
+            {
+                _telemetryClient.TrackException(exception, properties, metrics);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
         }
     }
 }

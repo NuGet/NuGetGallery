@@ -27,7 +27,6 @@ namespace NuGetGallery.WebApi
         {
             _request = request;
             Content = content;
-            //set the default
             StatusCode = HttpStatusCode.OK;
         }
 

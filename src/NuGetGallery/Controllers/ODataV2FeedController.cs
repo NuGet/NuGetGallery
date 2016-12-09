@@ -91,9 +91,9 @@ namespace NuGetGallery.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
-            //reject only when try to reach database
-            if (_configurationService.Current.ODataFilterEnabled &&
-               !ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2Packages, nameof(Get)))
+            //Reject only when try to reach database.
+            if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2Packages,
+                _configurationService.Current.ODataFilterEnabled, nameof(Get)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
@@ -266,9 +266,9 @@ namespace NuGetGallery.Controllers
                     return null;
                 });
             }
-
-            if (_configurationService.Current.ODataFilterEnabled &&
-                !ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2Search, nameof(Search)))
+            //Reject only when try to reach database.
+            if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2Search,
+                _configurationService.Current.ODataFilterEnabled, nameof(Search)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
@@ -308,8 +308,8 @@ namespace NuGetGallery.Controllers
                 return Ok(Enumerable.Empty<V2FeedPackage>().AsQueryable());
             }
 
-            if (_configurationService.Current.ODataFilterEnabled && 
-                !ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2GetUpdates, nameof(GetUpdates)))
+            if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2GetUpdates,
+                _configurationService.Current.ODataFilterEnabled, nameof(GetUpdates)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }

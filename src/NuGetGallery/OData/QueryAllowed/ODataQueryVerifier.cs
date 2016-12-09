@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Web.Http.OData.Query;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.OData.QueryFilter
 {
@@ -100,37 +101,42 @@ namespace NuGetGallery.OData.QueryFilter
         #endregion Filters for ODataV1FeedController
 
         /// <summary>
-        /// Logic for validation if the odataOptions will be rejected or not.
+        /// Verifies whether or not the <see cref="ODataQueryOptions(TEntity)"/> are allowed or not.
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="odataOptions">The odata options from the request.</param>
         /// <param name="allowedQueryStructure">Each web api will have their individual allowed set of query strutures.</param>
+        /// <param name="isFeatureEnabled">The configuration state for the feature.</param>
         /// <param name="telemetryContext">Information to be used by the telemetry events.</param>
-        /// <returns>True if the odataOptions are allowed.</returns>
+        /// <returns>True if the options are allowed.</returns>
         public static bool AreODataOptionsAllowed<TEntity>(ODataQueryOptions<TEntity> odataOptions,
-                                                             ODataQueryFilter allowedQueryStructure,
-                                                             string telemetryContext)
+                                                           ODataQueryFilter allowedQueryStructure,
+                                                           bool isFeatureEnabled,
+                                                           string telemetryContext)
         {
             var telemetryProperties = new Dictionary<string, string>();
             telemetryProperties.Add("CallContext", $"{telemetryContext}:{nameof(AreODataOptionsAllowed)}");
-            //default is true; in case of exception the return value will be true and the request will not be rejected
-            var result = true;
+            telemetryProperties.Add("IsEnabled", $"{isFeatureEnabled}");
+            // If validation of the ODataQueryOptions fails, we will not reject the request.
+            var isAllowed = true;
 
-            try
+            if (isFeatureEnabled)
             {
-                result = allowedQueryStructure.IsAllowed(odataOptions);
-            }
-            catch (Exception ex)
-            {
-                //log and do not throw
-                telemetryProperties.Add("Exception", ex.Message);
-                Telemetry.TrackException(ex, telemetryProperties);
+                try
+                {
+                    isAllowed = allowedQueryStructure.IsAllowed(odataOptions);
+                }
+                catch (Exception ex)
+                {
+                    //log and do not throw
+                    Telemetry.TrackException(ex, telemetryProperties);
+                }
             }
 
-            telemetryProperties.Add("IsAllowed", result.ToString());
+            telemetryProperties.Add("IsAllowed", isAllowed.ToString());
             telemetryProperties.Add("QueryPattern", ODataQueryFilter.ODataOptionsMap(odataOptions).ToString());
             Telemetry.TrackEvent("ODataQueryFilter", telemetryProperties, metrics: null);
-            return result;
+            return isAllowed;
         }
 
         internal static string GetValidationFailedMessage<T>(ODataQueryOptions<T> options)

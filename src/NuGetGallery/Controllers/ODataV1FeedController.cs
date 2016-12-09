@@ -44,8 +44,8 @@ namespace NuGetGallery.Controllers
         [CacheOutput(NoCache = true)]
         public IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options)
         {
-            if (_configurationService.Current.ODataFilterEnabled &&
-               !ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Packages, nameof(Get)))
+            if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Packages, 
+                _configurationService.Current.ODataFilterEnabled, nameof(Get)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
@@ -206,8 +206,8 @@ namespace NuGetGallery.Controllers
                    SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework }, o, s));
             }
 
-            if (_configurationService.Current.ODataFilterEnabled &&
-              !ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Search, nameof(Search)))
+            if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Search,
+                _configurationService.Current.ODataFilterEnabled, nameof(Search)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
