@@ -918,8 +918,13 @@ fieldset.form {
         box-sizing: border-box;
     }
 
-    .form-field.form-field-full input {
+    .form-field.form-field-full input,
+    .form-field.form-field-full textarea {
         width: 100%;
+    }
+
+    .form-field.form-field-full textarea {
+        height: 96px;
     }
 
     .form-field input[data-val-required],
@@ -1005,6 +1010,10 @@ fieldset.form {
     margin-top: 5px;
     width: 416px;
     z-index: 550;
+}
+
+.form-field-full > .field-validation-error {
+    width: 98.5%;
 }
 
 textarea + .field-validation-error {
