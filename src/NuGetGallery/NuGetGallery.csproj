@@ -702,6 +702,8 @@
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\RPSMicrosoftAccount\RPSMicrosoftAccountAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\RPSMicrosoftAccount\RPSMicrosoftAccountAuthenticatorConfiguration.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\SecretReader\CachingSecretReader.cs" />
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
