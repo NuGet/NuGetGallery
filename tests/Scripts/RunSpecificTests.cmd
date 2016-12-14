@@ -40,7 +40,7 @@ Echo Done.
 Echo.
 
 Echo Build the NuGet Gallery test solution...
-%WinDir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe ..\NuGetGallery.FunctionalTests.sln
+"%PROGRAMFILES(X86)%\MsBuild\14.0\Bin\msbuild" ..\NuGetGallery.FunctionalTests.sln
 Echo Done.
 Echo.
 
