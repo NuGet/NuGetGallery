@@ -121,7 +121,7 @@ namespace NuGet.Indexing
                 if (directory == null)
                 {
                     var sourceDirectory = new AzureDirectory(storageAccount, indexContainer);
-                    directory = new RAMDirectory(sourceDirectory); // initial copy from storage to RAM
+                    directory = new RAMDirectoryWrapper(sourceDirectory); // initial copy from storage to RAM
 
                     azureDirectorySynchronizer = new AzureDirectorySynchronizer(sourceDirectory, directory);
                 }

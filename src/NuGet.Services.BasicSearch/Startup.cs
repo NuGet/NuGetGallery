@@ -71,6 +71,13 @@ namespace NuGet.Services.BasicSearch
             // Add Application Insights
             app.Use(typeof(RequestTrackingMiddleware));
 
+            // Enable HSTS
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Add("Strict-Transport-Security", new string[] { "max-age=31536000; includeSubDomains" });
+                await next.Invoke();
+            });
+
             // Enable CORS
             var corsPolicy = new CorsPolicy
             {

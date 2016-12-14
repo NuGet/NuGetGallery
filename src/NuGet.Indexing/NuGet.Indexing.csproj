@@ -234,6 +234,7 @@
     <Compile Include="Querys\DownloadsBoostedQuery.cs" />
     <Compile Include="Querys\DownloadsScoreProvider.cs" />
     <Compile Include="Querys\QueryBoostingContext.cs" />
+    <Compile Include="RAMDirectoryWrapper.cs" />
     <Compile Include="Ranking.cs" />
     <Compile Include="RankingBySegment.cs" />
     <Compile Include="RankingResult.cs" />

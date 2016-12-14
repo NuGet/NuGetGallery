@@ -59,7 +59,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             }
             else
             {
-                directory = new RAMDirectory();
+                directory = new RAMDirectoryWrapper();
             }
             
             using (var indexWriter = DocumentCreator.CreateIndexWriter(directory, true))
