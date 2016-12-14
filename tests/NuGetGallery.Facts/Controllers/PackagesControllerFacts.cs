@@ -609,7 +609,7 @@ namespace NuGetGallery
                 var controller = CreateController(searchService: searchService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var result = (await controller.ListPackages(" test ")) as ViewResult;
+                var result = (await controller.ListPackages(new PackageListSearchViewModel() { Q = " test "})) as ViewResult;
 
                 var model = result.Model as PackageListViewModel;
                 Assert.Equal("test", model.SearchTerm);
