@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Web.Mvc;
-using Microsoft.Owin.Security.MicrosoftAccount;
 using NuGetGallery.Configuration;
+using Microsoft.Owin.Security.RPS;
 using Owin;
 
 namespace NuGetGallery.Authentication.Providers.RPSMicrosoftAccount
@@ -13,11 +13,9 @@ namespace NuGetGallery.Authentication.Providers.RPSMicrosoftAccount
 
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
-            var options = new MicrosoftAccountAuthenticationOptions();
-            options.Scope.Add("wl.emails");
-            options.Scope.Add("wl.signin");
+            var options = new RPSAuthenticationOptions();
             Config.ApplyToOwinSecurityOptions(options);
-            app.UseMicrosoftAccountAuthentication(options);
+            app.UseRPSAuthentication(options);
         }
 
         public override AuthenticatorUI GetUI()

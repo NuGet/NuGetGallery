@@ -4,14 +4,16 @@ using System;
 using System.Configuration;
 using System.Globalization;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.MicrosoftAccount;
+using Microsoft.Owin.Security.RPS;
 
 namespace NuGetGallery.Authentication.Providers.RPSMicrosoftAccount
 {
     public class RPSMicrosoftAccountAuthenticatorConfiguration : AuthenticatorConfiguration
     {
-        public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
+        public string SiteId { get; set; }
+        public string AuthPolicy { get; set; }
+        public string CookieCertSKI { get; set; }
+        public string CookieDomain { get; set; }
 
         public RPSMicrosoftAccountAuthenticatorConfiguration()
         {
@@ -22,28 +24,52 @@ namespace NuGetGallery.Authentication.Providers.RPSMicrosoftAccount
         {
             base.ApplyToOwinSecurityOptions(options);
 
-            var opts = options as MicrosoftAccountAuthenticationOptions;
+            var opts = options as RPSAuthenticationOptions;
             if (opts != null)
             {
-                if (String.IsNullOrEmpty(ClientId))
+                if (String.IsNullOrEmpty(SiteId) || !uint.TryParse(SiteId, out uint siteId))
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
                         Strings.MissingRequiredConfigurationValue,
-                        "Auth.MicrosoftAccount.ClientId"));
+                        "Auth.RPSMicrosoftAccount.SiteId"));
                 }
 
-                opts.ClientId = ClientId;
+                opts.SiteId = siteId;
 
-                if (String.IsNullOrEmpty(ClientSecret))
+                if (String.IsNullOrEmpty(AuthPolicy))
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
                         Strings.MissingRequiredConfigurationValue,
-                        "Auth.MicrosoftAccount.ClientSecret"));
+                        "Auth.RPSMicrosoftAccount.AuthPolicy"));
                 }
 
-                opts.ClientSecret = ClientSecret;
+                opts.AuthenticationPolicy = AuthPolicy;
+
+                if (String.IsNullOrEmpty(CookieDomain))
+                {
+                    throw new ConfigurationErrorsException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.MissingRequiredConfigurationValue,
+                        "Auth.RPSMicrosoftAccount.CookieDomain"));
+                }
+
+                opts.AuthCookieName = RPSAuthenticationDefaults.AuthCookieName;
+                opts.AuthCookieDomain = CookieDomain;
+                opts.SecAuthCookieName = RPSAuthenticationDefaults.SecAuthCookieName;
+                opts.SecAuthCookieDomain = CookieDomain;
+
+                if (String.IsNullOrEmpty(CookieCertSKI))
+                {
+                    throw new ConfigurationErrorsException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.MissingRequiredConfigurationValue,
+                        "Auth.RPSMicrosoftAccount.CookieCertSKI"));
+                }
+
+                opts.CookieCertSKI = new string[] { CookieCertSKI };
+                opts.LogoutPath = "/";
             }
         }
     }
