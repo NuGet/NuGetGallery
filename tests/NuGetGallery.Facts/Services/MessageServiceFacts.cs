@@ -332,17 +332,34 @@ namespace NuGetGallery
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
-
+                const string userMessage = "Hello World!";
                 var messageService = new TestableMessageService();
-                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
+                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl, userMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
                 Assert.Equal("[Joe Shmoe] The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Subject);
+                Assert.Contains("The user 'Existing' added the following message for you", message.Body);
+                Assert.Contains(userMessage, message.Body);
                 Assert.Contains(confirmationUrl, message.Body);
+                Assert.Contains(userMessage, message.Body);
                 Assert.Contains("The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Body);
+            }
+
+            [Fact]
+            public void SendsPackageOwnerRequestConfirmationUrlWithoutUserMessage()
+            {
+                var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
+                var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+                const string confirmationUrl = "http://example.com/confirmation-token-url";
+                var messageService = new TestableMessageService();
+                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl, string.Empty);
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.DoesNotContain("The user 'Existing' added the following message for you", message.Body);
             }
 
             [Fact]
@@ -354,7 +371,7 @@ namespace NuGetGallery
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
 
                 var messageService = new TestableMessageService();
-                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
+                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl, string.Empty);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
@@ -423,7 +440,8 @@ namespace NuGetGallery
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel {
+                    .Returns(new CredentialViewModel
+                    {
                         AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account")
                     });
 
@@ -444,7 +462,8 @@ namespace NuGetGallery
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() {
+                    .Returns(new CredentialViewModel()
+                    {
                         TypeCaption = "Password"
                     });
 
@@ -468,7 +487,8 @@ namespace NuGetGallery
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel {
+                    .Returns(new CredentialViewModel
+                    {
                         AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account")
                     });
 
@@ -489,7 +509,8 @@ namespace NuGetGallery
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel {
+                    .Returns(new CredentialViewModel
+                    {
                         TypeCaption = "Password"
                     });
 

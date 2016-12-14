@@ -144,6 +144,7 @@
                                 Assigned to <span class="bold" data-bind="text: AssignedToGalleryUsername ? AssignedToGalleryUsername : ''"></span>.
                             </span>
                             <span data-bind="visible: AssignedTo === null" style="color: #ff0000">Not assigned!</span>
+                            <span data-bind="visible: IsRelatedToPackage"><br/>For package <a data-bind="text: PackageId + ' v' + PackageVersion, attr: { href: $parent.generatePackageDetailsUrl($data) }"></a></span>
                         </p>
                         <p>
                             <span class="italic" data-bind="html: Details"></span>

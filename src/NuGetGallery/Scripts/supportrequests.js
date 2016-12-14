@@ -208,6 +208,10 @@ function SupportRequestsViewModel(editUrl, filterUrl, historyUrl) {
         return '#';
     }
 
+    this.generatePackageDetailsUrl = function(supportRequestViewModel) {
+      return supportRequestViewModel.SiteRoot + 'packages/' + supportRequestViewModel.PackageId + '/' + supportRequestViewModel.PackageVersion;
+    }
+
     this.generateHistoryUrl = function (supportRequestViewModel) {
         return $self.historyUrl + '?id=' + supportRequestViewModel.Key;
     }
