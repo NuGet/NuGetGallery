@@ -83,15 +83,15 @@ namespace NuGetGallery.OData.QueryFilter
         /// If no operator is used the result will be <see cref="ODataOperators.none"/>.</returns>
         public static ODataOperators ODataOptionsMap<T>(ODataQueryOptions<T> odataOptions)
         {
-            ODataOperators result = ODataOperators.None;
             if(odataOptions == null)
             {
                 return 0;
             }
+            ODataOperators result = ODataOperators.None;
 
             foreach (var odataOperator in Enum.GetNames(typeof(ODataOperators)))
             {
-                var rawValuesProperty = typeof(ODataRawQueryOptions).GetProperty(odataOperator,);
+                var rawValuesProperty = typeof(ODataRawQueryOptions).GetProperty(odataOperator);
                 if (rawValuesProperty != null && rawValuesProperty.GetValue(odataOptions.RawValues, null) != null)
                 {
                     result |= (ODataOperators)Enum.Parse(typeof(ODataOperators), odataOperator, ignoreCase:true);

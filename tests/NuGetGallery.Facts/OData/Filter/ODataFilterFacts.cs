@@ -11,7 +11,7 @@ namespace NuGetGallery.OData.Filter
 {
     public class ODataFilterFacts
     {
-        static readonly string Host = "https://localhost:8081/";
+        const string Host = "https://localhost:8081/";
 
         [Theory]
         [InlineData("apiv2getupdates.json")]
