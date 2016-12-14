@@ -48,10 +48,16 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 string packageId = string.Format("TestV2FeedFindPackagesById.{0}", DateTime.UtcNow.Ticks);
 
                 TestOutputHelper.WriteLine("Uploading package '{0}'", packageId);
-                await _clientSdkHelper.UploadNewPackageAndVerify(packageId);
+                await _clientSdkHelper.UploadNewPackage(packageId);
 
                 TestOutputHelper.WriteLine("Uploaded package '{0}'", packageId);
-                await _clientSdkHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
+                await _clientSdkHelper.UploadNewPackage(packageId, "2.0.0");
+
+                _clientSdkHelper.VerifyPackageExistsInSource(packageId);
+                _clientSdkHelper.VerifyPackageExistsInSource(packageId, "2.0.0");
+
+                // Wait for two minutes to guarantee there's time for the feed to update with the package.
+                Thread.Sleep(2 * 60 * 1000);
 
                 string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
                 string[] expectedTexts =

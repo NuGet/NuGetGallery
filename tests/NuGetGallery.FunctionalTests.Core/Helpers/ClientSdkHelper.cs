@@ -68,7 +68,7 @@ namespace NuGetGallery.FunctionalTests
             SemanticVersion semVersion;
             var success = SemanticVersion.TryParse(version, out semVersion);
             const int interval = 30;
-            const int maxAttempts = 15;
+            const int maxAttempts = 30;
 
             if (success)
             {

@@ -26,6 +26,7 @@ namespace NuGetGallery.FunctionalTests
         internal static string PreReleaseSwitchString = " -Prerelease ";
         internal static string SourceSwitchString = " -Source ";
         internal static string ApiKeySwitchString = " -ApiKey ";
+        internal static string NonInteractiveSwitchString = " -noninteractive ";
         internal static string ExcludeVersionSwitchString = " -ExcludeVersion ";
         internal static string NugetExePath = @"NuGet.exe";
         internal static string SampleDependency = "SampleDependency";
@@ -46,7 +47,7 @@ namespace NuGetGallery.FunctionalTests
         {
             WriteLine("Uploading package " + packageFullPath + " to " + sourceName);
 
-            var arguments = string.Join(string.Empty, PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName, ApiKeySwitchString, EnvironmentSettings.TestAccountApiKey);
+            var arguments = string.Join(string.Empty, PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName, ApiKeySwitchString, EnvironmentSettings.TestAccountApiKey, NonInteractiveSwitchString);
             WriteLine("nuget.exe " + arguments);
 
             return await InvokeNugetProcess(arguments);
@@ -61,7 +62,7 @@ namespace NuGetGallery.FunctionalTests
         /// <returns></returns>
         public async Task<ProcessResult> DeletePackageAsync(string packageId, string version, string sourceName)
         {
-            var arguments = string.Join(string.Empty, DeleteCommandString, packageId, " ", version, SourceSwitchString, sourceName, ApiKeySwitchString, EnvironmentSettings.TestAccountApiKey);
+            var arguments = string.Join(string.Empty, DeleteCommandString, packageId, " ", version, SourceSwitchString, sourceName, ApiKeySwitchString, EnvironmentSettings.TestAccountApiKey, NonInteractiveSwitchString);
             return await InvokeNugetProcess(arguments);
         }
 
@@ -73,7 +74,7 @@ namespace NuGetGallery.FunctionalTests
         /// <returns></returns>
         public async Task<ProcessResult> InstallPackageAsync(string packageId, string sourceName)
         {
-            var arguments = string.Join(string.Empty, InstallCommandString, packageId, SourceSwitchString, sourceName);
+            var arguments = string.Join(string.Empty, InstallCommandString, packageId, SourceSwitchString, sourceName, NonInteractiveSwitchString);
             return await InvokeNugetProcess(arguments);
         }
 
@@ -86,7 +87,7 @@ namespace NuGetGallery.FunctionalTests
         /// <returns></returns>
         public async Task<ProcessResult> InstallPackageAsync(string packageId, string sourceName, string outputDirectory)
         {
-            var arguments = string.Join(string.Empty, InstallCommandString, packageId, SourceSwitchString, sourceName, OutputDirectorySwitchString, outputDirectory);
+            var arguments = string.Join(string.Empty, InstallCommandString, packageId, SourceSwitchString, sourceName, OutputDirectorySwitchString, outputDirectory, NonInteractiveSwitchString);
             return await InvokeNugetProcess(arguments);
         }
 
@@ -96,7 +97,7 @@ namespace NuGetGallery.FunctionalTests
         /// <returns></returns>
         public async Task<ProcessResult> UpdateNugetExeAsync()
         {
-            var arguments = string.Join(string.Empty, UpdateCommandString, "-self");
+            var arguments = string.Join(string.Empty, UpdateCommandString, "-self", NonInteractiveSwitchString);
             return await InvokeNugetProcess(arguments);
 
         }
