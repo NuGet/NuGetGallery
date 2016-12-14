@@ -41,12 +41,17 @@ namespace NuGetGallery.OData.QueryFilter
         public ODataQueryFilter(string fileName)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            StreamReader sr = new StreamReader(assembly.GetManifestResourceStream($"{ResourcesNamespace}.{fileName}"));
-            string json = sr.ReadToEnd(); 
-            ODataQueryRequest data = JsonConvert.DeserializeObject<ODataQueryRequest>(json);
-            _allowedOperatorPatterns = new HashSet<ODataOperators>(data.AllowedOperatorPatterns
-                .Select( (op) => { return (ODataOperators)Enum.Parse(typeof(ODataOperators), op, true); } ));
-            if (!_allowedOperatorPatterns.Contains(ODataOperators.None)) { _allowedOperatorPatterns.Add(ODataOperators.None); }
+            using (var sr = new StreamReader(assembly.GetManifestResourceStream($"{ResourcesNamespace}.{fileName}")))
+            {
+                var json = sr.ReadToEnd();
+                var data = JsonConvert.DeserializeObject<ODataQueryRequest>(json);
+                _allowedOperatorPatterns = new HashSet<ODataOperators>(data.AllowedOperatorPatterns
+                    .Select((op) => { return (ODataOperators)Enum.Parse(typeof(ODataOperators), op, ignoreCase:true); }));
+                if (!_allowedOperatorPatterns.Contains(ODataOperators.None))
+                {
+                    _allowedOperatorPatterns.Add(ODataOperators.None);
+                }
+            }
         }
 
         public ODataQueryFilter()
@@ -72,8 +77,8 @@ namespace NuGetGallery.OData.QueryFilter
         /// Parses <paramref name="odataOptions"/> used parameters and returns <see cref="ODataOperators"/> 
         /// that represents the set of operators used by this odataOptions.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="odataOptions"></param>
+        /// <typeparam name="T">The entity type for the odataOptions.</typeparam>
+        /// <param name="odataOptions">The <see cref="ODataQueryOptions"/> to be validated.</param>
         /// <returns>The <see cref="ODataOperators"/> representation of the operators in the OData options. 
         /// If no operator is used the result will be <see cref="ODataOperators.none"/>.</returns>
         public static ODataOperators ODataOptionsMap<T>(ODataQueryOptions<T> odataOptions)
@@ -86,10 +91,10 @@ namespace NuGetGallery.OData.QueryFilter
 
             foreach (var odataOperator in Enum.GetNames(typeof(ODataOperators)))
             {
-                var rawValuesProperty = typeof(ODataRawQueryOptions).GetProperty(odataOperator);
+                var rawValuesProperty = typeof(ODataRawQueryOptions).GetProperty(odataOperator,);
                 if (rawValuesProperty != null && rawValuesProperty.GetValue(odataOptions.RawValues, null) != null)
                 {
-                    result |= (ODataOperators)Enum.Parse(typeof(ODataOperators), odataOperator);
+                    result |= (ODataOperators)Enum.Parse(typeof(ODataOperators), odataOperator, ignoreCase:true);
                 }
             }
 

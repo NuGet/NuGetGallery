@@ -93,7 +93,7 @@ namespace NuGetGallery.Controllers
 
             //Reject only when try to reach database.
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2Packages,
-                _configurationService.Current.ODataFilterEnabled, nameof(Get)))
+                _configurationService.Current.IsODataFilterEnabled, nameof(Get)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
@@ -268,7 +268,7 @@ namespace NuGetGallery.Controllers
             }
             //Reject only when try to reach database.
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2Search,
-                _configurationService.Current.ODataFilterEnabled, nameof(Search)))
+                _configurationService.Current.IsODataFilterEnabled, nameof(Search)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
@@ -309,7 +309,7 @@ namespace NuGetGallery.Controllers
             }
 
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2GetUpdates,
-                _configurationService.Current.ODataFilterEnabled, nameof(GetUpdates)))
+                _configurationService.Current.IsODataFilterEnabled, nameof(GetUpdates)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }

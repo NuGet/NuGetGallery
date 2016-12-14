@@ -154,6 +154,13 @@ namespace NuGetGallery.FunctionalTests
             return responseText;
         }
 
+        public async Task<WebResponse> SendRequest(string url)
+        {
+            var request = WebRequest.Create(url);
+            var response = await request.GetResponseAsync().ConfigureAwait(false);
+            return response;
+        }
+
         public async Task DownloadPackageFromV2FeedWithOperation(string packageId, string version, string operation)
         {
             string filename = await DownloadPackageFromFeed(packageId, version, operation);

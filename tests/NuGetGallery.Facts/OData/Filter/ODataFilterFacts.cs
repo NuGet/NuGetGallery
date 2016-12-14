@@ -27,7 +27,7 @@ namespace NuGetGallery.OData.Filter
             var queryFilter = new ODataQueryFilter(apiResourceFileName);
 
             // Act
-            var result = ODataQueryVerifier.AreODataOptionsAllowed(odataOptions, queryFilter,"TestContext");
+            var result = ODataQueryVerifier.AreODataOptionsAllowed(odataOptions, queryFilter, true,"TestContext");
 
             // Assert
             Assert.True(result, "A request with no OData operators should be allowed.");
@@ -46,7 +46,7 @@ namespace NuGetGallery.OData.Filter
             var queryFilter = new ODataQueryFilter(apiResourceFileName);
 
             // Act
-            var result = ODataQueryVerifier.AreODataOptionsAllowed(odataOptions, queryFilter, "TestContext");
+            var result = ODataQueryVerifier.AreODataOptionsAllowed(odataOptions, queryFilter, true, "TestContext");
 
             // Assert
             Assert.True(result, "A request with no OData operators should be allowed.");

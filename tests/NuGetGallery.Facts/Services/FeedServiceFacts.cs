@@ -222,7 +222,7 @@ namespace NuGetGallery
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
                         <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
@@ -274,7 +274,7 @@ namespace NuGetGallery
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
                         <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
@@ -425,7 +425,7 @@ namespace NuGetGallery
                     var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = true });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
                         <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
@@ -462,7 +462,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -502,7 +502,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
                     searchService.CallBase = true;
@@ -542,7 +542,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     bool called = false;
                     var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
@@ -584,7 +584,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -624,7 +624,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -657,7 +657,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -688,7 +688,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -889,7 +889,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -935,7 +935,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
@@ -983,7 +983,7 @@ namespace NuGetGallery
                     // Arrange
                     var repo = Mock.Of<IEntityRepository<Package>>();
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Default);
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1021,7 +1021,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1062,7 +1062,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1112,7 +1112,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1151,7 +1151,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1195,7 +1195,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1240,7 +1240,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1284,7 +1284,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1322,7 +1322,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1366,7 +1366,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1409,7 +1409,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1449,7 +1449,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1490,7 +1490,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1562,7 +1562,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1641,7 +1641,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = false });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
@@ -1717,7 +1717,7 @@ namespace NuGetGallery
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Default);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { ODataFilterEnabled = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = true });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns

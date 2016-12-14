@@ -214,6 +214,6 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets/sets a bool that indicates if the OData requests will be filtered.
         /// </summary>
-        public bool ODataFilterEnabled { get; set; }
+        public bool IsODataFilterEnabled { get; set; }
     }
 }

@@ -11,15 +11,15 @@ namespace NuGetGallery.OData.QueryFilter
     public class ODataQueryVerifier
     {
         private static Lazy<ODataQueryFilter> _v2GetUpdates =
-            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv2getupdates.json"); },true);
+            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv2getupdates.json"); }, isThreadSafe: true);
         private static Lazy<ODataQueryFilter> _v2Packages =
-            new Lazy<ODataQueryFilter>(() =>{ return new ODataQueryFilter("apiv2packages.json"); }, true);
+            new Lazy<ODataQueryFilter>(() =>{ return new ODataQueryFilter("apiv2packages.json"); }, isThreadSafe: true);
         private static Lazy<ODataQueryFilter> _v2Search =
-            new Lazy<ODataQueryFilter>(() =>{ return new ODataQueryFilter("apiv2search.json"); }, true);
+            new Lazy<ODataQueryFilter>(() =>{ return new ODataQueryFilter("apiv2search.json"); }, isThreadSafe: true);
         private static Lazy<ODataQueryFilter> _v1Packages =
-            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1packages.json"); }, true);
+            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1packages.json"); }, isThreadSafe: true);
         private static Lazy<ODataQueryFilter> _v1Search =
-            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1search.json");}, true); 
+            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1search.json");}, isThreadSafe: true); 
 
         #region Filters for ODataV2FeedController
         /// <summary>

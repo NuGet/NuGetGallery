@@ -45,7 +45,7 @@ namespace NuGetGallery.Controllers
         public IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options)
         {
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Packages, 
-                _configurationService.Current.ODataFilterEnabled, nameof(Get)))
+                _configurationService.Current.IsODataFilterEnabled, nameof(Get)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
@@ -207,7 +207,7 @@ namespace NuGetGallery.Controllers
             }
 
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Search,
-                _configurationService.Current.ODataFilterEnabled, nameof(Search)))
+                _configurationService.Current.IsODataFilterEnabled, nameof(Search)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
