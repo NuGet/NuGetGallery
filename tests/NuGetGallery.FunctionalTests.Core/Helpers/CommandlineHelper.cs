@@ -16,7 +16,7 @@ namespace NuGetGallery.FunctionalTests
         : HelperBase
     {
         internal static string AnalyzeCommandString = " analyze ";
-        internal static string SpecCommandString = " spec -f ";
+        internal static string SpecCommandString = " spec -force ";
         internal static string PackCommandString = " pack ";
         internal static string UpdateCommandString = " update ";
         internal static string InstallCommandString = " install ";
