@@ -23,7 +23,7 @@ namespace NuGetGallery.Authentication.Providers.RPSMicrosoftAccount
         public override AuthenticatorUI GetUI()
         {
             return new AuthenticatorUI(
-                Strings.MicrosoftAccount_SignInMessage,
+                "Sign in with a RPS Microsoft account",
                 Strings.MicrosoftAccount_AccountNoun,
                 Strings.MicrosoftAccount_Caption)
                 {
