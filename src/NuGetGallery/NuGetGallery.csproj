@@ -827,6 +827,9 @@
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
     <Compile Include="OData\QueryInterceptors\NormalizeVersionInterceptor.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryFilter.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryVerifier.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryRequest.cs" />
     <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -1640,6 +1643,11 @@
     <Content Include="Scripts\d3.v3.min.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
