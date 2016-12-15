@@ -56,9 +56,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 _clientSdkHelper.VerifyPackageExistsInSource(packageId);
                 _clientSdkHelper.VerifyPackageExistsInSource(packageId, "2.0.0");
 
-                // Wait for two minutes to guarantee there's time for the feed to update with the package.
-                Thread.Sleep(2 * 60 * 1000);
-
                 string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
                 string[] expectedTexts =
                 {

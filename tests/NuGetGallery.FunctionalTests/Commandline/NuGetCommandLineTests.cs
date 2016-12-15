@@ -82,9 +82,6 @@ namespace NuGetGallery.FunctionalTests.Commandline
                 var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageId, UrlHelper.V2FeedRootUrl);
                 Assert.True(packageVersionExistsInSource, userMessage);
 
-                // Wait for two minutes to guarantee there's time for the feed to update with the package.
-                Thread.Sleep(2 * 60 * 1000);
-
                 //Delete package from local disk so once it gets uploaded
                 if (File.Exists(packageFullPath))
                 {

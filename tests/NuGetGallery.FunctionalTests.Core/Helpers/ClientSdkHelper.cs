@@ -67,24 +67,24 @@ namespace NuGetGallery.FunctionalTests
             var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
             SemanticVersion semVersion;
             var success = SemanticVersion.TryParse(version, out semVersion);
-            const int interval = 30;
+            const int intervalSec = 30;
             const int maxAttempts = 30;
 
             if (success)
             {
                 try
                 {
-                    WriteLine("Starting package verification checks ({0} attempts, interval {1} seconds).", maxAttempts, interval);
+                    WriteLine("Starting package verification checks ({0} attempts, interval {1} seconds).", maxAttempts, intervalSec);
                     // Wait for the search service to kick in, so that the package can be found via FindPackage(packageId, SemanticVersion)
                     Thread.Sleep(5000);
 
                     for (var i = 0; ((i < maxAttempts) && (!found)); i++)
                     {
-                        WriteLine("[verification attempt {0}]: Waiting {1} seconds before next check...", i, interval);
+                        WriteLine("[verification attempt {0}]: Waiting {1} seconds before next check...", i, intervalSec);
 
                         if (i != 0)
                         {
-                            Thread.Sleep(interval * 1000);
+                            Thread.Sleep(intervalSec * 1000);
                         }
 
                         WriteLine("[verification attempt {0}]: Checking if package {1} with version {2} exists in source {3}... ", i, packageId, version, sourceUrl);
