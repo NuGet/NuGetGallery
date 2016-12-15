@@ -41,7 +41,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
             if (UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org"))
             {
                 string packageId = Constants.TestPackageId; //try to download a pre-defined test package.
-                _clientSdkHelper.ClearLocalPackageFolder(packageId);
+                _clientSdkHelper.ClearLocalPackageFolder(packageId, ClientSdkHelper.GetLatestStableVersion(packageId));
 
                 var result = await _commandlineHelper.InstallPackageAsync(packageId, UrlHelper.V2FeedRootUrl, Environment.CurrentDirectory);
 

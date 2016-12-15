@@ -289,10 +289,9 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Clears the local package folder.
         /// </summary>
-        public void ClearLocalPackageFolder(string packageId)
+        public void ClearLocalPackageFolder(string packageId, string version = "1.0.0")
         {
-            string packageVersion = GetLatestStableVersion(packageId);
-            string expectedDownloadedNupkgFileName = packageId + "." + packageVersion;
+            string expectedDownloadedNupkgFileName = packageId + "." + version;
             string pathToNupkgFolder = Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName);
             WriteLine("Path to the downloaded Nupkg file for clearing local package folder is: " + pathToNupkgFolder);
             if (Directory.Exists(pathToNupkgFolder))
@@ -339,7 +338,7 @@ namespace NuGetGallery.FunctionalTests
         public void DownloadPackageAndVerify(string packageId, string version = "1.0.0")
         {
             ClearMachineCache();
-            ClearLocalPackageFolder(packageId);
+            ClearLocalPackageFolder(packageId, version);
 
             var packageRepository = PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl);
             var packageManager = new PackageManager(packageRepository, Environment.CurrentDirectory);
