@@ -44,10 +44,9 @@ namespace NuGetGallery.FunctionalTests
             }
 
             Directory.CreateDirectory(packageDir);
-
-            var arguments = string.Join(string.Empty, CommandlineHelper.SpecCommandString, packageName);
+            
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-            await commandlineHelper.InvokeNugetProcess(arguments, packageDir);
+            await commandlineHelper.SpecPackageAsync(packageName, packageDir);
 
             string filePath = Path.Combine(packageDir, packageName + ".nuspec");
             RemoveSampleNuspecValues(filePath);

@@ -67,24 +67,24 @@ namespace NuGetGallery.FunctionalTests
             var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
             SemanticVersion semVersion;
             var success = SemanticVersion.TryParse(version, out semVersion);
-            const int interval = 30;
-            const int maxAttempts = 15;
+            const int intervalSec = 30;
+            const int maxAttempts = 30;
 
             if (success)
             {
                 try
                 {
-                    WriteLine("Starting package verification checks ({0} attempts, interval {1} seconds).", maxAttempts, interval);
+                    WriteLine("Starting package verification checks ({0} attempts, interval {1} seconds).", maxAttempts, intervalSec);
                     // Wait for the search service to kick in, so that the package can be found via FindPackage(packageId, SemanticVersion)
                     Thread.Sleep(5000);
 
                     for (var i = 0; ((i < maxAttempts) && (!found)); i++)
                     {
-                        WriteLine("[verification attempt {0}]: Waiting {1} seconds before next check...", i, interval);
+                        WriteLine("[verification attempt {0}]: Waiting {1} seconds before next check...", i, intervalSec);
 
                         if (i != 0)
                         {
-                            Thread.Sleep(interval * 1000);
+                            Thread.Sleep(intervalSec * 1000);
                         }
 
                         WriteLine("[verification attempt {0}]: Checking if package {1} with version {2} exists in source {3}... ", i, packageId, version, sourceUrl);
@@ -289,10 +289,9 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Clears the local package folder.
         /// </summary>
-        public void ClearLocalPackageFolder(string packageId)
+        public void ClearLocalPackageFolder(string packageId, string version = "1.0.0")
         {
-            string packageVersion = GetLatestStableVersion(packageId);
-            string expectedDownloadedNupkgFileName = packageId + "." + packageVersion;
+            string expectedDownloadedNupkgFileName = packageId + "." + version;
             string pathToNupkgFolder = Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName);
             WriteLine("Path to the downloaded Nupkg file for clearing local package folder is: " + pathToNupkgFolder);
             if (Directory.Exists(pathToNupkgFolder))
@@ -339,7 +338,7 @@ namespace NuGetGallery.FunctionalTests
         public void DownloadPackageAndVerify(string packageId, string version = "1.0.0")
         {
             ClearMachineCache();
-            ClearLocalPackageFolder(packageId);
+            ClearLocalPackageFolder(packageId, version);
 
             var packageRepository = PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl);
             var packageManager = new PackageManager(packageRepository, Environment.CurrentDirectory);
