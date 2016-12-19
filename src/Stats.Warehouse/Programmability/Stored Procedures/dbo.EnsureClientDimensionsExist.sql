@@ -7,10 +7,10 @@ BEGIN
 	DECLARE @results TABLE
 	(
 		[Id]				INT				NOT NULL,
-		[UserAgent]         VARCHAR(MAX)	NULL
+		[UserAgent]         NVARCHAR(MAX)	NULL
 	)
 
-	DECLARE @UserAgent VARCHAR(MAX)
+	DECLARE @UserAgent NVARCHAR(MAX)
 	DECLARE @ClientName VARCHAR(128)
 	DECLARE @Major VARCHAR(50)
 	DECLARE @Minor VARCHAR(50)

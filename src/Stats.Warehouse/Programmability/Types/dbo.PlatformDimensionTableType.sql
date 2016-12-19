@@ -1,6 +1,6 @@
 ﻿CREATE TYPE [dbo].[PlatformDimensionTableType] AS TABLE
 (
-	[UserAgent]			VARCHAR(MAX)	NULL,
+	[UserAgent]			NVARCHAR(MAX)	NULL,
 	[OSFamily]          VARCHAR(128)	NULL,
 	[Major]				VARCHAR(50)		NULL,
     [Minor]				VARCHAR(50)		NULL,
