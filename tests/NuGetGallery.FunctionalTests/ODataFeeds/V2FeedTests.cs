@@ -91,7 +91,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         {
             //If the search engine will be changed to handle the types of requests passed as inputs; the test inputs need to be changed.
             var request = UrlHelper.V2FeedRootUrl + requestParametrs;
-            await Assert.ThrowsAsync<WebException>(async () => { await _odataHelper.SendRequest(request); });
+            await Assert.ThrowsAsync<WebException>(async () =>
+            {
+                using (await _odataHelper.SendRequest(request))
+                {
+                }
+            });
         }
     }
 }
