@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -15,18 +16,20 @@ namespace NuGetGallery.FunctionalTests
     public class CommandlineHelper
         : HelperBase
     {
-        internal static string AnalyzeCommandString = " analyze ";
-        internal static string SpecCommandString = " spec -force ";
-        internal static string PackCommandString = " pack ";
-        internal static string UpdateCommandString = " update ";
-        internal static string InstallCommandString = " install ";
-        internal static string DeleteCommandString = " delete ";
-        internal static string PushCommandString = " push ";
-        internal static string OutputDirectorySwitchString = " -OutputDirectory ";
-        internal static string PreReleaseSwitchString = " -Prerelease ";
-        internal static string SourceSwitchString = " -Source ";
-        internal static string ApiKeySwitchString = " -ApiKey ";
-        internal static string ExcludeVersionSwitchString = " -ExcludeVersion ";
+        internal static string AnalyzeCommandString = "analyze";
+        internal static string SpecCommandString = "spec -force";
+        internal static string PackCommandString = "pack";
+        internal static string UpdateCommandString = "update";
+        internal static string InstallCommandString = "install";
+        internal static string DeleteCommandString = "delete";
+        internal static string PushCommandString = "push";
+        internal static string OutputDirectorySwitchString = "-OutputDirectory";
+        internal static string PreReleaseSwitchString = "-Prerelease";
+        internal static string SourceSwitchString = "-Source";
+        internal static string ApiKeySwitchString = "-ApiKey";
+        internal static string SelfSwitch = "-self";
+        internal static string NonInteractiveSwitchString = "-noninteractive";
+        internal static string ExcludeVersionSwitchString = "-ExcludeVersion";
         internal static string NugetExePath = @"NuGet.exe";
         internal static string SampleDependency = "SampleDependency";
         internal static string SampleDependencyVersion = "1.0";
@@ -46,9 +49,11 @@ namespace NuGetGallery.FunctionalTests
         {
             WriteLine("Uploading package " + packageFullPath + " to " + sourceName);
 
-            var arguments = string.Join(string.Empty, PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName, ApiKeySwitchString, EnvironmentSettings.TestAccountApiKey);
-            WriteLine("nuget.exe " + arguments);
-
+            var arguments = new List<string>
+            {
+                PushCommandString, packageFullPath, SourceSwitchString, sourceName, ApiKeySwitchString,
+                EnvironmentSettings.TestAccountApiKey
+            };
             return await InvokeNugetProcess(arguments);
         }
 
@@ -61,7 +66,13 @@ namespace NuGetGallery.FunctionalTests
         /// <returns></returns>
         public async Task<ProcessResult> DeletePackageAsync(string packageId, string version, string sourceName)
         {
-            var arguments = string.Join(string.Empty, DeleteCommandString, packageId, " ", version, SourceSwitchString, sourceName, ApiKeySwitchString, EnvironmentSettings.TestAccountApiKey);
+            WriteLine("Deleting package " + packageId + " with version " + version + " from " + sourceName);
+
+            var arguments = new List<string>
+            {
+                DeleteCommandString, packageId, version, SourceSwitchString, sourceName, ApiKeySwitchString,
+                EnvironmentSettings.TestAccountApiKey
+            };
             return await InvokeNugetProcess(arguments);
         }
 
@@ -73,7 +84,12 @@ namespace NuGetGallery.FunctionalTests
         /// <returns></returns>
         public async Task<ProcessResult> InstallPackageAsync(string packageId, string sourceName)
         {
-            var arguments = string.Join(string.Empty, InstallCommandString, packageId, SourceSwitchString, sourceName);
+            WriteLine("Installing package " + packageId + " from " + sourceName);
+
+            var arguments = new List<string>
+            {
+                InstallCommandString, packageId, SourceSwitchString, sourceName
+            };
             return await InvokeNugetProcess(arguments);
         }
 
@@ -86,8 +102,32 @@ namespace NuGetGallery.FunctionalTests
         /// <returns></returns>
         public async Task<ProcessResult> InstallPackageAsync(string packageId, string sourceName, string outputDirectory)
         {
-            var arguments = string.Join(string.Empty, InstallCommandString, packageId, SourceSwitchString, sourceName, OutputDirectorySwitchString, outputDirectory);
+            WriteLine("Installing package " + packageId + " from " + sourceName + " to " + outputDirectory);
+
+            var arguments = new List<string>
+            {
+                InstallCommandString, packageId, SourceSwitchString, sourceName, OutputDirectorySwitchString,
+                outputDirectory
+            };
             return await InvokeNugetProcess(arguments);
+        }
+
+        public async Task<ProcessResult> SpecPackageAsync(string packageName, string packageDir)
+        {
+            var arguments = new List<string>
+            {
+                SpecCommandString, packageName
+            };
+            return await InvokeNugetProcess(arguments, packageDir);
+        }
+
+        public async Task<ProcessResult> PackPackageAsync(string nuspecFileFullPath, string nuspecDir)
+        {
+            var arguments = new List<string>
+            {
+                PackCommandString, nuspecFileFullPath, OutputDirectorySwitchString, nuspecDir
+            };
+            return await InvokeNugetProcess(arguments, Path.GetFullPath(Path.GetDirectoryName(nuspecFileFullPath)));
         }
 
         /// <summary>
@@ -96,7 +136,10 @@ namespace NuGetGallery.FunctionalTests
         /// <returns></returns>
         public async Task<ProcessResult> UpdateNugetExeAsync()
         {
-            var arguments = string.Join(string.Empty, UpdateCommandString, "-self");
+            var arguments = new List<string>
+            {
+                UpdateCommandString, SelfSwitch
+            };
             return await InvokeNugetProcess(arguments);
 
         }
@@ -108,16 +151,19 @@ namespace NuGetGallery.FunctionalTests
         /// <param name="workingDir">working dir if any to be used</param>
         /// <param name="timeout">Timeout in seconds (default = 6min).</param>
         /// <returns></returns>
-        public async Task<ProcessResult> InvokeNugetProcess(string arguments, string workingDir = null, int timeout = 360)
+        public async Task<ProcessResult> InvokeNugetProcess(List<string> arguments, string workingDir = null, int timeout = 360)
         {
             var nugetProcess = new Process();
             var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
 
-            WriteLine("The NuGet.exe command to be executed is: " + pathToNugetExe + " " + arguments);
+            arguments.Add(NonInteractiveSwitchString);
+            var argumentsString = string.Join(" ", arguments);
+
+            WriteLine("The NuGet.exe command to be executed is: " + pathToNugetExe + " " + argumentsString);
 
             // During the actual test run, a script will copy the latest NuGet.exe and overwrite the existing one
             ProcessStartInfo nugetProcessStartInfo = new ProcessStartInfo(pathToNugetExe);
-            nugetProcessStartInfo.Arguments = arguments;
+            nugetProcessStartInfo.Arguments = argumentsString;
             nugetProcessStartInfo.RedirectStandardError = true;
             nugetProcessStartInfo.RedirectStandardOutput = true;
             nugetProcessStartInfo.RedirectStandardInput = true;
