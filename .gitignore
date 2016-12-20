@@ -187,3 +187,7 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 *.webtestresult
+
+# Vs2015
+
+.vs/config/applicationhost.config

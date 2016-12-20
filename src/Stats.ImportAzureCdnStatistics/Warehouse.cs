@@ -713,6 +713,7 @@ namespace Stats.ImportAzureCdnStatistics
                         {
                             results.Add(package);
                         }
+
                         if (!_cachedPackageDimensions.Contains(package))
                         {
                             _cachedPackageDimensions.Add(package);
@@ -1062,7 +1063,10 @@ namespace Stats.ImportAzureCdnStatistics
                             _cachedUserAgentFacts.Add(userAgent, userAgentId);
                         }
 
-                        results.Add(userAgent, userAgentId);
+                        if (!results.ContainsKey(userAgent))
+                        {
+                            results.Add(userAgent, userAgentId);
+                        }
                     }
                 }
             }

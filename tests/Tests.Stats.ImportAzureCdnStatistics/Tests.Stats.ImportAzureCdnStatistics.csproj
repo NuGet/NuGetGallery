@@ -97,6 +97,7 @@
   <ItemGroup>
     <Compile Include="CdnLogCustomFieldParserFacts.cs" />
     <Compile Include="PackageDefinitionFacts.cs" />
+    <Compile Include="PackageDimensionFacts.cs" />
     <Compile Include="PackageTranslatorFacts.cs" />
     <Compile Include="StatisticsParserFacts.cs" />
     <Compile Include="ToolStatisticsParserFacts.cs" />
