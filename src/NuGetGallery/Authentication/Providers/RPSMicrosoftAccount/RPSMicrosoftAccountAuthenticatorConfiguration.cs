@@ -46,7 +46,7 @@ namespace NuGetGallery.Authentication.Providers.RPSMicrosoftAccount
                 }
 
                 opts.AuthenticationPolicy = AuthPolicy;
-
+                /*
                 if (String.IsNullOrEmpty(CookieDomain))
                 {
                     throw new ConfigurationErrorsException(String.Format(
@@ -59,7 +59,7 @@ namespace NuGetGallery.Authentication.Providers.RPSMicrosoftAccount
                 opts.AuthCookieDomain = CookieDomain;
                 opts.SecAuthCookieName = RPSAuthenticationDefaults.SecAuthCookieName;
                 opts.SecAuthCookieDomain = CookieDomain;
-
+                */
                 if (String.IsNullOrEmpty(CookieCertSKI))
                 {
                     throw new ConfigurationErrorsException(String.Format(
@@ -70,6 +70,7 @@ namespace NuGetGallery.Authentication.Providers.RPSMicrosoftAccount
 
                 opts.CookieCertSKI = new string[] { CookieCertSKI };
                 opts.LogoutPath = "/";
+                opts.ReturnURL = "https://nuget.localtest.me/";
             }
         }
     }

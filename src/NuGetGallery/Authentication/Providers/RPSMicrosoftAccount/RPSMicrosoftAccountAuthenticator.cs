@@ -31,6 +31,8 @@ namespace NuGetGallery.Authentication.Providers.RPSMicrosoftAccount
 
         public override ActionResult Challenge(string redirectUrl)
         {
+            //TODO : Need a better way to get full url
+            redirectUrl = "https://nuget.localtest.me" + redirectUrl;
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }
     }

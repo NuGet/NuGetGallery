@@ -488,8 +488,12 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)
         {
-            var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);
-            if (result == null)
+            var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);  // This method doesn't treat RPS auth as External type, why?
+            var contextIdentity = context.Authentication.User?.Identity;
+            var identity = result == null && contextIdentity?.AuthenticationType == AuthenticationTypes.RPS
+                ? contextIdentity           // Need to convert this IIdentity to ClaimsIdentity for RPS Auth
+                : result.Identity;
+            if (identity == null)
             {
                 _trace.Information("No external login found.");
                 return new AuthenticateExternalLoginResult();
