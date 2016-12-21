@@ -7,7 +7,7 @@
 }
 
 @section BottomScripts {
-    @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
+    @Scripts.Render("~/Scripts/jquery-ui-1.12.1.js")
     <script>
         $(function () {
             function RunValidationForEvent(event) {
@@ -82,8 +82,8 @@
                 </text>
             }
 
-            $("#Edit_ProjectUrl").bind("focusin focusout", RunValidationForEvent);
-            $("#Edit_IconUrl").bind("focusin focusout", UpdateIconAndRunValidation);
+            $("#Edit_ProjectUrl").on("focusin focusout", RunValidationForEvent);
+            $("#Edit_IconUrl").on("focusin focusout", UpdateIconAndRunValidation);
 
             $("#UndoEdit_IconUrl").click(function () {
                 var validator = $.data($("#Edit_IconUrl")[0].form, "validator");

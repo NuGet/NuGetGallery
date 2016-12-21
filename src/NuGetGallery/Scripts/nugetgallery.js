@@ -47,7 +47,7 @@
 
     // Attach script plugins
     function attachPlugins() {
-        $('.s-toggle[data-show][data-hide]').delegate('', 'click', function (evt) {
+        $('.s-toggle[data-show][data-hide]').on('click', '', function (evt) {
             evt.preventDefault();
             var $hide = $($(this).data().hide);
             var $show = $($(this).data().show);
@@ -55,7 +55,7 @@
                 $show.fadeIn('fast');
             });
         });
-        $('.s-expand[data-target]').delegate('', 'click', function (evt) {
+        $('.s-expand[data-target]').on('click', '', function (evt) {
             evt.preventDefault();
             var $self = $(this);
             var data = $self.data();
@@ -68,7 +68,7 @@
                 data.toggletext = oldText;
             });
         });
-        $('.s-confirm[data-confirm]').delegate('', 'click', function (evt) {
+        $('.s-confirm[data-confirm]').click('on', '', function (evt) {
             if (!confirm($(this).data().confirm)) {
                 evt.preventDefault();
             }
