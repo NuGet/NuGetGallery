@@ -339,45 +339,9 @@
     @**************************
             API Key
     **************************@
-    @{
-        var apiKeys = credGroups.ContainsKey(CredentialKind.Token)
-            ? credGroups[CredentialKind.Token]
-            : new List<CredentialViewModel>();
-
-        // Auto-expand when we just generated a new key or when an API key has expired or api key deleted
-        var shouldExpandApiKeyAccordion = 
-            TempData["NewCredentialValue"] != null ||
-            apiKeys.Any(k => k.HasExpired) ||
-            string.Equals(TempData["Message"], Strings.CredentialRemoved);
-    }
-
-    @ViewHelpers.AccordionBar(
-        groupName: "editprofile",
-        page: this,
-        title: @<text>API Keys</text>,
-        enabled: CurrentUser.Confirmed,
-        expanded: shouldExpandApiKeyAccordion,
-        actions: @<text>
-                     @if (!CurrentUser.Confirmed)
-                     {
-                         <text>You need to
-                             <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Keys</text>
-                     }
-                     else
-                     {
-                         if (apiKeys.Count == 0)
-                         {
-                             <text>You don't have any API keys yet.</text>
-                         }
-                         else if (apiKeys.Any(k => k.HasExpired))
-                         {
-                             <span class="apiKeyExpired">One of your API keys has expired</span>
-                         }
-
-                         @item.ExpandLink("Show details", "Hide details")
-                     }
-                  </text>,
-        content: @<text> @Html.Partial("ApiKeys", Model) </text>)
+    
+    @Html.Partial("ApiKeys", Model)
+  
 </ul>
 
 @section bottomScripts {

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -492,20 +493,25 @@ namespace NuGetGallery
             var passwordCred = user.Credentials.SingleOrDefault(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
 
-            return RemoveCredential(user, passwordCred, Strings.PasswordRemoved);
+            return RemoveCredentialInternal(user, passwordCred, Strings.PasswordRemoved);
         }
 
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual Task<ActionResult> RemoveCredential(string credentialType, int? credentialKey)
+        public virtual async Task<ActionResult> RemoveCredential(string credentialType, int? credentialKey)
         {
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
                     && CredentialKeyMatches(credentialKey, c));
 
-            return RemoveCredential(user, cred, Strings.CredentialRemoved);
+            if (credentialType == CredentialTypes.ApiKeyV1)
+            {
+                return await RemoveApiKeyCredential(user, cred);
+            }
+
+            return await RemoveCredentialInternal(user, cred, Strings.CredentialRemoved);
         }
 
         [HttpPost]
@@ -523,18 +529,32 @@ namespace NuGetGallery
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
                     && CredentialKeyMatches(credentialKey, c));
 
-            if (cred != null && cred.Scopes.AnySafe())
+            if (cred == null)
             {
-                await GenerateApiKeyInternal(
-                    cred.Description,
-                    BuildScopes(cred.Scopes),
-                    cred.ExpirationTicks.HasValue
-                        ? new TimeSpan(cred.ExpirationTicks.Value) : new TimeSpan?());
-
-                await _authService.RemoveCredential(user, cred);
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
             }
 
-            return RedirectToAction("Account");
+            // Legacy api key
+            if (!cred.Scopes.AnySafe())
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
+            }
+
+           
+            var newCredential = await GenerateApiKeyInternal(
+                cred.Description,
+                BuildScopes(cred.Scopes),
+                cred.ExpirationTicks.HasValue
+                    ? new TimeSpan(cred.ExpirationTicks.Value) : new TimeSpan?());
+
+            await _authService.RemoveCredential(user, cred);
+
+            var credentialViewModel = _authService.DescribeCredential(newCredential);
+            credentialViewModel.Value = newCredential.Value;
+
+            return Json(credentialViewModel);
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -557,15 +577,14 @@ namespace NuGetGallery
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
                     && CredentialKeyMatches(credentialKey, c));
 
-            if (cred != null)
+            if (cred == null)
             {
-                await _authService.ExpireCredential(user, cred);
-
-                TempData["Message"] = Strings.CredentialExpired;
-                TempData["ModifiedCredentialKey"] = cred.Key;
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
             }
 
-            return RedirectToAction("Account");
+            await _authService.ExpireCredential(user, cred);
+            return Json(Strings.CredentialExpired);
         }
 
         [HttpGet]
@@ -581,8 +600,8 @@ namespace NuGetGallery
         {
             if (string.IsNullOrWhiteSpace(description))
             {
-                TempData["Message"] = Strings.ApiKeyDescriptionRequired;
-                return RedirectToAction("Account");
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.ApiKeyDescriptionRequired);
             }
 
             // Set expiration
@@ -597,12 +616,14 @@ namespace NuGetGallery
                 }
             }
 
-            await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects?.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()), expiration);
+            var newCredential = await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects?.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()), expiration);
+            var credentialViewModel = _authService.DescribeCredential(newCredential);
+            credentialViewModel.Value = newCredential.Value;
 
-            return RedirectToAction("Account");
+            return Json(credentialViewModel);
         }
 
-        private async Task GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
+        private async Task<Credential> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
         {
             var user = GetCurrentUser();
 
@@ -614,9 +635,7 @@ namespace NuGetGallery
 
             await _authService.AddCredential(user, newCredential);
 
-            TempData["Message"] = Strings.ApiKeyGenerated;
-            TempData["NewCredentialValue"] = newCredential.Value;
-            TempData["ModifiedCredentialKey"] = newCredential.Key;
+            return newCredential;
         }
 
         private static IList<Scope> BuildScopes(string[] scopes, string[] subjects)
@@ -651,11 +670,28 @@ namespace NuGetGallery
             return scopes.Select(scope => new Scope {AllowedAction = scope.AllowedAction, Subject = scope.Subject}).ToList();
         }
 
-        private async Task<ActionResult> RemoveCredential(User user, Credential cred, string message)
+
+        private async Task<ActionResult> RemoveApiKeyCredential(User user, Credential cred)
         {
             if (cred == null)
             {
-                TempData["Message"] = Strings.NoCredentialToRemove;
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
+            }
+
+            await _authService.RemoveCredential(user, cred);
+
+            // Notify the user of the change
+            _messageService.SendCredentialRemovedNotice(user, cred);
+
+            return Json(Strings.CredentialRemoved);
+        }
+
+        private async Task<ActionResult> RemoveCredentialInternal(User user, Credential cred, string message)
+        {
+            if (cred == null)
+            {
+                TempData["Message"] = Strings.CredentialNotFound;
 
                 return RedirectToAction("Account");
             }

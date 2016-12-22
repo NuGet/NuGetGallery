@@ -392,8 +392,8 @@ The {1} Team</value>
   <data name="WarningApiKeyExpired" xml:space="preserve">
     <value>Your API key has expired. Visit {0} to generate a new API key.</value>
   </data>
-  <data name="NoCredentialToRemove" xml:space="preserve">
-    <value>No credential to remove.</value>
+  <data name="CredentialNotFound" xml:space="preserve">
+    <value>Credential not found.</value>
   </data>
   <data name="PackageCreatedFromApi" xml:space="preserve">
     <value>Package created from API.</value>
@@ -427,5 +427,8 @@ The {1} Team</value>
   </data>
   <data name="ApiKeyDescriptionRequired" xml:space="preserve">
     <value>Can't generate an API key without a description.</value>
+  </data>
+  <data name="Unsupported" xml:space="preserve">
+    <value>Unsupported</value>
   </data>
 </root>

@@ -233,6 +233,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Credential not found..
+        /// </summary>
+        public static string CredentialNotFound {
+            get {
+                return ResourceManager.GetString("CredentialNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The credential has been removed..
         /// </summary>
         public static string CredentialRemoved {
@@ -582,15 +591,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No credential to remove..
-        /// </summary>
-        public static string NoCredentialToRemove {
-            get {
-                return ResourceManager.GetString("NoCredentialToRemove", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
         public static string NuGetPackagePropertyTooLong {
@@ -830,6 +830,15 @@ namespace NuGetGallery {
         public static string UnknownAuthenticationProvider {
             get {
                 return ResourceManager.GetString("UnknownAuthenticationProvider", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported.
+        /// </summary>
+        public static string Unsupported {
+            get {
+                return ResourceManager.GetString("Unsupported", resourceCulture);
             }
         }
         

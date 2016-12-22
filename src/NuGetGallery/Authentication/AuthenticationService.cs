@@ -475,7 +475,7 @@ namespace NuGetGallery.Authentication
                 Description = kind == CredentialKind.Token && credential.Description == null ?
                                         credential.Value :
                                         credential.Description, 
-                Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, s.AllowedAction)).ToList(),
+                Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, NuGetScopes.Describe(s.AllowedAction))).ToList()
             };
 
             credentialViewModel.HasExpired = credential.HasExpired ||

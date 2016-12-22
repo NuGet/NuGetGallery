@@ -79,6 +79,7 @@ namespace NuGetGallery
         public string Description { get; set; }
         public List<ScopeViewModel> Scopes { get; set; }
         public bool HasExpired { get; set; }
+        public string Value { get; set; }
 
         public bool IsNonScopedV1ApiKey
         {

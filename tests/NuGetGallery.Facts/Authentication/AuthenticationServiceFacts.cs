@@ -1254,7 +1254,7 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 var cred = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
                 cred.Description = "description";
-                cred.Scopes = new[] {new Scope("123", "abc")};
+                cred.Scopes = new[] { new Scope("123", NuGetScopes.PackagePushVersion), new Scope("123", NuGetScopes.PackageUnlist) };
                 cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
 
                 var authService = Get<AuthenticationService>();
@@ -1273,6 +1273,12 @@ namespace NuGetGallery.Authentication
                 Assert.Null(description.AuthUI);
                 Assert.Equal(cred.Description, description.Description);
                 Assert.Equal(hasExpired, description.HasExpired);
+
+                Assert.True(description.Scopes.Count == 2);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePushVersion), description.Scopes[0].AllowedAction);
+                Assert.Equal("123", description.Scopes[0].Subject);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackageUnlist), description.Scopes[1].AllowedAction);
+                Assert.Equal("123", description.Scopes[1].Subject);
             }
 
             [InlineData(false)]

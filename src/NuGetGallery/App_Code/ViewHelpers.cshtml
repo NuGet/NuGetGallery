@@ -265,13 +265,14 @@ int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
 int id = lastId + 1;
 HttpContext.Current.Items[dataKey] = id;
 string name = groupName + "-" + id.ToString();
+string actionsId = name + "-actions"; 
 
 var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     <li id="@hlp.ItemId" class="accordion-item @(enabled ? "accordion-item-enabled" : "accordion-item-disabled")">
         <div class="accordion-item-header">
             @if (actions != null)
             {
-                <div class="accordion-item-actions">
+                <div class="accordion-item-actions" id="@actionsId" >
                     @actions(hlp)
                 </div>
             }

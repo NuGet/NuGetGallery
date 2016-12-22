@@ -4,24 +4,19 @@
 @Scripts.Render("~/Scripts/jquery-1.11.0.min.js")
 @Scripts.Render("~/Scripts/moment.min.js")
 
-@{
-    int newCredentialKey = TempData["NewCredentialValue"] != null ? int.Parse((string)TempData["ModifiedCredentialKey"]) : -1;
+<form id="__AjaxAntiForgeryForm" action="#" method="post">@Html.AntiForgeryToken()</form>
 
+@{
     var apiKeys = Model.Credentials.Where(c => c.Kind == CredentialKind.Token).ToList();
+
+    // Auto-expand when an API key has expired or api key deleted
+    var shouldExpandApiKeyAccordion =
+            apiKeys.Any(k => k.HasExpired) ||
+            string.Equals(TempData["Message"], Strings.CredentialRemoved);
 
     // Sort the api keys by description, when a legacy api key appears first
     apiKeys.Sort((k1, k2) =>
     {
-        if (k1.Key == newCredentialKey)
-        {
-            return -1;
-        }
-
-        if (k2.Key == newCredentialKey)
-        {
-            return 1;
-        }
-
         if (k1.IsNonScopedV1ApiKey)
         {
             return -1;
@@ -35,339 +30,367 @@
     });
 }
 
-<span>
-    <p>
-        An API key is a token that can identify you to @(Config.Current.Brand). The
-        <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
-        submit a NuGet package to the gallery using your API key to authenticate.
-    </p>
-    @if (!CurrentUser.Confirmed)
-    {
-        <p>
-            To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
-        </p>
-    }
-    @if (CurrentUser.Confirmed)
-    {
-        if (apiKeys.Count == 0)
-        {
+<ul class="accordion">
+@ViewHelpers.AccordionBar(
+    groupName: "apikeys",
+    page: this,
+    title: @<text>API Keys</text>,
+    enabled: CurrentUser.Confirmed,
+    expanded: shouldExpandApiKeyAccordion,
+    actions: @<text>
+                 @if (!CurrentUser.Confirmed)
+                 {
+                     <text>
+                         You need to
+                         <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Keys
+                     </text>
+                 }
+                 else
+                 {
+                     if (apiKeys.Count == 0)
+                     {
+                         <text>You don't have any API keys yet.</text>
+                     }
+                     else if (apiKeys.Any(k => k.HasExpired))
+                     {
+                         <span class="apiKeyExpired">One of your API keys has expired</span>
+                     }
+
+                     @item.ExpandLink("Show details", "Hide details")
+                 }
+              </text>,
+    content: @<text>
+                 <span>
             <p>
+                An API key is a token that can identify you to @(Config.Current.Brand). The
+                <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
+                submit a NuGet package to the gallery using your API key to authenticate.
+            </p>
+            @if (!CurrentUser.Confirmed)
+            {
+                <p>
+                To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
+            </p>
+            }
+            @if (CurrentUser.Confirmed)
+            {
+                if (apiKeys.Count == 0)
+                {
+                    <p>
                 <strong>You don't have any API keys yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
             </p>
-        }
-        else
-        {
-            <p>
+                }
+                else
+                {
+                    <p>
                 <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed, you can always generate a new one at any time. You can also remove existing API keys if necessary.
             </p>
 
-            <h4>Manage API Keys</h4>
-            <hr />
-            <ul class="accordion enhanced">
-                @ViewHelpers.AccordionBar(
-                        groupName: "newapikey",
-                        page: this,
-                        title: @<text>API Keys</text>,
-                        expanded: !apiKeys.Any(),
-                        actions:  @<text> @item.ExpandButton("New API key", "Cancel") </text>,
-                        content:  @<text>
-                            @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%" }))
-                            {
-                             <fieldset class="form" style="width:500px">
-                    @Html.AntiForgeryToken()
-                    <div class="form-field">
-                        <table>
-                            <tr>
-                                <th>Key name</th>
-                                <th>Expires in</th>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <input type="text" name="description" id="description" placeholder="Name (e.g. 'Build server')" data-val-required="The field is required." data-val="true" />
-                                </td>
-                                <td>
-                                    @if (Model.ExpirationInDaysForApiKeyV1 > 0)
-                                    {
-                                        <select name="expirationInDays" id="expirationInDays">
-                                        @if (Model.ExpirationInDaysForApiKeyV1 == 365) // Shorter dropdown for NuGet.org
-                                            {
-                                            <option value="1">1 day</option>
-                                            <option value="90">90 days</option>
-                                            <option value="180">180 days</option>
-                                            <option value="270">270 days</option>
-                                            <option value="365" selected="selected">365 days</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="1">1 day</option>
-                                                for (int i = 10; i < Model.ExpirationInDaysForApiKeyV1; i += 10)
-                                                {
-                                                    <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
-                                                }
-                                                <option value="@Model.ExpirationInDaysForApiKeyV1" selected="selected">@Model.ExpirationInDaysForApiKeyV1 days</option>
-                                            }
-                                        </select>
-                                    }
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="form-field">
-                        <table width="100%">
-                            <tr>
-                                <th>Select scopes</th>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="scrollable-div" style="height: 75px">
-                                        <label class="checkoboxsmall scopecheckbox">
-                                            <input type="checkbox" name="scopes" id="scopePush" value="@NuGetScopes.PackagePush" /> @NuGetScopes.Describe(NuGetScopes.PackagePush)
-                                        </label>
-                                        <label class="checkoboxsmall scopecheckbox">
-                                            <input type="checkbox" name="scopes" id="scopePushVersion" value="@NuGetScopes.PackagePushVersion" /> @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
-                                        </label>
-                                        <label class="checkoboxsmall scopecheckbox">
-                                            <input type="checkbox" name="scopes" id="scopeUnlist" value="@NuGetScopes.PackageUnlist" /> @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
-                                        </label>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="form-field" id="packagePatternInput">
-                        <table>
-                            <tr>
-                                <th>Glob pattern</th>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <input type="text" name="subjects" id="globPattern" placeholder="Package pattern (e.g. '*' for any package)" 
-                                           data-val-regex="Invalid glob pattern. See 'Examples' for further details." data-val-regex-pattern="^[\*\w_.-]*$" data-val="true" />
-                                    <a href="https://aka.ms/nugetpackageglobs" target="_blank">(Examples)</a>
-                                    <span data-valmsg-for="subjects" data-valmsg-replace="true"></span>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    @if (Model.Packages != null && Model.Packages.Count > 0)
-                    {
-                        <div class="form-field">
-                            <table width="100%">
-                                <tr>
-                                    <th>Select packages</th>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="scrollable-div" id="selectablePackagesList" style="max-height: 150px;">
-                                            @foreach (var package in Model.Packages)
-                                            {
-                                                <label class="checkoboxsmall packagecheckbox"><input type="checkbox" name="subjects" value="@package"/> @package</label>
-                                            }
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    }
-
-                    <button class="btn" type="submit" id="generateKey">Add key</button>
-                </fieldset>
-                             <br />
-                            }
-                        </text>)
-            </ul>
-
-            <table class="details-table" width="100%">
+                    <h4>Manage API Keys</h4>
+                    <hr />
+                    <ul class="accordion enhanced">@AddApiKey(!apiKeys.Any())</ul>
+                    <table class="details-table" id="api-keys-details" width="100%">
                 <colgroup>
                     <col span="1" style="width: 5%;">
                     <col span="1" style="width: 85%;">
                     <col span="1" style="width: 15%;">
                 </colgroup>
                 <tr>
-                @foreach (var apiKey in apiKeys)
-                {
-                    <tr class="apiKeyRow">
-                        <td>
-                            @if (apiKey.Key == newCredentialKey)
+                    @foreach (var apiKey in apiKeys)
+                    {
+                        <tr>
+                    <td>
+                        @if (apiKey.HasExpired)
+                        {
+                            <img src="~/Content/Images/icons/apiKeyExpired.png" />
+                        }
+                        else
+                        {
+                            <img src="~/Content/Images/icons/apiKey.png" />
+                        }
+
+                    </td>
+                    <td>
+                        @if (apiKey.IsNonScopedV1ApiKey)
+                        {
+                            <strong>Full access API key</strong>
+                            <br />
+                        }
+                        else
+                        {
+                            <strong title="@apiKey.Description">@apiKey.Description</strong><br/>
+                        }
+                        <span>
+                            <b>Expires:</b>
+                            @if (!apiKey.Expires.HasValue)
                             {
-                                <img src="~/Content/Images/icons/apiKeyNew.png"/>
+                                <span class="s-localtime">Never</span>
                             }
-                            else if (apiKey.HasExpired)
+                            else if (!apiKey.HasExpired)
                             {
-                                <img src="~/Content/Images/icons/apiKeyExpired.png" />
+                                <span class="s-relativetime" data-utc="@apiKey.Expires.Value.ToJavaScript()">@apiKey.Expires.Value.ToNuGetShortDateString()</span>
                             }
                             else
                             {
-                                <img src="~/Content/Images/icons/apiKey.png" />
+                                <span class="expired">Expired</span>
+                            }
+                        </span><br />
+                        @if (apiKey.Scopes.Any())
+                        {
+                            var scopesList = apiKey.Scopes.Select(s =>s.AllowedAction).Distinct().OrderBy(s => s).ToList();
+                            var subjectsList = apiKey.Scopes.Select(s => s.Subject).Distinct().OrderBy(s => s).ToList();
+                            var globPattern = subjectsList.FirstOrDefault(x => x != null && x.Contains("*"));
+
+                            if (globPattern != null)
+                            {
+                                subjectsList.Remove(globPattern);
                             }
 
-                        </td>
-                        <td>
-                                @if (apiKey.IsNonScopedV1ApiKey)
-                                {
-                                    <strong>Full access API key</strong>
-                                    <br />
-                                }
-                                else
-                                {
-                                    <strong title="@apiKey.Description">@apiKey.Description</strong><br />
-                                }
+                            <span>
+                            <b>Scopes: </b>
+                            <span class="shortlist">@string.Join(", ", scopesList.Take(3))</span>
+                            @if (scopesList.Count > 3)
+                            {
+                                <a class="moredetails">More...</a>
+                                <ul class="longlist">
+                                <ul>
+                                    @foreach (var scope in scopesList)
+                                    {
+                                        <li>@scope</li>
+                                    }
+                                </ul>
+                            </ul>
+                            }
+                        </span>
+                            <br />
+
+                            if (globPattern != null)
+                            {
                                 <span>
-                                    <b>Expires:</b>
-                                    @if (!apiKey.Expires.HasValue)
-                                    {
-                                        <span class="s-localtime">Never</span>
-                                    }
-                                    else if (!apiKey.HasExpired)
-                                    {
-                                        <span class="s-relativetime" data-utc="@apiKey.Expires.Value.ToJavaScript()">@apiKey.Expires.Value.ToNuGetShortDateString()</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="apiKeyExpired">Expired</span>
-                                    }
-                                </span><br />
-                                @if (apiKey.Scopes.Any())
-                                {
-                                    var scopesList = apiKey.Scopes.Select(s => NuGetScopes.Describe(s.AllowedAction)).Distinct().OrderBy(s => s).ToList();
-                                    var subjectsList = apiKey.Scopes.Select(s => s.Subject).Distinct().OrderBy(s => s).ToList();
-                                    var globPattern = subjectsList.FirstOrDefault(x => x != null && x.Contains("*"));
+                            <b>Glob pattern: </b>@globPattern
+                        </span>
+                                <br />
+                            }
 
-                                    if (globPattern != null)
-                                    {
-                                        subjectsList.Remove(globPattern);
-                                    }
+                            if (subjectsList.Any())
+                            {
+                                const int itemsPerBatch = 10;
 
-                                    <span>
-                                        <b>Scopes: </b>
-                                        <span class="shortlist">@string.Join(", ", scopesList.Take(3))</span>
-                                        @if (scopesList.Count > 3)
+                                <span>
+                            <b>Packages: </b>
+                            <span class="shortlist">@string.Join(", ", subjectsList.Take(3))</span>
+                            @if (subjectsList.Count > 3)
+                            {
+                                <a class="moredetails first">More...</a>
+                                <ul class="longlist">
+                                <ul>
+                                    @for (int i = 0; i < subjectsList.Count; i++)
+                                    {
+                                        var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
+                                        <li>
+                                        @subjectsList[i]
+
+                                        @if (lastInBatch && i != subjectsList.Count - 1)
                                         {
-                                            <a class="moredetails">More...</a>
-                                            <ul class="longlist" >
-                                                <ul>
-                                                    @foreach (var scope in scopesList)
-                                                    {
-                                                        <li>@scope</li>
-                                                    }
-                                                </ul>
-                                            </ul>
+                                            <a class="moredetails next">&nbsp;More...</a>
                                         }
-                                    </span>
-                                    <br />
-
-                                    if (globPattern != null)
-                                    {
-                                        <span>
-                                            <b>Glob pattern: </b>@globPattern
-                                         </span>
-                                        <br />
+                                    </li>
                                     }
-
-                                    if (subjectsList.Any())
-                                    {
-                                        const int itemsPerBatch = 10;
-
-                                        <span>
-                                            <b>Packages: </b>
-                                            <span class="shortlist">@string.Join(", ", subjectsList.Take(3))</span>
-                                            @if (subjectsList.Count > 3)
-                                            {
-                                                <a class="moredetails first">More...</a>
-                                                <ul class="longlist">
-                                                    <ul>
-                                                        @for (int i = 0; i < subjectsList.Count; i++)
-                                                        {
-                                                            var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
-                                                            <li>@subjectsList[i]
-
-                                                                @if (lastInBatch && i != subjectsList.Count - 1)
-                                                                {
-                                                                    <a class="moredetails next">&nbsp;More...</a>
-                                                                }
-                                                            </li>
-                                                        }
-                                                    </ul>
-                                                </ul>
-                                            }
-                                        </span>
-                                    }
-                                }
-                                else
-                                {
-                                    <b>Scopes: </b><span>All</span><br/>
-                                    <b>Packages: </b><span>All</span>
-                                }
-                            </td>
-                        <td class="actions actions-wide">
-                                @if (apiKey.IsNonScopedV1ApiKey)
-                                {
-                                    <button class="btn btn-veryflat" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Description')"><img src="~/Content/Images/icons/copy.png" /></button>
-                                }
-                                
-                                @if (apiKey.Key == newCredentialKey)
-                                {
-                                    <button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@TempData["NewCredentialValue"]')"><img src="~/Content/Images/icons/copy.png" /></button>
-                                }
-                                @if (!apiKey.IsNonScopedV1ApiKey)
-                                {
-                                    if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
-                                    {
-                                        using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new {@class = "form-inline"}))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
-                                            @Html.Hidden("credentialKey", apiKey.Key)
-                                            <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="submit"><img src="~/Content/Images/icons/expire.png" /></button>
-                                        }
-                                    }
-
-                                    using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline"}))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
-                                        @Html.Hidden("credentialKey", apiKey.Key)
-                                        <button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="submit"><img src="~/Content/Images/icons/regenerate.png" /></button>
-                                    }
-                                }
-
-                                @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new {@class = "form-inline"}))
+                                </ul>
+                            </ul>
+                            }
+                        </span>
+                            }
+                        }
+                        else
+                        {
+                            <b>Scopes: </b><span>All</span><br />
+                            <b>Packages: </b><span>All</span>
+                        }
+                    </td>
+                    <td class="actions actions-wide">
+                        @if (apiKey.IsNonScopedV1ApiKey)
+                        {
+                            <button class="btn btn-veryflat" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Description')"><img src="~/Content/Images/icons/copy.png" /></button>
+                        }
+                      
+                        @if (!apiKey.IsNonScopedV1ApiKey)
+                        {
+                            if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
+                            {
+                                using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new {@class = "form-inline expire-api-key"}))
                                 {
                                     @Html.AntiForgeryToken()
                                     @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
                                     @Html.Hidden("credentialKey", apiKey.Key)
-                                    <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit"><img src="~/Content/Images/icons/delete.png" /></button>
+                                    <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="submit"><img src="~/Content/Images/icons/expire.png" /></button>
                                 }
-                            </td>
-                    </tr>
+                            }
+
+                            using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                @Html.Hidden("credentialKey", apiKey.Key)
+                                <button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="submit"><img src="~/Content/Images/icons/regenerate.png" /></button>
+                            }
+                        }
+
+                        @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new {@class = "form-inline remove-api-key"}))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                            @Html.Hidden("credentialKey", apiKey.Key)
+                            <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit"><img src="~/Content/Images/icons/delete.png" /></button>
+                        }
+                    </td>
+                </tr>
+                    }
+            </table>
                 }
-             </table>
-         }
 
-        if (apiKeys.Count > 0)
-        {
-            var siteRoot = Config.Current.RequireSSL
-            ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
-            : Config.Current.SiteRoot.TrimEnd('/');
+                if (apiKeys.Count > 0)
+                {
+                    var siteRoot = Config.Current.RequireSSL
+                        ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
+                        : Config.Current.SiteRoot.TrimEnd('/');
 
-            var exampleApiKey = "[your API key]";
-            <hr />
-            <h4>Example usage</h4>
-            <p>
+                    var exampleApiKey = "[your API key]";
+                    <hr />
+                    <h4>Example usage</h4>
+                    <p>
                 The following snippet demonstrates how you can use the <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a>
                 command-line utility to submit a NuGet package to the gallery:
             </p>
-            <p>
+                    <p>
                 <div id="account-apikeysample">
                     <div>nuget.exe setApiKey @exampleApiKey </div>
                     <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
                 </div>
             </p>
-         }
-    }
-</span>
-    
+                }
+            }
+        </span>
+              </text>)
+</ul>
+
+
+@helper AddApiKey(bool expanded)
+{
+    @ViewHelpers.AccordionBar(
+        groupName: "newapikey",
+        page: this,
+        title: @<text>API Keys</text>,
+        expanded: expanded,
+        actions:  @<text> @item.ExpandButton("New API key", "Cancel") </text>,
+        content:  @<text>
+                    @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%", @id = "generateKeyForm" }))
+                    {
+                     <fieldset class="form" style="width:500px">
+                        @Html.AntiForgeryToken()
+                        <div class="form-field">
+                            <table>
+                                <tr>
+                                    <th>Key name</th>
+                                    <th>Expires in</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input type="text" name="description" id="description" placeholder="Name (e.g. 'Build server')" data-val-required="The field is required." data-val="true" />
+                                    </td>
+                                    <td>
+                                        @if (Model.ExpirationInDaysForApiKeyV1 > 0)
+                                        {
+                                            <select name="expirationInDays" id="expirationInDays">
+                                                @if (Model.ExpirationInDaysForApiKeyV1 == 365) // Shorter dropdown for NuGet.org
+                                                {
+                                                    <option value="1">1 day</option>
+                                                    <option value="90">90 days</option>
+                                                    <option value="180">180 days</option>
+                                                    <option value="270">270 days</option>
+                                                    <option value="365" selected="selected">365 days</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="1">1 day</option>
+                                                    for (int i = 10; i < Model.ExpirationInDaysForApiKeyV1; i += 10)
+                                                    {
+                                                        <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
+                                                    }
+                                                    <option value="@Model.ExpirationInDaysForApiKeyV1" selected="selected">@Model.ExpirationInDaysForApiKeyV1 days</option>
+                                                }
+                                            </select>
+                                        }
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="form-field">
+                            <table width="100%">
+                                <tr>
+                                    <th>Select scopes</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="scrollable-div" style="height: 75px">
+                                            <label class="checkoboxsmall scopecheckbox">
+                                                <input type="checkbox" name="scopes" id="scopePush" value="@NuGetScopes.PackagePush" /> @NuGetScopes.Describe(NuGetScopes.PackagePush)
+                                            </label>
+                                            <label class="checkoboxsmall scopecheckbox">
+                                                <input type="checkbox" name="scopes" id="scopePushVersion" value="@NuGetScopes.PackagePushVersion" /> @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
+                                            </label>
+                                            <label class="checkoboxsmall scopecheckbox">
+                                                <input type="checkbox" name="scopes" id="scopeUnlist" value="@NuGetScopes.PackageUnlist" /> @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="form-field" id="packagePatternInput">
+                            <table>
+                                <tr>
+                                    <th>Glob pattern</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input type="text" name="subjects" id="globPattern" placeholder="Package pattern (e.g. '*' for any package)"
+                                               data-val-regex="Invalid glob pattern. See 'Examples' for further details." data-val-regex-pattern="^[\*\w_.-]*$" data-val="true" />
+                                        <a href="https://aka.ms/nugetpackageglobs" target="_blank">(Examples)</a>
+                                        <span data-valmsg-for="subjects" data-valmsg-replace="true"></span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        @if (Model.Packages != null && Model.Packages.Count > 0)
+                         {
+                            <div class="form-field">
+                                <table width="100%">
+                                    <tr>
+                                        <th>Select packages</th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="scrollable-div" id="selectablePackagesList" style="max-height: 150px;">
+                                                @foreach (var package in Model.Packages)
+                                                {
+                                                    <label class="checkoboxsmall packagecheckbox"><input type="checkbox" name="subjects" value="@package" /> @package</label>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        }
+
+                        <button class="btn" type="submit" id="generateKey">Add key</button>
+                    </fieldset>
+                    <br />
+                    }
+                </text>)
+}
+
 <script>
     $(document).ready(function () {
         $('#selectablePackagesList').addClass('disabled-div');
@@ -402,6 +425,10 @@
 </script>
 <script>
     $(document).ready(function () {
+        applyMoreDetailsEventHandlers();
+    });
+
+    function applyMoreDetailsEventHandlers() {
         $('.moredetails.first')
             .on('click', function () {
                 $(this).siblings('.shortlist').css('display', 'none');
@@ -416,9 +443,7 @@
                     count = count + 1;
                 }
             });
-    });
 
-    $(document).ready(function () {
         $('.moredetails.next')
             .on('click', function () {
                 $(this).css('display', 'none');
@@ -428,12 +453,11 @@
                 while (listItem.is('li') && count < 10) {
                     listItem.css('display', 'flex');
                     listItem = listItem.next();
-                    count = count+1;
+                    count = count + 1;
                 }
             });
-    });
+    }
 </script>
-    
 <script>
     function enableAddKeyButton() {
         var packagesWereSelected = jQuery('#selectablePackagesList input[type=checkbox]:checked').length > 0;
@@ -467,11 +491,15 @@
 </script>
 <script>
     $('.s-relativetime[data-utc]').each(function () {
-        var utc = new Date($(this).data().utc);
-        var text = moment(utc).local().fromNow();
-
-        $(this).text(text);
+        $(this).text(convertToRelativeTime(new Date($(this).data().utc)));
     });
+
+    function convertToRelativeTime(datetimeutc) {
+        var text = moment(datetimeutc).local().fromNow();
+
+        return text;
+    }
+
 </script>
 <script>
     var idleTime = 0;
@@ -500,5 +528,313 @@
             $('.copyapikeybutton').addClass('disabled-div');
             clearInterval(idleInterval);
         }
+    }
+</script>
+<script>
+    $(document)
+        .ready(function() {
+            $('#generateKey').on('click', generateApiKey);
+            applyActionButtonHandlers();
+        });
+
+    function applyActionButtonHandlers() {
+        $('.remove-api-key').on('click', removeApiKey);
+        $('.expire-api-key').on('click', expireApiKey);
+        $('.regenerate-api-key').on('click', regenerateApiKey);
+    }
+
+    function generateApiKey(e) {
+        e.preventDefault();
+
+        // prevent duplicate requests
+        var me = $(this);
+        me.off('click');
+
+        $.ajax({
+            url: '@Url.Action("GenerateApiKey", "Users")',
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            data: getFormDataWithAntiForgeryToken($('#generateKeyForm')),
+            success: function (data) {
+
+                // 'Add Key' dialog
+                $('#generateKeyForm').find("input[type=text], textarea").val("");
+                $('#generateKeyForm').find("input:checkbox").removeAttr('checked');
+                $('#newapikey-1-collapse').trigger('click');
+
+                // New table row
+                addNewApiKeyRow(data);
+            },
+            error: function(data) {
+                alert(data);
+            }
+        }).always(function () {
+            me.on('click', generateApiKey);
+        });
+    }
+
+    function removeApiKey(e) {
+        e.preventDefault();
+        var keyRow = $(this).parents("tr");
+
+        if (keyRow.data('requestRunning')) {
+            return;
+        }
+
+        keyRow.data('requestRunning', true);
+
+        $.ajax({
+            url: '@Url.Action("RemoveCredential", "Users")',
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            data: getFormDataWithAntiForgeryToken($(this)),
+            success: function () {
+                keyRow.remove();
+
+                // If we removed an expired key, check if the "expired message" is still needed
+                if ($('#apikeys-1-item .expired').length == 0) {
+                    $('#apikeys-1-actions .apiKeyExpired').hide();
+                }
+            },
+            error: function (data) {
+                alert(data);
+            }
+        }).always(function () {
+            keyRow.data('requestRunning', false);
+        });
+    }
+
+    function expireApiKey(e) {
+        e.preventDefault();
+
+        var expireForm = $(this);
+        var keyRow = $(this).parents("tr");
+
+        if (keyRow.data('requestRunning')) {
+            return;
+        }
+
+        keyRow.data('requestRunning', true);
+
+        $.ajax({
+            url: '@Url.Action("ExpireCredential", "Users")',
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            data: getFormDataWithAntiForgeryToken($(this)),
+            success: function () {
+                keyRow.find("td:first").find("img").attr("src", "/Content/Images/icons/apiKeyExpired.png");
+
+                var expiresSpan = keyRow.find(".s-relativetime");
+                expiresSpan.text("Expired");
+                expiresSpan.addClass("expired");
+                expiresSpan.removeClass(".s-relativetime");
+
+                expireForm.hide();
+                keyRow.find(".copyapikeybutton").remove();
+
+                setApiKeyExpiredMessage();
+            },
+            error: function (data) {
+                alert(data);
+            }
+        }).always(function () {
+            keyRow.data('requestRunning', false);
+        });
+    }
+
+    function regenerateApiKey(e) {
+        e.preventDefault();
+
+        var keyRow = $(this).parents("tr");
+
+        if (keyRow.data('requestRunning')) {
+            return;
+        }
+
+        keyRow.data('requestRunning', true);
+
+        $.ajax({
+            url: '@Url.Action("RegenerateCredential", "Users")',
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            data: getFormDataWithAntiForgeryToken($(this)),
+            success: function (data) {
+                keyRow.remove();
+                addNewApiKeyRow(data);
+                setApiKeyExpiredMessage();
+            },
+            error: function (data) {
+                alert(data);
+            }
+        }).always(function () {
+            keyRow.data('requestRunning', false);
+        });
+    }
+
+    function getFormDataWithAntiForgeryToken(form) {
+        if (form.find('input[name=__RequestVerificationToken]').length == 0) {
+            var tokenInput = '<input name="__RequestVerificationToken" type="hidden" value="' +
+                $('#__AjaxAntiForgeryForm input[name=__RequestVerificationToken]').val() +
+                '">';
+            form.append(tokenInput);
+        }
+
+        return form.serialize();
+    };
+
+    function setApiKeyExpiredMessage() {
+        if ($('#apikeys-1-actions .expired').length > 0) {
+            if ($('#apikeys-1-actions .apiKeyExpired').length == 0) {
+                $('#apikeys-1-actions').prepend('<span class="apiKeyExpired">One of your API keys has expired</span>');
+            }
+        } else {
+            if ($('#apikeys-1-actions .apiKeyExpired').length > 0) {
+                $('#apikeys-1-actions .apiKeyExpired').remove();
+            }
+        }
+    }
+
+    function addNewApiKeyRow(data) {
+        var description = data.Description;
+        var expires = parseJsonDate(data.Expires);
+
+        var allActions = data.Scopes.map(function (elem) {
+            return elem.AllowedAction;
+        });
+
+        allActions = jQuery.unique(allActions);
+
+        var allPackages = data.Scopes.map(function (elem) {
+            return elem.Subject;
+        });
+
+        allPackages = jQuery.unique(allPackages);
+
+        var globPattern = jQuery.grep(allPackages,
+            function (elem) {
+                return elem.indexOf("*") >= 0;
+            })[0];
+
+        allPackages = jQuery.grep(allPackages,
+            function (elem) {
+                return elem.indexOf("*") < 0;
+            });
+
+        var markup = '<tr>';
+        markup += '<td><img src="/Content/Images/icons/apiKeyNew.png" /></td>';
+        markup += '<td>';
+        markup += '<strong title="' + description + '">' + description + '</strong><br/>';
+        markup += '<span><b>Expires: </b>';
+        markup += '<span class="s-relativetime" data-utc="' +
+            expires +
+            '">' +
+            convertToRelativeTime(expires) +
+            '</span></span><br/>';
+        markup += '<span><b>Scopes: </b>';
+        markup += '<span class="shortlist">' + allActions.slice(0, 2).join(", ") + '</span>';
+
+        // Scopes
+        if (allActions.length > 3) {
+            markup += '<a class="moredetails">More...</a>';
+            markup += '<ul class="longlist">';
+            markup += '<ul>';
+
+            jQuery.each(allActions,
+                function (j, elem) {
+                    markup += '<li>' + elem + '</li>';
+                });
+            markup += '</ul></ul></span>';
+        }
+
+        markup += '<br/>';
+
+        if (globPattern != null) {
+            markup += '<span><b>Glob pattern: </b>' + globPattern + '</span><br/>';
+        }
+
+        // Packages
+        if (allPackages.length > 0) {
+            var itemsPerBatch = 10;
+
+            markup += '<span><b>Packages: </b>';
+            markup += '<span class="shortlist">' +
+                allPackages.slice(0, 2).join(", ") +
+                '</span>';
+
+            if (allPackages.length > 3) {
+                markup += '<a class="moredetails first"> More...</a><ul class="longlist">';
+                markup += '<ul>';
+
+                for (var i = 0; i < allPackages.length; i++) {
+                    var lastInBatch = i != 0 && i % itemsPerBatch == (itemsPerBatch - 1);
+                    markup += '<li>' + allPackages[i];
+
+                    if (lastInBatch && i != allPackages.Count - 1) {
+                        markup += '<a class="moredetails next"> More...</a>';
+                    }
+
+                    markup += '</li>';
+                }
+                markup += '</ul></ul>';
+            }
+        }
+
+        markup += '</td>';
+
+        // Buttons
+        markup += '<td class="actions actions-wide">';
+        markup += getCopyButton(data.Value);
+        markup += getExpireButton(data.Key);
+        markup += getRegenerateButton(data.Key);
+        markup += getRemoveButton(data.Key);
+
+        markup += '</td>';
+        markup += '</tr>';
+
+        $('#api-keys-details > tbody > tr:first').before(markup);
+
+        applyMoreDetailsEventHandlers();
+        applyActionButtonHandlers();
+    }
+
+    function parseJsonDate(jsondate) {
+        var jsonDate = jsondate; // returns "/Date(1245398693390)/";
+        var re = /-?\d+/;
+        var m = re.exec(jsonDate);
+        return new Date(parseInt(m[0]));
+    }
+
+    function getCopyButton(copyValue) {
+        return '<button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard(\'' +
+            copyValue +
+            '\')"><img src="/Content/Images/icons/copy.png" /></button>';
+    }
+
+    function getExpireButton(key) {
+        return '<form action="/account/ExpireCredential" class="form-inline expire-api-key" method="post">' +
+            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v1" />' +
+            '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
+            '<button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="submit">' +
+            '<img src="/Content/Images/icons/expire.png" /></button></form>';
+    }
+
+    function getRegenerateButton(key) {
+        return '<form action="/account/RegenerateCredential" class="form-inline regenerate-api-key" method="post">' +
+            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v1" />' +
+            '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
+            '<button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="submit">' +
+            '<img src="/Content/Images/icons/regenerate.png" /></button></form>';
+    }
+
+    function getRemoveButton(key) {
+        return '<form action="/account/RemoveCredential" class="form-inline remove-api-key" method="post">' +
+            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v1" />' +
+            '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
+            '<button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit">' +
+            '<img src="/Content/Images/icons/delete.png" /></button></form>';
     }
 </script>

@@ -1453,7 +1453,7 @@ img.contributors-contributor-avatar {
         border: solid 1px #7F0000;
     }
 
-/* Fancy table*/
+/* Details table*/
 .details-table
 {
     table-layout: fixed;
@@ -1510,6 +1510,10 @@ img.contributors-contributor-avatar {
 
 .details-table span {
     color: #555
+}
+
+.details-table span.expired {
+    font-weight: 600;
 }
 
 /* divs*/

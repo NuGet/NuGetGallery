@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -514,8 +515,9 @@ namespace NuGetGallery
                     expirationInDays: null);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.ApiKeyDescriptionRequired, controller.TempData["Message"]);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.ApiKeyDescriptionRequired) == 0);
             }
 
             [InlineData(180, 180)]
@@ -649,7 +651,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task RedirectsToAccountPage()
+            public async Task ReturnsNewCredentialJson()
             {
                 var user = new User { Username = "the-username" };
 
@@ -658,15 +660,21 @@ namespace NuGetGallery
 
                 var result = await controller.GenerateApiKey(
                     description: "description",
-                    scopes: null,
-                    expirationInDays: null);
+                    scopes: new [] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
+                    subjects: new [] { "a" },
+                    expirationInDays: 90);
 
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.ApiKeyGenerated, controller.TempData["Message"]);
+                Assert.IsType<JsonResult>(result);
+
+                var credentialViewModel = ((JsonResult) result).Data as CredentialViewModel;
+                Assert.NotNull(credentialViewModel);
 
                 var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
-                Assert.Equal(apiKey.Value, controller.TempData["NewCredentialValue"]);
-                Assert.Equal(apiKey.Key, controller.TempData["ModifiedCredentialKey"]);
+
+                Assert.Equal(apiKey.Value, credentialViewModel.Value);
+                Assert.Equal(apiKey.Key, credentialViewModel.Key);
+                Assert.Equal(apiKey.Description, credentialViewModel.Description);
+                Assert.Equal(apiKey.Expires, credentialViewModel.Expires);
             }
         }
 
@@ -1016,7 +1024,7 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.NoCredentialToRemove, controller.TempData["Message"]);
+                Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
                 Assert.Equal(1, user.Credentials.Count);
             }
 
@@ -1076,7 +1084,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GivenNoCredential_ItRedirectsBackWithNoChangesMade()
+            public async Task GivenNoCredential_ErrorIsReturnedWithNoChangesMade()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -1092,7 +1100,31 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.NoCredentialToRemove, controller.TempData["Message"]);
+                Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
+
+                Assert.Equal(1, user.Credentials.Count);
+            }
+
+            [Fact]
+            public async Task GivenNoApiKeyCredential_ErrorIsReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreatePasswordCredential("password"));
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RemoveCredential(
+                    credentialType: CredentialTypes.ApiKeyV1,
+                    credentialKey: null);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+
                 Assert.Equal(1, user.Credentials.Count);
             }
 
@@ -1133,7 +1165,7 @@ namespace NuGetGallery
         public class TheRegenerateCredentialAction : TestContainer
         {
             [Fact]
-            public async Task GivenNoCredential_ItRedirectsBackWithNoChangesMade()
+            public async Task GivenNoCredential_ErrorIsReturnedWithNoChangesMade()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -1151,7 +1183,10 @@ namespace NuGetGallery
                     credentialKey: CredentialKey);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+
                 Assert.Equal(1, user.Credentials.Count);
                 Assert.True(user.Credentials.Contains(cred));
             }
@@ -1195,7 +1230,10 @@ namespace NuGetGallery
                     credentialKey: CredentialKey);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
+
                 authenticationService.Verify(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
             }
 
@@ -1267,16 +1305,21 @@ namespace NuGetGallery
                     credentialKey: CredentialKey);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.ApiKeyGenerated, controller.TempData["Message"]);
+                Assert.IsType<JsonResult>(result);
+                var credentialViewModel = ((JsonResult) result).Data as CredentialViewModel;
+
+                Assert.NotNull(credentialViewModel);
+
                 GetMock<AuthenticationService>().VerifyAll();
 
                 var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
 
                 Assert.NotNull(newApiKey);
-                Assert.Equal(newApiKey.Value, controller.TempData["NewCredentialValue"]);
-                Assert.Equal(newApiKey.Key, controller.TempData["ModifiedCredentialKey"]);
-               
+                Assert.Equal(newApiKey.Value, credentialViewModel.Value);
+                Assert.Equal(newApiKey.Key, credentialViewModel.Key);
+                Assert.Equal(description, credentialViewModel.Description);
+                Assert.Equal(newApiKey.Expires, credentialViewModel.Expires);
+
                 Assert.Equal(description, newApiKey.Description);
                 Assert.Equal(scopes.Length, newApiKey.Scopes.Count);
                 Assert.True(newApiKey.Expires > DateTime.UtcNow);
@@ -1294,7 +1337,7 @@ namespace NuGetGallery
         public class TheExpireCredentialAction : TestContainer
         {
             [Fact]
-            public async Task GivenNoCredential_ItRedirectsBackWithNoChangesMade()
+            public async Task GivenNoCredential_ErrorReturnedWithNoChangesMade()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -1311,8 +1354,9 @@ namespace NuGetGallery
                     credentialKey: CredentialKey);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
             }
 
             [Fact]
@@ -1339,9 +1383,9 @@ namespace NuGetGallery
                     credentialKey: CredentialKey);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.CredentialExpired, controller.TempData["Message"]);
-                Assert.Equal(cred.Key, controller.TempData["ModifiedCredentialKey"]);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialExpired) == 0);
+
                 GetMock<AuthenticationService>().VerifyAll();
             }
         }
