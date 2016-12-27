@@ -472,9 +472,8 @@ namespace NuGetGallery.Authentication
                 Kind = kind,
                 AuthUI = auther?.GetUI(),
                 // Set the description as the value for legacy API keys
-                Description = kind == CredentialKind.Token && credential.Description == null ?
-                                        credential.Value :
-                                        credential.Description, 
+                Description = credential.Description, 
+                Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
                 Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, NuGetScopes.Describe(s.AllowedAction))).ToList()
             };
 

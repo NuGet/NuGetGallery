@@ -60,46 +60,38 @@
                  }
               </text>,
     content: @<text>
-                 <span>
-            <p>
-                An API key is a token that can identify you to @(Config.Current.Brand). The
-                <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
-                submit a NuGet package to the gallery using your API key to authenticate.
-            </p>
-            @if (!CurrentUser.Confirmed)
-            {
+            <span>
                 <p>
-                To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
-            </p>
-            }
-            @if (CurrentUser.Confirmed)
-            {
-                if (apiKeys.Count == 0)
+                    An API key is a token that can identify you to @(Config.Current.Brand). The
+                    <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
+                    submit a NuGet package to the gallery using your API key to authenticate.
+                </p>
+                @if (!CurrentUser.Confirmed)
                 {
-                    <p>
-                <strong>You don't have any API keys yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
-            </p>
+                    <p>To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a></p>
                 }
-                else
+                @if (CurrentUser.Confirmed)
                 {
-                    <p>
-                <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed, you can always generate a new one at any time. You can also remove existing API keys if necessary.
-            </p>
-
-                    <h4>Manage API Keys</h4>
-                    <hr />
-                    <ul class="accordion enhanced">@AddApiKey(!apiKeys.Any())</ul>
-                    <table class="details-table" id="api-keys-details" width="100%">
-                <colgroup>
-                    <col span="1" style="width: 5%;">
-                    <col span="1" style="width: 85%;">
-                    <col span="1" style="width: 15%;">
-                </colgroup>
-                <tr>
-                    @foreach (var apiKey in apiKeys)
+                    if (apiKeys.Count == 0)
                     {
-                        <tr>
-                    <td>
+                        <p><strong>You don't have any API keys yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).</p>
+                    }
+                    else
+                    {
+                        <p><strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed, you can always generate a new one at any time. You can also remove existing API keys if necessary.</p>
+                        <h4>Manage API Keys</h4>
+                        <hr />
+                        <ul class="accordion enhanced">@AddApiKey(!apiKeys.Any())</ul>
+                        <table class="details-table" id="api-keys-details" width="100%">
+                            <colgroup>
+                                <col span="1" style="width: 5%;">
+                                <col span="1" style="width: 85%;">
+                                <col span="1" style="width: 15%;">
+                            </colgroup>
+                            @foreach (var apiKey in apiKeys)
+                            {
+                                <tr>
+                                    <td>
                         @if (apiKey.HasExpired)
                         {
                             <img src="~/Content/Images/icons/apiKeyExpired.png" />
@@ -110,7 +102,7 @@
                         }
 
                     </td>
-                    <td>
+                                    <td>
                         @if (apiKey.IsNonScopedV1ApiKey)
                         {
                             <strong>Full access API key</strong>
@@ -208,70 +200,68 @@
                             <b>Packages: </b><span>All</span>
                         }
                     </td>
-                    <td class="actions actions-wide">
-                        @if (apiKey.IsNonScopedV1ApiKey)
-                        {
-                            <button class="btn btn-veryflat" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Description')"><img src="~/Content/Images/icons/copy.png" /></button>
-                        }
+                                    <td class="actions actions-wide">
+                                        @if (apiKey.IsNonScopedV1ApiKey)
+                                        {
+                                            <button class="btn btn-veryflat" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><img src="~/Content/Images/icons/copy.png" /></button>
+                                        }
                       
-                        @if (!apiKey.IsNonScopedV1ApiKey)
-                        {
-                            if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
-                            {
-                                using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new {@class = "form-inline expire-api-key"}))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
-                                    @Html.Hidden("credentialKey", apiKey.Key)
-                                    <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="submit"><img src="~/Content/Images/icons/expire.png" /></button>
-                                }
-                            }
+                                        @if (!apiKey.IsNonScopedV1ApiKey)
+                                        {
+                                            if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
+                                            {
+                                                using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new {@class = "form-inline expire-api-key"}))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                                    @Html.Hidden("credentialKey", apiKey.Key)
+                                                    <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="submit"><img src="~/Content/Images/icons/expire.png" /></button>
+                                                }
+                                            }
 
-                            using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
-                            {
-                                @Html.AntiForgeryToken()
-                                @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
-                                @Html.Hidden("credentialKey", apiKey.Key)
-                                <button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="submit"><img src="~/Content/Images/icons/regenerate.png" /></button>
-                            }
-                        }
+                                            using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                                @Html.Hidden("credentialKey", apiKey.Key)
+                                                <button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="submit"><img src="~/Content/Images/icons/regenerate.png" /></button>
+                                            }
+                                        }   
 
-                        @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new {@class = "form-inline remove-api-key"}))
-                        {
-                            @Html.AntiForgeryToken()
-                            @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
-                            @Html.Hidden("credentialKey", apiKey.Key)
-                            <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit"><img src="~/Content/Images/icons/delete.png" /></button>
-                        }
+                                        @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new {@class = "form-inline remove-api-key"}))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                            @Html.Hidden("credentialKey", apiKey.Key)
+                                            <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit"><img src="~/Content/Images/icons/delete.png" /></button>
+                                        }
                     </td>
-                </tr>
+                                </tr>
+                            }
+                        </table>
                     }
-            </table>
-                }
 
-                if (apiKeys.Count > 0)
-                {
-                    var siteRoot = Config.Current.RequireSSL
-                        ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
-                        : Config.Current.SiteRoot.TrimEnd('/');
+                    if (apiKeys.Count > 0)
+                    {
+                        var siteRoot = Config.Current.RequireSSL
+                            ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
+                            : Config.Current.SiteRoot.TrimEnd('/');
 
-                    var exampleApiKey = "[your API key]";
-                    <hr />
-                    <h4>Example usage</h4>
-                    <p>
-                The following snippet demonstrates how you can use the <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a>
-                command-line utility to submit a NuGet package to the gallery:
-            </p>
-                    <p>
-                <div id="account-apikeysample">
-                    <div>nuget.exe setApiKey @exampleApiKey </div>
-                    <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
-                </div>
-            </p>
+                        var exampleApiKey = "[your API key]";
+                        <hr />
+                        <h4>Example usage</h4>
+                        <p>The following snippet demonstrates how you can use the <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a>
+                            command-line utility to submit a NuGet package to the gallery:
+                        </p>
+                        <p>
+                            <div id="account-apikeysample">
+                                <div>nuget.exe setApiKey @exampleApiKey </div>
+                                <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
+                            </div>
+                        </p>
+                    }
                 }
-            }
-        </span>
-              </text>)
+            </span></text>)
 </ul>
 
 
