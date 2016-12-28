@@ -1539,3 +1539,73 @@ img.contributors-contributor-avatar {
     opacity: 0.4;
 }
 
+/* popup */
+
+.popup {
+    position: relative;
+    display: inline-block;
+    padding: 5px;
+}
+
+/* The actual popup (appears on top) */
+.popup .popupbox {
+    width: 360px;
+    text-align: left;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 1;
+    top: 125%;
+    left: 50%;
+    margin-left: -210px;
+    margin-top: 10px;
+    border: 1px solid #ccc; 
+}
+
+.popup .innertext {
+     padding: 18px 0px 10px 10px;
+}
+
+/* Popup arrow */
+.popup .popupbox::after,
+.popup .popupbox::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    margin-left: -5px;
+    border-style: solid;
+}
+
+/* this border color controlls the color of the triangle (what looks like the fill of the triangle) */
+.popup .popupbox::after {
+    border-color: transparent transparent white transparent;
+    border-width: 7px;
+    left: 75px;
+}
+
+/* this border color controlls the outside, thin border */
+.popup .popupbox::before {
+    border-color: transparent transparent #ccc transparent;
+    border-width: 8px;
+    left: 74px;
+}
+
+.popup table td,
+.popup table th {
+    padding: 5px 10px 1px 0px;
+}
+
+.popup table td + td,
+.popup table th + th {
+    padding-left: 10px;
+}
+
+.popup a.boxclose{
+    margin: -5px 5px;
+    float:right;
+    cursor:pointer;
+    color: #ccc;
+    font-size: 15px;
+    display: inline-block;
+    line-height: 0px;
+    padding: 8px 0px 0px 0px;
+}

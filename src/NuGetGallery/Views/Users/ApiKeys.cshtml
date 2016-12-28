@@ -337,7 +337,34 @@
                          </p>
                          <p>
                              <h5>Select packages</h5><hr />
-                             To select which packages to associate with a key use a glob pattern, select individual packages, or both. <a href="https://aka.ms/nugetpackageglobs" target="_blank">Example glob patterns</a>.
+                             To select which packages to associate with a key use a glob pattern, select individual packages, or both. 
+                             
+                             <a id="globHelpLink">Example glob patterns</a>.
+                             <div class="popup">
+                                 <div class="popupbox" id="globHelpPopup">
+                                     <a class="boxclose" id="globHelpPopupClose"><i class="icon-remove"></i></a>
+                                     <div class="innertext">
+                                         A glob pattern allow you to replace any sequence of charecters with '*'.
+                                         <h5>Example glob patterns</h5>
+                                         <table>
+                                             <tr>
+                                                 <th>Pattern</th>
+                                                 <th>Result</th>
+                                             </tr>
+                                             <tr>
+                                                 <td>*</td>
+                                                 <td>Select all packages.</td>
+                                             </tr>
+                                             <tr>
+                                                 <td>Alpha.*</td>
+                                                 <td>Select any packages that begin with <i>Alpha.</i></td>
+                                             </tr>
+                                         </table>
+                                     </div>
+                                 </div>
+                             </div>
+
+                             
                              
                              <p>
                                  <div class="form-field" id="packageGlobPattern">
@@ -506,6 +533,17 @@
         $('#scopeFullPush').prop("checked", true);
     }
 
+</script>
+<script> // Glob help popup related scripts
+    $(document)
+       .ready(function () {
+           $('#globHelpPopupClose').click(function () {
+               $('#globHelpPopup').hide();
+           })
+           $('#globHelpLink').click(function () {
+               $('#globHelpPopup').show();
+           })
+       });
 </script>
 <script>
     $(document).ready(function () {
