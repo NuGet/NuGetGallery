@@ -60,6 +60,7 @@ h4 {
 
 h5 {
     font-size: 1.1em;
+    font-weight: 500;
 }
 
 h6 {
@@ -1122,14 +1123,17 @@ button, input[type="submit"], .btn {
     width: auto;
 }
 
-    input[type="submit"]:hover, .btn:hover {
-        background-color: #307A25;
-        background-image: -ms-linear-gradient(top, #307A25 0%, #2C9E1B 100%);
-        background-image: -o-linear-gradient(top, #307A25 0%, #2C9E1B 100%);
-        background-image: -webkit-linear-gradient(top, #307A25 0%, #2C9E1B 100%);
-        background-image: linear-gradient(top, #307A25 0%, #2C9E1B 100%);
-        border-color: #307A25;
-    }
+input[type="submit"]:hover, .btn:hover {
+    background-color: #307A25;
+    background-image: -ms-linear-gradient(top, #307A25 0%, #2C9E1B 100%);
+    background-image: -o-linear-gradient(top, #307A25 0%, #2C9E1B 100%);
+    background-image: -webkit-linear-gradient(top, #307A25 0%, #2C9E1B 100%);
+    background-image: linear-gradient(top, #307A25 0%, #2C9E1B 100%);
+    border-color: #307A25;
+}
+
+
+
 
 .form a.cancel {
     font-size: 1.25em;
@@ -1362,10 +1366,14 @@ ul.accordion {
 
         ul.accordion.enhanced .accordion-expand-button{
             font-weight: 400;
+            font-size: 1.1em;
+            padding: 5px 15px 5px 15px;
         }
 
         ul.accordion.enhanced button{
             font-weight: 400;
+            font-size: 1.1em;
+            padding: 5px 15px 5px 15px;
         }
 
 /* Script-related Classes */

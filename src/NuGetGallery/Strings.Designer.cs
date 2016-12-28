@@ -744,7 +744,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Push packages.
+        ///   Looks up a localized string similar to New packages and package versions.
         /// </summary>
         public static string ScopeDescription_PushPackage {
             get {
@@ -753,7 +753,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Push package versions only.
+        ///   Looks up a localized string similar to Only package versions.
         /// </summary>
         public static string ScopeDescription_PushPackageVersion {
             get {

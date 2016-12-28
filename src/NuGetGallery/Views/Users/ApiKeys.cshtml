@@ -274,23 +274,28 @@
         expanded: expanded,
         actions:  @<text> @item.ExpandButton("New API key", "Cancel") </text>,
         content:  @<text>
-                    @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%", @id = "generateKeyForm" }))
+                    @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%", @id = "generateKeyForm", @onkeypress= "return event.keyCode != 13;" }))
                     {
-                     <fieldset class="form" style="width:500px">
+                     <fieldset class="form" >
                         @Html.AntiForgeryToken()
-                        <div class="form-field">
-                            <table>
-                                <tr>
-                                    <th>Key name</th>
-                                    <th>Expires in</th>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <input type="text" name="description" id="description" placeholder="Name (e.g. 'Build server')" data-val-required="The field is required." data-val="true" />
-                                    </td>
-                                    <td>
-                                        @if (Model.ExpirationInDaysForApiKeyV1 > 0)
-                                        {
+                         <div class="form-field" style="width:500px">
+                             <table>
+                                 <tr>
+                                     <th>Key name</th>
+                                     @if (Model.ExpirationInDaysForApiKeyV1 > 0)
+                                     {
+                                         <th>Expires in</th>
+                                     }
+                                 </tr>
+                                 <tr>
+                                     <td>
+                                         <input type="text" name="description" id="description" placeholder="Name (e.g. 'Build server')" data-val-required="The field is required." data-val="true" />
+                                         <span data-valmsg-for="description" data-valmsg-replace="true"></span>
+                                         <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
+                                     </td>
+                                    @if (Model.ExpirationInDaysForApiKeyV1 > 0)
+                                    {
+                                        <td style="vertical-align: top">
                                             <select name="expirationInDays" id="expirationInDays">
                                                 @if (Model.ExpirationInDaysForApiKeyV1 == 365) // Shorter dropdown for NuGet.org
                                                 {
@@ -310,48 +315,47 @@
                                                     <option value="@Model.ExpirationInDaysForApiKeyV1" selected="selected">@Model.ExpirationInDaysForApiKeyV1 days</option>
                                                 }
                                             </select>
-                                        }
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="form-field">
-                            <table width="100%">
-                                <tr>
-                                    <th>Select scopes</th>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="scrollable-div" style="height: 75px">
-                                            <label class="checkoboxsmall scopecheckbox">
-                                                <input type="checkbox" name="scopes" id="scopePush" value="@NuGetScopes.PackagePush" /> @NuGetScopes.Describe(NuGetScopes.PackagePush)
-                                            </label>
-                                            <label class="checkoboxsmall scopecheckbox">
-                                                <input type="checkbox" name="scopes" id="scopePushVersion" value="@NuGetScopes.PackagePushVersion" /> @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
-                                            </label>
-                                            <label class="checkoboxsmall scopecheckbox">
-                                                <input type="checkbox" name="scopes" id="scopeUnlist" value="@NuGetScopes.PackageUnlist" /> @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="form-field" id="packagePatternInput">
-                            <table>
-                                <tr>
-                                    <th>Glob pattern</th>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <input type="text" name="subjects" id="globPattern" placeholder="Package pattern (e.g. '*' for any package)"
-                                               data-val-regex="Invalid glob pattern. See 'Examples' for further details." data-val-regex-pattern="^[\*\w_.-]*$" data-val="true" />
-                                        <a href="https://aka.ms/nugetpackageglobs" target="_blank">(Examples)</a>
-                                        <span data-valmsg-for="subjects" data-valmsg-replace="true"></span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
+                                        </td>
+                                    }
+                                 </tr>
+                             </table>
+                         </div>
+                         <p>
+                             <h5>Select scopes</h5><hr />
+                             <div class="form-field">
+                                 <label class="checkoboxsmall scopecheckbox" id="scopePushLabel">
+                                     <input type="checkbox" id="scopePush"/>Push
+                                     <div style="margin-left: 15px" id="scopePushOptions">
+                                         <input type="radio" name="scopes" id="scopeFullPush" value="@NuGetScopes.PackagePush"/>@NuGetScopes.Describe(NuGetScopes.PackagePush)<br/>
+                                         <input type="radio" name="scopes" id="scopePushVersion" value="@NuGetScopes.PackagePushVersion"/>@NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
+                                     </div>
+                                 </label>
+                                 <label class="checkoboxsmall scopecheckbox">
+                                     <input type="checkbox" name="scopes" id="scopeUnlist" value="@NuGetScopes.PackageUnlist"/> @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
+                                 </label>
+                             </div>
+                         </p>
+                         <p>
+                             <h5>Select packages</h5><hr />
+                             To select which packages to associate with a key use a glob pattern, select individual packages, or both. <a href="https://aka.ms/nugetpackageglobs" target="_blank">Example glob patterns</a>.
+                             
+                             <p>
+                                 <div class="form-field" id="packageGlobPattern">
+                                     <table>
+                                         <tr>
+                                             <th>Glob pattern</th>
+                                         </tr>
+                                         <tr>
+                                             <td>
+                                                 <input style="width:500px" type="text" name="subjects" id="globPattern" placeholder="Example: The wildcard '*' will select all available packages."
+                                                        data-val-regex="Invalid glob pattern. See 'Examples' for further details." data-val-regex-pattern="^[\*\w_.-]*$" data-val="true" />
+                                                 <span data-valmsg-for="subjects" data-valmsg-replace="true"></span>
+                                             </td>
+                                         </tr>
+                                     </table>
+                                 </div>
+                             </p>
+                         </p>
 
                         @if (Model.Packages != null && Model.Packages.Count > 0)
                          {
@@ -362,7 +366,7 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <div class="scrollable-div" id="selectablePackagesList" style="max-height: 150px;">
+                                            <div class="scrollable-div" id="selectablePackagesList" style="max-height: 150px;width:500px">
                                                 @foreach (var package in Model.Packages)
                                                 {
                                                     <label class="checkoboxsmall packagecheckbox"><input type="checkbox" name="subjects" value="@package" /> @package</label>
@@ -381,16 +385,19 @@
                 </text>)
 }
 
-<script>
-    $(document).ready(function () {
-        $('#selectablePackagesList').addClass('disabled-div');
-        $('#generateKey').addClass('disabled-div');
-        $('#packagePatternInput').addClass('disabled-div');
-    })
-</script>
-<script>
+<script> // Add API Key related scripts
     $(document)
         .ready(function() {
+            setGenerateApiKeyFormInitialState();
+        });
+
+    $(document)
+        .ready(function () {
+
+            $('#generateKeyForm').submit(function () {
+                return false;
+            });
+
             $('.scopecheckbox')
                 .on('click',
                     function() {
@@ -406,12 +413,99 @@
                         var anyChecked = scopeUnlistOrPushChecked || document.getElementById("scopePush").checked;
 
                         if (anyChecked) {
-                            $('#packagePatternInput').removeClass('disabled-div');
+                            $('#packageGlobPattern').removeClass('disabled-div');
                         } else {
-                            $('#packagePatternInput').addClass('disabled-div');
+                            $('#packageGlobPattern').addClass('disabled-div');
                         }
                     });
+
+            $('#scopePushLabel')
+                .on('click',
+                    function() {
+                        if (document.getElementById("scopePush").checked) {
+                            $('#scopePushOptions').removeClass('disabled-div');
+                        } else {
+                            $('#scopePushOptions').addClass('disabled-div');
+                        }
+                    });
+
+            $('#globPattern')
+                .on('input', function () {
+                    selectPackageFromGlob();
+                    enableAddKeyButton();
+                });
+
+            $('.packagecheckbox input').change(function () {
+                    enableAddKeyButton();
+            });
         });
+
+    function selectPackageFromGlob() {
+        var globVal = $('#globPattern').val();
+
+        // Invalid or empty glob
+        var badGlob = !$('#globPattern').valid() || (globVal == null || $.trim(globVal) == '');
+
+        var patt = globToRegex(globVal);
+
+        $('.packagecheckbox input')
+            .each(function() {
+                if (!badGlob && patt.test($(this).val())) {
+                    $(this)[0].checked = true;
+                    $(this).parent().addClass('disabled-div');
+                } else {
+                    $(this)[0].checked = false;
+                    $(this).parent().removeClass('disabled-div');
+                }
+            });
+    }
+
+    function globToRegex(glob) {
+        var specialChars = "\\^$*+?.()|{}[]";
+        var regexChars = ["^"];
+        for (var i = 0; i < glob.length; ++i) {
+            var c = glob.charAt(i);
+            switch (c) {
+                case '*':
+                    regexChars.push(".*");
+                    break;
+                default:
+                    if (specialChars.indexOf(c) >= 0) {
+                        regexChars.push("\\");
+                    }
+                    regexChars.push(c);
+            }
+        }
+
+        regexChars.push("$");
+        return new RegExp(regexChars.join(""));
+    }
+
+    function enableAddKeyButton() {
+        var packagesWereSelected = jQuery('#selectablePackagesList input[type=checkbox]:checked').length > 0;
+        var globValid = $('#globPattern').valid();
+        var globEmpty = $('#globPattern').val() == null || $.trim($('#globPattern').val()) == '';
+
+        if (!globValid) {
+            $('#generateKey').addClass('disabled-div');
+        }
+        else if (packagesWereSelected || !globEmpty) {
+            $('#generateKey').removeClass('disabled-div');
+        }
+        else {
+            $('#generateKey').addClass('disabled-div');
+        }
+    }
+
+    function setGenerateApiKeyFormInitialState() {
+        $('#selectablePackagesList').addClass('disabled-div');
+        $('#generateKey').addClass('disabled-div');
+        $('#packageGlobPattern').addClass('disabled-div');
+        $('#scopePushOptions').addClass('disabled-div');
+
+        $('#scopeFullPush').prop("checked", true);
+    }
+
 </script>
 <script>
     $(document).ready(function () {
@@ -448,38 +542,7 @@
             });
     }
 </script>
-<script>
-    function enableAddKeyButton() {
-        var packagesWereSelected = jQuery('#selectablePackagesList input[type=checkbox]:checked').length > 0;
-        var globValid = $('#globPattern').valid();
-        var globEmpty = $('#globPattern').val() == null || $.trim($('#globPattern').val()) == '';
-
-        if (!globValid) {
-            $('#generateKey').addClass('disabled-div');
-        }
-        else if (packagesWereSelected || !globEmpty) {
-            $('#generateKey').removeClass('disabled-div');
-        }
-        else {
-            $('#generateKey').addClass('disabled-div');
-        }
-    }
-
-    $(document).ready(function() {
-        $('#globPattern')
-            .on('input', function() {
-                enableAddKeyButton();
-            });
-    });
-
-    $(document).ready(function () {
-        $('.packagecheckbox')
-            .on('click', function () {
-                enableAddKeyButton();
-            });
-    });
-</script>
-<script>
+<script> // Timestamp presentation
     $('.s-relativetime[data-utc]').each(function () {
         $(this).text(convertToRelativeTime(new Date($(this).data().utc)));
     });
@@ -491,7 +554,7 @@
     }
 
 </script>
-<script>
+<script> // Disable copy API key button after 10 mins of inactivity
     var idleTime = 0;
     var idleInterval;
 
@@ -520,7 +583,7 @@
         }
     }
 </script>
-<script>
+<script> //AJAX
     $(document)
         .ready(function() {
             $('#generateKey').on('click', generateApiKey);
@@ -535,6 +598,10 @@
 
     function generateApiKey(e) {
         e.preventDefault();
+
+        if (!$('#description').valid()) {
+            return;
+        }
 
         // prevent duplicate requests
         var me = $(this);
@@ -551,6 +618,7 @@
                 // 'Add Key' dialog
                 $('#generateKeyForm').find("input[type=text], textarea").val("");
                 $('#generateKeyForm').find("input:checkbox").removeAttr('checked');
+                setGenerateApiKeyFormInitialState();
                 $('#newapikey-1-collapse').trigger('click');
 
                 // New table row
