@@ -414,10 +414,10 @@ The {1} Team</value>
     <value>All</value>
   </data>
   <data name="ScopeDescription_PushPackage" xml:space="preserve">
-    <value>New packages and package versions</value>
+    <value>Push new packages and package versions</value>
   </data>
   <data name="ScopeDescription_PushPackageVersion" xml:space="preserve">
-    <value>Only package versions</value>
+    <value>Push only new package versions</value>
   </data>
   <data name="ScopeDescription_UnlistPackage" xml:space="preserve">
     <value>Unlist package</value>

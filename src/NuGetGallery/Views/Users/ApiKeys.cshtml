@@ -363,9 +363,6 @@
                                      </div>
                                  </div>
                              </div>
-
-                             
-                             
                              <p>
                                  <div class="form-field" id="packageGlobPattern">
                                      <table>
@@ -479,9 +476,11 @@
             .each(function() {
                 if (!badGlob && patt.test($(this).val())) {
                     $(this)[0].checked = true;
+                    $(this)[0].name = ""; // hide the name so this won't be submitted in the form
                     $(this).parent().addClass('disabled-div');
                 } else {
                     $(this)[0].checked = false;
+                    $(this)[0].name = "subjects";
                     $(this).parent().removeClass('disabled-div');
                 }
             });
