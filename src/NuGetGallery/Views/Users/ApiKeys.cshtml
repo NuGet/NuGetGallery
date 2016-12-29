@@ -82,11 +82,21 @@
                         <h4>Manage API Keys</h4>
                         <hr />
                         <ul class="accordion enhanced">@AddApiKey(!apiKeys.Any())</ul>
-                        <table class="details-table" id="api-keys-details" width="100%">
+                        <div class="apikeyscontainer">
+                            <h5>Keys</h5>
+                            <hr />
+                            <p id="newApiKeyWarning" class="message warning fancy" style="display:none" >
+                                <span class="icon-stack warningsign">
+                                    <i class="icon-circle icon-stack-base"></i>
+                                    <i class="icon-exclamation"></i>
+                                </span>
+                                New API key has been created. Make sure to copy your new API key now using the <i class="icon-copy" style="color:#0071bc"></i> copy key button. You won't be able to do so again.
+                            </p>
+                            <table class="details-table" id="api-keys-details" width="100%">
                             <colgroup>
                                 <col span="1" style="width: 5%;">
-                                <col span="1" style="width: 85%;">
-                                <col span="1" style="width: 15%;">
+                                <col span="1" style="width: 80%;">
+                                <col span="1" style="width: 20%;">
                             </colgroup>
                             @foreach (var apiKey in apiKeys)
                             {
@@ -239,6 +249,7 @@
                                 </tr>
                             }
                         </table>
+                        </div>
                     }
 
                     if (apiKeys.Count > 0)
@@ -894,6 +905,8 @@
 
         applyMoreDetailsEventHandlers();
         applyActionButtonHandlers();
+
+        $('#newApiKeyWarning').show();
     }
 
     function parseJsonDate(jsondate) {

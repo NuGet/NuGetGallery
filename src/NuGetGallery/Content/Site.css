@@ -226,6 +226,14 @@ nav, section {
     color: #ff9600;
 }
 
+.warning.fancy { 
+    color: black;
+    border-color: #f7d3a5;
+    font-size: 1em;
+    font-weight: 500;
+    padding: 5px;
+}
+
 /* Logo */
 
 #logo {
@@ -1524,6 +1532,10 @@ img.contributors-contributor-avatar {
     font-weight: 600;
 }
 
+.details-table tr:first-child td{
+    border-top-width: 0px;
+}
+
 /* divs*/
 
 .scrollable-div {
@@ -1559,6 +1571,7 @@ img.contributors-contributor-avatar {
     margin-left: -210px;
     margin-top: 10px;
     border: 1px solid #ccc; 
+    opacity: 0.97;
 }
 
 .popup .innertext {
@@ -1609,3 +1622,29 @@ img.contributors-contributor-avatar {
     line-height: 0px;
     padding: 8px 0px 0px 0px;
 }
+
+
+/* Api keys container */
+.apikeyscontainer {
+    background-color: white;
+}
+
+.apikeyscontainer h5 {
+    margin-top: 0px;
+    padding-top: 5px;
+    padding-left: 6.8px;
+}
+
+
+/* warning sign */
+
+.warningsign i.icon-stack-base{
+    color: #ffcc00;
+    font-size: 1.3em;
+}
+
+.warningsign i.icon-exclamation{
+    color: black;
+    font-size: 0.9em;
+}
+
