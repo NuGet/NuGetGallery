@@ -143,22 +143,22 @@ namespace NuGetGallery.FunctionalTests
         private async Task<string> GetResponseText(string url)
         {
             var request = WebRequest.Create(url);
-            var response = await request.GetResponseAsync();
-
-            string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var response = await request.GetResponseAsync())
             {
-                responseText = await sr.ReadToEndAsync();
-            }
+                string responseText;
+                using (var sr = new StreamReader(response.GetResponseStream()))
+                {
+                    responseText = await sr.ReadToEndAsync();
+                }
 
-            return responseText;
+                return responseText;
+            }
         }
 
         public async Task<WebResponse> SendRequest(string url)
         {
             var request = WebRequest.Create(url);
-            var response = await request.GetResponseAsync().ConfigureAwait(false);
-            return response;
+            return await request.GetResponseAsync().ConfigureAwait(false);
         }
 
         public async Task DownloadPackageFromV2FeedWithOperation(string packageId, string version, string operation)
