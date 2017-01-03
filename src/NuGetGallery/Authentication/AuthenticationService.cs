@@ -498,6 +498,7 @@ namespace NuGetGallery.Authentication
                 _trace.Information("No external login found.");
                 return new AuthenticateExternalLoginResult();
             }
+
             var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
             if (idClaim == null)
             {
