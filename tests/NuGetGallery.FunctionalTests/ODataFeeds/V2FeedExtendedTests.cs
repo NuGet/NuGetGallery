@@ -48,12 +48,13 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 string packageId = string.Format("TestV2FeedFindPackagesById.{0}", DateTime.UtcNow.Ticks);
 
                 TestOutputHelper.WriteLine("Uploading package '{0}'", packageId);
-                await _clientSdkHelper.UploadNewPackageAndVerify(packageId);
+                await _clientSdkHelper.UploadNewPackage(packageId);
 
                 TestOutputHelper.WriteLine("Uploaded package '{0}'", packageId);
-                await _clientSdkHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
+                await _clientSdkHelper.UploadNewPackage(packageId, "2.0.0");
 
-                string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
+                // "&$orderby=Version" is appended to bypass the search hijacker
+                string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'&$orderby=Version";
                 string[] expectedTexts =
                 {
                     @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='1.0.0')</id>",

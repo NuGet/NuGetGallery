@@ -176,10 +176,8 @@ namespace NuGetGallery.FunctionalTests
             AddContent(nuspecDir);
             AddLib(nuspecDir);
 
-            var arguments = string.Join(string.Empty, CommandlineHelper.PackCommandString, @"""" + nuspecFileFullPath + @"""", CommandlineHelper.OutputDirectorySwitchString, @"""" + nuspecDir + @"""");
-
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-            await commandlineHelper.InvokeNugetProcess(arguments, Path.GetFullPath(Path.GetDirectoryName(nuspecFileFullPath)));
+            await commandlineHelper.PackPackageAsync(nuspecFileFullPath, nuspecDir);
 
             string[] nupkgFiles = Directory.GetFiles(nuspecDir, "*.nupkg").ToArray();
             return nupkgFiles.Length == 0 ? null : nupkgFiles[0];
@@ -190,10 +188,9 @@ namespace NuGetGallery.FunctionalTests
             string nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
             AddContent(nuspecDir, frameworkVersion);
             AddLib(nuspecDir, frameworkVersion);
-            var arguments = string.Join(string.Empty, CommandlineHelper.PackCommandString, @"""" + nuspecFileFullPath + @"""", CommandlineHelper.OutputDirectorySwitchString, @"""" + nuspecDir + @"""");
 
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-            await commandlineHelper.InvokeNugetProcess(arguments, Path.GetFullPath(Path.GetDirectoryName(nuspecFileFullPath)));
+            await commandlineHelper.PackPackageAsync(nuspecFileFullPath, nuspecDir);
 
             string[] nupkgFiles = Directory.GetFiles(nuspecDir, "*.nupkg").ToArray();
             return nupkgFiles.Length == 0 ? null : nupkgFiles[0];

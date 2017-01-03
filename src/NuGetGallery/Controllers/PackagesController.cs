@@ -385,8 +385,11 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual async Task<ActionResult> ListPackages(string q, int page = 1)
+        public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
         {
+            var page = searchAndListModel.Page;
+            var q = searchAndListModel.Q;
+
             if (page < 1)
             {
                 page = 1;
