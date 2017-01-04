@@ -254,10 +254,35 @@ namespace NuGetGallery
 
                     using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
                     {
-                        NuspecReader nuspec = null;
                         try
                         {
-                            nuspec = packageToPush.GetNuspecReader();
+                            PackageService.EnsureValid(packageToPush);
+                        }
+                        catch (Exception ex)
+                        {
+                            ex.Log();
+
+                            var message = Strings.FailedToReadUploadFile;
+                            if (ex is InvalidPackageException || ex is InvalidDataException || ex is EntityException)
+                            {
+                                message = ex.Message;
+                            }
+                            
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
+                        }
+
+                        NuspecReader nuspec;
+                        try
+                        {
+                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out nuspec).ToArray();
+                            if (errors.Length > 0)
+                            {
+                                var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    errors.Length > 1 ? Strings.UploadPackage_InvalidNuspecMult : Strings.UploadPackage_InvalidNuspec,
+                                    errorsString));
+                            }
                         }
                         catch (Exception ex)
                         {
