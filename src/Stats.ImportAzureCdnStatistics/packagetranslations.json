@@ -61,6 +61,12 @@
       "correctedpackageversionpattern": "$1"
     },
     {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "365.(.*)",
+      "correctedpackageid": "fakexrmeasy.365",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
       "incorrectpackageid": "trackableentities.ef",
       "incorrectpackageversionpattern": "5.(.*)",
       "correctedpackageid": "trackableentities.ef.5",
