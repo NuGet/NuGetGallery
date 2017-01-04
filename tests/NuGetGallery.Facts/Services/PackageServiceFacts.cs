@@ -703,6 +703,20 @@ namespace NuGetGallery
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength), ex.Message);
             }
+            
+            [Theory]
+            [InlineData("ILike*Asterisks")]
+            [InlineData("I_.Like.-Separators")]
+            [InlineData("-StartWithSeparator")]
+            [InlineData("EndWithSeparator.")]
+            [InlineData("$id$")]
+            public async Task WillThrowIfPackageIdIsInvalid(string packageId)
+            {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage(id: packageId);
+
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+            }
 
             [Fact]
             private async Task WillThrowIfTheNuGetPackageSpecialVersionContainsADot()
