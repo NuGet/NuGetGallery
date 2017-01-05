@@ -908,7 +908,7 @@ namespace NuGetGallery
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(Strings.UploadFileMustBeNuGetPackage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
-
+            
             [Fact]
             public async Task WillShowViewWithErrorsIfNuGetPackageThrowsException()
             {
@@ -929,60 +929,23 @@ namespace NuGetGallery
                 Assert.Equal(Strings.FailedToReadUploadFile, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
-            [Fact]
-            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsInvalidPackageException()
+            [Theory]
+            [InlineData(typeof(InvalidPackageException))]
+            [InlineData(typeof(InvalidDataException))]
+            [InlineData(typeof(EntityException))]
+            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsExceptionMessage(Type exceptionType)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
                 var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
-                var exceptionMessage = "your package is bad";
-                var readPackageException = new InvalidPackageException(exceptionMessage);
+
+                var exceptionMessage = "naughty package";
+                var readPackageException =
+                    exceptionType.GetConstructor(new[] {typeof(string)}).Invoke(new[] {exceptionMessage});
 
                 var controller = CreateController(
-                    readPackageException: readPackageException);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
-
-                Assert.NotNull(result);
-                Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(exceptionMessage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
-            }
-
-            [Fact]
-            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsInvalidDataException()
-            {
-                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
-                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
-                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
-                var exceptionMessage = "your data is bad";
-                var readPackageException = new InvalidDataException(exceptionMessage);
-
-                var controller = CreateController(
-                    readPackageException: readPackageException);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
-
-                Assert.NotNull(result);
-                Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(exceptionMessage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
-            }
-
-            [Fact]
-            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsEntityException()
-            {
-                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
-                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
-                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
-                var exceptionMessage = "your entity is bad";
-                var readPackageException = new EntityException(exceptionMessage);
-
-                var controller = CreateController(
-                    readPackageException: readPackageException);
+                    readPackageException: readPackageException as Exception);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
