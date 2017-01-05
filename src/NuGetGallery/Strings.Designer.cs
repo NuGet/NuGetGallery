@@ -800,9 +800,9 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The NuGet package contains an invalid .nuspec file. The errors encountered were: &apos;{0}&apos;. Correct the errors and try again..
         /// </summary>
-        public static string UploadPackage_InvalidNuspecMult {
+        public static string UploadPackage_InvalidNuspecMultiple {
             get {
-                return ResourceManager.GetString("UploadPackage_InvalidNuspecMult", resourceCulture);
+                return ResourceManager.GetString("UploadPackage_InvalidNuspecMultiple", resourceCulture);
             }
         }
         

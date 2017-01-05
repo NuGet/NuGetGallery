@@ -278,7 +278,7 @@ namespace NuGetGallery
                             var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));
                             return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
                                 CultureInfo.CurrentCulture,
-                                errors.Length > 1 ? Strings.UploadPackage_InvalidNuspecMult : Strings.UploadPackage_InvalidNuspec,
+                                errors.Length > 1 ? Strings.UploadPackage_InvalidNuspecMultiple : Strings.UploadPackage_InvalidNuspec,
                                 errorsString));
                         }
 
