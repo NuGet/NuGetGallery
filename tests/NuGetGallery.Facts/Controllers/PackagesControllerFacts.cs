@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -908,9 +909,9 @@ namespace NuGetGallery
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(Strings.UploadFileMustBeNuGetPackage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
-
+            
             [Fact]
-            public async Task WillShowViewWithErrorsIfNuGetPackageIsInvalid()
+            public async Task WillShowViewWithErrorsIfEnsureValidThrowsException()
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -927,6 +928,60 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(Strings.FailedToReadUploadFile, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+            }
+
+            private const string EnsureValidExceptionMessage = "naughty package";
+
+            [Theory]
+            [InlineData(typeof(InvalidPackageException), true)]
+            [InlineData(typeof(InvalidDataException), true)]
+            [InlineData(typeof(EntityException), true)]
+            [InlineData(typeof(Exception), false)]
+            public async Task WillShowViewWithErrorsIfEnsureValidThrowsExceptionMessage(Type exceptionType, bool expectExceptionMessageInResponse)
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                
+                var readPackageException =
+                    exceptionType.GetConstructor(new[] {typeof(string)}).Invoke(new[] { EnsureValidExceptionMessage });
+
+                var controller = CreateController(
+                    readPackageException: readPackageException as Exception);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal(expectExceptionMessageInResponse ? EnsureValidExceptionMessage : Strings.FailedToReadUploadFile, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Theory]
+            [InlineData("ILike*Asterisks")]
+            [InlineData("I_.Like.-Separators")]
+            [InlineData("-StartWithSeparator")]
+            [InlineData("EndWithSeparator.")]
+            [InlineData("EndsWithHyphen-")]
+            [InlineData("$id$")]
+            [InlineData("Contains#Invalid$Characters!@#$%^&*")]
+            [InlineData("Contains#Invalid$Characters!@#$%^&*EndsOnValidCharacter")]
+            public async Task WillShowViewWithErrorsIfPackageIdIsInvalid(string packageId)
+            {
+                // Arrange
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns(packageId + ".nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                var controller = CreateController(fakeNuGetPackage: TestPackage.CreateTestPackageStream(packageId, "1.0.0"));
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
             }
 
             [Fact]
