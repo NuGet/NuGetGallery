@@ -910,7 +910,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillShowViewWithErrorsIfNuGetPackageIsInvalid()
+            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsException()
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -927,6 +927,69 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(Strings.FailedToReadUploadFile, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsInvalidPackageException()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var exceptionMessage = "your package is bad";
+                var readPackageException = new InvalidPackageException(exceptionMessage);
+
+                var controller = CreateController(
+                    readPackageException: readPackageException);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal(exceptionMessage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsInvalidDataException()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var exceptionMessage = "your data is bad";
+                var readPackageException = new InvalidDataException(exceptionMessage);
+
+                var controller = CreateController(
+                    readPackageException: readPackageException);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal(exceptionMessage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsEntityException()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var exceptionMessage = "your entity is bad";
+                var readPackageException = new EntityException(exceptionMessage);
+
+                var controller = CreateController(
+                    readPackageException: readPackageException);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal(exceptionMessage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]

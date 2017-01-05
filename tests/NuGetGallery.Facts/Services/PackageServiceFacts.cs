@@ -709,6 +709,7 @@ namespace NuGetGallery
             [InlineData("I_.Like.-Separators")]
             [InlineData("-StartWithSeparator")]
             [InlineData("EndWithSeparator.")]
+            [InlineData("EndsWithHyphen-")]
             [InlineData("$id$")]
             public async Task WillThrowIfPackageIdIsInvalid(string packageId)
             {

@@ -272,24 +272,14 @@ namespace NuGetGallery
                         }
 
                         NuspecReader nuspec;
-                        try
+                        var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out nuspec).ToArray();
+                        if (errors.Length > 0)
                         {
-                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out nuspec).ToArray();
-                            if (errors.Length > 0)
-                            {
-                                var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                    CultureInfo.CurrentCulture,
-                                    errors.Length > 1 ? Strings.UploadPackage_InvalidNuspecMult : Strings.UploadPackage_InvalidNuspec,
-                                    errorsString));
-                            }
-                        }
-                        catch (Exception ex)
-                        {
+                            var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));
                             return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
                                 CultureInfo.CurrentCulture,
-                                Strings.UploadPackage_InvalidNuspec,
-                                ex.Message));
+                                errors.Length > 1 ? Strings.UploadPackage_InvalidNuspecMult : Strings.UploadPackage_InvalidNuspec,
+                                errorsString));
                         }
 
                         if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
