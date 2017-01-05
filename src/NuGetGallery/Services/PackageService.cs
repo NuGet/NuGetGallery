@@ -94,13 +94,6 @@ namespace NuGetGallery
 
             var packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata);
 
-            NuspecReader nuspec;
-            var errors = ManifestValidator.Validate(nugetPackage.GetNuspec(), out nuspec).ToArray();
-            if (errors.Length > 0)
-            {
-                throw new InvalidPackageException($"{string.Join(" ", errors.Select(error => error.ErrorMessage))}");
-            }
-
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
             packageRegistration.Packages.Add(package);
             await UpdateIsLatestAsync(packageRegistration, false);
