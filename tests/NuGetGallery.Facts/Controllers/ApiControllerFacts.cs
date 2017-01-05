@@ -202,9 +202,15 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
             }
-            
-            [Fact]
-            public async Task CreatePackageReturns400IfEnsureValidThrowsException()
+
+            private const string EnsureValidExceptionMessage = "naughty package";
+
+            [Theory]
+            [InlineData(typeof(InvalidPackageException), true)]
+            [InlineData(typeof(InvalidDataException), true)]
+            [InlineData(typeof(EntityException), true)]
+            [InlineData(typeof(Exception), false)]
+            public async Task CreatePackageReturns400IfEnsureValidThrowsExceptionMessage(Type exceptionType, bool expectExceptionMessageInResponse)
             {
                 // Arrange
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -214,34 +220,8 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
                 
-                controller.MockPackageService.Setup(p => p.EnsureValid(It.IsAny<PackageArchiveReader>()))
-                    .Throws<Exception>();
-
-                // Act
-                ActionResult result = await controller.CreatePackagePut();
-
-                // Assert
-                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
-                Assert.Equal((result as HttpStatusCodeWithBodyResult).StatusDescription, Strings.FailedToReadUploadFile);
-            }
-
-            [Theory]
-            [InlineData(typeof(InvalidPackageException))]
-            [InlineData(typeof(InvalidDataException))]
-            [InlineData(typeof(EntityException))]
-            public async Task CreatePackageReturns400IfEnsureValidThrowsExceptionMessage(Type exceptionType)
-            {
-                // Arrange
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-
-                var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
-                controller.SetCurrentUser(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                var exceptionMessage = "naughty package";
                 var exception =
-                    exceptionType.GetConstructor(new[] { typeof(string) }).Invoke(new[] { exceptionMessage });
+                    exceptionType.GetConstructor(new[] { typeof(string) }).Invoke(new[] { EnsureValidExceptionMessage });
 
                 controller.MockPackageService.Setup(p => p.EnsureValid(It.IsAny<PackageArchiveReader>()))
                     .Throws(exception as Exception);
@@ -251,7 +231,7 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
-                Assert.Equal((result as HttpStatusCodeWithBodyResult).StatusDescription, exceptionMessage);
+                Assert.Equal(expectExceptionMessageInResponse ? EnsureValidExceptionMessage : Strings.FailedToReadUploadFile, (result as HttpStatusCodeWithBodyResult).StatusDescription);
             }
 
             [Theory]
@@ -263,7 +243,7 @@ namespace NuGetGallery
             [InlineData("$id$")]
             [InlineData("Contains#Invalid$Characters!@#$%^&*")]
             [InlineData("Contains#Invalid$Characters!@#$%^&*EndsOnValidCharacter")]
-            public async Task WillThrowIfPackageIdIsInvalid(string packageId)
+            public async Task CreatePackageReturns400IfPackageIdIsInvalid(string packageId)
             {
                 // Arrange
                 var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
@@ -278,28 +258,6 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
-            }
-
-            [Fact]
-            public async Task CreatePackageReturns400IfPackageIdIsInvalid()
-            {
-                // Arrange
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-
-                var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
-                controller.SetCurrentUser(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                controller.MockPackageService.Setup(p => p.EnsureValid(It.IsAny<PackageArchiveReader>()))
-                    .Throws<Exception>();
-
-                // Act
-                ActionResult result = await controller.CreatePackagePut();
-
-                // Assert
-                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
-                Assert.Equal((result as HttpStatusCodeWithBodyResult).StatusDescription, Strings.FailedToReadUploadFile);
             }
 
             [Fact]

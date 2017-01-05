@@ -930,20 +930,22 @@ namespace NuGetGallery
                 Assert.Equal(Strings.FailedToReadUploadFile, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
+            private const string EnsureValidExceptionMessage = "naughty package";
+
             [Theory]
-            [InlineData(typeof(InvalidPackageException))]
-            [InlineData(typeof(InvalidDataException))]
-            [InlineData(typeof(EntityException))]
-            public async Task WillShowViewWithErrorsIfEnsureValidThrowsExceptionMessage(Type exceptionType)
+            [InlineData(typeof(InvalidPackageException), true)]
+            [InlineData(typeof(InvalidDataException), true)]
+            [InlineData(typeof(EntityException), true)]
+            [InlineData(typeof(Exception), false)]
+            public async Task WillShowViewWithErrorsIfEnsureValidThrowsExceptionMessage(Type exceptionType, bool expectExceptionMessageInResponse)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
                 var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
-
-                var exceptionMessage = "naughty package";
+                
                 var readPackageException =
-                    exceptionType.GetConstructor(new[] {typeof(string)}).Invoke(new[] {exceptionMessage});
+                    exceptionType.GetConstructor(new[] {typeof(string)}).Invoke(new[] { EnsureValidExceptionMessage });
 
                 var controller = CreateController(
                     readPackageException: readPackageException as Exception);
@@ -953,7 +955,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(exceptionMessage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(expectExceptionMessageInResponse ? EnsureValidExceptionMessage : Strings.FailedToReadUploadFile, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Theory]
