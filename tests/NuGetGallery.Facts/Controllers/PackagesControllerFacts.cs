@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -910,7 +911,7 @@ namespace NuGetGallery
             }
             
             [Fact]
-            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsException()
+            public async Task WillShowViewWithErrorsIfEnsureValidThrowsException()
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -933,7 +934,7 @@ namespace NuGetGallery
             [InlineData(typeof(InvalidPackageException))]
             [InlineData(typeof(InvalidDataException))]
             [InlineData(typeof(EntityException))]
-            public async Task WillShowViewWithErrorsIfNuGetPackageThrowsExceptionMessage(Type exceptionType)
+            public async Task WillShowViewWithErrorsIfEnsureValidThrowsExceptionMessage(Type exceptionType)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -953,6 +954,32 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(exceptionMessage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Theory]
+            [InlineData("ILike*Asterisks")]
+            [InlineData("I_.Like.-Separators")]
+            [InlineData("-StartWithSeparator")]
+            [InlineData("EndWithSeparator.")]
+            [InlineData("EndsWithHyphen-")]
+            [InlineData("$id$")]
+            [InlineData("Contains#Invalid$Characters!@#$%^&*")]
+            [InlineData("Contains#Invalid$Characters!@#$%^&*EndsOnValidCharacter")]
+            public async Task WillShowViewWithErrorsIfPackageIdIsInvalid(string packageId)
+            {
+                // Arrange
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns(packageId + ".nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                var controller = CreateController(fakeNuGetPackage: TestPackage.CreateTestPackageStream(packageId, "1.0.0"));
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
             }
 
             [Fact]

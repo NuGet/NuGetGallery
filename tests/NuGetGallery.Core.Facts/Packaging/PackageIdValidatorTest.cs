@@ -39,7 +39,10 @@ namespace NuGetGallery.Packaging
         [InlineData("I_.Like.-Separators")]
         [InlineData("-StartWithSeparator")]
         [InlineData("EndWithSeparator.")]
+        [InlineData("EndsWithHyphen-")]
         [InlineData("$id$")]
+        [InlineData("Contains#Invalid$Characters!@#$%^&*")]
+        [InlineData("Contains#Invalid$Characters!@#$%^&*EndsOnValidCharacter")]
         public void ValidatePackageIdInvalidIdReturnsFalse(string packageId)
         {
             // Act
