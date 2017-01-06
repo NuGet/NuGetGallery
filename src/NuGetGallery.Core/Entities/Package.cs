@@ -118,6 +118,12 @@ namespace NuGetGallery
 
         public bool RequiresLicenseAcceptance { get; set; }
 
+        /// <summary>
+        /// Timestamp for optimistic concurrency checks to prevent conflicting IsLatest updates from multiple uploads
+        /// </summary>
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
+
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>

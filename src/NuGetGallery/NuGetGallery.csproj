@@ -823,6 +823,10 @@
     <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.Designer.cs">
       <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201612091849195_PackagesRowVersion.cs" />
+    <Compile Include="Migrations\201612091849195_PackagesRowVersion.Designer.cs">
+      <DependentUpon>201612091849195_PackagesRowVersion.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1955,6 +1959,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.resx">
       <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201612091849195_PackagesRowVersion.resx">
+      <DependentUpon>201612091849195_PackagesRowVersion.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
