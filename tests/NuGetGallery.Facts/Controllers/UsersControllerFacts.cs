@@ -1207,14 +1207,13 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GivenLegacyApiKey_ItRedirectsBackWithNoChangesMade()
+            public async Task GivenNoneScopedApiKey_ErrorIsReturnedWithNoChangesMade()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
                 var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1));
                 var user = fakes.CreateUser("test", apiKey);
-                var cred = user.Credentials.First();
-                cred.Key = CredentialKey;
+                apiKey.Key = CredentialKey;
 
                 var authenticationService = GetMock<AuthenticationService>();
                 authenticationService
@@ -1226,7 +1225,7 @@ namespace NuGetGallery
                 
                 // Act
                 var result = await controller.RegenerateCredential(
-                    credentialType: cred.Type,
+                    credentialType: apiKey.Type,
                     credentialKey: CredentialKey);
 
                 // Assert
@@ -1328,6 +1327,215 @@ namespace NuGetGallery
                 {
                     var actualScope =
                         newApiKey.Scopes.First(x => x.AllowedAction == expectedScope.AllowedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
+            }
+        }
+
+        public class TheEditCredentialAction : TestContainer
+        {
+            [Fact]
+            public async Task GivenANonApiKeyCredential_RedirectsToAccount()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+
+                // Act
+                var result = await controller.EditCredential(
+                    credentialType: "not api key",
+                    credentialKey: CredentialKey,
+                    subjects: new[] { "a", "b" });
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+            }
+
+            [Fact]
+            public async Task GivenNoCredential_ErrorIsReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var user = fakes.CreateUser("test", new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var cred = user.Credentials.First();
+
+                var authenticationService = GetMock<AuthenticationService>();
+                authenticationService
+                    .Setup(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EditCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey,
+                    subjects: new[] { "a", "b" });
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+
+                authenticationService.Verify(x => x.EditCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task GivenNonScopedApiKey_ErrorReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1));
+                apiKey.Key = CredentialKey;
+
+                var user = fakes.CreateUser("test", apiKey);
+
+                var authenticationService = GetMock<AuthenticationService>();
+                authenticationService
+                    .Setup(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EditCredential(
+                    credentialType: apiKey.Type,
+                    credentialKey: CredentialKey,
+                    subjects: new[] { "a", "b" });
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
+
+                authenticationService.Verify(x => x.EditCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+            }
+
+            public static IEnumerable<object[]> GivenValidRequest_ItEditsCredential_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            new [] // Removal of subjects
+                            {
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            },
+                            new [] { "def" },
+                            new []
+                            {
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            },
+                        },
+                        new object[]
+                        {
+                            new [] // Addition of subjects
+                            {
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                            },
+                            new [] { "abc", "def" },
+                            new []
+                            {
+                               new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            }
+                        },
+                        new object[]
+                        {
+                            new [] // No subjects
+                            {
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush)
+                            },
+                            new string[] {},
+                            new []
+                            {
+                               new Scope("*", NuGetScopes.PackageUnlist),
+                               new Scope("*", NuGetScopes.PackagePush)
+                            }
+                        },
+                    };
+                }
+            }
+
+            [MemberData(nameof(GivenValidRequest_ItEditsCredential_Input))]
+            [Theory]
+            public async Task GivenValidRequest_ItEditsCredential(Scope[] existingScopes, string[] modifiedSubjects, Scope[] expectedScopes)
+            {
+                // Arrange
+                const string description = "description";
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var apiKey = credentialBuilder.CreateApiKey(TimeSpan.FromHours(1));
+                apiKey.Description = description;
+                apiKey.Scopes = existingScopes;
+
+                var apiKeyExpirationTime = apiKey.Expires;
+                var apiKeyValue = apiKey.Value;
+
+
+                var user = fakes.CreateUser("test", apiKey, credentialBuilder.CreateApiKey(null));
+                var cred = user.Credentials.First();
+                cred.Key = CredentialKey;
+
+                GetMock<AuthenticationService>()
+                   .Setup(a => a.EditCredential(user, cred))
+                   .Completes()
+                   .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EditCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey,
+                    subjects: modifiedSubjects);
+
+                // Assert
+
+                GetMock<AuthenticationService>().Verify(x => x.EditCredential(user, apiKey), Times.Once);
+
+                // Check return value
+                Assert.IsType<JsonResult>(result);
+                var credentialViewModel = ((JsonResult)result).Data as CredentialViewModel;
+                Assert.NotNull(credentialViewModel);
+
+                Assert.Null(credentialViewModel.Value);
+                Assert.Equal(description, credentialViewModel.Description);
+                Assert.Equal(expectedScopes.Length, credentialViewModel.Scopes.Count);
+
+                foreach (var expectedScope in expectedScopes)
+                {
+                    var expectedAction = NuGetScopes.Describe(expectedScope.AllowedAction);
+                    var actualScope =
+                        credentialViewModel.Scopes.First(x => x.AllowedAction == expectedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
+
+                // Check edited value
+                Assert.Equal(expectedScopes.Length, apiKey.Scopes.Count);
+                Assert.Equal(apiKeyExpirationTime, apiKey.Expires); // Expiration time wasn't modified by edit
+                Assert.Equal(description, apiKey.Description);  // Description wasn't modified
+                Assert.Equal(apiKeyValue, apiKey.Value); // Value wasn't modified
+
+                foreach (var expectedScope in expectedScopes)
+                {
+                    var actualScope =
+                        apiKey.Scopes.First(x => x.AllowedAction == expectedScope.AllowedAction &&
                                                  x.Subject == expectedScope.Subject);
                     Assert.NotNull(actualScope);
                 }

@@ -1355,6 +1355,49 @@ namespace NuGetGallery.Authentication
             }
         }
 
+        public class TheEditCredentialMethod : TestContainer
+        {
+            [Fact]
+            public async Task SavesChangesInTheDataStore()
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+
+                var fakes = Get<Fakes>();
+                var cred = credentialBuilder.CreateApiKey(null);
+                var user = fakes.CreateUser("test", credentialBuilder.CreatePasswordCredential(Fakes.Password), cred);
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                await authService.EditCredential(user, cred);
+
+                // Assert
+                authService.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordForTheEditedCredential()
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+
+                var fakes = Get<Fakes>();
+                var cred = credentialBuilder.CreateApiKey(null);
+                var user = fakes.CreateUser("test", credentialBuilder.CreatePasswordCredential(Fakes.Password), cred);
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                await authService.EditCredential(user, cred);
+
+                // Assert
+                Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == AuditedUserAction.EditCredential &&
+                    ar.Username == user.Username &&
+                    ar.AffectedCredential.Length == 1 &&
+                    ar.AffectedCredential[0].Type == cred.Type));
+            }
+        }
+
         public class TheExtractExternalLoginCredentialsMethod : TestContainer
         {
             [Fact]

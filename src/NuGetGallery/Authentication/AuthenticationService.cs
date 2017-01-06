@@ -492,6 +492,12 @@ namespace NuGetGallery.Authentication
             await Entities.SaveChangesAsync();
         }
 
+        public virtual async Task EditCredential(User user, Credential cred)
+        {
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.EditCredential, cred));
+            await Entities.SaveChangesAsync();
+        }
+
         public virtual async Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)
         {
             var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);

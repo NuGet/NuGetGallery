@@ -616,9 +616,47 @@ namespace NuGetGallery
                 }
             }
 
-            var newCredential = await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects?.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()), expiration);
+            var newCredential = await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects), expiration);
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
+
+            return Json(credentialViewModel);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
+        {
+            if (credentialType != CredentialTypes.ApiKeyV1)
+            {
+                return RedirectToAction("Account");
+            }
+
+            var user = GetCurrentUser();
+            var cred = user.Credentials.SingleOrDefault(
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && CredentialKeyMatches(credentialKey, c));
+
+            if (cred == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
+            }
+
+            // Legacy api key
+            if (!cred.Scopes.AnySafe())
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
+            }
+
+            var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
+            cred.Scopes = BuildScopes(scopes, subjects);
+
+            await _authService.EditCredential(user, cred);
+
+            var credentialViewModel = _authService.DescribeCredential(cred);
 
             return Json(credentialViewModel);
         }
@@ -642,7 +680,7 @@ namespace NuGetGallery
         {
             var result = new List<Scope>();
 
-            var subjectsList = subjects?.ToList() ?? new List<string>();
+            var subjectsList = subjects?.Where(s => !string.IsNullOrWhiteSpace(s)).ToList() ?? new List<string>();
 
             // No package filtering information was provided. So allow any pattern.
             if (!subjectsList.Any())
