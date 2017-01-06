@@ -2,6 +2,7 @@
 // // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel;
+using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -78,6 +79,24 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         public async Task RestorePackageFromV2Feed()
         {
             await _odataHelper.DownloadPackageFromV2FeedWithOperation(Constants.TestPackageId, "1.0.0", "Restore");
+        }
+
+        [Theory]
+        [InlineData("Search()?$skip=10")]
+        [InlineData("Packages?$orderby=DownloadCount+asc&$select=Id")]
+        [Description("Performs a OData request that will be rejected if not found by the search engine. The feature needs to be enabled for this test to pass.")]
+        [Priority(0)]
+        [Category("P0Tests")]
+        public async Task ODataQueryFilter(string requestParametrs)
+        {
+            //If the search engine will be changed to handle the types of requests passed as inputs; the test inputs need to be changed.
+            var request = UrlHelper.V2FeedRootUrl + requestParametrs;
+            await Assert.ThrowsAsync<WebException>(async () =>
+            {
+                using (await _odataHelper.SendRequest(request))
+                {
+                }
+            });
         }
     }
 }

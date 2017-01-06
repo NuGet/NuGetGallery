@@ -230,28 +230,17 @@ namespace NuGetGallery
 
                     _packageService.EnsureValid(packageArchiveReader);
                 }
-                catch (InvalidPackageException ipex)
-                {
-                    ipex.Log();
-                    ModelState.AddModelError(String.Empty, ipex.Message);
-                    return View();
-                }
-                catch (InvalidDataException idex)
-                {
-                    idex.Log();
-                    ModelState.AddModelError(String.Empty, idex.Message);
-                    return View();
-                }
-                catch (EntityException enex)
-                {
-                    enex.Log();
-                    ModelState.AddModelError(String.Empty, enex.Message);
-                    return View();
-                }
                 catch (Exception ex)
                 {
                     ex.Log();
-                    ModelState.AddModelError(String.Empty, Strings.FailedToReadUploadFile);
+
+                    var message = Strings.FailedToReadUploadFile;
+                    if (ex is InvalidPackageException || ex is InvalidDataException || ex is EntityException)
+                    {
+                        message = ex.Message;
+                    }
+
+                    ModelState.AddModelError(String.Empty, message);
                     return View();
                 }
                 finally
@@ -385,8 +374,11 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual async Task<ActionResult> ListPackages(string q, int page = 1)
+        public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
         {
+            var page = searchAndListModel.Page;
+            var q = searchAndListModel.Q;
+
             if (page < 1)
             {
                 page = 1;

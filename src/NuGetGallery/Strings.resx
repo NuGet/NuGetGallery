@@ -309,7 +309,7 @@ The {1} Team</value>
     <value>The NuGet package is invalid. The error encountered was:'{0}'. Correct the error and try again.</value>
   </data>
   <data name="UploadPackage_InvalidNuspec" xml:space="preserve">
-    <value>The NuGet package contains an invalid .nuspec file. The error encountered was:'{0}'. Correct the error and try again.</value>
+    <value>The NuGet package contains an invalid .nuspec file. The error encountered was: '{0}'. Correct the error and try again.</value>
   </data>
   <data name="NuGetPackageReleaseVersionWithDot" xml:space="preserve">
     <value>Package {0} invalid: no '.' allowed in the release label.</value>
@@ -406,5 +406,8 @@ The {1} Team</value>
   </data>
   <data name="UserAccountLocked" xml:space="preserve">
     <value>Your account was locked after too many unsuccessful sign-in attempts. Please try again in {0}.</value>
+  </data>
+  <data name="UploadPackage_InvalidNuspecMultiple" xml:space="preserve">
+    <value>The NuGet package contains an invalid .nuspec file. The errors encountered were: '{0}'. Correct the errors and try again.</value>
   </data>
 </root>

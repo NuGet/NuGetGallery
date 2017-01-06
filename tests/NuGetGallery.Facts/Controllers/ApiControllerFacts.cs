@@ -179,7 +179,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task CreatePackageWillReturn400IfPackageIsInvalid()
+            public async Task CreatePackageWillReturn400IfFileIsNotANuGetPackage()
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -195,6 +195,63 @@ namespace NuGetGallery
 
                 byte[] data = new byte[100];
                 controller.SetupPackageFromInputStream(new MemoryStream(data));
+
+                // Act
+                ActionResult result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+
+            private const string EnsureValidExceptionMessage = "naughty package";
+
+            [Theory]
+            [InlineData(typeof(InvalidPackageException), true)]
+            [InlineData(typeof(InvalidDataException), true)]
+            [InlineData(typeof(EntityException), true)]
+            [InlineData(typeof(Exception), false)]
+            public async Task CreatePackageReturns400IfEnsureValidThrowsExceptionMessage(Type exceptionType, bool expectExceptionMessageInResponse)
+            {
+                // Arrange
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                
+                var exception =
+                    exceptionType.GetConstructor(new[] { typeof(string) }).Invoke(new[] { EnsureValidExceptionMessage });
+
+                controller.MockPackageService.Setup(p => p.EnsureValid(It.IsAny<PackageArchiveReader>()))
+                    .Throws(exception as Exception);
+
+                // Act
+                ActionResult result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+                Assert.Equal(expectExceptionMessageInResponse ? EnsureValidExceptionMessage : Strings.FailedToReadUploadFile, (result as HttpStatusCodeWithBodyResult).StatusDescription);
+            }
+
+            [Theory]
+            [InlineData("ILike*Asterisks")]
+            [InlineData("I_.Like.-Separators")]
+            [InlineData("-StartWithSeparator")]
+            [InlineData("EndWithSeparator.")]
+            [InlineData("EndsWithHyphen-")]
+            [InlineData("$id$")]
+            [InlineData("Contains#Invalid$Characters!@#$%^&*")]
+            [InlineData("Contains#Invalid$Characters!@#$%^&*EndsOnValidCharacter")]
+            public async Task CreatePackageReturns400IfPackageIdIsInvalid(string packageId)
+            {
+                // Arrange
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act
                 ActionResult result = await controller.CreatePackagePut();
