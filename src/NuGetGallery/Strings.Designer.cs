@@ -789,6 +789,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is a conflict with the id and version of your package and another package. Please change your package&apos;s id or version and try again..
+        /// </summary>
+        public static string UploadPackage_IdVersionConflict {
+            get {
+                return ResourceManager.GetString("UploadPackage_IdVersionConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The NuGet package contains an invalid .nuspec file. The error encountered was: &apos;{0}&apos;. Correct the error and try again..
         /// </summary>
         public static string UploadPackage_InvalidNuspec {

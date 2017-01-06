@@ -26,7 +26,7 @@ namespace NuGetGallery
         /// <returns>A <see cref="IFileReference"/> representing the file reference</returns>
         Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null);
 
-        Task SaveFileAsync(string folderName, string fileName, Stream packageFile);
+        Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true);
 
         Task<bool> IsAvailableAsync();
     }

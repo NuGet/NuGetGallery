@@ -100,11 +100,20 @@ namespace NuGetGallery
             }
         }
 
-        public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
+        public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true)
         {
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
-            await blob.DeleteIfExistsAsync();
+
+            if (overwrite)
+            {
+                await blob.DeleteIfExistsAsync();
+            } else if (await blob.ExistsAsync())
+            {
+                throw new InvalidOperationException(
+                    String.Format(CultureInfo.CurrentCulture, "There is already a blob with name {0} in container {1}.", fileName, folderName));
+            }
+
             await blob.UploadFromStreamAsync(packageFile);
             blob.Properties.ContentType = GetContentType(folderName);
             await blob.SetPropertiesAsync();

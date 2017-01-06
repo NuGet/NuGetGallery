@@ -410,4 +410,7 @@ The {1} Team</value>
   <data name="UploadPackage_InvalidNuspecMultiple" xml:space="preserve">
     <value>The NuGet package contains an invalid .nuspec file. The errors encountered were: '{0}'. Correct the errors and try again.</value>
   </data>
+  <data name="UploadPackage_IdVersionConflict" xml:space="preserve">
+    <value>There is a conflict with the id and version of your package and another package. Please change your package's id or version and try again.</value>
+  </data>
 </root>

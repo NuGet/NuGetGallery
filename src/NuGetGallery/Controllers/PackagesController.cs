@@ -1169,7 +1169,15 @@ namespace NuGetGallery
 
                 // save package to blob storage
                 uploadFile.Position = 0;
-                await _packageFileService.SavePackageFileAsync(package, uploadFile.AsSeekableStream());
+                try
+                {
+                    await _packageFileService.SavePackageFileAsync(package, uploadFile.AsSeekableStream());
+                }
+                catch(InvalidOperationException)
+                {
+                    TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
+                    return new RedirectResult(Url.UploadPackage());
+                }
 
                 // commit all changes to database as an atomic transaction
                 await _entitiesContext.SaveChangesAsync();
