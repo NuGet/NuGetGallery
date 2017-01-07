@@ -471,7 +471,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillThrowIfBlobExistsAndNotOverwriteFalse()
+            public async Task WillThrowIfBlobExistsAndOverwriteFalse()
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
