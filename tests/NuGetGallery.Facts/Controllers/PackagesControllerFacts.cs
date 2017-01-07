@@ -1432,6 +1432,44 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillShowViewWithMessageIfSavingPackageBlobFails()
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                var fakePackageService = new Mock<IPackageService>();
+                var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
+                fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(fakePackage));
+                var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+
+                var fakePackageFileService = new Mock<IPackageFileService>();
+                fakePackageFileService.Setup(x => x.SavePackageFileAsync(fakePackage, It.IsAny<Stream>()))
+                    .Throws<InvalidOperationException>();
+
+                var fakeEntitiesContext = new Mock<IEntitiesContext>();
+
+                var controller = CreateController(
+                    packageService: fakePackageService,
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeNuGetPackage,
+                    packageFileService: fakePackageFileService,
+                    entitiesContext: fakeEntitiesContext);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                // Act
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
+
+                // Assert
+                fakePackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), TestUtility.FakeUser, false));
+                Assert.Equal(Strings.UploadPackage_IdVersionConflict, controller.TempData["Message"]);
+                fakeEntitiesContext.VerifyCommitted(Times.Never());
+                fakeFileStream.Dispose();
+            }
+
+            [Fact]
             public async Task WillUpdateIndexingService()
             {
                 // Arrange
@@ -1530,7 +1568,7 @@ namespace NuGetGallery
                 // Act
                 await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
-                // There's no assert. If the method completes, it means the test pass because we set MockBehavior to Strict
+                // There's no assert. If the method completes, it means the test passed because we set MockBehavior to Strict
                 // for the fakePackageService. We verified that it only calls methods passing commitSettings = false.
 
                 fakeFileStream.Dispose();
@@ -1587,8 +1625,8 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(new object[] { null })]
-            [InlineData(new object[] { true })]
+            [InlineData(null)]
+            [InlineData(true)]
             public async Task WillNotMarkThePackageUnlistedWhenListedArgumentIsNullorTrue(bool? listed)
             {
                 var fakeUploadFileService = new Mock<IUploadFileService>();

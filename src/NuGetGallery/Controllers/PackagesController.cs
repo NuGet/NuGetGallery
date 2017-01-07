@@ -1176,7 +1176,7 @@ namespace NuGetGallery
                 catch(InvalidOperationException)
                 {
                     TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                    return new RedirectResult(Url.UploadPackage());
+                    return new RedirectResult(Url.VerifyPackage());
                 }
 
                 // commit all changes to database as an atomic transaction

@@ -246,7 +246,7 @@ namespace NuGetGallery
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "1.1.1"), It.IsAny<Stream>()))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "1.1.1"), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
 
@@ -260,7 +260,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(Constants.PackagesFolderName, It.IsAny<string>(), It.IsAny<Stream>()))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(Constants.PackagesFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
 
@@ -274,7 +274,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion"), It.IsAny<Stream>()))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion"), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
 
@@ -289,7 +289,7 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var fakeStream = new MemoryStream();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeStream))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeStream, It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
 
@@ -370,7 +370,7 @@ namespace NuGetGallery
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01", Hash = packageHashForTests};
                 package.Hash = packageHashForTests;
 
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "1.1.1", packageHashForTests), It.IsAny<Stream>()))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "1.1.1", packageHashForTests), It.IsAny<Stream>(), It.Is<bool>(b => b)))
                     .Completes()
                     .Verifiable();
 
@@ -384,7 +384,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(Constants.PackageBackupsFolderName, It.IsAny<string>(), It.IsAny<Stream>()))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(Constants.PackageBackupsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => b)))
                     .Completes()
                     .Verifiable();
 
@@ -401,7 +401,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "theNormalizedVersion", packageHashForTests), It.IsAny<Stream>()))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "theNormalizedVersion", packageHashForTests), It.IsAny<Stream>(), It.Is<bool>(b => b)))
                     .Completes()
                     .Verifiable();
 
@@ -419,7 +419,7 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var fakeStream = new MemoryStream();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeStream))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeStream, It.Is<bool>(b => b)))
                     .Completes()
                     .Verifiable();
 

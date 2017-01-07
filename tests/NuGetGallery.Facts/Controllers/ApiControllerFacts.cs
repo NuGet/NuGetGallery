@@ -351,6 +351,33 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillReturnConflictIfSavingPackageBlobFails()
+            {
+                // Arrange
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageFileService.Setup(
+                        x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Throws<InvalidOperationException>();
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetCurrentUser(new User());
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.Conflict,
+                    Strings.UploadPackage_IdVersionConflict);
+
+                controller.MockEntitiesContext.VerifyCommitted(Times.Never());
+            }
+
+            [Fact]
             public void WillCreateAPackageFromTheNuGetPackage()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");

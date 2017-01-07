@@ -382,6 +382,43 @@ namespace NuGetGallery
                     Assert.Equal(fakePackageFile.GetBuffer()[i], fakeFileStream.GetBuffer()[i]);
                 }
             }
+
+            [Fact]
+            public async Task WillOverwriteFileIfOverwriteTrue()
+            {
+                var fakePackageFile = CreateFileStream();
+                var fakeFileStream = new MemoryStream(new byte[8], 0, 8, true, true);
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
+                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeFileStream);
+                fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+                fakeFileSystemService.Setup(x => x.DeleteFile(It.IsAny<string>())).Verifiable();
+                var service = CreateService(fileSystemService: fakeFileSystemService);
+
+                await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
+
+                for (var i = 0; i < fakePackageFile.Length; i++)
+                {
+                    Assert.Equal(fakePackageFile.GetBuffer()[i], fakeFileStream.GetBuffer()[i]);
+                }
+
+                fakeFileSystemService.Verify();
+            }
+
+            [Fact]
+            public async Task WillThrowIfFileExistsAndOverwriteFalse()
+            {
+                var fakeFileStream = new MemoryStream(new byte[8], 0, 8, true, true);
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
+                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeFileStream);
+                fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+                var service = CreateService(fileSystemService: fakeFileSystemService);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream(), false));
+
+                fakeFileSystemService.Verify();
+            }
         }
     }
 }
