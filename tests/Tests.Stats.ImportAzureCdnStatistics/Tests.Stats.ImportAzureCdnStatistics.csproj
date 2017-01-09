@@ -100,6 +100,7 @@
     <Compile Include="PackageDimensionFacts.cs" />
     <Compile Include="PackageTranslatorFacts.cs" />
     <Compile Include="StatisticsParserFacts.cs" />
+    <Compile Include="ToolDimensionFacts.cs" />
     <Compile Include="ToolStatisticsParserFacts.cs" />
     <Compile Include="UserAgentParserFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

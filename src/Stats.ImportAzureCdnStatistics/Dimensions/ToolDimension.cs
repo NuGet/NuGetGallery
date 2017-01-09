@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using System;
 
 namespace Stats.ImportAzureCdnStatistics
 {
@@ -19,7 +20,9 @@ namespace Stats.ImportAzureCdnStatistics
 
         protected bool Equals(ToolDimension other)
         {
-            return string.Equals(ToolId, other.ToolId) && string.Equals(ToolVersion, other.ToolVersion) && string.Equals(FileName, other.FileName);
+            return string.Equals(ToolId, other.ToolId, StringComparison.OrdinalIgnoreCase) 
+                && string.Equals(ToolVersion, other.ToolVersion, StringComparison.OrdinalIgnoreCase) 
+                && string.Equals(FileName, other.FileName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override bool Equals(object obj)
@@ -34,9 +37,9 @@ namespace Stats.ImportAzureCdnStatistics
         {
             unchecked
             {
-                var hashCode = (ToolId != null ? ToolId.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (ToolVersion != null ? ToolVersion.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (FileName != null ? FileName.GetHashCode() : 0);
+                var hashCode = (ToolId != null ? ToolId.ToLower().GetHashCode() : 0);
+                hashCode = (hashCode*397) ^ (ToolVersion != null ? ToolVersion.ToLower().GetHashCode() : 0);
+                hashCode = (hashCode*397) ^ (FileName != null ? FileName.ToLower().GetHashCode() : 0);
                 return hashCode;
             }
         }
