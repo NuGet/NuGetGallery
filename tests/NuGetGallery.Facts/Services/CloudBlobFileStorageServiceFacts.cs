@@ -486,7 +486,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.SaveFileAsync(Constants.PackagesFolderName, "theFileName", new MemoryStream(), false));
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.SaveFileAsync(Constants.PackagesFolderName, "theFileName", new MemoryStream(), overwrite: false));
 
                 fakeBlob.Verify();
             }

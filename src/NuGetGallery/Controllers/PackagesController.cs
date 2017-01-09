@@ -1173,8 +1173,9 @@ namespace NuGetGallery
                 {
                     await _packageFileService.SavePackageFileAsync(package, uploadFile.AsSeekableStream());
                 }
-                catch(InvalidOperationException)
+                catch (InvalidOperationException ex)
                 {
+                    ex.Log();
                     TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
                     return new RedirectResult(Url.VerifyPackage());
                 }

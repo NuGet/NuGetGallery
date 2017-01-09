@@ -56,7 +56,7 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(package);
-            return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile, false);
+            return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile, overwrite: false);
         }
 
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)

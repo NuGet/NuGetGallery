@@ -108,10 +108,12 @@ namespace NuGetGallery
             if (overwrite)
             {
                 await blob.DeleteIfExistsAsync();
-            } else if (await blob.ExistsAsync())
+            }
+            else if (await blob.ExistsAsync())
             {
                 throw new InvalidOperationException(
-                    String.Format(CultureInfo.CurrentCulture, "There is already a blob with name {0} in container {1}.", fileName, folderName));
+                    String.Format(CultureInfo.CurrentCulture, "There is already a blob with name {0} in container {1}.",
+                        fileName, folderName));
             }
 
             await blob.UploadFromStreamAsync(packageFile);

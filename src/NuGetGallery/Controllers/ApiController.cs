@@ -350,15 +350,17 @@ namespace NuGetGallery
                             {
                                 await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
                             }
-                            catch (InvalidOperationException)
+                            catch (InvalidOperationException ex)
                             {
+                                ex.Log();
+
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
                             }
-
-                            IndexingService.UpdatePackage(package);
                         }
 
                         await EntitiesContext.SaveChangesAsync();
+
+                        IndexingService.UpdatePackage(package);
 
                         // Write an audit record
                         await AuditingService.SaveAuditRecord(
