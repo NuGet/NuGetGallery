@@ -89,6 +89,7 @@ namespace NuGetGallery.Infrastructure
 
                 Assert.Equal(1, cookies.Count);
                 Assert.True(cookies[0].HttpOnly);
+                Assert.True(cookies[0].Secure);
                 Assert.Equal(3, cookies[0].Values.Count);
                 Assert.Equal("Say hello to my little friend", cookies[0]["message"]);
                 Assert.Equal("123", cookies[0]["key2"]);
@@ -107,6 +108,31 @@ namespace NuGetGallery.Infrastructure
                 provider.SaveTempData(controllerContext, new Dictionary<string, object>());
 
                 Assert.Equal(0, cookies.Count);
+            }
+
+            [Fact]
+            public void WithInitialStateAndNoValuesClearsCookie()
+            {
+                // Arrange and Setup
+                var cookies = new HttpCookieCollection();
+                var cookie = new HttpCookie("__Controller::TempData");
+                cookie.HttpOnly = true;
+                cookie.Secure = true;
+                cookies.Add(cookie);
+                cookie["message"] = "clear";
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.Request.Cookies).Returns(cookies);
+                ITempDataProvider provider = new CookieTempDataProvider(httpContext.Object);
+                var controllerContext = new ControllerContext();
+
+                var tempData = provider.LoadTempData(controllerContext);
+
+                // Validate
+                provider.SaveTempData(controllerContext, new Dictionary<string, object>());
+                Assert.Equal(1, cookies.Count);
+                Assert.True(cookies[0].HttpOnly);
+                Assert.True(cookies[0].Secure);
+                Assert.Equal("", cookies[0].Value);
             }
         }
     }
