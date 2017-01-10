@@ -449,7 +449,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillDeleteTheBlobIfItExists()
+            public async Task WillDeleteBlobIfItExistsAndOverwriteTrue()
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -466,6 +466,27 @@ namespace NuGetGallery
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 await service.SaveFileAsync(Constants.PackagesFolderName, "theFileName", new MemoryStream());
+
+                fakeBlob.Verify();
+            }
+
+            [Fact]
+            public async Task WillThrowIfBlobExistsAndOverwriteFalse()
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.ExistsAsync()).Returns(Task.FromResult(true)).Verifiable();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.SaveFileAsync(Constants.PackagesFolderName, "theFileName", new MemoryStream(), overwrite: false));
 
                 fakeBlob.Verify();
             }

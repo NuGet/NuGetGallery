@@ -19,6 +19,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
+using System.Globalization;
 
 namespace NuGetGallery
 {
@@ -348,6 +349,33 @@ namespace NuGetGallery
                     result,
                     HttpStatusCode.Conflict,
                     String.Format(Strings.PackageIdNotAvailable, packageId));
+            }
+
+            [Fact]
+            public async Task WillReturnConflictIfSavingPackageBlobFailsOnConflict()
+            {
+                // Arrange
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageFileService.Setup(
+                        x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Throws<InvalidOperationException>();
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetCurrentUser(new User());
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.Conflict,
+                    Strings.UploadPackage_IdVersionConflict);
+
+                controller.MockEntitiesContext.VerifyCommitted(Times.Never());
             }
 
             [Fact]
@@ -759,21 +787,23 @@ namespace NuGetGallery
             public void VerifyPackageKeyReturns404IfPackageDoesNotExist()
             {
                 // Arrange
+                var id = "foo";
+                var version = "1.0.0";
                 var user = new User { EmailAddress = "confirmed@email.com" };
                 GetMock<IPackageService>()
-                    .Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true))
+                    .Setup(s => s.FindPackageByIdAndVersion(id, version, true))
                     .ReturnsNull();
                 var controller = GetController<ApiController>();
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = controller.VerifyPackageKey("foo", "1.0.0");
+                var result = controller.VerifyPackageKey(id, version);
 
                 // Assert
                 ResultAssert.IsStatusCode(
                     result,
                     HttpStatusCode.NotFound,
-                    "A package with id 'foo' and version '1.0.0' does not exist.");
+                    String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             [Fact]
