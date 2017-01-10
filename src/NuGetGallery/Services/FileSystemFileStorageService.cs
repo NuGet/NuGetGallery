@@ -124,7 +124,7 @@ namespace NuGetGallery
             return Task.FromResult<IFileReference>(file.Exists ? new LocalFileReference(file) : null);
         }
 
-        public Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
+        public Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -149,7 +149,15 @@ namespace NuGetGallery
 
             if (_fileSystemService.FileExists(filePath))
             {
-                _fileSystemService.DeleteFile(filePath);
+                if (overwrite)
+                {
+                    _fileSystemService.DeleteFile(filePath);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        String.Format(CultureInfo.CurrentCulture, "There is already a file with name {0} in folder {1}.", fileName, folderName));
+                }
             }
 
             using (var file = _fileSystemService.OpenWrite(filePath))
