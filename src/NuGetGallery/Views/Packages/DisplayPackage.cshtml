@@ -53,14 +53,14 @@
             @if (PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
             {
                 <li>
-                    <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
+                    <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package" rel="nofollow">
                         Project Site
                     </a>
                 </li>
             }
             @if (PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
             {
-                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
+                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">License</a></li>
             }
             <li><a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact Owners</a></li>
             @if ((Model.IsOwner(User) || User.IsAdministrator()))

@@ -4,6 +4,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -59,8 +60,10 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        public async Task<JsonResult> AddPackageOwner(string id, string username)
+        public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
         {
+            message = HttpUtility.HtmlEncode(message);
+
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {
@@ -89,7 +92,7 @@ namespace NuGetGallery
                 user.Username,
                 ownerRequest.ConfirmationCode,
                 new { id = package.Id });
-            _messageService.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl);
+            _messageService.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl, message);
 
             return Json(new { success = true, name = user.Username, pending = true });
         }

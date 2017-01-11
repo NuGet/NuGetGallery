@@ -43,6 +43,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public string UserEmail { get; set; }
         public int? PackageRegistrationKey { get; set; }
         public int? UserKey { get; set; }
+        public bool IsRelatedToPackage => !string.IsNullOrEmpty(PackageId) && !string.IsNullOrEmpty(PackageVersion);
 
         // Editable fields
         public int? AssignedTo { get; set; }

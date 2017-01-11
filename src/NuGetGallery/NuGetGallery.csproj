@@ -747,6 +747,7 @@
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Helpers\TelemetryResponseCodeFilter.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
     <Compile Include="Infrastructure\Authentication\ICredentialBuilder.cs" />
@@ -818,10 +819,17 @@
     <Compile Include="Migrations\201610042351343_AddUserFailedLogin.Designer.cs">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.cs" />
+    <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.Designer.cs">
+      <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
     <Compile Include="OData\QueryInterceptors\NormalizeVersionInterceptor.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryFilter.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryVerifier.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryRequest.cs" />
     <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -1400,6 +1408,7 @@
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
+    <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultExtensions.cs" />
@@ -1634,6 +1643,11 @@
     <Content Include="Scripts\d3.v3.min.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
@@ -1938,6 +1952,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201610042351343_AddUserFailedLogin.resx">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.resx">
+      <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

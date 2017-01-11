@@ -18,7 +18,7 @@ namespace NuGetGallery.Controllers
             {
                 var controller = GetController<JsonApiController>();
 
-                JsonResult result = await controller.AddPackageOwner("foo", "steve");
+                JsonResult result = await controller.AddPackageOwner("foo", "steve", "message");
                 dynamic data = result.Data;
 
                 Assert.False(data.success);
@@ -33,7 +33,7 @@ namespace NuGetGallery.Controllers
                     .Setup(svc => svc.FindPackageRegistrationById("foo"))
                     .Returns(new PackageRegistration());
 
-                JsonResult result = await controller.AddPackageOwner("foo", "steve");
+                JsonResult result = await controller.AddPackageOwner("foo", "steve", "message");
                 dynamic data = result.Data;
 
                 Assert.False(data.success);
@@ -49,7 +49,7 @@ namespace NuGetGallery.Controllers
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
 
-                JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, "notARealUser");
+                JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, "notARealUser", "message");
                 dynamic data = result.Data;
 
                 Assert.False(data.success);
@@ -81,10 +81,11 @@ namespace NuGetGallery.Controllers
                         fakes.Owner,
                         fakes.User,
                         fakes.Package,
-                        "https://nuget.local/packages/FakePackage/owners/testUser/confirm/confirmation-code"))
+                        "https://nuget.local/packages/FakePackage/owners/testUser/confirm/confirmation-code",
+                        "Hello World! Html Encoded &lt;3"))
                     .Verifiable();
 
-                JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, fakes.User.Username);
+                JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, fakes.User.Username, "Hello World! Html Encoded <3");
                 dynamic data = result.Data;
 
                 Assert.True(data.success);

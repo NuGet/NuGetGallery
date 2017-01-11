@@ -67,29 +67,29 @@ namespace NuGetGallery.FunctionalTests
             var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
             SemanticVersion semVersion;
             var success = SemanticVersion.TryParse(version, out semVersion);
-            const int interval = 30;
-            const int maxAttempts = 15;
+            const int intervalSec = 30;
+            const int maxAttempts = 30;
 
             if (success)
             {
                 try
                 {
-                    WriteLine("Starting package verification checks ({0} attempts, interval {1} seconds).", maxAttempts, interval);
+                    WriteLine("Starting package verification checks ({0} attempts, interval {1} seconds).", maxAttempts, intervalSec);
                     // Wait for the search service to kick in, so that the package can be found via FindPackage(packageId, SemanticVersion)
                     Thread.Sleep(5000);
 
                     for (var i = 0; ((i < maxAttempts) && (!found)); i++)
                     {
-                        WriteLine("[verification attempt {0}]: Waiting {1} seconds before next check...", i, interval);
+                        WriteLine("[verification attempt {0}]: Waiting {1} seconds before next check...", i, intervalSec);
 
                         if (i != 0)
                         {
-                            Thread.Sleep(interval * 1000);
+                            Thread.Sleep(intervalSec * 1000);
                         }
 
                         WriteLine("[verification attempt {0}]: Checking if package {1} with version {2} exists in source {3}... ", i, packageId, version, sourceUrl);
                         IPackage package = repo.FindPackage(packageId, semVersion);
-                        found = (package != null);
+                        found = package != null;
                         if (found)
                         {
                             WriteLine("Found!");
@@ -110,10 +110,19 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// Creates a package with the specified Id and Version and uploads it and checks if the upload has suceeded.
-        /// This will be used by test classes which tests scenarios on top of upload.
+        /// Creates a package with the specified Id and Version and uploads it and checks if the upload has succeeded.
+        /// Throws if the upload fails or cannot be verified in the source.
         /// </summary>
         public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
+        {
+            await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
+
+            VerifyPackageExistsInSource(packageId, version);
+        }
+
+        public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
+            string title = null, string tags = null, string description = null, string licenseUrl = null,
+            string dependencies = null)
         {
             if (string.IsNullOrEmpty(packageId))
             {
@@ -128,18 +137,56 @@ namespace NuGetGallery.FunctionalTests
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
             var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
 
-            Assert.True(processResult.ExitCode == 0, "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " + processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+            Assert.True(processResult.ExitCode == 0,
+                "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
 
-            var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
-            var userMessage = string.Format("Package {0} with version {1} is not found in the site {2} after uploading.", packageId, version, UrlHelper.V2FeedRootUrl);
-            Assert.True(packageExistsInSource, userMessage);
-
-            // Delete package from local disk so once it gets uploaded
+            // Delete package from local disk once it gets uploaded
             if (File.Exists(packageFullPath))
             {
                 File.Delete(packageFullPath);
                 Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
             }
+        }
+
+        /// <summary>
+        /// Unlists a package with the specified Id and Version and checks if the unlist has succeeded.
+        /// Throws if the unlist fails or cannot be verified in the source.
+        /// </summary>
+        public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0")
+        {
+            await UnlistPackage(packageId, version);
+
+            VerifyPackageExistsInSource(packageId, version);
+        }
+
+        public async Task UnlistPackage(string packageId, string version = "1.0.0")
+        {
+            if (string.IsNullOrEmpty(packageId))
+            {
+                throw new ArgumentException($"{nameof(packageId)} cannot be null or empty!");
+            }
+
+            WriteLine("Unlisting package '{0}', version '{1}'", packageId, version);
+
+            var commandlineHelper = new CommandlineHelper(TestOutputHelper);
+            var processResult = await commandlineHelper.DeletePackageAsync(packageId, version, UrlHelper.V2FeedPushSourceUrl);
+
+            Assert.True(processResult.ExitCode == 0,
+                "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+        }
+
+        /// <summary>
+        /// Throws if the specified package cannot be found in the source.
+        /// </summary>
+        /// <param name="packageId">Id of the package.</param>
+        /// <param name="version">Version of the package.</param>
+        public void VerifyPackageExistsInSource(string packageId, string version = "1.0.0")
+        {
+            var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
+            Assert.True(packageExistsInSource,
+                $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl}.");
         }
 
         /// <summary>
@@ -242,10 +289,9 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Clears the local package folder.
         /// </summary>
-        public void ClearLocalPackageFolder(string packageId)
+        public void ClearLocalPackageFolder(string packageId, string version = "1.0.0")
         {
-            string packageVersion = GetLatestStableVersion(packageId);
-            string expectedDownloadedNupkgFileName = packageId + "." + packageVersion;
+            string expectedDownloadedNupkgFileName = packageId + "." + version;
             string pathToNupkgFolder = Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName);
             WriteLine("Path to the downloaded Nupkg file for clearing local package folder is: " + pathToNupkgFolder);
             if (Directory.Exists(pathToNupkgFolder))
@@ -292,7 +338,7 @@ namespace NuGetGallery.FunctionalTests
         public void DownloadPackageAndVerify(string packageId, string version = "1.0.0")
         {
             ClearMachineCache();
-            ClearLocalPackageFolder(packageId);
+            ClearLocalPackageFolder(packageId, version);
 
             var packageRepository = PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl);
             var packageManager = new PackageManager(packageRepository, Environment.CurrentDirectory);
