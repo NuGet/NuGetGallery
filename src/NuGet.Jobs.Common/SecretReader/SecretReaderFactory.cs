@@ -10,7 +10,7 @@ namespace NuGet.Jobs
 {
     public class SecretReaderFactory : ISecretReaderFactory
     {
-        public ISecretReader CreateSecterReader(IDictionary<string, string> settings)
+        public ISecretReader CreateSecretReader(IDictionary<string, string> settings)
         {
             if (JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.VaultName) == null)
             {
@@ -29,7 +29,10 @@ namespace NuGet.Jobs
                     storeLocation != null ? (StoreLocation)Enum.Parse(typeof(StoreLocation), storeLocation) : StoreLocation.LocalMachine,
                     JobConfigurationManager.TryGetBoolArgument(settings, JobArgumentNames.ValidateCertificate, defaultValue: true));
 
-            return new KeyVaultReader(keyVaultConfiguration);
+            var refreshIntervalSec = JobConfigurationManager.TryGetIntArgument(settings,
+                JobArgumentNames.RefreshIntervalSec) ?? CachingSecretReader.DefaultRefreshIntervalSec;
+
+            return new CachingSecretReader(new KeyVaultReader(keyVaultConfiguration), refreshIntervalSec);
         }
 
         public ISecretInjector CreateSecretInjector(ISecretReader secretReader)

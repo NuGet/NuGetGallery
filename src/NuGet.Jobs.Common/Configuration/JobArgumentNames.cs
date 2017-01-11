@@ -108,6 +108,7 @@ namespace NuGet.Jobs
         public const string ValidateCertificate = "ValidateCertificate";
         public const string StoreName = "StoreName";
         public const string StoreLocation = "StoreLocation";
+        public const string RefreshIntervalSec = "RefreshIntervalSec";
 
         // Arguments specific to e-mail
         public const string MailFrom = "MailFrom";

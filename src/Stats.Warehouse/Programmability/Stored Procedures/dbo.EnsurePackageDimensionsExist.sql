@@ -3,7 +3,7 @@
 AS
 BEGIN
 	SET NOCOUNT ON;
-
+	
 	DECLARE @results TABLE
 	(
 		[Id]				INT				NOT NULL PRIMARY KEY,
@@ -14,7 +14,7 @@ BEGIN
 
 	-- Select existing packages and insert them into the results table
 	INSERT INTO @results ([Id], [PackageId], [PackageVersion])
-		SELECT	P.[Id], P.[PackageId], P.[PackageVersion]
+		SELECT DISTINCT	P.[Id], P.[PackageId], P.[PackageVersion]
 		FROM	[dbo].[Dimension_Package] AS P (NOLOCK)
 		INNER JOIN	@packages AS I
 		ON	P.[LowercasedPackageId] = LOWER(I.PackageId)

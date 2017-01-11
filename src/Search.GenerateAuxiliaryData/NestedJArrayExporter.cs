@@ -26,7 +26,7 @@ namespace Search.GenerateAuxiliaryData
             SqlScript = defaultSqlScript;
         }
 
-        override protected JContainer GetResultOfQuery(SqlConnection connection)
+        protected override JContainer GetResultOfQuery(SqlConnection connection)
         {
             var command = new SqlCommand(GetEmbeddedSqlScript(SqlScript), connection);
             command.CommandType = CommandType.Text;

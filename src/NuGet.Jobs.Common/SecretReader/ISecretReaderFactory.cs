@@ -8,7 +8,7 @@ namespace NuGet.Jobs
 {
     public interface ISecretReaderFactory
     {
-        ISecretReader CreateSecterReader(IDictionary<string, string> settings);
+        ISecretReader CreateSecretReader(IDictionary<string, string> settings);
 
         ISecretInjector CreateSecretInjector(ISecretReader secretReader);
     }

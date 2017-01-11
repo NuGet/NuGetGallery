@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
+using NuGet.Services.Configuration;
 
 namespace NuGet.Jobs
 {
@@ -181,7 +181,7 @@ namespace NuGet.Jobs
 
         private static IDictionary<string, string> InjectSecrets(ISecretReaderFactory secretReaderFactory, Dictionary<string, string> argsDictionary)
         {
-            var secretReader = secretReaderFactory.CreateSecterReader(argsDictionary);
+            var secretReader = secretReaderFactory.CreateSecretReader(argsDictionary);
             var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
 
             if (secretReader == null)
@@ -189,14 +189,7 @@ namespace NuGet.Jobs
                 throw new ApplicationException("Could not create a secret reader. Please check your configuration.");
             }
            
-            var argsWithSecrets = new Dictionary<string, string>();
-
-            foreach (var keyValuePair in argsDictionary)
-            {
-                argsWithSecrets[keyValuePair.Key] = secretInjector.InjectAsync(keyValuePair.Value).Result;
-            }
-
-            return argsWithSecrets;
+            return new SecretDictionary(secretInjector, argsDictionary);
         }
     }
 }

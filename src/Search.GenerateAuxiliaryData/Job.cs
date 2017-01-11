@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -15,22 +16,22 @@ namespace Search.GenerateAuxiliaryData
     internal class Job
         : JobBase
     {
-        private const string _defaultContainerName = "ng-search-data";
+        private const string DefaultContainerName = "ng-search-data";
 
-        private const string _scriptCuratedFeed = "SqlScripts.CuratedFeed.sql";
-        private const string _outputNameCuratedFeed = "curatedfeeds.json";
-        private const string _col0CuratedFeed = "FeedName";
-        private const string _col1CuratedFeed = "Id";
+        private const string ScriptCuratedFeed = "SqlScripts.CuratedFeed.sql";
+        private const string OutputNameCuratedFeed = "curatedfeeds.json";
+        private const string Col0CuratedFeed = "FeedName";
+        private const string Col1CuratedFeed = "Id";
 
-        private const string _scriptOwners = "SqlScripts.Owners.sql";
-        private const string _outputNameOwners = "owners.json";
-        private const string _col0Owners = "Id";
-        private const string _col1Owners = "UserName";
+        private const string ScriptOwners = "SqlScripts.Owners.sql";
+        private const string OutputNameOwners = "owners.json";
+        private const string Col0Owners = "Id";
+        private const string Col1Owners = "UserName";
 
-        private const string _scriptRankingsTotal = "SqlScripts.Rankings.sql";
-        private const string _scriptRankingsProjectTypes = "SqlScripts.RankingsProjectTypes.sql";
-        private const string _scriptRankingsDistinctProjectTypes = "SqlScripts.RankingsDistinctProjectTypes.sql";
-        private const string _outputNameRankings = "rankings.v1.json";
+        private const string ScriptRankingsTotal = "SqlScripts.Rankings.sql";
+        private const string ScriptRankingsProjectTypes = "SqlScripts.RankingsProjectTypes.sql";
+        private const string ScriptRankingsDistinctProjectTypes = "SqlScripts.RankingsDistinctProjectTypes.sql";
+        private const string OutputNameRankings = "rankings.v1.json";
 
         private List<SqlExporter> _sqlExportScriptsToRun;
         private CloudBlobContainer _destContainer;
@@ -48,14 +49,14 @@ namespace Search.GenerateAuxiliaryData
 
             var destinationContainerName =
                             JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName)
-                            ?? _defaultContainerName;
+                            ?? DefaultContainerName;
 
             _destContainer = destination.CreateCloudBlobClient().GetContainerReference(destinationContainerName);
 
             _sqlExportScriptsToRun = new List<GenerateAuxiliaryData.SqlExporter> {
-                new NestedJArrayExporter(packageDatabaseConnString, _destContainer, _scriptCuratedFeed, _outputNameCuratedFeed, _col0CuratedFeed, _col1CuratedFeed),
-                new NestedJArrayExporter(packageDatabaseConnString, _destContainer, _scriptOwners, _outputNameOwners, _col0Owners, _col1Owners),
-                new RankingsExporter(statisticsDatabaseConnString, _destContainer, _scriptRankingsTotal, _scriptRankingsProjectTypes, _scriptRankingsDistinctProjectTypes, _outputNameRankings)
+                new NestedJArrayExporter(packageDatabaseConnString, _destContainer, ScriptCuratedFeed, OutputNameCuratedFeed, Col0CuratedFeed, Col1CuratedFeed),
+                new NestedJArrayExporter(packageDatabaseConnString, _destContainer, ScriptOwners, OutputNameOwners, Col0Owners, Col1Owners),
+                new RankingsExporter(statisticsDatabaseConnString, _destContainer, ScriptRankingsTotal, ScriptRankingsProjectTypes, ScriptRankingsDistinctProjectTypes, OutputNameRankings)
             };
 
             return true;
