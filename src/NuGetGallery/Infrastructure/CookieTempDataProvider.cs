@@ -76,6 +76,7 @@ namespace NuGetGallery
             {
                 var cookie = new HttpCookie(TempDataCookieKey);
                 cookie.HttpOnly = true;
+                cookie.Secure = true;
                 foreach (var item in values)
                 {
                     cookie[item.Key] = Convert.ToString(item.Value, CultureInfo.InvariantCulture);
