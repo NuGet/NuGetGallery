@@ -13,6 +13,9 @@ namespace NuGetGallery
         [JsonIgnore]
         public int Key { get; set; }
 
+        [JsonIgnore]
+        public int CredentialKey { get; set; }
+
         [JsonProperty("s")]
         public string Subject { get; set; }
 

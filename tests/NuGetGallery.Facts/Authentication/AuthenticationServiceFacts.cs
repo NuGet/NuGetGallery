@@ -1364,14 +1364,45 @@ namespace NuGetGallery.Authentication
                 var credentialBuilder = new CredentialBuilder();
 
                 var fakes = Get<Fakes>();
+                var entities = Get<IEntitiesContext>();
+
                 var cred = credentialBuilder.CreateApiKey(null);
                 var user = fakes.CreateUser("test", credentialBuilder.CreatePasswordCredential(Fakes.Password), cred);
                 var authService = Get<AuthenticationService>();
 
+                var credscopes =
+                    Enumerable.Range(0, 5)
+                        .Select(
+                            i => new Scope { AllowedAction = NuGetScopes.PackagePush, Key = i, Subject = "package" + i }).ToList();
+
+                var newScopes =
+                    Enumerable.Range(1, 2)
+                        .Select(
+                            i => new Scope { AllowedAction = NuGetScopes.PackageUnlist, Key = i*10, Subject = "otherpackage" + i }).ToList();
+
+                cred.Scopes = credscopes;
+
+                foreach (var scope in credscopes)
+                {
+                    entities.Scopes.Add(scope);
+                }
+
+                // Add an unrelated scope to make sure it's not removed
+                entities.Scopes.Add(new Scope { AllowedAction = NuGetScopes.PackagePush, Key = 999, Subject = "package999" });
+
                 // Act
-                await authService.EditCredential(user, cred);
+                await authService.EditCredentialScopes(user, cred, newScopes);
 
                 // Assert
+                Assert.Equal(1, authService.Entities.Scopes.Count());
+                Assert.True(authService.Entities.Scopes.First().Key == 999);
+
+                Assert.Equal(newScopes.Count, cred.Scopes.Count);
+                foreach (var newScope in newScopes)
+                {
+                    Assert.NotNull(cred.Scopes.FirstOrDefault(x => x.Key == newScope.Key));
+                }
+
                 authService.Entities.VerifyCommitChanges();
             }
 
@@ -1387,7 +1418,7 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act
-                await authService.EditCredential(user, cred);
+                await authService.EditCredentialScopes(user, cred, new List<Scope>());
 
                 // Assert
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>

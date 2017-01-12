@@ -492,10 +492,18 @@ namespace NuGetGallery.Authentication
             await Entities.SaveChangesAsync();
         }
 
-        public virtual async Task EditCredential(User user, Credential cred)
+        public virtual async Task EditCredentialScopes(User user, Credential cred, ICollection<Scope> newScopes)
         {
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.EditCredential, cred));
+            foreach (var oldScope in cred.Scopes.ToArray())
+            {
+                Entities.Scopes.Remove(oldScope);
+            }
+
+            cred.Scopes = newScopes;
+
             await Entities.SaveChangesAsync();
+
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.EditCredential, cred));
         }
 
         public virtual async Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)

@@ -1379,7 +1379,7 @@ namespace NuGetGallery
                 Assert.IsType<JsonResult>(result);
                 Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
 
-                authenticationService.Verify(x => x.EditCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+                authenticationService.Verify(x => x.EditCredentialScopes(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<ICollection<Scope>>()), Times.Never);
             }
 
             [Fact]
@@ -1411,7 +1411,7 @@ namespace NuGetGallery
                 Assert.IsType<JsonResult>(result);
                 Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
 
-                authenticationService.Verify(x => x.EditCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+                authenticationService.Verify(x => x.EditCredentialScopes(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<ICollection<Scope>>()), Times.Never);
             }
 
             public static IEnumerable<object[]> GivenValidRequest_ItEditsCredential_Input
@@ -1491,7 +1491,11 @@ namespace NuGetGallery
                 cred.Key = CredentialKey;
 
                 GetMock<AuthenticationService>()
-                   .Setup(a => a.EditCredential(user, cred))
+                   .Setup(a => a.EditCredentialScopes(user, cred, It.IsAny<ICollection<Scope>>()))
+                   .Callback<User, Credential, ICollection<Scope>>((u, cr, scs) =>
+                    {
+                        cr.Scopes = scs;
+                    })
                    .Completes()
                    .Verifiable();
 
@@ -1505,8 +1509,7 @@ namespace NuGetGallery
                     subjects: modifiedSubjects);
 
                 // Assert
-
-                GetMock<AuthenticationService>().Verify(x => x.EditCredential(user, apiKey), Times.Once);
+                GetMock<AuthenticationService>().Verify(x => x.EditCredentialScopes(user, apiKey, It.IsAny<ICollection<Scope>>()), Times.Once);
 
                 // Check return value
                 Assert.IsType<JsonResult>(result);

@@ -833,6 +833,10 @@
     <Compile Include="Migrations\201609270831462_AddExpirationColumn.Designer.cs">
       <DependentUpon>201609270831462_AddExpirationColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201701120413341_AddScopeCredentialKey.cs" />
+    <Compile Include="Migrations\201701120413341_AddScopeCredentialKey.Designer.cs">
+      <DependentUpon>201701120413341_AddScopeCredentialKey.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1972,6 +1976,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201609270831462_AddExpirationColumn.resx">
       <DependentUpon>201609270831462_AddExpirationColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201701120413341_AddScopeCredentialKey.resx">
+      <DependentUpon>201701120413341_AddScopeCredentialKey.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

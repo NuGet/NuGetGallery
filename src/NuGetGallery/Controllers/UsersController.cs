@@ -652,9 +652,9 @@ namespace NuGetGallery
             }
 
             var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
-            cred.Scopes = BuildScopes(scopes, subjects);
+            var newScopes = BuildScopes(scopes, subjects);
 
-            await _authService.EditCredential(user, cred);
+            await _authService.EditCredentialScopes(user, cred, newScopes);
 
             var credentialViewModel = _authService.DescribeCredential(cred);
 
