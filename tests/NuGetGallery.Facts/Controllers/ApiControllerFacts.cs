@@ -119,6 +119,50 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillDeletePackageFileFromBlobStorageIfSavingDbChangesFails()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var packageId = "theId";
+                var packageVersion = "1.0.42";
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = packageId;
+                packageRegistration.Owners.Add(user);
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageFileService.Setup(
+                        p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Returns(Task.CompletedTask).Verifiable();
+                controller.MockPackageFileService.Setup(
+                        p =>
+                            p.DeletePackageFileAsync(packageId,
+                                packageVersion))
+                    .Returns(Task.CompletedTask).Verifiable();
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+                controller.MockPackageService.Setup(
+                        p =>
+                            p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),
+                                It.IsAny<User>(), false))
+                    .Returns(Task.FromResult(package));
+                controller.MockEntitiesContext.Setup(e => e.SaveChangesAsync()).Throws<Exception>();
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                await Assert.ThrowsAsync<Exception>(async () => await controller.CreatePackagePut());
+
+                // Assert
+                controller.MockPackageFileService.Verify();
+            }
+
+            [Fact]
             public async Task WritesAnAuditRecord()
             {
                 // Arrange

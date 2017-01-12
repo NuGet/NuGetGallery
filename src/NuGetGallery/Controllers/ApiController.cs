@@ -358,7 +358,16 @@ namespace NuGetGallery
                             }
                         }
 
-                        await EntitiesContext.SaveChangesAsync();
+                        try
+                        {
+                            await EntitiesContext.SaveChangesAsync();
+                        }
+                        catch
+                        {
+                            // If we are in read-only mode, saving to the DB will throw, so we need to delete the package from blob storage.
+                            await PackageFileService.DeletePackageFileAsync(nuspec.GetId(), nuspec.GetVersion().ToNormalizedString());
+                            throw;
+                        }
 
                         IndexingService.UpdatePackage(package);
 

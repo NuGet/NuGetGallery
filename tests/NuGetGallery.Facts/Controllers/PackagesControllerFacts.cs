@@ -1437,6 +1437,47 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillDeletePackageFileFromBlobStorageIfSavingDbChangesFails()
+            {
+                // Arrange
+                var packageId = "theId";
+                var packageVersion = "1.0.0";
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                    var fakePackageService = new Mock<IPackageService>();
+                    var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = packageId }, Version = packageVersion };
+                    fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                        .Returns(Task.FromResult(fakePackage));
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream(packageId, packageVersion);
+
+                    var fakePackageFileService = new Mock<IPackageFileService>();
+                    fakePackageFileService.Setup(x => x.SavePackageFileAsync(fakePackage, It.IsAny<Stream>())).Returns(Task.CompletedTask).Verifiable();
+                    fakePackageFileService.Setup(x => x.DeletePackageFileAsync(packageId, packageVersion)).Returns(Task.CompletedTask).Verifiable();
+
+                    var fakeEntitiesContext = new Mock<IEntitiesContext>();
+                    fakeEntitiesContext.Setup(e => e.SaveChangesAsync()).Throws<Exception>();
+
+                    var controller = CreateController(
+                        packageService: fakePackageService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        packageFileService: fakePackageFileService,
+                        entitiesContext: fakeEntitiesContext);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    // Act
+                    await Assert.ThrowsAsync<Exception>(async () => await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null }));
+
+                    // Assert
+                    fakePackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), TestUtility.FakeUser, false));
+                    fakePackageFileService.Verify();
+                }
+            }
+
+            [Fact]
             public async Task WillShowViewWithMessageIfSavingPackageBlobFails()
             {
                 // Arrange

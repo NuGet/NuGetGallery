@@ -1180,8 +1180,17 @@ namespace NuGetGallery
                     return new RedirectResult(Url.VerifyPackage());
                 }
 
-                // commit all changes to database as an atomic transaction
-                await _entitiesContext.SaveChangesAsync();
+                try
+                {
+                    // commit all changes to database as an atomic transaction
+                    await _entitiesContext.SaveChangesAsync();
+                }
+                catch
+                {
+                    // If we are in read-only mode, saving to the DB will throw, so we need to delete the package from blob storage.
+                    await _packageFileService.DeletePackageFileAsync(packageMetadata.Id, packageMetadata.Version.ToNormalizedString());
+                    throw;
+                }
 
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();
