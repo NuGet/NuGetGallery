@@ -358,7 +358,16 @@ namespace NuGetGallery
                             }
                         }
 
-                        await EntitiesContext.SaveChangesAsync();
+                        try
+                        {
+                            await EntitiesContext.SaveChangesAsync();
+                        }
+                        catch
+                        {
+                            // If saving to the DB fails for any reason, we need to delete the package we just saved.
+                            await PackageFileService.DeletePackageFileAsync(nuspec.GetId(), nuspec.GetVersion().ToNormalizedString());
+                            throw;
+                        }
 
                         IndexingService.UpdatePackage(package);
 
