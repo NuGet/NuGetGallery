@@ -146,7 +146,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [FolderNamesData(includePermissions: true)]
+            [FolderNamesData(true)]
             public async Task WillSetPermissionsForDemandedFolderInBlobContainers(string folderName, bool isPublic)
             {
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
