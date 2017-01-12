@@ -168,9 +168,9 @@
 
                             if (globPattern != null)
                             {
-                                <span>
-                            <b>Glob pattern: </b>@globPattern
-                        </span>
+                                <span class="globpattern">
+                                    <b>Glob pattern: </b>@globPattern
+                                </span>
                                 <br />
                             }
 
@@ -178,30 +178,30 @@
                             {
                                 const int itemsPerBatch = 10;
 
-                                <span>
-                            <b>Packages: </b>
-                            <span class="shortlist">@string.Join(", ", subjectsList.Take(3))</span>
-                            @if (subjectsList.Count > 3)
-                            {
-                                <a class="moredetails first">More...</a>
-                                <ul class="longlist">
-                                <ul>
-                                    @for (int i = 0; i < subjectsList.Count; i++)
-                                    {
-                                        var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
-                                        <li>
-                                        @subjectsList[i]
-
-                                        @if (lastInBatch && i != subjectsList.Count - 1)
+                            <span class="packageslist">
+                                <b>Packages: </b>
+                                <span class="shortlist">@string.Join(", ", subjectsList.Take(3))</span>
+                                @if (subjectsList.Count > 3)
+                                {
+                                    <a class="moredetails first">More...</a>
+                                    <ul class="longlist">
+                                    <ul>
+                                        @for (int i = 0; i < subjectsList.Count; i++)
                                         {
-                                            <a class="moredetails next">&nbsp;More...</a>
+                                            var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
+                                            <li>
+                                            @subjectsList[i]
+
+                                            @if (lastInBatch && i != subjectsList.Count - 1)
+                                            {
+                                                <a class="moredetails next">&nbsp;More...</a>
+                                            }
+                                        </li>
                                         }
-                                    </li>
-                                    }
+                                    </ul>
                                 </ul>
-                            </ul>
-                            }
-                        </span>
+                                }
+                            </span>
                             }
                         }
                         else
@@ -218,9 +218,11 @@
                       
                                         @if (!apiKey.IsNonScopedV1ApiKey)
                                         {
+                                            <button class="btn btn-veryflat" title="Edit Api key" type="button" onclick="showEditForm($(this).closest('tr'))"><img src="~/Content/Images/icons/edit.png" /></button>
+
                                             if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
                                             {
-                                                using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new {@class = "form-inline expire-api-key"}))
+                                                using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new { @class = "form-inline expire-api-key" }))
                                                 {
                                                     @Html.AntiForgeryToken()
                                                     @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
@@ -331,7 +333,7 @@
                                  </tr>
                              </table>
                          </div>
-                         <p>
+                         <div id="addkeyselectscopes">
                              <h5>Select scopes</h5><hr />
                              <div class="form-field">
                                  <label class="checkoboxsmall scopecheckbox" id="scopePushLabel">
@@ -345,15 +347,15 @@
                                      <input type="checkbox" name="scopes" id="scopeUnlist" value="@NuGetScopes.PackageUnlist"/> @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
                                  </label>
                              </div>
-                         </p>
-                         <p>
+                         </div>
+                         <div id="addkeyselectpackages" class="disabled-div">
                              <h5>Select packages</h5><hr />
                              To select which packages to associate with a key use a glob pattern, select individual packages, or both. 
                              
-                             <a id="globHelpLink">Example glob patterns</a>.
+                             <a class="globHelpLink">Example glob patterns</a>.
                              <div class="popup">
-                                 <div class="popupbox" id="globHelpPopup">
-                                     <a class="boxclose" id="globHelpPopupClose"><i class="icon-remove"></i></a>
+                                 <div class="popupbox" id="addapikeypopup">
+                                     <a class="boxclose"><i class="icon-remove"></i></a>
                                      <div class="innertext">
                                          A glob pattern allow you to replace any sequence of charecters with '*'.
                                          <h5>Example glob patterns</h5>
@@ -374,44 +376,43 @@
                                      </div>
                                  </div>
                              </div>
-                             <p>
-                                 <div class="form-field" id="packageGlobPattern">
-                                     <table>
-                                         <tr>
-                                             <th>Glob pattern</th>
-                                         </tr>
-                                         <tr>
-                                             <td>
-                                                 <input style="width:500px" type="text" name="subjects" id="globPattern" placeholder="Example: The wildcard '*' will select all available packages."
-                                                        data-val-regex="Invalid glob pattern. See 'Examples' for further details." data-val-regex-pattern="^[\*\w_.-]*$" data-val="true" />
-                                                 <span data-valmsg-for="subjects" data-valmsg-replace="true"></span>
-                                             </td>
-                                         </tr>
-                                     </table>
-                                 </div>
-                             </p>
-                         </p>
 
-                        @if (Model.Packages != null && Model.Packages.Count > 0)
-                         {
-                            <div class="form-field">
-                                <table width="100%">
+                            <div class="form-field" id="packageGlobPattern">
+                                <table>
                                     <tr>
-                                        <th>Select packages</th>
+                                        <th>Glob pattern</th>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <div class="scrollable-div" id="selectablePackagesList" style="max-height: 150px;width:500px">
-                                                @foreach (var package in Model.Packages)
-                                                {
-                                                    <label class="checkoboxsmall packagecheckbox"><input type="checkbox" name="subjects" value="@package" /> @package</label>
-                                                }
-                                            </div>
+                                            <input style="width:500px" type="text" name="subjects" id="addkeyglobPattern" placeholder="Example: The wildcard '*' will select all packages."
+                                                data-val-regex="Invalid glob pattern. See 'Examples' for further details." data-val-regex-pattern="^[\*\w_.-]*$" data-val="true" />
+                                            <span data-valmsg-for="subjects" data-valmsg-replace="true"></span>
                                         </td>
                                     </tr>
                                 </table>
                             </div>
-                        }
+                         
+                             @if (Model.Packages != null && Model.Packages.Count > 0)
+                             {
+                                 <div class="form-field">
+                                     <table width="100%">
+                                         <tr>
+                                             <th>Available packages</th>
+                                         </tr>
+                                         <tr>
+                                             <td>
+                                                 <div class="scrollable-div" id="selectablePackagesList" style="max-height: 150px;width:500px">
+                                                     @foreach (var package in Model.Packages)
+                                                     {
+                                                         <label class="checkoboxsmall packagecheckbox"><input type="checkbox" name="subjects" value="@package" /> @package</label>
+                                                     }
+                                                 </div>
+                                             </td>
+                                         </tr>
+                                     </table>
+                                 </div>
+                             }
+                         </div>
 
                         <button class="btn" type="submit" id="generateKey">Add key</button>
                     </fieldset>
@@ -436,21 +437,13 @@
             $('.scopecheckbox')
                 .on('click',
                     function() {
-                        var scopeUnlistOrPushChecked = document.getElementById("scopeUnlist").checked ||
+                        var anyChecked = document.getElementById("scopeUnlist").checked ||
                             document.getElementById("scopePush").checked;
 
-                        if (scopeUnlistOrPushChecked) {
-                            $('#selectablePackagesList').removeClass('disabled-div');
-                        } else {
-                            $('#selectablePackagesList').addClass('disabled-div');
-                        }
-
-                        var anyChecked = scopeUnlistOrPushChecked || document.getElementById("scopePush").checked;
-
                         if (anyChecked) {
-                            $('#packageGlobPattern').removeClass('disabled-div');
+                            $('#addkeyselectpackages').removeClass('disabled-div');
                         } else {
-                            $('#packageGlobPattern').addClass('disabled-div');
+                            $('#addkeyselectpackages').addClass('disabled-div');
                         }
                     });
 
@@ -464,26 +457,26 @@
                         }
                     });
 
-            $('#globPattern')
+            $('#addkeyglobPattern')
                 .on('input', function () {
-                    selectPackageFromGlob();
+                    selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'));
                     enableAddKeyButton();
                 });
 
             $('.packagecheckbox input').change(function () {
-                    enableAddKeyButton();
+                enableAddKeyButton();
             });
         });
 
-    function selectPackageFromGlob() {
-        var globVal = $('#globPattern').val();
+    function selectPackageFromGlob(globPatternElem, packageCheckboxes) {
+        var globVal = globPatternElem.val();
 
         // Invalid or empty glob
-        var badGlob = !$('#globPattern').valid() || (globVal == null || $.trim(globVal) == '');
+        var badGlob = !globPatternElem.valid() || (globVal == null || $.trim(globVal) == '');
 
         var patt = globToRegex(globVal);
 
-        $('.packagecheckbox input')
+        packageCheckboxes
             .each(function() {
                 if (!badGlob && patt.test($(this).val())) {
                     $(this)[0].checked = true;
@@ -503,25 +496,25 @@
         for (var i = 0; i < glob.length; ++i) {
             var c = glob.charAt(i);
             switch (c) {
-                case '*':
-                    regexChars.push(".*");
-                    break;
-                default:
-                    if (specialChars.indexOf(c) >= 0) {
-                        regexChars.push("\\");
-                    }
-                    regexChars.push(c);
+            case '*':
+                regexChars.push(".*");
+                break;
+            default:
+                if (specialChars.indexOf(c) >= 0) {
+                    regexChars.push("\\");
+                }
+                regexChars.push(c);
             }
         }
 
         regexChars.push("$");
-        return new RegExp(regexChars.join(""));
+        return new RegExp(regexChars.join(""), "i");
     }
 
     function enableAddKeyButton() {
         var packagesWereSelected = jQuery('#selectablePackagesList input[type=checkbox]:checked').length > 0;
-        var globValid = $('#globPattern').valid();
-        var globEmpty = $('#globPattern').val() == null || $.trim($('#globPattern').val()) == '';
+        var globValid = $('#addkeyglobPattern').valid();
+        var globEmpty = $('#addkeyglobPattern').val() == null || $.trim($('#addkeyglobPattern').val()) == '';
 
         if (!globValid) {
             $('#generateKey').addClass('disabled-div');
@@ -535,27 +528,32 @@
     }
 
     function setGenerateApiKeyFormInitialState() {
-        $('#selectablePackagesList').addClass('disabled-div');
+        $('#addkeyselectpackages').addClass('disabled-div');
         $('#generateKey').addClass('disabled-div');
-        $('#packageGlobPattern').addClass('disabled-div');
         $('#scopePushOptions').addClass('disabled-div');
-
         $('#scopeFullPush').prop("checked", true);
     }
 
 </script>
 <script> // Glob help popup related scripts
     $(document)
-       .ready(function () {
-           $('#globHelpPopupClose').click(function () {
-               $('#globHelpPopup').hide();
-           })
-           $('#globHelpLink').click(function () {
-               $('#globHelpPopup').show();
-           })
-       });
+        .ready(function () {
+            applyPopupEvents();
+        });
+
+    function applyPopupEvents() {
+        $('.boxclose')
+               .click(function () {
+                   $(this).parent().hide();
+               });
+
+        $('.globHelpLink')
+            .click(function () {
+                $(this).next().find('.popupbox').show();
+            });
+    }
 </script>
-<script>
+<script> // More details button to expand package/scope list
     $(document).ready(function () {
         applyMoreDetailsEventHandlers();
     });
@@ -781,6 +779,38 @@
         });
     }
 
+    function editApiKey(e) {
+        e.preventDefault();
+
+        // prevent duplicate requests
+        //var me = $(this);
+        //me.off('click');
+
+        var me = $(this);
+
+        if (me.data('requestRunning')) {
+            return;
+        }
+
+        me.data('requestRunning', true);
+
+        $.ajax({
+            url: '@Url.Action("EditCredential", "Users")',
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            data: getFormDataWithAntiForgeryToken($($(this).parents('form')[0])),
+            success: function (data) {
+               
+            },
+            error: function (data) {
+                alert(data);
+            }
+        }).always(function () {
+            me.data('requestRunning', false);
+        });
+    }
+
     function getFormDataWithAntiForgeryToken(form) {
         if (form.find('input[name=__RequestVerificationToken]').length == 0) {
             var tokenInput = '<input name="__RequestVerificationToken" type="hidden" value="' +
@@ -859,14 +889,14 @@
         markup += '<br/>';
 
         if (globPattern != null) {
-            markup += '<span><b>Glob pattern: </b>' + globPattern + '</span><br/>';
+            markup += '<span class="globpattern"><b>Glob pattern: </b>' + globPattern + '</span><br/>';
         }
 
         // Packages
         if (allPackages.length > 0) {
             var itemsPerBatch = 10;
 
-            markup += '<span><b>Packages: </b>';
+            markup += '<span class="packageslist"><b>Packages: </b>';
             markup += '<span class="shortlist">' +
                 allPackages.slice(0, 2).join(", ") +
                 '</span>';
@@ -894,6 +924,7 @@
         // Buttons
         markup += '<td class="actions actions-wide">';
         markup += getCopyButton(data.Value);
+        markup += getEditButton();
         markup += getExpireButton(data.Key);
         markup += getRegenerateButton(data.Key);
         markup += getRemoveButton(data.Key);
@@ -944,5 +975,222 @@
             '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
             '<button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit">' +
             '<img src="/Content/Images/icons/delete.png" /></button></form>';
+    }
+
+    function getEditButton() {
+        return '<button class="btn btn-veryflat copyapikeybutton" title="Edit Api key" type="button" onclick="showEditForm($(this).closest(\'tr\'))"><img src="/Content/Images/icons/edit.png" /></button>';
+    }
+    
+</script>
+<script> // Edit scenario related scripts
+    function showEditForm(tableRow) {
+        var globPattern = null;
+        var packages = null;
+        
+        try {
+            globPattern = tableRow.find('span.globpattern').contents()[2].data;
+        }
+        catch (err) { }
+
+       
+        var packageslist = $('#selectablePackagesList input');
+        packages = $.map(packageslist,
+            function(val, i) {
+                return val.value;
+            });
+
+        var key = tableRow.find('input[name="credentialKey"]')[0].value;
+       
+        
+        // form
+        var form = document.createElement("form");
+        form.setAttribute("action", "/account/editcredential");
+        form.setAttribute("class", "form-inline");
+        form.setAttribute("method", "POST");
+        form.setAttribute("novalidate", "novalidate");
+
+        var fieldset = document.createElement("fieldset");
+        fieldset.className = "form";
+
+        // invisible inputs
+        var input = document.createElement("input");
+        input.setAttribute("name", "credentialType");
+        input.setAttribute("type", "hidden");
+        input.setAttribute("value", "apikey.v1");
+
+        fieldset.appendChild(input);
+
+        input = document.createElement("input");
+        input.setAttribute("name", "credentialKey");
+        input.setAttribute("type", "hidden");
+        input.setAttribute("value", key);
+
+        fieldset.appendChild(input);
+
+        // header
+        var selectPackagesDiv = document.createElement("div");
+        var headline = document.createElement("h5");
+        headline.appendChild(document.createTextNode("Select packages"));
+        selectPackagesDiv.appendChild(headline);
+        selectPackagesDiv.appendChild(document.createElement("hr"));
+        selectPackagesDiv.appendChild(document
+            .createTextNode("To select which packages to associate with a key use a glob pattern, select individual packages, or both. "));
+        var helpLink = document.createElement("a");
+        helpLink.className = "globHelpLink";
+        helpLink.appendChild(document.createTextNode("Example glob patterns"));
+        selectPackagesDiv.appendChild(helpLink);
+
+        var popupDiv = document.createElement("div");
+        popupDiv.className = "popup";
+        var popupboxDiv = document.createElement("div");
+        popupboxDiv.className = "popupbox editapikeypopup";
+        var boxclose = document.createElement("a");
+        boxclose.className = "boxclose";
+        var iconRemove = document.createElement("i");
+        iconRemove.className = "icon-remove";
+        boxclose.appendChild(iconRemove);
+        popupboxDiv.appendChild(boxclose);
+        var innerTextDiv = document.createElement("div");
+        innerTextDiv.className = "innertext";
+        innerTextDiv.appendChild(document
+            .createTextNode("A glob pattern allow you to replace any sequence of charecters with '*'."));
+        var popupheader = document.createElement("h5");
+        popupheader.appendChild(document.createTextNode("Example glob patterns"));
+        innerTextDiv.appendChild(popupheader);
+
+        var popupExamplesTable = document.createElement("table");
+        var exampletr = document.createElement("tr");
+        var th = document.createElement("th");
+        th.appendChild(document.createTextNode("Pattern"));
+        exampletr.appendChild(th);
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode("Result"));
+        exampletr.appendChild(th);
+        popupExamplesTable.appendChild(exampletr);
+
+        exampletr = document.createElement("tr");
+        var td = document.createElement("td");
+        td.appendChild(document.createTextNode("*"));
+        exampletr.appendChild(td);
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode("Select all packages."));
+        exampletr.appendChild(td);
+        popupExamplesTable.appendChild(exampletr);
+        
+        exampletr = document.createElement("tr");
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode("Alpha.*"));
+        exampletr.appendChild(td);
+        td = document.createElement("td");
+        var alpha = document.createElement("i");
+        alpha.appendChild(document.createTextNode("Alpha"));
+        td.appendChild(alpha);
+        exampletr.appendChild(td);
+        popupExamplesTable.appendChild(exampletr);
+
+        innerTextDiv.appendChild(popupExamplesTable);
+        popupboxDiv.appendChild(innerTextDiv);
+        popupDiv.appendChild(popupboxDiv);
+        selectPackagesDiv.appendChild(popupDiv);
+
+        // Glob pattern
+        var globFormDiv = document.createElement("div");
+        globFormDiv.className = "form-field";
+        globFormDiv.setAttribute("id", "packageGlobPattern");
+        var patternTable = document.createElement("table");
+        var patternTr = document.createElement("tr");
+        var th = document.createElement("th");
+        th.appendChild(document.createTextNode("Glob pattern"));
+        patternTr.appendChild(th);
+        patternTable.appendChild(patternTr);
+
+        patternTr = document.createElement("tr");
+        var patternTd = document.createElement("td");
+        var globInput = document.createElement("input");
+        globInput.setAttribute("style", "width:450px");
+        globInput.setAttribute("type", "text");
+        globInput.setAttribute("name", "subjects");
+        globInput.setAttribute("placeholder", "Example: The wildcard '*' will select all packages.");
+        globInput.setAttribute("data-val-regex", "Invalid glob pattern. See 'Examples' for further details.");
+        globInput.setAttribute("data-val-regex-pattern", "^[\*\w_.-]*$");
+        globInput.setAttribute("data-val", "true");
+
+        if (globPattern != null) {
+            globInput.setAttribute("value", globPattern);
+        }
+
+        patternTd.appendChild(globInput);
+
+        var globError = document.createElement("span");
+        globError.setAttribute("data-valmsg-for", "subjects");
+        globError.setAttribute("data-valmsg-replace", "true");
+
+        patternTd.appendChild(globError);
+        patternTr.appendChild(patternTd);
+        patternTable.appendChild(patternTr);
+        globFormDiv.appendChild(patternTable);
+        selectPackagesDiv.appendChild(globFormDiv);
+
+        if (packages.length > 0) {
+            // Select packages
+            var packagesFormDiv = document.createElement("div");
+            packagesFormDiv.className = "form-field";
+            var packagesTable = document.createElement("table");
+            packagesTable.setAttribute("width", "100%");
+            var body = document.createElement("tbody");
+            var tr = document.createElement("tr");
+            th = document.createElement("th");
+            th.appendChild(document.createTextNode("Available packages"));
+            tr.appendChild(th);
+            body.appendChild(tr);
+
+            tr = document.createElement("tr");
+            td = document.createElement("td");
+            var selectPackagesListDiv = document.createElement("div");
+            selectPackagesListDiv.className = "scrollable-div editpackagelist";
+            selectPackagesListDiv.setAttribute("style", "max-height: 150px;width:450px");
+
+            $.each(packages,
+                function(key, value) {
+                    var label = document.createElement("label");
+                    label.className = "checkoboxsmall packagecheckbox";
+                    var input = document.createElement("input");
+                    input.setAttribute("type", "checkbox");
+                    input.setAttribute("name", "subjects");
+                    input.setAttribute("value", value);
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(value));
+                    selectPackagesListDiv.appendChild(label);
+                });
+
+            td.appendChild(selectPackagesListDiv);
+            tr.appendChild(td);
+            body.appendChild(tr);
+            packagesTable.appendChild(body);
+            packagesFormDiv.appendChild(packagesTable);
+
+            selectPackagesDiv.appendChild(packagesFormDiv);
+        }
+
+        fieldset.appendChild(selectPackagesDiv);
+
+        var submitButton = document.createElement("button");
+        submitButton.className = "btn";
+        submitButton.setAttribute("type", "submit");
+        submitButton.appendChild(document.createTextNode("Edit key"));
+        fieldset.appendChild(submitButton);
+
+        form.appendChild(fieldset);
+
+        tableRow.after('<tr><td/><td colspan="2" class="editpackagetd"/></tr>');
+        tableRow.next().find('td:eq(1)').append(form);
+
+        applyPopupEvents();
+
+        globInput.addEventListener('input', function () {
+            selectPackageFromGlob($(this), $(this).parents('.editpackagetd').find('.packagecheckbox input'));
+        });
+
+        submitButton.addEventListener('click', editApiKey);
     }
 </script>

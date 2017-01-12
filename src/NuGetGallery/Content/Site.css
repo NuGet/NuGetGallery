@@ -1536,6 +1536,24 @@ img.contributors-contributor-avatar {
     border-top-width: 0px;
 }
 
+/* Table inside table scenario */
+.details-table table td{
+    border-top:0px solid #ccc;
+    border-collapse: collapse;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left:10px;
+    vertical-align: top;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.details-table tr:last-child td {
+    border-bottom:0px solid #ccc;
+}
+
+
 /* divs*/
 
 .scrollable-div {
@@ -1543,7 +1561,7 @@ img.contributors-contributor-avatar {
   overflow-y: scroll;
   background-color: white;
   width:100%;
-  border: 1px solid #ccc
+  border: 1px solid #ccc;
 }
 
 .disabled-div {
@@ -1568,7 +1586,6 @@ img.contributors-contributor-avatar {
     z-index: 1;
     top: 125%;
     left: 50%;
-    margin-left: -210px;
     margin-top: 10px;
     border: 1px solid #ccc; 
     opacity: 0.97;
@@ -1576,6 +1593,7 @@ img.contributors-contributor-avatar {
 
 .popup .innertext {
      padding: 18px 0px 10px 10px;
+    white-space: normal;
 }
 
 /* Popup arrow */
@@ -1592,14 +1610,14 @@ img.contributors-contributor-avatar {
 .popup .popupbox::after {
     border-color: transparent transparent white transparent;
     border-width: 7px;
-    left: 75px;
+    left: 100px;
 }
 
 /* this border color controlls the outside, thin border */
 .popup .popupbox::before {
     border-color: transparent transparent #ccc transparent;
     border-width: 8px;
-    left: 74px;
+    left: 99px;
 }
 
 .popup table td,
@@ -1627,14 +1645,11 @@ img.contributors-contributor-avatar {
 /* Api keys container */
 .apikeyscontainer {
     background-color: white;
-}
-
-.apikeyscontainer h5 {
-    margin-top: 0px;
     padding-top: 5px;
-    padding-left: 6.8px;
+    padding-left: 10px; 
+    padding-right: 10px; 
+    padding-bottom: 10px; 
 }
-
 
 /* warning sign */
 
@@ -1648,3 +1663,35 @@ img.contributors-contributor-avatar {
     font-size: 0.9em;
 }
 
+/* new api key form*/
+#newapikey-1-content {
+    padding: 5px;
+}
+
+#addapikeypopup {
+     margin-left: -220px;
+}
+
+#addkeyselectscopes, #addkeyselectpackages, #packageGlobPattern {
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+
+
+/* Edit api key */
+.editapikeypopup {
+    margin-left: -275px;
+}
+
+.popup .editapikeypopup::after {
+    left: 150px;
+}
+
+.popup .editapikeypopup::before {
+    left: 149px;
+}
+
+.editpackagetd table td {
+    padding-left: 0px; 
+}
