@@ -364,7 +364,7 @@ namespace NuGetGallery
                         }
                         catch
                         {
-                            // If we are in read-only mode, saving to the DB will throw, so we need to delete the package from blob storage.
+                            // If saving to the DB fails for any reason, we need to delete the package we just saved.
                             await PackageFileService.DeletePackageFileAsync(nuspec.GetId(), nuspec.GetVersion().ToNormalizedString());
                             throw;
                         }
