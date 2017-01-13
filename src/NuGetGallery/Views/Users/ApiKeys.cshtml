@@ -155,13 +155,11 @@
                             {
                                 <a class="moredetails">More...</a>
                                 <ul class="longlist">
-                                <ul>
-                                    @foreach (var scope in scopesList)
-                                    {
-                                        <li>@scope</li>
-                                    }
+                                @foreach (var scope in scopesList)
+                                {
+                                    <li>@scope</li>
+                                }
                                 </ul>
-                            </ul>
                             }
                         </span>
                             <br />
@@ -182,21 +180,19 @@
                                 {
                                     <a class="moredetails first">More...</a>
                                     <ul class="longlist">
-                                    <ul>
-                                        @for (int i = 0; i < subjectsList.Count; i++)
-                                        {
-                                            var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
-                                            <li>
-                                            @subjectsList[i]
+                                    @for (int i = 0; i < subjectsList.Count; i++)
+                                    {
+                                        var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
+                                        <li>
+                                        @subjectsList[i]
 
-                                            @if (lastInBatch && i != subjectsList.Count - 1)
-                                            {
-                                                <a class="moredetails next">&nbsp;More...</a>
-                                            }
-                                        </li>
+                                        @if (lastInBatch && i != subjectsList.Count - 1)
+                                        {
+                                            <a class="moredetails next">&nbsp;More...</a>
                                         }
+                                        </li>
+                                    }
                                     </ul>
-                                </ul>
                                 }
                             </span>
                             }
@@ -568,7 +564,7 @@
                 $(this).css('display', 'none');
 
                 // Get the first li of the list
-                var listItem = $(this).next().children(':first').children(':first');
+                var listItem = $(this).next().children(':first');
                 var count = 0;
                 while (listItem.is('li') && count < 10) {
                     listItem.css('display', 'flex');

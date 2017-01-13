@@ -1504,6 +1504,7 @@ img.contributors-contributor-avatar {
 .details-table .longlist{
     list-style-position: inside;
     list-style-type: none;
+    padding-left: 10px;
 }
 
 .details-table .longlist li{
