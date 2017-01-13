@@ -2,7 +2,7 @@
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
-    [int]$BuildNumber,
+    [int]$BuildNumber
 )
 
 # For TeamCity - If any issue occurs, this script fail the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
