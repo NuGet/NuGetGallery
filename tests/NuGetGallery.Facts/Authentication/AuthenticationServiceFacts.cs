@@ -1257,6 +1257,7 @@ namespace NuGetGallery.Authentication
                 cred.Description = "description";
                 cred.Scopes = new[] { new Scope("123", NuGetScopes.PackagePushVersion), new Scope("123", NuGetScopes.PackageUnlist) };
                 cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
+                cred.ExpirationTicks = TimeSpan.TicksPerDay;
 
                 var authService = Get<AuthenticationService>();
 
@@ -1280,6 +1281,7 @@ namespace NuGetGallery.Authentication
                 Assert.Equal("123", description.Scopes[0].Subject);
                 Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackageUnlist), description.Scopes[1].AllowedAction);
                 Assert.Equal("123", description.Scopes[1].Subject);
+                Assert.Equal(cred.ExpirationTicks.Value, description.ExpirationDuration.Value.Ticks);
             }
 
             [InlineData(false)]

@@ -80,6 +80,7 @@ namespace NuGetGallery
         public List<ScopeViewModel> Scopes { get; set; }
         public bool HasExpired { get; set; }
         public string Value { get; set; }
+        public TimeSpan? ExpirationDuration { get; set; }
 
         public bool IsNonScopedV1ApiKey
         {

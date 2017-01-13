@@ -474,7 +474,8 @@ namespace NuGetGallery.Authentication
                 // Set the description as the value for legacy API keys
                 Description = credential.Description, 
                 Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
-                Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, NuGetScopes.Describe(s.AllowedAction))).ToList()
+                Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, NuGetScopes.Describe(s.AllowedAction))).ToList(),
+                ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null
             };
 
             credentialViewModel.HasExpired = credential.HasExpired ||
