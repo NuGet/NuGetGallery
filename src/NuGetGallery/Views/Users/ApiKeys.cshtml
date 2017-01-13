@@ -404,7 +404,7 @@
                                                  <div class="scrollable-div" id="selectablePackagesList" style="max-height: 150px;width:500px">
                                                      @foreach (var package in Model.Packages)
                                                      {
-                                                         <label class="checkoboxsmall packagecheckbox"><input type="checkbox" name="subjects" value="@package" /> @package</label>
+                                                         <label class="checkoboxsmall packagecheckbox" title="@package"><input type="checkbox" name="subjects" value="@package" /> @package</label>
                                                      }
                                                  </div>
                                              </td>
@@ -1205,6 +1205,7 @@
                 function(key, value) {
                     var label = document.createElement("label");
                     label.className = "checkoboxsmall packagecheckbox";
+                    label.setAttribute("title", value);
                     var input = document.createElement("input");
                     input.setAttribute("type", "checkbox");
                     input.setAttribute("name", "subjects");

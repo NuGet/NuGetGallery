@@ -1558,7 +1558,7 @@ img.contributors-contributor-avatar {
 /* divs*/
 
 .scrollable-div {
-  overflow: auto;
+  overflow-x: hidden;
   overflow-y: scroll;
   background-color: white;
   width:100%;
@@ -1568,6 +1568,12 @@ img.contributors-contributor-avatar {
 .disabled-div {
     pointer-events: none;
     opacity: 0.4;
+}
+
+.packagecheckbox {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* popup */
