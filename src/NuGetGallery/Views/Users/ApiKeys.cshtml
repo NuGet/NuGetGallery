@@ -168,10 +168,7 @@
 
                             if (globPattern != null)
                             {
-                                <span class="globpattern">
-                                    <b>Glob pattern: </b>@globPattern
-                                </span>
-                                <br />
+                                <span class="globpattern"><b>Glob pattern: </b>@globPattern<br /></span>
                             }
 
                             if (subjectsList.Any())
@@ -377,7 +374,7 @@
                                  </div>
                              </div>
 
-                            <div class="form-field" id="packageGlobPattern">
+                            <div class="form-field" id="addkeypackageGlobPattern">
                                 <table>
                                     <tr>
                                         <th>Glob pattern</th>
@@ -395,7 +392,7 @@
                              @if (Model.Packages != null && Model.Packages.Count > 0)
                              {
                                  <div class="form-field">
-                                     <table width="100%">
+                                     <table>
                                          <tr>
                                              <th>Available packages</th>
                                          </tr>
@@ -477,7 +474,13 @@
         var patt = globToRegex(globVal);
 
         packageCheckboxes
-            .each(function() {
+            .each(function () {
+
+                // do nothing for manually selected packages
+                if ($(this)[0].checked && !$(this).parent().hasClass('disabled-div')) {
+                    return;
+                }
+
                 if (!badGlob && patt.test($(this).val())) {
                     $(this)[0].checked = true;
                     $(this)[0].name = ""; // hide the name so this won't be submitted in the form
@@ -783,9 +786,6 @@
         e.preventDefault();
 
         // prevent duplicate requests
-        //var me = $(this);
-        //me.off('click');
-
         var me = $(this);
 
         if (me.data('requestRunning')) {
@@ -801,10 +801,12 @@
             dataType: 'json',
             data: getFormDataWithAntiForgeryToken($($(this).parents('form')[0])),
             success: function (data) {
-               
+                updateEditedKeyDetails(data, me.parents('.editpackagetr'));
+                me.parents('.editpackagetr').remove();
             },
             error: function (data) {
                 alert(data);
+                return null;
             }
         }).always(function () {
             me.data('requestRunning', false);
@@ -889,35 +891,11 @@
         markup += '<br/>';
 
         if (globPattern != null) {
-            markup += '<span class="globpattern"><b>Glob pattern: </b>' + globPattern + '</span><br/>';
+            markup += '<span class="globpattern"><b>Glob pattern: </b>' + globPattern + '<br/></span>';
         }
 
         // Packages
-        if (allPackages.length > 0) {
-            var itemsPerBatch = 10;
-
-            markup += '<span class="packageslist"><b>Packages: </b>';
-            markup += '<span class="shortlist">' +
-                allPackages.slice(0, 2).join(", ") +
-                '</span>';
-
-            if (allPackages.length > 3) {
-                markup += '<a class="moredetails first"> More...</a><ul class="longlist">';
-                markup += '<ul>';
-
-                for (var i = 0; i < allPackages.length; i++) {
-                    var lastInBatch = i != 0 && i % itemsPerBatch == (itemsPerBatch - 1);
-                    markup += '<li>' + allPackages[i];
-
-                    if (lastInBatch && i != allPackages.Count - 1) {
-                        markup += '<a class="moredetails next"> More...</a>';
-                    }
-
-                    markup += '</li>';
-                }
-                markup += '</ul></ul>';
-            }
-        }
+        markup += getPackagesListMarkup(allPackages);
 
         markup += '</td>';
 
@@ -945,6 +923,38 @@
         var re = /-?\d+/;
         var m = re.exec(jsonDate);
         return new Date(parseInt(m[0]));
+    }
+
+    function getPackagesListMarkup(packages) {
+        var markup = "";
+
+        if (packages.length > 0) {
+            var itemsPerBatch = 10;
+
+            markup += '<span class="packageslist"><b>Packages: </b>';
+            markup += '<span class="shortlist">' +
+                packages.slice(0, 2).join(", ") +
+                '</span>';
+
+            if (packages.length > 3) {
+                markup += '<a class="moredetails first"> More...</a><ul class="longlist">';
+                markup += '<ul>';
+
+                for (var i = 0; i < packages.length; i++) {
+                    var lastInBatch = i != 0 && i % itemsPerBatch == (itemsPerBatch - 1);
+                    markup += '<li>' + packages[i];
+
+                    if (lastInBatch && i != packages.Count - 1) {
+                        markup += '<a class="moredetails next"> More...</a>';
+                    }
+
+                    markup += '</li>';
+                }
+                markup += '</ul></ul>';
+            }
+        }
+
+        return markup;
     }
 
     function getCopyButton(copyValue) {
@@ -984,20 +994,41 @@
 </script>
 <script> // Edit scenario related scripts
     function showEditForm(tableRow) {
+
+        if (tableRow.next().hasClass('editpackagetr')) {
+            return;
+        }
+
         var globPattern = null;
         var packages = null;
         
         try {
-            globPattern = tableRow.find('span.globpattern').contents()[2].data;
+            globPattern = tableRow.find('span.globpattern').contents()[1].data.trim();
         }
         catch (err) { }
 
-       
         var packageslist = $('#selectablePackagesList input');
         packages = $.map(packageslist,
             function(val, i) {
                 return val.value;
             });
+
+
+        var selectedPackages;
+        
+        var longlist = tableRow.find('.packageslist ul.longlist li');
+
+        selectedPackages = $.map(longlist,
+            function(val, i) {
+                return val.textContent.trim();
+            });
+
+        if (selectedPackages.length == 0) {
+            if (tableRow.find('.packageslist span.shortlist').length > 0) {
+                selectedPackages = tableRow.find('.packageslist span.shortlist')[0].textContent.split(',');
+                selectedPackages = $.map(selectedPackages, function (val, i) { return val.trim(); })
+            }
+        }
 
         var key = tableRow.find('input[name="credentialKey"]')[0].value;
        
@@ -1008,6 +1039,7 @@
         form.setAttribute("class", "form-inline");
         form.setAttribute("method", "POST");
         form.setAttribute("novalidate", "novalidate");
+        form.setAttribute("style", "width: 100%");
 
         var fieldset = document.createElement("fieldset");
         fieldset.className = "form";
@@ -1096,7 +1128,7 @@
         // Glob pattern
         var globFormDiv = document.createElement("div");
         globFormDiv.className = "form-field";
-        globFormDiv.setAttribute("id", "packageGlobPattern");
+        globFormDiv.setAttribute("id", "editkeypackageGlobPattern");
         var patternTable = document.createElement("table");
         var patternTr = document.createElement("tr");
         var th = document.createElement("th");
@@ -1136,7 +1168,6 @@
             var packagesFormDiv = document.createElement("div");
             packagesFormDiv.className = "form-field";
             var packagesTable = document.createElement("table");
-            packagesTable.setAttribute("width", "100%");
             var body = document.createElement("tbody");
             var tr = document.createElement("tr");
             th = document.createElement("th");
@@ -1158,6 +1189,11 @@
                     input.setAttribute("type", "checkbox");
                     input.setAttribute("name", "subjects");
                     input.setAttribute("value", value);
+
+                    if ($.inArray(value, selectedPackages) >= 0) {
+                        input.setAttribute('checked', 'checked');
+                    }
+
                     label.appendChild(input);
                     label.appendChild(document.createTextNode(value));
                     selectPackagesListDiv.appendChild(label);
@@ -1175,22 +1211,73 @@
         fieldset.appendChild(selectPackagesDiv);
 
         var submitButton = document.createElement("button");
-        submitButton.className = "btn";
+        submitButton.className = "btn slimbutton";
         submitButton.setAttribute("type", "submit");
-        submitButton.appendChild(document.createTextNode("Edit key"));
+        submitButton.appendChild(document.createTextNode("Save changes"));
         fieldset.appendChild(submitButton);
+
+        var cancelButton = document.createElement("button");
+        cancelButton.className = "btn slimbutton";
+        cancelButton.setAttribute("type", "button");
+        cancelButton.setAttribute("style", "margin-left:10px");
+        cancelButton.appendChild(document.createTextNode("Cancel"));
+
+        fieldset.appendChild(cancelButton);
 
         form.appendChild(fieldset);
 
-        tableRow.after('<tr><td/><td colspan="2" class="editpackagetd"/></tr>');
+        tableRow.after('<tr class="editpackagetr"><td/><td colspan="2" class="editpackagetd"/></tr>');
         tableRow.next().find('td:eq(1)').append(form);
 
         applyPopupEvents();
+
+        // Run for the first time
+        selectPackageFromGlob($(globInput), $(globInput).parents('.editpackagetd').find('.packagecheckbox input'));
 
         globInput.addEventListener('input', function () {
             selectPackageFromGlob($(this), $(this).parents('.editpackagetd').find('.packagecheckbox input'));
         });
 
         submitButton.addEventListener('click', editApiKey);
+
+        cancelButton.addEventListener('click',
+            function() {
+                $(this).parents('.editpackagetr').remove();
+            });
     }
+
+    function updateEditedKeyDetails(data, edittablerow) {
+        var allPackages = data.Scopes.map(function (elem) {
+            return elem.Subject;
+        });
+
+        allPackages = jQuery.unique(allPackages);
+
+        var globPattern = jQuery.grep(allPackages,
+            function (elem) {
+                return elem.indexOf("*") >= 0;
+            })[0];
+
+        allPackages = jQuery.grep(allPackages,
+            function (elem) {
+                return elem.indexOf("*") < 0;
+            });
+
+        var packagesdetailstd = $(edittablerow.prev().find('td')[1]);
+
+        // remove previous details
+        packagesdetailstd.find('.globpattern').remove();
+        packagesdetailstd.find('.packageslist').remove();
+
+        if (globPattern != null) {
+            var markup = '<span class="globpattern"><b>Glob pattern: </b>' + globPattern + '<br/></span>';
+            packagesdetailstd.children().last().after(markup);
+        }
+            
+        packagesdetailstd.children().last().after(getPackagesListMarkup(allPackages));
+
+        applyMoreDetailsEventHandlers();
+    };
+
+    
 </script>

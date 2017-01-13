@@ -1672,7 +1672,7 @@ img.contributors-contributor-avatar {
      margin-left: -220px;
 }
 
-#addkeyselectscopes, #addkeyselectpackages, #packageGlobPattern {
+#addkeyselectscopes, #addkeyselectpackages, #addkeypackageGlobPattern {
     margin-top: 5px;
     margin-bottom: 15px;
 }
@@ -1692,6 +1692,27 @@ img.contributors-contributor-avatar {
     left: 149px;
 }
 
+.details-table tr.editpackagetr + td {
+    border-top: none; 
+    padding-left: 10px;
+}
+
+.details-table tr.editpackagetr td {
+    border-top: none; 
+}
+
 .editpackagetd table td {
-    padding-left: 0px; 
+    padding-left: 0px;
+    padding-top: 0px;
+}
+
+#editkeypackageGlobPattern {
+    margin-top: 5px;
+    margin-bottom: 8px;
+}
+
+.slimbutton {
+    font-weight: 400;
+    font-size: 1.1em;
+    padding: 5px 15px 5px 15px;
 }
