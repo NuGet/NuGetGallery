@@ -14,5 +14,11 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
         {
             return new JsonTextReader(new StringReader(this[name]));
         }
+
+        public bool Reload(IndexingConfiguration config)
+        {
+            // no-op because in-memory files do not need to be reloaded
+            return false;
+        }
     }
 }

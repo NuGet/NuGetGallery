@@ -18,11 +18,14 @@ using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.StaticFiles.Infrastructure;
 using NuGet.ApplicationInsights.Owin;
 using NuGet.Indexing;
+using NuGet.Services.BasicSearch.Configuration;
+using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using Owin;
 using Serilog.Events;
 using SerilogWeb.Classic;
 using SerilogWeb.Classic.Enrichers;
+using NuGet.Services.KeyVault;
 
 [assembly: OwinStartup("NuGet.Services.BasicSearch", typeof(NuGet.Services.BasicSearch.Startup))]
 
@@ -36,11 +39,16 @@ namespace NuGet.Services.BasicSearch
         private int _gate;
         private ResponseWriter _responseWriter;
         private SearchTelemetryClient _searchTelemetryClient;
+        private IConfigurationFactory _configFactory;
 
-        public void Configuration(IAppBuilder app, IConfiguration configuration, Directory directory, ILoader loader)
+        public void Configuration(IAppBuilder app, IConfigurationFactory configFactory, Directory directory,
+            ILoader loader)
         {
+            _configFactory = configFactory;
+            var config = _configFactory.Get<BasicSearchConfiguration>().Result;
+
             // Configure
-            Logging.ApplicationInsights.Initialize(configuration.Get("serilog:ApplicationInsightsInstrumentationKey"));
+            Logging.ApplicationInsights.Initialize(config.ApplicationInsightsInstrumentationKey);
 
             // Create telemetry sink
             _searchTelemetryClient = new SearchTelemetryClient();
@@ -105,21 +113,16 @@ namespace NuGet.Services.BasicSearch
             }));
 
             // Start the service running - the Lucene index needs to be reopened regularly on a background thread
-            var searchIndexRefresh = configuration.Get("Search.IndexRefresh") ?? "300";
-            int seconds;
-            if (!int.TryParse(searchIndexRefresh, out seconds))
-            {
-                seconds = 120;
-            }
+            var intervalSec = config.IndexRefreshSec;
 
-            _logger.LogInformation(LogMessages.SearchIndexRefreshConfiguration, seconds);
+            _logger.LogInformation(LogMessages.SearchIndexRefreshConfiguration, intervalSec);
 
-            if (InitializeSearcherManager(configuration, directory, loader, loggerFactory))
+            if (InitializeSearcherManager(config, directory, loader, loggerFactory))
             {
-                var intervalInMs = seconds * 1000;
+                var intervalMs = intervalSec * 1000;
 
                 _gate = 0;
-                _indexReloadTimer = new Timer(ReopenCallback, 0, intervalInMs, intervalInMs);
+                _indexReloadTimer = new Timer(ReopenCallback, 0, intervalMs, intervalMs);
             }
 
             _responseWriter = new ResponseWriter();
@@ -132,11 +135,17 @@ namespace NuGet.Services.BasicSearch
             ServicePointManager.DefaultConnectionLimit = Int32.MaxValue;
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
+            
+            var secretReaderFactory = new SecretReaderFactory();
+            var secretReader = secretReaderFactory.CreateSecretReader();
 
-            Configuration(app, new ConfigurationService(new SecretReaderFactory()), null, null);
+            var configurationProvider =
+                new EnvironmentSettingsConfigurationProvider(secretReaderFactory.CreateSecretInjector(secretReader));
+
+            Configuration(app, new ConfigurationFactory(configurationProvider), null, null);
         }
 
-        private void ReopenCallback(object state)
+        private async void ReopenCallback(object state)
         {
             try
             {
@@ -154,7 +163,8 @@ namespace NuGet.Services.BasicSearch
                 {
                     var stopwatch = Stopwatch.StartNew();
 
-                    _searcherManager.MaybeReopen();
+                    var newConfig = await _configFactory.Get<BasicSearchConfiguration>();
+                    _searcherManager.MaybeReopen(newConfig);
 
                     stopwatch.Stop();
 
@@ -179,7 +189,7 @@ namespace NuGet.Services.BasicSearch
             }
         }
 
-        private bool InitializeSearcherManager(IConfiguration configuration, Directory directory, ILoader loader, ILoggerFactory loggerFactory)
+        private bool InitializeSearcherManager(IndexingConfiguration config, Directory directory, ILoader loader, ILoggerFactory loggerFactory)
         {
             const int maxRetries = 10;
 
@@ -190,7 +200,7 @@ namespace NuGet.Services.BasicSearch
                     {
                         var stopwatch = Stopwatch.StartNew();
 
-                        _searcherManager = NuGetSearcherManager.Create(configuration, loggerFactory, directory, loader);
+                        _searcherManager = NuGetSearcherManager.Create(config, loggerFactory, directory, loader);
                         _searcherManager.Open();
 
                         stopwatch.Stop();
@@ -203,7 +213,8 @@ namespace NuGet.Services.BasicSearch
                     shouldRetry: e =>
                     {
                         // Retry on any exception (but log it)
-                        _logger.LogError("Startup: An error occurred initializing searcher manager. Going to retry...", e);
+                        _logger.LogError("Startup: An error occurred initializing searcher manager. Going to retry...",
+                            e);
                         _searchTelemetryClient.TrackMetric(SearchTelemetryClient.MetricName.SearchIndexReopenFailed, 1);
 
                         return true;

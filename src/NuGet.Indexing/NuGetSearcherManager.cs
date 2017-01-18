@@ -8,23 +8,27 @@ using System.IO;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
-using Lucene.Net.Store.Azure;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
+using NuGet.Indexing.IndexDirectoryProvider;
+using Directory = Lucene.Net.Store.Directory;
 
 namespace NuGet.Indexing
 {
     public class NuGetSearcherManager : SearcherManager<NuGetIndexSearcher>
     {
         public static readonly TimeSpan AuxiliaryDataRefreshRate = TimeSpan.FromHours(1);
-
-        private readonly ILoader _loader;
+        
         private readonly FrameworkLogger _logger;
-        private readonly AzureDirectorySynchronizer _azureDirectorySynchronizer;
 
-        private DateTime _auxiliaryDataReloaded = DateTime.MinValue;
+        private DateTime _lastTimeIndexReloaded = DateTime.MinValue;
+        private readonly TimeSpan _indexReloadRate;
+        private readonly IIndexDirectoryProvider _indexProvider;
+        private readonly ILoader _loader;
+
+        private DateTime _lastTimeAuxiliaryDataRefreshed = DateTime.MinValue;
+        private readonly TimeSpan _auxiliaryDataRefreshRate;
         private readonly IDictionary<string, HashSet<string>> _owners = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
         private readonly IDictionary<string, HashSet<string>> _curatedFeeds = new Dictionary<string, HashSet<string>>();
         private readonly Downloads _downloads = new Downloads();
@@ -32,12 +36,11 @@ namespace NuGet.Indexing
 
         private QueryBoostingContext _queryBoostingContext = QueryBoostingContext.Default;
 
-        public NuGetSearcherManager(string indexName,
-            FrameworkLogger logger,
-            Lucene.Net.Store.Directory directory,
+        public NuGetSearcherManager(FrameworkLogger logger,
+            IIndexDirectoryProvider indexProvider,
             ILoader loader,
-            AzureDirectorySynchronizer azureDirectorySynchronizer)
-            : base(directory)
+            int auxiliaryDataRefreshRateSec,
+            int indexReloadRateSec)
         {
             if (logger == null)
             {
@@ -45,37 +48,39 @@ namespace NuGet.Indexing
             }
 
             _logger = logger;
-
-            IndexName = indexName;
+            
             RegistrationBaseAddress = new Dictionary<string, Uri>();
 
+            _indexProvider = indexProvider;
             _loader = loader;
-            _azureDirectorySynchronizer = azureDirectorySynchronizer;
+
+            _indexReloadRate = TimeSpan.FromSeconds(indexReloadRateSec);
+            _auxiliaryDataRefreshRate = TimeSpan.FromSeconds(auxiliaryDataRefreshRateSec);
         }
 
-        public string IndexName { get; private set; }
+        public virtual string IndexName => _indexProvider.GetIndexContainerName();
         public IDictionary<string, Uri> RegistrationBaseAddress { get; }
 
         /// <summary>Initializes a <see cref="NuGetSearcherManager"/> instance.</summary>
-        /// <param name="configuration">
-        /// The configuration to read which primarily determines whether the resulting instance will read from the local
-        /// disk or from blob storage.
-        /// </param>
         /// <param name="directory">
         /// Optionally, the Lucene directory to read the index from. If <c>null</c> is provided, the directory
-        /// implementation is determined based off of the configuration (<see cref="configuration"/>).
+        /// implementation is determined based off of the configuration (<see cref="config"/>).
         /// </param>
         /// <param name="loader">
         /// Optionally, the loader used to read the JSON data files. If <c>null</c> is provided, the loader
-        /// implementation is determined based off of the configuration (<see cref="configuration"/>).
+        /// implementation is determined based off of the configuration (<see cref="config"/>).
+        /// </param>
+        /// <param name="config">
+        /// The configuration to read which primarily determines whether the resulting instance will read from the local
+        /// disk or from blob storage.
         /// </param>
         /// <param name="loggerFactory">
         /// Optionally, the logger factory defined by the consuming application.
         /// </param>
         /// <returns>The resulting <see cref="NuGetSearcherManager"/> instance.</returns>
-        public static NuGetSearcherManager Create(IConfiguration configuration,
+        public static NuGetSearcherManager Create(IndexingConfiguration config,
             ILoggerFactory loggerFactory,
-            Lucene.Net.Store.Directory directory = null,
+            Directory directory = null,
             ILoader loader = null)
         {
             if (loggerFactory == null)
@@ -84,57 +89,36 @@ namespace NuGet.Indexing
             }
 
             LoggerFactory = loggerFactory;
+            var logger = loggerFactory.CreateLogger<NuGetSearcherManager>();
 
-            NuGetSearcherManager searcherManager;
-            var luceneDirectory = configuration.Get("Local.Lucene.Directory");
-
+            // If a local Lucene directory has been specified, create a directory and loader for the specified directory.
+            var luceneDirectory = config.LocalLuceneDirectory;
             if (!string.IsNullOrEmpty(luceneDirectory))
             {
-                string dataDirectory = configuration.Get("Local.Data.Directory");
+                directory = directory ?? new SimpleFSDirectory(new DirectoryInfo(luceneDirectory));
+                loader = loader ?? new FileLoader(config.LocalDataDirectory);
+            }
 
-                searcherManager = new NuGetSearcherManager(
-                    luceneDirectory,
-                    loggerFactory.CreateLogger<NuGetSearcherManager>(),
-                    directory ?? new SimpleFSDirectory(new DirectoryInfo(luceneDirectory)),
-                    loader ?? new FileLoader(dataDirectory),
-                    azureDirectorySynchronizer: null);
+            IIndexDirectoryProvider indexProvider;
+            if (directory == null)
+            {
+                // If no directory has been provided, create a CloudIndexDirectoryProvider from the configuration.
+                indexProvider = new CloudIndexDirectoryProvider(config, logger);
             }
             else
             {
-                string storagePrimary = configuration.Get("Storage.Primary");
-                string indexContainer = configuration.Get("Search.IndexContainer");
-                string dataContainer = configuration.Get("Search.DataContainer");
-
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storagePrimary);
-
-                if (string.IsNullOrEmpty(indexContainer))
-                {
-                    indexContainer = "ng-search-index";
-                }
-
-                if (string.IsNullOrEmpty(dataContainer))
-                {
-                    dataContainer = "ng-search-data";
-                }
-
-                AzureDirectorySynchronizer azureDirectorySynchronizer = null;
-                if (directory == null)
-                {
-                    var sourceDirectory = new AzureDirectory(storageAccount, indexContainer);
-                    directory = new RAMDirectoryWrapper(sourceDirectory); // initial copy from storage to RAM
-
-                    azureDirectorySynchronizer = new AzureDirectorySynchronizer(sourceDirectory, directory);
-                }
-
-                searcherManager = new NuGetSearcherManager(
-                    indexContainer,
-                    loggerFactory.CreateLogger<NuGetSearcherManager>(),
-                    directory,
-                    loader ?? new StorageLoader(storageAccount, dataContainer, loggerFactory.CreateLogger<StorageLoader>()),
-                    azureDirectorySynchronizer: azureDirectorySynchronizer);
+                // Use the specified directory to create a FixedIndexDirectoryProvider.
+                var indexContainerName = luceneDirectory ?? config.IndexContainer;
+                indexProvider = new LocalIndexDirectoryProvider(directory, indexContainerName);
             }
 
-            string registrationBaseAddress = configuration.Get("Search.RegistrationBaseAddress");
+            // If a loader has been specified, use it.
+            // Otherwise, create a StorageLoader from the configuration.
+            loader = loader ?? new StorageLoader(config, logger);
+            
+            var searcherManager = new NuGetSearcherManager(logger, indexProvider, loader, config.AuxiliaryDataRefreshRateSec, config.IndexReloadRateSec);
+
+            var registrationBaseAddress = config.RegistrationBaseAddress;
             searcherManager.RegistrationBaseAddress["http"] = MakeRegistrationBaseAddress("http", registrationBaseAddress);
             searcherManager.RegistrationBaseAddress["https"] = MakeRegistrationBaseAddress("https", registrationBaseAddress);
 
@@ -143,13 +127,38 @@ namespace NuGet.Indexing
 
         internal static ILoggerFactory LoggerFactory { get; private set; }
 
-        protected override IndexReader Reopen(IndexSearcher searcher)
+        protected override Directory GetDirectory()
         {
-            if (_azureDirectorySynchronizer != null)
+            return _indexProvider.GetDirectory();
+        }
+        
+        private bool ReloadIndexAndLoaderIfExpired(IndexingConfiguration config)
+        {
+            var hasReloaded = false;
+
+            if (_lastTimeIndexReloaded < DateTime.UtcNow - _indexReloadRate)
+            {
+                var hasReloadedIndex = _indexProvider.Reload(config);
+                var hasReloadedLoader = _loader.Reload(config);
+                hasReloaded = hasReloadedIndex || hasReloadedLoader;
+
+                _lastTimeIndexReloaded = DateTime.UtcNow;
+            }
+
+            return hasReloaded;
+        }
+
+        protected override IndexReader Reopen(IndexingConfiguration config, IndexSearcher searcher)
+        {
+            // Reload the index before we create the new reader so it uses the correct index.
+            ReloadIndexAndLoaderIfExpired(config);
+
+            var synchronizer = _indexProvider.GetSynchronizer();
+            if (synchronizer != null)
             {
                 try
                 {
-                    _azureDirectorySynchronizer.Sync();
+                    synchronizer.Sync();
                 }
                 catch (Exception ex)
                 {
@@ -292,7 +301,7 @@ namespace NuGet.Indexing
 
         private void ReloadAuxiliaryDataIfExpired()
         {
-            if (_auxiliaryDataReloaded < DateTime.UtcNow - AuxiliaryDataRefreshRate)
+            if (_lastTimeAuxiliaryDataRefreshed < DateTime.UtcNow - _auxiliaryDataRefreshRate)
             {
                 IndexingUtils.Load("owners.json", _loader, _logger, _owners);
                 IndexingUtils.Load("curatedfeeds.json", _loader, _logger, _curatedFeeds);
@@ -300,7 +309,7 @@ namespace NuGet.Indexing
                 _rankings = DownloadRankings.Load("rankings.v1.json", _loader, _logger);
                 _queryBoostingContext = QueryBoostingContext.Load("searchSettings.v1.json", _loader, _logger);
 
-                _auxiliaryDataReloaded = DateTime.UtcNow;
+                _lastTimeAuxiliaryDataRefreshed = DateTime.UtcNow;
             }
         }
 

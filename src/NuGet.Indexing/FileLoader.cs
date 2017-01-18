@@ -3,6 +3,8 @@
 
 using Newtonsoft.Json;
 using System.IO;
+using System;
+using System.Threading.Tasks;
 
 namespace NuGet.Indexing
 {
@@ -24,6 +26,12 @@ namespace NuGet.Indexing
         {
             string fullName = _folder == null ? name : _folder + name;
             return new JsonTextReader(new StreamReader(fullName));
+        }
+
+        public bool Reload(IndexingConfiguration config)
+        {
+            // no-op because local files do not need to be reloaded
+            return false;
         }
     }
 }

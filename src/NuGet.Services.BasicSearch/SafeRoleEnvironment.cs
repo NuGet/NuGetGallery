@@ -43,7 +43,7 @@ namespace NuGet.Services.BasicSearch
 
         /// <summary>
         /// Delegate the call because we don't want RoleEnvironment appearing in the function scope of the caller because that
-        /// would trigger the assembly load: teh very thing we are attempting to avoid
+        /// would trigger the assembly load: the very thing we are attempting to avoid
         /// </summary>
         /// <param name="configurationSettingName"></param>
         /// <returns></returns>
