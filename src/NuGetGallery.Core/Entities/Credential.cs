@@ -54,14 +54,14 @@ namespace NuGetGallery
         public int UserKey { get; set; }
 
         [Required]
-        [StringLength(64)]
+        [StringLength(maximumLength: 64)]
         public string Type { get; set; }
 
         [Required]
-        [StringLength(256)]
+        [StringLength(maximumLength: 256)]
         public string Value { get; set; }
 
-        [StringLength(256)]
+        [StringLength(maximumLength: 256)]
         public string Identity { get; set; }
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
