@@ -214,7 +214,7 @@
                                     <td class="actions actions-wide">
                                         @if (apiKey.IsNonScopedV1ApiKey)
                                         {
-                                            <button class="btn btn-veryflat" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><img src="~/Content/Images/icons/copy.png" /></button>
+                                            <button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><img src="~/Content/Images/icons/copy.png" /></button>
                                         }
                       
                                         @if (!apiKey.IsNonScopedV1ApiKey)
@@ -793,6 +793,8 @@
                 keyRow.remove();
                 addNewApiKeyRow(data);
                 setApiKeyExpiredMessage();
+                $('#newApiKeyWarning')[0].scrollIntoView();
+
             },
             error: function (data) {
                 alert(data);
@@ -1008,9 +1010,9 @@
     }
 
     function getEditButton() {
-        return '<button class="btn btn-veryflat copyapikeybutton" title="Edit Api key" type="button" onclick="showEditForm($(this).closest(\'tr\'))"><img src="/Content/Images/icons/edit.png" /></button>';
+        return '<button class="btn btn-veryflat" title="Edit Api key" type="button" onclick="showEditForm($(this).closest(\'tr\'))"><img src="/Content/Images/icons/edit.png" /></button>';
     }
-    
+
 </script>
 <script> // Edit scenario related scripts
     function showEditForm(tableRow) {

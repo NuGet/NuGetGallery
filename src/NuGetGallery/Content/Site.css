@@ -145,6 +145,7 @@ a {
     color: #0071bc;
     outline: none;
     text-decoration: none;
+    cursor: pointer;
 }
 
     a:hover {
@@ -1658,6 +1659,15 @@ img.contributors-contributor-avatar {
     padding-bottom: 10px; 
 }
 
+.apikeyscontainer hr {
+    margin-bottom: 0px;
+}
+
+.btn.btn-veryflat.copyapikeybutton img {
+    border-right: 1px solid #3a6e8b;
+    padding-right: 8px;
+}
+
 /* warning sign */
 
 .warningsign i.icon-stack-base{
@@ -1683,8 +1693,6 @@ img.contributors-contributor-avatar {
     margin-top: 5px;
     margin-bottom: 15px;
 }
-
-
 
 /* Edit api key */
 .editapikeypopup {
