@@ -81,173 +81,173 @@
                 {
                     <p id="noapikeysmessage"  @(apiKeys.Any() ? "style=display:none" : "")><strong>You don't have any API keys yet.</strong> Use the form below to generate an API key and start publishing packages to @(Config.Current.Brand).</p>
                     <p id="hasapikeysmessage" @(!apiKeys.Any() ? "style=display:none" : "")><strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed, you can always generate a new one at any time. You can also remove existing API keys if necessary.</p>
-
                     <h4>Manage API Keys</h4>
+                    <p id="errormessage" class="message error" style="display:none">An error occured. Please try again.</p>
                     <hr />
                     <ul class="accordion enhanced">@AddApiKey(!apiKeys.Any())</ul>
                     <div id="apikeyscontainer" @(!apiKeys.Any() ? "style=display:none" : "")>
-                            <h5>Keys</h5>
-                            <hr />
-                            <p id="newApiKeyWarning" class="message warning fancy" style="display:none" >
-                                <span class="icon-stack warningsign">
-                                    <i class="icon-circle icon-stack-base"></i>
-                                    <i class="icon-exclamation"></i>
-                                </span>
-                                New API key has been created. Make sure to copy your new API key now using the <i class="icon-copy" style="color:#0071bc"></i> copy key button. You won't be able to do so again.
-                            </p>
-                            <table class="details-table" id="api-keys-details" width="100%">
-                            <colgroup>
-                                <col span="1" style="width: 5%;">
-                                <col span="1" style="width: 80%;">
-                                <col span="1" style="width: 20%;">
-                            </colgroup>
-                                <tbody>
-                                    @foreach (var apiKey in apiKeys)
-                                    {
-                                        <tr>
-                                            <td>
-                                                @if (apiKey.HasExpired)
+                        <h5>Keys</h5>
+                        <hr />
+                        <p id="newApiKeyWarning" class="message warning fancy" style="display:none" >
+                            <span class="icon-stack warningsign">
+                                <i class="icon-circle icon-stack-base"></i>
+                                <i class="icon-exclamation"></i>
+                            </span>
+                            New API key has been created. Make sure to copy your new API key now using the <i class="icon-copy" style="color:#0071bc"></i> copy key button. You won't be able to do so again.
+                        </p>
+                        <table class="details-table" id="api-keys-details" width="100%">
+                        <colgroup>
+                            <col span="1" style="width: 5%;">
+                            <col span="1" style="width: 80%;">
+                            <col span="1" style="width: 20%;">
+                        </colgroup>
+                            <tbody>
+                                @foreach (var apiKey in apiKeys)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (apiKey.HasExpired)
+                                            {
+                                                <img src="~/Content/Images/icons/apiKeyExpired.png" />
+                                            }
+                                            else
+                                            {
+                                                <img src="~/Content/Images/icons/apiKey.png" />
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (apiKey.IsNonScopedV1ApiKey)
+                                            {
+                                                <strong>Full access API key</strong>
+                                                <br />
+                                            }
+                                            else
+                                            {
+                                                <strong title="@apiKey.Description">@apiKey.Description</strong><br />
+                                            }
+                                            <span>
+                                                <b>Expires:</b>
+                                                @if (!apiKey.Expires.HasValue)
                                                 {
-                                                    <img src="~/Content/Images/icons/apiKeyExpired.png" />
+                                                    <span class="s-localtime">Never</span>
+                                                }
+                                                else if (!apiKey.HasExpired)
+                                                {
+                                                    <span class="s-relativetime" data-utc="@apiKey.Expires.Value.ToJavaScript()">@apiKey.Expires.Value.ToNuGetShortDateString()</span>
                                                 }
                                                 else
                                                 {
-                                                    <img src="~/Content/Images/icons/apiKey.png" />
+                                                    <span class="expired">Expired</span>
                                                 }
-                                            </td>
-                                            <td>
-                                                @if (apiKey.IsNonScopedV1ApiKey)
+                                            </span><br />
+                                            @if (apiKey.Scopes.Any())
+                                            {
+                                                var scopesList = apiKey.Scopes.Select(s =>s.AllowedAction).Distinct().OrderBy(s => s).ToList();
+                                                var subjectsList = apiKey.Scopes.Select(s => s.Subject).Distinct().OrderBy(s => s).ToList();
+                                                var globPattern = subjectsList.FirstOrDefault(x => x != null && x.Contains("*"));
+
+                                                if (globPattern != null)
                                                 {
-                                                    <strong>Full access API key</strong>
-                                                    <br />
+                                                    subjectsList.Remove(globPattern);
                                                 }
-                                                else
-                                                {
-                                                    <strong title="@apiKey.Description">@apiKey.Description</strong><br />
-                                                }
+
                                                 <span>
-                                                    <b>Expires:</b>
-                                                    @if (!apiKey.Expires.HasValue)
+                                                    <b>Scopes: </b>
+                                                    <span class="shortlist">@string.Join(", ", scopesList.Take(3))</span>
+                                                    @if (scopesList.Count > 3)
                                                     {
-                                                        <span class="s-localtime">Never</span>
-                                                    }
-                                                    else if (!apiKey.HasExpired)
-                                                    {
-                                                        <span class="s-relativetime" data-utc="@apiKey.Expires.Value.ToJavaScript()">@apiKey.Expires.Value.ToNuGetShortDateString()</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="expired">Expired</span>
+                                                        <a class="moredetails">More...</a>
+                                                        <ul class="longlist">
+                                                            @foreach (var scope in scopesList)
+                                                            {
+                                                                <li>@scope</li>
+                                                            }
+                                                        </ul>
                                                     }
                                                 </span><br />
-                                                @if (apiKey.Scopes.Any())
+
+                                                if (globPattern != null)
                                                 {
-                                                    var scopesList = apiKey.Scopes.Select(s =>s.AllowedAction).Distinct().OrderBy(s => s).ToList();
-                                                    var subjectsList = apiKey.Scopes.Select(s => s.Subject).Distinct().OrderBy(s => s).ToList();
-                                                    var globPattern = subjectsList.FirstOrDefault(x => x != null && x.Contains("*"));
+                                                    <span class="globpattern"><b>Glob pattern: </b>@globPattern<br /></span>
+                                                }
 
-                                                    if (globPattern != null)
-                                                    {
-                                                        subjectsList.Remove(globPattern);
-                                                    }
+                                                if (subjectsList.Any())
+                                                {
+                                                    const int itemsPerBatch = 10;
 
-                                                    <span>
-                                                        <b>Scopes: </b>
-                                                        <span class="shortlist">@string.Join(", ", scopesList.Take(3))</span>
-                                                        @if (scopesList.Count > 3)
-                                                        {
-                                                            <a class="moredetails">More...</a>
-                                                            <ul class="longlist">
-                                                                @foreach (var scope in scopesList)
+                                                    <span class="packageslist">
+                                                        <b>Packages: </b>
+                                                        <span class="shortlist">@string.Join(", ", subjectsList.Take(3))</span>
+                                                            @if (subjectsList.Count > 3)
+                                                            {
+                                                                <a class="moredetails first">More...</a>
+                                                                <ul class="longlist">
+                                                                @for (int i = 0; i < subjectsList.Count; i++)
                                                                 {
-                                                                    <li>@scope</li>
+                                                                    var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
+                                                                    <li>
+                                                                        @subjectsList[i]
+
+                                                                        @if (lastInBatch && i != subjectsList.Count - 1)
+                                                                        {
+                                                                            <a class="moredetails next">&nbsp;More...</a>
+                                                                        }
+                                                                    </li>
                                                                 }
                                                             </ul>
-                                                        }
-                                                    </span><br />
-
-                                                    if (globPattern != null)
-                                                    {
-                                                        <span class="globpattern"><b>Glob pattern: </b>@globPattern<br /></span>
-                                                    }
-
-                                                    if (subjectsList.Any())
-                                                    {
-                                                        const int itemsPerBatch = 10;
-
-                                                        <span class="packageslist">
-                                                            <b>Packages: </b>
-                                                            <span class="shortlist">@string.Join(", ", subjectsList.Take(3))</span>
-                                                                @if (subjectsList.Count > 3)
-                                                                {
-                                                                    <a class="moredetails first">More...</a>
-                                                                    <ul class="longlist">
-                                                                    @for (int i = 0; i < subjectsList.Count; i++)
-                                                                    {
-                                                                        var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
-                                                                        <li>
-                                                                            @subjectsList[i]
-
-                                                                            @if (lastInBatch && i != subjectsList.Count - 1)
-                                                                            {
-                                                                                <a class="moredetails next">&nbsp;More...</a>
-                                                                            }
-                                                                        </li>
-                                                                    }
-                                                                </ul>
-                                                                }
-                                                        </span>
-                                                    }
+                                                            }
+                                                    </span>
                                                 }
-                                                else
-                                                {
-                                                    <b>Scopes: </b><span>All</span><br />
-                                                    <b>Packages: </b><span>All</span>
-                                                }
-                                            </td>
-                                            <td class="actions actions-wide">
-                                                @if (apiKey.IsNonScopedV1ApiKey)
-                                                {
-                                                    <button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><img src="~/Content/Images/icons/copy.png" /></button>
-                                                }
+                                            }
+                                            else
+                                            {
+                                                <b>Scopes: </b><span>All</span><br />
+                                                <b>Packages: </b><span>All</span>
+                                            }
+                                        </td>
+                                        <td class="actions actions-wide">
+                                            @if (apiKey.IsNonScopedV1ApiKey)
+                                            {
+                                                <button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><img src="~/Content/Images/icons/copy.png" /></button>
+                                            }
 
-                                                @if (!apiKey.IsNonScopedV1ApiKey)
+                                            @if (!apiKey.IsNonScopedV1ApiKey)
+                                            {
+                                                <button class="btn btn-veryflat" title="Edit Api key" type="button" onclick="showEditForm($(this).closest('tr'))"><img src="~/Content/Images/icons/edit.png" /></button>
+
+                                                if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
                                                 {
-                                                    <button class="btn btn-veryflat" title="Edit Api key" type="button" onclick="showEditForm($(this).closest('tr'))"><img src="~/Content/Images/icons/edit.png" /></button>
-
-                                                    if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
-                                                    {
-                                                        using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new { @class = "form-inline expire-api-key" }))
-                                                        {
-                                                            @Html.AntiForgeryToken()
-                                                            @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
-                                                            @Html.Hidden("credentialKey", apiKey.Key)
-                                                            <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="button"><img src="~/Content/Images/icons/expire.png" /></button>
-                                                        }
-                                                    }
-
-                                                    using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
+                                                    using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new { @class = "form-inline expire-api-key" }))
                                                     {
                                                         @Html.AntiForgeryToken()
                                                         @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
                                                         @Html.Hidden("credentialKey", apiKey.Key)
-                                                        <button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="button"><img src="~/Content/Images/icons/regenerate.png" /></button>
+                                                        <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="button"><img src="~/Content/Images/icons/expire.png" /></button>
                                                     }
                                                 }
 
-                                                @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new {@class = "form-inline remove-api-key"}))
+                                                using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
                                                 {
                                                     @Html.AntiForgeryToken()
                                                     @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
                                                     @Html.Hidden("credentialKey", apiKey.Key)
-                                                    <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="button"><img src="~/Content/Images/icons/delete.png" /></button>
+                                                    <button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="button"><img src="~/Content/Images/icons/regenerate.png" /></button>
                                                 }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                        </table>
-                        </div>
+                                            }
+
+                                            @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new {@class = "form-inline remove-api-key"}))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                                @Html.Hidden("credentialKey", apiKey.Key)
+                                                <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="button"><img src="~/Content/Images/icons/delete.png" /></button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                    </table>
+                    </div>
 
 
                     var siteRoot = Config.Current.RequireSSL
@@ -691,9 +691,11 @@
 
                 // New table row
                 addNewApiKeyRow(data);
+
+                handleError(false);
             },
             error: function(data) {
-                alert(data);
+                handleError(true);
             }
         }).always(function () {
             me.on('click', generateApiKey);
@@ -734,9 +736,11 @@
                     $('#usageexample').hide();
                     $('#noapikeysbanner').show();
                 }
+
+                handleError(false);
             },
             error: function (data) {
-                alert(data);
+                handleError(true);
             }
         }).always(function () {
             keyRow.data('requestRunning', false);
@@ -773,9 +777,10 @@
                 keyRow.find(".copyapikeybutton").remove();
 
                 setApiKeyExpiredMessage();
+                handleError(false);
             },
             error: function (data) {
-                alert(data);
+                handleError(true);
             }
         }).always(function () {
             keyRow.data('requestRunning', false);
@@ -803,9 +808,11 @@
                 removeApiKeyRow(keyRow);
                 addNewApiKeyRow(data);
                 setApiKeyExpiredMessage();
+
+                handleError(false);
             },
             error: function (data) {
-                alert(data);
+                handleError(true);
             }
         }).always(function () {
             keyRow.data('requestRunning', false);
@@ -833,10 +840,11 @@
             success: function (data) {
                 updateEditedKeyDetails(data, me.parents('.editpackagetr'));
                 me.parents('.editpackagetr').remove();
+
+                handleError(false);
             },
             error: function (data) {
-                alert(data);
-                return null;
+                handleError(true);
             }
         }).always(function () {
             me.data('requestRunning', false);
@@ -863,6 +871,19 @@
             if ($('#apiKeyExpired').length > 0) {
                 $('#apiKeyExpired').remove();
             }
+        }
+    }
+
+    function handleError(wasError) {
+        if (wasError) {
+            $('#errormessage').show();
+
+            if (!isScrolledIntoView($('#errormessage')[0])) {
+                $('#errormessage')[0].scrollIntoView();
+            }
+        }
+        else {
+            $('#errormessage').hide();
         }
     }
 
