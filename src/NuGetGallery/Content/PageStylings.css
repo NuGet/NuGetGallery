@@ -43,7 +43,7 @@
 
 /* Account/API Key */
 
-.apiKeyExpired {
+#apiKeyExpired {
     color: red;
     font-weight: 600;
 }
@@ -57,6 +57,101 @@
     line-height: 1.5em;
     overflow: auto;
     padding: 15px;
+}
+
+.packagecheckbox {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Api keys container */
+#apikeyscontainer {
+    background-color: white;
+    padding-top: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+}
+
+    #apikeyscontainer hr {
+        margin-bottom: 0px;
+    }
+
+.btn.btn-veryflat.copyapikeybutton img {
+    border-right: 1px solid #3a6e8b;
+    padding-right: 8px;
+}
+
+
+/* new api key form*/
+#newapikey-1-content {
+    padding: 5px;
+}
+
+#addapikeypopup {
+    margin-left: -220px;
+}
+
+#addkeyselectscopes, #addkeyselectpackages, #addkeypackageGlobPattern {
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+.nopackageslist {
+    padding-left: 10px;
+    padding-top: 5px;
+    display: block;
+}
+
+/* Edit api key */
+.editapikeypopup {
+    margin-left: -275px;
+}
+
+.popup .editapikeypopup::after {
+    left: 150px;
+}
+
+.popup .editapikeypopup::before {
+    left: 149px;
+}
+
+.details-table tr.editpackagetr + td {
+    border-top: none;
+    padding-left: 10px;
+}
+
+.details-table tr.editpackagetr td {
+    border-top: none;
+}
+
+.editpackagetd table td {
+    padding-left: 0px;
+    padding-top: 0px;
+}
+
+#editkeypackageGlobPattern {
+    margin-top: 5px;
+    margin-bottom: 8px;
+}
+
+
+
+#newapikey-1-actions {
+    margin-top: 0px;
+}
+
+#selectablePackagesList {
+    max-height: 150px;
+    min-height: 100px;
+    width: 500px
+}
+
+#editpackagelist {
+    max-height: 150px;
+    min-height: 100px;
+    width: 450px;
 }
 
 /* Package Page (Display Package) */
