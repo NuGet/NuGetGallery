@@ -353,7 +353,7 @@
                                  <div class="popupbox" id="addapikeypopup">
                                      <a class="boxclose"><i class="icon-remove"></i></a>
                                      <div class="innertext">
-                                         A glob pattern allow you to replace any sequence of charecters with '*'.
+                                         A glob pattern allows you to replace any sequence of charecters with '*'.
                                          <h5>Example glob patterns</h5>
                                          <table>
                                              <tr>
@@ -717,7 +717,7 @@
             dataType: 'json',
             data: getFormDataWithAntiForgeryToken($(this)),
             success: function () {
-                keyRow.remove();
+                removeApiKeyRow(keyRow);
 
                 // If we removed an expired key, check if the "expired message" is still needed
                 if ($('#apikeys-1-item .expired').length == 0) {
@@ -800,11 +800,9 @@
             dataType: 'json',
             data: getFormDataWithAntiForgeryToken($(this)),
             success: function (data) {
-                keyRow.remove();
+                removeApiKeyRow(keyRow);
                 addNewApiKeyRow(data);
                 setApiKeyExpiredMessage();
-                $('#newApiKeyWarning')[0].scrollIntoView();
-
             },
             error: function (data) {
                 alert(data);
@@ -953,6 +951,21 @@
         $('#noapikeysmessage').hide();
         $('#usageexample').show();
         $('#noapikeysbanner').hide();
+
+        // Scrooll into view
+        if (!isScrolledIntoView($('#newApiKeyWarning')[0])) {
+            $('#newApiKeyWarning')[0].scrollIntoView();
+        }
+    }
+
+    function isScrolledIntoView(elem) {
+        var docViewTop = $(window).scrollTop();
+        var docViewBottom = docViewTop + $(window).height();
+
+        var elemTop = $(elem).offset().top;
+        var elemBottom = elemTop + $(elem).height();
+
+        return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
     }
 
     function parseJsonDate(jsondate) {
@@ -991,6 +1004,15 @@
         }
 
         return markup;
+    }
+
+    function removeApiKeyRow(row) {
+        // Remove edit UI
+        if (row.next().hasClass('editpackagetr')) {
+            row.next().remove();
+        }
+
+        row.remove();
     }
 
     function getCopyButton(copyValue) {
@@ -1121,7 +1143,7 @@
         var innerTextDiv = document.createElement("div");
         innerTextDiv.className = "innertext";
         innerTextDiv.appendChild(document
-            .createTextNode("A glob pattern allow you to replace any sequence of charecters with '*'."));
+            .createTextNode("A glob pattern allows you to replace any sequence of charecters with '*'."));
         var popupheader = document.createElement("h5");
         popupheader.appendChild(document.createTextNode("Example glob patterns"));
         innerTextDiv.appendChild(popupheader);

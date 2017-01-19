@@ -93,9 +93,14 @@
     margin-left: -220px;
 }
 
-#addkeyselectscopes, #addkeyselectpackages, #addkeypackageGlobPattern {
+#addkeyselectpackages, #addkeypackageGlobPattern {
     margin-top: 5px;
     margin-bottom: 15px;
+}
+
+#addkeyselectscopes {
+    margin-top: 5px;
+    margin-bottom: 25px;
 }
 
 .nopackageslist {
@@ -143,13 +148,13 @@
 }
 
 #selectablePackagesList {
-    max-height: 150px;
+    max-height: 300px;
     min-height: 100px;
     width: 500px
 }
 
 #editpackagelist {
-    max-height: 150px;
+    max-height: 300px;
     min-height: 100px;
     width: 450px;
 }

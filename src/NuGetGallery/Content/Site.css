@@ -206,6 +206,10 @@ nav, section {
     display: block;
 }
 
+th {
+    text-align: left;
+}
+
 /* General */
 
 .message {
