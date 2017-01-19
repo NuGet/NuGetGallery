@@ -42,6 +42,7 @@ dlldata.c
 
 # DNX
 project.lock.json
+project.fragment.lock.json
 artifacts/
 
 *_i.c
@@ -250,3 +251,6 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Repository specific
+cli/
