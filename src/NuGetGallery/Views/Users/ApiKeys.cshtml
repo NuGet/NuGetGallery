@@ -407,6 +407,7 @@
                                                     <span class="nopackageslist">You have no packages</span>
                                                 }
                                             </div>
+                                            <div class="selectedpackagescounter"></div>
                                         </td>
                                     </tr>
                                 </table>
@@ -458,11 +459,13 @@
 
             $('#addkeyglobPattern')
                 .on('input', function () {
-                    selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'));
+                    selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'))
+                    updateSelectedPackagesCounter($('.packagecheckbox input'), $('#selectablePackagesList').next())
                     enableAddKeyButton();
                 });
 
             $('.packagecheckbox input').change(function () {
+                updateSelectedPackagesCounter($('.packagecheckbox input'), $('#selectablePackagesList').next())
                 enableAddKeyButton();
             });
         });
@@ -477,7 +480,6 @@
 
         packageCheckboxes
             .each(function () {
-
                 // do nothing for manually selected packages
                 if ($(this)[0].checked && !$(this).parent().hasClass('disabled-div')) {
                     return;
@@ -493,6 +495,24 @@
                     $(this).parent().removeClass('disabled-div');
                 }
             });
+    }
+
+    function updateSelectedPackagesCounter(packageCheckboxes, counterElem) {
+        var packagesCount = packageCheckboxes.length;
+        var selectedPackagesCount = 0;
+
+        packageCheckboxes.each(function () {
+            if ($(this)[0].checked) {
+                selectedPackagesCount++;
+            }
+        });
+
+        if (selectedPackagesCount > 0) {
+            counterElem.text(selectedPackagesCount + '/' + packagesCount + ' selected');
+        }
+        else {
+            counterElem.text('');
+        }
     }
 
     function globToRegex(glob) {
@@ -1257,8 +1277,7 @@
         tr = document.createElement("tr");
         td = document.createElement("td");
         var selectPackagesListDiv = document.createElement("div");
-        selectPackagesListDiv.className = "scrollable-div";
-        selectPackagesListDiv.setAttribute("id", "editpackagelist");
+        selectPackagesListDiv.className = "scrollable-div editpackagelist";
 
         if (packages.length > 0) {
             $.each(packages,
@@ -1288,6 +1307,11 @@
         }
 
         td.appendChild(selectPackagesListDiv);
+
+        var packagesCounterDiv = document.createElement("div");
+        packagesCounterDiv.className = "selectedpackagescounter";
+
+        td.appendChild(packagesCounterDiv);
         tr.appendChild(td);
         body.appendChild(tr);
         packagesTable.appendChild(body);
@@ -1320,9 +1344,15 @@
 
         // Run for the first time
         selectPackageFromGlob($(globInput), $(globInput).parents('.editpackagetd').find('.packagecheckbox input'));
+        updateSelectedPackagesCounter($(globInput).parents('.editpackagetd').find('.packagecheckbox input'), $(packagesCounterDiv));
 
         globInput.addEventListener('input', function () {
             selectPackageFromGlob($(this), $(this).parents('.editpackagetd').find('.packagecheckbox input'));
+            updateSelectedPackagesCounter($(this).parents('.editpackagetd').find('.packagecheckbox input'), $(this).parents('.editpackagetd').find('.selectedpackagescounter'));
+        });
+
+        $(selectPackagesListDiv).find('input').change(function () {
+            updateSelectedPackagesCounter($(this).parents('.editpackagelist').find('input'), $(this).parents('.editpackagetd').find('.selectedpackagescounter'))
         });
 
         submitButton.addEventListener('click', editApiKey);
