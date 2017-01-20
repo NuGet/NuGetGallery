@@ -22,5 +22,20 @@ namespace NuGetGallery
         {
             return type.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase);
         }
+
+        /// <summary>
+        /// Forward compatibility - we support only the bellow subset of credentials in this code version.
+        /// Any unrecognized credential will be ignored.
+        /// </summary>
+        /// <param name="credential"></param>
+        /// <returns></returns>
+        public static bool IsSupportedCredential(Credential credential)
+        {
+            return string.Compare(credential.Type, Password.Pbkdf2, StringComparison.OrdinalIgnoreCase) == 0 ||
+                   string.Compare(credential.Type, Password.Sha1, StringComparison.OrdinalIgnoreCase) == 0 ||
+                   string.Compare(credential.Type, Password.V3, StringComparison.OrdinalIgnoreCase) == 0 ||
+                   string.Compare(credential.Type, ApiKeyV1, StringComparison.OrdinalIgnoreCase) == 0 ||
+                   credential.Type.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }
