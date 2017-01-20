@@ -20,6 +20,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
+using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using Owin;
 
@@ -58,16 +59,19 @@ namespace NuGetGallery
             {
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
 
+                var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
+                telemetryProcessorChainBuilder.Use(next => new TelemetryResponseCodeFilter(next));
+
                 // Note: sampling rate must be a factor 100/N where N is a whole number
                 // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
                 // https://azure.microsoft.com/en-us/documentation/articles/app-insights-sampling/
                 var instrumentationSamplingPercentage = config.Current.AppInsightsSamplingPercentage;
                 if (instrumentationSamplingPercentage > 0 && instrumentationSamplingPercentage < 100)
                 {
-                    var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
                     telemetryProcessorChainBuilder.UseSampling(instrumentationSamplingPercentage);
-                    telemetryProcessorChainBuilder.Build();
                 }
+
+                telemetryProcessorChainBuilder.Build();
             }
 
             // Configure logging

@@ -22,6 +22,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
+using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
 
 namespace NuGetGallery
 {
@@ -256,17 +257,32 @@ namespace NuGetGallery
 
                     using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
                     {
-                        NuspecReader nuspec = null;
                         try
                         {
-                            nuspec = packageToPush.GetNuspecReader();
+                            PackageService.EnsureValid(packageToPush);
                         }
                         catch (Exception ex)
                         {
+                            ex.Log();
+
+                            var message = Strings.FailedToReadUploadFile;
+                            if (ex is InvalidPackageException || ex is InvalidDataException || ex is EntityException)
+                            {
+                                message = ex.Message;
+                            }
+                            
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
+                        }
+
+                        NuspecReader nuspec;
+                        var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out nuspec).ToArray();
+                        if (errors.Length > 0)
+                        {
+                            var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));
                             return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
                                 CultureInfo.CurrentCulture,
-                                Strings.UploadPackage_InvalidNuspec,
-                                ex.Message));
+                                errors.Length > 1 ? Strings.UploadPackage_InvalidNuspecMultiple : Strings.UploadPackage_InvalidNuspec,
+                                errorsString));
                         }
 
                         if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
@@ -340,7 +356,7 @@ namespace NuGetGallery
                         {
                             HashAlgorithm = Constants.Sha512HashAlgorithmId,
                             Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
-                            Size = packageStream.Length,
+                            Size = packageStream.Length
                         };
 
                         var package = await PackageService.CreatePackageAsync(
@@ -349,14 +365,35 @@ namespace NuGetGallery
                             user,
                             commitChanges: false);
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
-                        await EntitiesContext.SaveChangesAsync();
 
                         using (Stream uploadStream = packageStream)
                         {
                             uploadStream.Position = 0;
-                            await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
-                            IndexingService.UpdatePackage(package);
+
+                            try
+                            {
+                                await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
+                            }
+                            catch (InvalidOperationException ex)
+                            {
+                                ex.Log();
+
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
+                            }
                         }
+
+                        try
+                        {
+                            await EntitiesContext.SaveChangesAsync();
+                        }
+                        catch
+                        {
+                            // If saving to the DB fails for any reason, we need to delete the package we just saved.
+                            await PackageFileService.DeletePackageFileAsync(nuspec.GetId(), nuspec.GetVersion().ToNormalizedString());
+                            throw;
+                        }
+
+                        IndexingService.UpdatePackage(package);
 
                         // Write an audit record
                         await AuditingService.SaveAuditRecord(

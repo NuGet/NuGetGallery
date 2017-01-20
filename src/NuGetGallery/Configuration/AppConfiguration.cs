@@ -210,5 +210,10 @@ namespace NuGetGallery.Configuration
         /// Gets a string containing the PagerDuty Service key.
         /// </summary>
         public string PagerDutyServiceKey { get; set; }
+
+        /// <summary>
+        /// Gets/sets a bool that indicates if the OData requests will be filtered.
+        /// </summary>
+        public bool IsODataFilterEnabled { get; set; }
     }
 }

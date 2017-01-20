@@ -2,7 +2,7 @@
 
 set RunFunctionalTests=true
 set TestAccountName=testnuget@gmail.com
-set TestAccountPassword=NG@allery!
+set TestAccountPassword=<password>
 set TestEmailServerHost=imap.gmail.com
 
 Echo Clear previously defined GalleryUrl and branch.
@@ -33,7 +33,7 @@ copy /y \\nuget-ci\drops\%branch%\latest-successful\nuget.exe .\..\.nuget\
 Echo.
 
 Echo Set APIKey for the gallery...
-.\..\.nuget\nuget.exe setAPIKey 0f9b12ee-876a-408b-bf27-3f5392c24ae1 -Source %galleryUrl%api/v2/package/
+.\..\.nuget\nuget.exe setAPIKey <api key> -Source %galleryUrl%api/v2/package/
 Echo Done.
 
 exit /b 0

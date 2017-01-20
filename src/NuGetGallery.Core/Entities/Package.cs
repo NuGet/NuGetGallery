@@ -88,6 +88,10 @@ namespace NuGetGallery
 
         /// <summary>
         /// This is when the Package Metadata was last edited by a user. Or NULL. In UTC.
+        /// 
+        /// This field is updated by a trigger on the database if it is edited.
+        /// This trigger is defined by a migration named "AddTriggerForPackagesLastEdited".
+        /// The trigger guarantees that the timestamps of multiple instances of the gallery do not conflict.
         /// </summary>
         public DateTime? LastEdited { get; set; }
 

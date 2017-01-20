@@ -9,7 +9,7 @@ set testCategory="ReadonlyModeTests"
 set solutionPath="NuGetGallery.FunctionalTests.sln"
 
 REM Required Tools
-set msbuild="%WINDIR%\Microsoft.NET\Framework\v4.0.30319\msbuild"
+set msbuild="%PROGRAMFILES(X86)%\MsBuild\14.0\Bin\msbuild"
 set xunit="..\packages\xunit.runner.console.2.0.0\tools\xunit.console.exe"
 set nuget="nuget.exe"
 set mstest="C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\IDE\mstest.exe"
@@ -36,7 +36,7 @@ if not "%errorlevel%"=="0" goto failure
 REM Run functional tests
 set testDir="NuGetGallery.FunctionalTests\bin\%config%"
 copy %nuget% %testDir%
-call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%testCategory%" -teamcity
+call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%testCategory%" -teamcity -html functionaltestsreadonly.html
 
 REM Run web UI and load tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.ReadOnlyMode\bin\%config%\NuGetGallery.WebUITests.ReadOnlyMode.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.trx

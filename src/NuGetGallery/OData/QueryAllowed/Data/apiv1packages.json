@@ -1,0 +1,10 @@
+{
+  "AllowedOperatorPatterns": [
+    "filter, orderby, top",
+    "filter, top",
+    "filter, orderby, skip, top",
+    "filter, select",
+    "top",
+    "filter, orderby"
+  ] 
+}

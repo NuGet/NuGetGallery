@@ -19,7 +19,7 @@ namespace NuGetGallery
 
         private static MemoryStream CreateFileStream()
         {
-            return new MemoryStream(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, 0, 8, true, true);
+            return new MemoryStream(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, index: 0, count: 8, writable: true, publiclyVisible: true);
         }
 
         private static FileSystemFileStorageService CreateService(
@@ -261,13 +261,15 @@ namespace NuGetGallery
                     "theFileName");
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
-                var fakeFileStream = new MemoryStream();
-                fakeFileSystemService.Setup(x => x.OpenRead(expectedPath)).Returns(fakeFileStream);
-                var service = CreateService(fileSystemService: fakeFileSystemService);
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeFileSystemService.Setup(x => x.OpenRead(expectedPath)).Returns(fakeFileStream);
+                    var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                var fileStream = await service.GetFileAsync("theFolderName", "theFileName");
+                    var fileStream = await service.GetFileAsync("theFolderName", "theFileName");
 
-                Assert.Same(fakeFileStream, fileStream);
+                    Assert.Same(fakeFileStream, fileStream);
+                }
             }
 
             [Fact]
@@ -292,9 +294,12 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SaveFileAsync(folderName, "theFileName", CreateFileStream()));
+                using (var fakeFileStream = CreateFileStream())
+                {
+                    var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SaveFileAsync(folderName, "theFileName", fakeFileStream));
 
-                Assert.Equal("folderName", ex.ParamName);
+                    Assert.Equal("folderName", ex.ParamName);
+                }
             }
 
             [Theory]
@@ -304,9 +309,12 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SaveFileAsync("theFolderName", fileName, CreateFileStream()));
+                using (var fakeFileStream = CreateFileStream())
+                {
+                    var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SaveFileAsync("theFolderName", fileName, fakeFileStream));
 
-                Assert.Equal("fileName", ex.ParamName);
+                    Assert.Equal("fileName", ex.ParamName);
+                }
             }
 
             [Fact]
@@ -322,14 +330,21 @@ namespace NuGetGallery
             [Fact]
             public async Task WillCreateTheConfiguredFileStorageDirectoryIfItDoesNotExist()
             {
+                const string folderName = "theFolderName";
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(false);
-                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
-                var service = CreateService(fileSystemService: fakeFileSystemService);
+                using (var fakeMemoryStream = CreateFileStream())
+                {
+                    fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeMemoryStream);
+                    var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
+                    using (var fakePackageStream = CreateFileStream())
+                    {
+                        await service.SaveFileAsync("theFolderName", "theFileName", fakePackageStream);
+                    }
 
-                fakeFileSystemService.Verify(x => x.CreateDirectory(FakeConfiguredFileStorageDirectory));
+                    fakeFileSystemService.Verify(x => x.CreateDirectory($"{FakeConfiguredFileStorageDirectory}\\{folderName}"));
+                }
             }
 
             [Fact]
@@ -337,12 +352,18 @@ namespace NuGetGallery
             {
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(false);
-                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
-                var service = CreateService(fileSystemService: fakeFileSystemService);
+                using (var fakeMemoryStream = CreateFileStream())
+                {
+                    fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeMemoryStream);
+                    var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
+                    using (var fakePackageStream = CreateFileStream())
+                    {
+                        await service.SaveFileAsync("theFolderName", "theFileName", fakePackageStream);
+                    }
 
-                fakeFileSystemService.Verify(x => x.CreateDirectory(Path.Combine(FakeConfiguredFileStorageDirectory, "theFolderName")));
+                    fakeFileSystemService.Verify(x => x.CreateDirectory(Path.Combine(FakeConfiguredFileStorageDirectory, "theFolderName")));
+                }
             }
 
             [Fact]
@@ -350,35 +371,91 @@ namespace NuGetGallery
             {
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
-                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
-                var service = CreateService(fileSystemService: fakeFileSystemService);
+                using (var fakeMemoryStream = CreateFileStream())
+                {
+                    fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeMemoryStream);
+                    var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
+                    using (var fakePackageStream = CreateFileStream())
+                    {
+                        await service.SaveFileAsync("theFolderName", "theFileName", fakePackageStream);
+                    }
 
-                fakeFileSystemService.Verify(
-                    x =>
-                    x.OpenWrite(
-                        Path.Combine(
-                            FakeConfiguredFileStorageDirectory,
-                            "theFolderName",
-                            "theFileName")));
+                    fakeFileSystemService.Verify(
+                        x =>
+                        x.OpenWrite(
+                            Path.Combine(
+                                FakeConfiguredFileStorageDirectory,
+                                "theFolderName",
+                                "theFileName")));
+                }
             }
 
             [Fact]
             public async Task WillSaveThePackageFileBytes()
             {
-                var fakePackageFile = CreateFileStream();
-                var fakeFileStream = new MemoryStream(new byte[8], 0, 8, true, true);
-                var fakeFileSystemService = new Mock<IFileSystemService>();
-                fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
-                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeFileStream);
-                var service = CreateService(fileSystemService: fakeFileSystemService);
-
-                await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
-
-                for (var i = 0; i < fakePackageFile.Length; i++)
+                using (var fakePackageFile = CreateFileStream())
                 {
-                    Assert.Equal(fakePackageFile.GetBuffer()[i], fakeFileStream.GetBuffer()[i]);
+                    using (var fakeFileStream = CreateFileStream())
+                    {
+                        var fakeFileSystemService = new Mock<IFileSystemService>();
+                        fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
+                        fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeFileStream);
+                        var service = CreateService(fileSystemService: fakeFileSystemService);
+
+                        using (var fakePackageStream = CreateFileStream())
+                        {
+                            await service.SaveFileAsync("theFolderName", "theFileName", fakePackageStream);
+                        }
+
+                        for (var i = 0; i < fakePackageFile.Length; i++)
+                        {
+                            Assert.Equal(fakePackageFile.GetBuffer()[i], fakeFileStream.GetBuffer()[i]);
+                        }
+                    }
+                }
+            }
+
+            [Fact]
+            public async Task WillOverwriteFileIfOverwriteTrue()
+            {
+                using (var fakePackageFile = CreateFileStream())
+                {
+                    using (var fakeFileStream = CreateFileStream())
+                    {
+                        var fakeFileSystemService = new Mock<IFileSystemService>();
+                        fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
+                        fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeFileStream);
+                        fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+                        fakeFileSystemService.Setup(x => x.DeleteFile(It.IsAny<string>())).Verifiable();
+                        var service = CreateService(fileSystemService: fakeFileSystemService);
+
+                        await service.SaveFileAsync("theFolderName", "theFileName", fakePackageFile);
+
+                        for (var i = 0; i < fakePackageFile.Length; i++)
+                        {
+                            Assert.Equal(fakePackageFile.GetBuffer()[i], fakeFileStream.GetBuffer()[i]);
+                        }
+
+                        fakeFileSystemService.Verify();
+                    }
+                }
+            }
+
+            [Fact]
+            public async Task WillThrowIfFileExistsAndOverwriteFalse()
+            {
+                using (var fakeFileStream = CreateFileStream())
+                {
+                    var fakeFileSystemService = new Mock<IFileSystemService>();
+                    fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
+                    fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeFileStream);
+                    fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+                    var service = CreateService(fileSystemService: fakeFileSystemService);
+
+                    await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.SaveFileAsync("theFolderName", "theFileName", fakeFileStream, false));
+
+                    fakeFileSystemService.Verify();
                 }
             }
         }

@@ -196,5 +196,10 @@ namespace NuGetGallery.Configuration
         /// </summary>
         // ReSharper disable once InconsistentNaming
         string PagerDutyServiceKey { get; set; }
+
+        /// <summary>
+        /// Gets/sets a bool that indicates if the OData requests will be filtered.
+        /// </summary>
+        bool IsODataFilterEnabled { get; set;  }
     }
 }
