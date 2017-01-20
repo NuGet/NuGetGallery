@@ -36,7 +36,7 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 dataTable.Columns.Remove("Timestamp");
             }
-
+            dataTable.TableName = $"dbo.{tableName}";
             return dataTable;
         }
     }

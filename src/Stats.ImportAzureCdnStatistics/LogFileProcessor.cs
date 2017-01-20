@@ -90,7 +90,7 @@ namespace Stats.ImportAzureCdnStatistics
                         var logFileAggregates = new LogFileAggregates(logFileName);
                         foreach (var table in downloadFacts)
                         {
-                            if (string.Equals(table.TableName, "Fact_Download", StringComparison.InvariantCultureIgnoreCase))
+                            if (string.Equals(table.TableName, "dbo.Fact_Download", StringComparison.InvariantCultureIgnoreCase))
                             {
                                 // aggregate download counts by date
                                 var downloadsByDate =
