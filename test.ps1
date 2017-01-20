@@ -17,23 +17,23 @@ trap {
 . "$PSScriptRoot\build\common.ps1"
 
 Function Run-Tests {
-	[CmdletBinding()]
-	param()
-	
-	Trace-Log 'Running tests'
-	
-	$xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
-	
-	$TestAssemblies = "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll", "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll"
-	
-	$TestCount = 0
-	
-	foreach ($Test in $TestAssemblies) {
-		& $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
-		$TestCount++
-	}
+    [CmdletBinding()]
+    param()
+    
+    Trace-Log 'Running tests'
+    
+    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
+    
+    $TestAssemblies = "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll", "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll"
+    
+    $TestCount = 0
+    
+    foreach ($Test in $TestAssemblies) {
+        & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
+        $TestCount++
+    }
 }
-	
+    
 Write-Host ("`r`n" * 3)
 Trace-Log ('=' * 60)
 
@@ -44,9 +44,9 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
-	
+    
 Invoke-BuildStep 'Running tests' { Run-Tests } `
-	-ev +BuildErrors
+    -ev +BuildErrors
 
 Trace-Log ('-' * 60)
 

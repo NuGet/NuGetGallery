@@ -2,15 +2,15 @@
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
-	[ValidateSet("Release","rtm", "rc", "beta", "beta2", "final", "xprivate", "zlocal")]
+    [ValidateSet("Release","rtm", "rc", "beta", "beta2", "final", "xprivate", "zlocal")]
     [string]$ReleaseLabel = 'zlocal',
     [int]$BuildNumber,
     [switch]$SkipRestore,
     [switch]$CleanCache,
-	[string]$SimpleVersion = '1.0.0',
-	[string]$SemanticVersion = '1.0.0-zlocal',
-	[string]$Branch,
-	[string]$CommitSHA
+    [string]$SimpleVersion = '1.0.0',
+    [string]$SemanticVersion = '1.0.0-zlocal',
+    [string]$Branch,
+    [string]$CommitSHA
 )
 
 $ScriptPath = Split-Path $MyInvocation.InvocationName
