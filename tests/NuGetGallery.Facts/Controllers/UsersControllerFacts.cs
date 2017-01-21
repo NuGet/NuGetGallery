@@ -75,6 +75,43 @@ namespace NuGetGallery
                 Assert.Equal(Strings.CredentialType_ApiKey, descs[CredentialKind.Token].TypeCaption);
                 Assert.Equal(Strings.MicrosoftAccount_Caption, descs[CredentialKind.External].TypeCaption);
             }
+
+
+            [Fact]
+            public void FiltersOutUnsupportedCredentialsInToViewModel()
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+                var fakes = Get<Fakes>();
+
+                var credentials = new List<Credential>
+                {
+                    credentialBuilder.CreatePasswordCredential("v3"),
+                    TestCredentialBuilder.CreatePbkdf2Password("pbkdf2"),
+                    TestCredentialBuilder.CreateSha1Password("sha1"),
+                    TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"),
+                    new Credential() { Type = "unsupported" }
+                };
+
+                var user = fakes.CreateUser("test", credentials.ToArray());
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.Account();
+
+                // Assert
+                var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var descs = model.Credentials.ToDictionary(c => c.Type); // Should only be one of each type
+                Assert.Equal(5, descs.Count);
+                Assert.True(descs.ContainsKey(credentials[0].Type));
+                Assert.True(descs.ContainsKey(credentials[1].Type));
+                Assert.True(descs.ContainsKey(credentials[2].Type));
+                Assert.True(descs.ContainsKey(credentials[3].Type));
+                Assert.True(descs.ContainsKey(credentials[4].Type));
+            }
         }
 
         public class TheConfirmationRequiredAction : TestContainer
