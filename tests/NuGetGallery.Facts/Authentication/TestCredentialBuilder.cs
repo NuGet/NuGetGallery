@@ -28,12 +28,22 @@ namespace NuGetGallery.Authentication
 
         public static Credential CreateV1ApiKey(Guid apiKey, TimeSpan? expiration)
         {
-            return CreateV1ApiKey(apiKey.ToString(), expiration);
+            return CreateApiKey(CredentialTypes.ApiKey.V1, apiKey.ToString(), expiration);
         }
 
-        internal static Credential CreateV1ApiKey(string apiKey, TimeSpan? expiration)
+        public static Credential CreateV2ApiKey(Guid apiKey, TimeSpan? expiration)
         {
-            return new Credential(CredentialTypes.ApiKeyV1, apiKey.ToLowerInvariant(), expiration: expiration);
+            return CreateApiKey(CredentialTypes.ApiKey.V2, apiKey.ToString(), expiration);
+        }
+
+        public static Credential CreateExternalCredential(string value)
+        {
+            return new Credential { Type = CredentialTypes.ExternalPrefix + "MicrosoftAccount", Value = value };
+        }
+
+        internal static Credential CreateApiKey(string type, string apiKey, TimeSpan? expiration)
+        {
+            return new Credential(type, apiKey.ToLowerInvariant(), expiration: expiration);
         }
     }
 }

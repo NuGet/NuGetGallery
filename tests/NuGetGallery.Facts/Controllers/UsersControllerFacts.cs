@@ -545,7 +545,7 @@ namespace NuGetGallery
                     expirationInDays: inputExpirationInDays);
                 
                 // Assert
-                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
 
                 Assert.NotNull(apiKey);
                 Assert.NotNull(apiKey.Expires);
@@ -635,7 +635,7 @@ namespace NuGetGallery
                     expirationInDays: null);
 
                 // Assert
-                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
 
                 Assert.NotNull(apiKey);
                 Assert.Equal(description, apiKey.Description);
@@ -669,7 +669,7 @@ namespace NuGetGallery
                 var credentialViewModel = ((JsonResult) result).Data as CredentialViewModel;
                 Assert.NotNull(credentialViewModel);
 
-                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
 
                 Assert.Equal(apiKey.Value, credentialViewModel.Value);
                 Assert.Equal(apiKey.Key, credentialViewModel.Key);
@@ -898,7 +898,7 @@ namespace NuGetGallery
                 user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(u => u.ChangePassword(user, "old", "new", false))
+                    .Setup(u => u.ChangePassword(user, "old", "new"))
                     .CompletesWith(false);
 
                 var controller = GetController<UsersController>();
@@ -936,7 +936,7 @@ namespace NuGetGallery
                 user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(u => u.ChangePassword(user, "old", "new", false))
+                    .Setup(u => u.ChangePassword(user, "old", "new"))
                     .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -1105,8 +1105,10 @@ namespace NuGetGallery
                 Assert.Equal(1, user.Credentials.Count);
             }
 
-            [Fact]
-            public async Task GivenNoApiKeyCredential_ErrorIsReturnedWithNoChangesMade()
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            public async Task GivenNoApiKeyCredential_ErrorIsReturnedWithNoChangesMade(string apiKeyType)
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -1117,7 +1119,7 @@ namespace NuGetGallery
 
                 // Act
                 var result = await controller.RemoveCredential(
-                    credentialType: CredentialTypes.ApiKeyV1,
+                    credentialType: apiKeyType,
                     credentialKey: null);
 
                 // Assert
@@ -1191,49 +1193,24 @@ namespace NuGetGallery
                 Assert.True(user.Credentials.Contains(cred));
             }
 
-            [Fact]
-            public async Task GivenANonApiKeyCredential_ItRedirectsBackWithNoChangesMade()
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.Password.V3)]
+            [InlineData(CredentialTypes.ExternalPrefix + "bla")]
+            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(string credentialType)
             {
                 // Arrange
                 var controller = GetController<UsersController>();
 
                 // Act
                 var result = await controller.RegenerateCredential(
-                    credentialType: "not api key",
-                    credentialKey: CredentialKey);
-
-                // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-            }
-
-            [Fact]
-            public async Task GivenNoneScopedApiKey_ErrorIsReturnedWithNoChangesMade()
-            {
-                // Arrange
-                var fakes = Get<Fakes>();
-                var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1));
-                var user = fakes.CreateUser("test", apiKey);
-                apiKey.Key = CredentialKey;
-
-                var authenticationService = GetMock<AuthenticationService>();
-                authenticationService
-                    .Setup(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()))
-                    .Verifiable();
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-                
-                // Act
-                var result = await controller.RegenerateCredential(
-                    credentialType: apiKey.Type,
+                    credentialType: credentialType,
                     credentialKey: CredentialKey);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
                 Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
-
-                authenticationService.Verify(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
             }
 
             public static IEnumerable<object[]> RegenerateApiKeyCredential_Input
@@ -1284,7 +1261,7 @@ namespace NuGetGallery
                 GetMock<AuthenticationService>()
                     .Setup(u => u.AddCredential(
                         user,
-                        It.Is<Credential>(c => c.Type == CredentialTypes.ApiKeyV1)))
+                        It.Is<Credential>(c => c.Type == CredentialTypes.ApiKey.V2)))
                     .Callback<User, Credential>((u, c) => u.Credentials.Add(c))
                     .Completes()
                     .Verifiable();
@@ -1311,7 +1288,7 @@ namespace NuGetGallery
 
                 GetMock<AuthenticationService>().VerifyAll();
 
-                var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKeyV1);
+                var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
 
                 Assert.NotNull(newApiKey);
                 Assert.Equal(newApiKey.Value, credentialViewModel.Value);
@@ -1335,20 +1312,26 @@ namespace NuGetGallery
 
         public class TheEditCredentialAction : TestContainer
         {
-            [Fact]
-            public async Task GivenANonApiKeyCredential_RedirectsToAccount()
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.Password.V3)]
+            [InlineData(CredentialTypes.ExternalPrefix + "bla")]
+            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(string credentialType)
             {
                 // Arrange
                 var controller = GetController<UsersController>();
 
                 // Act
                 var result = await controller.EditCredential(
-                    credentialType: "not api key",
+                    credentialType: credentialType,
                     credentialKey: CredentialKey,
                     subjects: new[] { "a", "b" });
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.CompareOrdinal((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
             }
 
             [Fact]
@@ -1377,39 +1360,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
-
-                authenticationService.Verify(x => x.EditCredentialScopes(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<ICollection<Scope>>()), Times.Never);
-            }
-
-            [Fact]
-            public async Task GivenNonScopedApiKey_ErrorReturnedWithNoChangesMade()
-            {
-                // Arrange
-                var fakes = Get<Fakes>();
-                var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1));
-                apiKey.Key = CredentialKey;
-
-                var user = fakes.CreateUser("test", apiKey);
-
-                var authenticationService = GetMock<AuthenticationService>();
-                authenticationService
-                    .Setup(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()))
-                    .Verifiable();
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Act
-                var result = await controller.EditCredential(
-                    credentialType: apiKey.Type,
-                    credentialKey: CredentialKey,
-                    subjects: new[] { "a", "b" });
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
+                Assert.True(String.CompareOrdinal((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
 
                 authenticationService.Verify(x => x.EditCredentialScopes(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<ICollection<Scope>>()), Times.Never);
             }

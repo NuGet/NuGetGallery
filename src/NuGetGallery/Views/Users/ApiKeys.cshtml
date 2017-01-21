@@ -220,7 +220,7 @@
                                                     using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new { @class = "form-inline expire-api-key" }))
                                                     {
                                                         @Html.AntiForgeryToken()
-                                                        @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                                        @Html.Hidden("credentialType", apiKey.Type)
                                                         @Html.Hidden("credentialKey", apiKey.Key)
                                                         <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="button"><img src="~/Content/Images/icons/expire.png" /></button>
                                                     }
@@ -229,7 +229,7 @@
                                                 using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
                                                 {
                                                     @Html.AntiForgeryToken()
-                                                    @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                                    @Html.Hidden("credentialType", apiKey.Type)
                                                     @Html.Hidden("credentialKey", apiKey.Key)
                                                     <button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="button"><img src="~/Content/Images/icons/regenerate.png" /></button>
                                                 }
@@ -238,7 +238,7 @@
                                             @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new {@class = "form-inline remove-api-key"}))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
+                                                @Html.Hidden("credentialType", apiKey.Type)
                                                 @Html.Hidden("credentialKey", apiKey.Key)
                                                 <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="button"><img src="~/Content/Images/icons/delete.png" /></button>
                                             }
@@ -1064,7 +1064,7 @@
 
     function getExpireButton(key) {
         return '<form action="/account/ExpireCredential" class="form-inline expire-api-key" method="post">' +
-            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v1" />' +
+            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v2" />' +
             '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
             '<button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="button">' +
             '<img src="/Content/Images/icons/expire.png" /></button></form>';
@@ -1072,7 +1072,7 @@
 
     function getRegenerateButton(key) {
         return '<form action="/account/RegenerateCredential" class="form-inline regenerate-api-key" method="post">' +
-            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v1" />' +
+            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v2" />' +
             '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
             '<button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="button">' +
             '<img src="/Content/Images/icons/regenerate.png" /></button></form>';
@@ -1080,7 +1080,7 @@
 
     function getRemoveButton(key) {
         return '<form action="/account/RemoveCredential" class="form-inline remove-api-key" method="post">' +
-            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v1" />' +
+            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v2" />' +
             '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
             '<button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="button">' +
             '<img src="/Content/Images/icons/delete.png" /></button></form>';
@@ -1147,7 +1147,7 @@
         var input = document.createElement("input");
         input.setAttribute("name", "credentialType");
         input.setAttribute("type", "hidden");
-        input.setAttribute("value", "apikey.v1");
+        input.setAttribute("value", "apikey.v2");
 
         fieldset.appendChild(input);
 

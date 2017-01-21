@@ -210,19 +210,18 @@ namespace NuGetGallery.Authentication
                     string.IsNullOrEmpty(ar.UsernameOrEmail)));
             }
 
-            [Fact]
-            public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential()
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential(string apiKeyType)
             {
                 // Arrange
                 var cred = _fakes.User.Credentials.Single(
-                    c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result =
-                    await
-                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
-                            Fakes.ExpirationForApiKeyV1));
+                var result = await _authenticationService.Authenticate(cred.Value);
 
                 // Assert
                 Assert.NotNull(result);
@@ -230,24 +229,25 @@ namespace NuGetGallery.Authentication
                 Assert.Same(cred, result.CredentialUsed);
             }
 
-            [Fact]
-            public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            public async Task GivenMatchingApiKeyCredential_ItWritesCredentialLastUsed(string apiKeyType)
             {
                 // Arrange
                 var cred = _fakes.User.Credentials.Single(
-                    c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
                 var referenceTime = DateTime.UtcNow;
                 _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
-                
+
                 Assert.False(cred.LastUsed.HasValue);
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
                 var result =
                     await
-                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
-                            Fakes.ExpirationForApiKeyV1));
+                        _authenticationService.Authenticate(cred.Value);
 
                 // Assert
                 Assert.NotNull(result);
@@ -256,54 +256,83 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task GivenExpiredMatchingApiKeyCredential_ItReturnsNull()
+            public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
+            {
+                // Arrange
+                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.ExternalPrefix));
+
+                var referenceTime = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
+                
+                Assert.False(cred.LastUsed.HasValue);
+
+                // Act
+                // Create a new credential to verify that it's a value-based lookup!
+                var result = await _authenticationService.Authenticate(TestCredentialBuilder.CreateExternalCredential(cred.Value));
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.True(cred.LastUsed == referenceTime);
+                Assert.True(cred.LastUsed.HasValue);
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            public async Task GivenExpiredMatchingApiKeyCredential_ItReturnsNull(string apiKeyType)
             {
                 // Arrange
                 var cred = _fakes.User.Credentials.Single(
-                    c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
                 cred.Expires = DateTime.UtcNow.AddDays(-1);
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result =
-                    await
-                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
-                            Fakes.ExpirationForApiKeyV1));
+                var result = await _authenticationService.Authenticate(cred.Value);
 
                 // Assert
                 Assert.Null(result);
             }
 
-            [Fact]
-            public async Task
-                GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord
-                ()
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1, true)]
+            [InlineData(CredentialTypes.ApiKey.V2, false)]
+            public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord(string apiKeyType, bool shouldExpire)
             {
                 // Arrange
                 var config = GetMock<IAppConfiguration>();
                 config.SetupGet(m => m.ExpirationInDaysForApiKeyV1).Returns(10);
 
-                var cred = _fakes.User.Credentials.Single(
-                    c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+                var cred = _fakes.User.Credentials.Single(c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
                 // credential was last used < allowed last used
-                cred.LastUsed = DateTime.UtcNow
-                    .AddDays(-20);
+                cred.LastUsed = DateTime.UtcNow.AddDays(-20);
 
                 var service = Get<AuthenticationService>();
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result = await service.Authenticate(
-                    TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
+                var result = await service.Authenticate(cred.Value);
 
                 // Assert
-                Assert.Null(result);
-                Assert.True(cred.HasExpired);
-                Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == AuditedUserAction.ExpireCredential &&
-                    ar.Username == _fakes.User.Username));
+
+                if (shouldExpire)
+                {
+                    Assert.Null(result);
+                    Assert.True(cred.HasExpired);
+                    Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                        ar.Action == AuditedUserAction.ExpireCredential &&
+                        ar.Username == _fakes.User.Username));
+                }
+                else
+                {
+                    Assert.NotNull(result);
+                    Assert.False(cred.HasExpired);
+                    Assert.False(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                       ar.Action == AuditedUserAction.ExpireCredential &&
+                       ar.Username == _fakes.User.Username));
+                }
             }
 
             [Fact]
@@ -1037,43 +1066,28 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act
-                bool result = await authService.ChangePassword(user, "not-the-right-password!", "new-password!", resetApiKey: false);
+                bool result = await authService.ChangePassword(user, "not-the-right-password!", "new-password!");
 
                 // Assert
                 Assert.False(result);
             }
 
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task GivenValidOldPassword_ItReturnsTrueAndReplacesPasswordCredentialAndApiKeyV1CredentialWhenNeeded(bool resetApiKey)
+            [Fact]
+            public async Task GivenValidOldPassword_ItReturnsTrueAndReplacesPasswordCredential()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test", new CredentialBuilder().CreatePasswordCredential(Fakes.Password));
                 var authService = Get<AuthenticationService>();
-                var oldApiKeyV1Credential = user.Credentials.FirstOrDefault(c =>
-                    string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
 
                 // Act
-                bool result = await authService.ChangePassword(user, Fakes.Password, "new-password!", resetApiKey: resetApiKey);
+                bool result = await authService.ChangePassword(user, Fakes.Password, "new-password!");
 
                 // Assert
                 Assert.True(result);
 
                 var credentialValidator = new CredentialValidator();
                 Assert.True(credentialValidator.ValidatePasswordCredential(user.Credentials.First(), "new-password!"));
-
-                if (resetApiKey)
-                {
-                    Assert.NotEqual(oldApiKeyV1Credential, user.Credentials.FirstOrDefault(c =>
-                        string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)));
-                }
-                else
-                {
-                    Assert.Equal(oldApiKeyV1Credential, user.Credentials.FirstOrDefault(c =>
-                        string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)));
-                }
             }
 
             [Fact]
@@ -1085,7 +1099,7 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act
-                await authService.ChangePassword(user, Fakes.Password, "new-password!", resetApiKey: false);
+                await authService.ChangePassword(user, Fakes.Password, "new-password!");
 
                 // Assert
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
@@ -1223,7 +1237,7 @@ namespace NuGetGallery.Authentication
                 var mockConfig = GetMock<IAppConfiguration>();
                 mockConfig.SetupGet(x => x.ExpirationInDaysForApiKeyV1).Returns(expirationForApiKeyV1);
 
-                var cred = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                var cred = TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1);
                 cred.LastUsed = hasBeenUsedInLastDays
                     ? DateTime.UtcNow
                     : DateTime.UtcNow - TimeSpan.FromDays(expirationForApiKeyV1 + 1);

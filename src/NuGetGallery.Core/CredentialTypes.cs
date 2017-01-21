@@ -15,12 +15,23 @@ namespace NuGetGallery
             public const string V3 = Prefix + "v3";
         }
 
-        public const string ApiKeyV1 = "apikey.v1";
+        public static class ApiKey
+        {
+            public const string Prefix = "apikey.";
+            public const string V1 = Prefix + "v1";
+            public const string V2 = Prefix + "v2";
+        }
+
         public const string ExternalPrefix = "external.";
 
         public static bool IsPassword(string type)
         {
             return type.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsApiKey(string type)
+        {
+            return type.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

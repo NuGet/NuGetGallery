@@ -29,7 +29,10 @@ namespace NuGetGallery.Framework
                 {
                     new CredentialBuilder().CreatePasswordCredential(Password),
                     TestCredentialBuilder.CreateV1ApiKey(Guid.Parse("669e180e-335c-491a-ac26-e83c4bd31d65"),
-                        ExpirationForApiKeyV1)
+                        ExpirationForApiKeyV1),
+                    TestCredentialBuilder.CreateV2ApiKey(Guid.Parse("779e180e-335c-491a-ac26-e83c4bd31d87"),
+                        ExpirationForApiKeyV1),
+                    TestCredentialBuilder.CreateExternalCredential("abc")
                 }
             };
 

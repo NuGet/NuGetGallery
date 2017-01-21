@@ -465,21 +465,13 @@ namespace NuGetGallery
                     return AccountView(model);
                 }
 
-                if (!await _authService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword, model.ChangePassword.ResetApiKey))
+                if (!await _authService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword))
                 {
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
                     return AccountView(model);
                 }
-                
-                if (model.ChangePassword.ResetApiKey)
-                {
-                    TempData["Message"] = Strings.PasswordChanged + " " + Strings.ApiKeyAlsoUpdated;
-                }
-                else
-                {
-                    TempData["Message"] = Strings.PasswordChanged;
-                }
 
+                TempData["Message"] = Strings.PasswordChanged;
                 return RedirectToAction("Account");
             }
         }
@@ -506,7 +498,7 @@ namespace NuGetGallery
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
                     && CredentialKeyMatches(credentialKey, c));
 
-            if (credentialType == CredentialTypes.ApiKeyV1)
+            if (CredentialTypes.IsApiKey(credentialType))
             {
                 return await RemoveApiKeyCredential(user, cred);
             }
@@ -519,9 +511,10 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
-            if (credentialType != CredentialTypes.ApiKeyV1)
+            if (credentialType != CredentialTypes.ApiKey.V2)
             {
-                return RedirectToAction("Account");
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
             }
 
             var user = GetCurrentUser();
@@ -534,14 +527,6 @@ namespace NuGetGallery
                 Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return Json(Strings.CredentialNotFound);
             }
-
-            // Legacy api key
-            if (!cred.Scopes.AnySafe())
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.Unsupported);
-            }
-
            
             var newCredential = await GenerateApiKeyInternal(
                 cred.Description,
@@ -567,9 +552,10 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ExpireCredential(string credentialType, int? credentialKey)
         {
-            if (credentialType != CredentialTypes.ApiKeyV1)
+            if (credentialType != CredentialTypes.ApiKey.V2)
             {
-                return RedirectToAction("Account");
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
             }
 
             var user = GetCurrentUser();
@@ -628,9 +614,10 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
         {
-            if (credentialType != CredentialTypes.ApiKeyV1)
+            if (credentialType != CredentialTypes.ApiKey.V2)
             {
-                return RedirectToAction("Account");
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
             }
 
             var user = GetCurrentUser();
@@ -642,13 +629,6 @@ namespace NuGetGallery
             {
                 Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return Json(Strings.CredentialNotFound);
-            }
-
-            // Legacy api key
-            if (!cred.Scopes.AnySafe())
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.Unsupported);
             }
 
             var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
@@ -668,7 +648,6 @@ namespace NuGetGallery
             // Create a new API Key credential, and save to the database
             var newCredential = _credentialBuilder.CreateApiKey(expiration);
             newCredential.Description = description;
-
             newCredential.Scopes = scopes;
 
             await _authService.AddCredential(user, newCredential);
@@ -735,8 +714,7 @@ namespace NuGetGallery
             }
 
             // Count credentials and make sure the user can always login
-            if (!String.Equals(cred.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)
-                && CountLoginCredentials(user) <= 1)
+            if (!CredentialTypes.IsApiKey(cred.Type) && CountLoginCredentials(user) <= 1)
             {
                 TempData["Message"] = Strings.CannotRemoveOnlyLoginCredential;
             }

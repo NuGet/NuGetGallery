@@ -398,9 +398,6 @@ The {1} Team</value>
   <data name="PackageCreatedFromApi" xml:space="preserve">
     <value>Package created from API.</value>
   </data>
-  <data name="ApiKeyAlsoUpdated" xml:space="preserve">
-    <value>Note that your API key has also been updated.</value>
-  </data>
   <data name="AMinute" xml:space="preserve">
     <value>a minute</value>
   </data>
