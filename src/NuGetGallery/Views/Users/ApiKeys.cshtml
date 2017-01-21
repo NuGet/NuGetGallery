@@ -452,8 +452,13 @@
                     function() {
                         if (document.getElementById("scopePush").checked) {
                             $('#scopePushOptions').removeClass('disabled-div');
+                            $('#scopeFullPush').attr("disabled", false);
+                            $('#scopePushVersion').attr("disabled", false);
+
                         } else {
                             $('#scopePushOptions').addClass('disabled-div');
+                            $('#scopeFullPush').attr("disabled", true);
+                            $('#scopePushVersion').attr("disabled", true);
                         }
                     });
 
@@ -557,6 +562,8 @@
         $('#generateKey').addClass('disabled-div');
         $('#scopePushOptions').addClass('disabled-div');
         $('#scopeFullPush').prop("checked", true);
+        $('#scopeFullPush').attr("disabled", true);
+        $('#scopePushVersion').attr("disabled", true);
     }
 
     $(document)
