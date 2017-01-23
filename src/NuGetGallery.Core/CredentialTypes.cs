@@ -36,7 +36,7 @@ namespace NuGetGallery
             return type.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase);
         }
 
-        internal static List<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKeyV1 };
+        internal static List<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2 };
 
         /// <summary>
         /// Forward compatibility - we support only the below subset of credentials in this code version.

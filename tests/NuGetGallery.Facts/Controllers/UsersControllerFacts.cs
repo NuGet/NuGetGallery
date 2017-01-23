@@ -93,6 +93,7 @@ namespace NuGetGallery
                     TestCredentialBuilder.CreatePbkdf2Password("pbkdf2"),
                     TestCredentialBuilder.CreateSha1Password("sha1"),
                     TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialBuilder.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
                     credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"),
                     new Credential() { Type = "unsupported" }
                 };
@@ -108,12 +109,13 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
                 var descs = model.Credentials.ToDictionary(c => c.Type); // Should only be one of each type
-                Assert.Equal(5, descs.Count);
+                Assert.Equal(6, descs.Count);
                 Assert.True(descs.ContainsKey(credentials[0].Type));
                 Assert.True(descs.ContainsKey(credentials[1].Type));
                 Assert.True(descs.ContainsKey(credentials[2].Type));
                 Assert.True(descs.ContainsKey(credentials[3].Type));
                 Assert.True(descs.ContainsKey(credentials[4].Type));
+                Assert.True(descs.ContainsKey(credentials[5].Type));
             }
         }
 
