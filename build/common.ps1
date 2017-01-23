@@ -224,7 +224,7 @@ Function Update-Submodules {
 # Downloads NuGet.exe and VSTS Credential provider if missing
 Function Install-NuGet {
     [CmdletBinding()]
-    param()		
+    param()
     $NuGetFolderPath = Split-Path -Path $NuGetExe -Parent
     if (-not (Test-Path $NuGetFolderPath )) {
         Trace-Log 'Creating folder "$($NuGetFolderPath)"'
@@ -376,7 +376,7 @@ Function Install-SolutionPackages {
         $opts += '-OutputDirectory', "${OutputPath}"
     }
     
-    Trace-Log "Installing packages @""$InstallLocation"""	
+    Trace-Log "Installing packages @""$InstallLocation"""
     Trace-Log "$NuGetExe $opts"
     & $NuGetExe $opts
     if (-not $?) {
