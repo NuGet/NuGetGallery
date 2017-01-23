@@ -837,7 +837,7 @@
     <Compile Include="Migrations\201701120413341_AddScopeCredentialKey.cs" />
     <Compile Include="Migrations\201701120413341_AddScopeCredentialKey.Designer.cs">
       <DependentUpon>201701120413341_AddScopeCredentialKey.cs</DependentUpon>
-	</Compile>
+    </Compile>
     <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.cs" />
     <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.Designer.cs">
       <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>
@@ -1445,6 +1445,7 @@
     <Content Include="Content\Images\icons\apiKeyNew.png" />
     <Content Include="Content\Images\icons\copy.png" />
     <Content Include="Content\Images\icons\delete.png" />
+    <Content Include="Content\Images\icons\edit.png" />
     <Content Include="Content\Images\icons\expire.png" />
     <Content Include="Content\Images\icons\regenerate.png" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
@@ -1993,7 +1994,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201701120413341_AddScopeCredentialKey.resx">
       <DependentUpon>201701120413341_AddScopeCredentialKey.cs</DependentUpon>
-	</EmbeddedResource>
+    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.resx">
       <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>
     </EmbeddedResource>
