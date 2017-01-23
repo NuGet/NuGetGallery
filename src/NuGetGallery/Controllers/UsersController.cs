@@ -736,10 +736,12 @@ namespace NuGetGallery
             // Load user info
             var user = GetCurrentUser();
             var curatedFeeds = _curatedFeedService.GetFeedsForManager(user.Key);
-            var creds = user.Credentials.Select(c => _authService.DescribeCredential(c)).ToList();
+            var creds = user.Credentials.Where(c => CredentialTypes.IsSupportedCredential(c))
+                                        .Select(c => _authService.DescribeCredential(c)).ToList();
             var packageNames = _packageService.FindPackageRegistrationsByOwner(user).Select(p => p.Id).ToList();
 
             packageNames.Sort();
+           
 
             model.Credentials = creds;
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
