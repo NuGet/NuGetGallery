@@ -228,6 +228,9 @@ namespace NuGetGallery.FunctionalTests
                     List<string> pieces;
                     if (unparsedValued.Length == 0)
                     {
+                        // This list will need to be modified as DEV, INT, and PROD certificates change and are
+                        // renewed. These values are easily and publicly discoverable by inspecting the certificate
+                        // returned from HTTPS browser interactions with the gallery.
                         pieces = new List<string>
                         {
                             "8c11c16610b7a147d10bbcc6a65ce23d321c12c2", // *.nugettest.org
@@ -237,7 +240,6 @@ namespace NuGetGallery.FunctionalTests
                     }
                     else
                     {
-
                         pieces = unparsedValued
                             .Split(',')
                             .Select(p => p.Trim())
