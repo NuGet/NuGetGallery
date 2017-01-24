@@ -156,7 +156,15 @@ namespace NuGetGallery.FunctionalTests
             var nugetProcess = new Process();
             var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
 
+            arguments.AddRange(new[]
+            {
+                "-TrustedHttpsCertificate", "8c11c16610b7a147d10bbcc6a65ce23d321c12c2", // *.nugettest.org
+                "-TrustedHttpsCertificate", "9d984f91f40d8b3a1fb29153179415523c4e64d1", // *.int.nugettest.org
+                "-TrustedHttpsCertificate", "3751cb513b93ee67ec9f18a1f2aec1eac87af9bc"  // *.nuget.org
+            });
+
             arguments.Add(NonInteractiveSwitchString);
+
             var argumentsString = string.Join(" ", arguments);
 
             WriteLine("The NuGet.exe command to be executed is: " + pathToNugetExe + " " + argumentsString);

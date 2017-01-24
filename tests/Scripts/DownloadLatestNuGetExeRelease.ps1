@@ -1,4 +1,11 @@
-$sourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
-$targetNugetExe = ".\nuget.exe"
+$sourceNugetExeUrl = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+$sourceNuGetExePath = Join-Path $PSScriptRoot "nuget.exe"
+$targetNugetExePath = ".\nuget.exe"
 
-Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe
+if (-Not (Test-Path $targetNugetExePath)) {
+    if (Test-Path $sourceNuGetExePath) {
+        Copy-Item $sourceNuGetExePath $targetNugetExePath
+    } else {
+        Invoke-WebRequest $sourceNugetExeUrl -OutFile $targetNugetExePath
+    }
+}
