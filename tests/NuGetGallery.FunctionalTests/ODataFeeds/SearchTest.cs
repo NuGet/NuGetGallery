@@ -24,7 +24,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task SearchV1Feed()
         {
-            await SearchFeedAsync(UrlHelper.V1FeedRootUrl, "Json NET");
+            await SearchFeedAsync(UrlHelper.V1FeedRootUrl, "Json.NET");
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task SearchV2Feed()
         {
-            await SearchFeedAsync(UrlHelper.V2FeedRootUrl, "Json NET");
+            await SearchFeedAsync(UrlHelper.V2FeedRootUrl, "Json.NET");
         }
 
         private async Task SearchFeedAsync(string feedRootUrl, string title)
