@@ -235,7 +235,7 @@ Function Install-NuGet {
     if (-not (Test-Path $CredentialProviderBundle)) {
         Trace-Log 'Downloading VSTS credential provider'
 
-        wget https://msblox.pkgs.visualstudio.com/DefaultCollection/_apis/public/nuget/client/CredentialProviderBundle.zip -OutFile $CredentialProviderBundle
+        wget -UseBasicParsing https://msblox.pkgs.visualstudio.com/DefaultCollection/_apis/public/nuget/client/CredentialProviderBundle.zip -OutFile $CredentialProviderBundle
     }
 
     if (-not (Test-Path $NuGetExe)) {
@@ -246,7 +246,7 @@ Function Install-NuGet {
     }
     
     Trace-Log 'Downloading latest prerelease of nuget.exe'
-    wget https://dist.nuget.org/win-x86-commandline/latest-prerelease/nuget.exe -OutFile $NuGetExe
+    wget -UseBasicParsing https://dist.nuget.org/win-x86-commandline/latest-prerelease/nuget.exe -OutFile $NuGetExe
 }
 
 Function Configure-NuGetCredentials {
@@ -304,7 +304,7 @@ Function Install-DotnetCLI {
 
     $installDotnet = Join-Path $CLIRoot "dotnet-install.ps1"
 
-    wget 'https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview2/scripts/obtain/dotnet-install.ps1' -OutFile $installDotnet
+    wget -UseBasicParsing 'https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview2/scripts/obtain/dotnet-install.ps1' -OutFile $installDotnet
 
     & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.0-preview2-003121
 
