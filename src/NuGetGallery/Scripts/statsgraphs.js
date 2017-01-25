@@ -35,9 +35,9 @@
             downloads: +(d3.select(this).select(':nth-child(2)').text().replace(/[^0-9]+/g, '')),
             percentage: d3.select(this).select(':nth-child(3)').text(),
         };
-		if(nugetVersion > 2){
-			data[data.length] = item;
-		}
+        if(item.percentage > 1){
+            data[data.length] = item;
+        }
     });
 
     xScale.domain(data.map(function (d) { return d.nugetVersion; }));
