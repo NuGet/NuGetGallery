@@ -26,6 +26,7 @@ x64/
 # Files created and used by our build scripts
 build/ 
 tools/
+.nuget/CredentialProviderBundle.zip
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
