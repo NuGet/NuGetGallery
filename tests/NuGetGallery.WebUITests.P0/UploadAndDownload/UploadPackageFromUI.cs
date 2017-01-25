@@ -21,10 +21,6 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
 
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
-            // Temporary workaround for the SSL issue, which keeps the upload test from working with cloudapp.net sites
-            if (!UrlHelper.BaseUrl.Contains("nugettest.org") && !UrlHelper.BaseUrl.Contains("nuget.org"))
-                yield break;
-
             var defaultExtractionRule = AssertAndValidationHelper.GetDefaultExtractHiddenFields();
 
             // Do initial login
