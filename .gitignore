@@ -27,6 +27,7 @@ x64/
 build/ 
 tools/
 .nuget/CredentialProviderBundle.zip
+AssemblyInfo.g.cs
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
