@@ -11,7 +11,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = 'bff597e5990a14bb6ca53e371313d54bec48b4a6'
+    [string]$BuildBranch = 'da881231d9ae9c966d0c18824f09f0122008e765'
 )
 
 # For TeamCity - If any issue occurs, this script fail the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -26,7 +26,7 @@ trap {
 if (-not (Test-Path "$PSScriptRoot/build")) {
     New-Item -Path "$PSScriptRoot/build" -ItemType "directory"
 }
-wget -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranch/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
+wget -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranch/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
 . "$PSScriptRoot/build/init.ps1" -Branch "$BuildBranch"
 
 Function Clean-Tests {
@@ -71,14 +71,14 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
     param($Path, $Version, $Branch, $Commit)
     Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
     } `
-    -args (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.cs"), $SimpleVersion, $Branch, $CommitSHA `
+    -args (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"), $SimpleVersion, $Branch, $CommitSHA `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
     param($Path, $Version, $Branch, $Commit)
     Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
     } `
-    -args (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.cs"), $SimpleVersion, $Branch, $CommitSHA `
+    -args (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs"), $SimpleVersion, $Branch, $CommitSHA `
     -ev +BuildErrors
         
 Invoke-BuildStep 'Building solution' { 
