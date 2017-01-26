@@ -65,9 +65,9 @@ Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
 
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
     param($Version, $Branch, $Commit)
-    Set-VersionInfo -Path (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\Properties\AssemblyInfo.cs") -Version $Version -Branch $Branch -Commit $Commit
-    Set-VersionInfo -Path (Join-Path $PSScriptRoot "src\NuGet.Services.Logging\Properties\AssemblyInfo.cs") -Version $Version -Branch $Branch -Commit $Commit
-    Set-VersionInfo -Path (Join-Path $PSScriptRoot "src\NuGet.Services.Configuration\Properties\AssemblyInfo.cs") -Version $Version -Branch $Branch -Commit $Commit
+    Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.KeyVault\Properties\AssemblyInfo.g.cs" -Version $Version -Branch $Branch -Commit $Commit
+    Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.Logging\Properties\AssemblyInfo.g.cs" -Version $Version -Branch $Branch -Commit $Commit
+    Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.Configuration\Properties\AssemblyInfo.g.cs" -Version $Version -Branch $Branch -Commit $Commit
     } `
     -args $SimpleVersion, $Branch, $CommitSHA `
     -ev +BuildErrors
@@ -100,7 +100,6 @@ Invoke-BuildStep 'Patching versions of artifacts' {`
         Trace-Log "Patching versions of NuGet packages to $SemanticVersion"
         
         & $NupkgWrenchExe release "$Artifacts" --new-version $SemanticVersion
-        & $NupkgWrenchExe release "$Artifacts\NuGet.Services.Configuration.$SemanticVersion.nupkg" --new-version $SemanticVersion --id "NuGet.Services.KeyVault"
         
         Trace-Log "Done"
     }`

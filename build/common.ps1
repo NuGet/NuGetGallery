@@ -534,9 +534,10 @@ Function Set-VersionInfo {
         throw "No version info provided."
     }
     
-    if(!(Test-Path $Path)) {
-        throw "AssemblyInfo.cs not found at $Path!"
+    if (Test-Path $Path) {
+        Remove-Item $Path
     }
+    New-Item $Path -ItemType File
     
     Trace-Log "Getting version info in @""$Path"""
     
@@ -561,6 +562,15 @@ Function Set-VersionInfo {
     Trace-Log ("[assembly: AssemblyMetadata(""Branch"", """ + $Branch + """)]")
     Trace-Log ("[assembly: AssemblyMetadata(""CommitId"", """ + $Commit + """)]")
     Trace-Log ("[assembly: AssemblyMetadata(""BuildDateUtc"", """ + $BuildDateUtc + """)]")
+    
+    Add-Content $Path ("// Copyright (c) .NET Foundation. All rights reserved.")
+    Add-Content $Path ("// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.")
+    
+    Add-Content $Path ("`r`nusing System;")
+    Add-Content $Path ("using System.Reflection;")
+    Add-Content $Path ("using System.Resources;")
+    Add-Content $Path ("using System.Runtime.CompilerServices;")
+    Add-Content $Path ("using System.Runtime.InteropServices;")
     
     Add-Content $Path ("`r`n[assembly: AssemblyVersion(""" + $Version + """)]")
     Add-Content $Path ("[assembly: AssemblyInformationalVersion(""" + $SemanticVersion + """)]")

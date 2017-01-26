@@ -22,6 +22,11 @@ bld/
 [Oo]bj/
 [Ll]og/
 
+# Files created and used by our build scripts
+AssemblyInfo.*.cs
+.nuget/CredentialProviderBundle.zip
+nuget.exe
+
 # Visual Studio 2015 cache/options directory
 .vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
