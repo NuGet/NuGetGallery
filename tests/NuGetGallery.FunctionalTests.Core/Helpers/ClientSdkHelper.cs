@@ -122,7 +122,7 @@ namespace NuGetGallery.FunctionalTests
 
         public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
             string title = null, string tags = null, string description = null, string licenseUrl = null,
-            string dependencies = null)
+            string dependencies = null, string apiKey = null)
         {
             if (string.IsNullOrEmpty(packageId))
             {
@@ -134,19 +134,20 @@ namespace NuGetGallery.FunctionalTests
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var packageFullPath = await packageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
 
+            await UploadExistingPackage(packageFullPath);
+
+            // Delete package from local disk once it gets uploaded
+            CleanCreatedPackage(packageFullPath);
+        }
+
+        public async Task UploadExistingPackage(string packageFullPath, string apiKey = null)
+        {
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-            var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
+            var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl, apiKey);
 
             Assert.True(processResult.ExitCode == 0,
                 "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
                 processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
-
-            // Delete package from local disk once it gets uploaded
-            if (File.Exists(packageFullPath))
-            {
-                File.Delete(packageFullPath);
-                Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
-            }
         }
 
         /// <summary>
@@ -160,7 +161,7 @@ namespace NuGetGallery.FunctionalTests
             VerifyPackageExistsInSource(packageId, version);
         }
 
-        public async Task UnlistPackage(string packageId, string version = "1.0.0")
+        public async Task UnlistPackage(string packageId, string version = "1.0.0", string apiKey = null)
         {
             if (string.IsNullOrEmpty(packageId))
             {
@@ -170,7 +171,7 @@ namespace NuGetGallery.FunctionalTests
             WriteLine("Unlisting package '{0}', version '{1}'", packageId, version);
 
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-            var processResult = await commandlineHelper.DeletePackageAsync(packageId, version, UrlHelper.V2FeedPushSourceUrl);
+            var processResult = await commandlineHelper.DeletePackageAsync(packageId, version, UrlHelper.V2FeedPushSourceUrl, apiKey);
 
             Assert.True(processResult.ExitCode == 0,
                 "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
@@ -347,6 +348,15 @@ namespace NuGetGallery.FunctionalTests
 
             Assert.True(CheckIfPackageVersionInstalled(packageId, version),
                 "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");
+        }
+
+        public void CleanCreatedPackage(string packageFullPath)
+        {
+            if (!string.IsNullOrEmpty(packageFullPath) && File.Exists(packageFullPath))
+            {
+                File.Delete(packageFullPath);
+                Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
+            }
         }
     }
 }

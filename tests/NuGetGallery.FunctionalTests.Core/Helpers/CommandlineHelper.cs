@@ -45,15 +45,24 @@ namespace NuGetGallery.FunctionalTests
         /// <param name="packageFullPath"></param>
         /// <param name="sourceName"></param>
         /// <returns></returns>
-        public async Task<ProcessResult> UploadPackageAsync(string packageFullPath, string sourceName)
+        public async Task<ProcessResult> UploadPackageAsync(string packageFullPath, string sourceName, string apiKey = null)
         {
-            WriteLine("Uploading package " + packageFullPath + " to " + sourceName);
+            string message = $"Uploading package {packageFullPath} to {sourceName}.";
+
+            if (apiKey == null)
+            {
+                apiKey = EnvironmentSettings.TestAccountApiKey;
+
+                message += " Using full access API key";
+            }
+
+            WriteLine(message);
 
             var arguments = new List<string>
             {
-                PushCommandString, packageFullPath, SourceSwitchString, sourceName, ApiKeySwitchString,
-                EnvironmentSettings.TestAccountApiKey
+                PushCommandString, packageFullPath, SourceSwitchString, sourceName, ApiKeySwitchString, apiKey
             };
+
             return await InvokeNugetProcess(arguments);
         }
 
@@ -64,14 +73,22 @@ namespace NuGetGallery.FunctionalTests
         /// <param name="version">version of package to be deleted</param>
         /// <param name="sourceName">source url</param>
         /// <returns></returns>
-        public async Task<ProcessResult> DeletePackageAsync(string packageId, string version, string sourceName)
+        public async Task<ProcessResult> DeletePackageAsync(string packageId, string version, string sourceName, string apiKey = null)
         {
-            WriteLine("Deleting package " + packageId + " with version " + version + " from " + sourceName);
+            string message = $"Deleting package {packageId} with version {version} from {sourceName}.";
+
+            if (apiKey == null)
+            {
+                apiKey = EnvironmentSettings.TestAccountApiKey;
+
+                message += " Using full access API key";
+            }
+
+            WriteLine(message);
 
             var arguments = new List<string>
             {
-                DeleteCommandString, packageId, version, SourceSwitchString, sourceName, ApiKeySwitchString,
-                EnvironmentSettings.TestAccountApiKey
+                DeleteCommandString, packageId, version, SourceSwitchString, sourceName, ApiKeySwitchString, apiKey
             };
             return await InvokeNugetProcess(arguments);
         }
