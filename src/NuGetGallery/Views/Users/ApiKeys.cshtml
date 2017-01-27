@@ -219,7 +219,7 @@
                                             {
                                                 <button class="btn btn-veryflat" title="Edit Api key" type="button" onclick="showEditForm($(this).closest('tr'))"><img src="~/Content/Images/icons/edit.png" /></button>
 
-                                                if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
+                                                @*if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
                                                 {
                                                     using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new { @class = "form-inline expire-api-key" }))
                                                     {
@@ -228,7 +228,7 @@
                                                         @Html.Hidden("credentialKey", apiKey.Key)
                                                         <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="button"><img src="~/Content/Images/icons/expire.png" /></button>
                                                     }
-                                                }
+                                                }*@
 
                                                 using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
                                                 {
@@ -986,7 +986,7 @@
         markup += '<td class="actions actions-wide">';
         markup += getCopyButton(data.Value);
         markup += getEditButton();
-        markup += getExpireButton(data.Key);
+      //  markup += getExpireButton(data.Key);
         markup += getRegenerateButton(data.Key);
         markup += getRemoveButton(data.Key);
 
