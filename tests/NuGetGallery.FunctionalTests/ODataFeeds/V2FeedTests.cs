@@ -82,7 +82,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Theory]
-        [InlineData("Packages?$orderby=DownloadCount+asc&$select=Id")]
+        [InlineData("Packages?$orderby=DownloadCount+asc&$select=Id&$top=3")]
         [Description("Performs a OData request that will be rejected if not found by the search engine. The feature needs to be enabled for this test to pass.")]
         [Priority(0)]
         [Category("P0Tests")]
