@@ -18,45 +18,7 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountPassword;
         private static string _testAccountApiKey;
         private static string _testEmailServerHost;
-        private static string _runFunctionalTests;
-        private static string _readOnlyMode;
         private static List<string> _trustedHttpsCertificates;
-
-        /// <summary>
-        /// Option to enable or disable functional tests from the current run.
-        /// </summary>
-        public static string RunFunctionalTests
-        {
-            get
-            {
-               if (string.IsNullOrEmpty(_runFunctionalTests))
-                {
-                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RunFunctionalTests")))
-                        _runFunctionalTests = "False";
-                    else
-                        _runFunctionalTests = Environment.GetEnvironmentVariable("RunFunctionalTests");
-                }
-                return _runFunctionalTests;
-            }
-        }
-
-        /// <summary>
-        /// Option to enable or disable functional tests from the current run.
-        /// </summary>
-        public static string ReadOnlyMode
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_readOnlyMode))
-                {
-                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ReadOnlyMode")))
-                        _readOnlyMode = "False";
-                    else
-                        _readOnlyMode = Environment.GetEnvironmentVariable("ReadOnlyMode");
-                }
-                return _readOnlyMode;
-            }
-        }
 
         /// <summary>
         /// The environment against which the test has to be run. The value would be picked from env variable.
