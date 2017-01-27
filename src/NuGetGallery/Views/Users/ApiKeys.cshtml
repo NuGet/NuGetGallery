@@ -336,16 +336,17 @@
                          <div id="addkeyselectscopes">
                              <h5>Select scopes</h5><hr />
                              <div class="form-field">
-                                 <label class="checkoboxsmall scopecheckbox" id="scopePushLabel">
-                                     <input type="checkbox" id="scopePush"/>Push
-                                     <div style="margin-left: 15px" id="scopePushOptions">
-                                         <input type="radio" name="scopes" id="scopeFullPush" value="@NuGetScopes.PackagePush"/>@NuGetScopes.Describe(NuGetScopes.PackagePush)<br/>
-                                         <input type="radio" name="scopes" id="scopePushVersion" value="@NuGetScopes.PackagePushVersion"/>@NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
-                                     </div>
-                                 </label>
-                                 <label class="checkoboxsmall scopecheckbox">
-                                     <input type="checkbox" name="scopes" id="scopeUnlist" value="@NuGetScopes.PackageUnlist"/> @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
-                                 </label>
+                                <input type="checkbox" class="scopecheckbox" id="scopePush"/><label class="checkoboxsmall inline" for="scopePush">Push</label>
+                                <div style="margin-left: 15px" id="scopePushOptions">
+                                    <input type="radio" name="scopes" id="scopeFullPush" value="@NuGetScopes.PackagePush"/>
+                                    <label class="checkoboxsmall inline" for="scopeFullPush">@NuGetScopes.Describe(NuGetScopes.PackagePush)</label>
+                                    <br/>
+                                    <input type="radio" name="scopes" id="scopePushVersion" value="@NuGetScopes.PackagePushVersion"/>
+                                    <label class="checkoboxsmall inline" for="scopePushVersion">@NuGetScopes.Describe(NuGetScopes.PackagePushVersion)</label>
+                                </div>
+                                 
+                                 <input type="checkbox" name="scopes" id="scopeUnlist" value="@NuGetScopes.PackageUnlist" /> 
+                                 <label for="scopeUnlist" class="checkoboxsmall scopecheckbox inline">@NuGetScopes.Describe(NuGetScopes.PackageUnlist)</label>
                              </div>
                          </div>
                          <div id="addkeyselectpackages" class="disabled-div">
@@ -451,9 +452,7 @@
                         }
                     });
 
-            $('#scopePushLabel')
-                .on('click',
-                    function() {
+            $('#scopePush').change(function() {
                         if (document.getElementById("scopePush").checked) {
                             $('#scopePushOptions').removeClass('disabled-div');
                             $('#scopeFullPush').attr("disabled", false);

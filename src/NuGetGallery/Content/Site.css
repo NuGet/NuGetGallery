@@ -923,6 +923,10 @@ fieldset.form legend {
     margin-bottom: 5px;
 }
 
+.form-field label.checkoboxsmall.inline {
+    display: inline-block;
+}
+
 .form-field label.checkbox {
     display: inline;
 }
