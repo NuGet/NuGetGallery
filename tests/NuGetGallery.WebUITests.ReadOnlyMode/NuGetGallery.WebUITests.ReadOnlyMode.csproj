@@ -48,19 +48,15 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\NuGetGallery.WebUITests.P0\AccountManagement\LogonTest.cs">
-      <Link>AccountManagement\LogonTest.cs</Link>
-    </Compile>
     <Compile Include="..\NuGetGallery.WebUITests.P0\AssertAndValidationHelper.cs">
       <Link>AssertAndValidationHelper.cs</Link>
     </Compile>
     <Compile Include="..\NuGetGallery.WebUITests.P0\BasicPages\HomePageValidationTest.cs">
       <Link>BasicPages\HomePageValidationTest.cs</Link>
     </Compile>
-    <Compile Include="AccountManagement\AccountManagementInReadOnlyModeTest.cs" />
+    <Compile Include="AccountManagement\LogonInReadOnlyModeTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AccountManagement\RegisterNewUserInReadOnlyModeTest.cs" />
-    <Compile Include="UploadAndDownload\UploadPackageFromInUIInReadOnlyMode.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj">

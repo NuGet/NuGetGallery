@@ -44,5 +44,3 @@ namespace NuGetGallery.FunctionalTests.WebUITests.ReadOnlyMode
         }
     }
 }
-
-

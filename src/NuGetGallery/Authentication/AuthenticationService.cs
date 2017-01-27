@@ -708,13 +708,10 @@ namespace NuGetGallery.Authentication
 
         private async Task UpdateSuccessfulLoginAttempt(User user)
         {
-            if (user.FailedLoginCount > 0)
-            {
-                user.FailedLoginCount = 0;
-                user.LastFailedLoginUtc = null;
+            user.FailedLoginCount = 0;
+            user.LastFailedLoginUtc = null;
 
-                await Entities.SaveChangesAsync();
-            }
+            await Entities.SaveChangesAsync();
         }
 
         private bool IsAccountLocked(User user, out int remainingMinutes)
