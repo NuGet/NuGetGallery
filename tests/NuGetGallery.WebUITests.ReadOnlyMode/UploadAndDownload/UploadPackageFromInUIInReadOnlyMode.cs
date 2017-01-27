@@ -20,12 +20,6 @@ namespace NuGetGallery.FunctionalTests.WebUITests.ReadOnlyMode
 
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
-            //run this test only if read-only mode is set. This is to avoid false failures while doing Run all tests locally.
-            if (!EnvironmentSettings.ReadOnlyMode.Equals("True", StringComparison.OrdinalIgnoreCase))
-            {
-                yield break;
-            }
-
             var defaultExtractionRule = AssertAndValidationHelper.GetDefaultExtractHiddenFields();
 
             // Do initial login
