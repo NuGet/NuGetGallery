@@ -78,12 +78,6 @@
         margin-bottom: 0px;
     }
 
-.btn.btn-veryflat.copyapikeybutton img {
-    border-right: 1px solid #3a6e8b;
-    padding-right: 8px;
-}
-
-
 /* new api key form*/
 #newapikey-1-content {
     padding: 5px;

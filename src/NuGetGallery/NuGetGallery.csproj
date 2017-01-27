@@ -1442,6 +1442,7 @@
     <Content Include="Content\admin\SupportRequestStyles.css" />
     <Content Include="Content\Images\icons\apiKey.png" />
     <Content Include="Content\Images\icons\apiKeyExpired.png" />
+    <Content Include="Content\Images\icons\apiKeyLegacy.png" />
     <Content Include="Content\Images\icons\apiKeyNew.png" />
     <Content Include="Content\Images\icons\copy.png" />
     <Content Include="Content\Images\icons\delete.png" />

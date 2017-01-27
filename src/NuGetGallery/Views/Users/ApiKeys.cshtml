@@ -110,6 +110,10 @@
                                             {
                                                 <img src="~/Content/Images/icons/apiKeyExpired.png" />
                                             }
+                                            else if (apiKey.IsNonScopedV1ApiKey)
+                                            {
+                                                <img src="~/Content/Images/icons/apiKeyLegacy.png" />
+                                            }
                                             else
                                             {
                                                 <img src="~/Content/Images/icons/apiKey.png" />
