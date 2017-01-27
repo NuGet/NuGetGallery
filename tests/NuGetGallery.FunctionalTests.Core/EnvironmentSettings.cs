@@ -18,8 +18,6 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountPassword;
         private static string _testAccountApiKey;
         private static string _testEmailServerHost;
-        private static string _runFunctionalTests;
-        private static bool? _readOnlyMode;
         private static List<string> _trustedHttpsCertificates;
         
         /// <summary>
