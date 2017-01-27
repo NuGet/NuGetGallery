@@ -11,6 +11,7 @@
     "skip, top",
     "filter, orderby, top",
     "filter, inlinecount, orderby, select, skip, top",
-    "orderby, top"
+    "orderby, top",
+    "filter"
   ]
 }
