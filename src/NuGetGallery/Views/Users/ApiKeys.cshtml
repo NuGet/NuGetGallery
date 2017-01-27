@@ -345,8 +345,8 @@
                                     <label class="checkoboxsmall inline" for="scopePushVersion">@NuGetScopes.Describe(NuGetScopes.PackagePushVersion)</label>
                                 </div>
                                  
-                                 <input type="checkbox" name="scopes" id="scopeUnlist" value="@NuGetScopes.PackageUnlist" /> 
-                                 <label for="scopeUnlist" class="checkoboxsmall scopecheckbox inline">@NuGetScopes.Describe(NuGetScopes.PackageUnlist)</label>
+                                 <input type="checkbox" name="scopes" id="scopeUnlist" class="scopecheckbox" value="@NuGetScopes.PackageUnlist" /> 
+                                 <label for="scopeUnlist" class="checkoboxsmall inline">@NuGetScopes.Describe(NuGetScopes.PackageUnlist)</label>
                              </div>
                          </div>
                          <div id="addkeyselectpackages" class="disabled-div">
@@ -467,13 +467,13 @@
 
             $('#addkeyglobPattern')
                 .on('input', function () {
-                    selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'))
-                    updateSelectedPackagesCounter($('.packagecheckbox input'), $('#selectablePackagesList').next())
+                    selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'));
+                    updateSelectedPackagesCounter($('.packagecheckbox input'), $('#selectablePackagesList').next());
                     enableAddKeyButton();
                 });
 
             $('.packagecheckbox input').change(function () {
-                updateSelectedPackagesCounter($('.packagecheckbox input'), $('#selectablePackagesList').next())
+                updateSelectedPackagesCounter($('.packagecheckbox input'), $('#selectablePackagesList').next());
                 enableAddKeyButton();
             });
         });
@@ -717,6 +717,8 @@
                 $('#generateKeyForm').find("input[type=text], textarea").val("");
                 $('#generateKeyForm').find("input:checkbox").removeAttr('checked');
                 setGenerateApiKeyFormInitialState();
+                selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'));
+                updateSelectedPackagesCounter($('#generateKeyForm .packagecheckbox input'), $('#selectablePackagesList').next());
                 $('#newapikey-1-collapse').trigger('click');
 
                 // New table row
