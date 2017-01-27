@@ -33,6 +33,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
             var uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest;
 
+            string packageId;
             if (LastResponse.ResponseUri.ToString().Contains("verify-upload"))
             {
                 // If there is a upload in progress, try to submit that upload instead of creating a new package (since we are just going to verify that upload goes through UI).
@@ -40,15 +41,13 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
                 var response = LastResponse.BodyString;
                 var startIndex = response.IndexOf("<p>", StringComparison.Ordinal);
                 var endIndex = response.IndexOf("</p>", startIndex, StringComparison.Ordinal);
-                var packageId = response.Substring(startIndex + 3, endIndex - (startIndex + 3));
+                packageId = response.Substring(startIndex + 3, endIndex - (startIndex + 3));
                 AddCommentToResult(packageId);   //Adding the package ID to result for debugging.
-                var verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0", UrlHelper.VerifyUploadPageUrl, Constants.ReadOnlyModeError, 503);
-                yield return verifyUploadPostRequest;
             }
             else
             {
                 // The API key is part of the nuget.config file that is present under the solution dir.
-                var packageId = DateTime.Now.Ticks.ToString();
+                packageId = DateTime.Now.Ticks.ToString();
                 var packageCreationHelper = new PackageCreationHelper();
                 var packageFullPath = packageCreationHelper.CreatePackage(packageId).Result;
 
@@ -58,10 +57,10 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
                 var verifyUploadRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
                 verifyUploadRequest.ExtractValues += defaultExtractionRule.Extract;
                 yield return verifyUploadRequest;
-
-                var verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0", UrlHelper.GetPackagePageUrl(packageId, "1.0.0"), packageId);
-                yield return verifyUploadPostRequest;
             }
+
+            var verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0", UrlHelper.GetPackagePageUrl(packageId, "1.0.0"), packageId);
+            yield return verifyUploadPostRequest;
         }
     }
 }
