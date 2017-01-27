@@ -1,1 +1,1 @@
-PowerShell.exe -NoProfile -ExecutionPolicy ByPass ".\build.ps1 -Configuration 'Release' -Verbose"
+PowerShell.exe -NoProfile -ExecutionPolicy ByPass ".\buildandtest.ps1 -Configuration 'Release' -Verbose"

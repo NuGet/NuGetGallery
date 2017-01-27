@@ -24,7 +24,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task SearchV1Feed()
         {
-            await SearchFeedAsync(UrlHelper.V1FeedRootUrl, "ASP.NET Web Helpers Library");
+            await SearchFeedAsync(UrlHelper.V1FeedRootUrl, "Json.NET");
         }
 
         [Fact]
@@ -33,12 +33,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task SearchV2Feed()
         {
-            await SearchFeedAsync(UrlHelper.V2FeedRootUrl, "ASP.NET Web Helpers Library");
+            await SearchFeedAsync(UrlHelper.V2FeedRootUrl, "Json.NET");
         }
 
         private async Task SearchFeedAsync(string feedRootUrl, string title)
         {
-            var requestUrl = feedRootUrl + @"Search()?$filter=IsLatestVersion&$skip=0&$top=25&searchTerm='web%20helpers'&targetFramework='net40'&includePrerelease=false";
+            var requestUrl = feedRootUrl + @"Search()?$filter=IsLatestVersion&$skip=0&$top=25&searchTerm='newtonsoft%20json'&targetFramework='net40'&includePrerelease=false";
             TestOutputHelper.WriteLine("Request: GET " + requestUrl);
 
             var request = WebRequest.Create(requestUrl);
@@ -52,7 +52,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 responseText = await sr.ReadToEndAsync();
             }
 
-            var expectedUrl = feedRootUrl + "package/Microsoft.AspNet.WebHelpers/";
+            var expectedUrl = feedRootUrl + "package/Newtonsoft.Json/";
 
             Assert.True(responseText.Contains(@"<title type=""text"">" + title + @"</title>")
                      || responseText.Contains(@"<d:Title>" + title + @"</d:Title>"), "The expected package title '" + title + "' wasn't found in the feed. Feed contents: " + responseText);
