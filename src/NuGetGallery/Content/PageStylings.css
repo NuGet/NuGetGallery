@@ -159,6 +159,24 @@
     width: 450px;
 }
 
+/* Details table */
+.details-table .shortlist {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: bottom;
+    max-width: 570px;
+}
+
+.details-table .packageslist+b {
+    display: inline-block;
+}
+
+.details-table .shortlist+a {
+  display: inline-block;
+}
+
+
 /* Package Page (Display Package) */
 
 .package-page h3 {
