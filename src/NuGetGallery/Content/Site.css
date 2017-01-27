@@ -911,7 +911,7 @@ fieldset.form {
         font-size: 1.25em;
         padding: 5px 0 5px 10px;
         vertical-align: middle;
-        width: 400px;
+        width: 100%;
         /* This won't work in IE7, but it will only produce a minor layout quirk */
         -moz-box-sizing: border-box;
         -webkit-box-sizing: border-box;
