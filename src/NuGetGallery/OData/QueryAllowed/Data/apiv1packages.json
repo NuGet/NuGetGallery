@@ -14,7 +14,7 @@
     "filter, orderby, skip",
     "filter, orderby, select, top",
     "filter, skip, top",
-    "orderBy, skip",
+    "orderby, skip",
     "skip, top"
   ] 
 }
