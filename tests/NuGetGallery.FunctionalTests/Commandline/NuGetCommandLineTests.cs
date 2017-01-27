@@ -53,6 +53,73 @@ namespace NuGetGallery.FunctionalTests.Commandline
         }
 
         [Fact]
+        [Description("Uses scoped API keys to push and unlist packages using Nuget.exe")]
+        [Priority(0)]
+        [Category("P0Tests")]
+        public async Task VerifyScopedApiKeys()
+        {
+            // Arrange
+            var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
+            var commandlineHelper = new CommandlineHelper(TestOutputHelper);
+
+            var packageId = "ScopedApiKeysTest_" + DateTime.Now.Ticks;
+            var version1 = "1.0.0";
+            var version2= "2.0.0";
+
+            string package1FullPath = null;
+            string package2FullPath = null;
+
+            try
+            {
+                package1FullPath = await packageCreationHelper.CreatePackage(packageId, version1);
+                package2FullPath = await packageCreationHelper.CreatePackage(packageId, version2);
+
+                // 1. Try to upload package using 'unlist' api key => expect failure
+                TestOutputHelper.WriteLine($"1. Trying to upload package '{packageId}', version '{version1}' using 'unlist' API key. Expected result: failure.");
+                var processResult = await commandlineHelper.UploadPackageAsync(package1FullPath, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey_Unlist);
+                Assert.True(processResult.ExitCode != 0, "Package push succeeded, although was expected to fail.");
+
+                // 2. Try to upload package using 'push version' api key => expect failure
+                TestOutputHelper.WriteLine($"2. Trying to upload package '{packageId}', version '{version1}' using 'push version' API key. Expected result: failure.");
+                processResult = await commandlineHelper.UploadPackageAsync(package1FullPath, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey_PushVersion);
+                Assert.True(processResult.ExitCode != 0, "Package push succeeded, although was expected to fail.");
+
+                // 3. Upload package using 'push' api key => expect success
+                TestOutputHelper.WriteLine($"3. Trying to upload package '{packageId}', version '{version1}' using 'push' API key. Expected result: success.");
+                await _clientSdkHelper.UploadExistingPackage(package1FullPath, EnvironmentSettings.TestAccountApiKey_Push);
+                _clientSdkHelper.VerifyPackageExistsInSource(packageId, version1);
+
+                // 4. Upload new version of package using 'push version' api key => expect success
+                TestOutputHelper.WriteLine($"4. Trying to upload package '{packageId}', version '{version2}' using 'push version' API key. Expected result: success.");
+                await _clientSdkHelper.UploadExistingPackage(package2FullPath, EnvironmentSettings.TestAccountApiKey_PushVersion);
+                _clientSdkHelper.VerifyPackageExistsInSource(packageId, version2);
+
+                // 5. Try unlisting package version1 using 'push' api key => expect failture
+                TestOutputHelper.WriteLine($"5. Trying to unlist package '{packageId}', version '{version1}' using 'push' API key. Expected result: failure.");
+                processResult = await commandlineHelper.DeletePackageAsync(packageId, version1, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey_Push);
+                Assert.True(processResult.ExitCode != 0, "Package delete succeeded, although was expected to fail.");
+
+                // 6. Try unlisting package version2 using 'push version' api key => expect failture
+                TestOutputHelper.WriteLine($"6. Trying to unlist package '{packageId}', version '{version2}' using 'push' API key. Expected result: failure.");
+                processResult = await commandlineHelper.DeletePackageAsync(packageId, version2, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey_PushVersion);
+                Assert.True(processResult.ExitCode != 0, "Package delete succeeded, although was expected to fail.");
+
+                // 7. Unlist both packages using 'unlist' api key => expect succees
+                TestOutputHelper.WriteLine($"7. Trying to unlist package '{packageId}', version '{version1}' using 'unlist' API key. Expected result: success.");
+                await _clientSdkHelper.UnlistPackage(packageId, version1, EnvironmentSettings.TestAccountApiKey_Unlist);
+
+                TestOutputHelper.WriteLine($"8. Trying to unlist package '{packageId}', version '{version2}' using 'unlist' API key. Expected result: success.");
+                await _clientSdkHelper.UnlistPackage(packageId, version2, EnvironmentSettings.TestAccountApiKey_Unlist);
+
+            }
+            finally
+            {
+                _clientSdkHelper.CleanCreatedPackage(package1FullPath);
+                _clientSdkHelper.CleanCreatedPackage(package2FullPath);
+            }
+        }
+
+        [Fact]
         [Description("Creates a test package with minclientversion tag and .cs name. Pushes it to the server using Nuget.exe and then download via ClientSDK")]
         [Priority(0)]
         [Category("P0Tests")]

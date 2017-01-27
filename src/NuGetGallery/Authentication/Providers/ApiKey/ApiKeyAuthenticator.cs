@@ -1,9 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+
 using NuGetGallery.Configuration;
 using Owin;
 
@@ -13,10 +10,13 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
     {
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
-            app.UseApiKeyAuthentication(new ApiKeyAuthenticationOptions()
+            app.Map("/api", api =>
             {
-                ApiKeyHeaderName = Config.HeaderName,
-                ApiKeyClaim = Config.Claim
+                api.UseApiKeyAuthentication(new ApiKeyAuthenticationOptions
+                {
+                    ApiKeyHeaderName = Config.HeaderName,
+                    ApiKeyClaim = Config.Claim
+                });
             });
         }
     }

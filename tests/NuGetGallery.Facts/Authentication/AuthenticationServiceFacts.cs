@@ -210,19 +210,18 @@ namespace NuGetGallery.Authentication
                     string.IsNullOrEmpty(ar.UsernameOrEmail)));
             }
 
-            [Fact]
-            public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential()
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential(string apiKeyType)
             {
                 // Arrange
                 var cred = _fakes.User.Credentials.Single(
-                    c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result =
-                    await
-                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
-                            Fakes.ExpirationForApiKeyV1));
+                var result = await _authenticationService.Authenticate(cred.Value);
 
                 // Assert
                 Assert.NotNull(result);
@@ -230,24 +229,25 @@ namespace NuGetGallery.Authentication
                 Assert.Same(cred, result.CredentialUsed);
             }
 
-            [Fact]
-            public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            public async Task GivenMatchingApiKeyCredential_ItWritesCredentialLastUsed(string apiKeyType)
             {
                 // Arrange
                 var cred = _fakes.User.Credentials.Single(
-                    c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
                 var referenceTime = DateTime.UtcNow;
                 _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
-                
+
                 Assert.False(cred.LastUsed.HasValue);
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
                 var result =
                     await
-                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
-                            Fakes.ExpirationForApiKeyV1));
+                        _authenticationService.Authenticate(cred.Value);
 
                 // Assert
                 Assert.NotNull(result);
@@ -256,54 +256,83 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task GivenExpiredMatchingApiKeyCredential_ItReturnsNull()
+            public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
+            {
+                // Arrange
+                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.ExternalPrefix));
+
+                var referenceTime = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
+                
+                Assert.False(cred.LastUsed.HasValue);
+
+                // Act
+                // Create a new credential to verify that it's a value-based lookup!
+                var result = await _authenticationService.Authenticate(TestCredentialBuilder.CreateExternalCredential(cred.Value));
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.True(cred.LastUsed == referenceTime);
+                Assert.True(cred.LastUsed.HasValue);
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            public async Task GivenExpiredMatchingApiKeyCredential_ItReturnsNull(string apiKeyType)
             {
                 // Arrange
                 var cred = _fakes.User.Credentials.Single(
-                    c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
                 cred.Expires = DateTime.UtcNow.AddDays(-1);
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result =
-                    await
-                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
-                            Fakes.ExpirationForApiKeyV1));
+                var result = await _authenticationService.Authenticate(cred.Value);
 
                 // Assert
                 Assert.Null(result);
             }
 
-            [Fact]
-            public async Task
-                GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord
-                ()
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1, true)]
+            [InlineData(CredentialTypes.ApiKey.V2, false)]
+            public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord(string apiKeyType, bool shouldExpire)
             {
                 // Arrange
                 var config = GetMock<IAppConfiguration>();
                 config.SetupGet(m => m.ExpirationInDaysForApiKeyV1).Returns(10);
 
-                var cred = _fakes.User.Credentials.Single(
-                    c => string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
+                var cred = _fakes.User.Credentials.Single(c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
                 // credential was last used < allowed last used
-                cred.LastUsed = DateTime.UtcNow
-                    .AddDays(-20);
+                cred.LastUsed = DateTime.UtcNow.AddDays(-20);
 
                 var service = Get<AuthenticationService>();
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result = await service.Authenticate(
-                    TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
+                var result = await service.Authenticate(cred.Value);
 
                 // Assert
-                Assert.Null(result);
-                Assert.True(cred.HasExpired);
-                Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == AuditedUserAction.ExpireCredential &&
-                    ar.Username == _fakes.User.Username));
+
+                if (shouldExpire)
+                {
+                    Assert.Null(result);
+                    Assert.True(cred.HasExpired);
+                    Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                        ar.Action == AuditedUserAction.ExpireCredential &&
+                        ar.Username == _fakes.User.Username));
+                }
+                else
+                {
+                    Assert.NotNull(result);
+                    Assert.False(cred.HasExpired);
+                    Assert.False(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                       ar.Action == AuditedUserAction.ExpireCredential &&
+                       ar.Username == _fakes.User.Username));
+                }
             }
 
             [Fact]
@@ -590,26 +619,6 @@ namespace NuGetGallery.Authentication
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
                 Assert.True(authUser.User.Confirmed);
                 auth.Entities.VerifyCommitChanges();
-            }
-
-            [Fact]
-            public async Task SetsAnApiKey()
-            {
-                // Arrange
-                var auth = Get<AuthenticationService>();
-
-                // Arrange
-                var authUser = await auth.Register(
-                    "newUser",
-                    "theEmailAddress",
-                    new CredentialBuilder().CreatePasswordCredential("thePassword"));
-
-                // Assert
-                Assert.True(auth.Entities.Users.Contains(authUser.User));
-                auth.Entities.VerifyCommitChanges();
-
-                var apiKeyCred = authUser.User.Credentials.FirstOrDefault(c => c.Type == CredentialTypes.ApiKeyV1);
-                Assert.NotNull(apiKeyCred);
             }
 
             [Fact]
@@ -1057,43 +1066,28 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act
-                bool result = await authService.ChangePassword(user, "not-the-right-password!", "new-password!", resetApiKey: false);
+                bool result = await authService.ChangePassword(user, "not-the-right-password!", "new-password!");
 
                 // Assert
                 Assert.False(result);
             }
 
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task GivenValidOldPassword_ItReturnsTrueAndReplacesPasswordCredentialAndApiKeyV1CredentialWhenNeeded(bool resetApiKey)
+            [Fact]
+            public async Task GivenValidOldPassword_ItReturnsTrueAndReplacesPasswordCredential()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test", new CredentialBuilder().CreatePasswordCredential(Fakes.Password));
                 var authService = Get<AuthenticationService>();
-                var oldApiKeyV1Credential = user.Credentials.FirstOrDefault(c =>
-                    string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase));
 
                 // Act
-                bool result = await authService.ChangePassword(user, Fakes.Password, "new-password!", resetApiKey: resetApiKey);
+                bool result = await authService.ChangePassword(user, Fakes.Password, "new-password!");
 
                 // Assert
                 Assert.True(result);
 
                 var credentialValidator = new CredentialValidator();
                 Assert.True(credentialValidator.ValidatePasswordCredential(user.Credentials.First(), "new-password!"));
-
-                if (resetApiKey)
-                {
-                    Assert.NotEqual(oldApiKeyV1Credential, user.Credentials.FirstOrDefault(c =>
-                        string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)));
-                }
-                else
-                {
-                    Assert.Equal(oldApiKeyV1Credential, user.Credentials.FirstOrDefault(c =>
-                        string.Equals(c.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)));
-                }
             }
 
             [Fact]
@@ -1105,7 +1099,7 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act
-                await authService.ChangePassword(user, Fakes.Password, "new-password!", resetApiKey: false);
+                await authService.ChangePassword(user, Fakes.Password, "new-password!");
 
                 // Assert
                 Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
@@ -1227,16 +1221,28 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(cred.Type, description.Type);
                 Assert.Equal(Strings.CredentialType_Password, description.TypeCaption);
                 Assert.Null(description.Identity);
-                Assert.True(string.IsNullOrEmpty(description.Value));
                 Assert.Equal(CredentialKind.Password, description.Kind);
                 Assert.Null(description.AuthUI);
             }
 
-            [Fact]
-            public void GivenATokenCredential_ItDescribesItCorrectly()
+            [InlineData(false, false, true)]
+            [InlineData(false, true, false)]
+            [InlineData(true, true, true)]
+            [Theory]
+            public void GivenATokenCredential_LegacyApiKey_ItDescribesItCorrectly(bool hasExpired, bool hasBeenUsedInLastDays, bool expectedHasExpired)
             {
                 // Arrange
-                var cred = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                const int expirationForApiKeyV1 = 365;
+
+                var mockConfig = GetMock<IAppConfiguration>();
+                mockConfig.SetupGet(x => x.ExpirationInDaysForApiKeyV1).Returns(expirationForApiKeyV1);
+
+                var cred = TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1);
+                cred.LastUsed = hasBeenUsedInLastDays
+                    ? DateTime.UtcNow
+                    : DateTime.UtcNow - TimeSpan.FromDays(expirationForApiKeyV1 + 1);
+                cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
+
                 var authService = Get<AuthenticationService>();
 
                 // Act
@@ -1246,19 +1252,61 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(cred.Type, description.Type);
                 Assert.Equal(Strings.CredentialType_ApiKey, description.TypeCaption);
                 Assert.Null(description.Identity);
+                Assert.Equal(cred.Created, description.Created);
+                Assert.Equal(cred.Expires, description.Expires);
+                Assert.Equal(CredentialKind.Token, description.Kind);
+                Assert.Null(description.AuthUI);
                 Assert.Equal(cred.Value, description.Value);
+                Assert.Equal(null, description.Description);
+                Assert.Equal(expectedHasExpired, description.HasExpired);
+            }
+
+            [InlineData(false)]
+            [InlineData(true)]
+            [Theory]
+            public void GivenATokenCredential_ScopedApiKey_ItDescribesItCorrectly(bool hasExpired)
+            {
+                // Arrange
+                var cred = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                cred.Description = "description";
+                cred.Scopes = new[] { new Scope("123", NuGetScopes.PackagePushVersion), new Scope("123", NuGetScopes.PackageUnlist) };
+                cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
+                cred.ExpirationTicks = TimeSpan.TicksPerDay;
+
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                var description = authService.DescribeCredential(cred);
+
+                // Assert
+                Assert.Equal(cred.Type, description.Type);
+                Assert.Equal(Strings.CredentialType_ApiKey, description.TypeCaption);
+                Assert.Null(description.Identity);
                 Assert.Equal(cred.Created, description.Created);
                 Assert.Equal(cred.Expires, description.Expires);
                 Assert.Equal(cred.HasExpired, description.HasExpired);
                 Assert.Equal(CredentialKind.Token, description.Kind);
                 Assert.Null(description.AuthUI);
+                Assert.Equal(cred.Description, description.Description);
+                Assert.Equal(hasExpired, description.HasExpired);
+
+                Assert.True(description.Scopes.Count == 2);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePushVersion), description.Scopes[0].AllowedAction);
+                Assert.Equal("123", description.Scopes[0].Subject);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackageUnlist), description.Scopes[1].AllowedAction);
+                Assert.Equal("123", description.Scopes[1].Subject);
+                Assert.Equal(cred.ExpirationTicks.Value, description.ExpirationDuration.Value.Ticks);
             }
 
-            [Fact]
-            public void GivenAnExternalCredential_ItDescribesItCorrectly()
+            [InlineData(false)]
+            [InlineData(true)]
+            [Theory]
+            public void GivenAnExternalCredential_ItDescribesItCorrectly(bool hasExpired)
             {
                 // Arrange
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
+                cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
+                 
                 var msftAuther = new MicrosoftAccountAuthenticator();
                 var authService = Get<AuthenticationService>();
 
@@ -1269,10 +1317,10 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(cred.Type, description.Type);
                 Assert.Equal(msftAuther.GetUI().Caption, description.TypeCaption);
                 Assert.Equal(cred.Identity, description.Identity);
-                Assert.True(string.IsNullOrEmpty(description.Value));
                 Assert.Equal(CredentialKind.External, description.Kind);
                 Assert.NotNull(description.AuthUI);
                 Assert.Equal(msftAuther.GetUI().AccountNoun, description.AuthUI.AccountNoun);
+                Assert.Equal(hasExpired, description.HasExpired);
             }
         }
 
@@ -1320,6 +1368,80 @@ namespace NuGetGallery.Authentication
                     ar.AffectedCredential[0].Type == cred.Type &&
                     ar.AffectedCredential[0].Identity == cred.Identity &&
                     ar.AffectedCredential[0].Value == cred.Value));
+            }
+        }
+
+        public class TheEditCredentialMethod : TestContainer
+        {
+            [Fact]
+            public async Task SavesChangesInTheDataStore()
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+
+                var fakes = Get<Fakes>();
+                var entities = Get<IEntitiesContext>();
+
+                var cred = credentialBuilder.CreateApiKey(null);
+                var user = fakes.CreateUser("test", credentialBuilder.CreatePasswordCredential(Fakes.Password), cred);
+                var authService = Get<AuthenticationService>();
+
+                var credscopes =
+                    Enumerable.Range(0, 5)
+                        .Select(
+                            i => new Scope { AllowedAction = NuGetScopes.PackagePush, Key = i, Subject = "package" + i }).ToList();
+
+                var newScopes =
+                    Enumerable.Range(1, 2)
+                        .Select(
+                            i => new Scope { AllowedAction = NuGetScopes.PackageUnlist, Key = i*10, Subject = "otherpackage" + i }).ToList();
+
+                cred.Scopes = credscopes;
+
+                foreach (var scope in credscopes)
+                {
+                    entities.Scopes.Add(scope);
+                }
+
+                // Add an unrelated scope to make sure it's not removed
+                entities.Scopes.Add(new Scope { AllowedAction = NuGetScopes.PackagePush, Key = 999, Subject = "package999" });
+
+                // Act
+                await authService.EditCredentialScopes(user, cred, newScopes);
+
+                // Assert
+                Assert.Equal(1, authService.Entities.Scopes.Count());
+                Assert.True(authService.Entities.Scopes.First().Key == 999);
+
+                Assert.Equal(newScopes.Count, cred.Scopes.Count);
+                foreach (var newScope in newScopes)
+                {
+                    Assert.NotNull(cred.Scopes.FirstOrDefault(x => x.Key == newScope.Key));
+                }
+
+                authService.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordForTheEditedCredential()
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+
+                var fakes = Get<Fakes>();
+                var cred = credentialBuilder.CreateApiKey(null);
+                var user = fakes.CreateUser("test", credentialBuilder.CreatePasswordCredential(Fakes.Password), cred);
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                await authService.EditCredentialScopes(user, cred, new List<Scope>());
+
+                // Assert
+                Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == AuditedUserAction.EditCredential &&
+                    ar.Username == user.Username &&
+                    ar.AffectedCredential.Length == 1 &&
+                    ar.AffectedCredential[0].Type == cred.Type));
             }
         }
 
@@ -1452,6 +1574,55 @@ namespace NuGetGallery.Authentication
                 Assert.Equal("external.MicrosoftAccount", result.Credential.Type);
                 Assert.Equal("blarg", result.Credential.Value);
                 Assert.Equal("bloog", result.Credential.Identity);
+            }
+        }
+
+        public class TheExpireCredentialMethod : TestContainer
+        {
+            [Fact]
+            public async Task ExpiresTheCredentialToTheDataStore()
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+
+                var fakes = Get<Fakes>();
+                var cred = credentialBuilder.CreateApiKey(TimeSpan.FromHours(2));
+                cred.Expires = null;
+                var user = fakes.CreateUser("test", cred);
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                await authService.ExpireCredential(user, cred);
+
+                // Assert
+                Assert.Contains(cred, user.Credentials);
+                Assert.NotNull(cred.Expires);
+                Assert.True(cred.Expires.Value <= DateTime.UtcNow);
+                authService.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordForTheCredential()
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+
+                var fakes = Get<Fakes>();
+                var cred = credentialBuilder.CreateApiKey(TimeSpan.FromHours(2));
+                cred.Expires = null;
+                var user = fakes.CreateUser("test", cred);
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                await authService.ExpireCredential(user, cred);
+                
+                // Assert
+                Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == AuditedUserAction.ExpireCredential &&
+                    ar.Username == user.Username &&
+                    ar.AffectedCredential.Length == 1 &&
+                    ar.AffectedCredential[0].Type == cred.Type &&
+                    ar.AffectedCredential[0].Identity == cred.Identity));
             }
         }
 

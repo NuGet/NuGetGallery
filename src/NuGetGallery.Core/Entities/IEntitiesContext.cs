@@ -12,6 +12,8 @@ namespace NuGetGallery
         IDbSet<CuratedPackage> CuratedPackages { get; set; }
         IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         IDbSet<Credential> Credentials { get; set; }
+        IDbSet<Scope> Scopes { get; set; }
+
         IDbSet<User> Users { get; set; }
         Task<int> SaveChangesAsync();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords", MessageId = "Set", Justification="This is to match the EF terminology.")]

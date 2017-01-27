@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -463,21 +465,13 @@ namespace NuGetGallery
                     return AccountView(model);
                 }
 
-                if (!await _authService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword, model.ChangePassword.ResetApiKey))
+                if (!await _authService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword))
                 {
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
                     return AccountView(model);
                 }
-                
-                if (model.ChangePassword.ResetApiKey)
-                {
-                    TempData["Message"] = Strings.PasswordChanged + " " + Strings.ApiKeyAlsoUpdated;
-                }
-                else
-                {
-                    TempData["Message"] = Strings.PasswordChanged;
-                }
 
+                TempData["Message"] = Strings.PasswordChanged;
                 return RedirectToAction("Account");
             }
         }
@@ -491,19 +485,92 @@ namespace NuGetGallery
             var passwordCred = user.Credentials.SingleOrDefault(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
 
-            return RemoveCredential(user, passwordCred, Strings.PasswordRemoved);
+            return RemoveCredentialInternal(user, passwordCred, Strings.PasswordRemoved);
         }
 
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual Task<ActionResult> RemoveCredential(string credentialType)
+        public virtual async Task<ActionResult> RemoveCredential(string credentialType, int? credentialKey)
         {
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
-                c => String.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase));
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && CredentialKeyMatches(credentialKey, c));
 
-            return RemoveCredential(user, cred, Strings.CredentialRemoved);
+            if (CredentialTypes.IsApiKey(credentialType))
+            {
+                return await RemoveApiKeyCredential(user, cred);
+            }
+
+            return await RemoveCredentialInternal(user, cred, Strings.CredentialRemoved);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> RegenerateCredential(string credentialType, int? credentialKey)
+        {
+            if (credentialType != CredentialTypes.ApiKey.V2)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
+            }
+
+            var user = GetCurrentUser();
+            var cred = user.Credentials.SingleOrDefault(
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && CredentialKeyMatches(credentialKey, c));
+
+            if (cred == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
+            }
+           
+            var newCredential = await GenerateApiKeyInternal(
+                cred.Description,
+                BuildScopes(cred.Scopes),
+                cred.ExpirationTicks.HasValue
+                    ? new TimeSpan(cred.ExpirationTicks.Value) : new TimeSpan?());
+
+            await _authService.RemoveCredential(user, cred);
+
+            var credentialViewModel = _authService.DescribeCredential(newCredential);
+            credentialViewModel.Value = newCredential.Value;
+
+            return Json(credentialViewModel);
+        }
+
+        private static bool CredentialKeyMatches(int? credentialKey, Credential c)
+        {
+            return (credentialKey == null || credentialKey == 0 || c.Key == credentialKey);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ExpireCredential(string credentialType, int? credentialKey)
+        {
+            if (credentialType != CredentialTypes.ApiKey.V2)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
+            }
+
+            var user = GetCurrentUser();
+            var cred = user.Credentials.SingleOrDefault(
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && CredentialKeyMatches(credentialKey, c));
+
+            if (cred == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
+            }
+
+            await _authService.ExpireCredential(user, cred);
+            return Json(Strings.CredentialExpired);
         }
 
         [HttpGet]
@@ -515,10 +582,13 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> GenerateApiKey(int? expirationInDays)
+        public virtual async Task<ActionResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
         {
-            // Get the user
-            var user = GetCurrentUser();
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.ApiKeyDescriptionRequired);
+            }
 
             // Set expiration
             var expiration = TimeSpan.Zero;
@@ -532,25 +602,119 @@ namespace NuGetGallery
                 }
             }
 
-            // Add/Replace the API Key credential, and save to the database
-            TempData["Message"] = Strings.ApiKeyReset;
-            await _authService.ReplaceCredential(user, _credentialBuilder.CreateApiKey(expiration));
+            var newCredential = await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects), expiration);
+            var credentialViewModel = _authService.DescribeCredential(newCredential);
+            credentialViewModel.Value = newCredential.Value;
 
-            return RedirectToAction("Account");
+            return Json(credentialViewModel);
         }
 
-        private async Task<ActionResult> RemoveCredential(User user, Credential cred, string message)
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
+        {
+            if (credentialType != CredentialTypes.ApiKey.V2)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
+            }
+
+            var user = GetCurrentUser();
+            var cred = user.Credentials.SingleOrDefault(
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && CredentialKeyMatches(credentialKey, c));
+
+            if (cred == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
+            }
+
+            var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
+            var newScopes = BuildScopes(scopes, subjects);
+
+            await _authService.EditCredentialScopes(user, cred, newScopes);
+
+            var credentialViewModel = _authService.DescribeCredential(cred);
+
+            return Json(credentialViewModel);
+        }
+
+        private async Task<Credential> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
+        {
+            var user = GetCurrentUser();
+
+            // Create a new API Key credential, and save to the database
+            var newCredential = _credentialBuilder.CreateApiKey(expiration);
+            newCredential.Description = description;
+            newCredential.Scopes = scopes;
+
+            await _authService.AddCredential(user, newCredential);
+
+            return newCredential;
+        }
+
+        private static IList<Scope> BuildScopes(string[] scopes, string[] subjects)
+        {
+            var result = new List<Scope>();
+
+            var subjectsList = subjects?.Where(s => !string.IsNullOrWhiteSpace(s)).ToList() ?? new List<string>();
+
+            // No package filtering information was provided. So allow any pattern.
+            if (!subjectsList.Any())
+            {
+                subjectsList.Add(NuGetPackagePattern.AllInclusivePattern);
+            }
+
+            if (scopes != null)
+            {
+                foreach (var scope in scopes)
+                {
+                    result.AddRange(subjectsList.Select(subject => new Scope(subject, scope)));
+                }
+            }
+            else
+            {
+                result.AddRange(subjectsList.Select(subject => new Scope(subject, NuGetScopes.All)));
+            }
+
+            return result;
+        }
+
+        private static IList<Scope> BuildScopes(IEnumerable<Scope> scopes)
+        {
+            return scopes.Select(scope => new Scope {AllowedAction = scope.AllowedAction, Subject = scope.Subject}).ToList();
+        }
+
+
+        private async Task<ActionResult> RemoveApiKeyCredential(User user, Credential cred)
         {
             if (cred == null)
             {
-                TempData["Message"] = Strings.NoCredentialToRemove;
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
+            }
+
+            await _authService.RemoveCredential(user, cred);
+
+            // Notify the user of the change
+            _messageService.SendCredentialRemovedNotice(user, cred);
+
+            return Json(Strings.CredentialRemoved);
+        }
+
+        private async Task<ActionResult> RemoveCredentialInternal(User user, Credential cred, string message)
+        {
+            if (cred == null)
+            {
+                TempData["Message"] = Strings.CredentialNotFound;
 
                 return RedirectToAction("Account");
             }
 
             // Count credentials and make sure the user can always login
-            if (!String.Equals(cred.Type, CredentialTypes.ApiKeyV1, StringComparison.OrdinalIgnoreCase)
-                && CountLoginCredentials(user) <= 1)
+            if (!CredentialTypes.IsApiKey(cred.Type) && CountLoginCredentials(user) <= 1)
             {
                 TempData["Message"] = Strings.CannotRemoveOnlyLoginCredential;
             }
@@ -569,17 +733,22 @@ namespace NuGetGallery
 
         private ActionResult AccountView(AccountViewModel model)
         {
-            // Load Credential info
+            // Load user info
             var user = GetCurrentUser();
             var curatedFeeds = _curatedFeedService.GetFeedsForManager(user.Key);
             var creds = user.Credentials.Where(c => CredentialTypes.IsSupportedCredential(c))
                                         .Select(c => _authService.DescribeCredential(c)).ToList();
+            var packageNames = _packageService.FindPackageRegistrationsByOwner(user).Select(p => p.Id).ToList();
+
+            packageNames.Sort();
+           
 
             model.Credentials = creds;
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
+            model.Packages = packageNames;
 
             model.ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1;
-
+            
             return View("Account", model);
         }
 

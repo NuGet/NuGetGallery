@@ -12,11 +12,14 @@ namespace NuGetGallery.FunctionalTests
     /// </summary>
     public class EnvironmentSettings
     {
-        private static string _baseurl;
+        private static string _baseurl = "https://dev.nugettest.org/";
         private static string _searchServiceBaseurl;
         private static string _testAccountName;
         private static string _testAccountPassword;
         private static string _testAccountApiKey;
+        private static string _testAccountApiKey_Unlist;
+        private static string _testAccountApiKey_PushPackage;
+        private static string _testAccountApiKey_PushVersion;
         private static string _testEmailServerHost;
         private static List<string> _trustedHttpsCertificates;
 
@@ -153,7 +156,7 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// The password for the test account.
+        /// The full access API key for the test account.
         /// </summary>
         public static string TestAccountApiKey
         {
@@ -164,6 +167,51 @@ namespace NuGetGallery.FunctionalTests
                     _testAccountApiKey = Environment.GetEnvironmentVariable("TestAccountApiKey");
                 }
                 return _testAccountApiKey;
+            }
+        }
+
+        /// <summary>
+        /// Scoped API key for account. Permission: unlist
+        /// </summary>
+        public static string TestAccountApiKey_Unlist
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testAccountApiKey_Unlist))
+                {
+                    _testAccountApiKey_Unlist = Environment.GetEnvironmentVariable("TestAccountApiKey_Unlist");
+                }
+                return _testAccountApiKey_Unlist;
+            }
+        }
+
+        /// <summary>
+        /// Scoped API key for account. Permission: push
+        /// </summary>
+        public static string TestAccountApiKey_Push
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testAccountApiKey_PushPackage))
+                {
+                    _testAccountApiKey_PushPackage = Environment.GetEnvironmentVariable("TestAccountApiKey_Push");
+                }
+                return _testAccountApiKey_PushPackage;
+            }
+        }
+
+        /// <summary>
+        /// Scoped API key for account. Permission: push version
+        /// </summary>
+        public static string TestAccountApiKey_PushVersion
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testAccountApiKey_PushVersion))
+                {
+                    _testAccountApiKey_PushVersion = Environment.GetEnvironmentVariable("TestAccountApiKey_PushVersion");
+                }
+                return _testAccountApiKey_PushVersion;
             }
         }
 

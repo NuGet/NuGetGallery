@@ -1,89 +1,8 @@
 ﻿@model AccountViewModel
 
-@helper AccordionBar(
-    string groupName,
-    string title,
-    string subtitle = null,
-    bool enabled = true,
-    string formModelStatePrefix = null,
-    Func<AccordionHelper, HelperResult> actions = null,
-    Func<AccordionHelper, HelperResult> content = null
-)
-{
-    Func<AccordionHelper, HelperResult> titleTemplate = null;
-    if (!String.IsNullOrEmpty(title))
-    {
-        titleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@title</text>);
-    }
-
-    Func<AccordionHelper, HelperResult> subtitleTemplate = null;
-    if (!String.IsNullOrEmpty(subtitle))
-    {
-        subtitleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@subtitle</text>);
-    }
-
-    @AccordionBar(groupName,
-        titleTemplate,
-        subtitleTemplate,
-        enabled,
-        formModelStatePrefix,
-        actions,
-        content)
-}
-
-@helper AccordionBar(
-    string groupName,
-    Func<AccordionHelper, HelperResult> title,
-    Func<AccordionHelper, HelperResult> subtitle = null,
-    bool enabled = true,
-    string formModelStatePrefix = null,
-    Func<AccordionHelper, HelperResult> actions = null,
-    Func<AccordionHelper, HelperResult> content = null,
-    bool expanded = false
-)
-{
-    @* Calculate Accordion Index *@
-    string dataKey = "___AccordionCounter_" + groupName;
-    int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
-    int id = lastId + 1;
-    HttpContext.Current.Items[dataKey] = id;
-    string name = groupName + "-" + id.ToString();
-
-    var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, this);
-    <li id="@hlp.ItemId" class="accordion-item @(enabled ? "accordion-item-enabled" : "accordion-item-disabled")">
-        @if (actions != null)
-        {
-            <div class="accordion-item-actions">
-                @actions(hlp)
-            </div>
-        }
-        <span class="accordion-item-title">
-            @title(hlp)
-        </span>
-        @if (subtitle != null)
-        {
-            <span class="accordion-item-subtitle">
-                @subtitle(hlp)
-            </span>
-        }
-        @if (content != null)
-        {
-            <div id="@hlp.ContentDropDownId" class="accordion-item-content @(!expanded ? hlp.ContentHiddenClass : string.Empty)">
-                @content(hlp)
-            </div>
-        }
-    </li>
-}
-
 @{
     ViewBag.Title = "Edit Profile";
     var credGroups = Model.Credentials.GroupBy(c => c.Kind).ToDictionary(g => g.Key, g => g.ToList());
-
-    CredentialViewModel apiKey = null;
-    if (credGroups.ContainsKey(CredentialKind.Token))
-    {
-        apiKey = credGroups[CredentialKind.Token].Single();
-    }
 
     var hasPassword = credGroups.ContainsKey(CredentialKind.Password);
 
@@ -98,12 +17,12 @@
 
 <h1 class="page-heading">My NuGet.org Account</h1>
 
-@if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) && !String.IsNullOrEmpty(CurrentUser.EmailAddress))
+@if (!string.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) && !string.IsNullOrEmpty(CurrentUser.EmailAddress))
 {
     <p class="message">
         You recently registered a new email address: <strong>@CurrentUser.UnconfirmedEmailAddress</strong><br />
 
-        @if (!String.IsNullOrEmpty(CurrentUser.EmailAddress))
+        @if (!string.IsNullOrEmpty(CurrentUser.EmailAddress))
         {
             <text>We will continue sending notification emails to your old verified email address (@CurrentUser.EmailAddress)
             until you <a href="@Url.ConfirmationRequired()">verify your new email address.</a></text>
@@ -162,11 +81,12 @@
     @**************************
             Email Address
     **************************@
-    @AccordionBar(
+    @ViewHelpers.AccordionBar(
         groupName: "editprofile",
-        title: (String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) ? "Email Address" : "Pending Email Address"),
+        page: this,
+        title: (string.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) ? "Email Address" : "Pending Email Address"),
         subtitle: currentEmailAddress,
-        enabled: String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress),
+        enabled: string.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress),
         formModelStatePrefix: "ChangeEmail",
         actions: @<text>@item.ExpandButton("Change", "Cancel")
                      @if (!String.IsNullOrEmpty(CurrentUser.EmailAddress) && !String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
@@ -215,8 +135,9 @@
     @**************************
         Email Notifications
     **************************@
-    @AccordionBar(
+    @ViewHelpers.AccordionBar(
         groupName: "editprofile",
+        page: this,
         title: "Email Notifications",
         enabled: true,
         actions: @<text>
@@ -260,8 +181,9 @@
     @**************************
         Profile Picture
     **************************@
-    @AccordionBar(
+    @ViewHelpers.AccordionBar(
         groupName: "editprofile",
+        page: this,
         title: @<text>
                    Profile Picture
                    @if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
@@ -291,8 +213,9 @@
     {
         foreach (var curatedFeed in Model.CuratedFeeds)
         {
-            @AccordionBar(
+            @ViewHelpers.AccordionBar(
                 groupName: "editprofile",
+                page: this,
                 title: "Curated Feed",
                 subtitle: curatedFeed,
                 actions: @<text>
@@ -315,280 +238,107 @@
     
 <ul class="accordion">
     @**************************
-        External Credentials
-    **************************@
+            External Credentials
+        **************************@
     @if (credGroups.ContainsKey(CredentialKind.External))
     {
         foreach (var cred in credGroups[CredentialKind.External])
         {
-            @AccordionBar(
+            @ViewHelpers.AccordionBar(
                 groupName: "editprofile",
+                page: this,
                 title: cred.TypeCaption,
                 subtitle: cred.Identity,
                 actions: @<text>
-                    @item.ExpandLink("More Info", "Less Info")
-                    @if (loginCredentials > 1)
-                    {
-                        using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type }, FormMethod.Post, new { @class = "form-inline" }))
-                        {
-                            <fieldset class="form">
-                                <legend>Remove @cred.TypeCaption Credential</legend>
-                                @Html.AntiForgeryToken()
-                                @Html.Hidden(cred.Type)
-                                <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disassociate your @cred.AuthUI.AccountNoun? This is an irreversable action!">Remove</button>
-                            </fieldset>
-                        }
-                    }
-                </text>,
+                             @item.ExpandLink("More Info", "Less Info")
+                             @if (loginCredentials > 1)
+                             {
+                                 using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type }, FormMethod.Post, new { @class = "form-inline" }))
+                                 {
+                                     <fieldset class="form">
+                                         <legend>Remove @cred.TypeCaption Credential</legend>
+                                         @Html.AntiForgeryToken()
+                                         @Html.Hidden(cred.Type)
+                                         <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disassociate your @cred.AuthUI.AccountNoun? This is an irreversable action!">Remove</button>
+                                     </fieldset>
+                                 }
+                             }
+                          </text>,
                 content: @<p>
-                    You can use this @cred.AuthUI.AccountNoun to sign in to @Config.Current.Brand
-                </p>)
+                             You can use this @cred.AuthUI.AccountNoun to sign in to @Config.Current.Brand
+                         </p>)
         }
     }
 
     @**************************
-        Password
+            Password
     **************************@
-    @AccordionBar(
+    @ViewHelpers.AccordionBar(
         groupName: "editprofile",
+        page: this,
         title: (hasPassword ? "Password Login" : "Password Login Disabled"),
         enabled: hasPassword,
         formModelStatePrefix: "ChangePassword",
         actions: @<text>
-            @if (hasPassword)
-            {
-                @item.ExpandButton("Change", "Cancel")
-                if (loginCredentials > 1)
-                {
-                    using (Html.BeginForm("RemovePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
-                    {
-                        <fieldset class="form">
-                            <legend>Disable Password Login</legend>
-                            @Html.AntiForgeryToken()
-                            <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disable password login and remove your password? This is an irreversable action!">Disable</button>
-                        </fieldset>
-                    }
-                }
-            }
-            else if (CurrentUser.Confirmed)
-            {
-                using (Html.BeginForm("ChangePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
-                {
-                    <fieldset class="form">
-                        <legend>Enable Password Login</legend>
-                        @Html.AntiForgeryToken()
-                        <button class="btn btn-inline" type="submit">Enable</button>
-                    </fieldset>
-                }
-            }
-        </text>,
+                     @if (hasPassword)
+                     {
+                         @item.ExpandButton("Change", "Cancel")
+                         if (loginCredentials > 1)
+                         {
+                             using (Html.BeginForm("RemovePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                             {
+                                 <fieldset class="form">
+                                     <legend>Disable Password Login</legend>
+                                     @Html.AntiForgeryToken()
+                                     <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disable password login and remove your password? This is an irreversable action!">Disable</button>
+                                 </fieldset>
+                             }
+                         }
+                     }
+                     else
+                     {
+                         using (Html.BeginForm("ChangePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                         {
+                             <fieldset class="form">
+                                 <legend>Enable Password Login</legend>
+                                 @Html.AntiForgeryToken()
+                                 <button class="btn btn-inline" type="submit">Enable</button>
+                             </fieldset>
+                         }
+                     }
+                  </text>,
         content: @<text>
-            @using (Html.BeginForm("ChangePassword", "Users"))
-            {
-                <fieldset id="account-changepassword-fieldset" class="form">
-                    <legend>Change Password Form</legend>
-
-                    <p>
-                        Using this form, you can change your password for @(Config.Current.Brand).
-                    </p>
-
-                    @Html.AntiForgeryToken()
-                    @Html.ValidationSummaryFor("ChangePassword")
-                    <div class="form-field">
-                        @Html.LabelFor(m => m.ChangePassword.OldPassword)
-                        @Html.PasswordFor(m => m.ChangePassword.OldPassword)
-                        @Html.ValidationMessageFor(m => m.ChangePassword.OldPassword)
-                    </div>
-
-                    <div class="form-field">
-                        @Html.LabelFor(m => m.ChangePassword.NewPassword)
-                        @Html.PasswordFor(m => m.ChangePassword.NewPassword)
-                        @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
-                    </div>
-
-                    <div class="form-field">
-                        @Html.CheckBoxFor(m => m.ChangePassword.ResetApiKey)
-                        @Html.LabelFor(m => m.ChangePassword.ResetApiKey, new { @class = "checkbox" })
-                    </div>
-
-                    <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required."/>
-
-                    <input type="submit" value="Change" title="Change password" />
-                </fieldset>
-            }
-        </text>)
-
+                     @using (Html.BeginForm("ChangePassword", "Users"))
+                     {
+                         <fieldset id="account-changepassword-fieldset" class="form">
+                             <legend>Change Password Form</legend>
+                             <p>
+                                 Using this form, you can change your password for @(Config.Current.Brand).
+                             </p>
+                             @Html.AntiForgeryToken()
+                             @Html.ValidationSummaryFor("ChangePassword")
+                             <div class="form-field">
+                                 @Html.LabelFor(m => m.ChangePassword.OldPassword)
+                                 @Html.PasswordFor(m => m.ChangePassword.OldPassword)
+                                 @Html.ValidationMessageFor(m => m.ChangePassword.OldPassword)
+                             </div>
+                             <div class="form-field">
+                                 @Html.LabelFor(m => m.ChangePassword.NewPassword)
+                                 @Html.PasswordFor(m => m.ChangePassword.NewPassword)
+                                 @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
+                             </div>
+                             <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
+                             <input type="submit" value="Change" title="Change password" />
+                         </fieldset>
+                     }
+                  </text>)
     @**************************
-        API Key
+            API Key
     **************************@
-    @{
-        // has our API key been used in last ExpirationInDaysForApiKeyV1 days?
-        var apiKeyHasBeenUsedRecently = apiKey == null || apiKey.HasBeenUsedInLastDays(Config.Current.ExpirationInDaysForApiKeyV1);
-
-        // auto-expand when we just generated a new key
-        var shouldExpandApiKeyAccordion = (TempData["Message"] != null && TempData["Message"].ToString().Equals(Strings.ApiKeyReset, StringComparison.OrdinalIgnoreCase));
-
-        // or when the API key has expired
-        shouldExpandApiKeyAccordion = shouldExpandApiKeyAccordion || (apiKey != null && (apiKey.HasExpired || !apiKeyHasBeenUsedRecently));
-    }
-    @AccordionBar(
-        groupName: "editprofile",
-        title: @<text>API Key</text>,
-        enabled: CurrentUser.Confirmed,
-        expanded: shouldExpandApiKeyAccordion,
-        actions: @<text>
-                @if (!CurrentUser.Confirmed)
-                {
-                    <text>You need to <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Key</text>
-                }
-                else
-                {
-                    if (apiKey == null)
-                    {
-                        <text>You don't have an API key yet.</text>
-                    }
-                    else if (apiKey.HasExpired || !apiKeyHasBeenUsedRecently)
-                    {
-                        <span class="apiKeyExpired">Your API key has expired</span>
-                    }
-                    else
-                    {
-                        <text>(hidden for security purposes, <a href="#" title="Copy API key to clipboard" onclick="copyTextToClipboard('@apiKey.Value'); return false;"><i class="icon-copy"></i> copy to clipboard</a>)</text>
-                    }
-
-                    @item.ExpandLink("Show details", "Hide details")
-                }
-            </text>,
-        content: @<text>
-            <p>
-                An API key provides you with a token that can identify you to @(Config.Current.Brand). The
-                <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
-                submit a NuGet package to the gallery using your API key to authenticate.
-            </p>
-
-            @if (!CurrentUser.Confirmed)
-            {
-                <p>
-                    To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
-                </p>
-            }
-
-            @if (CurrentUser.Confirmed)
-            {
-                if (apiKey == null)
-                {
-                    <p>
-                        <strong>You don't have an API key yet.</strong> Use the button below to generate an API key and start publishing packages to @(Config.Current.Brand).
-                    </p>
-                }
-                else if (apiKey.HasExpired || !apiKeyHasBeenUsedRecently)
-                {
-                    <p>
-                        <strong>Your API key has expired</strong> and can no longer be used to publish packages to @(Config.Current.Brand). Use the button below to generate a new API key.
-                    </p>
-                }
-                else
-                { 
-                    <p>
-                        <strong>Always keep your API key a secret!</strong> If your key is accidentally revealed, you can always regenerate it at any time. You can also remove the API key if necessary.
-                    </p>
-
-                    <p>
-                        <span id="key" class="apiKey">
-                            @apiKey.Value
-
-                            <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><i class="icon-copy"></i></button>
-                        </span>
-
-                        @if (apiKey.Expires.HasValue)
-                        {
-                            <text><br />Expires on: <span class="s-localtime" data-utc="@apiKey.Expires.Value.ToJavaScriptUTC()">@apiKey.Expires.Value.ToNuGetShortDateString()</span></text>
-                        }
-                        else if (Model.ExpirationInDaysForApiKeyV1 > 0)
-                        {
-                            <text><br/>Expires when not used for @Model.ExpirationInDaysForApiKeyV1 days.</text>
-                            if (apiKey.LastUsed.HasValue)
-                            {
-                                <text>The API key was last used <span class="s-localtime" data-utc="@apiKey.LastUsed.Value.ToJavaScriptUTC()">@apiKey.LastUsed.Value.ToNuGetShortDateString()</span>.</text>
-                            }
-                        }
-
-                        @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new { @class = "form-inline" }))
-                        {
-                            <fieldset class="form">
-                                <legend>Remove API key</legend>
-                                @Html.AntiForgeryToken()
-                                @Html.Hidden("credentialType", CredentialTypes.ApiKeyV1)
-                                <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="submit">Remove API key</button>
-                            </fieldset>
-                        }
-                    </p>
-                }
-
-                <hr/>
-
-                using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline" }))
-                {
-                    <fieldset class="form">
-                        <h4>@(apiKey == null ? "Generate an API Key" : "Generate a new API Key")</h4>
-                        @Html.AntiForgeryToken()
-
-                        @if (Model.ExpirationInDaysForApiKeyV1 > 0)
-                        {
-                            <text>Expires in:</text>
-                            <select name="expirationInDays" id="expirationInDays">
-                                @if (Model.ExpirationInDaysForApiKeyV1 == 365) // Shorter dropdown for NuGet.org
-                                {
-                                    <option value="1">1 day</option>
-                                    <option value="90">90 days</option>
-                                    <option value="180">180 days</option>
-                                    <option value="270">270 days</option>
-                                    <option value="365" selected="selected">365 days</option>
-                                }
-                                else
-                                {
-                                    <option value="1">1 day</option>
-                                    for (int i = 10; i < Model.ExpirationInDaysForApiKeyV1; i += 10)
-                                    {
-                                        <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
-                                    }
-                                    <option value="@Model.ExpirationInDaysForApiKeyV1" selected="selected">@Model.ExpirationInDaysForApiKeyV1 days</option>
-                                }
-                            </select>
-                        }
-
-                        <button class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to generate a new API key? The old API key will be rendered invalid." type="submit">@(apiKey == null ? "Generate an API Key" : "Generate a new API Key")</button>
-                    </fieldset><br/>
-                }
-
-                if (apiKey != null && !apiKey.HasExpired && apiKeyHasBeenUsedRecently)
-                {
-                    var siteRoot = Config.Current.RequireSSL
-                        ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
-                        : Config.Current.SiteRoot.TrimEnd('/');
-
-                    <hr/>
-
-                    <h4>Example usage</h4>
-                    <p>
-                        The following snippet demonstrates how you can use the <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a>
-                        command-line utility allows you to submit a NuGet package to the gallery:
-                    </p>
-                    <p>
-                        <div id="account-apikeysample">
-                            <div>
-                                nuget.exe setApiKey @apiKey.Value
-
-                                <button class="btn btn-small" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('nuget.exe setApiKey @apiKey.Value -Source @siteRoot/api/v2/package')"><i class="icon-copy"></i></button>
-                            </div>
-                            <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
-                        </div>
-                    </p>
-                }
-            }
-            </text>)
-</ul> 
-
+    
+    @Html.Partial("ApiKeys", Model)
+  
+</ul>
 
 @section bottomScripts {
     <script>

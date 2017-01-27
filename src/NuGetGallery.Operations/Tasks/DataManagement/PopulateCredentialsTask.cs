@@ -60,7 +60,7 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                 {
                     var row = dt.NewRow();
                     row.SetField("UserKey", (int)user.Key);
-                    row.SetField("Type", CredentialTypes.ApiKeyV1);
+                    row.SetField("Type", CredentialTypes.ApiKey.V1);
                     row.SetField("Value", ((Guid)user.ApiKey).ToString().ToLowerInvariant());
                     dt.Rows.Add(row);
 

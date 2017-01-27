@@ -18,7 +18,7 @@ using System.Web.WebPages;
 using Microsoft.Owin;
 using NuGet.Frameworks;
 using NuGet.Packaging;
-using NuGet.Packaging.Core;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
@@ -360,9 +360,26 @@ namespace NuGetGallery
         public static string GetClaimOrDefault(this IEnumerable<Claim> self, string claimType)
         {
             return self
-                .Where(c => String.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
+                .Where(c => string.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
                 .Select(c => c.Value)
                 .FirstOrDefault();
+        }
+
+        public static bool HasScopeThatAllowsActionForSubject(
+            this IIdentity self, 
+            string subject,
+            string[] requestedActions)
+        {
+            var identity = self as ClaimsIdentity;
+
+            if (identity == null)
+            {
+                return false;
+            }
+
+            var scopeClaim = identity.GetClaimOrDefault(NuGetClaims.Scope);
+
+            return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject, requestedActions);
         }
 
         // This is a method because the first call will perform a database call

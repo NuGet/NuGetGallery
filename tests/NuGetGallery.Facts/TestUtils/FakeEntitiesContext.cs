@@ -74,6 +74,18 @@ namespace NuGetGallery
             }
         }
 
+        public IDbSet<Scope> Scopes
+        {
+            get
+            {
+                return Set<Scope>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public IDbSet<User> Users
         {
             get

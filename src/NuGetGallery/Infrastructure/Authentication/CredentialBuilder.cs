@@ -10,8 +10,6 @@ namespace NuGetGallery.Infrastructure.Authentication
     {
         public const string LatestPasswordType = CredentialTypes.Password.V3;
 
-        private static readonly string DefaultGuidString = new Guid().ToString();
-
         public Credential CreatePasswordCredential(string plaintextPassword)
         {
             return new Credential(
@@ -22,7 +20,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         public Credential CreateApiKey(TimeSpan? expiration)
         {
             return new Credential(
-               CredentialTypes.ApiKeyV1,
+               CredentialTypes.ApiKey.V2,
                Guid.NewGuid().ToString().ToLowerInvariant(),
                expiration: expiration);
         }
@@ -33,19 +31,6 @@ namespace NuGetGallery.Infrastructure.Authentication
             {
                 Identity = identity
             };
-        }
-
-        public Credential ParseApiKeyCredential(string apiKey)
-        {
-            if (apiKey == DefaultGuidString)
-            {
-                throw new ArgumentException(Strings.ApiKeyCanNotBeDefaultGuid, nameof(apiKey));
-            }
-
-            return new Credential(
-                CredentialTypes.ApiKeyV1,
-                apiKey.ToLowerInvariant(),
-                expiration: TimeSpan.Zero);
         }
     }
 }

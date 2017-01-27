@@ -407,7 +407,7 @@ namespace NuGetGallery
             public async Task WithIdentityNotMatchingUserInRequestReturnsViewWithMessage()
             {
                 var controller = CreateController();
-                controller.SetCurrentUser("userA");
+                controller.SetCurrentUser(new User("userA"));
                 var result = await controller.ConfirmOwner("foo", "userB", "token");
 
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
@@ -549,7 +549,7 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
 
                 var controller = CreateController(packageService: packageService, indexingService: indexingService);
-                controller.SetCurrentUser("Frodo");
+                controller.SetCurrentUser(new User("Frodo"));
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
@@ -585,7 +585,7 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
 
                 var controller = CreateController(packageService: packageService, indexingService: indexingService);
-                controller.SetCurrentUser("Frodo");
+                controller.SetCurrentUser(new User("Frodo"));
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
@@ -1917,7 +1917,7 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
 
                 var controller = CreateController(packageService: packageService, httpContext: httpContext, indexingService: indexingService);
-                controller.SetCurrentUser("Smeagol");
+                controller.SetCurrentUser(new User("Smeagol"));
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act

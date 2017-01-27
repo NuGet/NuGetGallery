@@ -79,20 +79,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Note that your API key has also been updated..
-        /// </summary>
-        public static string ApiKeyAlsoUpdated {
-            get {
-                return ResourceManager.GetString("ApiKeyAlsoUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to API key can not be the default Guid..
         /// </summary>
         public static string ApiKeyCanNotBeDefaultGuid {
             get {
                 return ResourceManager.GetString("ApiKeyCanNotBeDefaultGuid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t generate an API key without a description..
+        /// </summary>
+        public static string ApiKeyDescriptionRequired {
+            get {
+                return ResourceManager.GetString("ApiKeyDescriptionRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A new API key has been generated. Check below and make sure to copy the value, as now is the only time it will be visible..
+        /// </summary>
+        public static string ApiKeyGenerated {
+            get {
+                return ResourceManager.GetString("ApiKeyGenerated", resourceCulture);
             }
         }
         
@@ -111,15 +120,6 @@ namespace NuGetGallery {
         public static string ApiKeyRequired {
             get {
                 return ResourceManager.GetString("ApiKeyRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your API Key has been reset, check the new value below..
-        /// </summary>
-        public static string ApiKeyReset {
-            get {
-                return ResourceManager.GetString("ApiKeyReset", resourceCulture);
             }
         }
         
@@ -215,7 +215,25 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The credential has been removed.
+        ///   Looks up a localized string similar to The credential has been expired..
+        /// </summary>
+        public static string CredentialExpired {
+            get {
+                return ResourceManager.GetString("CredentialExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Credential not found..
+        /// </summary>
+        public static string CredentialNotFound {
+            get {
+                return ResourceManager.GetString("CredentialNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The credential has been removed..
         /// </summary>
         public static string CredentialRemoved {
             get {
@@ -564,15 +582,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No credential to remove..
-        /// </summary>
-        public static string NoCredentialToRemove {
-            get {
-                return ResourceManager.GetString("NoCredentialToRemove", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
         public static string NuGetPackagePropertyTooLong {
@@ -699,7 +708,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your password has been removed.
+        ///   Looks up a localized string similar to Your password has been removed..
         /// </summary>
         public static string PasswordRemoved {
             get {
@@ -708,11 +717,56 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your password has been set.
+        ///   Looks up a localized string similar to Your password has been set..
         /// </summary>
         public static string PasswordSet {
             get {
                 return ResourceManager.GetString("PasswordSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All.
+        /// </summary>
+        public static string ScopeDescription_All {
+            get {
+                return ResourceManager.GetString("ScopeDescription_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push new packages and package versions.
+        /// </summary>
+        public static string ScopeDescription_PushPackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_PushPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push only new package versions.
+        /// </summary>
+        public static string ScopeDescription_PushPackageVersion {
+            get {
+                return ResourceManager.GetString("ScopeDescription_PushPackageVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown.
+        /// </summary>
+        public static string ScopeDescription_Unknown {
+            get {
+                return ResourceManager.GetString("ScopeDescription_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlist package.
+        /// </summary>
+        public static string ScopeDescription_UnlistPackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_UnlistPackage", resourceCulture);
             }
         }
         
@@ -767,6 +821,15 @@ namespace NuGetGallery {
         public static string UnknownAuthenticationProvider {
             get {
                 return ResourceManager.GetString("UnknownAuthenticationProvider", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported.
+        /// </summary>
+        public static string Unsupported {
+            get {
+                return ResourceManager.GetString("Unsupported", resourceCulture);
             }
         }
         

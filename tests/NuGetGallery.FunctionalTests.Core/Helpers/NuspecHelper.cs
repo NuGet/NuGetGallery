@@ -37,7 +37,7 @@ namespace NuGetGallery.FunctionalTests
         /// <returns></returns>
         public async Task<string> CreateDefaultNuspecFile(string packageName, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
         {
-            string packageDir = Path.Combine(Environment.CurrentDirectory, packageName);
+            string packageDir = Path.Combine(Environment.CurrentDirectory, packageName, version);
             if (Directory.Exists(packageDir))
             {
                 Directory.Delete(packageDir, true);
@@ -55,11 +55,11 @@ namespace NuGetGallery.FunctionalTests
             // Apply the minClientVersion to the spec only if it's defined.
             if (minClientVersion != null)
             {
-                UpdateNuspecFile(filePath, "<metadata>", String.Format("<metadata minClientVersion=\"{0}\">", minClientVersion));
+                UpdateNuspecFile(filePath, "<metadata>", $"<metadata minClientVersion=\"{minClientVersion}\">");
             }
             if (title != null)
             {
-                UpdateNuspecFile(filePath, "</metadata>", String.Format("<title>{0}</title></metadata>", title));
+                UpdateNuspecFile(filePath, "</metadata>", $"<title>{title}</title></metadata>");
             }
             if (tags != null)
             {
@@ -71,11 +71,11 @@ namespace NuGetGallery.FunctionalTests
             }
             if (licenseUrl != null)
             {
-                UpdateNuspecFile(filePath, "</metadata>", String.Format("<licenseUrl>{0}</licenseUrl></metadata>", licenseUrl));
+                UpdateNuspecFile(filePath, "</metadata>", $"<licenseUrl>{licenseUrl}</licenseUrl></metadata>");
             }
             if (dependencies != null)
             {
-                UpdateNuspecFile(filePath, "</dependencies>", String.Format("{0}</dependencies>", dependencies));
+                UpdateNuspecFile(filePath, "</dependencies>", $"{dependencies}</dependencies>");
             }
             return filePath;
         }
