@@ -18,30 +18,7 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountPassword;
         private static string _testAccountApiKey;
         private static string _testEmailServerHost;
-        private static bool? _runFunctionalTests;
         private static List<string> _trustedHttpsCertificates;
-
-        /// <summary>
-        /// Option to enable or disable functional tests from the current run.
-        /// </summary>
-        public static bool RunFunctionalTests
-        {
-            get
-            {
-                if (!_runFunctionalTests.HasValue)
-                {
-                    bool runFunctionalTests;
-                    if (!bool.TryParse(Environment.GetEnvironmentVariable("RunFunctionalTests"), out runFunctionalTests))
-                    {
-                        runFunctionalTests = false;
-                    }
-
-                    _runFunctionalTests = runFunctionalTests;
-                }
-
-                return _runFunctionalTests.Value;
-            }
-        }
 
         /// <summary>
         /// The environment against which the test has to be run. The value would be picked from env variable.
