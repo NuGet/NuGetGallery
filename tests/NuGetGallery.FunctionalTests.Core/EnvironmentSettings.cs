@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGetGallery.FunctionalTests
 {
@@ -16,44 +18,7 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountPassword;
         private static string _testAccountApiKey;
         private static string _testEmailServerHost;
-        private static string _runFunctionalTests;
-        private static string _readOnlyMode;
-
-        /// <summary>
-        /// Option to enable or disable functional tests from the current run.
-        /// </summary>
-        public static string RunFunctionalTests
-        {
-            get
-            {
-               if (string.IsNullOrEmpty(_runFunctionalTests))
-                {
-                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RunFunctionalTests")))
-                        _runFunctionalTests = "False";
-                    else
-                        _runFunctionalTests = Environment.GetEnvironmentVariable("RunFunctionalTests");
-                }
-                return _runFunctionalTests;
-            }
-        }
-
-        /// <summary>
-        /// Option to enable or disable functional tests from the current run.
-        /// </summary>
-        public static string ReadOnlyMode
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_readOnlyMode))
-                {
-                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ReadOnlyMode")))
-                        _readOnlyMode = "False";
-                    else
-                        _readOnlyMode = Environment.GetEnvironmentVariable("ReadOnlyMode");
-                }
-                return _readOnlyMode;
-            }
-        }
+        private static List<string> _trustedHttpsCertificates;
 
         /// <summary>
         /// The environment against which the test has to be run. The value would be picked from env variable.
@@ -211,6 +176,43 @@ namespace NuGetGallery.FunctionalTests
                     _testEmailServerHost = Environment.GetEnvironmentVariable("TestEmailServerHost");
                 }
                 return _testEmailServerHost;
+            }
+        }
+
+        public static IEnumerable<string> TrustedHttpsCertificates
+        {
+            get
+            {
+                if (_trustedHttpsCertificates == null)
+                {
+                    var unparsedValued = Environment.GetEnvironmentVariable("TrustedHttpsCertificates") ?? string.Empty;
+
+                    List<string> pieces;
+                    if (unparsedValued.Length == 0)
+                    {
+                        // This list will need to be modified as DEV, INT, and PROD certificates change and are
+                        // renewed. These values are easily and publicly discoverable by inspecting the certificate
+                        // returned from HTTPS browser interactions with the gallery.
+                        pieces = new List<string>
+                        {
+                            "8c11c16610b7a147d10bbcc6a65ce23d321c12c2", // *.nugettest.org
+                            "9d984f91f40d8b3a1fb29153179415523c4e64d1", // *.int.nugettest.org
+                            "3751cb513b93ee67ec9f18a1f2aec1eac87af9bc"  // *.nuget.org
+                        };
+                    }
+                    else
+                    {
+                        pieces = unparsedValued
+                            .Split(',')
+                            .Select(p => p.Trim())
+                            .Where(p => p.Length > 0)
+                            .ToList();
+                    }
+
+                    _trustedHttpsCertificates = pieces;
+                }
+
+                return _trustedHttpsCertificates;
             }
         }
     }

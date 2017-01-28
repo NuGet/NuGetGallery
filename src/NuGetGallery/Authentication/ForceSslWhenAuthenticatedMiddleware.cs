@@ -47,7 +47,12 @@ namespace NuGetGallery.Authentication
                 // Invoke the rest of the pipeline
                 await Next.Invoke(context);
 
-                var cookieOptions = new CookieOptions() { HttpOnly = true };
+                var cookieOptions = new CookieOptions()
+                {
+                    HttpOnly = true,
+                    Secure = context.Request.IsSecure
+                };
+
                 if (context.Authentication.AuthenticationResponseGrant != null)
                 {
                     _logger.WriteVerbose("Auth Grant found, writing Force SSL cookie");
@@ -59,10 +64,7 @@ namespace NuGetGallery.Authentication
                 {
                     _logger.WriteVerbose("Auth Revoke found, removing Force SSL cookie");
                     // We're revoking authentication, so remove the force ssl cookie
-                    context.Response.Cookies.Delete(CookieName, new CookieOptions()
-                    {
-                        HttpOnly = true
-                    });
+                    context.Response.Cookies.Delete(CookieName, cookieOptions);
                 }
             }
         }

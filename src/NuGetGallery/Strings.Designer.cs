@@ -618,7 +618,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
+        ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
         /// </summary>
         public static string PackageExistsAndCannotBeModified {
             get {
@@ -654,7 +654,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; does not exist..
+        ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; does not exist..
         /// </summary>
         public static string PackageWithIdAndVersionNotFound {
             get {
@@ -785,6 +785,15 @@ namespace NuGetGallery {
         public static string UploadFileMustBeNuGetPackage {
             get {
                 return ResourceManager.GetString("UploadFileMustBeNuGetPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is a conflict with the ID and version of your package and another package. Please change your package&apos;s ID or version and try again..
+        /// </summary>
+        public static string UploadPackage_IdVersionConflict {
+            get {
+                return ResourceManager.GetString("UploadPackage_IdVersionConflict", resourceCulture);
             }
         }
         

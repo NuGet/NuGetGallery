@@ -20,9 +20,14 @@ Packages.dgml
 [Dd]ebug/
 [Rr]elease/
 x64/
-#build/ # We use this folder for our Build Scripts
 [Bb]in/
 [Oo]bj/
+
+# Files created and used by our build scripts
+build/ 
+tools/
+.nuget/CredentialProviderBundle.zip
+AssemblyInfo.g.cs
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

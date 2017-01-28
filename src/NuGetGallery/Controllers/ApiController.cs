@@ -332,7 +332,7 @@ namespace NuGetGallery
                         {
                             HashAlgorithm = Constants.Sha512HashAlgorithmId,
                             Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
-                            Size = packageStream.Length,
+                            Size = packageStream.Length
                         };
 
                         var package = await PackageService.CreatePackageAsync(
@@ -341,15 +341,36 @@ namespace NuGetGallery
                             user,
                             commitChanges: false);
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
-                        await EntitiesContext.SaveChangesAsync();
 
                         using (Stream uploadStream = packageStream)
                         {
                             uploadStream.Position = 0;
-                            await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
-                            IndexingService.UpdatePackage(package);
+
+                            try
+                            {
+                                await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
+                            }
+                            catch (InvalidOperationException ex)
+                            {
+                                ex.Log();
+
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
+                            }
                         }
 
+                        try
+                        {
+                            await EntitiesContext.SaveChangesAsync();
+                        }
+                        catch
+                        {
+                            // If saving to the DB fails for any reason, we need to delete the package we just saved.
+                            await PackageFileService.DeletePackageFileAsync(nuspec.GetId(), nuspec.GetVersion().ToNormalizedString());
+                            throw;
+                        }
+
+                        IndexingService.UpdatePackage(package);
+                        
                         // Write an audit record
                         await AuditingService.SaveAuditRecord(
                             new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));

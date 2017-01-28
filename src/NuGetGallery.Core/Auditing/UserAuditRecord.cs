@@ -33,7 +33,8 @@ namespace NuGetGallery.Auditing
             EmailAddress = user.EmailAddress;
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
             Roles = user.Roles.Select(r => r.Name).ToArray();
-            Credentials = user.Credentials.Select(c => new CredentialAuditRecord(c, removed: false)).ToArray();
+            Credentials = user.Credentials.Where(CredentialTypes.IsSupportedCredential)
+                                          .Select(c => new CredentialAuditRecord(c, removed: false)).ToArray();
 
             if (affected != null)
             {
