@@ -137,7 +137,7 @@ namespace NuGetGallery
 
                 service.SaveUploadFileAsync(1, new MemoryStream());
 
-                fakeFileStorageService.Verify(x => x.SaveFileAsync(Constants.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>()));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(Constants.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => b)));
             }
 
             [Fact]
@@ -149,7 +149,7 @@ namespace NuGetGallery
 
                 service.SaveUploadFileAsync(1, new MemoryStream());
 
-                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), expectedFileName, It.IsAny<Stream>()));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), expectedFileName, It.IsAny<Stream>(), It.Is<bool>(b => b)));
             }
 
             [Fact]
@@ -161,7 +161,7 @@ namespace NuGetGallery
 
                 service.SaveUploadFileAsync(1, fakeUploadFileStream);
 
-                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeUploadFileStream));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeUploadFileStream, It.Is<bool>(b => b)));
             }
         }
     }

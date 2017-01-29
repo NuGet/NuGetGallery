@@ -94,8 +94,10 @@ namespace NuGetGallery.Authentication
             next.Verify(n => n.Invoke(It.IsAny<IOwinContext>()));
         }
 
-        [Fact]
-        public async Task GivenNextMiddlewareGrantsAuth_ItDropsForceSslCookie()
+        [Theory]
+        [InlineData("http", false)]
+        [InlineData("https", true)]
+        public async Task GivenNextMiddlewareGrantsAuth_ItDropsForceSslCookie(string protocol, bool secure)
         {
             // Arrange
             var context = Fakes.CreateOwinContext();
@@ -110,14 +112,14 @@ namespace NuGetGallery.Authentication
                     return Task.FromResult<object>(null);
                 });
             context.Request
-                .SetUrl("http://nuget.local/foo/bar/baz?qux=qooz");
+                .SetUrl(protocol + "://nuget.local/foo/bar/baz?qux=qooz");
             var middleware = new ForceSslWhenAuthenticatedMiddleware(next.Object, app, "ForceSSL", 443);
 
             // Act
             await middleware.Invoke(context);
 
             // Assert
-            OwinAssert.SetsCookie(context.Response, "ForceSSL", "true");
+            OwinAssert.SetsCookie(context.Response, "ForceSSL", "true", secure);
         }
 
         [Fact]

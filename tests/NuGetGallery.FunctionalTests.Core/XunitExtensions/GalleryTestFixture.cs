@@ -13,17 +13,6 @@ namespace NuGetGallery.FunctionalTests
     {
         public GalleryTestFixture()
         {
-            // Initialize the test collection shared context.
-            // Check if functional tests is enabled.
-            // If not, do an assert inconclusive.
-#if DEBUG
-#else
-            if (!EnvironmentSettings.RunFunctionalTests.Equals("True", System.StringComparison.OrdinalIgnoreCase))
-            {
-                throw new System.InvalidOperationException("Functional tests are disabled in the current run. Please set environment variable RunFuntionalTests to True to enable them");
-            }
-#endif
-
             // suppress SSL validation for *.cloudapp.net
             ServicePointManagerInitializer.InitializeServerCertificateValidationCallback();
             Task.Run(async () =>

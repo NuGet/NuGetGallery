@@ -1169,10 +1169,28 @@ namespace NuGetGallery
 
                 // save package to blob storage
                 uploadFile.Position = 0;
-                await _packageFileService.SavePackageFileAsync(package, uploadFile.AsSeekableStream());
+                try
+                {
+                    await _packageFileService.SavePackageFileAsync(package, uploadFile.AsSeekableStream());
+                }
+                catch (InvalidOperationException ex)
+                {
+                    ex.Log();
+                    TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
+                    return new RedirectResult(Url.VerifyPackage());
+                }
 
-                // commit all changes to database as an atomic transaction
-                await _entitiesContext.SaveChangesAsync();
+                try
+                {
+                    // commit all changes to database as an atomic transaction
+                    await _entitiesContext.SaveChangesAsync();
+                }
+                catch
+                {
+                    // If saving to the DB fails for any reason we need to delete the package we just saved.
+                    await _packageFileService.DeletePackageFileAsync(packageMetadata.Id, packageMetadata.Version.ToNormalizedString());
+                    throw;
+                }
 
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();

@@ -30,39 +30,29 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             _packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
         }
 
-        private bool CanUploadToSite()
-        {
-            // Temporary workaround for the SSL issue, which keeps the upload test from working with cloudapp.net sites
-            return UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org") ||
-                   UrlHelper.BaseUrl.Contains("nuget.localtest.me");
-        }
-
         [Fact]
         [Description("Upload two packages and then issue the FindPackagesById request, expect to return both versions")]
         [Priority(1)]
         [Category("P0Tests")]
         public async Task FindPackagesByIdTest()
         {
-            if (CanUploadToSite())
+            string packageId = string.Format("TestV2FeedFindPackagesById.{0}", DateTime.UtcNow.Ticks);
+
+            TestOutputHelper.WriteLine("Uploading package '{0}'", packageId);
+            await _clientSdkHelper.UploadNewPackage(packageId);
+
+            TestOutputHelper.WriteLine("Uploaded package '{0}'", packageId);
+            await _clientSdkHelper.UploadNewPackage(packageId, "2.0.0");
+
+            // "&$orderby=Version" is appended to bypass the search hijacker
+            string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'&$orderby=Version";
+            string[] expectedTexts =
             {
-                string packageId = string.Format("TestV2FeedFindPackagesById.{0}", DateTime.UtcNow.Ticks);
-
-                TestOutputHelper.WriteLine("Uploading package '{0}'", packageId);
-                await _clientSdkHelper.UploadNewPackage(packageId);
-
-                TestOutputHelper.WriteLine("Uploaded package '{0}'", packageId);
-                await _clientSdkHelper.UploadNewPackage(packageId, "2.0.0");
-
-                // "&$orderby=Version" is appended to bypass the search hijacker
-                string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'&$orderby=Version";
-                string[] expectedTexts =
-                {
                     @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='1.0.0')</id>",
                     @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>"
                 };
-                var containsResponseText = await _odataHelper.ContainsResponseText(url, expectedTexts);
-                Assert.True(containsResponseText);
-            }
+            var containsResponseText = await _odataHelper.ContainsResponseText(url, expectedTexts);
+            Assert.True(containsResponseText);
         }
 
         private const int PackagesInOrderNumPackages = 10;
@@ -76,32 +66,28 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             // This test uploads/unlists packages in a particular order to test the timestamps of the packages in the feed.
             // Because it waits for previous requests to finish before starting new ones, it will only catch ordering issues if these issues are greater than a second or two.
             // This is consistent with the time frame in which we've seen these issues in the past, but if new issues arise that are on a smaller scale, this test will not catch it!
+            var packageIds = new List<string>(PackagesInOrderNumPackages);
+            var startingTime = DateTime.UtcNow;
 
-            if (CanUploadToSite())
+            // Upload the packages in order.
+            var uploadStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
+            for (var i = 0; i < PackagesInOrderNumPackages; i++)
             {
-                var packageIds = new List<string>(PackagesInOrderNumPackages);
-                var startingTime = DateTime.UtcNow;
-                
-                // Upload the packages in order.
-                var uploadStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
-                for (var i = 0; i < PackagesInOrderNumPackages; i++)
-                {
-                    var packageId = GetPackagesAppearInFeedInOrderPackageId(startingTime, i);
-                    await _clientSdkHelper.UploadNewPackage(packageId);
-                    packageIds.Add(packageId);
-                }
-                
-                await CheckPackageTimestampsInOrder(packageIds, "Created", uploadStartTimestamp);
-
-                // Unlist the packages in order.
-                var unlistStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
-                for (var i = 0; i < PackagesInOrderNumPackages; i++)
-                {
-                    await _clientSdkHelper.UnlistPackage(packageIds[i]);
-                }
-                
-                await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp);
+                var packageId = GetPackagesAppearInFeedInOrderPackageId(startingTime, i);
+                await _clientSdkHelper.UploadNewPackage(packageId);
+                packageIds.Add(packageId);
             }
+
+            await CheckPackageTimestampsInOrder(packageIds, "Created", uploadStartTimestamp);
+
+            // Unlist the packages in order.
+            var unlistStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
+            for (var i = 0; i < PackagesInOrderNumPackages; i++)
+            {
+                await _clientSdkHelper.UnlistPackage(packageIds[i]);
+            }
+
+            await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp);
         }
 
         private static string GetPackagesAppearInFeedInOrderPackageId(DateTime startingTime, int i)
