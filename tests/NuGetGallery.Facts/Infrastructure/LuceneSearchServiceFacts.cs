@@ -304,7 +304,6 @@ namespace NuGetGallery.Infrastructure
         [InlineData("Owners", "NugetCoreOwner")]
         [InlineData("Authors", "Alpha")]
         [InlineData("Author", "Alpha")]
-        [InlineData("Authors", "Alpha")]
         [InlineData("author", "\"Alpha Beta Gamma\"")]
         [InlineData("Description", "core framework")]
         [InlineData("Tags", "dotnet")]

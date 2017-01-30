@@ -415,6 +415,24 @@ namespace NuGetGallery.Authentication
                 Assert.Null(user.LastFailedLoginUtc);
             }
 
+            [Fact]
+            public async Task WhenUserLoginSucceedsAfterSuccessFailureDetailsAreReset()
+            {
+                // Arrange
+                var user = _fakes.User;
+                user.FailedLoginCount = 0;
+                user.LastFailedLoginUtc = DateTime.UtcNow;
+
+                // Act
+                var result = await _authenticationService.Authenticate(user.Username, Fakes.Password);
+
+                // Assert
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.Success, result.Result);
+                Assert.Same(user, result.AuthenticatedUser.User);
+                Assert.Equal(0, user.FailedLoginCount);
+                Assert.Null(user.LastFailedLoginUtc);
+            }
+
             [Theory]
             [MemberData("VerifyAccountLockoutTimeCalculation_Data")]
             public async Task VerifyAccountLockoutTimeCalculation(int failureCount, DateTime? lastFailedLoginTime, DateTime currentTime, int expectedLockoutMinutesLeft)
