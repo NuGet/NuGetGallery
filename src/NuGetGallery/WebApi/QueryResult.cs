@@ -176,11 +176,23 @@ namespace NuGetGallery.WebApi
                     // Handle single result
                     if (modelQueryResults != null)
                     {
-                        return NegotiatedContentResult(modelQueryResults.FirstOrDefault());
+                        var model = modelQueryResults.FirstOrDefault();
+                        if (model == null)
+                        {
+                            return NotFoundResult();
+                        }
+
+                        return NegotiatedContentResult(model);
                     }
                     else if (projectedQueryResults != null)
                     {
-                        return NegotiatedContentResult(projectedQueryResults.AsEnumerable().FirstOrDefault());
+                        var model = projectedQueryResults.AsEnumerable().FirstOrDefault();
+                        if (model == null)
+                        {
+                            return NotFoundResult();
+                        }
+
+                        return NegotiatedContentResult(model);
                     }
                 }
             }
