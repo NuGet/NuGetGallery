@@ -175,6 +175,8 @@ build/artifacts/
 tests/Scripts/TestResults[*].trx
 src/NuGetGallery.Cloud/ecf/
 *.trx
+tests/functionaltests*.html
+Results.?.xml
 
 # Vs2015
 # The applicationhost.config is ignored, but already comitted on purpose

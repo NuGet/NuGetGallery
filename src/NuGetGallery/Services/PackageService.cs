@@ -221,6 +221,11 @@ namespace NuGetGallery
             return mergedResults.Values;
         }
 
+        public IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
+        {
+            return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Username == user.Username));
+        }
+
         public IEnumerable<Package> FindDependentPackages(Package package)
         {
             // Grab all candidates

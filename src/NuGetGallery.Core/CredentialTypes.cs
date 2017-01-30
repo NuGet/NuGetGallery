@@ -17,7 +17,13 @@ namespace NuGetGallery
             public const string V3 = Prefix + "v3";
         }
 
-        public const string ApiKeyV1 = "apikey.v1";
+        public static class ApiKey
+        {
+            public const string Prefix = "apikey.";
+            public const string V1 = Prefix + "v1";
+            public const string V2 = Prefix + "v2";
+        }
+
         public const string ExternalPrefix = "external.";
 
         public static bool IsPassword(string type)
@@ -25,7 +31,12 @@ namespace NuGetGallery
             return type.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase);
         }
 
-        internal static List<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKeyV1 };
+        public static bool IsApiKey(string type)
+        {
+            return type.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static List<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2 };
 
         /// <summary>
         /// Forward compatibility - we support only the below subset of credentials in this code version.

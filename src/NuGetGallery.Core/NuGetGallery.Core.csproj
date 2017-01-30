@@ -146,6 +146,7 @@
     <Compile Include="Auditing\PackageRegistrationAuditRecord.cs" />
     <Compile Include="Auditing\AuditedUserAction.cs" />
     <Compile Include="Auditing\PackageAuditRecord.cs" />
+    <Compile Include="Auditing\ScopeAuditRecord.cs" />
     <Compile Include="Auditing\UserAuditAction.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
     <Compile Include="CoreConstants.cs" />
@@ -181,6 +182,7 @@
     <Compile Include="Entities\PackageType.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
+    <Compile Include="Entities\Scope.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="PackageReaderCoreExtensions.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />

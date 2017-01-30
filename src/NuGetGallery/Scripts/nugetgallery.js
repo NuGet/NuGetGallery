@@ -70,7 +70,7 @@
         });
         $('.s-confirm[data-confirm]').delegate('', 'click', function (evt) {
             if (!confirm($(this).data().confirm)) {
-                evt.preventDefault();
+                evt.stopPropagation();
             }
         });
         if (!hasMimeTypeSupport("application/x-shockwave-flash")) {

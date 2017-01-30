@@ -28,5 +28,14 @@
     "orderby",
     "skip, top",
     "filter, select, top",
-    "filter, inlinecount, select, top"] 
+    "filter, inlinecount, select, top",
+    "orderby, select",
+    "filter, select, skip",
+    "inlinecount",
+    "select, skip",
+    "format, top",
+    "filter, format",
+    "orderby, skiptoken, top",
+    "filter, orderby, skip, skiptoken, top"
+  ] 
 }

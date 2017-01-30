@@ -698,7 +698,9 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
     <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
+    <Compile Include="Authentication\NuGetPackagePattern.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
+    <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
@@ -746,6 +748,7 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\TelemetryResponseCodeFilter.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
@@ -818,6 +821,22 @@
     <Compile Include="Migrations\201610042351343_AddUserFailedLogin.cs" />
     <Compile Include="Migrations\201610042351343_AddUserFailedLogin.Designer.cs">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609211206577_ApiKeyDescription.cs" />
+    <Compile Include="Migrations\201609211206577_ApiKeyDescription.Designer.cs">
+      <DependentUpon>201609211206577_ApiKeyDescription.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609260823310_ScopedCredential.cs" />
+    <Compile Include="Migrations\201609260823310_ScopedCredential.Designer.cs">
+      <DependentUpon>201609260823310_ScopedCredential.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609270831462_AddExpirationColumn.cs" />
+    <Compile Include="Migrations\201609270831462_AddExpirationColumn.Designer.cs">
+      <DependentUpon>201609270831462_AddExpirationColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201701120413341_AddScopeCredentialKey.cs" />
+    <Compile Include="Migrations\201701120413341_AddScopeCredentialKey.Designer.cs">
+      <DependentUpon>201701120413341_AddScopeCredentialKey.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.cs" />
     <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.Designer.cs">
@@ -1407,7 +1426,9 @@
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
+    <Compile Include="Authentication\ScopeEvaluator.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
+    <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
@@ -1419,6 +1440,15 @@
     <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="Content\admin\SupportRequestStyles.css" />
+    <Content Include="Content\Images\icons\apiKey.png" />
+    <Content Include="Content\Images\icons\apiKeyExpired.png" />
+    <Content Include="Content\Images\icons\apiKeyLegacy.png" />
+    <Content Include="Content\Images\icons\apiKeyNew.png" />
+    <Content Include="Content\Images\icons\copy.png" />
+    <Content Include="Content\Images\icons\delete.png" />
+    <Content Include="Content\Images\icons\edit.png" />
+    <Content Include="Content\Images\icons\expire.png" />
+    <Content Include="Content\Images\icons\regenerate.png" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -1681,6 +1711,7 @@
     <Content Include="Views\Pages\Privacy.cshtml" />
     <Content Include="Views\Pages\Terms.cshtml" />
     <Content Include="Views\Pages\About.cshtml" />
+    <Content Include="Views\Users\ApiKeys.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -1953,6 +1984,18 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201610042351343_AddUserFailedLogin.resx">
       <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609211206577_ApiKeyDescription.resx">
+      <DependentUpon>201609211206577_ApiKeyDescription.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609260823310_ScopedCredential.resx">
+      <DependentUpon>201609260823310_ScopedCredential.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609270831462_AddExpirationColumn.resx">
+      <DependentUpon>201609270831462_AddExpirationColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201701120413341_AddScopeCredentialKey.resx">
+      <DependentUpon>201701120413341_AddScopeCredentialKey.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.resx">
       <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>

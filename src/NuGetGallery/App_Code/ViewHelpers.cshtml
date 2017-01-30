@@ -213,3 +213,84 @@
         }
     }
 }
+
+@helper AccordionBar(
+    string groupName,
+    WebViewPage page,
+    string title,
+    string subtitle = null,
+    bool enabled = true,
+    string formModelStatePrefix = null,
+    Func<AccordionHelper, HelperResult> actions = null,
+    Func<AccordionHelper, HelperResult> content = null
+)
+{
+Func<AccordionHelper, HelperResult> titleTemplate = null;
+if (!string.IsNullOrEmpty(title))
+{
+    titleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@title</text>);
+    }
+
+    Func<AccordionHelper, HelperResult> subtitleTemplate = null;
+    if (!string.IsNullOrEmpty(subtitle))
+    {
+        subtitleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@subtitle</text>);
+    }
+
+    @AccordionBar(groupName,
+        page,
+        titleTemplate,
+        subtitleTemplate,
+        enabled,
+        formModelStatePrefix,
+        actions,
+        content)
+}
+
+@helper AccordionBar(
+    string groupName,
+    WebViewPage page,
+    Func<AccordionHelper, HelperResult> title,
+    Func<AccordionHelper, HelperResult> subtitle = null,
+    bool enabled = true,
+    string formModelStatePrefix = null,
+    Func<AccordionHelper, HelperResult> actions = null,
+    Func<AccordionHelper, HelperResult> content = null,
+    bool expanded = false
+)
+{
+    @* Calculate Accordion Index *@
+string dataKey = "___AccordionCounter_" + groupName;
+int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
+int id = lastId + 1;
+HttpContext.Current.Items[dataKey] = id;
+string name = groupName + "-" + id.ToString();
+string actionsId = name + "-actions"; 
+
+var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
+    <li id="@hlp.ItemId" class="accordion-item @(enabled ? "accordion-item-enabled" : "accordion-item-disabled")">
+        <div class="accordion-item-header">
+            @if (actions != null)
+            {
+                <div class="accordion-item-actions" id="@actionsId" >
+                    @actions(hlp)
+                </div>
+            }
+            <span class="accordion-item-title">
+                @title(hlp)
+            </span>
+            @if (subtitle != null)
+            {
+                <span class="accordion-item-subtitle">
+                    @subtitle(hlp)
+                </span>
+            }
+        </div>
+        @if (content != null)
+        {
+            <div id="@hlp.ContentDropDownId" class="accordion-item-content @(!expanded ? hlp.ContentHiddenClass : string.Empty)">
+                @content(hlp)
+            </div>
+        }
+    </li>
+}

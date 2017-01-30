@@ -24,11 +24,12 @@ namespace NuGetGallery.Infrastructure
                     TestCredentialBuilder.CreatePbkdf2Password("pbkdf2"),
                     TestCredentialBuilder.CreateSha1Password("sha1"),
                     TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialBuilder.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
                     credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"),
-                    new Credential() { Type = "unsupported" }
+                    new Credential { Type = "unsupported" }
             };
 
-            var user = new User()
+            var user = new User
             {
                 Username = "name",
                 Credentials = credentials
@@ -39,12 +40,13 @@ namespace NuGetGallery.Infrastructure
 
             // Assert
             var auditRecords = userAuditRecord.Credentials.ToDictionary(c => c.Type);
-            Assert.Equal(5, auditRecords.Count);
+            Assert.Equal(6, auditRecords.Count);
             Assert.True(auditRecords.ContainsKey(credentials[0].Type));
             Assert.True(auditRecords.ContainsKey(credentials[1].Type));
             Assert.True(auditRecords.ContainsKey(credentials[2].Type));
             Assert.True(auditRecords.ContainsKey(credentials[3].Type));
             Assert.True(auditRecords.ContainsKey(credentials[4].Type));
+            Assert.True(auditRecords.ContainsKey(credentials[5].Type));
         }
     }
 }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -114,6 +115,8 @@ namespace NuGetGallery
 
                 [Theory]
                 [InlineData("https://nuget.org/api/v2/Packages(Id='NoFoo',Version='1.0.0')")]
+                [InlineData("https://nuget.org/api/v2/Packages(Id='Foo',Version='1.0.0')?$filter=Id%20eq%20%27SomethingElse%27")]
+                [InlineData("https://nuget.org/api/v2/Packages(Id='Foo',Version='1.0.0')?$filter=Id%20eq%20%27SomethingElse%27&$select=Id")]
                 public async Task Return404NotFoundForUnexistingPackage(string requestUrl)
                 {
                     using (var server = FeedServiceHelpers.SetupODataServer())
@@ -121,7 +124,7 @@ namespace NuGetGallery
                         var client = new HttpClient(server);
                         var response = await client.GetAsync(requestUrl);
 
-                        Assert.False(response.IsSuccessStatusCode);
+                        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
                     }
                 }
 

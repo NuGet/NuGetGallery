@@ -10,11 +10,12 @@ namespace NuGetGallery.Helpers
     {
         private readonly bool _expanded;
 
-        public string Name { get; private set; }
-        public string FormModelStatePrefix { get; private set; }
-        public WebViewPage Page { get; private set; }
+        public string Name { get; }
+        public string FormModelStatePrefix { get; }
+        public WebViewPage Page { get; }
         public string ItemId { get { return Name + "-item"; } }
         public string ContentDropDownId { get { return Name + "-content"; } }
+        public string CollapseButtonId { get { return Name + "-collapse"; } }
         public string ContentHiddenClass { get { return Expanded ? null : "s-hidden"; } }
 
         public bool Expanded
@@ -42,6 +43,8 @@ namespace NuGetGallery.Helpers
                 ContentDropDownId +
                 "\" data-toggletext=\"" +
                 (Expanded ? closedTitle : expandedTitle) +
+                "\" id=\"" +
+                CollapseButtonId +
                 "\">" +
                 (Expanded ? expandedTitle : closedTitle) +
                 "</a>");
@@ -54,6 +57,8 @@ namespace NuGetGallery.Helpers
                 ContentDropDownId +
                 "\" data-toggletext=\"" +
                 (Expanded ? closedTitle : expandedTitle) +
+                "\" id=\"" +
+                CollapseButtonId +
                 "\">" +
                 (Expanded ? expandedTitle : closedTitle) +
                 "</a>");

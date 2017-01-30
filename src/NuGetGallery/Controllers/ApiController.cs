@@ -18,6 +18,7 @@ using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Auditing.AuditedEntities;
+using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
@@ -212,6 +213,7 @@ namespace NuGetGallery
         [HttpPut]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePut()
         {
@@ -221,6 +223,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost()
         {
@@ -292,8 +295,20 @@ namespace NuGetGallery
 
                         // Ensure that the user can push packages for this partialId.
                         var packageRegistration = PackageService.FindPackageRegistrationById(nuspec.GetId());
-                        if (packageRegistration != null)
+                        if (packageRegistration == null)
                         {
+                            // Check if API key allows pushing a new package id
+                            if (!ApiKeyScopeAllows(
+                                subject: nuspec.GetId(), 
+                                requestedActions: NuGetScopes.PackagePush))
+                            {
+                                // User cannot push a new package ID as the API key scope does not allow it
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
+                            }
+                        }
+                        else
+                        {
+                            // Is the user allowed to push this Id?
                             if (!packageRegistration.IsOwner(user))
                             {
                                 // Audit that a non-owner tried to push the package
@@ -306,15 +321,24 @@ namespace NuGetGallery
 
                                 // User cannot push a package to an ID owned by another user.
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
-                                    String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
+                                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
                                         nuspec.GetId()));
+                            }
+
+                            // Check if API key allows pushing the current package id
+                            if (!ApiKeyScopeAllows(
+                                packageRegistration.Id, 
+                                NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
+                            {
+                                // User cannot push a package as the API key scope does not allow it
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
                             }
 
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
                             string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
                             bool packageExists =
                                 packageRegistration.Packages.Any(
-                                    p => String.Equals(
+                                    p => string.Equals(
                                         p.NormalizedVersion,
                                         normalizedVersion,
                                         StringComparison.OrdinalIgnoreCase));
@@ -323,7 +347,7 @@ namespace NuGetGallery
                             {
                                 return new HttpStatusCodeWithBodyResult(
                                     HttpStatusCode.Conflict,
-                                    String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
+                                    string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
                                         nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe()));
                             }
                         }
@@ -403,6 +427,13 @@ namespace NuGetGallery
             }
         }
 
+        private bool ApiKeyScopeAllows(string subject, params string[] requestedActions)
+        {
+            return User.Identity.HasScopeThatAllowsActionForSubject(
+                subject: subject,
+                requestedActions: requestedActions);
+        }
+
         private static ActionResult BadRequestForExceptionMessage(Exception ex)
         {
             return new HttpStatusCodeWithBodyResult(
@@ -413,6 +444,7 @@ namespace NuGetGallery
         [HttpDelete]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("DeletePackageApi")]
         public virtual async Task<ActionResult> DeletePackage(string id, string version)
         {
@@ -429,6 +461,14 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
+            // Check if API key allows listing/unlisting the current package id
+            if (!ApiKeyScopeAllows(
+                subject: id, 
+                requestedActions: NuGetScopes.PackageUnlist))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
+
             await PackageService.MarkPackageUnlistedAsync(package);
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
@@ -437,6 +477,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("PublishPackageApi")]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
         {
@@ -451,6 +492,14 @@ namespace NuGetGallery
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
+            }
+
+            // Check if API key allows listing/unlisting the current package id
+            if (!ApiKeyScopeAllows(
+                subject: id, 
+                requestedActions: NuGetScopes.PackageUnlist))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
             await PackageService.MarkPackageListedAsync(package);

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,6 +17,7 @@ namespace NuGetGallery
         /// </summary>
         public Credential()
         {
+            Scopes = new List<Scope>();
         }
 
 
@@ -45,6 +47,7 @@ namespace NuGetGallery
             if (expiration.HasValue && expiration.Value > TimeSpan.Zero)
             {
                 Expires = DateTime.UtcNow.Add(expiration.Value);
+                ExpirationTicks = expiration.Value.Ticks;
             }
         }
 
@@ -62,6 +65,9 @@ namespace NuGetGallery
         public string Value { get; set; }
 
         [StringLength(maximumLength: 256)]
+        public string Description { get; set; }
+
+        [StringLength(maximumLength: 256)]
         public string Identity { get; set; }
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
@@ -69,9 +75,13 @@ namespace NuGetGallery
 
         public DateTime? Expires { get; set; }
 
+        public long? ExpirationTicks { get; set; }
+
         public DateTime? LastUsed { get; set; }
 
         public virtual User User { get; set; }
+
+        public virtual ICollection<Scope> Scopes { get; set; }
 
         [NotMapped]
         public bool HasExpired

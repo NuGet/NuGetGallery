@@ -8,5 +8,7 @@ namespace NuGetGallery.Authentication
         // Normally public consts are bad, but here we can't change the claim URL without messing
         // things up, so we should encourage that by using a const.
         public const string ApiKey = "https://claims.nuget.org/apikey";
+
+        public const string Scope = "https://claims.nuget.org/scope";
     }
 }

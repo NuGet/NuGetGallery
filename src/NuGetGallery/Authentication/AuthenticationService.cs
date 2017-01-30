@@ -172,7 +172,19 @@ namespace NuGetGallery.Authentication
             }
         }
 
+        public virtual async Task<AuthenticatedUser> Authenticate(string apiKey)
+        {
+            return await AuthenticateInternal(
+                FindMatchingApiKey,
+                new Credential { Type = CredentialTypes.ApiKey.Prefix, Value = apiKey });
+        }
+
         public virtual async Task<AuthenticatedUser> Authenticate(Credential credential)
+        {
+            return await AuthenticateInternal(FindMatchingCredential, credential);
+        }
+
+        private async Task<AuthenticatedUser> AuthenticateInternal(Func<Credential, Credential> matchCredential, Credential credential)
         {
             if (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase))
             {
@@ -182,7 +194,7 @@ namespace NuGetGallery.Authentication
 
             using (_trace.Activity("Authenticate Credential: " + credential.Type))
             {
-                var matched = FindMatchingCredential(credential);
+                var matched = matchCredential(credential);
 
                 if (matched == null)
                 {
@@ -193,7 +205,7 @@ namespace NuGetGallery.Authentication
 
                     return null;
                 }
-                
+
                 if (matched.HasExpired)
                 {
                     _trace.Verbose("Credential of type '" + matched.Type + "' for user '" + matched.User.Username + "' has expired on " + matched.Expires.Value.ToString("O", CultureInfo.InvariantCulture));
@@ -201,7 +213,7 @@ namespace NuGetGallery.Authentication
                     return null;
                 }
 
-                if (matched.Type == CredentialTypes.ApiKeyV1 
+                if (matched.Type == CredentialTypes.ApiKey.V1
                     && !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
                 {
                     // API key credential was last used a long, long time ago - expire it
@@ -212,8 +224,8 @@ namespace NuGetGallery.Authentication
                     await Entities.SaveChangesAsync();
 
                     _trace.Verbose(
-                        "Credential of type '" + matched.Type 
-                        + "' for user '" + matched.User.Username 
+                        "Credential of type '" + matched.Type
+                        + "' for user '" + matched.User.Username
                         + "' was last used on " + matched.LastUsed.Value.ToString("O", CultureInfo.InvariantCulture)
                         + " and has now expired.");
 
@@ -274,8 +286,7 @@ namespace NuGetGallery.Authentication
                 CreatedUtc = _dateTimeProvider.UtcNow
             };
 
-            // Add a credential for the password and the API Key
-            newUser.Credentials.Add(_credentialBuilder.CreateApiKey(TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1)));
+            // Add a credential for the password
             newUser.Credentials.Add(credential);
 
             if (!_config.ConfirmEmailAddresses)
@@ -393,7 +404,7 @@ namespace NuGetGallery.Authentication
             await Entities.SaveChangesAsync();
         }
 
-        public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword, bool resetApiKey)
+        public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword)
         {
             var hasPassword = user.Credentials.Any(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
@@ -408,14 +419,6 @@ namespace NuGetGallery.Authentication
             var passwordCredential = _credentialBuilder.CreatePasswordCredential(newPassword);
             await ReplaceCredentialInternal(user, passwordCredential);
 
-            // Reset existing API keys
-            if (resetApiKey)
-            {
-                var apiKeyCredential = _credentialBuilder.CreateApiKey(TimeSpan.FromDays(_config.ExpirationInDaysForApiKeyV1));
-
-                await ReplaceCredentialInternal(user, apiKeyCredential);
-            }
-
             // Save changes
             await Entities.SaveChangesAsync();
             return true;
@@ -427,7 +430,7 @@ namespace NuGetGallery.Authentication
 
             if (!Authenticators.TryGetValue(providerName, out provider))
             {
-                throw new InvalidOperationException(String.Format(
+                throw new InvalidOperationException(string.Format(
                     CultureInfo.CurrentCulture,
                     Strings.UnknownAuthenticationProvider,
                     providerName));
@@ -435,7 +438,7 @@ namespace NuGetGallery.Authentication
 
             if (!provider.BaseConfig.Enabled)
             {
-                throw new InvalidOperationException(String.Format(
+                throw new InvalidOperationException(string.Format(
                     CultureInfo.CurrentCulture,
                     Strings.AuthenticationProviderDisabled,
                     providerName));
@@ -455,27 +458,35 @@ namespace NuGetGallery.Authentication
         {
             var kind = GetCredentialKind(credential.Type);
             Authenticator auther = null;
+
             if (kind == CredentialKind.External)
             {
                 string providerName = credential.Type.Split('.')[1];
-                if (!Authenticators.TryGetValue(providerName, out auther))
-                {
-                    auther = null;
-                }
+                Authenticators.TryGetValue(providerName, out auther);
             }
 
-            return new CredentialViewModel
+            var credentialViewModel = new CredentialViewModel
             {
+                Key = credential.Key,
                 Type = credential.Type,
                 TypeCaption = FormatCredentialType(credential.Type),
                 Identity = credential.Identity,
-                Value = kind == CredentialKind.Token ? credential.Value : String.Empty,
                 Created = credential.Created,
                 Expires = credential.Expires,
-                LastUsed = credential.LastUsed,
                 Kind = kind,
-                AuthUI = auther?.GetUI()
+                AuthUI = auther?.GetUI(),
+                // Set the description as the value for legacy API keys
+                Description = credential.Description, 
+                Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
+                Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, NuGetScopes.Describe(s.AllowedAction))).ToList(),
+                ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null
             };
+
+            credentialViewModel.HasExpired = credential.HasExpired ||
+                                             (credentialViewModel.IsNonScopedV1ApiKey &&
+                                              !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
+
+            return credentialViewModel;
         }
 
         public virtual async Task RemoveCredential(User user, Credential cred)
@@ -484,6 +495,20 @@ namespace NuGetGallery.Authentication
             user.Credentials.Remove(cred);
             Entities.Credentials.Remove(cred);
             await Entities.SaveChangesAsync();
+        }
+
+        public virtual async Task EditCredentialScopes(User user, Credential cred, ICollection<Scope> newScopes)
+        {
+            foreach (var oldScope in cred.Scopes.ToArray())
+            {
+                Entities.Scopes.Remove(oldScope);
+            }
+
+            cred.Scopes = newScopes;
+
+            await Entities.SaveChangesAsync();
+
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.EditCredential, cred));
         }
 
         public virtual async Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)
@@ -600,11 +625,11 @@ namespace NuGetGallery.Authentication
 
         private static CredentialKind GetCredentialKind(string type)
         {
-            if (type.StartsWith("apikey", StringComparison.OrdinalIgnoreCase))
+            if (CredentialTypes.IsApiKey(type))
             {
                 return CredentialKind.Token;
             }
-            else if (type.StartsWith("password", StringComparison.OrdinalIgnoreCase))
+            else if (CredentialTypes.IsPassword(type))
             {
                 return CredentialKind.Password;
             }
@@ -646,9 +671,28 @@ namespace NuGetGallery.Authentication
                 .Set<Credential>()
                 .Include(u => u.User)
                 .Include(u => u.User.Roles)
+                .Include(u => u.Scopes)
                 .Where(c => c.Type == credential.Type && c.Value == credential.Value)
                 .ToList();
 
+            return ValidateFoundCredentials(results, credential.Type);
+        }
+
+        private Credential FindMatchingApiKey(Credential apiKeyCredential)
+        {
+            var results = Entities
+                .Set<Credential>()
+                .Include(u => u.User)
+                .Include(u => u.User.Roles)
+                .Include(u => u.Scopes)
+                .Where(c => (c.Type == CredentialTypes.ApiKey.V1 || c.Type == CredentialTypes.ApiKey.V2) && c.Value == apiKeyCredential.Value)
+                .ToList();
+
+            return ValidateFoundCredentials(results, "ApiKey");
+        }
+
+        private Credential ValidateFoundCredentials(List<Credential> results, string credentialType)
+        {
             if (results.Count == 0)
             {
                 return null;
@@ -659,11 +703,11 @@ namespace NuGetGallery.Authentication
             }
             else
             {
-                // Don't put the credential itself in trace, but do put the Key for lookup later.
+                // Don't put the credential itself in trace, but do put the key for lookup later.
                 string message = string.Format(
                     CultureInfo.CurrentCulture,
                     Strings.MultipleMatchingCredentials,
-                    credential.Type,
+                    credentialType,
                     results.First().Key);
                 _trace.Error(message);
                 throw new InvalidOperationException(message);
@@ -708,13 +752,10 @@ namespace NuGetGallery.Authentication
 
         private async Task UpdateSuccessfulLoginAttempt(User user)
         {
-            if (user.FailedLoginCount > 0)
-            {
-                user.FailedLoginCount = 0;
-                user.LastFailedLoginUtc = null;
+            user.FailedLoginCount = 0;
+            user.LastFailedLoginUtc = null;
 
-                await Entities.SaveChangesAsync();
-            }
+            await Entities.SaveChangesAsync();
         }
 
         private bool IsAccountLocked(User user, out int remainingMinutes)
@@ -775,6 +816,13 @@ namespace NuGetGallery.Authentication
             }
 
             // Save changes, if any
+            await Entities.SaveChangesAsync();
+        }
+
+        public virtual async Task ExpireCredential(User user, Credential credential)
+        {
+            credential.Expires = DateTime.UtcNow;
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, AuditedUserAction.ExpireCredential, credential));
             await Entities.SaveChangesAsync();
         }
     }

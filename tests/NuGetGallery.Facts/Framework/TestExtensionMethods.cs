@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
@@ -18,12 +19,25 @@ namespace NuGetGallery
         /// does NOT use AppController.GetCurrentUser()! In those cases, use
         /// TestExtensionMethods.SetCurrentUser(AppController, User) instead.
         /// </summary>
-        /// <param name="name"></param>
-        public static void SetCurrentUser(this AppController self, string name)
+        public static void SetOwinContextCurrentUser(this AppController self, User user, string scopes = null)
         {
-            var principal = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                    new [] { new Claim(ClaimTypes.Name, String.IsNullOrEmpty(name) ? "theUserName" : name) }));
+            ClaimsIdentity identity = null;
+
+            if (scopes != null)
+            {
+                identity = AuthenticationService.CreateIdentity(
+                    user,
+                    AuthenticationTypes.ApiKey,
+                    new Claim(NuGetClaims.ApiKey, string.Empty),
+                    new Claim(NuGetClaims.Scope, scopes));
+            }
+            else
+            {
+                identity = new ClaimsIdentity(
+                    new[] { new Claim(ClaimTypes.Name, string.IsNullOrEmpty(user.Username) ? "theUserName" : user.Username) });
+            }
+
+            var principal = new ClaimsPrincipal(identity);
 
             var mock = Mock.Get(self.HttpContext);
             mock.Setup(c => c.Request.IsAuthenticated).Returns(true);
@@ -32,9 +46,9 @@ namespace NuGetGallery
             self.OwinContext.Request.User = principal;
         }
 
-        public static void SetCurrentUser(this AppController self, User user)
+        public static void SetCurrentUser(this AppController self, User user, string scopes = null)
         {
-            SetCurrentUser(self, user.Username);
+            SetOwinContextCurrentUser(self, user, scopes);
             self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
         }
 

@@ -3,12 +3,14 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
+using Newtonsoft.Json;
 using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery.Authentication.Providers.ApiKey
@@ -92,17 +94,23 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             if (!string.IsNullOrEmpty(apiKey))
             {
                 // Get the user
-                var authUser = await Auth.Authenticate(CredentialBuilder.ParseApiKeyCredential(apiKey));
+                var authUser = await Auth.Authenticate(apiKey);
                 if (authUser != null)
                 {
                     // Set the current user
                     Context.Set(Constants.CurrentUserOwinEnvironmentKey, authUser);
 
+                    // Fetch scopes and store them in a claim
+                    var scopes = JsonConvert.SerializeObject(
+                        authUser.CredentialUsed.Scopes, Formatting.None);
+
+                    // Create authentication ticket
                     return new AuthenticationTicket(
                             AuthenticationService.CreateIdentity(
                                 authUser.User, 
                                 AuthenticationTypes.ApiKey, 
-                                new Claim(NuGetClaims.ApiKey, apiKey)),
+                                new Claim(NuGetClaims.ApiKey, apiKey),
+                                new Claim(NuGetClaims.Scope, scopes)),
                             new AuthenticationProperties());
                 }
                 else

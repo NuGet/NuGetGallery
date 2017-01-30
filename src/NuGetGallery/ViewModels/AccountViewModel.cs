@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 using NuGetGallery.Authentication.Providers;
@@ -15,14 +14,13 @@ namespace NuGetGallery
     {
         public AccountViewModel()
         {
-            ChangePassword = new ChangePasswordViewModel
-            {
-                ResetApiKey = true
-            };
+            ChangePassword = new ChangePasswordViewModel();
+            Packages = new List<string>();
         }
 
         public IEnumerable<string> CuratedFeeds { get; set; }
         public IList<CredentialViewModel> Credentials { get; set; }
+        public List<string> Packages { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
         public ChangeEmailViewModel ChangeEmail { get; set; }
         public int ExpirationInDaysForApiKeyV1 { get; set; }
@@ -57,45 +55,30 @@ namespace NuGetGallery
         [PasswordValidation]
         [AllowHtml]
         public string NewPassword { get; set; }
-
-        [DefaultValue(true)]
-        [Display(Name = "Reset my API key")]
-        public bool ResetApiKey { get; set; }
     }
     
     public class CredentialViewModel
     {
+        public int Key { get; set; }
         public string Type { get; set; }
         public string TypeCaption { get; set; }
         public string Identity { get; set; }
-        public string Value { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Expires { get; set; }
-        public DateTime? LastUsed { get; set; }
         public CredentialKind Kind { get; set; }
         public AuthenticatorUI AuthUI { get; set; }
+        public string Description { get; set; }
+        public List<ScopeViewModel> Scopes { get; set; }
+        public bool HasExpired { get; set; }
+        public string Value { get; set; }
+        public TimeSpan? ExpirationDuration { get; set; }
 
-        public bool HasExpired
+        public bool IsNonScopedV1ApiKey
         {
             get
             {
-                if (Expires.HasValue)
-                {
-                    return DateTime.UtcNow > Expires.Value;
-                }
-
-                return false;
+                return string.Equals(Type, CredentialTypes.ApiKey.V1, StringComparison.OrdinalIgnoreCase);
             }
-        }
-
-        public bool HasBeenUsedInLastDays(int numberOfDays)
-        {
-            if (numberOfDays > 0 && LastUsed.HasValue)
-            {
-                return LastUsed.Value.AddDays(numberOfDays) > DateTime.UtcNow;
-            }
-
-            return true;
         }
     }
 

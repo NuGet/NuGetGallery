@@ -20,7 +20,12 @@ namespace NuGetGallery
 
         public static string ToJavaScriptUTC(this DateTime self)
         {
-            return self.ToUniversalTime().ToString("O", CultureInfo.CurrentCulture);
+            return ToJavaScript(self.ToUniversalTime());
+        }
+
+        public static string ToJavaScript(this DateTime self)
+        {
+            return self.ToString("O", CultureInfo.CurrentCulture);
         }
 
         public static string ToNuGetShortDateTimeString(this DateTime self)

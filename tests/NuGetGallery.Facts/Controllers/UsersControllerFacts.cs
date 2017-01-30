@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -18,6 +19,8 @@ namespace NuGetGallery
 {
     public class UsersControllerFacts
     {
+        public static readonly int CredentialKey = 123;
+
         public class TheAccountAction : TestContainer
         {
             [Fact]
@@ -90,6 +93,7 @@ namespace NuGetGallery
                     TestCredentialBuilder.CreatePbkdf2Password("pbkdf2"),
                     TestCredentialBuilder.CreateSha1Password("sha1"),
                     TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialBuilder.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
                     credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"),
                     new Credential() { Type = "unsupported" }
                 };
@@ -105,12 +109,13 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
                 var descs = model.Credentials.ToDictionary(c => c.Type); // Should only be one of each type
-                Assert.Equal(5, descs.Count);
+                Assert.Equal(6, descs.Count);
                 Assert.True(descs.ContainsKey(credentials[0].Type));
                 Assert.True(descs.ContainsKey(credentials[1].Type));
                 Assert.True(descs.ContainsKey(credentials[2].Type));
                 Assert.True(descs.ContainsKey(credentials[3].Type));
                 Assert.True(descs.ContainsKey(credentials[4].Type));
+                Assert.True(descs.ContainsKey(credentials[5].Type));
             }
         }
 
@@ -532,34 +537,183 @@ namespace NuGetGallery
 
         public class TheGenerateApiKeyAction : TestContainer
         {
-            [Fact]
-            public async Task RedirectsToAccountPage()
+            [InlineData(null)]
+            [InlineData(" ")]
+            [Theory]
+            public async Task WhenEmptyDescriptionProvidedRedirectsToAccountPageWithError(string description)
             {
+                // Arrange 
                 var user = new User { Username = "the-username" };
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var result = await controller.GenerateApiKey(expirationInDays: null);
+                // Act
+                var result = await controller.GenerateApiKey(
+                    description: description,
+                    scopes: null,
+                    expirationInDays: null);
 
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.ApiKeyDescriptionRequired) == 0);
             }
 
-            [Fact]
-            public async Task ReplacesTheApiKeyCredential()
+            [InlineData(180, 180)]
+            [InlineData(700, 365)]
+            [InlineData(-1, 365)]
+            [InlineData(0, 365)]
+            [InlineData(null, 365)]
+            [Theory]
+            public async Task WhenExpirationInDaysIsProvidedItsUsed(int? inputExpirationInDays, int expectedExpirationInDays)
             {
+                // Arrange 
                 var user = new User("the-username");
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.ReplaceCredential(
-                        user,
-                        It.Is<Credential>(c => c.Type == CredentialTypes.ApiKeyV1)))
-                    .Completes()
-                    .Verifiable();
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                await controller.GenerateApiKey(expirationInDays: null);
+                var config = GetMock<IAppConfiguration>();
+                config.SetupGet(x => x.ExpirationInDaysForApiKeyV1).Returns(365);
 
-                GetMock<AuthenticationService>().VerifyAll();
+                // Act
+                await controller.GenerateApiKey(
+                    description: "my new api key",
+                    scopes: new [] { NuGetScopes.PackageUnlist },
+                    subjects: null,
+                    expirationInDays: inputExpirationInDays);
+                
+                // Assert
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+
+                Assert.NotNull(apiKey);
+                Assert.NotNull(apiKey.Expires);
+                Assert.Equal(expectedExpirationInDays, TimeSpan.FromTicks(apiKey.ExpirationTicks.Value).Days);
+            }
+
+            public static IEnumerable<object[]> CreatesNewApiKeyCredential_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            "permissions to several scopes, several packages",
+                            new[] {NuGetScopes.PackageUnlist, NuGetScopes.PackagePush},
+                            new[] {"abc", "def"},
+                            new []
+                            {
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            }
+                        },
+                        new object[]
+                        {
+                            "permissions to several scopes, all packages",
+                            new [] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
+                            null,
+                            new []
+                            {
+                                new Scope("*", NuGetScopes.PackageUnlist),
+                                new Scope("*", NuGetScopes.PackagePush)
+                            }
+                        },
+                        new object[]
+                        {
+                            "permissions to single scope, all packages",
+                            new [] { NuGetScopes.PackageUnlist },
+                            null,
+                            new []
+                            {
+                                new Scope("*", NuGetScopes.PackageUnlist)
+                            }
+                        },
+                        new object[]
+                        {
+                            "permissions to everything",
+                            null,
+                            null,
+                            new []
+                            {
+                                new Scope("*", NuGetScopes.All)
+                            } 
+                        },
+                        new object[]
+                        {
+                            "empty subjects are ignored",
+                            new [] { NuGetScopes.PackageUnlist },
+                            new[] {"abc", "def", string.Empty, null, "   "},
+                            new []
+                            {
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackageUnlist)
+                            }
+                        }
+                    };
+                }
+            }
+                
+            [MemberData(nameof(CreatesNewApiKeyCredential_Input))]
+            [Theory]
+            public async Task CreatesNewApiKeyCredential(string description, string[] scopes, string[] subjects, Scope[] expectedScopes)
+            {
+                // Arrange 
+                var user = new User("the-username");
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                await controller.GenerateApiKey(
+                    description: description,
+                    scopes: scopes,
+                    subjects: subjects,
+                    expirationInDays: null);
+
+                // Assert
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+
+                Assert.NotNull(apiKey);
+                Assert.Equal(description, apiKey.Description);
+                Assert.Equal(expectedScopes.Length, apiKey.Scopes.Count);
+
+                foreach (var expectedScope in expectedScopes)
+                {
+                    var actualScope =
+                        apiKey.Scopes.First(x => x.AllowedAction == expectedScope.AllowedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
+            }
+
+            [Fact]
+            public async Task ReturnsNewCredentialJson()
+            {
+                var user = new User { Username = "the-username" };
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var result = await controller.GenerateApiKey(
+                    description: "description",
+                    scopes: new [] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
+                    subjects: new [] { "a" },
+                    expirationInDays: 90);
+
+                Assert.IsType<JsonResult>(result);
+
+                var credentialViewModel = ((JsonResult) result).Data as CredentialViewModel;
+                Assert.NotNull(credentialViewModel);
+
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+
+                Assert.Equal(apiKey.Value, credentialViewModel.Value);
+                Assert.Equal(apiKey.Key, credentialViewModel.Key);
+                Assert.Equal(apiKey.Description, credentialViewModel.Description);
+                Assert.Equal(apiKey.Expires, credentialViewModel.Expires);
             }
         }
 
@@ -783,7 +937,7 @@ namespace NuGetGallery
                 user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(u => u.ChangePassword(user, "old", "new", false))
+                    .Setup(u => u.ChangePassword(user, "old", "new"))
                     .CompletesWith(false);
 
                 var controller = GetController<UsersController>();
@@ -821,7 +975,7 @@ namespace NuGetGallery
                 user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(u => u.ChangePassword(user, "old", "new", false))
+                    .Setup(u => u.ChangePassword(user, "old", "new"))
                     .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -909,7 +1063,7 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.NoCredentialToRemove, controller.TempData["Message"]);
+                Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
                 Assert.Equal(1, user.Credentials.Count);
             }
 
@@ -958,7 +1112,9 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = await controller.RemoveCredential(cred.Type);
+                var result = await controller.RemoveCredential(
+                    credentialType: cred.Type,
+                    credentialKey: null);
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
@@ -967,7 +1123,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GivenNoCredential_ItRedirectsBackWithNoChangesMade()
+            public async Task GivenNoCredential_ErrorIsReturnedWithNoChangesMade()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -977,11 +1133,39 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = await controller.RemoveCredential(CredentialTypes.ExternalPrefix + "MicrosoftAccount");
+                var result = await controller.RemoveCredential(
+                    credentialType: CredentialTypes.ExternalPrefix + "MicrosoftAccount",
+                    credentialKey: null);
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.NoCredentialToRemove, controller.TempData["Message"]);
+                Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
+
+                Assert.Equal(1, user.Credentials.Count);
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            public async Task GivenNoApiKeyCredential_ErrorIsReturnedWithNoChangesMade(string apiKeyType)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreatePasswordCredential("password"));
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RemoveCredential(
+                    credentialType: apiKeyType,
+                    credentialKey: null);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+
                 Assert.Equal(1, user.Credentials.Count);
             }
 
@@ -1008,12 +1192,402 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = await controller.RemoveCredential(cred.Type);
+                var result = await controller.RemoveCredential(
+                    credentialType: cred.Type,
+                    credentialKey: null);
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 GetMock<AuthenticationService>().VerifyAll();
                 GetMock<IMessageService>().VerifyAll();
+            }
+        }
+
+        public class TheRegenerateCredentialAction : TestContainer
+        {
+            [Fact]
+            public async Task GivenNoCredential_ErrorIsReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var cred = user.Credentials.First();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RegenerateCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+
+                Assert.Equal(1, user.Credentials.Count);
+                Assert.True(user.Credentials.Contains(cred));
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.Password.V3)]
+            [InlineData(CredentialTypes.ExternalPrefix + "bla")]
+            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(string credentialType)
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+
+                // Act
+                var result = await controller.RegenerateCredential(
+                    credentialType: credentialType,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
+            }
+
+            public static IEnumerable<object[]> RegenerateApiKeyCredential_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            "permissions to several scopes, several packages",
+                            new []
+                            {
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            }
+                        },
+                        new object[]
+                        {
+                            "permissions to everything",
+                            new []
+                            {
+                                new Scope(null, NuGetScopes.All)
+                            }
+                        }
+                    };
+                }
+            }
+
+            [MemberData(nameof(RegenerateApiKeyCredential_Input))]
+            [Theory]
+            public async Task GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser(
+                string description, Scope[] scopes)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1));
+                apiKey.Description = description;
+                apiKey.Scopes = scopes;
+                apiKey.Expires -= TimeSpan.FromDays(1);
+
+                var user = fakes.CreateUser("test", apiKey);
+                var cred = user.Credentials.First();
+                cred.Key = CredentialKey;
+
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.AddCredential(
+                        user,
+                        It.Is<Credential>(c => c.Type == CredentialTypes.ApiKey.V2)))
+                    .Callback<User, Credential>((u, c) => u.Credentials.Add(c))
+                    .Completes()
+                    .Verifiable();
+
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.RemoveCredential(user, cred))
+                     .Callback<User, Credential>((u, c) => u.Credentials.Remove(c))
+                    .Completes()
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RegenerateCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                var credentialViewModel = ((JsonResult) result).Data as CredentialViewModel;
+
+                Assert.NotNull(credentialViewModel);
+
+                GetMock<AuthenticationService>().VerifyAll();
+
+                var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+
+                Assert.NotNull(newApiKey);
+                Assert.Equal(newApiKey.Value, credentialViewModel.Value);
+                Assert.Equal(newApiKey.Key, credentialViewModel.Key);
+                Assert.Equal(description, credentialViewModel.Description);
+                Assert.Equal(newApiKey.Expires, credentialViewModel.Expires);
+
+                Assert.Equal(description, newApiKey.Description);
+                Assert.Equal(scopes.Length, newApiKey.Scopes.Count);
+                Assert.True(newApiKey.Expires > DateTime.UtcNow);
+
+                foreach (var expectedScope in scopes)
+                {
+                    var actualScope =
+                        newApiKey.Scopes.First(x => x.AllowedAction == expectedScope.AllowedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
+            }
+        }
+
+        public class TheEditCredentialAction : TestContainer
+        {
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.Password.V3)]
+            [InlineData(CredentialTypes.ExternalPrefix + "bla")]
+            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(string credentialType)
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+
+                // Act
+                var result = await controller.EditCredential(
+                    credentialType: credentialType,
+                    credentialKey: CredentialKey,
+                    subjects: new[] { "a", "b" });
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.CompareOrdinal((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
+            }
+
+            [Fact]
+            public async Task GivenNoCredential_ErrorIsReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var user = fakes.CreateUser("test", new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var cred = user.Credentials.First();
+
+                var authenticationService = GetMock<AuthenticationService>();
+                authenticationService
+                    .Setup(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EditCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey,
+                    subjects: new[] { "a", "b" });
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(String.CompareOrdinal((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+
+                authenticationService.Verify(x => x.EditCredentialScopes(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<ICollection<Scope>>()), Times.Never);
+            }
+
+            public static IEnumerable<object[]> GivenValidRequest_ItEditsCredential_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            new [] // Removal of subjects
+                            {
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            },
+                            new [] { "def" },
+                            new []
+                            {
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            },
+                        },
+                        new object[]
+                        {
+                            new [] // Addition of subjects
+                            {
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                            },
+                            new [] { "abc", "def" },
+                            new []
+                            {
+                               new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
+                            }
+                        },
+                        new object[]
+                        {
+                            new [] // No subjects
+                            {
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush)
+                            },
+                            new string[] {},
+                            new []
+                            {
+                               new Scope("*", NuGetScopes.PackageUnlist),
+                               new Scope("*", NuGetScopes.PackagePush)
+                            }
+                        },
+                    };
+                }
+            }
+
+            [MemberData(nameof(GivenValidRequest_ItEditsCredential_Input))]
+            [Theory]
+            public async Task GivenValidRequest_ItEditsCredential(Scope[] existingScopes, string[] modifiedSubjects, Scope[] expectedScopes)
+            {
+                // Arrange
+                const string description = "description";
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var apiKey = credentialBuilder.CreateApiKey(TimeSpan.FromHours(1));
+                apiKey.Description = description;
+                apiKey.Scopes = existingScopes;
+
+                var apiKeyExpirationTime = apiKey.Expires;
+                var apiKeyValue = apiKey.Value;
+
+
+                var user = fakes.CreateUser("test", apiKey, credentialBuilder.CreateApiKey(null));
+                var cred = user.Credentials.First();
+                cred.Key = CredentialKey;
+
+                GetMock<AuthenticationService>()
+                   .Setup(a => a.EditCredentialScopes(user, cred, It.IsAny<ICollection<Scope>>()))
+                   .Callback<User, Credential, ICollection<Scope>>((u, cr, scs) =>
+                    {
+                        cr.Scopes = scs;
+                    })
+                   .Completes()
+                   .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EditCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey,
+                    subjects: modifiedSubjects);
+
+                // Assert
+                GetMock<AuthenticationService>().Verify(x => x.EditCredentialScopes(user, apiKey, It.IsAny<ICollection<Scope>>()), Times.Once);
+
+                // Check return value
+                Assert.IsType<JsonResult>(result);
+                var credentialViewModel = ((JsonResult)result).Data as CredentialViewModel;
+                Assert.NotNull(credentialViewModel);
+
+                Assert.Null(credentialViewModel.Value);
+                Assert.Equal(description, credentialViewModel.Description);
+                Assert.Equal(expectedScopes.Length, credentialViewModel.Scopes.Count);
+
+                foreach (var expectedScope in expectedScopes)
+                {
+                    var expectedAction = NuGetScopes.Describe(expectedScope.AllowedAction);
+                    var actualScope =
+                        credentialViewModel.Scopes.First(x => x.AllowedAction == expectedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
+
+                // Check edited value
+                Assert.Equal(expectedScopes.Length, apiKey.Scopes.Count);
+                Assert.Equal(apiKeyExpirationTime, apiKey.Expires); // Expiration time wasn't modified by edit
+                Assert.Equal(description, apiKey.Description);  // Description wasn't modified
+                Assert.Equal(apiKeyValue, apiKey.Value); // Value wasn't modified
+
+                foreach (var expectedScope in expectedScopes)
+                {
+                    var actualScope =
+                        apiKey.Scopes.First(x => x.AllowedAction == expectedScope.AllowedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
+            }
+        }
+
+        public class TheExpireCredentialAction : TestContainer
+        {
+            [Fact]
+            public async Task GivenNoCredential_ErrorReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var cred = user.Credentials.First();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.ExpireCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+            }
+
+            [Fact]
+            public async Task GivenValidRequest_ItExpiresCred()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var cred = user.Credentials.First();
+                cred.Key = CredentialKey;
+
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.ExpireCredential(user, cred))
+                    .Completes()
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.ExpireCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialExpired) == 0);
+
+                GetMock<AuthenticationService>().VerifyAll();
             }
         }
     }
