@@ -51,21 +51,24 @@
         </p>
         using (Html.BeginForm("Contact", "Pages"))
         {
-            @Html.AntiForgeryToken()
-            <div class="form-field">
-                @Html.LabelFor(m => m.SubjectLine)
-                @Html.TextAreaFor(m => m.SubjectLine, 1, 50, null)
-            </div>
-            <div class="form-field">
-                @Html.LabelFor(m => m.Message)
-                @Html.TextAreaFor(m => m.Message, 10, 50, null)
-                @Html.ValidationMessageFor(m => m.Message, null, new { id = "contact-support-message" })
-            </div>
-            <div class="form-field">
-                @Html.CheckBoxFor(m => m.CopySender)
-                @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
-            </div>
-            <input id="form-submit" type="submit" value="Contact" title="Contact Support" />
+            <fieldset class="form">
+                @Html.AntiForgeryToken()
+                <div class="form-field">
+                    @Html.LabelFor(m => m.SubjectLine)
+                    @Html.TextAreaFor(m => m.SubjectLine, 1, 50, null)
+                </div>
+                <div class="form-field">
+                    @Html.LabelFor(m => m.Message)
+                    @Html.TextAreaFor(m => m.Message, 10, 50, null)
+                    @Html.ValidationMessageFor(m => m.Message, null, new { id = "contact-support-message" })
+                </div>
+                <div class="form-field">
+                    @Html.CheckBoxFor(m => m.CopySender)
+                    @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
+                </div>
+                <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required.">
+                <input id="form-submit" type="submit" value="Contact" title="Contact Support" />
+            </fieldset>
         }
     }
     else
