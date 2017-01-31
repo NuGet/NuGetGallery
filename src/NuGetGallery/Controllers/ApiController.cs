@@ -394,7 +394,7 @@ namespace NuGetGallery
                         }
 
                         IndexingService.UpdatePackage(package);
-
+                        
                         // Write an audit record
                         await AuditingService.SaveAuditRecord(
                             new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));

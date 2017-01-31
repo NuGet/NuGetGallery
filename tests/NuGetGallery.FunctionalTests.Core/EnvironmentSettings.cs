@@ -12,7 +12,7 @@ namespace NuGetGallery.FunctionalTests
     /// </summary>
     public class EnvironmentSettings
     {
-        private static string _baseurl = "https://dev.nugettest.org/";
+        private static string _baseurl;
         private static string _searchServiceBaseurl;
         private static string _testAccountName;
         private static string _testAccountPassword;
