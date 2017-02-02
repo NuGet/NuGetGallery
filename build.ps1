@@ -57,6 +57,9 @@ if (-not $BuildNumber) {
     $BuildNumber = Get-BuildNumber
 }
 Trace-Log "Build #$BuildNumber started at $startTime"
+Trace-Log "SimpleVersion: $SimpleVersion"
+Trace-Log "SemanticVersion: $SemanticVersion"
+Trace-Log "Branch: $Branch"
 
 $BuildErrors = @()
 
