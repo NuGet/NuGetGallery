@@ -48,51 +48,40 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             Assert.True(responseText.ToLowerInvariant().Contains(packageUrl.ToLowerInvariant()));
         }
 
-        // This test fails due to the following error
-        // The package upload via Nuget.exe didnt succeed properly. Could not establish trust relationship for the SSL/TLS secure channel
         [Fact]
         [Description("Performs a querystring-based search of the Windows 8 curated feed. Confirms expected packages are returned.")]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task SearchWindows8CuratedFeed()
         {
-            // Temporary workaround for the SSL issue, which keeps the upload test from working with cloudapp.net sites
-            if (UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org"))
-            {
-                string packageName = "NuGetGallery.FunctionalTests.SearchWindows8CuratedFeed";
-                string ticks = DateTime.Now.Ticks.ToString();
-                string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            string packageName = "NuGetGallery.FunctionalTests.SearchWindows8CuratedFeed";
+            string ticks = DateTime.Now.Ticks.ToString();
+            string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
 
-                int exitCode = await UploadPackageToCuratedFeed(packageName, version, FeedType.Windows8CuratedFeed);
-                Assert.True((exitCode == 0), Constants.UploadFailureMessage);
+            int exitCode = await UploadPackageToCuratedFeed(packageName, version, FeedType.Windows8CuratedFeed);
+            Assert.True((exitCode == 0), Constants.UploadFailureMessage);
 
-                bool applied = CheckPackageExistInCuratedFeed(packageName, FeedType.Windows8CuratedFeed);
-                var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageName, UrlHelper.Windows8CuratedFeedUrl);
-                Assert.True(applied, userMessage);
-            }
+            bool applied = CheckPackageExistInCuratedFeed(packageName, FeedType.Windows8CuratedFeed);
+            var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageName, UrlHelper.Windows8CuratedFeedUrl);
+            Assert.True(applied, userMessage);
         }
 
-        // This test fails due to the following error
-        // The package upload via Nuget.exe didnt succeed properly. Could not establish trust relationship for the SSL/TLS secure channel
         [Fact]
         [Description("Performs a querystring-based search of the WebMatrix curated feed.  Confirms expected packages are returned.")]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task SearchWebMatrixCuratedFeed()
         {
-            if (UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org"))
-            {
-                string packageName = "NuGetGallery.FunctionalTests.SearchWebMatrixCuratedFeed";
-                string ticks = DateTime.Now.Ticks.ToString();
-                string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            string packageName = "NuGetGallery.FunctionalTests.SearchWebMatrixCuratedFeed";
+            string ticks = DateTime.Now.Ticks.ToString();
+            string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
 
-                int exitCode = await UploadPackageToCuratedFeed(packageName, version, FeedType.WebMatrixCuratedFeed);
-                Assert.True((exitCode == 0), Constants.UploadFailureMessage);
+            int exitCode = await UploadPackageToCuratedFeed(packageName, version, FeedType.WebMatrixCuratedFeed);
+            Assert.True((exitCode == 0), Constants.UploadFailureMessage);
 
-                bool applied = CheckPackageExistInCuratedFeed(packageName, FeedType.WebMatrixCuratedFeed);
-                var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageName, UrlHelper.WebMatrixCuratedFeedUrl);
-                Assert.True(applied, userMessage);
-            }
+            bool applied = CheckPackageExistInCuratedFeed(packageName, FeedType.WebMatrixCuratedFeed);
+            var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageName, UrlHelper.WebMatrixCuratedFeedUrl);
+            Assert.True(applied, userMessage);
         }
 
         [Fact]

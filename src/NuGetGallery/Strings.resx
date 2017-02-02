@@ -130,7 +130,7 @@
     <value>The package ID '{0}' is not available.</value>
   </data>
   <data name="PackageWithIdAndVersionNotFound" xml:space="preserve">
-    <value>A package with id '{0}' and version '{1}' does not exist.</value>
+    <value>A package with ID '{0}' and version '{1}' does not exist.</value>
   </data>
   <data name="NuGetPackagePropertyTooLong" xml:space="preserve">
     <value>A nuget package's {0} property may not be more than {1} characters long.</value>
@@ -139,7 +139,7 @@
     <value>The specified API key is invalid, has expired, or does not have permission to access the specified package.</value>
   </data>
   <data name="PackageExistsAndCannotBeModified" xml:space="preserve">
-    <value>A package with id '{0}' and version '{1}' already exists and cannot be modified.</value>
+    <value>A package with ID '{0}' and version '{1}' already exists and cannot be modified.</value>
   </data>
   <data name="CurrentPasswordIncorrect" xml:space="preserve">
     <value>The current password you provided is incorrect.</value>
@@ -409,5 +409,8 @@ The {1} Team</value>
   </data>
   <data name="UploadPackage_InvalidNuspecMultiple" xml:space="preserve">
     <value>The NuGet package contains an invalid .nuspec file. The errors encountered were: '{0}'. Correct the errors and try again.</value>
+  </data>
+  <data name="UploadPackage_IdVersionConflict" xml:space="preserve">
+    <value>There is a conflict with the ID and version of your package and another package. Please change your package's ID or version and try again.</value>
   </data>
 </root>

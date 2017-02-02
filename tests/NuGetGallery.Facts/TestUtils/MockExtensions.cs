@@ -63,12 +63,23 @@ namespace NuGetGallery
         public static void VerifyCommitted<T>(this Mock<IEntityRepository<T>> self)
             where T : class, IEntity, new()
         {
-            self.Verify(e => e.CommitChangesAsync());
+            self.VerifyCommitted(Times.AtLeastOnce());
+        }
+
+        public static void VerifyCommitted<T>(this Mock<IEntityRepository<T>> self, Times times)
+            where T : class, IEntity, new()
+        {
+            self.Verify(e => e.CommitChangesAsync(), times);
         }
 
         public static void VerifyCommitted(this Mock<IEntitiesContext> self)
         {
-            self.Verify(e => e.SaveChangesAsync());
+            self.VerifyCommitted(Times.AtLeastOnce());
+        }
+
+        public static void VerifyCommitted(this Mock<IEntitiesContext> self, Times times)
+        {
+            self.Verify(e => e.SaveChangesAsync(), times);
         }
 
         public static IReturnsResult<AuthenticationService> SetupAuth(this Mock<AuthenticationService> self, Credential cred, User user)
