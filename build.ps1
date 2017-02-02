@@ -93,7 +93,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
 	-ev +BuildErrors
 		
 Invoke-BuildStep 'Building solution' { 
-	param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore, $SimpleVersion)
+	param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
 	Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:RunOctoPack=true;OctoPackPackageVersion=$SimpleVersion;MvcBuildViews=true;" `
 	} `
 	-args $Configuration, $BuildNumber, (Join-Path $PSScriptRoot "NuGetGallery.sln"), $SkipRestore `
