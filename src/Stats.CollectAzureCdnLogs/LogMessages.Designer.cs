@@ -61,11 +61,56 @@ namespace Stats.CollectAzureCdnLogs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to upload file: {fileName}..
+        /// </summary>
+        internal static string FailedBlobUpload {
+            get {
+                return ResourceManager.GetString("FailedBlobUpload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid raw log file name..
+        /// </summary>
+        internal static string InvalidRawLogFileName {
+            get {
+                return ResourceManager.GetString("InvalidRawLogFileName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Job run failed!.
+        /// </summary>
+        internal static string JobRunFailed {
+            get {
+                return ResourceManager.GetString("JobRunFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to parse W3C log entry in {LogFileName} at line {LineNumber}..
         /// </summary>
         internal static string ParseLogEntryLineFailed {
             get {
                 return ResourceManager.GetString("ParseLogEntryLineFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error processing log stream..
+        /// </summary>
+        internal static string ProcessingLogStreamFailed {
+            get {
+                return ResourceManager.GetString("ProcessingLogStreamFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown Azure CDN platform..
+        /// </summary>
+        internal static string UnknownAzureCdnPlatform {
+            get {
+                return ResourceManager.GetString("UnknownAzureCdnPlatform", resourceCulture);
             }
         }
     }

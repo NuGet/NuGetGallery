@@ -64,16 +64,16 @@ namespace Stats.CollectAzureCdnLogs.Blob
             return await blob.OpenWriteAsync();
         }
 
-        public async Task<bool> CheckIfBlobExistsAsync(CloudBlobContainer targetContainer, RawLogFileInfo logFile)
+        public async Task<bool> CheckIfBlobExistsAsync(CloudBlobContainer targetContainer, string fileName)
         {
-            using (_logger.BeginScope("Checking if file '{FileName}' exists.", logFile.FileName))
+            using (_logger.BeginScope("Checking if file '{FileName}' exists.", fileName))
             {
                 try
                 {
-                    var blob = targetContainer.GetBlockBlobReference(logFile.FileName);
+                    var blob = targetContainer.GetBlockBlobReference(fileName);
                     var exists = await blob.ExistsAsync();
 
-                    _logger.LogInformation("Finished checking if file '{FileName}' exists (exists = {FileExists}).", logFile.FileName, exists);
+                    _logger.LogInformation("Finished checking if file '{FileName}' exists (exists = {FileExists}).", fileName, exists);
 
                     return exists;
                 }

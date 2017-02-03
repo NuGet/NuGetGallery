@@ -151,20 +151,41 @@ namespace Stats.CollectAzureCdnLogs
                             continue;
                         }
 
-                        var alreadyUploaded = false;
+                        var skipProcessing = false;
                         var uploadSucceeded = false;
                         var rawLogUri = rawLogFile.Uri;
 
-                        // Check if this is an already renamed file.
+                        // Check if this is an already renamed file:
+                        // This would indicate that the file is being processed already (by another instance of this job),
+                        // or that the file is being reprocessed (and the ".download" renamed file was left behind).
                         if (rawLogFile.IsPendingDownload)
                         {
-                            // Check if the file has already been uploaded to blob storage.
-                            alreadyUploaded = await azureClient.CheckIfBlobExistsAsync(cloudBlobContainer, rawLogFile);
+                            // In order to support reprocessing ".gz" files,
+                            // we only skip processing ".download" files that have been successfully uploaded to blob storage,
+                            // which only happens when they have been processed successfully.
+                            // Check if the original ".gz" file has already been uploaded to blob storage.
+                            // If it already was uploaded to blob storage,
+                            // we can skip processing this ".download" file and delete it from the FTP server.
+                            var originalFileName = rawLogFile.FileName.Substring(0, rawLogFile.FileName.Length - FileExtensions.Download.Length);
+                            skipProcessing = await azureClient.CheckIfBlobExistsAsync(cloudBlobContainer, originalFileName);
                         }
                         else
                         {
+                            // We are processing a ".gz" file.
+                            // Check if the file has already been uploaded to blob storage: are we reprocessing it?
+                            var isReprocessing = await azureClient.CheckIfBlobExistsAsync(cloudBlobContainer, rawLogFile.FileName);
+
+                            if (isReprocessing)
+                            {
+                                // As we are reprocessing this ".gz" file,
+                                // we should first delete the ".download" file if it already exists on the FTP server.
+                                var downloadFileUri = new Uri(rawLogFile.Uri + FileExtensions.Download);
+                                await ftpClient.DeleteAsync(downloadFileUri);
+                            }
+
                             // Rename the file on the origin to ensure we're not locking a file that still can be written to.
-                            rawLogUri = await ftpClient.RenameAsync(rawLogFile, rawLogFile.FileName + FileExtensions.Download);
+                            var downloadFileName = rawLogFile.FileName + FileExtensions.Download;
+                            rawLogUri = await ftpClient.RenameAsync(rawLogFile, downloadFileName);
 
                             if (rawLogUri == null)
                             {
@@ -173,7 +194,8 @@ namespace Stats.CollectAzureCdnLogs
                             }
                         }
 
-                        if (!alreadyUploaded)
+                        // Skip already processed ".download" files.
+                        if (!skipProcessing)
                         {
                             // open the raw log from FTP
                             using (var rawLogStream = await ftpClient.OpenReadAsync(rawLogUri))
@@ -223,7 +245,11 @@ namespace Stats.CollectAzureCdnLogs
                                         }
                                         catch (Exception exception)
                                         {
-                                            _logger.LogError("Failed to upload file. {Exception}", exception);
+                                            _logger.LogError(
+                                                LogEvents.FailedBlobUpload,
+                                                exception,
+                                                LogMessages.FailedBlobUpload,
+                                                rawLogUri);
                                         }
                                     }
                                 }
@@ -231,7 +257,7 @@ namespace Stats.CollectAzureCdnLogs
                         }
 
                         // Delete the renamed file from the origin.
-                        if (alreadyUploaded || uploadSucceeded)
+                        if (skipProcessing || uploadSucceeded)
                         {
                             await ftpClient.DeleteAsync(rawLogUri);
                         }
@@ -239,18 +265,24 @@ namespace Stats.CollectAzureCdnLogs
                     catch (UnknownAzureCdnPlatformException exception)
                     {
                         // Trace, but ignore the failing file. Other files should go through just fine.
-                        _logger.LogWarning("Unknown Azure CDN platform. {Exception}", exception);
+                        _logger.LogWarning(
+                            LogEvents.UnknownAzureCdnPlatform,
+                            exception,
+                            LogMessages.UnknownAzureCdnPlatform);
                     }
                     catch (InvalidRawLogFileNameException exception)
                     {
                         // Trace, but ignore the failing file. Other files should go through just fine.
-                        _logger.LogWarning("Invalid raw log filename. {Exception}", exception);
+                        _logger.LogWarning(
+                            LogEvents.InvalidRawLogFileName,
+                            exception,
+                            LogMessages.InvalidRawLogFileName);
                     }
                 }
             }
             catch (Exception exception)
             {
-                _logger.LogCritical("Job run failed! {Exception}", exception);
+                _logger.LogCritical(LogEvents.JobRunFailed, exception, LogMessages.JobRunFailed);
 
                 return false;
             }
@@ -286,7 +318,7 @@ namespace Stats.CollectAzureCdnLogs
                     catch (SharpZipBaseException e)
                     {
                         // this raw log file may be corrupt...
-                        _logger.LogError("Error processing log stream. {Exception}", e);
+                        _logger.LogError(LogEvents.FailedToProcessLogStream, e, LogMessages.ProcessingLogStreamFailed);
 
                         throw;
                     }
