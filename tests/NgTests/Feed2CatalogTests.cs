@@ -29,17 +29,17 @@ namespace NgTests
                 new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
             
             var mockServer = new MockServerHttpClientHandler();
-
-            mockServer.SetAction(" / ", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
+            
+            mockServer.SetAction(" / ", GetRootActionAsync);
             mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetCreatedPackages);
             mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
 
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEditedPackages);
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
-
-            mockServer.SetAction("/package/ListedPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
-            mockServer.SetAction("/package/ListedPackage/1.0.1", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
-            mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
+            
+            mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
+            mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
+            mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
 
             // Act
             var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
@@ -112,16 +112,16 @@ namespace NgTests
 
             var mockServer = new MockServerHttpClientHandler();
 
-            mockServer.SetAction(" / ", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
+            mockServer.SetAction(" / ", GetRootActionAsync);
             mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetCreatedPackages);
             mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
 
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEditedPackages);
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
 
-            mockServer.SetAction("/package/ListedPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
-            mockServer.SetAction("/package/ListedPackage/1.0.1", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
-            mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
+            mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
+            mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
+            mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
 
             // Act
             var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
@@ -197,7 +197,7 @@ namespace NgTests
 
             var mockServer = new MockServerHttpClientHandler();
 
-            mockServer.SetAction(" / ", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
+            mockServer.SetAction(" / ", GetRootActionAsync);
             mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetCreatedPackages);
             mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetCreatedPackagesSecondRequest);
             mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T01:01:03.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
@@ -205,10 +205,10 @@ namespace NgTests
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEditedPackages);
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
             
-            mockServer.SetAction("/package/ListedPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
-            mockServer.SetAction("/package/ListedPackage/1.0.1", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
-            mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
-            mockServer.SetAction("/package/OtherPackage/1.0.0", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
+            mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
+            mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
+            mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
+            mockServer.SetAction("/package/OtherPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\OtherPackage.1.0.0.zip"));
 
             // Act
             var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
@@ -281,6 +281,16 @@ namespace NgTests
             Assert.Contains("\"PackageDetails\",", package5.Value.GetContentString());
             Assert.Contains("\"id\": \"OtherPackage\",", package5.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.0\",", package5.Value.GetContentString());
+        }
+
+        private Task<HttpResponseMessage> GetRootActionAsync(HttpRequestMessage request)
+        {
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+        }
+
+        private Task<HttpResponseMessage> GetStreamContentActionAsync(HttpRequestMessage request, string filePath)
+        {
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead(filePath)) });
         }
 
         private Task<HttpResponseMessage> GetCreatedPackages(HttpRequestMessage request)

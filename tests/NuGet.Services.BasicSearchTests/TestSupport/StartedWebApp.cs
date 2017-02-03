@@ -7,14 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using Lucene.Net.Store;
 using Microsoft.Owin.Hosting;
 using Newtonsoft.Json;
 using NuGet.Services.BasicSearch;
-using NuGet.Services.BasicSearch.Configuration;
 using NuGet.Services.Configuration;
-using NuGet.Services.KeyVault;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace NuGet.Services.BasicSearchTests.TestSupport
 {
@@ -89,7 +89,9 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             var xmlSerializer = new XmlSerializer(typeof(T));
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
-                return (T)xmlSerializer.Deserialize(stream);
+                // CodeAnalysis / XmlReader.Create: provide settings instance and set resolver property to null or instance
+                var reader = XmlReader.Create(stream, new XmlReaderSettings());
+                return (T)xmlSerializer.Deserialize(reader);
             }
         }
 

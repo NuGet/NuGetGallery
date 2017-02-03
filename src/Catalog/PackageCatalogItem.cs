@@ -1,15 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
-using System.Xml.Xsl;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using VDS.RDF;
-using VDS.RDF.Parsing;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -32,8 +28,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public override IGraph CreateContentGraph(CatalogContext context)
         {
-            XDocument nuspec = NormalizeNuspecNamespace(_nupkgMetadata.Nuspec, context.GetXslt("xslt.normalizeNuspecNamespace.xslt"));
-            IGraph graph = CreateNuspecGraph(nuspec, GetBaseAddress(), context.GetXslt("xslt.nuspec.xslt"));
+            IGraph graph = Utils.CreateNuspecGraph(_nupkgMetadata.Nuspec, GetBaseAddress().ToString(), normalizeXml: true);
 
             //  catalog infrastructure fields
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
@@ -185,64 +180,6 @@ namespace NuGet.Services.Metadata.Catalog
         protected override string GetItemIdentity()
         {
             return (_id + "." + _version).ToLowerInvariant();
-        }
-
-        private static XDocument NormalizeNuspecNamespace(XDocument original, XslCompiledTransform xslt)
-        {
-            XDocument result = new XDocument();
-            using (XmlWriter writer = result.CreateWriter())
-            {
-                xslt.Transform(original.CreateReader(), writer);
-            }
-            return result;
-        }
-
-        private static IGraph CreateNuspecGraph(XDocument nuspec, Uri baseAddress, XslCompiledTransform xslt)
-        {
-            XsltArgumentList arguments = new XsltArgumentList();
-            arguments.AddParam("base", "", baseAddress.ToString());
-            arguments.AddParam("extension", "", ".json");
-
-            arguments.AddExtensionObject("urn:helper", new XsltHelper());
-
-            XDocument rdfxml = new XDocument();
-            using (XmlWriter writer = rdfxml.CreateWriter())
-            {
-                xslt.Transform(nuspec.CreateReader(), arguments, writer);
-            }
-
-            XmlDocument doc = new XmlDocument();
-            doc.Load(rdfxml.CreateReader());
-
-            NormalizeXml(doc);
-
-            IGraph graph = new Graph();
-            RdfXmlParser rdfXmlParser = new RdfXmlParser();
-            rdfXmlParser.Load(graph, doc);
-
-            return graph;
-        }
-
-        private static void NormalizeXml(XmlNode xmlNode)
-        {
-            if (xmlNode.Attributes != null)
-            {
-                foreach (XmlAttribute attribute in xmlNode.Attributes)
-                {
-                    attribute.Value = attribute.Value.Normalize(NormalizationForm.FormC);
-                }
-            }
-
-            if (xmlNode.Value != null)
-            {
-                xmlNode.Value = xmlNode.Value.Normalize(NormalizationForm.FormC);
-                return;
-            }
-
-            foreach (XmlNode childNode in xmlNode.ChildNodes)
-            {
-                NormalizeXml(childNode);
-            }
         }
     }
 }

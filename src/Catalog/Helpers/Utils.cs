@@ -1,9 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using JsonLD.Core;
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Helpers;
-using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,17 +9,28 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
+using JsonLD.Core;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-    public class Utils
+    public static class Utils
     {
+        private const string XslTransformNuSpec = "xslt.nuspec.xslt";
+        private const string XslTransformNormalizeNuSpecNamespace = "xslt.normalizeNuspecNamespace.xslt";
+
+        private static readonly Lazy<XslCompiledTransform> XslTransformNuSpecCache = new Lazy<XslCompiledTransform>(() => SafeLoadXslTransform(XslTransformNuSpec));
+        private static readonly Lazy<XslCompiledTransform> XslTransformNormalizeNuSpecNamespaceCache = new Lazy<XslCompiledTransform>(() => SafeLoadXslTransform(XslTransformNormalizeNuSpecNamespace));
+
         private static readonly Dictionary<string, string> _resourceStringCache = new Dictionary<string, string>();
 
         public static Stream GetResourceStream(string resName)
@@ -44,38 +51,94 @@ namespace NuGet.Services.Metadata.Catalog
 
             return _resourceStringCache[resName];
         }
-
-        public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress)
+        
+        public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress, bool normalizeXml = false)
         {
-            nuspec = NormalizeNuspecNamespace(nuspec);
-
-            XslCompiledTransform transform = CreateTransform("xslt.nuspec.xslt");
-
             XsltArgumentList arguments = new XsltArgumentList();
-            arguments.AddParam("base", "", baseAddress + "packages/");
+            arguments.AddParam("base", "", baseAddress);
             arguments.AddParam("extension", "", ".json");
 
             arguments.AddExtensionObject("urn:helper", new XsltHelper());
 
-            XDocument rdfxml = new XDocument();
-            using (XmlWriter writer = rdfxml.CreateWriter())
+            nuspec = SafeXmlTransform(nuspec.CreateReader(), XslTransformNormalizeNuSpecNamespaceCache.Value);
+            var rdfxml = SafeXmlTransform(nuspec.CreateReader(), XslTransformNuSpecCache.Value, arguments);
+
+            var doc = SafeCreateXmlDocument(rdfxml.CreateReader());
+            if (normalizeXml)
             {
-                transform.Transform(nuspec.CreateReader(), arguments, writer);
+                NormalizeXml(doc);
             }
 
             RdfXmlParser rdfXmlParser = new RdfXmlParser();
-            XmlDocument doc = new XmlDocument();
-            doc.Load(rdfxml.CreateReader());
             IGraph graph = new Graph();
             rdfXmlParser.Load(graph, doc);
 
             return graph;
         }
 
-        static XslCompiledTransform CreateTransform(string name)
+        private static void NormalizeXml(XmlNode xmlNode)
         {
-            XslCompiledTransform transform = new XslCompiledTransform();
-            transform.Load(XmlReader.Create(new StreamReader(GetResourceStream(name))));
+            if (xmlNode.Attributes != null)
+            {
+                foreach (XmlAttribute attribute in xmlNode.Attributes)
+                {
+                    attribute.Value = attribute.Value.Normalize(NormalizationForm.FormC);
+                }
+            }
+
+            if (xmlNode.Value != null)
+            {
+                xmlNode.Value = xmlNode.Value.Normalize(NormalizationForm.FormC);
+                return;
+            }
+
+            foreach (XmlNode childNode in xmlNode.ChildNodes)
+            {
+                NormalizeXml(childNode);
+            }
+        }
+
+        internal static XmlDocument SafeCreateXmlDocument(XmlReader reader = null)
+        {
+            // CodeAnalysis / XmlDocument: set the resolver to null or instance
+            var xmlDoc = new XmlDocument()
+            {
+                XmlResolver = null
+            };
+
+            if (reader != null)
+            {
+                xmlDoc.Load(reader);
+            }
+
+            return xmlDoc;
+        }
+
+        private static XDocument SafeXmlTransform(XmlReader reader, XslCompiledTransform transform, XsltArgumentList arguments = null)
+        {
+            XDocument result = new XDocument();
+            using (XmlWriter writer = result.CreateWriter())
+            {
+                if (arguments == null)
+                {
+                    arguments = new XsltArgumentList();
+                }
+
+                // CodeAnalysis / XslCompiledTransform.Transform: set resolver property to null or instance
+                transform.Transform(reader, arguments, writer, documentResolver: null);
+            }
+            return result;
+        }
+
+        private static XslCompiledTransform SafeLoadXslTransform(string resourceName)
+        {
+            var transform = new XslCompiledTransform();
+            
+            // CodeAnalysis / XmlReader.Create: provide settings instance and set resolver property to null or instance
+            var reader = XmlReader.Create(new StreamReader(GetResourceStream(resourceName)), new XmlReaderSettings());
+
+            // CodeAnalysis / XslCompiledTransform.Load: specify default settings or set resolver property to null or instance
+            transform.Load(reader, XsltSettings.Default, stylesheetResolver: null);
             return transform;
         }
 
@@ -121,39 +184,6 @@ namespace NuGet.Services.Metadata.Catalog
         {
             ZipArchive package = new ZipArchive(stream);
             return package;
-        }
-
-        public static XDocument NormalizeNuspecNamespace(XDocument original)
-        {
-            XDocument result = new XDocument();
-
-            using (XmlWriter writer = result.CreateWriter())
-            {
-                XslCompiledTransform xslt = new XslCompiledTransform();
-                xslt.Load(XmlReader.Create(new StreamReader(GetResourceStream("xslt.normalizeNuspecNamespace.xslt"))));
-                xslt.Transform(original.CreateReader(), writer);
-            }
-
-            return result;
-        }
-
-        public static string CreateHtmlView(Uri resource, string frame, string baseAddress)
-        {
-            XDocument original = XDocument.Load(new StreamReader(GetResourceStream("html.view.html")));
-            XslCompiledTransform transform = CreateTransform("xslt.view.xslt");
-            XsltArgumentList arguments = new XsltArgumentList();
-            arguments.AddParam("resource", "", resource.ToString());
-            arguments.AddParam("frame", "", frame);
-            arguments.AddParam("base", "", baseAddress);
-
-            System.IO.StringWriter writer = new System.IO.StringWriter();
-            using (XmlTextWriter xmlWriter = new XmlHtmlWriter(writer))
-            {
-                xmlWriter.Formatting = System.Xml.Formatting.Indented;
-                transform.Transform(original.CreateReader(), arguments, xmlWriter);
-            }
-
-            return writer.ToString();
         }
 
         public static JToken CreateJson(IGraph graph, JToken frame = null)
