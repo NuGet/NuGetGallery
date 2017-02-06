@@ -16,15 +16,15 @@ set vstest="C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Comm
 
 REM Clean previous test results
 if exist resultsfile.trx (
-	del resultsfile.trx
+    del resultsfile.trx
 )
 if exist TestResults (
-	rd TestResults /S /Q
+    rd TestResults /S /Q
 )
 
 REM Restore packages
 if not exist nuget (
-	call PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
+    call PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
 )
 call %nuget% restore "%solutionPath%" -NonInteractive
 if not "%errorlevel%"=="0" goto failure
