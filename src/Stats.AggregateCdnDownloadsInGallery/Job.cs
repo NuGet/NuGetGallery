@@ -125,6 +125,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                         var reader = await command.ExecuteReaderAsync();
                         aggregateCdnDownloadsInGalleryTable.Load(reader);
                         aggregateCdnDownloadsInGalleryTable.Rows.Clear();
+                        aggregateCdnDownloadsInGalleryTable.TableName = $"dbo.{_tempTableName}";
                         _logger.LogInformation("Created temporary table.");
 
                         // Populate temporary table in memory

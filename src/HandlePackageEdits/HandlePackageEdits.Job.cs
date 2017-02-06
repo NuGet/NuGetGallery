@@ -33,6 +33,7 @@ namespace HandlePackageEdits
 
         public const string DefaultSourceContainerName = "packages";
         public const string DefaultBackupContainerName = "package-backups";
+        public const int DefaultMaxRetryCount = 10;
 
         /// <summary>
         /// Gets or sets an Azure Storage Uri referring to a container to use as the source for package blobs
@@ -91,6 +92,8 @@ namespace HandlePackageEdits
 
                 SourceContainer = Source.CreateCloudBlobClient().GetContainerReference(SourceContainerName);
                 BackupsContainer = Backups.CreateCloudBlobClient().GetContainerReference(BackupsContainerName);
+
+                MaxTryCount = DefaultMaxRetryCount;
             }
             catch (Exception exception)
             {
@@ -147,7 +150,7 @@ namespace HandlePackageEdits
                 }
                 catch (Exception exception)
                 {
-                    Trace.TraceError($"Error editing package {edit.Id} {edit.Version}! {exception}");
+                    Trace.TraceError($"Error editing package {edit.Id} {edit.Version} (try {edit.TriedCount + 1} / {MaxTryCount})! {exception}");
                     await UpdatePackageEditDbWithError(exception, edit.Key);
                 }
             }
@@ -257,6 +260,13 @@ namespace HandlePackageEdits
 
         private async Task UpdateDatabaseWithEdit(PackageEdit edit, string hash, long size)
         {
+            // insert missing authors as empty in authors table for consistency with gallery
+            // scenario is metadata edit during verification of package uploaded without authors
+            if (string.IsNullOrWhiteSpace(edit.Authors))
+            {
+                edit.Authors = string.Empty;
+            }
+
             using (var connection = await PackageDatabase.ConnectTo())
             {
                 var parameters = new DynamicParameters(new

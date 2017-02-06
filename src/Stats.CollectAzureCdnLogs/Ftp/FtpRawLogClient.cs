@@ -10,12 +10,14 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Stats.AzureCdnLogs.Common;
 
 namespace Stats.CollectAzureCdnLogs.Ftp
 {
     internal sealed class FtpRawLogClient
         : IRawLogClient
     {
+        private const int _maxFtpRequestAttempts = 5;
         private readonly string _username;
         private readonly string _password;
 
@@ -57,14 +59,16 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 request.Method = WebRequestMethods.Ftp.Rename;
                 request.RenameTo = newFileName;
 
-                var result = await TryGetResponseAsync(request, FtpStatusCode.FileActionOK);
-                if (!result)
+                var result = await GetResponseAsync(request);
+                if (result != FtpStatusCode.FileActionOK)
                 {
                     // Failed (multiple times) to rename the file on the origin. No point in continuing with this file.
-                    Logger.LogError("Failed to rename file. Processing aborted.");
+                    Logger.LogError("Failed to rename file. Processing aborted. (FtpStatusCode={FtpStatusCode})", result.ToString());
+
+                    return false;
                 }
 
-                return result;
+                return true;
             }
         }
 
@@ -81,15 +85,15 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 var request = CreateRequest(uri);
                 request.Method = WebRequestMethods.Ftp.DeleteFile;
 
-                var result = await TryGetResponseAsync(request, FtpStatusCode.FileActionOK);
-                if (!result)
-                {
-                    // A warning is OK here as the job should retry downloading and processing the file
-                    Logger.LogWarning("Failed to delete file.");
-                }
-                else
+                var result = await GetResponseAsync(request);
+                if (result == FtpStatusCode.FileActionOK)
                 {
                     Logger.LogInformation("Finishing delete file.");
+                }
+                else if (result != FtpStatusCode.ActionNotTakenFileUnavailable)
+                {
+                    // A warning is OK here as the job should retry downloading and processing the file
+                    Logger.LogWarning("Failed to delete file. (FtpStatusCode={FtpStatusCode})", result.ToString());
                 }
             }
         }
@@ -127,23 +131,55 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError("Failed to get raw log files.", e);
+                    Logger.LogError(LogEvents.FailedBlobListing, e, "Failed to get raw log files.");
+
                     return Enumerable.Empty<RawLogFileInfo>();
                 }
             }
         }
 
-        private static async Task<bool> TryGetResponseAsync(FtpWebRequest request, FtpStatusCode expectedResult)
+        private async Task<FtpStatusCode> GetResponseAsync(FtpWebRequest request)
         {
-            for (var attempts = 0; attempts < 5; attempts++)
+            for (var attempts = 0; attempts < _maxFtpRequestAttempts; attempts++)
             {
-                var response = (FtpWebResponse)await request.GetResponseAsync();
-                if (response.StatusCode == expectedResult)
+                try
                 {
-                    return true;
+                    var response = (FtpWebResponse) await request.GetResponseAsync();
+                    return response.StatusCode;
+                }
+                catch (WebException exception)
+                {
+                    var response = exception.Response as FtpWebResponse;
+                    if (response != null)
+                    {
+                        Logger.LogWarning(
+                                LogEvents.FailedToGetFtpResponse,
+                                exception,
+                                "Captured WebException from FTP response: {ftpStatusCode}. (attempt {attempts}/{maxAttempts})",
+                                response.StatusCode,
+                                attempts,
+                                _maxFtpRequestAttempts);
+
+                        if (attempts == _maxFtpRequestAttempts - 1)
+                        {
+                            return response.StatusCode;
+                        }
+                    }
+                    else
+                    {
+                        Logger.LogError(
+                            LogEvents.FailedToGetFtpResponse,
+                            exception,
+                            "Failed to get FTP response. (attempt {attempts}/{maxAttempts})",
+                            attempts,
+                            _maxFtpRequestAttempts);
+                    }
                 }
             }
-            return false;
+
+            // This status code is never returned by a real FTP server
+            // (if we reach this code, we didn't get a response from the server...)
+            return FtpStatusCode.Undefined;
         }
 
         internal async Task<Stream> StartOrResumeFtpDownload(Uri uri, int contentOffset = 0)
@@ -183,6 +219,7 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             {
                 throw new ArgumentNullException(nameof(rawLogFile));
             }
+
             if (string.IsNullOrWhiteSpace(newFileName))
             {
                 throw new ArgumentNullException(nameof(newFileName));
@@ -204,6 +241,7 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             {
                 rawLogUri = rawLogFile.Uri;
             }
+
             return rawLogUri;
         }
     }

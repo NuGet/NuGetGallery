@@ -117,7 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="FailedBlobUpload" xml:space="preserve">
+    <value>Failed to upload file: {fileName}.</value>
+  </data>
+  <data name="InvalidRawLogFileName" xml:space="preserve">
+    <value>Invalid raw log file name.</value>
+  </data>
+  <data name="JobRunFailed" xml:space="preserve">
+    <value>Job run failed!</value>
+  </data>
   <data name="ParseLogEntryLineFailed" xml:space="preserve">
     <value>Failed to parse W3C log entry in {LogFileName} at line {LineNumber}.</value>
+  </data>
+  <data name="ProcessingLogStreamFailed" xml:space="preserve">
+    <value>Error processing log stream.</value>
+  </data>
+  <data name="UnknownAzureCdnPlatform" xml:space="preserve">
+    <value>Unknown Azure CDN platform.</value>
   </data>
 </root>
