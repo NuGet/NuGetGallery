@@ -11,7 +11,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = 'da881231d9ae9c966d0c18824f09f0122008e765'
+    [string]$BuildBranch = 'a8c27302d8720d094c2dce87e00324d84b4697b2'
 )
 
 # For TeamCity - If any issue occurs, this script fail the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -27,7 +27,7 @@ if (-not (Test-Path "$PSScriptRoot/build")) {
     New-Item -Path "$PSScriptRoot/build" -ItemType "directory"
 }
 wget -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranch/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
-. "$PSScriptRoot/build/init.ps1" -Branch "$BuildBranch"
+. "$PSScriptRoot/build/init.ps1" -BuildBranch "$BuildBranch"
 
 Function Clean-Tests {
     [CmdletBinding()]
