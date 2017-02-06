@@ -1,4 +1,5 @@
 ﻿var json2html = function (obj) {
+    "use strict";
 
     var urlregexp = /^http:|^https:/;
 

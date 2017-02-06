@@ -229,8 +229,6 @@
   <ItemGroup>
     <Content Include="content\d3.v3.min.js" />
     <Content Include="content\further.js" />
-    <Content Include="content\Json2Html.js" />
-    <Content Include="content\Json2HtmlStyle.css" />
     <Content Include="content\jsonld.js" />
     <Content Include="content\Promise.js" />
     <EmbeddedResource Include="xslt\normalizeNuspecNamespace.xslt" />
