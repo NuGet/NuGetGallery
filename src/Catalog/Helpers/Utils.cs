@@ -133,9 +133,13 @@ namespace NuGet.Services.Metadata.Catalog
         private static XslCompiledTransform SafeLoadXslTransform(string resourceName)
         {
             var transform = new XslCompiledTransform();
-            
+
             // CodeAnalysis / XmlReader.Create: provide settings instance and set resolver property to null or instance
-            var reader = XmlReader.Create(new StreamReader(GetResourceStream(resourceName)), new XmlReaderSettings());
+            var settings = new XmlReaderSettings
+            {
+                XmlResolver = null
+            };
+            var reader = XmlReader.Create(new StreamReader(GetResourceStream(resourceName)), settings);
 
             // CodeAnalysis / XslCompiledTransform.Load: specify default settings or set resolver property to null or instance
             transform.Load(reader, XsltSettings.Default, stylesheetResolver: null);
