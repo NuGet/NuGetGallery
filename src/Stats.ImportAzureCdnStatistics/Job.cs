@@ -64,7 +64,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
             catch (Exception exception)
             {
-                _logger.LogCritical("Failed to initialize job! {Exception}", exception);
+                _logger.LogCritical(LogEvents.JobInitFailed, exception, "Failed to initialize job!");
 
                 return false;
             }
@@ -117,7 +117,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
             catch (Exception exception)
             {
-                _logger.LogCritical("Job run failed! {Exception}", exception);
+                _logger.LogCritical(LogEvents.JobRunFailed, exception, "Job run failed!");
 
                 return false;
             }

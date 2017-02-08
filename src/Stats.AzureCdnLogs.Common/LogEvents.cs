@@ -21,5 +21,6 @@ namespace Stats.AzureCdnLogs.Common
         public static EventId InvalidRawLogFileName = new EventId(511, "Invalid raw log filename");
         public static EventId FailedToGetFtpResponse = new EventId(512, "Failed to get FTP response");
         public static EventId JobRunFailed = new EventId(550, "Job run failed");
+        public static EventId JobInitFailed = new EventId(551, "Job initialization failed");
     }
 }

@@ -383,7 +383,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(LogEvents.FailedBlobDelete, exception, "Finished to delete blob {FtpBlobUri}", logFile.Uri);
+                    _logger.LogError(LogEvents.FailedBlobDelete, exception, "Failed to delete blob {FtpBlobUri}", logFile.Uri);
                     ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                     throw;
                 }
