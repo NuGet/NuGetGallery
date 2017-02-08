@@ -1,36 +1,31 @@
+[CmdletBinding(DefaultParameterSetName='RegularBuild')]
+param (
+    [string]$ServiceRoot,
+    [string]$Slot,
+    [string]$CloudServiceName,
+    [string]$SubscriptionId,
+    [string]$ApplicationId,
+    [string]$TenantId,
+    [string]$AzureCertificateThumbprint
+)
+
 # Delete leftover tests
-Get-ChildItem $env:Build_SourcesDirectory | Where-Object {$_.Extension -eq '.trx' -Or $_.Name -match 'functionaltests.*.xml'} | ForEach-Object {
-    Remove-Item $_
+Get-ChildItem "$PSScriptRoot\.." -Recurse | Where-Object {$_.Extension -eq '.trx' -Or $_.Name -match 'functionaltests.*.xml'} | ForEach-Object {
+    Remove-Item "$($_.FullName)"
 }
 
-# Determine the url of the gallery we are testing.
-function GetUrl()
+# Determine the url to run the tests against
+if ($Slot -eq "Production")
 {
-    param([string] $xmlString)
-    $stagingsectionindex = $xmlString.IndexOf("<DeploymentSlot>Staging</DeploymentSlot>")
-    $startindex =  $xmlString.IndexOf("<Url>",$stagingsectionindex)
-    $endindex = $xmlString.IndexOf("</Url>",$startindex)
-    $stagingUrl =  $xmlString.Substring($startindex+5, $endindex-($startindex +5))
-    return $stagingUrl
-}
-
-if ($env:Slot -eq "Production")
-{
-    $GalleryUrl = $env:SERVICEROOT
+    $GalleryUrl = $ServiceRoot
 }
 else
 {
-    # Use the Azure management certificate to find the url of the desired slot
-    $dict = New-Object "System.Collections.Generic.Dictionary``2[System.String,System.String]"
-    $dict.Add('x-ms-version', ' 2014-02-01')
-    $uri =  "https://management.core.windows.net/$env:SubscriptionId/services/hostedservices/$env:CloudServiceName" + "?embed-detail=true"
-    $cert = dir "cert:\LocalMachine\My\$env:AzureCertificateThumbprint"
+    # Use Azure PowerShell cmdlets to find the url of the desired slot
     try
     {
-        $response = Invoke-WebRequest -Uri $uri -Certificate $cert -Headers $dict -Method GET -UseBasicParsing
-        $url = GetUrl "$response.Content"
-        $url = $url.Replace("http","https")
-        $GalleryUrl = $url
+        Add-AzureRmAccount -ApplicationId "$ApplicationId" -CertificateThumbprint "$AzureCertificateThumbprint" -ServicePrincipal -SubscriptionId "$SubscriptionId" -TenantId "$TenantId"
+        $GalleryUrl = (Get-AzureDeployment -ServiceName "$CloudServiceName" -Slot "$Slot").Url
     }
     catch [System.Exception]
     {
@@ -41,4 +36,5 @@ else
 }
 
 Write-Host "Using the following GalleryURL: " + $GalleryUrl
+$env:GalleryUrl = $GalleryUrl
 Write-Host "##vso[task.setvariable variable=GalleryUrl;]$GalleryUrl"
