@@ -21,6 +21,9 @@ if exist resultsfile.trx (
 if exist TestResults (
 	rd TestResults /S /Q
 )
+if exist loadtests-resultsfile.trx (
+	del loadtests-resultsfile.trx
+)
 
 REM Restore packages
 if not exist nuget (
