@@ -32,9 +32,10 @@ else
         $url = $url.Replace("http","https")
         $GalleryUrl = $url
     }
-    catch
+    catch [System.Exception]
     {
-        Write-Host "Failed to retrieve URL for testing"
+        Write-Host "Failed to retrieve URL for testing!"
+        Write-Host $_.Exception.Message
         Exit 1
     }
 }
