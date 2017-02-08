@@ -110,7 +110,6 @@ namespace NuGetGallery.FunctionalTests
             catch (Exception ex)
             {
                 WriteLine($"Exception thrown while executing '{actionName}'.{Environment.NewLine}{ex}");
-                return false;
             }
 
             return success;
