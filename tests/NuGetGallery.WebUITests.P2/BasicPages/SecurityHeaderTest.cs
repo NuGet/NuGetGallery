@@ -32,10 +32,10 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
             // Send a request to Packages page and check for security headers.
             var packagesPageRequest = new WebTestRequest(UrlHelper.PackagesPageUrl);
             packagesPageRequest.ParseDependentRequests = false;
-            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Frame-Options: deny").Validate;
-            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-XSS-Protection: 1; mode=block").Validate;
-            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Content-Type-Options: nosniff").Validate;
-            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("Strict-Transport-Security: max-age=31536000").Validate;
+            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Frame-Options: deny").Validate;
+            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-XSS-Protection: 1; mode=block").Validate;
+            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Content-Type-Options: nosniff").Validate;
+            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("Strict-Transport-Security: max-age=31536000").Validate;
             yield return packagesPageRequest;
         }
     }
