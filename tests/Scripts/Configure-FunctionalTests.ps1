@@ -27,6 +27,7 @@ else
         Write-Host "Logging into Azure as service principal."
         Add-AzureRmAccount -ApplicationId "$ApplicationId" -CertificateThumbprint "$AzureCertificateThumbprint" -ServicePrincipal -SubscriptionId "$SubscriptionId" -TenantId "$TenantId"
         Write-Host "Fetching url of $Slot slot of $CloudServiceName."
+        Select-AzureRmContext -SubscriptionId "$SubscriptionId" -TenantId "$TenantId"
         $GalleryUrl = (Get-AzureDeployment -ServiceName "$CloudServiceName" -Slot "$Slot").Url
     }
     catch [System.Exception]
