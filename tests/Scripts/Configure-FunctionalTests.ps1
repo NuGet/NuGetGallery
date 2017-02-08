@@ -33,7 +33,7 @@ else
         # Use the resource group name to construct the id of the slot resource
         $slotResource = Get-AzureRmResource -Id "/subscriptions/$SubscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.ClassicCompute/domainNames/$CloudServiceName/slots/$Slot"
         # Get the uri of the slot resource
-        $GalleryUrl = $slotResource.Properties.uri
+        $GalleryUrl = ($slotResource.Properties.uri).Replace("http", "https")
     }
     Catch [System.Exception]
     {
