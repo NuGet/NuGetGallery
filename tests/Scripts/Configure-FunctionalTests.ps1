@@ -24,7 +24,9 @@ else
     # Use Azure PowerShell cmdlets to find the url of the desired slot
     try
     {
+        Write-Host "Logging into Azure as service principal."
         Add-AzureRmAccount -ApplicationId "$ApplicationId" -CertificateThumbprint "$AzureCertificateThumbprint" -ServicePrincipal -SubscriptionId "$SubscriptionId" -TenantId "$TenantId"
+        Write-Host "Fetching url of $Slot slot of $CloudServiceName."
         $GalleryUrl = (Get-AzureDeployment -ServiceName "$CloudServiceName" -Slot "$Slot").Url
     }
     catch [System.Exception]
@@ -35,6 +37,6 @@ else
     }
 }
 
-Write-Host "Using the following GalleryURL: " + $GalleryUrl
+Write-Host "Using the following GalleryURL: " $GalleryUrl
 $env:GalleryUrl = $GalleryUrl
 Write-Host "##vso[task.setvariable variable=GalleryUrl;]$GalleryUrl"
