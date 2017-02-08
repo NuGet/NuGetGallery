@@ -25,9 +25,9 @@ else
     try
     {
         Write-Host "Logging into Azure as service principal."
-        Add-AzureRmAccount -ApplicationId "$ApplicationId" -CertificateThumbprint "$AzureCertificateThumbprint" -ServicePrincipal -SubscriptionId "$SubscriptionId" -TenantId "$TenantId"
+        $login = Add-AzureRmAccount -ApplicationId "$ApplicationId" -CertificateThumbprint "$AzureCertificateThumbprint" -ServicePrincipal -SubscriptionId "$SubscriptionId" -TenantId "$TenantId"
         Write-Host "Fetching url of $Slot slot of $CloudServiceName."
-        Select-AzureSubscription -SubscriptionId "$SubscriptionId"
+        Select-AzureSubscription -SubscriptionName "$($login.Context.Subscription.SubscriptionName)"
         $GalleryUrl = (Get-AzureDeployment -ServiceName "$CloudServiceName" -Slot "$Slot").Url
     }
     catch [System.Exception]
