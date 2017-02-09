@@ -7,6 +7,7 @@ REM Configuration
 set config=Release
 set testCategory="P2Tests"
 set solutionPath="NuGetGallery.FunctionalTests.sln"
+set exitCode=0
 
 REM Required Tools
 set msbuild="%PROGRAMFILES(X86)%\MsBuild\14.0\Bin\msbuild"
@@ -41,17 +42,17 @@ REM Run functional tests
 set testDir="NuGetGallery.FunctionalTests\bin\%config%"
 copy %nuget% %testDir%
 call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%testCategory%" -xml functionaltests.P2.xml
+if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI and load tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P2\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.trx
-if not "%errorlevel%"=="0" goto failure
+if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run Load tests
 call %vstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /logger:trx /TestCaseFilter:"TestCategory=%testCategory%"
-if not "%errorlevel%"=="0" goto failure
+if not "%errorlevel%"=="0" set exitCode=-1
 
-:success
-exit 0
+exit /B %exitCode%
 
 :failure
 exit -1
