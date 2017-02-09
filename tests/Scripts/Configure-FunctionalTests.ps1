@@ -9,11 +9,6 @@ param (
     [string]$AzureCertificateThumbprint
 )
 
-# Delete leftover tests
-Get-ChildItem "$PSScriptRoot\.." -Recurse | Where-Object {$_.Extension -eq '.trx' -Or $_.Name -match 'functionaltests.*.xml'} | ForEach-Object {
-    Remove-Item "$($_.FullName)"
-}
-
 # Determine the url to run the tests against
 if ($Slot -eq "Production")
 {

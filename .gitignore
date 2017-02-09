@@ -175,7 +175,7 @@ build/artifacts/
 tests/Scripts/TestResults[*].trx
 src/NuGetGallery.Cloud/ecf/
 *.trx
-tests/functionaltests*.html
+tests/functionaltests.*.xml
 Results.?.xml
 
 # Vs2015
