@@ -22,19 +22,19 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
         [Fact]
         [Description("Upload multiple versions of a package and see if it gets uploaded properly")]
-        [Priority(0)]
+        [Priority(1)]
         [Category("P1Tests")]
         public async Task UploadMultipleVersionOfPackage()
         {
             var packageId = string.Format("TestMultipleVersion.{0}", DateTime.Now.Ticks);
 
-            await _clientSdkHelper.UploadNewPackageAndVerify(packageId);
-            await _clientSdkHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
+            await _clientSdkHelper.UploadNewPackage(packageId, "1.0.0");
+            await _clientSdkHelper.UploadNewPackage(packageId, "2.0.0");
 
-            int actualCount = _clientSdkHelper.GetVersionCount(packageId);
+            _clientSdkHelper.VerifyPackageExistsInSource(packageId, "1.0.0");
+            _clientSdkHelper.VerifyPackageExistsInSource(packageId, "2.0.0");
 
-            var userMessage = string.Format(" 2 versions of package {0} not found after uploading. Actual versions found {1}", packageId, actualCount);
-            Assert.True(actualCount.Equals(2), userMessage);
+            _clientSdkHelper.VerifyVersionCount(packageId, 2);
         }
     }
 }
