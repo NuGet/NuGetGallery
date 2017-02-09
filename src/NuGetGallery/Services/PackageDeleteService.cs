@@ -99,11 +99,10 @@ namespace NuGetGallery
                 await _packageDeletesRepository.CommitChangesAsync();
                 transaction.Commit();
             }
-            
+            EntitiesConfiguration.SuspendExecutionStrategy = false;
+
             // handle in separate transaction because of concurrency check with retry
             await UpdateIsLatestAsync(packageRegistrations);
-
-            EntitiesConfiguration.SuspendExecutionStrategy = false;
 
             // Force refresh the index
             UpdateSearchIndex();
@@ -157,11 +156,10 @@ namespace NuGetGallery
                 // Commit transaction
                 transaction.Commit();
             }
+            EntitiesConfiguration.SuspendExecutionStrategy = false;
 
             // handle in separate transaction because of concurrency check with retry
             await UpdateIsLatestAsync(packageRegistrations);
-
-            EntitiesConfiguration.SuspendExecutionStrategy = false;
 
             // Force refresh the index
             UpdateSearchIndex();

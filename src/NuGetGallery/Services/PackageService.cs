@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -715,8 +716,7 @@ namespace NuGetGallery
             // return true if packages no longer flagged, or version changed
             else
             {
-                return (packageToFlag == null) ||
-                    !oldMatches.First().Version.Equals(packageToFlag.Version, StringComparison.OrdinalIgnoreCase);
+                return (packageToFlag == null) || !PackagesMatch(oldMatches.First(), packageToFlag);
             }
         }
 
@@ -769,20 +769,37 @@ namespace NuGetGallery
             return Task.FromResult(0);
         }
 
+        private static bool PackagesMatch(Package first, Package second)
+        {
+            if (first == null)
+            {
+                return second == null;
+            }
+            else if (second == null)
+            {
+                return false;
+            }
+            else
+            {
+                return first.Version.Equals(second.Version, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
         private async Task UpdateIsLatestInternalAsync(PackageRegistration packageRegistration, int retryCount = 0)
         {
             if (!packageRegistration.Packages.Any())
             {
                 return;
             }
-
-            // find the old and new latest packages
+            
             var oldLatestPackages = packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable).ToList();
             var latestPackage = FindLatestPackage(packageRegistration.Packages);
             var latestStablePackage = FindLatestStablePackage(packageRegistration.Packages, latestPackage);
 
-            if (! (FlaggedPackageChanged(oldLatestPackages, latestPackage, p => p.IsLatest) ||
-                   FlaggedPackageChanged(oldLatestPackages, latestStablePackage, p => p.IsLatestStable)) )
+            var latestChanged = FlaggedPackageChanged(oldLatestPackages, latestPackage, p => p.IsLatest);
+            var latestStableChanged = FlaggedPackageChanged(oldLatestPackages, latestStablePackage, p => p.IsLatestStable);
+
+            if (! (latestChanged || latestStableChanged))
             {
                 return;
             }
@@ -790,29 +807,32 @@ namespace NuGetGallery
             // suspend retry execution strategy which does not support user initiated transactions
             EntitiesConfiguration.SuspendExecutionStrategy = true;
 
-            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction(IsolationLevel.ReadCommitted))
             {
-
                 try
                 {
-                    // clear the current latest flags
-                    foreach (var package in oldLatestPackages)
-                    {
-                        await UpdateIsLatestWithConcurrencyCheckAsync(package, false, false);
-                    }
-
-                    // set the new latest flags
                     if (latestPackage != null)
                     {
                         var latestStableExists = latestStablePackage != null;
-                        var latestIsLatestStable = latestStableExists ?
-                            latestPackage.Version.Equals(latestStablePackage.Version, StringComparison.OrdinalIgnoreCase) : false;
-
-                        await UpdateIsLatestWithConcurrencyCheckAsync(latestPackage, true, latestIsLatestStable);
-
-                        if (latestStableExists && !latestIsLatestStable)
+                        var latestIsLatestStable = latestStableExists ? PackagesMatch(latestPackage, latestStablePackage) : false;
+                        
+                        if (latestChanged || latestIsLatestStable)
+                        {
+                            await UpdateIsLatestWithConcurrencyCheckAsync(latestPackage, true, latestIsLatestStable);
+                        }
+                        
+                        if (latestStableChanged && latestStableExists && !latestIsLatestStable)
                         {
                             await UpdateIsLatestWithConcurrencyCheckAsync(latestStablePackage, false, true);
+                        }
+                    }
+
+                    // clear the current latest flags, if we haven't already
+                    foreach (var package in oldLatestPackages)
+                    {
+                        if (! (PackagesMatch(package, latestPackage) || PackagesMatch(package, latestStablePackage)))
+                        {
+                            await UpdateIsLatestWithConcurrencyCheckAsync(package, false, false);
                         }
                     }
 
