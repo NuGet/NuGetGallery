@@ -10,12 +10,19 @@ namespace NuGet.Indexing
     public class SearcherManager 
         : SearcherManager<IndexSearcher>
     {
-        public SearcherManager(Directory directory) 
-            : base(directory)
+        private readonly Directory _directory;
+
+        public SearcherManager(Directory directory)
         {
+            _directory = directory;
+        }
+        
+        protected override Directory GetDirectory()
+        {
+            return _directory;
         }
 
-        protected override IndexReader Reopen(IndexSearcher searcher)
+        protected override IndexReader Reopen(IndexingConfiguration config, IndexSearcher searcher)
         {
             return searcher.IndexReader.Reopen();
         }

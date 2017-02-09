@@ -19,7 +19,7 @@ namespace NuGet.Services.Metadata.Catalog
                 .Select((w) => w.Trim(trimChar))
                 .Where((w) => w.Length > 0);
 
-            XmlDocument xmlDoc = new XmlDocument();
+            XmlDocument xmlDoc = Utils.SafeCreateXmlDocument();
             XmlElement root = xmlDoc.CreateElement("list");
             xmlDoc.AppendChild(root);
 

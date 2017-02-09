@@ -6,6 +6,7 @@ using System.Threading;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
+using System.Threading.Tasks;
 
 namespace NuGet.Indexing
 {
@@ -16,12 +17,7 @@ namespace NuGet.Indexing
         private bool _reopening;
         private TIndexSearcher _currentSearcher;
 
-        public Directory Directory { get; private set; }
-
-        public SearcherManager(Directory directory)
-        {
-            Directory = directory;
-        }
+        protected abstract Directory GetDirectory();
 
         public void Open()
         {
@@ -31,7 +27,7 @@ namespace NuGet.Indexing
                 {
                     if (_currentSearcher == null)
                     {
-                        _currentSearcher = CreateSearcher(IndexReader.Open(Directory, true));
+                        _currentSearcher = CreateSearcher(IndexReader.Open(GetDirectory(), true));
                         if (_currentSearcher == null)
                         {
                             throw new Exception("Unable to create IndexSearcher");
@@ -43,7 +39,7 @@ namespace NuGet.Indexing
             Warm(_currentSearcher);
         }
 
-        protected abstract IndexReader Reopen(IndexSearcher searcher);
+        protected abstract IndexReader Reopen(IndexingConfiguration config, IndexSearcher searcher);
 
         protected virtual bool RequiresNewSearcher(IndexReader newReader, IndexSearcher currentSearcher)
         {
@@ -76,7 +72,7 @@ namespace NuGet.Indexing
                 Monitor.PulseAll(_sync);
             }
         }
-        public void MaybeReopen()
+        public void MaybeReopen(IndexingConfiguration config)
         {
             StartReopen();
 
@@ -85,7 +81,7 @@ namespace NuGet.Indexing
                 TIndexSearcher searcher = Get();
                 try
                 {
-                    var newReader = Reopen(_currentSearcher);
+                    var newReader = Reopen(config, _currentSearcher);
 
                     if (RequiresNewSearcher(newReader, _currentSearcher))
                     {

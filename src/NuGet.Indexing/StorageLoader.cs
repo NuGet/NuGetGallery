@@ -3,26 +3,27 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Threading.Tasks;
+using NuGet.Services.Configuration;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
     public class StorageLoader : ILoader
     {
-        private readonly CloudStorageAccount _storageAccount;
-        private readonly string _containerName;
         private readonly FrameworkLogger _logger;
 
-        public StorageLoader(CloudStorageAccount storageAccount, string containerName, FrameworkLogger logger)
+        private string _dataContainerName;
+        private string _storageAccountConnectionString;
+        private CloudStorageAccount _storageAccount;
+
+        public StorageLoader(IndexingConfiguration config, FrameworkLogger logger)
         {
-            logger.LogInformation("StorageLoader container: {ContainerName}", containerName);
-            _storageAccount = storageAccount;
-            _containerName = containerName;
             _logger = logger;
+            Reload(config);
         }
 
         public JsonReader GetReader(string name)
@@ -31,9 +32,9 @@ namespace NuGet.Indexing
             {
                 _logger.LogInformation("StorageLoader.GetReader: {ReaderTarget}", name);
 
-                CloudBlobClient client = _storageAccount.CreateCloudBlobClient();
-                CloudBlobContainer container = client.GetContainerReference(_containerName);
-                CloudBlockBlob blob = container.GetBlockBlobReference(name);
+                var client = _storageAccount.CreateCloudBlobClient();
+                var container = client.GetContainerReference(_dataContainerName);
+                var blob = container.GetBlockBlobReference(name);
                 return new JsonTextReader(new StreamReader(blob.OpenRead()));
             }
             catch (Exception e)
@@ -41,6 +42,24 @@ namespace NuGet.Indexing
                 _logger.LogError($"Exception {e.Message} attempting to load {name}", e);
                 throw;
             }
+        }
+
+        public bool Reload(IndexingConfiguration config)
+        {
+            // Refresh the data container and the primary storage account.
+            var oldDataContainerName = _dataContainerName;
+            _dataContainerName = config.DataContainer;
+
+            var oldStorageAccountConnectionString = _storageAccountConnectionString;
+            _storageAccountConnectionString = config.StoragePrimary;
+            _storageAccount = CloudStorageAccount.Parse(_storageAccountConnectionString);
+
+            _logger.LogInformation("StorageLoader data container: {DataContainerName}", _dataContainerName);
+
+            // Our data has changed if the data container name or storage account connection string has changed.
+            return
+                !(oldDataContainerName == _dataContainerName &&
+                  oldStorageAccountConnectionString == _storageAccountConnectionString);
         }
     }
 }

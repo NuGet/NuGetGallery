@@ -1,6 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Services.Metadata.Catalog;
 using System.Linq;
 using System.Xml.Linq;
 using VDS.RDF;
@@ -13,7 +12,7 @@ namespace NuGet.Services.Metadata.Catalog.Pipeline
         {
             XDocument nuspec = PackagePipelineHelpers.GetNuspec(package, context);
 
-            IGraph graph = Utils.CreateNuspecGraph(nuspec, context.BaseAddress.AbsoluteUri);
+            IGraph graph = Utils.CreateNuspecGraph(nuspec, context.BaseAddress.AbsoluteUri + "packages/");
 
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
 

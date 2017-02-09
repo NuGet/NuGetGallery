@@ -8,6 +8,7 @@ using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Indexing;
+using NuGet.Services.Configuration;
 
 namespace NuGet.IndexingTests.TestSupport
 {
@@ -33,11 +34,16 @@ namespace NuGet.IndexingTests.TestSupport
 
         private static NuGetSearcherManager InitNuGetSearcherManager(string indexName)
         {
-            var searcherManager = new NuGetSearcherManager(indexName, new Mock<ILogger>().Object, directory: null, loader: null, azureDirectorySynchronizer: null);
+            var mockSearcherManager = new Mock<NuGetSearcherManager>(new Mock<ILogger>().Object, null, null,
+                int.MaxValue, int.MaxValue)
+            {
+                CallBase = true
+            };
 
-            searcherManager.RegistrationBaseAddress[Constants.SchemeName] = new Uri(Constants.BaseUri);
+            mockSearcherManager.Setup(x => x.IndexName).Returns(indexName);
+            mockSearcherManager.Object.RegistrationBaseAddress[Constants.SchemeName] = new Uri(Constants.BaseUri);
 
-            return searcherManager;
+            return mockSearcherManager.Object;
         }
 
         public override Document Doc(int id)
