@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -18,6 +19,7 @@ namespace NuGetGallery
         Task<int> SaveChangesAsync();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords", MessageId = "Set", Justification="This is to match the EF terminology.")]
         IDbSet<T> Set<T>() where T : class;
+        DbEntityEntry<T> Entry<T>(T entry) where T : class;
         void DeleteOnCommit<T>(T entity) where T : class;
         void SetCommandTimeout(int? seconds);
         Database GetDatabase();

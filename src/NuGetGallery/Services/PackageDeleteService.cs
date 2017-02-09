@@ -56,6 +56,8 @@ namespace NuGetGallery
 
         public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
         {
+            List<PackageRegistration> packageRegistrations;
+
             EntitiesConfiguration.SuspendExecutionStrategy = true;
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
@@ -63,7 +65,7 @@ namespace NuGetGallery
                 _entitiesContext.SetCommandTimeout(seconds: 300);
 
                 // Keep package registrations
-                var packageRegistrations = packages
+                packageRegistrations = packages
                     .GroupBy(p => p.PackageRegistration)
                     .Select(g => g.First().PackageRegistration)
                     .ToList();
@@ -92,16 +94,16 @@ namespace NuGetGallery
 
                 _packageDeletesRepository.InsertOnCommit(packageDelete);
 
-                // Update latest versions
-                await UpdateIsLatestAsync(packageRegistrations);
-
                 // Commit changes
                 await _packageRepository.CommitChangesAsync();
                 await _packageDeletesRepository.CommitChangesAsync();
                 transaction.Commit();
             }
-            EntitiesConfiguration.SuspendExecutionStrategy = false;
+            
+            // handle in separate transaction because of concurrency check with retry
+            await UpdateIsLatestAsync(packageRegistrations);
 
+            EntitiesConfiguration.SuspendExecutionStrategy = false;
 
             // Force refresh the index
             UpdateSearchIndex();
@@ -109,6 +111,8 @@ namespace NuGetGallery
 
         public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration)
         {
+            List<PackageRegistration> packageRegistrations;
+
             EntitiesConfiguration.SuspendExecutionStrategy = true;
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
@@ -116,7 +120,7 @@ namespace NuGetGallery
                 _entitiesContext.SetCommandTimeout(seconds: 300);
 
                 // Keep package registrations
-                var packageRegistrations = packages.GroupBy(p => p.PackageRegistration).Select(g => g.First().PackageRegistration).ToList();
+                packageRegistrations = packages.GroupBy(p => p.PackageRegistration).Select(g => g.First().PackageRegistration).ToList();
 
                 // Backup the package binaries and remove from main storage
                 // We're doing this early in the process as we need the metadata to still exist in the DB.
@@ -141,9 +145,6 @@ namespace NuGetGallery
                     _packageRepository.DeleteOnCommit(package);
                 }
 
-                // Update latest versions
-                await UpdateIsLatestAsync(packageRegistrations);
-
                 // Commit changes to package repository
                 await _packageRepository.CommitChangesAsync();
 
@@ -156,6 +157,10 @@ namespace NuGetGallery
                 // Commit transaction
                 transaction.Commit();
             }
+
+            // handle in separate transaction because of concurrency check with retry
+            await UpdateIsLatestAsync(packageRegistrations);
+
             EntitiesConfiguration.SuspendExecutionStrategy = false;
 
             // Force refresh the index
@@ -169,10 +174,9 @@ namespace NuGetGallery
 
         private async Task UpdateIsLatestAsync(IEnumerable<PackageRegistration> packageRegistrations)
         {
-            // Update latest versions
             foreach (var packageRegistration in packageRegistrations)
             {
-                await _packageService.UpdateIsLatestAsync(packageRegistration, false);
+                await _packageService.UpdateIsLatestAsync(packageRegistration);
             }
         }
 

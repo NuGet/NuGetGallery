@@ -996,11 +996,20 @@ namespace NuGetGallery
             {
                 action = "unlisted";
                 await _packageService.MarkPackageUnlistedAsync(package);
+
+                // handle in separate transaction because of concurrency check with retry
+                if (package.IsLatest || package.IsLatestStable)
+                {
+                    await _packageService.UpdateIsLatestAsync(package.PackageRegistration);
+                }
             }
             else
             {
                 action = "listed";
                 await _packageService.MarkPackageListedAsync(package);
+
+                // handle in separate transaction because of concurrency check with retry
+                await _packageService.UpdateIsLatestAsync(package.PackageRegistration);
             }
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture,
@@ -1191,6 +1200,9 @@ namespace NuGetGallery
                     await _packageFileService.DeletePackageFileAsync(packageMetadata.Id, packageMetadata.Version.ToNormalizedString());
                     throw;
                 }
+
+                // handle in separate transaction because of concurrency check with retry
+                await _packageService.UpdateIsLatestAsync(package.PackageRegistration);
 
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();

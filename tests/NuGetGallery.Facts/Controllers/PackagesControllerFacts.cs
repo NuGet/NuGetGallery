@@ -580,6 +580,8 @@ namespace NuGetGallery
                     .Throws(new Exception("Shouldn't be called"));
                 packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true))
                     .Returns(package).Verifiable();
+                packageService.Setup(svc => svc.UpdateIsLatestAsync(It.IsAny<PackageRegistration>()))
+                    .Returns(Task.FromResult(0)).Verifiable();
 
                 var indexingService = new Mock<IIndexingService>();
 
@@ -1606,6 +1608,8 @@ namespace NuGetGallery
                         .Returns(Task.CompletedTask);
                     fakePackageService.Setup(x => x.MarkPackageUnlistedAsync(fakePackage, false))
                         .Returns(Task.CompletedTask);
+                    fakePackageService.Setup(x => x.UpdateIsLatestAsync(It.IsAny<PackageRegistration>()))
+                        .Returns(Task.FromResult(0));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                     var controller = CreateController(

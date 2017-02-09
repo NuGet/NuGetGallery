@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -46,6 +47,11 @@ namespace NuGetGallery
         IDbSet<T> IEntitiesContext.Set<T>()
         {
             return base.Set<T>();
+        }
+
+        DbEntityEntry<T> IEntitiesContext.Entry<T>(T entry)
+        {
+            return base.Entry<T>(entry);
         }
 
         public override async Task<int> SaveChangesAsync()

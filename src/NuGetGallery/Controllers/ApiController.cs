@@ -393,6 +393,9 @@ namespace NuGetGallery
                             throw;
                         }
 
+                        // handle in separate transaction because of concurrency check with retry
+                        await PackageService.UpdateIsLatestAsync(package.PackageRegistration);
+
                         IndexingService.UpdatePackage(package);
                         
                         // Write an audit record
@@ -470,6 +473,13 @@ namespace NuGetGallery
             }
 
             await PackageService.MarkPackageUnlistedAsync(package);
+            
+            // handle in separate transaction because of concurrency check with retry
+            if (package.IsLatest || package.IsLatestStable)
+            {
+                await PackageService.UpdateIsLatestAsync(package.PackageRegistration);
+            }
+
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
         }
@@ -503,6 +513,10 @@ namespace NuGetGallery
             }
 
             await PackageService.MarkPackageListedAsync(package);
+            
+            // handle in separate transaction because of concurrency check with retry
+            await PackageService.UpdateIsLatestAsync(package.PackageRegistration);
+
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
         }

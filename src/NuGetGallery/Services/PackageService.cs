@@ -4,29 +4,37 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
+        private const int UpdateIsLatestMaxRetries = 3;
+
         private readonly IIndexingService _indexingService;
+        private readonly IEntitiesContext _entitiesContext;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly AuditingService _auditingService;
+        private readonly IDiagnosticsSource _trace;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
+            IEntitiesContext entitiesContext,
+            IDiagnosticsService diagnostics,
             IIndexingService indexingService,
             IPackageNamingConflictValidator packageNamingConflictValidator,
             AuditingService auditingService)
@@ -64,9 +72,12 @@ namespace NuGetGallery
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
+            _entitiesContext = entitiesContext;
             _indexingService = indexingService;
             _packageNamingConflictValidator = packageNamingConflictValidator;
             _auditingService = auditingService;
+
+            _trace = diagnostics.SafeGetSource("PackageService");
         }
 
         public void EnsureValid(PackageArchiveReader packageArchiveReader)
@@ -84,6 +95,7 @@ namespace NuGetGallery
             }
         }
 
+        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
         public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
         {
             var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
@@ -96,7 +108,6 @@ namespace NuGetGallery
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
             packageRegistration.Packages.Add(package);
-            await UpdateIsLatestAsync(packageRegistration, false);
 
             if (commitChanges)
             {
@@ -242,6 +253,7 @@ namespace NuGetGallery
             return dependents.Select(d => d.Package);
         }
 
+        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
         public async Task PublishPackageAsync(string id, string version, bool commitChanges = true)
         {
             var package = FindPackageByIdAndVersion(id, version);
@@ -253,7 +265,8 @@ namespace NuGetGallery
 
             await PublishPackageAsync(package, commitChanges);
         }
-
+        
+        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
         public async Task PublishPackageAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
@@ -263,8 +276,6 @@ namespace NuGetGallery
 
             package.Published = DateTime.UtcNow;
             package.Listed = true;
-
-            await UpdateIsLatestAsync(package.PackageRegistration, false);
 
             if (commitChanges)
             {
@@ -310,6 +321,7 @@ namespace NuGetGallery
                 new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
         }
 
+        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
@@ -335,8 +347,6 @@ namespace NuGetGallery
             package.LastUpdated = DateTime.UtcNow;
             // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
             package.LastEdited = DateTime.UtcNow;
-
-            await UpdateIsLatestAsync(package.PackageRegistration, false);
             
             await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.List));
 
@@ -346,6 +356,7 @@ namespace NuGetGallery
             }
         }
 
+        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
         public async Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
@@ -362,12 +373,7 @@ namespace NuGetGallery
             // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
             package.LastEdited = DateTime.UtcNow;
 
-            if (package.IsLatest || package.IsLatestStable)
-            {
-                await UpdateIsLatestAsync(package.PackageRegistration, false);
-            }
-
-            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
+            await _auditingService.SaveAuditRecord(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
 
             if (commitChanges)
             {
@@ -678,52 +684,168 @@ namespace NuGetGallery
             }
         }
 
-        public async Task UpdateIsLatestAsync(PackageRegistration packageRegistration, bool commitChanges = true)
+        private Package FindLatestPackage(IEnumerable<Package> packages)
+        {
+            return FindPackage(packages, p => !p.Deleted && p.Listed);
+        }
+
+        private Package FindLatestStablePackage(IEnumerable<Package> packages, Package latestPackage)
+        {
+            if ((latestPackage != null) && latestPackage.IsPrerelease)
+            {
+                return FindPackage(packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
+            }
+            return latestPackage;
+        }
+
+        private bool FlaggedPackageChanged(IEnumerable<Package> flaggedPackages, Package packageToFlag, Func<Package,bool> flagSelector)
+        {
+            var oldMatches = flaggedPackages.Where(flagSelector).ToList();
+
+            // need to fix duplicates
+            if (oldMatches.Count > 0)
+            {
+                return true;
+            }
+            // return true if a package is now flagged
+            else if (oldMatches.Count == 0)
+            {
+                return packageToFlag != null;
+            }
+            // return true if packages no longer flagged, or version changed
+            else
+            {
+                return (packageToFlag == null) ||
+                    !oldMatches.First().Version.Equals(packageToFlag.Version, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        protected internal virtual Task<int> ExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)
+        {
+            return database.ExecuteSqlCommandAsync(sql, parameters);
+        }
+
+        private async Task UpdateIsLatestWithConcurrencyCheckAsync(Package package, bool isLatest, bool isLatestStable)
+        {
+            if ((isLatest == package.IsLatest) && (isLatestStable == package.IsLatestStable))
+            {
+                return; // no changes
+            }
+
+            // Use optimistic concurrency only for CUD operations which modify IsLatest/IsLatestStable. This prevents
+            // concurrent UpdateIsLatest calls for a package, while still allowing other concurrent updates. In this case,
+            // we must avoid EF's ConcurrencyCheck which enables optimistic concurrency for all package CUD operations.
+            var rowCount = await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(), @"
+            UPDATE [dbo].[Packages]
+            SET [IsLatest] = {1}, [IsLatestStable] = {2}, [LastUpdated] = GETUTCDATE()
+            WHERE( ([Key] = {0}) AND ([IsLatest] = {3}) AND ([IsLatestStable] = {4}) )
+            SELECT @@ROWCOUNT",
+            package.Key, isLatest, isLatestStable, /*original*/package.IsLatest, /*original*/package.IsLatestStable);
+
+            if (rowCount != 1)
+            {
+                throw new DbUpdateConcurrencyException();
+            }
+
+            // track changes in memory until model is refreshed
+            package.IsLatest = isLatest;
+            package.IsLatestStable = isLatestStable;
+            package.LastUpdated = DateTime.UtcNow;
+        }
+
+        private Task ReloadPackagesAsync(PackageRegistration packageRegistration)
+        {
+            // null checks added to support mock context from tests
+            var pkgRegEntry = _entitiesContext.Entry(packageRegistration);
+            if (pkgRegEntry != null)
+            {
+                var pkgEntry = pkgRegEntry.Collection<Package>(pr => pr.Packages);
+                if (pkgEntry != null)
+                {
+                    pkgEntry.CurrentValue.Clear();
+                    return pkgEntry.LoadAsync();
+                }
+            }
+            return Task.FromResult(0);
+        }
+
+        private async Task UpdateIsLatestInternalAsync(PackageRegistration packageRegistration, int retryCount = 0)
         {
             if (!packageRegistration.Packages.Any())
             {
                 return;
             }
 
-            // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
-            foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
+            // find the old and new latest packages
+            var oldLatestPackages = packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable).ToList();
+            var latestPackage = FindLatestPackage(packageRegistration.Packages);
+            var latestStablePackage = FindLatestStablePackage(packageRegistration.Packages, latestPackage);
+
+            if (! (FlaggedPackageChanged(oldLatestPackages, latestPackage, p => p.IsLatest) ||
+                   FlaggedPackageChanged(oldLatestPackages, latestStablePackage, p => p.IsLatestStable)) )
             {
-                pv.IsLatest = false;
-                pv.IsLatestStable = false;
-                pv.LastUpdated = DateTime.UtcNow;
+                return;
             }
+            
+            // suspend retry execution strategy which does not support user initiated transactions
+            EntitiesConfiguration.SuspendExecutionStrategy = true;
 
-            // If the last listed package was just unlisted, then we won't find another one
-            var latestPackage = FindPackage(packageRegistration.Packages, p => !p.Deleted && p.Listed);
-
-            if (latestPackage != null)
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
-                latestPackage.IsLatest = true;
-                latestPackage.LastUpdated = DateTime.UtcNow;
 
-                if (latestPackage.IsPrerelease)
+                try
                 {
-                    // If the newest uploaded package is a prerelease package, we need to find an older package that is
-                    // a release version and set it to IsLatest.
-                    var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
-                    if (latestReleasePackage != null)
+                    // clear the current latest flags
+                    foreach (var package in oldLatestPackages)
                     {
-                        // We could have no release packages
-                        latestReleasePackage.IsLatestStable = true;
-                        latestReleasePackage.LastUpdated = DateTime.UtcNow;
+                        await UpdateIsLatestWithConcurrencyCheckAsync(package, false, false);
                     }
-                }
-                else
-                {
-                    // Only release versions are marked as IsLatestStable.
-                    latestPackage.IsLatestStable = true;
-                }
-            }
 
-            if (commitChanges)
-            {
-                await _packageRepository.CommitChangesAsync();
+                    // set the new latest flags
+                    if (latestPackage != null)
+                    {
+                        var latestStableExists = latestStablePackage != null;
+                        var latestIsLatestStable = latestStableExists ?
+                            latestPackage.Version.Equals(latestStablePackage.Version, StringComparison.OrdinalIgnoreCase) : false;
+
+                        await UpdateIsLatestWithConcurrencyCheckAsync(latestPackage, true, latestIsLatestStable);
+
+                        if (latestStableExists && !latestIsLatestStable)
+                        {
+                            await UpdateIsLatestWithConcurrencyCheckAsync(latestStablePackage, false, true);
+                        }
+                    }
+
+                    transaction.Commit();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    transaction.Rollback();
+
+                    if (retryCount++ >= UpdateIsLatestMaxRetries)
+                    {
+                        _trace.Error(string.Format("UpdateIsLatestAsync retry exceeded for package '{0}'", packageRegistration.Id));
+                        return;
+                    }
+
+                    // refresh entities and retry
+                    await Task.Delay(retryCount * 500);
+                    await ReloadPackagesAsync(packageRegistration);
+                    await UpdateIsLatestInternalAsync(packageRegistration, retryCount);
+                }
+                finally
+                {
+                    EntitiesConfiguration.SuspendExecutionStrategy = false;
+
+                    // refresh entities for remainder of request
+                    await ReloadPackagesAsync(packageRegistration);
+                }
             }
+        }
+
+        public Task UpdateIsLatestAsync(PackageRegistration packageRegistration)
+        {
+            return UpdateIsLatestInternalAsync(packageRegistration, 0);
         }
 
         private static Package FindPackage(IEnumerable<Package> packages, Func<Package, bool> predicate = null)
