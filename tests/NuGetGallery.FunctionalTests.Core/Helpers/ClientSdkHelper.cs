@@ -67,7 +67,7 @@ namespace NuGetGallery.FunctionalTests
             SemanticVersion semVersion = SemanticVersion.Parse(version);
 
             return VerifyWithRetry(
-                $"checking if package {packageId} {version} exists on source {sourceUrl}",
+                $"Verifying that package {packageId} {version} exists on source {sourceUrl}",
                 () =>
                 {
                     var package = repo.FindPackage(packageId, semVersion);
@@ -76,7 +76,7 @@ namespace NuGetGallery.FunctionalTests
                 });
         }
 
-        private bool VerifyWithRetry(string actionName, Func<bool> action)
+        private bool VerifyWithRetry(string actionPhrase, Func<bool> action)
         {
             bool success = false;
             const int intervalSec = 30;
@@ -84,7 +84,7 @@ namespace NuGetGallery.FunctionalTests
 
             try
             {
-                WriteLine($"Starting '{actionName}' ({maxAttempts} attempts, interval {intervalSec} seconds).");
+                WriteLine($"{actionPhrase} ({maxAttempts} attempts, interval {intervalSec} seconds).");
 
                 for (var i = 0; i < maxAttempts && !success; i++)
                 {
@@ -96,20 +96,12 @@ namespace NuGetGallery.FunctionalTests
 
                     WriteLine($"[verification attempt {i}]: Executing... ");
                     success = action();
-
-                    if (success)
-                    {
-                        WriteLine("Successful!");
-                    }
-                    else
-                    {
-                        WriteLine("NOT successful!");
-                    }
+                    WriteLine(success ? "Successful!" : "NOT successful!");
                 }
             }
             catch (Exception ex)
             {
-                WriteLine($"Exception thrown while executing '{actionName}'.{Environment.NewLine}{ex}");
+                WriteLine($"{actionPhrase} threw an exception.{Environment.NewLine}{ex}");
             }
 
             return success;
@@ -209,12 +201,16 @@ namespace NuGetGallery.FunctionalTests
             return version.ToString();
         }
 
-        public void VerifyVersionCount(string packageId, int expectedCount, bool allowPreRelease = true)
+        public void VerifyVersionCount(string packageId, int expectedVersionCount, bool allowPreRelease = true)
         {
             var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
 
+            // To verify the count of package versions, the FindPackagesById() V2 OData endpoint is used. When the
+            // gallery handles this request, it delegates to the search service. Since the search service can lag being
+            // the gallery database (due to the time it takes for packages to make it through the V3 pipeline and into
+            // an active Lucene index), we retry the request for a while.
             Assert.True(VerifyWithRetry(
-                $"verifying count of {packageId} packages is {expectedCount}",
+                $"Verifying count of {packageId} versions is {expectedVersionCount}",
                 () =>
                 {
                     var packages = repo.FindPackagesById(packageId).ToList();
@@ -222,11 +218,11 @@ namespace NuGetGallery.FunctionalTests
                     {
                         packages = packages.Where(item => item.IsReleaseVersion()).ToList();
                     }
-                    var actualCount = packages.Count;
+                    var actualVersionCount = packages.Count;
 
                     var versionsDisplay = string.Join(", ", packages.Select(p => p.Version));
-                    WriteLine($"{actualCount} versions of {packageId} found: {versionsDisplay}");
-                    return actualCount == expectedCount;
+                    WriteLine($"{actualVersionCount} versions of {packageId} found: {versionsDisplay}");
+                    return actualVersionCount == expectedVersionCount;
                 }));
         }
 
