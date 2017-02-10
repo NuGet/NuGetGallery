@@ -16,6 +16,17 @@ namespace NuGetGallery
         IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);
 
+        /// <summary>
+        /// Updates IsLatest/IsLatestStable flags after a package CUD operation.
+        /// 
+        /// Database updates are applied on a separate context to better control refresh of entities when
+        /// concurrency conflicts are detected without affecting the current request.
+        /// 
+        /// Updates are also applied (but not committed) to entities in memory, for the remainder of the current
+        /// request. For this reason, UpdateIsLatestAsync should only be called after other commits are complete.
+        /// </summary>
+        /// <param name="packageRegistration"></param>
+        /// <returns></returns>
         Task UpdateIsLatestAsync(PackageRegistration packageRegistration);
 
         /// <summary>

@@ -160,6 +160,7 @@ namespace NuGetGallery
 
             packageService.Setup(s => s.ExecuteSqlCommandAsync(It.IsAny<Database>(), It.IsAny<string>(), It.IsAny<object[]>()))
                 .Returns(Task.FromResult(1));
+            packageService.Setup(s => s.CreateNewEntitiesContext()).Returns(entitiesContext.Object);
 
             packageService.CallBase = true;
 
