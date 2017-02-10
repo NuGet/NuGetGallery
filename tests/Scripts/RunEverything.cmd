@@ -11,7 +11,7 @@ set solutionPath="NuGetGallery.FunctionalTests.sln"
 
 REM Required Tools
 set msbuild="%PROGRAMFILES(X86)%\MsBuild\14.0\Bin\msbuild"
-set xunit="..\packages\xunit.runner.console.2.0.0\tools\xunit.console.exe"
+set xunit="..\packages\xunit.runner.console.2.1.0\tools\xunit.console.exe"
 set nuget="nuget.exe"
 set mstest="C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\mstest.exe"
 set vstest="C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
@@ -21,15 +21,15 @@ if exist functionaltests.*.xml (
     del functionaltests.*.xml
 )
 if exist resultsfile.trx (
-	del resultsfile.trx
+    del resultsfile.trx
 )
 if exist TestResults (
-	rd TestResults /S /Q
+    rd TestResults /S /Q
 )
 
 REM Restore packages
 if not exist nuget (
-	call PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
+    call PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
 )
 call %nuget% restore "%solutionPath%" -NonInteractive
 if not "%errorlevel%"=="0" goto failure
