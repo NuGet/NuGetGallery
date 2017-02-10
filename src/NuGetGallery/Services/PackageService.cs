@@ -772,7 +772,7 @@ namespace NuGetGallery
                             if (retryCount++ < UpdateIsLatestMaxRetries)
                             {
                                 await Task.Delay(retryCount * 500);
-                                await UpdateIsLatestAsync(packageRegistration);
+                                await UpdateIsLatestAsync(packageRegistration, retryCount);
                             }
                             else
                             {
@@ -802,6 +802,11 @@ namespace NuGetGallery
         }
 
         public Task UpdateIsLatestAsync(PackageRegistration packageRegistration)
+        {
+            return UpdateIsLatestAsync(packageRegistration, retryCount: 0);
+        }
+
+        private Task UpdateIsLatestAsync(PackageRegistration packageRegistration, int retryCount)
         {
             if (!packageRegistration.Packages.Any())
             {
