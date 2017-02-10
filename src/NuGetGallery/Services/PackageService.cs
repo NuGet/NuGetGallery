@@ -688,14 +688,16 @@ namespace NuGetGallery
         private async Task<int> UpdateIsLatestInDatabaseWithConcurrencyCheckAsync(Database database, UpdateIsLatestPackageEdit packageEdit)
         {
             return await ExecuteSqlCommandAsync(database, @"
-            UPDATE [dbo].[Packages]
-            SET [IsLatest] = {1}, [IsLatestStable] = {2}, [LastUpdated] = GETUTCDATE()
-            WHERE( ([Key] = {0}) AND ([IsLatest] = {3}) AND ([IsLatestStable] = {4}) )
-            SELECT @@ROWCOUNT",
-            packageEdit.Package.Key, packageEdit.Package.IsLatest, packageEdit.Package.IsLatestStable, packageEdit.OriginalIsLatest, packageEdit.OriginalIsLatestStable);
+                UPDATE [dbo].[Packages]
+                SET [IsLatest] = {1}, [IsLatestStable] = {2}, [LastUpdated] = GETUTCDATE()
+                WHERE( ([Key] = {0}) AND ([IsLatest] = {3}) AND ([IsLatestStable] = {4}) )
+                SELECT @@ROWCOUNT",
+            packageEdit.Package.Key,
+            packageEdit.Package.IsLatest, packageEdit.Package.IsLatestStable,
+            packageEdit.OriginalIsLatest, packageEdit.OriginalIsLatestStable);
         }
 
-        private static bool PackagesMatch(Package first, Package second)
+        private static bool PackageVersionsMatch(Package first, Package second)
         {
             if (first == null)
             {
@@ -710,12 +712,13 @@ namespace NuGetGallery
                 return first.Version.Equals(second.Version, StringComparison.OrdinalIgnoreCase);
             }
         }
-
+        
         private static void MergeUpdateIsLatestClearsWithSets(List<UpdateIsLatestPackageEdit> clears, List<UpdateIsLatestPackageEdit> sets)
         {
+            // avoid multiple updates to the same row by merging clears with sets
             foreach (var clear in clears)
             {
-                var match = sets.Where(pe => PackagesMatch(pe.Package, clear.Package)).FirstOrDefault();
+                var match = sets.Where(pe => PackageVersionsMatch(pe.Package, clear.Package)).FirstOrDefault();
 
                 if (match == null)
                 {
@@ -812,7 +815,7 @@ namespace NuGetGallery
                 return Task.FromResult(0);
             }
 
-            // update entity in memory first
+            // update in memory first to avoid putting request entities in a bad state should a conflict occur
             var packageClears = new List<UpdateIsLatestPackageEdit>();
             var packageSets = new List<UpdateIsLatestPackageEdit>();
             
@@ -831,7 +834,7 @@ namespace NuGetGallery
                 if (latestPackage.IsPrerelease)
                 {
                     // If the newest uploaded package is a prerelease package, we need to find an older package that is
-                    // a release version and set it to IsLatest.
+                    // a release version and set it to IsLatestStable.
                     var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
                     if (latestReleasePackage != null)
                     {
@@ -898,6 +901,9 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Applies in-memory updates for UpdateIsLatestAsync, tracking original values for optimistic concurrency.
+        /// </summary>
         private class UpdateIsLatestPackageEdit
         {
             private UpdateIsLatestPackageEdit(Package package, bool isLatest, bool isLatestStable)

@@ -1071,7 +1071,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateIsLatest1()
+            public async Task UpdateIsLatestAsync_DifferentLatestAndLatestStableVersions()
             {
                 // Arrange
                 var packages = new HashSet<Package>();
@@ -1097,7 +1097,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateIsLatest2()
+            public async Task UpdateIsLatestAsync_SameLatestAndLatestStableVersions()
             {
                 // Arrange
                 var packages = new HashSet<Package>();
@@ -1127,7 +1127,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateIsLatest3()
+            public async Task UpdateIsLatestAsync_SameLatestAndLatestStableVersionsWithClear()
             {
                 // Arrange
                 var packages = new HashSet<Package>();
