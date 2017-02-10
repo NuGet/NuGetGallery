@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -113,10 +112,6 @@ namespace NuGetGallery
             }
 
             return (IDbSet<T>)(dbSets[typeof(T)]);
-        }
-        public DbEntityEntry<T> Entry<T>(T entry) where T : class
-        {
-            throw new NotSupportedException(); // todo
         }
 
         public void DeleteOnCommit<T>(T entity) where T : class
