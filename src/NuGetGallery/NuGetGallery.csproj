@@ -1649,6 +1649,7 @@
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
+    <Content Include="Branding\Views\Shared\SiteMenu.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
