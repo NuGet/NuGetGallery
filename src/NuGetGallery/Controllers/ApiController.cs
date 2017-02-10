@@ -393,7 +393,7 @@ namespace NuGetGallery
                             throw;
                         }
 
-                        // handle in separate transaction because of concurrency check with retry
+                        // Handle in separate transaction because of concurrency check with retry
                         await PackageService.UpdateIsLatestAsync(package.PackageRegistration);
 
                         IndexingService.UpdatePackage(package);

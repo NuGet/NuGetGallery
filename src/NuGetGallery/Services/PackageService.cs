@@ -95,8 +95,7 @@ namespace NuGetGallery
                 ValidateSupportedFrameworks(supportedFrameworks);
             }
         }
-
-        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
+        
         public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
         {
             var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
@@ -253,8 +252,7 @@ namespace NuGetGallery
 
             return dependents.Select(d => d.Package);
         }
-
-        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
+        
         public async Task PublishPackageAsync(string id, string version, bool commitChanges = true)
         {
             var package = FindPackageByIdAndVersion(id, version);
@@ -267,7 +265,6 @@ namespace NuGetGallery
             await PublishPackageAsync(package, commitChanges);
         }
         
-        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
         public async Task PublishPackageAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
@@ -321,8 +318,7 @@ namespace NuGetGallery
             await _auditingService.SaveAuditRecordAsync(
                 new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
         }
-
-        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
+        
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
@@ -356,8 +352,7 @@ namespace NuGetGallery
                 await _packageRepository.CommitChangesAsync();
             }
         }
-
-        // caller is responsible for calling UpdateIsLatestAsync in separate transaction
+        
         public async Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
@@ -739,64 +734,68 @@ namespace NuGetGallery
 
         protected internal virtual IEntitiesContext CreateNewEntitiesContext()
         {
-            var connectionString = _entitiesContext.GetDatabase().Connection.ConnectionString;
-            return new EntitiesContext(connectionString, false);
+            return new EntitiesContext();
         }
 
         private async Task UpdateIsLatestInDatabaseAsync(List<UpdateIsLatestPackageEdit> clears, List<UpdateIsLatestPackageEdit> sets, int retryCount = 0)
         {
-            if ((retryCount == 0) && (clears != null))
+            MergeUpdateIsLatestClearsWithSets(clears, sets);
+            if (sets.Count == 0)
             {
-                MergeUpdateIsLatestClearsWithSets(clears, sets);
+                return;
             }
 
             // performed updates on separate context in order to refresh entities between retries
             var altEntitiesContext = CreateNewEntitiesContext();
 
-            // suspend retry execution strategy which does not support user initiated transactions
-            EntitiesConfiguration.SuspendExecutionStrategy = true;
-
-            var altDatabase = altEntitiesContext.GetDatabase();
-            using (var transaction = altDatabase.BeginTransaction(IsolationLevel.ReadCommitted))
+            try
             {
-                try
+                // suspend retry execution strategy which does not support user initiated transactions
+                EntitiesConfiguration.SuspendExecutionStrategy = true;
+
+                var altDatabase = altEntitiesContext.GetDatabase();
+                using (var transaction = altDatabase.BeginTransaction(IsolationLevel.ReadCommitted))
                 {
-                    foreach (var set in sets)
+                    try
                     {
-                        if (await UpdateIsLatestInDatabaseWithConcurrencyCheckAsync(altDatabase, set) != 1)
+                        foreach (var set in sets)
                         {
-                            transaction.Rollback();
-
-                            var packageRegistration = sets.First().Package.PackageRegistration;
-
-                            if (retryCount++ < UpdateIsLatestMaxRetries)
+                            if (await UpdateIsLatestInDatabaseWithConcurrencyCheckAsync(altDatabase, set) != 1)
                             {
-                                await Task.Delay(retryCount * 500);
-                                await UpdateIsLatestAsync(packageRegistration, retryCount);
+                                transaction.Rollback();
+
+                                var packageRegistration = sets.First().Package.PackageRegistration;
+
+                                if (retryCount < UpdateIsLatestMaxRetries)
+                                {
+                                    retryCount++;
+                                    await Task.Delay(retryCount * 500);
+                                    await UpdateIsLatestAsync(packageRegistration, retryCount);
+                                }
+                                else
+                                {
+                                    _trace.Error(String.Format("UpdateIsLatestAsync retry exceeded for package '{0}'", packageRegistration.Id));
+                                }
+                                return;
                             }
-                            else
-                            {
-                                _trace.Error(String.Format("UpdateIsLatestAsync retry exceeded for package '{0}'", packageRegistration.Id));
-                            }
-                            return;
                         }
+                        transaction.Commit();
                     }
-                    transaction.Commit();
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    _trace.Error(ex.ToString());
-                }
-                finally
-                {
-                    EntitiesConfiguration.SuspendExecutionStrategy = false;
-                    
-                    var disposableContext = altEntitiesContext as IDisposable;
-                    if (disposableContext != null)
+                    catch (Exception ex)
                     {
-                        disposableContext.Dispose();
+                        transaction.Rollback();
+                        _trace.Error(ex.ToString());
                     }
+                }
+            }
+            finally
+            {
+                EntitiesConfiguration.SuspendExecutionStrategy = false;
+
+                var disposableContext = altEntitiesContext as IDisposable;
+                if (disposableContext != null)
+                {
+                    disposableContext.Dispose();
                 }
             }
         }
@@ -819,7 +818,7 @@ namespace NuGetGallery
             
             foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
             {
-                packageClears.Add(UpdateIsLatestPackageEdit.Set(pv, false, false));
+                packageClears.Add(UpdateIsLatestPackageEdit.Set(pv, isLatest: false, isLatestStable: false));
             }
 
             // If the last listed package was just unlisted, then we won't find another one
@@ -827,7 +826,7 @@ namespace NuGetGallery
 
             if (latestPackage != null)
             {
-                packageSets.Add(UpdateIsLatestPackageEdit.Set(latestPackage, true, !latestPackage.IsPrerelease));
+                packageSets.Add(UpdateIsLatestPackageEdit.Set(latestPackage, isLatest: true, isLatestStable: !latestPackage.IsPrerelease));
 
                 if (latestPackage.IsPrerelease)
                 {
@@ -836,7 +835,7 @@ namespace NuGetGallery
                     var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
                     if (latestReleasePackage != null)
                     {
-                        packageSets.Add(UpdateIsLatestPackageEdit.Set(latestReleasePackage, false, true));
+                        packageSets.Add(UpdateIsLatestPackageEdit.Set(latestReleasePackage, isLatest: false, isLatestStable: true));
                     }
                 }
             }
