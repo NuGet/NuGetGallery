@@ -23,6 +23,7 @@ bld/
 build/ 
 tools/
 .nuget/CredentialProviderBundle.zip
+functionaltests.*.xml
 
 # Roslyn cache directories
 *.ide/
