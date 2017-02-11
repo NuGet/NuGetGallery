@@ -6,15 +6,21 @@ cd ..
 REM Configuration
 set config=Release
 set solutionPath="BasicSearchTests.FunctionalTests.sln"
+set exitCode=0
 
 REM Required Tools
 set msbuild="%WINDIR%\Microsoft.NET\Framework\v4.0.30319\msbuild"
-set xunit=".\packages\xunit.runner.console.2.0.0\tools\xunit.console.exe"
+set xunit=".\packages\xunit.runner.console.2.1.0\tools\xunit.console.exe"
 set nuget="nuget.exe"
+
+REM Delete old test results
+if exist functionaltests.*.xml (
+    del functionaltests.*.xml
+)
 
 REM Restore packages
 if not exist nuget (
-	call PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
+    call PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
 )
 
 echo "Restoring all solutions..."
@@ -30,11 +36,10 @@ REM Run functional tests
 set testDir="BasicSearchTests.FunctionalTests.Core\bin\%config%"
 
 echo "Running basic search functional core tests..."
-call %xunit% "%testDir%\BasicSearchTests.FunctionalTests.Core.dll" -teamcity
-if not "%errorlevel%"=="0" goto failure
+call %xunit% "%testDir%\BasicSearchTests.FunctionalTests.Core.dll" -xml functionaltests.P0.xml
+if not "%errorlevel%"=="0" set exitCode=-1
 
-:success
-exit /b 0
+exit /B %exitCode%
 
 :failure
 exit /b -1
