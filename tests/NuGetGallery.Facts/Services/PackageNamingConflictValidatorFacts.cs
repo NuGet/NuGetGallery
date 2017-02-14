@@ -16,7 +16,7 @@ namespace NuGetGallery
         [InlineData("Microsoft.FooBar", "Another.Package", false)]
         [InlineData("Microsoft.FooBar", "another.package", false)]
         [InlineData("Microsoft.FooBar", "Microsoft.FooBar contribution package", false)]
-        private void TitleConflictsWithExistingRegistrationIdTests(string existingRegistrationId, string newPackageTitle, bool shouldBeConflict)
+        public void TitleConflictsWithExistingRegistrationIdTests(string existingRegistrationId, string newPackageTitle, bool shouldBeConflict)
         {
             // Arrange
             var existingPackageRegistration = new PackageRegistration
@@ -25,12 +25,7 @@ namespace NuGetGallery
                 Owners = new HashSet<User>()
             };
 
-            var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-            packageRegistrationRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackageRegistration }.AsQueryable());
-
-            var packageRepository = new Mock<IEntityRepository<Package>>();
-
-            var target = new PackageNamingConflictValidator(packageRegistrationRepository.Object, packageRepository.Object);
+            var target = CreateValidator(existingPackageRegistration, package: null);
 
             // Act
             var result = target.TitleConflictsWithExistingRegistrationId("NewPackageId", newPackageTitle);
@@ -38,7 +33,6 @@ namespace NuGetGallery
             // Assert
             Assert.True(result == shouldBeConflict);
         }
-
 
         [Theory]
         [InlineData("ExistingPackageId", "ExistingPackageTitle", "NewPackageId", false)]
@@ -60,19 +54,82 @@ namespace NuGetGallery
                 Title = existingPackageTitle
             };
 
-            var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-            packageRegistrationRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackageRegistration }.AsQueryable());
-
-            var packageRepository = new Mock<IEntityRepository<Package>>();
-            packageRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackage }.AsQueryable());
-
-            var target = new PackageNamingConflictValidator(packageRegistrationRepository.Object, packageRepository.Object);
+            var target = CreateValidator(existingPackageRegistration, existingPackage);
 
             // Act
             var result = target.IdConflictsWithExistingPackageTitle(newPackageId);
 
             // Assert
             Assert.True(result == shouldBeConflict);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void IdConflictsWithExistingPackageTitle_DoesNotSupportTitleReuseWithNonDeletedPackage(bool isExistingPackageListed)
+        {
+            // Arrange
+            var packageRegistration = new PackageRegistration
+            {
+                Id = "A",
+                Owners = new HashSet<User>()
+            };
+            var package = new Package
+            {
+                PackageRegistration = packageRegistration,
+                Version = "1.0.0",
+                Title = "B",
+                Listed = isExistingPackageListed,
+                Deleted = false
+            };
+            var target = CreateValidator(packageRegistration, package);
+
+            // Act
+            var actualResult = target.IdConflictsWithExistingPackageTitle(registrationId: "B");
+
+            // Assert
+            Assert.True(actualResult);
+        }
+
+        [Fact]
+        public void IdConflictsWithExistingPackageTitle_SupportsTitleReuseWithSoftDeletedPackage()
+        {
+            // Arrange
+            var packageRegistration = new PackageRegistration
+            {
+                Id = "A",
+                Owners = new HashSet<User>()
+            };
+            var package = new Package
+            {
+                PackageRegistration = packageRegistration,
+                Version = "1.0.0",
+                Title = "B",
+                Listed = false,
+                Deleted = true
+            };
+            var target = CreateValidator(packageRegistration, package);
+
+            // Act
+            var actualResult = target.IdConflictsWithExistingPackageTitle(registrationId: "B");
+
+            // Assert
+            Assert.False(actualResult);
+        }
+
+        private static PackageNamingConflictValidator CreateValidator(PackageRegistration packageRegistration, Package package)
+        {
+            var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+            packageRegistrationRepository.Setup(r => r.GetAll()).Returns(new[] { packageRegistration }.AsQueryable());
+
+            var packageRepository = new Mock<IEntityRepository<Package>>();
+
+            if (package != null)
+            {
+                packageRepository.Setup(r => r.GetAll()).Returns(new[] { package }.AsQueryable());
+            }
+
+            return new PackageNamingConflictValidator(packageRegistrationRepository.Object, packageRepository.Object);
         }
     }
 }
