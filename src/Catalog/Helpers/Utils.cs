@@ -101,10 +101,8 @@ namespace NuGet.Services.Metadata.Catalog
         internal static XmlDocument SafeCreateXmlDocument(XmlReader reader = null)
         {
             // CodeAnalysis / XmlDocument: set the resolver to null or instance
-            var xmlDoc = new XmlDocument()
-            {
-                XmlResolver = null
-            };
+            var xmlDoc = new XmlDocument();
+            xmlDoc.XmlResolver = null;
 
             if (reader != null)
             {
@@ -135,10 +133,9 @@ namespace NuGet.Services.Metadata.Catalog
             var transform = new XslCompiledTransform();
 
             // CodeAnalysis / XmlReader.Create: provide settings instance and set resolver property to null or instance
-            var settings = new XmlReaderSettings
-            {
-                XmlResolver = null
-            };
+            var settings = new XmlReaderSettings();
+            settings.XmlResolver = null;
+
             var reader = XmlReader.Create(new StreamReader(GetResourceStream(resourceName)), settings);
 
             // CodeAnalysis / XslCompiledTransform.Load: specify default settings or set resolver property to null or instance
