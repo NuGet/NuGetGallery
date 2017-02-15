@@ -79,6 +79,9 @@ namespace NuGet.Services.BasicSearch
             // Add Application Insights
             app.Use(typeof(RequestTrackingMiddleware));
 
+            // Set up exception logging
+            app.Use(typeof(ExceptionTrackingMiddleware));
+
             // Enable HSTS
             app.Use(async (context, next) =>
             {
@@ -314,6 +317,7 @@ namespace NuGet.Services.BasicSearch
             catch (Exception e)
             {
                 await _responseWriter.WriteResponseAsync(context, e, _logger);
+                throw;
             }
         }
     }
