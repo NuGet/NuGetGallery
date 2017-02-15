@@ -22,18 +22,18 @@ else
     {
         Write-Host "Logging into Azure as service principal."
         # Log into Azure using a service principal with a certificate
-        $login = Add-AzureRmAccount -ApplicationId "$ApplicationId" -CertificateThumbprint "$AzureCertificateThumbprint" -ServicePrincipal -SubscriptionId "$SubscriptionId" -TenantId "$TenantId"
+        Add-AzureRmAccount -ApplicationId "$ApplicationId" -CertificateThumbprint "$AzureCertificateThumbprint" -ServicePrincipal -SubscriptionId "$SubscriptionId" -TenantId "$TenantId"
         # Get the resource group name of the cloud service resource
         $resourceGroupName = (Find-AzureRmResource -ResourceNameEquals "$CloudServiceName").ResourceGroupName
         # Use the resource group name to construct the id of the slot resource
         $slotResource = Get-AzureRmResource -Id "/subscriptions/$SubscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.ClassicCompute/domainNames/$CloudServiceName/slots/$Slot"
         # Get the uri of the slot resource and make sure it is https
-        $GalleryUrl = ($slotResource.Properties.uri).Replace("http", "https")
+        $GalleryUrl = ($slotResource.Properties.uri).Replace("http:", "https:")
     }
     Catch [System.Exception]
     {
         Write-Host "Failed to retrieve URL for testing!"
-        Write-Host $_.Exception.Message
+        Write-Host $_.Exception.ToString()
         Exit 1
     }
 }
