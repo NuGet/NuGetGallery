@@ -7,6 +7,7 @@ nuget.exe
 *.suo
 *.user
 *.sln.docstates
+.vs/config/applicationhost.config
 
 # Build results
 [Dd]ebug/

@@ -118,36 +118,40 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ExpiredEmailBody" xml:space="preserve">
-    <value>Hi,
+    <value>Hi {0},
 
-We wanted to inform you that your API key on {0} has expired.
+We wanted to inform you that the following API key(s) on {1} have expired.
 
-Visit {1} to generate a new API key so that you can continue pushing packages.
+{2}
+
+Visit {3} to generate a new API key(s) so that you can continue pushing packages.
 
 Best regards,
 
-{0}</value>
+{1}</value>
   </data>
   <data name="ExpiringEmailBody" xml:space="preserve">
-    <value>Hi,
+    <value>Hi {0},
 
-We wanted to inform you that your API key on {0} will expire in {2} days.
+We wanted to inform you that the following API key(s) on {1} will expire soon: 
 
-Visit {1} to generate a new API key so that you can continue pushing packages.
+{2}
+
+Visit {3} to generate a new API key(s) so that you can continue pushing packages using them.
 
 Best regards,
 
-{0}</value>
+{1}</value>
   </data>
   <data name="GetExpiredCredentialsQuery" xml:space="preserve">
-    <value>SELECT cr.[Type], cr.[Created], cr.[Expires], u.[EmailAddress], u.[Username]
+    <value>SELECT cr.[Type], cr.[Created], cr.[Expires], cr.[Description], u.[EmailAddress], u.[Username]
 FROM [Credentials] AS cr
 INNER JOIN Users AS u ON u.[Key] = cr.[UserKey]
 WHERE u.[EmailAllowed] = 1
   AND u.[EmailAddress] &lt;&gt; ''
   AND cr.[Expires] &lt;= DATEADD(day,{0},GETUTCDATE())
-  AND cr.[Expires] &gt; DATEADD(day,-1,GETUTCDATE())
-  AND cr.[Type] = 'apikey.v1'
+  AND cr.[Expires] &gt; DATEADD(day,-1 * {0},GETUTCDATE())
+  AND (cr.[Type] = 'apikey.v1' or cr.[Type] = 'apikey.v2')
 ORDER BY u.[Username]</value>
   </data>
   <data name="ExpiredEmailSubject" xml:space="preserve">
@@ -155,5 +159,11 @@ ORDER BY u.[Username]</value>
   </data>
   <data name="ExpiringEmailSubject" xml:space="preserve">
     <value>[{0}] Your API key is about to expire</value>
+  </data>
+  <data name="ApiKeyExpiring" xml:space="preserve">
+    <value>{0} - expires in {1} day(s).</value>
+  </data>
+  <data name="ApiKeyExpired" xml:space="preserve">
+    <value>{0} - has expired.</value>
   </data>
 </root>
