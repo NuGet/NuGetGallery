@@ -27,7 +27,7 @@ namespace NuGetGallery
                     { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { Fakes.User }) };
                 StubCuratedFeedService = new Mock<ICuratedFeedService>();
 
-                OwinContext = Fakes.CreateOwinContext();
+                SetOwinContextOverride(Fakes.CreateOwinContext());
 
                 StubCuratedFeedService
                     .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))

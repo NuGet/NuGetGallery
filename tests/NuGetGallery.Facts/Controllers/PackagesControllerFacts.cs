@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -97,7 +96,7 @@ namespace NuGetGallery
                 auditingService);
 
             controller.CallBase = true;
-            controller.Object.OwinContext = Fakes.CreateOwinContext();
+            controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
 
             httpContext = httpContext ?? new Mock<HttpContextBase>();
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);

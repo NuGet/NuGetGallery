@@ -6,7 +6,6 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Autofac;
-using Microsoft.Owin;
 using Moq;
 using NuGetGallery.Configuration;
 
@@ -47,7 +46,7 @@ namespace NuGetGallery.Framework
             var appCtrl = c as AppController;
             if (appCtrl != null)
             {
-                appCtrl.OwinContext = Container.Resolve<IOwinContext>();
+                appCtrl.SetOwinContextOverride(Fakes.CreateOwinContext());
                 appCtrl.NuGetContext.Config = Container.Resolve<IGalleryConfigurationService>();
             }
 
