@@ -1418,7 +1418,9 @@
     </Content>
     <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
+    <Content Include="Branding\Content\Images\headerbackground.png" />
     <Content Include="Content\admin\SupportRequestStyles.css" />
+    <Content Include="Branding\Content\Images\consid.se_logo.svg" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -1650,6 +1652,8 @@
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
     <Content Include="Branding\Views\Shared\SiteMenu.cshtml" />
+    <Content Include="Branding\Content\Layout.css" />
+    <Content Include="Branding\Views\Shared\UserDisplay.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />

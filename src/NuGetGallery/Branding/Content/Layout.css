@@ -1,3 +1,9 @@
-﻿#logo a {
-    background: url("../Branding/Content/Images/consid.se_logo.svg");
+﻿#outer-wrapper {
+    background: url('Images/headerbackground.png') repeat-x top left #fff;
+}
+#logo a {
+    background: url("Images/consid.se_logo.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position-y: 10px;
 }
