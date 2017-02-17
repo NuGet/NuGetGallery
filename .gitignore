@@ -259,3 +259,4 @@ paket-files/
 
 # Repository specific
 cli/
+Results.*.xml

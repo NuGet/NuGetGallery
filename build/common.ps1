@@ -451,7 +451,8 @@ Function New-Package {
         [string]$Version,
         [string]$MSBuildVersion = "14",
         [switch]$Symbols,
-        [string]$Branch
+        [string]$Branch,
+        [switch]$IncludeReferencedProjects
     )
     Trace-Log "Creating package from @""$TargetFilePath"""
     $opts = , 'pack'
@@ -502,6 +503,10 @@ Function New-Package {
     
     if ($Symbols) {
         $opts += '-Symbols'
+    }
+    
+    if ($IncludeReferencedProjects) {
+        $opts += '-IncludeReferencedProjects'
     }
     
     Trace-Log "$NuGetExe $opts"

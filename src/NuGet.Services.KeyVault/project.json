@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Microsoft.Azure.KeyVault": "1.0.0",
+    "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.5"
+  },
+  "frameworks": {
+    "net45": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}

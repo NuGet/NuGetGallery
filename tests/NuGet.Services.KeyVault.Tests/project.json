@@ -1,8 +1,8 @@
 ﻿{
   "dependencies": {
-    "Moq": "4.5.23",
-    "xunit": "2.1.0",
-    "xunit.runner.visualstudio": "2.1.0"
+    "FluentAssertions": "4.9.0",
+    "Moq": "4.6.38-alpha",
+    "xunit": "2.1.0"
   },
   "frameworks": {
     "net452": {}

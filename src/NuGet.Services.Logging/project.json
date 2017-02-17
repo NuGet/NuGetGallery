@@ -1,4 +1,4 @@
-{
+﻿{
   "dependencies": {
     "Microsoft.ApplicationInsights": "2.1.0",
     "Microsoft.Extensions.Logging": "1.0.0",
@@ -10,14 +10,9 @@
     "SerilogTraceListener": "2.0.10027"
   },
   "frameworks": {
-    "net452": {
-      "frameworkAssemblies": {
-      }
-    }
+    "net452": {}
   },
-  "packOptions": {
-    "owners": [ "nuget" ],
-    "licenseUrl": "https://github.com/NuGet/ServerCommon/blob/master/License.md"
-  },
-  "version": "1.0.0-*"
+  "runtimes": {
+    "win": {}
+  }
 }

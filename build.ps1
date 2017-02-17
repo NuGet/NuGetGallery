@@ -22,9 +22,6 @@ trap {
     exit 1
 }
 
-$CLIRoot=$PSScriptRoot
-$env:DOTNET_INSTALL_DIR=$CLIRoot
-
 . "$PSScriptRoot\build\common.ps1"
 
 Function Clean-Tests {
@@ -51,9 +48,6 @@ Invoke-BuildStep 'Cleaning test results' { Clean-Tests } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
-    -ev +BuildErrors
-    
-Invoke-BuildStep 'Installing dotnet CLI' { Install-DotnetCLI } `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
@@ -86,10 +80,9 @@ Invoke-BuildStep 'Building solution' { `
     
 Invoke-BuildStep 'Creating artifacts' { `
     param($Configuration, $BuildNumber, $ReleaseLabel, $SemanticVersion, $Artifacts) `
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj") -Configuration $Configuration -Symbols
-                
-        & dotnet pack (Join-Path $PSScriptRoot "src\NuGet.Services.Logging") --configuration $Configuration --output "$Artifacts" --no-build --version-suffix "$Branch"		
-        & dotnet pack (Join-Path $PSScriptRoot "src\NuGet.Services.Configuration") --configuration $Configuration --output "$Artifacts" --no-build --version-suffix "$Branch"
+        New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj") -Configuration $Configuration -Symbols -IncludeReferencedProjects
+        New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.Logging\NuGet.Services.Logging.csproj") -Configuration $Configuration -Symbols -IncludeReferencedProjects
+        New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj") -Configuration $Configuration -Symbols -IncludeReferencedProjects
     } `
     -args $Configuration, $BuildNumber, $ReleaseLabel, $SemanticVersion, $Artifacts `
     -ev +BuildErrors
