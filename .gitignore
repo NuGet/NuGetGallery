@@ -25,6 +25,9 @@ bld/
 # Files created and used by our build scripts
 AssemblyInfo.*.cs
 .nuget/CredentialProviderBundle.zip
+.nuget/CredentialProvider.VSS.exe
+.nuget/EULA_Microsoft Visual Studio Team Services Credential Provider.docx
+.nuget/ThirdPartyNotices.txt
 nuget.exe
 
 # Visual Studio 2015 cache/options directory
@@ -258,5 +261,5 @@ paket-files/
 *.sln.iml
 
 # Repository specific
-cli/
 Results.*.xml
+build/private

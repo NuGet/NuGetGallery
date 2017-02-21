@@ -3,6 +3,7 @@ $DefaultMSBuildVersion = '15'
 $DefaultConfiguration = 'debug'
 $NuGetClientRoot = Split-Path -Path $PSScriptRoot -Parent
 $CLIRoot = Join-Path $NuGetClientRoot 'cli'
+$PrivateRoot = Join-Path $PSScriptRoot "private"
 $DotNetExe = Join-Path $CLIRoot 'dotnet.exe'
 $NuGetExe = Join-Path $NuGetClientRoot '.nuget\nuget.exe'
 $7zipExe = Join-Path $NuGetClientRoot 'tools\7zip\7za.exe'
@@ -240,7 +241,7 @@ Function Install-NuGet {
 
     if (-not (Test-Path $NuGetExe)) {
         Trace-Log 'Extracting VSTS credential provider'
-        & $7zipExe e $CredentialProviderBundle -o "$NuGetFolderPath"
+        & $7zipExe e $CredentialProviderBundle "-o$NuGetFolderPath"
 
         Remove-Item $CredentialProviderBundle
     }
@@ -584,4 +585,28 @@ Function Set-VersionInfo {
     Add-Content $Path ("[assembly: AssemblyMetadata(""CommitId"", """ + $Commit + """)]")
     Add-Content $Path ("[assembly: AssemblyMetadata(""BuildDateUtc"", """ + $BuildDateUtc + """)]")
     Add-Content $Path "#endif"
+}
+
+Function Install-PrivateBuildTools() {
+    $repository = $env:PRIVATE_BUILD_TOOLS_REPO
+    $commit = $env:PRIVATE_BUILD_TOOLS_COMMIT
+
+    if (-Not $commit) {
+        $commit = 'c2167eb6017ed162ff9ad623072ba786b7309950'
+    }
+
+    if (-Not $repository) {
+        Trace-Log "No private build tools are configured. Use the 'PRIVATE_BUILD_TOOLS_REPO' and 'PRIVATE_BUILD_TOOLS_COMMIT' environment variables."
+        return
+    }
+
+    Trace-Log "Getting commit $commit from repository $repository"
+
+    if (-Not (Test-Path $PrivateRoot)) {
+        git init $PrivateRoot
+        git -C $PrivateRoot remote add origin $repository
+    }
+
+    git -C $PrivateRoot fetch *>&1 | Out-Null
+    git -C $PrivateRoot reset --hard $commit
 }

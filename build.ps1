@@ -43,7 +43,10 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
-    
+
+Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Cleaning test results' { Clean-Tests } `
     -ev +BuildErrors
 
