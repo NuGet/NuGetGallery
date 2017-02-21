@@ -15,7 +15,7 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var ctrl = new TestableAppController();
-                ctrl.OwinContext = Fakes.CreateOwinContext();
+                ctrl.SetOwinContextOverride(Fakes.CreateOwinContext());
 
                 // Act
                 var user = ctrl.InvokeGetCurrentUser();
