@@ -42,19 +42,19 @@ namespace NuGetGallery.Packaging
             // Validate the ID
             if (string.IsNullOrEmpty(packageMetadata.Id))
             {
-                yield return new ValidationResult(Strings.Manifest_MissingId);
+                yield return new ValidationResult(CoreStrings.Manifest_MissingId);
             }
             else
             {
                 if (packageMetadata.Id.Length > MaxPackageIdLength)
                 {
-                    yield return new ValidationResult(Strings.Manifest_IdTooLong);
+                    yield return new ValidationResult(CoreStrings.Manifest_IdTooLong);
                 }
                 else if (!PackageIdValidator.IsValidPackageId(packageMetadata.Id))
                 {
                     yield return new ValidationResult(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.Manifest_InvalidId,
+                        CoreStrings.Manifest_InvalidId,
                         packageMetadata.Id));
                 }
             }
@@ -75,7 +75,7 @@ namespace NuGetGallery.Packaging
 
                 yield return new ValidationResult(String.Format(
                     CultureInfo.CurrentCulture,
-                    Strings.Manifest_InvalidVersion,
+                    CoreStrings.Manifest_InvalidVersion,
                     version));
             }
 
@@ -96,7 +96,7 @@ namespace NuGetGallery.Packaging
                     {
                         yield return new ValidationResult(String.Format(
                             CultureInfo.CurrentCulture,
-                            Strings.Manifest_TargetFrameworkNotSupported,
+                            CoreStrings.Manifest_TargetFrameworkNotSupported,
                             frameworkReferenceGroup?.TargetFramework?.ToString()));
                     }
                 }
@@ -117,7 +117,7 @@ namespace NuGetGallery.Packaging
                     {
                         yield return new ValidationResult(String.Format(
                             CultureInfo.CurrentCulture,
-                            Strings.Manifest_TargetFrameworkNotSupported,
+                            CoreStrings.Manifest_TargetFrameworkNotSupported,
                             dependencyGroup.TargetFramework?.ToString()));
                     }
 
@@ -129,7 +129,7 @@ namespace NuGetGallery.Packaging
                         {
                             yield return new ValidationResult(String.Format(
                                 CultureInfo.CurrentCulture,
-                                Strings.Manifest_DuplicateDependency,
+                                CoreStrings.Manifest_DuplicateDependency,
                                 dependencyGroup.TargetFramework.GetShortFolderName(),
                                 dependency.Id));
                         }
@@ -138,7 +138,7 @@ namespace NuGetGallery.Packaging
                         {
                             yield return new ValidationResult(String.Format(
                                 CultureInfo.CurrentCulture,
-                                Strings.Manifest_InvalidDependency,
+                                CoreStrings.Manifest_InvalidDependency,
                                 dependency.Id,
                                 dependency.VersionRange.OriginalString));
                         }
@@ -173,14 +173,14 @@ namespace NuGetGallery.Packaging
             {
                 return new ValidationResult(string.Format(
                     CultureInfo.CurrentCulture,
-                    Strings.Manifest_InvalidVersionSemVer200,
+                    CoreStrings.Manifest_InvalidVersionSemVer200,
                     version.ToFullString()));
             }
             else if (!version.IsValidVersionForLegacyClients())
             {
                 return new ValidationResult(string.Format(
                     CultureInfo.CurrentCulture,
-                    Strings.Manifest_InvalidVersion,
+                    CoreStrings.Manifest_InvalidVersion,
                     version));
             }
 
@@ -194,11 +194,11 @@ namespace NuGetGallery.Packaging
                 Uri uri = null;
                 if (!string.IsNullOrEmpty(url) && !Uri.TryCreate(url, UriKind.Absolute, out uri))
                 {
-                    yield return new ValidationResult(Strings.Manifest_InvalidUrl);
+                    yield return new ValidationResult(CoreStrings.Manifest_InvalidUrl);
                 }
                 else if (uri != null && uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)
                 {
-                    yield return new ValidationResult(Strings.Manifest_InvalidUrl);
+                    yield return new ValidationResult(CoreStrings.Manifest_InvalidUrl);
                 }
             }
         }

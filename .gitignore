@@ -27,6 +27,9 @@ x64/
 build/ 
 tools/
 .nuget/CredentialProviderBundle.zip
+.nuget/CredentialProvider.VSS.exe
+.nuget/EULA_Microsoft Visual Studio Team Services Credential Provider.docx
+.nuget/ThirdPartyNotices.txt
 AssemblyInfo.g.cs
 
 # MSTest test Results

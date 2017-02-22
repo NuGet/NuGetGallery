@@ -27,17 +27,17 @@ namespace NuGetGallery.Packaging
         {
             if (!readWriteStream.CanRead)
             {
-                throw new ArgumentException(Strings.StreamMustBeReadable, nameof(readWriteStream));
+                throw new ArgumentException(CoreStrings.StreamMustBeReadable, nameof(readWriteStream));
             }
 
             if (!readWriteStream.CanWrite)
             {
-                throw new ArgumentException(Strings.StreamMustBeWriteable, nameof(readWriteStream));
+                throw new ArgumentException(CoreStrings.StreamMustBeWriteable, nameof(readWriteStream));
             }
 
             if (!readWriteStream.CanSeek)
             {
-                throw new ArgumentException(Strings.StreamMustBeSeekable, nameof(readWriteStream));
+                throw new ArgumentException(CoreStrings.StreamMustBeSeekable, nameof(readWriteStream));
             }
 
             using (var packageArchiveReader = new PackageArchiveReader(readWriteStream, leaveStreamOpen: true))
