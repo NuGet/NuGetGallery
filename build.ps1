@@ -2,8 +2,6 @@
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
-    [ValidateSet("Release","rtm", "rc", "beta", "beta2", "final", "xprivate", "zlocal")]
-    [string]$ReleaseLabel = 'zlocal',
     [int]$BuildNumber,
     [switch]$SkipRestore,
     [switch]$CleanCache,
@@ -11,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = 'a8c27302d8720d094c2dce87e00324d84b4697b2'
+    [string]$BuildBranch = '1c479a7381ebbc0fe1fded765de70d513b8bd68e'
 )
 
 # For TeamCity - If any issue occurs, this script fail the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -49,6 +47,9 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
     
+Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Cleaning test results' { Clean-Tests } `
     -ev +BuildErrors
 
@@ -68,28 +69,25 @@ Invoke-BuildStep 'Restoring solution packages' { `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-    param($Path, $Version, $Branch, $Commit)
-    Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
+        $Path = Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"
+        Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA `
     } `
-    -args (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"), $SimpleVersion, $Branch, $CommitSHA `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-    param($Path, $Version, $Branch, $Commit)
-    Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
+        $Path = Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs"
+        Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA `
     } `
-    -args (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs"), $SimpleVersion, $Branch, $CommitSHA `
     -ev +BuildErrors
         
 Invoke-BuildStep 'Building solution' { 
-    param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
+        $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
     } `
-    -args $Configuration, $BuildNumber, (Join-Path $PSScriptRoot "NuGetGallery.sln"), $SkipRestore `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' {
-        New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion `
+        New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion `
         -ev +BuildErrors
     }
 
