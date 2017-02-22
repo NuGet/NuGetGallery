@@ -2,8 +2,6 @@
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
-    [ValidateSet("Release","rtm", "rc", "beta", "beta2", "final", "xprivate", "zlocal")]
-    [string]$ReleaseLabel = 'zlocal',
     [int]$BuildNumber,
     [switch]$SkipRestore,
     [switch]$CleanCache,
@@ -61,12 +59,10 @@ Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-    param($Version, $Branch, $Commit)
-    Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.KeyVault\Properties\AssemblyInfo.g.cs" -Version $Version -Branch $Branch -Commit $Commit
-    Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.Logging\Properties\AssemblyInfo.g.cs" -Version $Version -Branch $Branch -Commit $Commit
-    Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.Configuration\Properties\AssemblyInfo.g.cs" -Version $Version -Branch $Branch -Commit $Commit
+        Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.KeyVault\Properties\AssemblyInfo.g.cs" -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+        Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.Logging\Properties\AssemblyInfo.g.cs" -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+        Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.Configuration\Properties\AssemblyInfo.g.cs" -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
     } `
-    -args $SimpleVersion, $Branch, $CommitSHA `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Restoring solution packages' { `
@@ -75,19 +71,16 @@ Invoke-BuildStep 'Restoring solution packages' { `
     -ev +BuildErrors
         
 Invoke-BuildStep 'Building solution' { `
-    param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore) `
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore `
+        $SolutionPath = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore
     } `
-    -args $Configuration, $BuildNumber, (Join-Path $PSScriptRoot "NuGet.Server.Common.sln"), $SkipRestore `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' { `
-    param($Configuration, $BuildNumber, $ReleaseLabel, $SemanticVersion, $Artifacts) `
         New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj") -Configuration $Configuration -Symbols -IncludeReferencedProjects
         New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.Logging\NuGet.Services.Logging.csproj") -Configuration $Configuration -Symbols -IncludeReferencedProjects
         New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj") -Configuration $Configuration -Symbols -IncludeReferencedProjects
     } `
-    -args $Configuration, $BuildNumber, $ReleaseLabel, $SemanticVersion, $Artifacts `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Patching versions of artifacts' {`
