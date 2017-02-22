@@ -136,6 +136,7 @@ namespace NuGetGallery
             var dbContext = new Mock<DbContext>();
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
             entitiesContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
+            entitiesContext.Setup(m => m.GetChangeTracker()).Returns(dbContext.Object.ChangeTracker);
 
             diagnosticsService = diagnosticsService ?? new Mock<IDiagnosticsService>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
@@ -158,8 +159,7 @@ namespace NuGetGallery
                 packageNamingConflictValidator,
                 auditingService);
 
-            packageService.Setup(s => s.TryUpdateIsLatestInDatabase(
-                It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()))
+            packageService.Setup(s => s.TryUpdateIsLatestInDatabase(It.IsAny<IEntitiesContext>()))
                 .Returns(Task.FromResult(true));
             packageService.Setup(s => s.CreateNewEntitiesContext()).Returns(entitiesContext.Object);
 
@@ -617,20 +617,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillSetTheNewPackagesLastUpdatedTimes()
-            {
-                var service = CreateService(setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage();
-                var currentUser = new User();
-
-                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
-                await service.UpdateIsLatestAsync(package.PackageRegistration);
-
-                Assert.NotEqual(DateTime.MinValue, package.LastUpdated);
-            }
-
-            [Fact]
             public async Task WillSaveThePackageFileAndSetThePackageFileSize()
             {
                 var service = CreateService(setup:
@@ -1068,8 +1054,7 @@ namespace NuGetGallery
                 await service.Object.UpdateIsLatestAsync(packageRegistration);
 
                 // Assert
-                service.Verify(s => s.TryUpdateIsLatestInDatabase(
-                    It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()), Times.Once);
+                service.Verify(s => s.TryUpdateIsLatestInDatabase(It.IsAny<IEntitiesContext>()), Times.Once);
             }
 
             [Fact]
@@ -1095,8 +1080,7 @@ namespace NuGetGallery
                 Assert.False(package09.IsLatest);
                 Assert.True(package09.IsLatestStable);
 
-                service.Verify(s => s.TryUpdateIsLatestInDatabase(
-                    It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()), Times.Once);
+                service.Verify(s => s.TryUpdateIsLatestInDatabase(It.IsAny<IEntitiesContext>()), Times.Once);
             }
 
             [Fact]
@@ -1126,8 +1110,7 @@ namespace NuGetGallery
                 Assert.False(package09.IsLatest);
                 Assert.False(package09.IsLatestStable);
 
-                service.Verify(s => s.TryUpdateIsLatestInDatabase(
-                    It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()), Times.Once);
+                service.Verify(s => s.TryUpdateIsLatestInDatabase(It.IsAny<IEntitiesContext>()), Times.Once);
             }
 
             [Fact]
@@ -1161,8 +1144,7 @@ namespace NuGetGallery
                 Assert.False(package09.IsLatest);
                 Assert.False(package09.IsLatestStable);
 
-                service.Verify(s => s.TryUpdateIsLatestInDatabase(
-                    It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()), Times.Once);
+                service.Verify(s => s.TryUpdateIsLatestInDatabase(It.IsAny<IEntitiesContext>()), Times.Once);
             }
         }
 

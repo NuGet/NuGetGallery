@@ -680,64 +680,37 @@ namespace NuGetGallery
             }
         }
 
-        private static bool PackageVersionsMatch(Package first, Package second)
+        protected internal async virtual Task<bool> TryUpdateIsLatestInDatabase(IEntitiesContext context)
         {
-            if (first == null)
+            var changeTracker = context.GetChangeTracker();
+            var modifiedPackages = changeTracker.Entries<Package>().Where(p => p.State == EntityState.Modified).ToList();
+            if (modifiedPackages.Count == 0)
             {
-                return second == null;
+                return true;
             }
-            else if (second == null)
-            {
-                return false;
-            }
-            else
-            {
-                return first.Version.Equals(second.Version, StringComparison.OrdinalIgnoreCase);
-            }
-        }
-        
-        private static void MergeUpdateIsLatestClearsWithSets(List<UpdateIsLatestPackageEdit> clears, List<UpdateIsLatestPackageEdit> sets)
-        {
-            // Avoid multiple updates to the same row by merging clears with sets.
-            foreach (var clear in clears)
-            {
-                var match = sets.Where(pe => PackageVersionsMatch(pe.Package, clear.Package)).FirstOrDefault();
 
-                if (match == null)
-                {
-                    sets.Add(clear);
-                }
-                else
-                {
-                    // skip clear, but reset original values on set
-                    match.OriginalIsLatest = clear.OriginalIsLatest;
-                    match.OriginalIsLatestStable = clear.OriginalIsLatestStable;
-                }
-            }
-            
-            sets.RemoveAll(pe => !pe.HasChanged());
-        }
-
-        protected async internal virtual Task<bool> TryUpdateIsLatestInDatabase(IEntitiesContext context, List<UpdateIsLatestPackageEdit> sets)
-        {
             int paramOffset = 0;
-            var parameters = new object[sets.Count * 5];
+            var parameters = new object[modifiedPackages.Count * 5];
 
             var query = new StringBuilder("DECLARE @rowCount INT = 0");
-            foreach (var set in sets)
+            foreach (var packageEntry in modifiedPackages)
             {
+                // Set LastUpdated after all IsLatest/IsLatestStable changes are complete to ensure
+                // that we don't update rows where IsLatest/IsLatestStable hasn't changed.
+                packageEntry.Entity.LastUpdated = DateTime.UtcNow;
+
                 query.AppendLine(String.Format(@"
                 UPDATE [dbo].[Packages]
-                SET [IsLatest] = \{{0}\}, [IsLatestStable] = \{{1}\}, [LastUpdated] = GETUTCDATE()
-                WHERE [Key] = \{{2}\} AND [IsLatest] = \{{3}\} AND [IsLatestStable] = \{{4}\}
+                SET [IsLatest] = {{{0}}}, [IsLatestStable] = {{{1}}}, [LastUpdated] = GETUTCDATE()
+                WHERE [Key] = {{{2}}} AND [IsLatest] = {{{3}}} AND [IsLatestStable] = {{{4}}}
                 SET @rowCount = @rowCount + @@ROWCOUNT
                 ", paramOffset, paramOffset + 1, paramOffset + 2, paramOffset + 3, paramOffset + 4));
 
-                parameters[paramOffset] = set.Package.IsLatest;
-                parameters[paramOffset + 1] = set.Package.IsLatestStable;
-                parameters[paramOffset + 2] = set.Package.Key;
-                parameters[paramOffset + 3] = set.OriginalIsLatest;
-                parameters[paramOffset + 4] = set.OriginalIsLatestStable;
+                parameters[paramOffset] = packageEntry.Entity.IsLatest;
+                parameters[paramOffset + 1] = packageEntry.Entity.IsLatestStable;
+                parameters[paramOffset + 2] = packageEntry.Entity.Key;
+                parameters[paramOffset + 3] = packageEntry.OriginalValues["IsLatest"];
+                parameters[paramOffset + 4] = packageEntry.OriginalValues["IsLatestStable"];
 
                 paramOffset += 5;
             }
@@ -746,24 +719,28 @@ namespace NuGetGallery
             using (var transaction = context.GetDatabase().BeginTransaction(IsolationLevel.ReadCommitted))
             {
                 var rowCount = await context.GetDatabase().ExecuteSqlCommandAsync(query.ToString(), parameters);
-                return rowCount == sets.Count;
+                if (rowCount == modifiedPackages.Count)
+                {
+                    transaction.Commit();
+                    return true;
+                }
+                else
+                {
+                    transaction.Rollback();
+                    return false;
+                }
             }
         }
-
-        // can we get rid of merge?
+        
         private Task<bool> TryUpdateIsLatestAsync(IEntitiesContext context, PackageRegistration packageRegistration)
         {
-            var packageSets = new List<UpdateIsLatestPackageEdit>();
-
             if (packageRegistration.Packages.Any())
             {
-
                 // Update in memory first to avoid putting request entities in a bad state should a conflict occur.
-                var packageClears = new List<UpdateIsLatestPackageEdit>();
-
                 foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
                 {
-                    packageClears.Add(new UpdateIsLatestPackageEdit(pv, isLatest: false, isLatestStable: false));
+                    pv.IsLatest = false;
+                    pv.IsLatestStable = false;
                 }
 
                 // If the last listed package was just unlisted, then we won't find another one.
@@ -771,7 +748,8 @@ namespace NuGetGallery
 
                 if (latestPackage != null)
                 {
-                    packageSets.Add(new UpdateIsLatestPackageEdit(latestPackage, isLatest: true, isLatestStable: !latestPackage.IsPrerelease));
+                    latestPackage.IsLatest = true;
+                    latestPackage.IsLatestStable = !latestPackage.IsPrerelease;
 
                     if (latestPackage.IsPrerelease)
                     {
@@ -780,18 +758,12 @@ namespace NuGetGallery
                         var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
                         if (latestReleasePackage != null)
                         {
-                            packageSets.Add(new UpdateIsLatestPackageEdit(latestReleasePackage, isLatest: false, isLatestStable: true));
+                            latestReleasePackage.IsLatest = false;
+                            latestReleasePackage.IsLatestStable = true;
                         }
                     }
                 }
-
-                // Apply updates to database on different context using optimistic concurrency with retries.
-                MergeUpdateIsLatestClearsWithSets(packageClears, packageSets);
-
-                if (packageSets.Any())
-                {
-                    return TryUpdateIsLatestInDatabase(context, packageSets);
-                }
+                return TryUpdateIsLatestInDatabase(context);
             }
             return Task.FromResult(true);
         }
@@ -884,34 +856,6 @@ namespace NuGetGallery
                 {
                     await _packageRepository.CommitChangesAsync();
                 }
-            }
-        }
-
-        /// <summary>
-        /// Applies in-memory updates for UpdateIsLatestAsync, tracking original values for optimistic concurrency.
-        /// </summary>
-        protected internal class UpdateIsLatestPackageEdit
-        {
-            internal UpdateIsLatestPackageEdit(Package package, bool isLatest, bool isLatestStable)
-            {
-                Package = package;
-                OriginalIsLatest = package.IsLatest;
-                OriginalIsLatestStable = package.IsLatestStable;
-
-                Package.IsLatest = isLatest;
-                Package.IsLatestStable = isLatestStable;
-                Package.LastUpdated = DateTime.UtcNow;
-            }
-
-            public Package Package { get; private set; }
-
-            public bool OriginalIsLatest { get; set; }
-
-            public bool OriginalIsLatestStable { get; set; }
-
-            public bool HasChanged()
-            {
-                return OriginalIsLatest != Package.IsLatest || OriginalIsLatestStable != Package.IsLatestStable;
             }
         }
     }

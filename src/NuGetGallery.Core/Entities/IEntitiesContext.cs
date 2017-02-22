@@ -3,6 +3,7 @@
 
 using System;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -22,6 +23,8 @@ namespace NuGetGallery
         IDbSet<T> Set<T>() where T : class;
         void DeleteOnCommit<T>(T entity) where T : class;
         void SetCommandTimeout(int? seconds);
+
+        DbChangeTracker GetChangeTracker();
         Database GetDatabase();
     }
 }

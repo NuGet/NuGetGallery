@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -126,6 +127,11 @@ namespace NuGetGallery
 
 
         public void SetCommandTimeout(int? seconds)
+        {
+            throw new NotSupportedException();
+        }
+
+        public DbChangeTracker GetChangeTracker()
         {
             throw new NotSupportedException();
         }
