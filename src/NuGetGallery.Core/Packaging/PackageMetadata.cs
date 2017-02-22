@@ -40,7 +40,7 @@ namespace NuGetGallery.Packaging
             var versionString = GetValue("version", string.Empty);
             if (versionString.IndexOf('.') < 0)
             {
-                throw new FormatException(string.Format(Strings.PackageMetadata_VersionStringInvalid, versionString));
+                throw new FormatException(string.Format(CoreStrings.PackageMetadata_VersionStringInvalid, versionString));
             }
             
             NuGetVersion nugetVersion;

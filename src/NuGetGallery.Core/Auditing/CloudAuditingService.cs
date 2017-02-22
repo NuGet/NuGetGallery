@@ -160,7 +160,7 @@ namespace NuGetGallery.Auditing
                     // Blob already existed!
                     throw new InvalidOperationException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.CloudAuditingService_DuplicateAuditRecord,
+                        CoreStrings.CloudAuditingService_DuplicateAuditRecord,
                         fullPath));
                 }
                 throw;

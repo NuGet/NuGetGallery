@@ -28,7 +28,6 @@ using System.Runtime.InteropServices;
 [assembly: NeutralResourcesLanguage("en-us")]
 
 [assembly: AssemblyDescription("Core support library for NuGet Gallery Frontend and Backend")]
-[assembly: InternalsVisibleTo("NuGetGallery.Core.Facts")]
 
 // The build will automatically inject the following attributes:
 // AssemblyVersion, AssemblyFileVersion, AssemblyInformationalVersion, AssemblyMetadata (for Branch, CommitId, and BuildDateUtc)
