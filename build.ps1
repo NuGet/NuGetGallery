@@ -68,18 +68,17 @@ Invoke-BuildStep 'Restoring solution packages' { `
     -skip:$SkipRestore `
     -ev +BuildErrors
     
-Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-        $Path = Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"
-        Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA `
+Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
+        $Paths = `
+            (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"), `
+            (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs")
+
+        Foreach ($Path in $Paths) {
+            Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+        }
     } `
     -ev +BuildErrors
-    
-Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-        $Path = Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs"
-        Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA `
-    } `
-    -ev +BuildErrors
-        
+
 Invoke-BuildStep 'Building solution' { 
         $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
         Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
