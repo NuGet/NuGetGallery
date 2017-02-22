@@ -86,7 +86,7 @@ Invoke-BuildStep 'Building solution' {
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' {
-        New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion `
+        New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion `
         -ev +BuildErrors
     }
 
