@@ -474,7 +474,7 @@ namespace NuGetGallery
 
             await PackageService.MarkPackageUnlistedAsync(package);
             
-            // handle in separate transaction because of concurrency check with retry
+            // Handle in separate transaction because of concurrency check with retry.
             if (package.IsLatest || package.IsLatestStable)
             {
                 await PackageService.UpdateIsLatestAsync(package.PackageRegistration);

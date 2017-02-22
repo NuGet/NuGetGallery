@@ -158,8 +158,9 @@ namespace NuGetGallery
                 packageNamingConflictValidator,
                 auditingService);
 
-            packageService.Setup(s => s.ExecuteSqlCommandAsync(It.IsAny<Database>(), It.IsAny<string>(), It.IsAny<object[]>()))
-                .Returns(Task.FromResult(1));
+            packageService.Setup(s => s.TryUpdateIsLatestInDatabase(
+                It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()))
+                .Returns(Task.FromResult(true));
             packageService.Setup(s => s.CreateNewEntitiesContext()).Returns(entitiesContext.Object);
 
             packageService.CallBase = true;
@@ -1052,7 +1053,7 @@ namespace NuGetGallery
         public class TheUpdateIsLatestMethod
         {
             [Fact]
-            public async Task CommitIfCommitChangesIsTrue()
+            public async Task AlwaysCommitChanges()
             {
                 // Arrange
                 var packageRegistration = new PackageRegistration();
@@ -1067,7 +1068,8 @@ namespace NuGetGallery
                 await service.Object.UpdateIsLatestAsync(packageRegistration);
 
                 // Assert
-                service.Verify(s => s.ExecuteSqlCommandAsync(It.IsAny<Database>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+                service.Verify(s => s.TryUpdateIsLatestInDatabase(
+                    It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()), Times.Once);
             }
 
             [Fact]
@@ -1093,7 +1095,8 @@ namespace NuGetGallery
                 Assert.False(package09.IsLatest);
                 Assert.True(package09.IsLatestStable);
 
-                service.Verify(s => s.ExecuteSqlCommandAsync(It.IsAny<Database>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(2));
+                service.Verify(s => s.TryUpdateIsLatestInDatabase(
+                    It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()), Times.Once);
             }
 
             [Fact]
@@ -1123,7 +1126,8 @@ namespace NuGetGallery
                 Assert.False(package09.IsLatest);
                 Assert.False(package09.IsLatestStable);
 
-                service.Verify(s => s.ExecuteSqlCommandAsync(It.IsAny<Database>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+                service.Verify(s => s.TryUpdateIsLatestInDatabase(
+                    It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()), Times.Once);
             }
 
             [Fact]
@@ -1157,7 +1161,8 @@ namespace NuGetGallery
                 Assert.False(package09.IsLatest);
                 Assert.False(package09.IsLatestStable);
 
-                service.Verify(s => s.ExecuteSqlCommandAsync(It.IsAny<Database>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(3));
+                service.Verify(s => s.TryUpdateIsLatestInDatabase(
+                    It.IsAny<IEntitiesContext>(), It.IsAny<List<PackageService.UpdateIsLatestPackageEdit>>()), Times.Once);
             }
         }
 

@@ -134,6 +134,10 @@ namespace NuGetGallery
         {
             throw new NotSupportedException();
         }
+
+        public void Dispose()
+        {
+        }
     }
 }
 
