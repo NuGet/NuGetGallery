@@ -8,36 +8,25 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.GZip;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
 {
-    internal class LogFileProcessor
+    public class LogFileProcessor
     {
-        private const ushort _gzipLeadBytes = 0x8b1f;
-
-        private readonly CloudBlobContainer _targetContainer;
-        private readonly CloudBlobContainer _deadLetterContainer;
+        private readonly IStatisticsBlobContainerUtility _statisticsBlobContainerUtility;
         private readonly ILogger _logger;
-        private readonly Warehouse _warehouse;
+        private readonly IStatisticsWarehouse _warehouse;
 
-        public LogFileProcessor(CloudBlobContainer targetContainer,
-            CloudBlobContainer deadLetterContainer,
+        public LogFileProcessor(
+            IStatisticsBlobContainerUtility statisticsBlobContainerUtility,
             ILoggerFactory loggerFactory,
-            Warehouse warehouse)
+            IStatisticsWarehouse warehouse)
         {
-            if (targetContainer == null)
+            if (statisticsBlobContainerUtility == null)
             {
-                throw new ArgumentNullException(nameof(targetContainer));
-            }
-
-            if (deadLetterContainer == null)
-            {
-                throw new ArgumentNullException(nameof(deadLetterContainer));
+                throw new ArgumentNullException(nameof(statisticsBlobContainerUtility));
             }
 
             if (warehouse == null)
@@ -50,14 +39,12 @@ namespace Stats.ImportAzureCdnStatistics
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _targetContainer = targetContainer;
-            _deadLetterContainer = deadLetterContainer;
-            _logger = loggerFactory.CreateLogger<Job>();
-
             _warehouse = warehouse;
+            _statisticsBlobContainerUtility = statisticsBlobContainerUtility;
+            _logger = loggerFactory.CreateLogger<Job>();
         }
 
-        public async Task ProcessLogFileAsync(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser, bool aggregatesOnly = false)
+        public async Task ProcessLogFileAsync(ILeasedLogFile logFile, IPackageStatisticsParser packageStatisticsParser, bool aggregatesOnly = false)
         {
             if (logFile == null)
             {
@@ -66,7 +53,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             try
             {
-                var logFileName = logFile.Blob.Name;
+                var logFileName = logFile.BlobName;
                 var cdnStatistics = await ParseLogEntries(logFile, packageStatisticsParser, logFileName);
                 var hasPackageStatistics = cdnStatistics.PackageStatistics.Any();
                 var hasToolStatistics = cdnStatistics.ToolStatistics.Any();
@@ -74,66 +61,17 @@ namespace Stats.ImportAzureCdnStatistics
                 // replicate data to the statistics database
                 if (hasPackageStatistics)
                 {
-                    _logger.LogInformation("Creating facts for package download statistics in {LogFileName}", logFileName);
-
-                    var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFileName);
-
-                    if (downloadFacts != null)
-                    {
-                        // store facts recorded in this logfile
-                        if (!aggregatesOnly)
-                        {
-                            await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
-                        }
-
-                        // create aggregates for the logfile
-                        var logFileAggregates = new LogFileAggregates(logFileName);
-                        foreach (var table in downloadFacts)
-                        {
-                            if (string.Equals(table.TableName, "dbo.Fact_Download", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                // aggregate download counts by date
-                                var downloadsByDate =
-                                    table.AsEnumerable()
-                                        .GroupBy(e => e.Field<int>("Dimension_Date_Id"))
-                                        .Select(e => new KeyValuePair<int, int>(e.Key, e.Count()));
-
-                                foreach (var keyValuePair in downloadsByDate)
-                                {
-                                    logFileAggregates.PackageDownloadsByDateDimensionId.Add(keyValuePair.Key, keyValuePair.Value);
-
-                                    _logger.LogInformation(
-                                        "{LogFile} contains {PackageDownloadCount} package downloads for date id {DimensionDateId}",
-                                        logFileName, keyValuePair.Value, keyValuePair.Key);
-                                }
-                            }
-                        }
-
-                        // store aggregates for this logfile
-                        _logger.LogInformation("Storing aggregate facts for package download statistics in {LogFileName}", logFileName);
-                        await _warehouse.StoreLogFileAggregatesAsync(logFileAggregates);
-                    }
+                    await ProcessPackageStatisticsInLogFileAsync(cdnStatistics, logFileName, aggregatesOnly);
                 }
 
                 if (hasToolStatistics)
                 {
-                    _logger.LogInformation("Creating facts for tool download statistics in {LogFileName}", logFileName);
-
-                    var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFileName);
-
-                    if (downloadFacts != null)
-                    {
-                        // store facts recorded in this logfile
-                        if (!aggregatesOnly)
-                        {
-                            await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
-                        }
-                    }
+                    await ProcessToolStatisticsInLogFileAsync(cdnStatistics, logFileName, aggregatesOnly);
                 }
 
                 if (!aggregatesOnly)
                 {
-                    await ArchiveBlobAsync(logFile);
+                    await _statisticsBlobContainerUtility.ArchiveBlobAsync(logFile);
                 }
             }
             catch (Exception e)
@@ -143,60 +81,93 @@ namespace Stats.ImportAzureCdnStatistics
                 if (!aggregatesOnly)
                 {
                     // copy the blob to a dead-letter container
-                    await EnsureCopiedToContainerAsync(logFile, _deadLetterContainer, e);
+                    await _statisticsBlobContainerUtility.CopyToDeadLetterContainerAsync(logFile, e);
                 }
             }
 
             if (!aggregatesOnly)
             {
                 // delete the blob from the 'to-be-processed' container
-                await DeleteSourceBlobAsync(logFile);
+                await _statisticsBlobContainerUtility.DeleteSourceBlobAsync(logFile);
             }
         }
 
-        private static async Task EnsureCopiedToContainerAsync(ILeasedLogFile logFile, CloudBlobContainer targetContainer, Exception e = null)
+        private async Task ProcessToolStatisticsInLogFileAsync(CdnStatistics cdnStatistics, string logFileName, bool aggregatesOnly)
         {
-            var archivedBlob = targetContainer.GetBlockBlobReference(logFile.Blob.Name);
-            if (!await archivedBlob.ExistsAsync())
+            // check if we already successfully imported tool statistics for this file
+            if (await _warehouse.HasImportedToolStatisticsAsync(logFileName))
             {
-                await archivedBlob.StartCopyAsync(logFile.Blob);
+                _logger.LogWarning(
+                    "Already imported tool download statistics for {LogFileName}: skipping.", logFileName);
+            }
+            else
+            {
+                _logger.LogInformation("Creating facts for tool download statistics in {LogFileName}", logFileName);
+                var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFileName);
 
-                archivedBlob = (CloudBlockBlob)await targetContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
-
-                while (archivedBlob.CopyState.Status == CopyStatus.Pending)
+                // store facts recorded in this logfile
+                if (downloadFacts != null && !aggregatesOnly)
                 {
-                    Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                    archivedBlob = (CloudBlockBlob)await targetContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
-                }
-
-                await archivedBlob.FetchAttributesAsync();
-
-                if (e != null)
-                {
-                    // add the job error to the blob's metadata
-                    if (archivedBlob.Metadata.ContainsKey("JobError"))
-                    {
-                        archivedBlob.Metadata["JobError"] = e.ToString().Replace("\r\n", string.Empty);
-                    }
-                    else
-                    {
-                        archivedBlob.Metadata.Add("JobError", e.ToString().Replace("\r\n", string.Empty));
-                    }
-                    await archivedBlob.SetMetadataAsync();
-                }
-                else if (archivedBlob.Metadata.ContainsKey("JobError"))
-                {
-                    archivedBlob.Metadata.Remove("JobError");
-                    await archivedBlob.SetMetadataAsync();
+                    await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
                 }
             }
         }
 
-        private async Task<CdnStatistics> ParseLogEntries(ILeasedLogFile logFile, PackageStatisticsParser packageStatisticsParser, string fileName)
+        private async Task ProcessPackageStatisticsInLogFileAsync(CdnStatistics cdnStatistics, string logFileName, bool aggregatesOnly)
         {
-            var logStream = await OpenCompressedBlobAsync(logFile);
+            _logger.LogInformation("Creating facts for package download statistics in {LogFileName}", logFileName);
+
+            var downloadFacts = await _warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFileName);
+            if (downloadFacts != null)
+            {
+                // check if we already successfully imported package statistics for this file
+                if (!await _warehouse.HasImportedPackageStatisticsAsync(logFileName) && !aggregatesOnly)
+                {
+                    // store facts recorded in this logfile
+                    await _warehouse.InsertDownloadFactsAsync(downloadFacts, logFileName);
+                }
+                else
+                {
+                    _logger.LogWarning("Already imported package download statistics for {LogFileName}: skipping.", logFileName);
+                }
+
+                // create aggregates for the logfile
+                var logFileAggregates = new LogFileAggregates(logFileName);
+                foreach (var table in downloadFacts)
+                {
+                    if (string.Equals(table.TableName, "dbo.Fact_Download", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        // aggregate download counts by date
+                        var downloadsByDate =
+                            table.AsEnumerable()
+                                .GroupBy(e => e.Field<int>("Dimension_Date_Id"))
+                                .Select(e => new KeyValuePair<int, int>(e.Key, e.Count()));
+
+                        foreach (var keyValuePair in downloadsByDate)
+                        {
+                            logFileAggregates.PackageDownloadsByDateDimensionId.Add(keyValuePair.Key, keyValuePair.Value);
+
+                            _logger.LogInformation(
+                                "{LogFile} contains {PackageDownloadCount} package downloads for date id {DimensionDateId}",
+                                logFileName, keyValuePair.Value, keyValuePair.Key);
+                        }
+                    }
+                }
+
+                // store aggregates for this logfile
+                _logger.LogInformation(
+                    "Storing aggregate facts for package download statistics in {LogFileName}",
+                    logFileName);
+
+                await _warehouse.StoreLogFileAggregatesAsync(logFileAggregates);
+            }
+        }
+
+        private async Task<CdnStatistics> ParseLogEntries(ILeasedLogFile logFile, IPackageStatisticsParser packageStatisticsParser, string fileName)
+        {
+            var logStream = await _statisticsBlobContainerUtility.OpenCompressedBlobAsync(logFile);
             var blobUri = logFile.Uri;
-            var blobName = logFile.Blob.Name;
+            var blobName = logFile.BlobName;
 
             var packageStatistics = new List<PackageStatistics>();
             var toolStatistics = new List<ToolStatistics>();
@@ -274,120 +245,7 @@ namespace Stats.ImportAzureCdnStatistics
                 logStream.Dispose();
             }
 
-
-            var cdnStatistics = new CdnStatistics(packageStatistics, toolStatistics);
-            return cdnStatistics;
-        }
-
-        private static async Task<bool> IsGzipCompressed(Stream stream)
-        {
-            stream.Position = 0;
-
-            try
-            {
-                var bytes = new byte[4];
-                await stream.ReadAsync(bytes, 0, 4);
-
-                return BitConverter.ToUInt16(bytes, 0) == _gzipLeadBytes;
-            }
-            finally
-            {
-                stream.Position = 0;
-            }
-        }
-
-        private async Task<Stream> OpenCompressedBlobAsync(ILeasedLogFile logFile)
-        {
-            var stopwatch = Stopwatch.StartNew();
-
-            try
-            {
-                _logger.LogInformation("Beginning opening of compressed blob {FtpBlobUri}.", logFile.Uri);
-
-                var memoryStream = new MemoryStream();
-
-                // decompress into memory (these are rolling log files and relatively small)
-                using (var blobStream = await logFile.Blob.OpenReadAsync(AccessCondition.GenerateLeaseCondition(logFile.LeaseId), null, null))
-                {
-                    await blobStream.CopyToAsync(memoryStream);
-                    memoryStream.Position = 0;
-                }
-
-                stopwatch.Stop();
-
-                _logger.LogInformation("Finished opening of compressed blob {FtpBlobUri}.", logFile.Uri);
-
-                ApplicationInsightsHelper.TrackMetric("Open compressed blob duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
-
-                // verify if the stream is gzipped or not
-                if (await IsGzipCompressed(memoryStream))
-                {
-                    return new GZipInputStream(memoryStream);
-                }
-                else
-                {
-                    return memoryStream;
-                }
-            }
-            catch (Exception exception)
-            {
-                if (stopwatch.IsRunning)
-                {
-                    stopwatch.Stop();
-                }
-
-                _logger.LogError(LogEvents.FailedToDecompressBlob, exception, "Failed to open compressed blob {FtpBlobUri}", logFile.Uri);
-                ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
-
-                throw;
-            }
-        }
-
-        private async Task ArchiveBlobAsync(ILeasedLogFile logFile)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            try
-            {
-                await EnsureCopiedToContainerAsync(logFile, _targetContainer);
-
-                _logger.LogInformation("Finished archive upload for blob {FtpBlobUri}.", logFile.Uri);
-
-                stopwatch.Stop();
-                ApplicationInsightsHelper.TrackMetric("Blob archiving duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
-            }
-            catch (Exception exception)
-            {
-                if (stopwatch.IsRunning)
-                {
-                    stopwatch.Stop();
-                }
-
-                _logger.LogError(LogEvents.FailedBlobUpload, exception, "Failed archive upload for blob {FtpBlobUri}", logFile.Uri);
-                ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
-                throw;
-            }
-        }
-
-        private async Task DeleteSourceBlobAsync(ILeasedLogFile logFile)
-        {
-            if (await logFile.Blob.ExistsAsync())
-            {
-                try
-                {
-                    _logger.LogInformation("Beginning to delete blob {FtpBlobUri}.", logFile.Uri);
-
-                    var accessCondition = AccessCondition.GenerateLeaseCondition(logFile.LeaseId);
-                    await logFile.Blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, accessCondition, null, null);
-
-                    _logger.LogInformation("Finished to delete blob {FtpBlobUri}.", logFile.Uri);
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogError(LogEvents.FailedBlobDelete, exception, "Failed to delete blob {FtpBlobUri}", logFile.Uri);
-                    ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
-                    throw;
-                }
-            }
+            return new CdnStatistics(packageStatistics, toolStatistics);
         }
     }
 }

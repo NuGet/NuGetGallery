@@ -14,6 +14,7 @@ using Stopwatch = System.Diagnostics.Stopwatch;
 namespace Stats.ImportAzureCdnStatistics
 {
     internal class Warehouse
+        : IStatisticsWarehouse
     {
         private const int _defaultCommandTimeout = 1800; // 30 minutes max
         private const int _maxRetryCount = 3;
@@ -46,7 +47,7 @@ namespace Stats.ImportAzureCdnStatistics
             _targetDatabase = targetDatabase;
         }
 
-        internal async Task InsertDownloadFactsAsync(List<DataTable> downloadFactsDataTables, string logFileName)
+        public async Task InsertDownloadFactsAsync(List<DataTable> downloadFactsDataTables, string logFileName)
         {
             _logger.LogDebug("Inserting into facts table...");
             var stopwatch = Stopwatch.StartNew();
@@ -428,6 +429,59 @@ namespace Stats.ImportAzureCdnStatistics
             _logger.LogDebug("  DONE");
 
             return alreadyAggregatedLogFiles;
+        }
+
+        public async Task<bool> HasImportedToolStatisticsAsync(string logFileName)
+        {
+            _logger.LogDebug("Checking if we already processed tool statistics in {LogFileName}...", logFileName);
+
+            return await HasImportedStatisticsAsync(
+                logFileName,
+                "[dbo].[CheckLogFileHasToolStatistics]",
+                LogEvents.FailedToCheckAlreadyProcessedLogFileToolStatistics);
+        }
+
+        public async Task<bool> HasImportedPackageStatisticsAsync(string logFileName)
+        {
+            _logger.LogDebug("Checking if we already processed package statistics in {LogFileName}...", logFileName);
+
+            return await HasImportedStatisticsAsync(
+                logFileName,
+                "[dbo].[CheckLogFileHasPackageStatistics]",
+                LogEvents.FailedToCheckAlreadyProcessedLogFilePackageStatistics);
+        }
+
+        private async Task<bool> HasImportedStatisticsAsync(string logFileName, string commandText, EventId errorEventId)
+        {
+            int hasStatistics;
+
+            try
+            {
+                using (var connection = await _targetDatabase.ConnectTo())
+                {
+                    var command = connection.CreateCommand();
+                    command.CommandText = commandText;
+                    command.CommandTimeout = _defaultCommandTimeout;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("logFileName", logFileName);
+
+                    hasStatistics = (int)await command.ExecuteScalarAsync();
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(
+                    errorEventId,
+                    exception,
+                    errorEventId.Name + " {LogFileName}...",
+                    logFileName);
+
+                ApplicationInsightsHelper.TrackException(exception);
+
+                throw;
+            }
+
+            return hasStatistics == 1;
         }
 
         private async Task<IDictionary<string, int>> GetDimension(string dimension, string logFileName, Func<SqlConnection, Task<IDictionary<string, int>>> retrieve)

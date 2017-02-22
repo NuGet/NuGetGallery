@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Stats.ImportAzureCdnStatistics
 {
-    internal class LogFileAggregates
+    public class LogFileAggregates
     {
         public LogFileAggregates(string logFileName)
         {
