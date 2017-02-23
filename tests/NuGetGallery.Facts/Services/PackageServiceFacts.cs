@@ -1114,7 +1114,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task UpdateIsLatestAsync_SameLatestAndLatestStableVersionsWithClear()
+            public async Task UpdateIsLatestAsync_SameNewLatestAndLatestStableVersions()
             {
                 // Arrange
                 var packages = new HashSet<Package>();

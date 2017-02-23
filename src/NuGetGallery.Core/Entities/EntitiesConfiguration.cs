@@ -24,24 +24,24 @@ namespace NuGetGallery
         {
             get
             {
-                return (bool?)CallContext.LogicalGetData("UseRetriableExecutionStrategy") ?? false;
+                return (bool?)CallContext.LogicalGetData(nameof(UseRetriableExecutionStrategy)) ?? true;
             }
             set
             {
-                CallContext.LogicalSetData("UseRetriableExecutionStrategy", value);
+                CallContext.LogicalSetData(nameof(UseRetriableExecutionStrategy), value);
             }
         }
 
         public static IDisposable SuspendRetriableExecutionStrategy()
         {
-            return new ExecutionStrategySuspension();
+            return new RetriableExecutionStrategySuspension();
         }
 
-        private class ExecutionStrategySuspension : IDisposable
+        private class RetriableExecutionStrategySuspension : IDisposable
         {
             private readonly bool _originalValue;
 
-            internal ExecutionStrategySuspension()
+            internal RetriableExecutionStrategySuspension()
             {
                 _originalValue = UseRetriableExecutionStrategy;
 

@@ -682,6 +682,9 @@ namespace NuGetGallery
 
         protected internal async virtual Task<bool> TryUpdateIsLatestInDatabase(IEntitiesContext context)
         {
+            // Use the EF change tracker to identify changes made in TryUpdateIsLatestAsync which
+            // need to be applied to the database below.
+            // Note that the change tracker is not mocked which make this method hard to unit test.
             var changeTracker = context.GetChangeTracker();
             var modifiedPackages = changeTracker.Entries<Package>().Where(p => p.State == EntityState.Modified).ToList();
             if (modifiedPackages.Count == 0)
@@ -689,9 +692,12 @@ namespace NuGetGallery
                 return true;
             }
 
-            int paramOffset = 0;
-            var parameters = new object[modifiedPackages.Count * 5];
-
+            // Apply changes to the database with an optimistic concurrency check to prevent multiple
+            // threads (in the same or different gallery instance) from setting IsLatest/IsLatestStable
+            // flag to true on different package versions.
+            // To preserve existing behavior, we only want to reject concurrent updates which set the
+            // IsLatest/IsLatestStable columns. For this reason, we must avoid the EF ConcurrencyCheck
+            // attribute which could reject any package update or delete.
             var query = new StringBuilder("DECLARE @rowCount INT = 0");
             foreach (var packageEntry in modifiedPackages)
             {
@@ -699,26 +705,22 @@ namespace NuGetGallery
                 // that we don't update rows where IsLatest/IsLatestStable hasn't changed.
                 packageEntry.Entity.LastUpdated = DateTime.UtcNow;
 
-                query.AppendLine(String.Format(@"
-                UPDATE [dbo].[Packages]
-                SET [IsLatest] = {{{0}}}, [IsLatestStable] = {{{1}}}, [LastUpdated] = GETUTCDATE()
-                WHERE [Key] = {{{2}}} AND [IsLatest] = {{{3}}} AND [IsLatestStable] = {{{4}}}
-                SET @rowCount = @rowCount + @@ROWCOUNT
-                ", paramOffset, paramOffset + 1, paramOffset + 2, paramOffset + 3, paramOffset + 4));
+                var isLatest = packageEntry.Entity.IsLatest;
+                var isLatestStable = packageEntry.Entity.IsLatestStable;
+                var key = packageEntry.Entity.Key;
+                var originalIsLatest= packageEntry.OriginalValues["IsLatest"];
+                var originalIsLatestStable = packageEntry.OriginalValues["IsLatestStable"];
 
-                parameters[paramOffset] = packageEntry.Entity.IsLatest;
-                parameters[paramOffset + 1] = packageEntry.Entity.IsLatestStable;
-                parameters[paramOffset + 2] = packageEntry.Entity.Key;
-                parameters[paramOffset + 3] = packageEntry.OriginalValues["IsLatest"];
-                parameters[paramOffset + 4] = packageEntry.OriginalValues["IsLatestStable"];
-
-                paramOffset += 5;
+                query.AppendLine($"UPDATE [dbo].[Packages]");
+                query.AppendLine($"SET [IsLatest] = {isLatest}, [IsLatestStable] = {isLatestStable}, [LastUpdated] = GETUTCDATE()");
+                query.AppendLine($"WHERE [Key] = {key} AND [IsLatest] = {originalIsLatest} AND [IsLatestStable] = {originalIsLatestStable}");
+                query.AppendLine($"SET @rowCount = @rowCount + @@ROWCOUNT");
             }
             query.AppendLine("SELECT @rowCount");
 
             using (var transaction = context.GetDatabase().BeginTransaction(IsolationLevel.ReadCommitted))
             {
-                var rowCount = await context.GetDatabase().ExecuteSqlCommandAsync(query.ToString(), parameters);
+                var rowCount = await context.GetDatabase().ExecuteSqlCommandAsync(query.ToString());
                 if (rowCount == modifiedPackages.Count)
                 {
                     transaction.Commit();
@@ -726,6 +728,8 @@ namespace NuGetGallery
                 }
                 else
                 {
+                    // RowCount will not match if one or more updates failed the concurrency check. This
+                    // likely means another thread is trying to clear the current IsLatest/IsLatestStable.
                     transaction.Rollback();
                     return false;
                 }
@@ -736,7 +740,8 @@ namespace NuGetGallery
         {
             if (packageRegistration.Packages.Any())
             {
-                // Update in memory first to avoid putting request entities in a bad state should a conflict occur.
+                // Update in memory first to avoid putting request entities in a bad state should a concurrency
+                // conflict occur.
                 foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
                 {
                     pv.IsLatest = false;
@@ -753,8 +758,8 @@ namespace NuGetGallery
 
                     if (latestPackage.IsPrerelease)
                     {
-                        // If the newest uploaded package is a prerelease package, we need to find an older package that is
-                        // a release version and set it to IsLatestStable.
+                        // If the newest uploaded package is a prerelease package, we need to find an older package
+                        // that is a release version and set it to IsLatestStable.
                         var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
                         if (latestReleasePackage != null)
                         {
@@ -763,32 +768,40 @@ namespace NuGetGallery
                         }
                     }
                 }
+                // Now try to apply the changes to the database. If this fails, we still keep the in-memory changes
+                // for the current executing request. More than likely the concurrent thread is just making the
+                // same changes and the in-memory changes will be correct.
                 return TryUpdateIsLatestInDatabase(context);
             }
             return Task.FromResult(true);
         }
-
+        
         protected internal virtual IEntitiesContext CreateNewEntitiesContext()
         {
             return new EntitiesContext();
         }
-
-        // See in-depth comments at IPackageService.UpdateIsLatestAsync.
+        
         public async Task UpdateIsLatestAsync(PackageRegistration packageRegistration)
         {
-            using (var retrySuspension = EntitiesConfiguration.SuspendRetriableExecutionStrategy())
+            // Must suspend the retry execution strategy in order to use transactions.
+            using (EntitiesConfiguration.SuspendRetriableExecutionStrategy())
             {
                 if (await TryUpdateIsLatestAsync(_entitiesContext, packageRegistration))
                 {
                     return;
                 }
 
+                // Retry the update in case a concurrency conflict was detected on the first attempt.
                 int retryCount = 1;
                 do
                 {
                     _trace.Information(String.Format("Retrying {0} for package '{1}' ({2}/{3})",
                         nameof(UpdateIsLatestAsync), packageRegistration.Id, retryCount, UpdateIsLatestMaxRetries));
 
+                    // Since EF contexts are short-lived and do not really support refresh, we will use a
+                    // different context than the request on retry to avoid putting the request context in
+                    // a bad state. More than likely the retry will detect that the concurrent update has
+                    // already made the right updates and no changes will be necessary.
                     using (var detachedRetryContext = CreateNewEntitiesContext())
                     {
                         var detachedPackageRegistration = detachedRetryContext.PackageRegistrations.SingleOrDefault(

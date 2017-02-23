@@ -19,23 +19,9 @@ namespace NuGetGallery
         /// <summary>
         /// Updates IsLatest/IsLatestStable flags after a package create, update or delete operation.
         /// 
-        /// Optimistic concurrency was added to this update to prevent multiple threads (in the same
-        /// or different gallery instance) from setting the IsLatest/IsLatestStable flag to true on
-        /// different package versions. The concurrency check is manual, avoiding EF's ConcurrencyCheck
-        /// attribute, because we only want to reject concurrent updates to the IsLatest/IsLatestStable
-        /// columns and not package deletes or updates of other columns.
-        /// 
-        /// When concurrency is detected, UpdateIsLatest will fetch the latest from the database and
-        /// retry just in case the concurrent update didn't have the latest. More than likely the other
-        /// update did have the latest since package updates are committed in a separate transaction,
-        /// and the retry will detect that no changes are necessary.
-        /// 
-        /// Since EF contexts are short-lived and do not really support refresh, UpdateIsLatest will
-        /// use a different context than the request when retrying to avoid putting the request context
-        /// in a bad state. The request context will be updated with the original (non-retry)
-        /// IsLatest/IsLatestStable values for use by the remainder of the request. These updates should
-        /// not be committed, therefore UpdateIsLatestAsync should only be called after all other commits
-        /// are complete.
+        /// Due to the manual optimistic concurrency check added to the underlying implementation,
+        /// IsLatest/IsLatestStable changes will be applied in memory and should not be committed with EF.
+        /// Callers should ensure that all other commits are complete before calling UpdateIsLatestAsync.
         /// </summary>
         /// <param name="packageRegistration"></param>
         /// <returns></returns>

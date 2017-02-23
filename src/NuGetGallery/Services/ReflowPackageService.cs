@@ -34,6 +34,7 @@ namespace NuGetGallery
                 return null;
             }
 
+            // Must suspend the retry execution strategy in order to use transactions.
             using (EntitiesConfiguration.SuspendRetriableExecutionStrategy())
             {
                 using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())

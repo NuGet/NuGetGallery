@@ -58,7 +58,8 @@ namespace NuGetGallery
         {
             List<PackageRegistration> packageRegistrations;
 
-            using (var retrySuspension = EntitiesConfiguration.SuspendRetriableExecutionStrategy())
+            // Must suspend the retry execution strategy in order to use transactions.
+            using (EntitiesConfiguration.SuspendRetriableExecutionStrategy())
             {
                 using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                 {
@@ -113,7 +114,8 @@ namespace NuGetGallery
         {
             List<PackageRegistration> packageRegistrations;
 
-            using (var retrySuspension = EntitiesConfiguration.SuspendRetriableExecutionStrategy())
+            // Must suspend the retry execution strategy in order to use transactions.
+            using (EntitiesConfiguration.SuspendRetriableExecutionStrategy())
             {
                 using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                 {
