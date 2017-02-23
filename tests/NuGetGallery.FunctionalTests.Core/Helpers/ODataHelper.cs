@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -59,33 +61,49 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        public async Task<DateTime?> GetTimestampOfPackageFromResponse(string url, string propertyName, string packageId, string version = "1.0.0")
+        private object GetPackageProperty(string propertyType, string propertyValue)
         {
-            WriteLine($"Getting '{propertyName}' timestamp of package '{packageId}' with version '{version}'.");
+            switch (propertyType)
+            {
+                case "Edm.DateTime":
+                    return DateTime.Parse(propertyValue);
+                case "Edm.Boolean":
+                    return Boolean.Parse(propertyValue);
+                default:
+                    return propertyValue;
+            }
+        }
+
+        private static string GetPackagePropertyRegexPattern = "<d:([^ >]+)(\\s*m:type=\"([^\"]*)\")?>([^<]*)</d:";
+
+        public async Task<Dictionary<string,object>> GetPackagePropertiesFromResponse(string url, string packageId, string version = "1.0.0")
+        {
+            WriteLine($"Getting properties for package '{packageId}' with version '{version}'.");
 
             var packageResponse = await GetPackageDataInResponse(url, packageId, version);
-            if (string.IsNullOrEmpty(packageResponse))
+            if (!string.IsNullOrEmpty(packageResponse))
             {
-                return null;
+                var propertiesStart = Math.Max(packageResponse.IndexOf("<m:properties>"), 0);
+                var propertiesEnd = packageResponse.IndexOf("</m:properties>", propertiesStart);
+                if (propertiesEnd > 0)
+                {
+                    propertiesStart += 14;
+                    var propertiesContent = packageResponse.Substring(propertiesStart, propertiesEnd - propertiesStart);
+                    var properties = new Dictionary<string, object>();
+
+                    var propertyRegEx = new Regex(GetPackagePropertyRegexPattern);
+                    foreach (Match m in propertyRegEx.Matches(propertiesContent))
+                    {
+                        var propertyName = m.Groups[1].Value;
+                        var propertyValue = GetPackageProperty(propertyType: m.Groups[3].Value, propertyValue: m.Groups[4].Value);
+
+                        properties[propertyName] = propertyValue;
+                    }
+
+                    return properties;
+                }
             }
-
-            var timestampStartTag = "<d:" + propertyName + " m:type=\"Edm.DateTime\">";
-            var timestampEndTag = "</d:" + propertyName + ">";
-
-            var timestampTagIndex = packageResponse.IndexOf(timestampStartTag);
-            if (timestampTagIndex < 0)
-            {
-                WriteLine($"Package data does not contain '{propertyName}' timestamp!");
-                return null;
-            }
-
-            var timestampStartIndex = timestampTagIndex + timestampStartTag.Length;
-            var timestampLength = packageResponse.Substring(timestampStartIndex).IndexOf(timestampEndTag);
-
-            var timestamp =
-                DateTime.Parse(packageResponse.Substring(timestampStartIndex, timestampLength));
-            WriteLine($"'{propertyName}' timestamp of package '{packageId}' with version '{version}' is '{timestamp}'");
-            return timestamp;
+            return null;
         }
 
         public async Task<string> GetPackageDataInResponse(string url, string packageId, string version = "1.0.0")
