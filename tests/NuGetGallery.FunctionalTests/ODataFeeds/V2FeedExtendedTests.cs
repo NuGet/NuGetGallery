@@ -97,7 +97,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task PackageLatestSetCorrectlyOnConcurrentPushes()
         {
-            var packageId = $"TestV2FeedPackageLatestSetCorrectlyOnConcurrentPushes.{DateTime.UtcNow.Ticks}"; ;
+            var packageId = $"TestV2FeedPackageLatestSetCorrectlyOnConcurrentPushes.{DateTime.UtcNow.Ticks}";
             var packageVersions = new List<string>()
             {
                  "1.0.0-a",  "1.0.0-b",  "1.0.0",  "1.0.1",  "1.0.2-abc",

@@ -705,11 +705,11 @@ namespace NuGetGallery
                 // that we don't update rows where IsLatest/IsLatestStable hasn't changed.
                 packageEntry.Entity.LastUpdated = DateTime.UtcNow;
 
-                var isLatest = packageEntry.Entity.IsLatest;
-                var isLatestStable = packageEntry.Entity.IsLatestStable;
+                var isLatest = packageEntry.Entity.IsLatest ? 1 : 0;
+                var isLatestStable = packageEntry.Entity.IsLatestStable ? 1 : 0;
                 var key = packageEntry.Entity.Key;
-                var originalIsLatest= packageEntry.OriginalValues["IsLatest"];
-                var originalIsLatestStable = packageEntry.OriginalValues["IsLatestStable"];
+                var originalIsLatest = Boolean.Parse(packageEntry.OriginalValues["IsLatest"].ToString()) ? 1 : 0;
+                var originalIsLatestStable = Boolean.Parse(packageEntry.OriginalValues["IsLatestStable"].ToString()) ? 1 : 0;
 
                 query.AppendLine($"UPDATE [dbo].[Packages]");
                 query.AppendLine($"SET [IsLatest] = {isLatest}, [IsLatestStable] = {isLatestStable}, [LastUpdated] = GETUTCDATE()");
