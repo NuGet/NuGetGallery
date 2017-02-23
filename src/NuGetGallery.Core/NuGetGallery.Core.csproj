@@ -219,5 +219,4 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\..\build\sign.targets" />
 </Project>
