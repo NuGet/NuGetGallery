@@ -87,6 +87,12 @@
     margin-left: -220px;
 }
 
+#addapikeypopup, .editapikeypopup {
+    width: 360px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
 #addkeyselectpackages, #addkeypackageGlobPattern {
     margin-top: 5px;
     margin-bottom: 15px;

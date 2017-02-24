@@ -188,7 +188,7 @@
                                                                 <ul class="longlist">
                                                                 @for (int i = 0; i < subjectsList.Count; i++)
                                                                 {
-                                                                    var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
+                                                                    var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1); 
                                                                     <li>
                                                                         @subjectsList[i]
 
@@ -212,23 +212,17 @@
                                         <td class="actions actions-wide">
                                             @if (apiKey.IsNonScopedV1ApiKey)
                                             {
+                                                <div class="popup copynotifypopup" style="display:none;">
+                                                    <div class="popupbox small">
+                                                        <div class="innertext small">Copied</div>
+                                                    </div>
+                                                </div>
                                                 <button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><img src="~/Content/Images/icons/copy.png" /></button>
                                             }
 
                                             @if (!apiKey.IsNonScopedV1ApiKey)
                                             {
                                                 <button class="btn btn-veryflat" title="Edit Api key" type="button" onclick="showEditForm($(this).closest('tr'))"><img src="~/Content/Images/icons/edit.png" /></button>
-
-                                                @*if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
-                                                {
-                                                    using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new { @class = "form-inline expire-api-key" }))
-                                                    {
-                                                        @Html.AntiForgeryToken()
-                                                        @Html.Hidden("credentialType", apiKey.Type)
-                                                        @Html.Hidden("credentialKey", apiKey.Key)
-                                                        <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="button"><img src="~/Content/Images/icons/expire.png" /></button>
-                                                    }
-                                                }*@
 
                                                 using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
                                                 {
@@ -652,26 +646,33 @@
     }
 
 </script>
-<script> // Disable copy API key button after 10 mins of inactivity
+<script> // Copy API key button related 
     var idleTime = 0;
     var idleInterval;
 
+    // Disable copy button after 10 minutes of inactivity
     $(document)
         .ready(function() {
             if ($('.copyapikeybutton').length) {
-                // Increment the idle time counter every minute.
-                idleInterval = setInterval(timerIncrement, 60000); // 1 minute
+                startCopyApiKeyButtonTimer();
+                $('.copyapikeybutton').on('click', oncopyapikeybuttonclick);
+            }
+        });
 
-                // Zero the idle timer on mouse movement.
-                $(this)
-                    .mousemove(function() {
-                        idleTime = 0;
-                    });
-                $(this)
-                    .keypress(function() {
-                        idleTime = 0;
-                    });
-            }});
+    function startCopyApiKeyButtonTimer() {
+        // Increment the idle time counter every minute.
+        idleInterval = setInterval(timerIncrement, 60000); // 1 minute
+
+        // Zero the idle timer on mouse movement.
+        $(this)
+            .mousemove(function() {
+                idleTime = 0;
+            });
+        $(this)
+            .keypress(function() {
+                idleTime = 0;
+            });
+    }
 
     function timerIncrement() {
         idleTime = idleTime + 1;
@@ -679,6 +680,15 @@
             $('.copyapikeybutton').addClass('disabled-div');
             clearInterval(idleInterval);
         }
+    }
+
+    function oncopyapikeybuttonclick(e) {
+        var popup = $(this).prev();
+        popup.show();
+
+        setTimeout(function() {
+            popup.fadeOut('slow');
+        }, 1000);
     }
 </script>
 <script> //AJAX
@@ -692,6 +702,10 @@
         $('.remove-api-key').on('click', removeApiKey);
         $('.expire-api-key').on('click', expireApiKey);
         $('.regenerate-api-key').on('click', regenerateApiKey);
+        
+        // Copy api key related
+        $('.copyapikeybutton').on('click', oncopyapikeybuttonclick);
+        startCopyApiKeyButtonTimer()
     }
 
     function generateApiKey(e) {
@@ -1069,9 +1083,11 @@
     }
 
     function getCopyButton(copyValue) {
-        return '<button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard(\'' +
-            copyValue +
-            '\')"><img src="/Content/Images/icons/copy.png" /></button>';
+
+        return '<div class="popup copynotifypopup" style="display:none;"><div class="popupbox small"><div class="innertext small">Copied</div></div></div>' +
+               '<button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard(\'' +
+                copyValue +
+                '\')"><img src="/Content/Images/icons/copy.png" /></button>';
     }
 
     function getExpireButton(key) {
