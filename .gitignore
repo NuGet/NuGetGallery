@@ -185,6 +185,7 @@ UpgradeLog*.htm
 # SQL Server files
 *.mdf
 *.ldf
+*.jfm
 
 # Business Intelligence projects
 *.rdl.data
@@ -197,4 +198,4 @@ FakesAssemblies/
 
 # Vs2015
 .vs/config/applicationhost.config
-*.jfm
+project.lock.json

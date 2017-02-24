@@ -80,21 +80,9 @@ namespace NuGet.Jobs
                 // Run the job loop
                 await JobLoop(job, runContinuously, sleepDuration.Value, consoleLogOnly, jobArgsDictionary);
             }
-            catch (AggregateException ex)
-            {
-                var innerEx = ex.InnerExceptions.Count > 0 ? ex.InnerExceptions[0] : null;
-                if (innerEx != null)
-                {
-                    Trace.TraceError("[FAILED]: " + innerEx);
-                }
-                else
-                {
-                    Trace.TraceError("[FAILED]: " + ex);
-                }
-            }
             catch (Exception ex)
             {
-                Trace.TraceError("[FAILED]: " + ex);
+                ex.TraceException();
             }
 
             // Flush here. This is VERY IMPORTANT!
@@ -182,7 +170,7 @@ namespace NuGet.Jobs
                 {
                     Trace.TraceWarning(JobUninitialized);
                 }
-                
+
                 if (!runContinuously)
                 {
                     // It is ok that we do not flush the logs here.
