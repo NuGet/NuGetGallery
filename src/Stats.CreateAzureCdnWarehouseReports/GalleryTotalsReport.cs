@@ -46,7 +46,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             using (var connection = await StatisticsDatabase.ConnectTo())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
-                totalsData.Downloads = (await connection.ExecuteScalarWithRetryAsync<int>(
+                totalsData.Downloads = (await connection.ExecuteScalarWithRetryAsync<long>(
                     WarehouseStoredProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction));
             }
             Trace.TraceInformation("Total downloads: {0}", totalsData.Downloads);
