@@ -20,6 +20,8 @@ namespace Stats.AzureCdnLogs.Common
         public static EventId UnknownAzureCdnPlatform = new EventId(510, "Unknown Azure CDN platform");
         public static EventId InvalidRawLogFileName = new EventId(511, "Invalid raw log filename");
         public static EventId FailedToGetFtpResponse = new EventId(512, "Failed to get FTP response");
+        public static EventId FailedToCheckAlreadyProcessedLogFilePackageStatistics = new EventId(513, "Failed to check already processed package statistics for log file");
+        public static EventId FailedToCheckAlreadyProcessedLogFileToolStatistics = new EventId(514, "Failed to check already processed tool statistics for log file");
         public static EventId JobRunFailed = new EventId(550, "Job run failed");
         public static EventId JobInitFailed = new EventId(551, "Job initialization failed");
     }

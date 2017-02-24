@@ -7,12 +7,14 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Stats.ImportAzureCdnStatistics
 {
-    internal interface ILeasedLogFile
+    public interface ILeasedLogFile
         : IDisposable
     {
         string LeaseId { get; }
 
         string Uri { get; }
+
+        string BlobName { get; }
 
         CloudBlockBlob Blob { get; }
 

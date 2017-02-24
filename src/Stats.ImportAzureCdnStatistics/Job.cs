@@ -86,7 +86,12 @@ namespace Stats.ImportAzureCdnStatistics
 
                 // Create a parser
                 var warehouse = new Warehouse(_loggerFactory, _targetDatabase);
-                var logProcessor = new LogFileProcessor(targetBlobContainer, deadLetterBlobContainer, _loggerFactory, warehouse);
+                var statisticsBlobContainerUtility = new StatisticsBlobContainerUtility(
+                    targetBlobContainer,
+                    deadLetterBlobContainer,
+                    _loggerFactory);
+
+                var logProcessor = new LogFileProcessor(statisticsBlobContainerUtility, _loggerFactory, warehouse);
 
                 // Get the next to-be-processed raw log file using the cdn raw log file name prefix
                 var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);

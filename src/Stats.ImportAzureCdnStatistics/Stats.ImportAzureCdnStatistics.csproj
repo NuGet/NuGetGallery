@@ -164,7 +164,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationInsightsHelper.cs" />
+    <Compile Include="IPackageStatisticsParser.cs" />
+    <Compile Include="IStatisticsBlobContainerUtility.cs" />
+    <Compile Include="StatisticsBlobContainerUtility.cs" />
     <Compile Include="Dimensions\IpAddressFact.cs" />
+    <Compile Include="IStatisticsWarehouse.cs" />
     <Compile Include="LogFileAggregates.cs" />
     <Compile Include="PackageTranslator.cs" />
     <Compile Include="UserAgentFactTableType.cs" />

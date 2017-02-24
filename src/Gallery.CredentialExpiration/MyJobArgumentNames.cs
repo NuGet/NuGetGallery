@@ -8,5 +8,6 @@ namespace Gallery.CredentialExpiration
         public const string GalleryBrand = "GalleryBrand";
         public const string GalleryAccountUrl = "GalleryAccountUrl";
         public const string WarnDaysBeforeExpiration = "WarnDaysBeforeExpiration";
+        public const string AllowEmailResendAfterDays = "AllowEmailResendAfterDays";
     }
 }

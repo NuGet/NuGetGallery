@@ -184,6 +184,8 @@ namespace Stats.ImportAzureCdnStatistics
 
             public string Uri { get; private set; }
 
+            public string BlobName { get { return Blob.Name; } }
+
             public CloudBlockBlob Blob { get; private set; }
 
             public string LeaseId { get; private set; }

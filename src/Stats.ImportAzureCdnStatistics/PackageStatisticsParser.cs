@@ -7,7 +7,7 @@ using Stats.AzureCdnLogs.Common;
 namespace Stats.ImportAzureCdnStatistics
 {
     public class PackageStatisticsParser
-        : StatisticsParser
+        : StatisticsParser, IPackageStatisticsParser
     {
         private readonly PackageTranslator _packageTranslator;
 

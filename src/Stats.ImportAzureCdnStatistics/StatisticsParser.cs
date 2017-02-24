@@ -35,7 +35,6 @@ namespace Stats.ImportAzureCdnStatistics
             return false;
         }
 
-
         private static void RegisterBlacklistPatterns()
         {
             // Ignore requests coming from AppInsights

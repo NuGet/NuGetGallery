@@ -1,0 +1,193 @@
+﻿<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title></title>
+  <style>
+      /*$$STYLE$$*/
+  </style>
+</head>
+<body>
+  <div align="center">
+    <table border="0" cellspacing="0" cellpadding="0">
+      <tbody>
+        <tr>
+          <td align="center">
+            <div style="font-size: 1px; overflow: hidden; max-width: 0; display: none; max-height: 0; opacity: 0;">Your weekly NuGet Support report.</div>
+            <div class="container" style="font-size: 14px; font-family: Segoe UI, Helvetica, Arial, sans-serif; background: #e8e8e8; color: #444444; padding-bottom: 10px; padding-top: 10px; padding-left: 10px; padding-right: 10px">
+              <table cellspacing="0" cellpadding="0" width="100%" border="0">
+                <tbody>
+                  <tr>
+                    <td style="background: #e8e8e8"></td>
+                    <td style="background: #ffffff" width="660">
+                      <table style="height: 0; width: 660px" cellspacing="0" cellpadding="0" border="0">
+                        <tbody>
+                          <tr>
+                            <td></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <table style="min-width: 100%" cellspacing="0" cellpadding="0" border="0">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <a href="https://www.nuget.org/Admin/SupportRequest" target="new" border="0">
+                                <img style="max-width: 100%" alt="NuGet Support" src="https://www.nuget.org/Content/Logos/nugetlogo.png" width="228">
+                              </a>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="padding-meta" style="background: white; border-bottom: #e8e8e8 2px solid; padding-bottom: 30px; padding-top: 20px; padding-left: 40px; padding-right: 30px" valign="middle">
+                              <table class="responsive-table" style="max-width: 600px" cellspacing="0" cellpadding="0" width="100%" border="0">
+                                <tbody>
+                                  <tr>
+                                    <td>
+                                      <table cellspacing="0" cellpadding="0" width="100%" border=0>
+                                        <tbody>
+                                          <tr>
+                                            <td>
+                                              <table>
+                                                <tbody>
+                                                  <tr>
+                                                    <td class="mobile-center" style="font-size: 24px; font-family: Segoe UI, Helvetica, Arial, sans-serif; font-weight: 300; color: #444444; padding-bottom: 0; padding-top: 15px; padding-left: 0; line-height: 30px; padding-right: 0" align="left">
+                                                      Your weekly support report $$REPORT_DATE$$
+                                                    </td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td class="mobile-center" style="font-size: 16px; font-family: Segoe UI, Helvetica, Arial, sans-serif; COLOR: #444444; padding-bottom: 10px; padding-top: 10px; padding-left: 0; line-height: 25px; padding-right: 0" align="left">
+                                                      The following data shows insights based on support requests from last week compared to the week prior.
+                                                    </td>
+                                                  </tr>
+                                                </tbody>
+                                              </table>
+                                            </td>
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                          <br />
+                          <section id="insights">
+                            <!--DETAIL-->
+                            <div class="detail"></div>
+                            <tr>
+                              <td class="padding-meta" style="border-top: #e8e8e8 2px solid; background: #007acc; color: white; padding-bottom: 20px; padding-top: 30px; padding-left: 40px; padding-right: 30px" valign="middle">
+                                <h2 class="mobile-center">nuget.org</h2>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <table class="info-table" style="font-size: 14px; font-family: Segoe UI, Helvetica, Arial, sans-serif; width: 100%" cellspacing="0" cellpadding="15" border="0">
+                                  <thead>
+                                    <tr>
+                                      <th style="background: #f2f9ff" align="left"><a class="more-insight" href="">Support requests</a> </th>
+                                      <th>2 weeks ago</th>
+                                      <th>1 week ago</th>
+                                      <th>% change</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody align="center">
+                                    <tr class="border-trim">
+                                      <th class="left" align="left">New requests</th>
+                                      <td>$$INFO_2W-AGO_NEWREQUESTS$$</td>
+                                      <td>$$INFO_1W-AGO_NEWREQUESTS$$</td>
+                                      <td>
+                                        $$INFO_1W-AGO_NEWREQUESTS__DELTAIMG$$$$INFO_1W-AGO_NEWREQUESTS_DELTAVALUE$$
+                                      </td>
+                                    </tr>
+                                    <tr class="border-trim">
+                                      <th class="left" align="left">Closed requests</th>
+                                      <td>$$INFO_2W-AGO_CLOSEDREQUESTS$$</td>
+                                      <td>$$INFO_1W-AGO_CLOSEDREQUESTS$$</td>
+                                      <td>
+                                        $$INFO_1W-AGO_CLOSEDREQUESTS__DELTAIMG$$$$INFO_1W-AGO_CLOSEDREQUESTS_DELTAVALUE$$
+                                      </td>
+                                    </tr>
+                                    <tr class="border-trim">
+                                      <th class="left" align="left">Unresolved requests</th>
+                                      <td>$$INFO_2W-AGO_UNRESOLVEDREQUESTS$$</td>
+                                      <td>$$INFO_1W-AGO_UNRESOLVEDREQUESTS$$</td>
+                                      <td>
+                                        $$INFO_1W-AGO_UNRESOLVEDREQUESTS__DELTAIMG$$$$INFO_1W-AGO_UNRESOLVEDREQUESTS_DELTAVALUE$$
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <th class="right" align="right" style="font-weight: normal; font-style: italic;">Waiting for customer</th>
+                                      <td style="font-weight: normal; font-style: italic;">$$INFO_2W-AGO_WAITINGREQUESTS$$</td>
+                                      <td style="font-weight: normal; font-style: italic;">$$INFO_1W-AGO_WAITINGREQUESTS$$</td>
+                                      <td style="font-weight: normal; font-style: italic;">
+                                        $$INFO_1W-AGO_WAITINGREQUESTS__DELTAIMG$$$$INFO_1W-AGO_WAITINGREQUESTS_DELTAVALUE$$
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <th class="right" align="right" style="font-weight: normal; font-style: italic;">Being handled by support agent</th>
+                                      <td style="font-weight: normal; font-style: italic;">$$INFO_2W-AGO_WORKINGREQUESTS$$</td>
+                                      <td style="font-weight: normal; font-style: italic;">$$INFO_1W-AGO_WORKINGREQUESTS$$</td>
+                                      <td style="font-weight: normal; font-style: italic;">
+                                        $$INFO_1W-AGO_WORKINGREQUESTS__DELTAIMG$$$$INFO_1W-AGO_WORKINGREQUESTS_DELTAVALUE$$
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <th class="left info-head" style="background: #f2f9ff" colspan="4" align="left">
+                                        <a class="more-insight" href="">Support SLA</a>
+                                      </th>
+                                    </tr>
+                                    <tr class="border-trim">
+                                      <th class="left" align="left">Unresolved %</th>
+                                      <td>$$INFO_2W-AGO_SLA_UNRESOLVEDPCT$$</td>
+                                      <td>$$INFO_1W-AGO_SLA_UNRESOLVEDPCT$$</td>
+                                      <td>$$INFO_SLA_UNRESOLVEDPCT_DELTAIMG$$$$INFO_SLA_UNRESOLVEDPCT_DELTAVALUE$$</td>
+                                    </tr>
+                                    <tr class="border-trim">
+                                      <th class="left" align="left">Average time to resolution</th>
+                                      <td>$$AVG_TIMETORESOLUTION_PRIORWEEK$$</td>
+                                      <td>$$AVG_TIMETORESOLUTION_LASTWEEK$$</td>
+                                      <td>$$AVG_TIMETORESOLUTION_DELTAIMG$$$$AVG_TIMETORESOLUTION_DELTAVALUE$$</td>
+                                    </tr>
+                                    <tr>
+                                      <th class="left info-head" style="background: #f2f9ff" colspan="4" align="left">
+                                        <a class="more-insight" href="">Top 3 support request reasons last week</a>
+                                      </th>
+                                    </tr>
+                                    <tr class="border-trim">
+                                      <th class="left" align="left" valign="top" colspan="3">1. <span style="font-weight:normal">$$INFO_1W-AGO_TOP_REASON_1$$</span></th>
+                                      <td valign="top" align="right" style="font-weight:bold;">$$INFO_1W-AGO_TOP_REASON_1_COUNT$$</td>
+                                    </tr>
+                                    <tr class="border-trim">
+                                      <th class="left" align="left" valign="top" colspan="3">2. <span style="font-weight:normal">$$INFO_1W-AGO_TOP_REASON_2$$</span></th>
+                                      <td valign="top" align="right" style="font-weight:bold;">$$INFO_1W-AGO_TOP_REASON_2_COUNT$$</td>
+                                    </tr>
+                                    <tr class="border-trim">
+                                      <th class="left" align="left" valign="top" colspan="3">3. <span style="font-weight:normal">$$INFO_1W-AGO_TOP_REASON_3$$</span></th>
+                                      <td valign="top" align="right" style="font-weight:bold;">$$INFO_1W-AGO_TOP_REASON_3_COUNT$$</td>
+                                    </tr>
+                                    <tr>
+                                      <th class="left info-head" style="background: #f2f9ff" colspan="4" align="left">
+                                        <a class="more-insight" href="">Open support requests status</a>
+                                      </th>
+                                    </tr>
+                                    $$ONCALL_STATUSREPORT$$
+                                  </tbody>
+                                </table>
+                              </td>
+                            </tr>
+                            <div></div>
+                          </section>
+                        </tbody>
+                      </table>
+                    <td style="background: #e8e8e8"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </tr>
+        <tr></tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

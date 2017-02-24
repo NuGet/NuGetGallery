@@ -61,15 +61,35 @@ namespace Gallery.CredentialExpiration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hi,
+        ///   Looks up a localized string similar to {0} - has expired..
+        /// </summary>
+        public static string ApiKeyExpired {
+            get {
+                return ResourceManager.GetString("ApiKeyExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} - expires in {1} day(s)..
+        /// </summary>
+        public static string ApiKeyExpiring {
+            get {
+                return ResourceManager.GetString("ApiKeyExpiring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hi {0},
         ///
-        ///We wanted to inform you that your API key on {0} has expired.
+        ///We wanted to inform you that the following API key(s) on {1} have expired.
         ///
-        ///Visit {1} to generate a new API key so that you can continue pushing packages.
+        ///{2}
+        ///
+        ///Visit {3} to generate a new API key(s) so that you can continue pushing packages.
         ///
         ///Best regards,
         ///
-        ///{0}.
+        ///{1}.
         /// </summary>
         public static string ExpiredEmailBody {
             get {
@@ -87,15 +107,17 @@ namespace Gallery.CredentialExpiration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hi,
+        ///   Looks up a localized string similar to Hi {0},
         ///
-        ///We wanted to inform you that your API key on {0} will expire in {2} days.
+        ///We wanted to inform you that the following API key(s) on {1} will expire soon: 
         ///
-        ///Visit {1} to generate a new API key so that you can continue pushing packages.
+        ///{2}
+        ///
+        ///Visit {3} to generate a new API key(s) so that you can continue pushing packages using them.
         ///
         ///Best regards,
         ///
-        ///{0}.
+        ///{1}.
         /// </summary>
         public static string ExpiringEmailBody {
             get {
@@ -113,14 +135,14 @@ namespace Gallery.CredentialExpiration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT cr.[Type], cr.[Created], cr.[Expires], u.[EmailAddress], u.[Username]
+        ///   Looks up a localized string similar to SELECT cr.[Type], cr.[Created], cr.[Expires], cr.[Description], u.[EmailAddress], u.[Username]
         ///FROM [Credentials] AS cr
         ///INNER JOIN Users AS u ON u.[Key] = cr.[UserKey]
         ///WHERE u.[EmailAllowed] = 1
         ///  AND u.[EmailAddress] &lt;&gt; &apos;&apos;
         ///  AND cr.[Expires] &lt;= DATEADD(day,{0},GETUTCDATE())
-        ///  AND cr.[Expires] &gt; DATEADD(day,-1,GETUTCDATE())
-        ///  AND cr.[Type] = &apos;apikey.v1&apos;
+        ///  AND cr.[Expires] &gt; DATEADD(day,-1 * {0},GETUTCDATE())
+        ///  AND (cr.[Type] = &apos;apikey.v1&apos; or cr.[Type] = &apos;apikey.v2&apos;)
         ///ORDER BY u.[Username].
         /// </summary>
         public static string GetExpiredCredentialsQuery {
