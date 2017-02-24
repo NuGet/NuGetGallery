@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -475,6 +476,29 @@ namespace NuGetGallery
                 Assert.Equal("[Joe Shmoe] Password removed from your account", message.Subject);
                 Assert.Contains("A Password was removed from your account", message.Body);
             }
+
+            [Fact]
+            public void ApiKeyRemovedMessageIsCorrect()
+            {
+                var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
+                var cred = new CredentialBuilder().CreateApiKey(TimeSpan.FromDays(1));
+                cred.Description = "new api key";
+                var messageService = new TestableMessageService();
+                messageService.MockAuthService
+                    .Setup(a => a.DescribeCredential(cred))
+                    .Returns(new CredentialViewModel
+                    {
+                        Description = cred.Description
+                    });
+
+                messageService.SendCredentialRemovedNotice(user, cred);
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(user.ToMailAddress(), message.To[0]);
+                Assert.Equal(TestGalleryOwner, message.From);
+                Assert.Equal("[Joe Shmoe] API Key removed from your account", message.Subject);
+                Assert.Contains("API Key 'new api key' was removed from your account and can no longer be used. If you did not request this change, please reply to this email to contact support.", message.Body);
+            }
         }
 
         public class TheSendCredentialAddedNoticeMethod
@@ -521,6 +545,29 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryOwner, message.From);
                 Assert.Equal("[Joe Shmoe] Password added to your account", message.Subject);
                 Assert.Contains("A Password was added to your account", message.Body);
+            }
+
+            [Fact]
+            public void ApiKeyAddedMessageIsCorrect()
+            {
+                var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
+                var cred = new CredentialBuilder().CreateApiKey(TimeSpan.FromDays(1));
+                cred.Description = "new api key";
+                var messageService = new TestableMessageService();
+                messageService.MockAuthService
+                    .Setup(a => a.DescribeCredential(cred))
+                    .Returns(new CredentialViewModel
+                    {
+                        Description = cred.Description
+                    });
+
+                messageService.SendCredentialAddedNotice(user, cred);
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(user.ToMailAddress(), message.To[0]);
+                Assert.Equal(TestGalleryOwner, message.From);
+                Assert.Equal("[Joe Shmoe] API Key added to your account", message.Subject);
+                Assert.Contains("API Key 'new api key' was added to your account and can now be used. If you did not request this change, please reply to this email to contact support.", message.Body);
             }
         }
 

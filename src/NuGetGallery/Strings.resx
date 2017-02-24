@@ -434,4 +434,13 @@ The {1} Team</value>
   <data name="UploadPackage_IdVersionConflict" xml:space="preserve">
     <value>There is a conflict with the ID and version of your package and another package. Please change your package's ID or version and try again.</value>
   </data>
+  <data name="Emails_ApiKeyAdded_Body" xml:space="preserve">
+    <value>API Key '{0}' was added to your account and can now be used. If you did not request this change, please reply to this email to contact support.</value>
+  </data>
+  <data name="Emails_ApiKeyRemoved_Body" xml:space="preserve">
+    <value>API Key '{0}' was removed from your account and can no longer be used. If you did not request this change, please reply to this email to contact support.</value>
+  </data>
+  <data name="NonScopedApiKeyDesciption" xml:space="preserve">
+    <value>Full access API key</value>
+  </data>
 </root>
