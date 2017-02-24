@@ -547,32 +547,6 @@ namespace NuGetGallery
             return (credentialKey == null || credentialKey == 0 || c.Key == credentialKey);
         }
 
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ExpireCredential(string credentialType, int? credentialKey)
-        {
-            if (credentialType != CredentialTypes.ApiKey.V2)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.Unsupported);
-            }
-
-            var user = GetCurrentUser();
-            var cred = user.Credentials.SingleOrDefault(
-                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
-                    && CredentialKeyMatches(credentialKey, c));
-
-            if (cred == null)
-            {
-                Response.StatusCode = (int)HttpStatusCode.NotFound;
-                return Json(Strings.CredentialNotFound);
-            }
-
-            await _authService.ExpireCredential(user, cred);
-            return Json(Strings.CredentialExpired);
-        }
-
         [HttpGet]
         public virtual ActionResult PasswordChanged()
         {

@@ -1595,55 +1595,6 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheExpireCredentialMethod : TestContainer
-        {
-            [Fact]
-            public async Task ExpiresTheCredentialToTheDataStore()
-            {
-                // Arrange
-                var credentialBuilder = new CredentialBuilder();
-
-                var fakes = Get<Fakes>();
-                var cred = credentialBuilder.CreateApiKey(TimeSpan.FromHours(2));
-                cred.Expires = null;
-                var user = fakes.CreateUser("test", cred);
-                var authService = Get<AuthenticationService>();
-
-                // Act
-                await authService.ExpireCredential(user, cred);
-
-                // Assert
-                Assert.Contains(cred, user.Credentials);
-                Assert.NotNull(cred.Expires);
-                Assert.True(cred.Expires.Value <= DateTime.UtcNow);
-                authService.Entities.VerifyCommitChanges();
-            }
-
-            [Fact]
-            public async Task WritesAuditRecordForTheCredential()
-            {
-                // Arrange
-                var credentialBuilder = new CredentialBuilder();
-
-                var fakes = Get<Fakes>();
-                var cred = credentialBuilder.CreateApiKey(TimeSpan.FromHours(2));
-                cred.Expires = null;
-                var user = fakes.CreateUser("test", cred);
-                var authService = Get<AuthenticationService>();
-
-                // Act
-                await authService.ExpireCredential(user, cred);
-                
-                // Assert
-                Assert.True(authService.Auditing.WroteRecord<UserAuditRecord>(ar =>
-                    ar.Action == AuditedUserAction.ExpireCredential &&
-                    ar.Username == user.Username &&
-                    ar.AffectedCredential.Length == 1 &&
-                    ar.AffectedCredential[0].Type == cred.Type &&
-                    ar.AffectedCredential[0].Identity == cred.Identity));
-            }
-        }
-
         private class AuthenticateThunk
         {
             public IIdentity ShimIdentity { get; set; }

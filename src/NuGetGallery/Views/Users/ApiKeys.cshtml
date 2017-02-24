@@ -212,23 +212,17 @@
                                         <td class="actions actions-wide">
                                             @if (apiKey.IsNonScopedV1ApiKey)
                                             {
+                                                <div class="popup copynotifypopup" style="display:none;">
+                                                    <div class="popupbox small">
+                                                        <div class="innertext small">Copied</div>
+                                                    </div>
+                                                </div>
                                                 <button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><img src="~/Content/Images/icons/copy.png" /></button>
                                             }
 
                                             @if (!apiKey.IsNonScopedV1ApiKey)
                                             {
                                                 <button class="btn btn-veryflat" title="Edit Api key" type="button" onclick="showEditForm($(this).closest('tr'))"><img src="~/Content/Images/icons/edit.png" /></button>
-
-                                                @*if (!apiKey.Expires.HasValue || !apiKey.HasExpired)
-                                                {
-                                                    using (Html.BeginForm("ExpireCredential", "Users", FormMethod.Post, new { @class = "form-inline expire-api-key" }))
-                                                    {
-                                                        @Html.AntiForgeryToken()
-                                                        @Html.Hidden("credentialType", apiKey.Type)
-                                                        @Html.Hidden("credentialKey", apiKey.Key)
-                                                        <button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="button"><img src="~/Content/Images/icons/expire.png" /></button>
-                                                    }
-                                                }*@
 
                                                 using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
                                                 {
@@ -268,7 +262,7 @@
                         </p>
                         <p>
                             <div id="account-apikeysample">
-                                <div>nuget.exe setApiKey @exampleApiKey </div>
+                                <div>nuget.exe setApiKey @exampleApiKey -source @siteRoot</div>
                                 <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
                             </div>
                         </p>
@@ -652,26 +646,33 @@
     }
 
 </script>
-<script> // Disable copy API key button after 10 mins of inactivity
+<script> // Copy API key button related 
     var idleTime = 0;
     var idleInterval;
 
+    // Disable copy button after 10 minutes of inactivity
     $(document)
         .ready(function() {
             if ($('.copyapikeybutton').length) {
-                // Increment the idle time counter every minute.
-                idleInterval = setInterval(timerIncrement, 60000); // 1 minute
+                startCopyApiKeyButtonTimer();
+                $('.copyapikeybutton').on('click', onCopyApiKeyButtonClick);
+            }
+        });
 
-                // Zero the idle timer on mouse movement.
-                $(this)
-                    .mousemove(function() {
-                        idleTime = 0;
-                    });
-                $(this)
-                    .keypress(function() {
-                        idleTime = 0;
-                    });
-            }});
+    function startCopyApiKeyButtonTimer() {
+        // Increment the idle time counter every minute.
+        idleInterval = setInterval(timerIncrement, 60000); // 1 minute
+
+        // Zero the idle timer on mouse movement or keypress.
+        $(this)
+            .mousemove(function() {
+                idleTime = 0;
+            });
+        $(this)
+            .keypress(function() {
+                idleTime = 0;
+            });
+    }
 
     function timerIncrement() {
         idleTime = idleTime + 1;
@@ -679,6 +680,15 @@
             $('.copyapikeybutton').addClass('disabled-div');
             clearInterval(idleInterval);
         }
+    }
+
+    function onCopyApiKeyButtonClick(e) {
+        var popup = $(this).prev();
+        popup.show();
+
+        setTimeout(function() {
+            popup.fadeOut('slow');
+        }, 1000);
     }
 </script>
 <script> //AJAX
@@ -690,8 +700,11 @@
 
     function applyActionButtonHandlers() {
         $('.remove-api-key').on('click', removeApiKey);
-        $('.expire-api-key').on('click', expireApiKey);
         $('.regenerate-api-key').on('click', regenerateApiKey);
+        
+        // Copy api key related
+        $('.copyapikeybutton').on('click', onCopyApiKeyButtonClick);
+        startCopyApiKeyButtonTimer();
     }
 
     function generateApiKey(e) {
@@ -769,46 +782,6 @@
                     $('#noapikeysbanner').show();
                 }
 
-                handleError(false);
-            },
-            error: function (data) {
-                handleError(true);
-            }
-        }).always(function () {
-            keyRow.data('requestRunning', false);
-        });
-    }
-
-    function expireApiKey(e) {
-        e.preventDefault();
-
-        var expireForm = $(this);
-        var keyRow = $(this).parents("tr");
-
-        if (keyRow.data('requestRunning')) {
-            return;
-        }
-
-        keyRow.data('requestRunning', true);
-
-        $.ajax({
-            url: '@Url.Action("ExpireCredential", "Users")',
-            type: 'POST',
-            cache: false,
-            dataType: 'json',
-            data: getFormDataWithAntiForgeryToken($(this)),
-            success: function () {
-                keyRow.find("td:first").find("img").attr("src", "/Content/Images/icons/apiKeyExpired.png");
-
-                var expiresSpan = keyRow.find(".s-relativetime");
-                expiresSpan.text("Expired");
-                expiresSpan.addClass("expired");
-                expiresSpan.removeClass(".s-relativetime");
-
-                expireForm.hide();
-                keyRow.find(".copyapikeybutton").remove();
-
-                setApiKeyExpiredMessage();
                 handleError(false);
             },
             error: function (data) {
@@ -986,7 +959,6 @@
         markup += '<td class="actions actions-wide">';
         markup += getCopyButton(data.Value);
         markup += getEditButton();
-      //  markup += getExpireButton(data.Key);
         markup += getRegenerateButton(data.Key);
         markup += getRemoveButton(data.Key);
 
@@ -1069,17 +1041,11 @@
     }
 
     function getCopyButton(copyValue) {
-        return '<button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard(\'' +
-            copyValue +
-            '\')"><img src="/Content/Images/icons/copy.png" /></button>';
-    }
 
-    function getExpireButton(key) {
-        return '<form action="/account/ExpireCredential" class="form-inline expire-api-key" method="post">' +
-            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v2" />' +
-            '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
-            '<button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="button">' +
-            '<img src="/Content/Images/icons/expire.png" /></button></form>';
+        return '<div class="popup copynotifypopup" style="display:none;"><div class="popupbox small"><div class="innertext small">Copied</div></div></div>' +
+               '<button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard(\'' +
+                copyValue +
+                '\')"><img src="/Content/Images/icons/copy.png" /></button>';
     }
 
     function getRegenerateButton(key) {

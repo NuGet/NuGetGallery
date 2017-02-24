@@ -1590,20 +1590,17 @@ img.contributors-contributor-avatar {
 
 /* The actual popup (appears on top) */
 .popup .popupbox {
-    width: 360px;
     text-align: left;
-    border-radius: 6px;
     position: absolute;
     z-index: 1;
     top: 125%;
     left: 50%;
-    margin-top: 10px;
     border: 1px solid #ccc; 
     opacity: 0.97;
 }
 
 .popup .innertext {
-     padding: 18px 0px 10px 10px;
+    padding: 18px 0px 10px 10px;
     white-space: normal;
 }
 
@@ -1650,6 +1647,26 @@ img.contributors-contributor-avatar {
     display: inline-block;
     line-height: 0px;
     padding: 8px 0px 0px 0px;
+}
+
+/* small popup*/
+.popup .innertext.small {
+    padding: 5px 5px 5px 5px;
+    font-size: 0.9em;
+}
+
+.popup .popupbox.small::before {
+    left: 19px;
+    border-width: 6px;
+}
+
+.popup .popupbox.small::after {
+    left: 20px;
+    border-width: 5px;
+}
+
+.popup .popupbox.small {
+    border-radius: 3px;
 }
 
 /* warning sign */
