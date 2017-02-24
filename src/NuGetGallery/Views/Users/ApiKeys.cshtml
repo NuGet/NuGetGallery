@@ -700,7 +700,6 @@
 
     function applyActionButtonHandlers() {
         $('.remove-api-key').on('click', removeApiKey);
-        $('.expire-api-key').on('click', expireApiKey);
         $('.regenerate-api-key').on('click', regenerateApiKey);
         
         // Copy api key related
@@ -783,46 +782,6 @@
                     $('#noapikeysbanner').show();
                 }
 
-                handleError(false);
-            },
-            error: function (data) {
-                handleError(true);
-            }
-        }).always(function () {
-            keyRow.data('requestRunning', false);
-        });
-    }
-
-    function expireApiKey(e) {
-        e.preventDefault();
-
-        var expireForm = $(this);
-        var keyRow = $(this).parents("tr");
-
-        if (keyRow.data('requestRunning')) {
-            return;
-        }
-
-        keyRow.data('requestRunning', true);
-
-        $.ajax({
-            url: '@Url.Action("ExpireCredential", "Users")',
-            type: 'POST',
-            cache: false,
-            dataType: 'json',
-            data: getFormDataWithAntiForgeryToken($(this)),
-            success: function () {
-                keyRow.find("td:first").find("img").attr("src", "/Content/Images/icons/apiKeyExpired.png");
-
-                var expiresSpan = keyRow.find(".s-relativetime");
-                expiresSpan.text("Expired");
-                expiresSpan.addClass("expired");
-                expiresSpan.removeClass(".s-relativetime");
-
-                expireForm.hide();
-                keyRow.find(".copyapikeybutton").remove();
-
-                setApiKeyExpiredMessage();
                 handleError(false);
             },
             error: function (data) {
@@ -1000,7 +959,6 @@
         markup += '<td class="actions actions-wide">';
         markup += getCopyButton(data.Value);
         markup += getEditButton();
-      //  markup += getExpireButton(data.Key);
         markup += getRegenerateButton(data.Key);
         markup += getRemoveButton(data.Key);
 
@@ -1088,14 +1046,6 @@
                '<button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard(\'' +
                 copyValue +
                 '\')"><img src="/Content/Images/icons/copy.png" /></button>';
-    }
-
-    function getExpireButton(key) {
-        return '<form action="/account/ExpireCredential" class="form-inline expire-api-key" method="post">' +
-            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v2" />' +
-            '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
-            '<button title="Expire" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to expire the API key?" type="button">' +
-            '<img src="/Content/Images/icons/expire.png" /></button></form>';
     }
 
     function getRegenerateButton(key) {
