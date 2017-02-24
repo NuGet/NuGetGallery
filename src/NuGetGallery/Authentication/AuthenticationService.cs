@@ -486,6 +486,9 @@ namespace NuGetGallery.Authentication
                                              (credentialViewModel.IsNonScopedV1ApiKey &&
                                               !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
 
+            credentialViewModel.Description = credentialViewModel.IsNonScopedV1ApiKey
+                ? Strings.NonScopedApiKeyDescription : credentialViewModel.Description;
+
             return credentialViewModel;
         }
 

@@ -242,7 +242,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to API Key.
+        ///   Looks up a localized string similar to API key.
         /// </summary>
         public static string CredentialType_ApiKey {
             get {
@@ -301,6 +301,24 @@ namespace NuGetGallery {
         public static string EmailPreferencesUpdated {
             get {
                 return ResourceManager.GetString("EmailPreferencesUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to API key &apos;{0}&apos; was added to your account and can now be used. If you did not request this change, please reply to this email to contact support..
+        /// </summary>
+        public static string Emails_ApiKeyAdded_Body {
+            get {
+                return ResourceManager.GetString("Emails_ApiKeyAdded_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to API key &apos;{0}&apos; was removed from your account and can no longer be used. If you did not request this change, please reply to this email to contact support..
+        /// </summary>
+        public static string Emails_ApiKeyRemoved_Body {
+            get {
+                return ResourceManager.GetString("Emails_ApiKeyRemoved_Body", resourceCulture);
             }
         }
         
@@ -578,6 +596,15 @@ namespace NuGetGallery {
         public static string No {
             get {
                 return ResourceManager.GetString("No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full access API key.
+        /// </summary>
+        public static string NonScopedApiKeyDescription {
+            get {
+                return ResourceManager.GetString("NonScopedApiKeyDescription", resourceCulture);
             }
         }
         

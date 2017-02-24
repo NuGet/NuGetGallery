@@ -120,15 +120,7 @@
                                             }
                                         </td>
                                         <td>
-                                            @if (apiKey.IsNonScopedV1ApiKey)
-                                            {
-                                                <strong>Full access API key</strong>
-                                                <br />
-                                            }
-                                            else
-                                            {
-                                                <strong title="@apiKey.Description">@apiKey.Description</strong><br />
-                                            }
+                                            <strong title="@apiKey.Description">@apiKey.Description</strong><br />
                                             <span>
                                                 <b>Expires:</b>
                                                 @if (!apiKey.Expires.HasValue)

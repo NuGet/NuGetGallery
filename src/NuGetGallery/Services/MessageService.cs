@@ -355,20 +355,61 @@ The {3} Team";
 
         public void SendCredentialRemovedNotice(User user, Credential removed)
         {
-            SendCredentialChangeNotice(
-                user,
-                removed,
-                Strings.Emails_CredentialRemoved_Body,
-                Strings.Emails_CredentialRemoved_Subject);
+            if (CredentialTypes.IsApiKey(removed.Type))
+            {
+                SendApiKeyChangeNotice(
+                    user,
+                    removed,
+                    Strings.Emails_ApiKeyRemoved_Body,
+                    Strings.Emails_CredentialRemoved_Subject);
+            }
+            else
+            {
+                SendCredentialChangeNotice(
+                    user,
+                    removed,
+                    Strings.Emails_CredentialRemoved_Body,
+                    Strings.Emails_CredentialRemoved_Subject);
+            }
+            
         }
 
         public void SendCredentialAddedNotice(User user, Credential added)
         {
-            SendCredentialChangeNotice(
-                user,
-                added,
-                Strings.Emails_CredentialAdded_Body,
-                Strings.Emails_CredentialAdded_Subject);
+            if (CredentialTypes.IsApiKey(added.Type))
+            {
+                SendApiKeyChangeNotice(
+                    user,
+                    added,
+                    Strings.Emails_ApiKeyAdded_Body,
+                    Strings.Emails_CredentialAdded_Subject);
+            }
+            else
+            {
+                SendCredentialChangeNotice(
+                    user,
+                    added,
+                    Strings.Emails_CredentialAdded_Body,
+                    Strings.Emails_CredentialAdded_Subject);
+            }
+        }
+
+        private void SendApiKeyChangeNotice(User user, Credential changed, string bodyTemplate, string subjectTemplate)
+        {
+            var credViewModel = AuthService.DescribeCredential(changed);
+
+            string body = String.Format(
+                CultureInfo.CurrentCulture,
+                bodyTemplate,
+                credViewModel.Description);
+
+            string subject = String.Format(
+                CultureInfo.CurrentCulture,
+                subjectTemplate,
+                Config.GalleryOwner.DisplayName,
+                Strings.CredentialType_ApiKey);
+
+            SendSupportMessage(user, body, subject);
         }
 
         private void SendCredentialChangeNotice(User user, Credential changed, string bodyTemplate, string subjectTemplate)
@@ -381,11 +422,13 @@ The {3} Team";
                 CultureInfo.CurrentCulture,
                 bodyTemplate,
                 name);
+
             string subject = String.Format(
                 CultureInfo.CurrentCulture,
                 subjectTemplate,
                 Config.GalleryOwner.DisplayName,
                 name);
+
             SendSupportMessage(user, body, subject);
         }
 

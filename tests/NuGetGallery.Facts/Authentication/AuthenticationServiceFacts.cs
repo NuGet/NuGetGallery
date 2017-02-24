@@ -1275,7 +1275,7 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(CredentialKind.Token, description.Kind);
                 Assert.Null(description.AuthUI);
                 Assert.Equal(cred.Value, description.Value);
-                Assert.Equal(null, description.Description);
+                Assert.Equal(Strings.NonScopedApiKeyDescription, description.Description);
                 Assert.Equal(expectedHasExpired, description.HasExpired);
             }
 
