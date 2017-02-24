@@ -188,7 +188,7 @@
                                                                 <ul class="longlist">
                                                                 @for (int i = 0; i < subjectsList.Count; i++)
                                                                 {
-                                                                    var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1); 
+                                                                    var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
                                                                     <li>
                                                                         @subjectsList[i]
 
@@ -655,7 +655,7 @@
         .ready(function() {
             if ($('.copyapikeybutton').length) {
                 startCopyApiKeyButtonTimer();
-                $('.copyapikeybutton').on('click', oncopyapikeybuttonclick);
+                $('.copyapikeybutton').on('click', onCopyApiKeyButtonClick);
             }
         });
 
@@ -663,7 +663,7 @@
         // Increment the idle time counter every minute.
         idleInterval = setInterval(timerIncrement, 60000); // 1 minute
 
-        // Zero the idle timer on mouse movement.
+        // Zero the idle timer on mouse movement or keypress.
         $(this)
             .mousemove(function() {
                 idleTime = 0;
@@ -682,7 +682,7 @@
         }
     }
 
-    function oncopyapikeybuttonclick(e) {
+    function onCopyApiKeyButtonClick(e) {
         var popup = $(this).prev();
         popup.show();
 
@@ -703,8 +703,8 @@
         $('.regenerate-api-key').on('click', regenerateApiKey);
         
         // Copy api key related
-        $('.copyapikeybutton').on('click', oncopyapikeybuttonclick);
-        startCopyApiKeyButtonTimer()
+        $('.copyapikeybutton').on('click', onCopyApiKeyButtonClick);
+        startCopyApiKeyButtonTimer();
     }
 
     function generateApiKey(e) {
