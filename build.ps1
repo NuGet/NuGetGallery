@@ -2,8 +2,6 @@
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
-    [ValidateSet("Release","rtm", "rc", "beta", "beta2", "final", "xprivate", "zlocal")]
-    [string]$ReleaseLabel = 'zlocal',
     [int]$BuildNumber,
     [switch]$SkipRestore,
     [switch]$CleanCache,
@@ -11,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = 'da881231d9ae9c966d0c18824f09f0122008e765'
+    [string]$BuildBranch = '1c479a7381ebbc0fe1fded765de70d513b8bd68e'
 )
 
 # For TeamCity - If any issue occurs, this script fail the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -27,7 +25,7 @@ if (-not (Test-Path "$PSScriptRoot/build")) {
     New-Item -Path "$PSScriptRoot/build" -ItemType "directory"
 }
 wget -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranch/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
-. "$PSScriptRoot/build/init.ps1" -Branch "$BuildBranch"
+. "$PSScriptRoot/build/init.ps1" -BuildBranch "$BuildBranch"
 
 Function Clean-Tests {
     [CmdletBinding()]
@@ -49,6 +47,9 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
     
+Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Cleaning test results' { Clean-Tests } `
     -ev +BuildErrors
 
@@ -67,29 +68,25 @@ Invoke-BuildStep 'Restoring solution packages' { `
     -skip:$SkipRestore `
     -ev +BuildErrors
     
-Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-    param($Path, $Version, $Branch, $Commit)
-    Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
+Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
+        $Paths = `
+            (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"), `
+            (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs")
+
+        Foreach ($Path in $Paths) {
+            Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+        }
     } `
-    -args (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"), $SimpleVersion, $Branch, $CommitSHA `
     -ev +BuildErrors
-    
-Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-    param($Path, $Version, $Branch, $Commit)
-    Set-VersionInfo -Path $Path -Version $Version -Branch $Branch -Commit $Commit `
-    } `
-    -args (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs"), $SimpleVersion, $Branch, $CommitSHA `
-    -ev +BuildErrors
-        
+
 Invoke-BuildStep 'Building solution' { 
-    param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
+        $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
     } `
-    -args $Configuration, $BuildNumber, (Join-Path $PSScriptRoot "NuGetGallery.sln"), $SkipRestore `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' {
-        New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion `
+        New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion `
         -ev +BuildErrors
     }
 

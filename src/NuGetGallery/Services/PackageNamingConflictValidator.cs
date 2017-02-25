@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace NuGetGallery
 {
-    public class PackageNamingConflictValidator 
+    public class PackageNamingConflictValidator
         : IPackageNamingConflictValidator
     {
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
@@ -35,7 +35,7 @@ namespace NuGetGallery
                     var packageRegistration = _packageRegistrationRepository.GetAll()
                         .SingleOrDefault(pr => pr.Id.ToLower() == cleanedTitle);
 
-                    if (packageRegistration != null 
+                    if (packageRegistration != null
                         && !String.Equals(packageRegistration.Id, registrationId, StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
@@ -56,7 +56,7 @@ namespace NuGetGallery
             registrationId = registrationId.ToLowerInvariant();
 
             return _packageRepository.GetAll()
-                .Any(p => p.Title.ToLower() == registrationId);
+                .Any(p => !p.Deleted && p.Title.ToLower() == registrationId);
         }
     }
 }

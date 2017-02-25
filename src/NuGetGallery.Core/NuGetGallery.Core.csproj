@@ -88,11 +88,6 @@
       <HintPath>..\..\packages\NuGet.Frameworks.3.5.0-rc1-final\lib\net45\NuGet.Frameworks.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Logging, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Logging.3.5.0-beta-1160\lib\net45\NuGet.Logging.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="NuGet.Packaging, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Packaging.3.5.0-rc1-final\lib\net45\NuGet.Packaging.dll</HintPath>
       <Private>True</Private>
@@ -197,10 +192,10 @@
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="NuGetVersionExtensions.cs" />
     <Compile Include="StreamExtensions.cs" />
-    <Compile Include="Strings.Designer.cs">
+    <Compile Include="CoreStrings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Strings.resx</DependentUpon>
+      <DependentUpon>CoreStrings.resx</DependentUpon>
     </Compile>
     <Compile Include="Unit.cs" />
   </ItemGroup>
@@ -212,11 +207,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Strings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    <EmbeddedResource Include="CoreStrings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <NuGetBuildPath Condition="'$(NuGetBuildPath)' == ''">..\..\build</NuGetBuildPath>
+  </PropertyGroup>
+  <Import Project="$(NuGetBuildPath)\sign.targets" Condition="Exists('$(NuGetBuildPath)\sign.targets')" />
 </Project>

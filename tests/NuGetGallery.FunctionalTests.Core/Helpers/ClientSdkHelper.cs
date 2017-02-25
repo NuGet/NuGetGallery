@@ -63,50 +63,48 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         public bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
         {
-            var found = false;
             var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
-            SemanticVersion semVersion;
-            var success = SemanticVersion.TryParse(version, out semVersion);
+            SemanticVersion semVersion = SemanticVersion.Parse(version);
+
+            return VerifyWithRetry(
+                $"Verifying that package {packageId} {version} exists on source {sourceUrl}",
+                () =>
+                {
+                    var package = repo.FindPackage(packageId, semVersion);
+
+                    return package != null;
+                });
+        }
+
+        private bool VerifyWithRetry(string actionPhrase, Func<bool> action)
+        {
+            bool success = false;
             const int intervalSec = 30;
             const int maxAttempts = 30;
 
-            if (success)
+            try
             {
-                try
-                {
-                    WriteLine("Starting package verification checks ({0} attempts, interval {1} seconds).", maxAttempts, intervalSec);
-                    // Wait for the search service to kick in, so that the package can be found via FindPackage(packageId, SemanticVersion)
-                    Thread.Sleep(5000);
+                WriteLine($"{actionPhrase} ({maxAttempts} attempts, interval {intervalSec} seconds).");
 
-                    for (var i = 0; ((i < maxAttempts) && (!found)); i++)
+                for (var i = 0; i < maxAttempts && !success; i++)
+                {
+                    if (i != 0)
                     {
-                        WriteLine("[verification attempt {0}]: Waiting {1} seconds before next check...", i, intervalSec);
-
-                        if (i != 0)
-                        {
-                            Thread.Sleep(intervalSec * 1000);
-                        }
-
-                        WriteLine("[verification attempt {0}]: Checking if package {1} with version {2} exists in source {3}... ", i, packageId, version, sourceUrl);
-                        IPackage package = repo.FindPackage(packageId, semVersion);
-                        found = package != null;
-                        if (found)
-                        {
-                            WriteLine("Found!");
-                        }
-                        else
-                        {
-                            WriteLine("NOT found!");
-                        }
+                        WriteLine($"[verification attempt {i}]: Waiting {intervalSec} seconds before next check...");
+                        Thread.Sleep(intervalSec * 1000);
                     }
-                }
-                catch (Exception ex)
-                {
-                    WriteLine("Exception thrown while checking the existence of package {0} with version {1}:\r\n {2}", packageId, version, ex.Message);
+
+                    WriteLine($"[verification attempt {i}]: Executing... ");
+                    success = action();
+                    WriteLine(success ? "Successful!" : "NOT successful!");
                 }
             }
+            catch (Exception ex)
+            {
+                WriteLine($"{actionPhrase} threw an exception.{Environment.NewLine}{ex}");
+            }
 
-            return found;
+            return success;
         }
 
         /// <summary>
@@ -203,17 +201,31 @@ namespace NuGetGallery.FunctionalTests
             return version.ToString();
         }
 
-        /// <summary>
-        /// Returns the count of versions available for the given package
-        /// </summary>
-        public int GetVersionCount(string packageId, bool allowPreRelease = true)
+        public void VerifyVersionCount(string packageId, int expectedVersionCount, bool allowPreRelease = true)
         {
             var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-            var packages = repo.FindPackagesById(packageId).ToList();
-            if (!allowPreRelease)
-                packages = packages.Where(item => item.IsReleaseVersion()).ToList();
-            return packages.Count;
+
+            // To verify the count of package versions, the FindPackagesById() V2 OData endpoint is used. When the
+            // gallery handles this request, it delegates to the search service. Since the search service can lag being
+            // the gallery database (due to the time it takes for packages to make it through the V3 pipeline and into
+            // an active Lucene index), we retry the request for a while.
+            Assert.True(VerifyWithRetry(
+                $"Verifying count of {packageId} versions is {expectedVersionCount}",
+                () =>
+                {
+                    var packages = repo.FindPackagesById(packageId).ToList();
+                    if (!allowPreRelease)
+                    {
+                        packages = packages.Where(item => item.IsReleaseVersion()).ToList();
+                    }
+                    var actualVersionCount = packages.Count;
+
+                    var versionsDisplay = string.Join(", ", packages.Select(p => p.Version));
+                    WriteLine($"{actualVersionCount} versions of {packageId} found: {versionsDisplay}");
+                    return actualVersionCount == expectedVersionCount;
+                }));
         }
+
         /// <summary>
         /// Returns the download count of the given package as a formatted string as it would appear in the gallery UI.
         /// </summary>

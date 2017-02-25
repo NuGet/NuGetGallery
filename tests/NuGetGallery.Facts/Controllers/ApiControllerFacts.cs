@@ -41,7 +41,7 @@ namespace NuGetGallery
 
         public TestableApiController(MockBehavior behavior = MockBehavior.Default)
         {
-            OwinContext = Fakes.CreateOwinContext();
+            SetOwinContextOverride(Fakes.CreateOwinContext());
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
             UserService = (MockUserService = new Mock<IUserService>(behavior)).Object;

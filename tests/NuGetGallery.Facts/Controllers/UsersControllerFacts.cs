@@ -1534,62 +1534,6 @@ namespace NuGetGallery
                 }
             }
         }
-
-        public class TheExpireCredentialAction : TestContainer
-        {
-            [Fact]
-            public async Task GivenNoCredential_ErrorReturnedWithNoChangesMade()
-            {
-                // Arrange
-                var fakes = Get<Fakes>();
-                var user = fakes.CreateUser("test",
-                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
-                var cred = user.Credentials.First();
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Act
-                var result = await controller.ExpireCredential(
-                    credentialType: cred.Type,
-                    credentialKey: CredentialKey);
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
-            }
-
-            [Fact]
-            public async Task GivenValidRequest_ItExpiresCred()
-            {
-                // Arrange
-                var fakes = Get<Fakes>();
-                var user = fakes.CreateUser("test",
-                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
-                var cred = user.Credentials.First();
-                cred.Key = CredentialKey;
-
-                GetMock<AuthenticationService>()
-                    .Setup(a => a.ExpireCredential(user, cred))
-                    .Completes()
-                    .Verifiable();
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Act
-                var result = await controller.ExpireCredential(
-                    credentialType: cred.Type,
-                    credentialKey: CredentialKey);
-
-                // Assert
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialExpired) == 0);
-
-                GetMock<AuthenticationService>().VerifyAll();
-            }
-        }
     }
 }
 

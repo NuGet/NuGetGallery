@@ -22,24 +22,24 @@ namespace NuGetGallery {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Strings {
+    public class CoreStrings {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Strings() {
+        internal CoreStrings() {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGetGallery.Strings", typeof(Strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGetGallery.CoreStrings", typeof(CoreStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -51,7 +51,7 @@ namespace NuGetGallery {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to Unable to write audit record: &apos;{0}&apos;. Record already exists..
         /// </summary>
-        internal static string CloudAuditingService_DuplicateAuditRecord {
+        public static string CloudAuditingService_DuplicateAuditRecord {
             get {
                 return ResourceManager.GetString("CloudAuditingService_DuplicateAuditRecord", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to No handler for the {0} command is registered..
         /// </summary>
-        internal static string CommandExecutor_UnhandledCommand {
+        public static string CommandExecutor_UnhandledCommand {
             get {
                 return ResourceManager.GetString("CommandExecutor_UnhandledCommand", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package manifest contains a duplicate dependency: {0} {1}.
         /// </summary>
-        internal static string Manifest_DuplicateDependency {
+        public static string Manifest_DuplicateDependency {
             get {
                 return ResourceManager.GetString("Manifest_DuplicateDependency", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an ID that is too long. Package IDs can be no longer than 100 characters..
         /// </summary>
-        internal static string Manifest_IdTooLong {
+        public static string Manifest_IdTooLong {
             get {
                 return ResourceManager.GetString("Manifest_IdTooLong", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an invalid Dependency: &apos;{0} {1}&apos;.
         /// </summary>
-        internal static string Manifest_InvalidDependency {
+        public static string Manifest_InvalidDependency {
             get {
                 return ResourceManager.GetString("Manifest_InvalidDependency", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an invalid ID: &apos;{0}&apos;.
         /// </summary>
-        internal static string Manifest_InvalidId {
+        public static string Manifest_InvalidId {
             get {
                 return ResourceManager.GetString("Manifest_InvalidId", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an invalid Minimum Client Version: &apos;{0}&apos;.
         /// </summary>
-        internal static string Manifest_InvalidMinClientVersion {
+        public static string Manifest_InvalidMinClientVersion {
             get {
                 return ResourceManager.GetString("Manifest_InvalidMinClientVersion", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an invalid Target Framework: &apos;{0}&apos;.
         /// </summary>
-        internal static string Manifest_InvalidTargetFramework {
+        public static string Manifest_InvalidTargetFramework {
             get {
                 return ResourceManager.GetString("Manifest_InvalidTargetFramework", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an invalid URL.
         /// </summary>
-        internal static string Manifest_InvalidUrl {
+        public static string Manifest_InvalidUrl {
             get {
                 return ResourceManager.GetString("Manifest_InvalidUrl", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an invalid Version: &apos;{0}&apos;.
         /// </summary>
-        internal static string Manifest_InvalidVersion {
+        public static string Manifest_InvalidVersion {
             get {
                 return ResourceManager.GetString("Manifest_InvalidVersion", resourceCulture);
             }
@@ -153,7 +153,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The version &apos;{0}&apos; is not supported. The NuGet Gallery currently does not currently support Semantic Version 2.0 as it would break older NuGet clients..
         /// </summary>
-        internal static string Manifest_InvalidVersionSemVer200 {
+        public static string Manifest_InvalidVersionSemVer200 {
             get {
                 return ResourceManager.GetString("Manifest_InvalidVersionSemVer200", resourceCulture);
             }
@@ -162,7 +162,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package manifest is missing the Id field.
         /// </summary>
-        internal static string Manifest_MissingId {
+        public static string Manifest_MissingId {
             get {
                 return ResourceManager.GetString("Manifest_MissingId", resourceCulture);
             }
@@ -171,7 +171,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The target framework {0} is not supported..
         /// </summary>
-        internal static string Manifest_TargetFrameworkNotSupported {
+        public static string Manifest_TargetFrameworkNotSupported {
             get {
                 return ResourceManager.GetString("Manifest_TargetFrameworkNotSupported", resourceCulture);
             }
@@ -180,7 +180,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The version string is invalid..
         /// </summary>
-        internal static string PackageMetadata_SetPropertiesFromMetadata_VersionStringInvalid {
+        public static string PackageMetadata_SetPropertiesFromMetadata_VersionStringInvalid {
             get {
                 return ResourceManager.GetString("PackageMetadata_SetPropertiesFromMetadata_VersionStringInvalid", resourceCulture);
             }
@@ -189,7 +189,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The version string &apos;{0}&apos; is invalid..
         /// </summary>
-        internal static string PackageMetadata_VersionStringInvalid {
+        public static string PackageMetadata_VersionStringInvalid {
             get {
                 return ResourceManager.GetString("PackageMetadata_VersionStringInvalid", resourceCulture);
             }
@@ -198,7 +198,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to Must be a readable stream.
         /// </summary>
-        internal static string StreamMustBeReadable {
+        public static string StreamMustBeReadable {
             get {
                 return ResourceManager.GetString("StreamMustBeReadable", resourceCulture);
             }
@@ -207,7 +207,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to Must be a seekable stream.
         /// </summary>
-        internal static string StreamMustBeSeekable {
+        public static string StreamMustBeSeekable {
             get {
                 return ResourceManager.GetString("StreamMustBeSeekable", resourceCulture);
             }
@@ -216,7 +216,7 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to Must be a writeable stream.
         /// </summary>
-        internal static string StreamMustBeWriteable {
+        public static string StreamMustBeWriteable {
             get {
                 return ResourceManager.GetString("StreamMustBeWriteable", resourceCulture);
             }

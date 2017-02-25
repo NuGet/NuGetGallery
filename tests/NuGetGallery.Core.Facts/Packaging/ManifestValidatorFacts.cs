@@ -358,7 +358,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecIdNotPresent);
 
-            Assert.Equal(new[] { Strings.Manifest_MissingId }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { CoreStrings.Manifest_MissingId }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -366,7 +366,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecIdTooLong);
 
-            Assert.Equal(new[] { Strings.Manifest_IdTooLong }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { CoreStrings.Manifest_IdTooLong }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -374,7 +374,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecIdInvalid);
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidId, "not a valid id") }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidId, "not a valid id") }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -382,7 +382,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecIconUrlInvalid);
 
-            Assert.Equal(new[] { Strings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { CoreStrings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -390,7 +390,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecProjectUrlInvalid);
 
-            Assert.Equal(new[] { Strings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { CoreStrings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -398,7 +398,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecLicenseUrlInvalid);
 
-            Assert.Equal(new[] { Strings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { CoreStrings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -406,7 +406,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecUrlNotHttpOrHttps);
 
-            Assert.Equal(new[] { Strings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { CoreStrings.Manifest_InvalidUrl }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -430,7 +430,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecSemVer200);
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidVersionSemVer200, "2.0.0+123") }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidVersionSemVer200, "2.0.0+123") }, GetErrors(nuspecStream));
         }
 
         [Theory]
@@ -440,7 +440,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(string.Format(NuSpecDependencyVersionPlaceholder, version));
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidVersionSemVer200, version) }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidVersionSemVer200, version) }, GetErrors(nuspecStream));
         }
 
         [Theory]
@@ -452,7 +452,7 @@ namespace NuGetGallery.Packaging
 
             var nuspecStream = CreateNuspecStream(string.Format(NuSpecPlaceholderVersion, version));
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidVersion, version) }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidVersion, version) }, GetErrors(nuspecStream));
         }
 
 
@@ -463,7 +463,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(string.Format(NuSpecDependencyVersionPlaceholder, version));
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidVersion, version) }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidVersion, version) }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -471,7 +471,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsUnsupportedTargetFramework);
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_TargetFrameworkNotSupported, "Unsupported,Version=v0.0") }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_TargetFrameworkNotSupported, "Unsupported,Version=v0.0") }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -479,7 +479,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecDependencySetContainsInvalidId);
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidDependency, "a b c", "1.0") }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidDependency, "a b c", "1.0") }, GetErrors(nuspecStream));
         }
         
         [Fact]
@@ -495,7 +495,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecDependenciesContainsUnsupportedTargetFramework);
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_TargetFrameworkNotSupported, "Unsupported,Version=v0.0") }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_TargetFrameworkNotSupported, "Unsupported,Version=v0.0") }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -503,7 +503,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsDuplicateDependency);
 
-            Assert.Equal(new[] { String.Format(Strings.Manifest_DuplicateDependency, "net40", "SomeDependency") }, GetErrors(nuspecStream));
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_DuplicateDependency, "net40", "SomeDependency") }, GetErrors(nuspecStream));
         }
 
         [Fact]

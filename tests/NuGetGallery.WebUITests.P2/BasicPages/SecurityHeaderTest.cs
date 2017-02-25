@@ -19,27 +19,23 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
          }
 
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
-         {
-             //send a request to home page and check for security headers.
-             var homePageRequest = new WebTestRequest(UrlHelper.BaseUrl);
-             homePageRequest.ParseDependentRequests = false;
-             var homePageTextValidationRule = new ValidationRuleFindHeaderText(
- @"X-Frame-Options: deny
-X-XSS-Protection: 1; mode=block
-X-Content-Type-Options: nosniff
-Strict-Transport-Security: max-age=31536000");
-             homePageRequest.ValidateResponse += homePageTextValidationRule.Validate;
-             yield return homePageRequest;
+        {
+            // Send a request to home page and check for security headers.
+            var homePageRequest = new WebTestRequest(UrlHelper.BaseUrl);
+            homePageRequest.ParseDependentRequests = false;
+            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Frame-Options: deny").Validate;
+            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-XSS-Protection: 1; mode=block").Validate;
+            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Content-Type-Options: nosniff").Validate;
+            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("Strict-Transport-Security: max-age=31536000").Validate;
+            yield return homePageRequest;
 
-             //send a request to Packages page and check for security headers.
-             var packagesPageRequest = new WebTestRequest(UrlHelper.PackagesPageUrl);
-             packagesPageRequest.ParseDependentRequests = false;
-             var packagesPageTextValidationRule = new ValidationRuleFindHeaderText(
- @"X-Frame-Options: deny
-X-XSS-Protection: 1; mode=block
-X-Content-Type-Options: nosniff
-Strict-Transport-Security: max-age=31536000");
-            packagesPageRequest.ValidateResponse += packagesPageTextValidationRule.Validate;
+            // Send a request to Packages page and check for security headers.
+            var packagesPageRequest = new WebTestRequest(UrlHelper.PackagesPageUrl);
+            packagesPageRequest.ParseDependentRequests = false;
+            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Frame-Options: deny").Validate;
+            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-XSS-Protection: 1; mode=block").Validate;
+            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Content-Type-Options: nosniff").Validate;
+            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("Strict-Transport-Security: max-age=31536000").Validate;
             yield return packagesPageRequest;
         }
     }

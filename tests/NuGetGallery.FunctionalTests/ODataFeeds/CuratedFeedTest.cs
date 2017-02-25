@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
@@ -82,33 +81,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             bool applied = CheckPackageExistInCuratedFeed(packageName, FeedType.WebMatrixCuratedFeed);
             var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageName, UrlHelper.WebMatrixCuratedFeedUrl);
             Assert.True(applied, userMessage);
-        }
-
-        [Fact]
-        [Description("Checks the MicrosoftDotNet curated feed for duplicate packages.")]
-        [Priority(1)]
-        [Category("P1Tests")]
-        public async Task CheckMicrosoftDotNetCuratedFeedForDuplicates()
-        {
-            await CheckCuratedFeedForDuplicates(FeedType.DotnetCuratedFeed);
-        }
-
-        [Fact(Skip = "This can be run manually if required as it takes a very long time to run.")]
-        [Description("Checks the WebMatrix curated feed for duplicate packages.")]
-        [Priority(1)]
-        [Category("P1Tests")]
-        public async Task CheckWebMatrixCuratedFeedForDuplicates()
-        {
-            await CheckCuratedFeedForDuplicates(FeedType.WebMatrixCuratedFeed);
-        }
-
-        [Fact]
-        [Description("Checks the Windows8 curated feed for duplicate packages.")]
-        [Priority(1)]
-        [Category("P1Tests")]
-        public async Task CheckWindows8CuratedFeedForDuplicates()
-        {
-            await CheckCuratedFeedForDuplicates(FeedType.Windows8CuratedFeed);
         }
 
         [Fact]
@@ -211,75 +183,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 }
             }
             return applied;
-        }
-
-        private async Task CheckCuratedFeedForDuplicates(FeedType feedType)
-        {
-            var request = WebRequest.Create(GetCuratedFeedUrl(feedType) + "Packages");
-            request.Timeout = 15000;
-            ArrayList packages = new ArrayList();
-
-            // Get the response.
-            var response = await request.GetResponseAsync();
-
-            string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
-            {
-                responseText = await sr.ReadToEndAsync();
-            }
-
-            responseText = responseText.Substring(responseText.IndexOf("<entry>", StringComparison.Ordinal));
-            CheckPageForDuplicates(packages, responseText);
-
-            while (responseText.Contains(@"<link rel=""next"" href="""))
-            {
-                // Get the link to the next page.
-                string link = responseText.Split(new[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
-                link = link.Substring(0, link.IndexOf(@"""", StringComparison.Ordinal));
-
-                request = WebRequest.Create(link);
-                request.Timeout = 2000;
-
-                // Get the response.
-                try
-                {
-                    response = (HttpWebResponse)await request.GetResponseAsync();
-                    using (var sr = new StreamReader(response.GetResponseStream()))
-                    {
-                        responseText = await sr.ReadToEndAsync();
-                    }
-
-                    responseText = responseText.Substring(responseText.IndexOf("<entry>", StringComparison.Ordinal));
-                    CheckPageForDuplicates(packages, responseText);
-                }
-                catch (WebException e)
-                {
-                    if (((HttpWebResponse)e.Response).StatusCode != HttpStatusCode.OK)
-                    {
-                        throw new Exception("Next page link is broken.  Expected 200, got " + ((HttpWebResponse)e.Response).StatusCode, e);
-                    }
-                }
-            }
-        }
-
-        private static void CheckPageForDuplicates(ArrayList packages, string responseText)
-        {
-            string unreadPortion = responseText;
-
-            while (unreadPortion.Contains("<id>"))
-            {
-                unreadPortion = unreadPortion.Substring(unreadPortion.IndexOf("<id>", StringComparison.Ordinal) + 4);
-                string packageIdString = unreadPortion.Substring(0, unreadPortion.IndexOf("</id>", StringComparison.Ordinal));
-                if (packages.Contains(packageIdString))
-                {
-                    throw new Exception("A package appeared twice in the WebMatrix feed: " + packageIdString);
-                }
-                else
-                {
-                    packages.Add(packageIdString);
-                }
-                unreadPortion = unreadPortion.Substring(1);
-            }
         }
     }
 }
