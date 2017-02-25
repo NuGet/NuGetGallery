@@ -90,10 +90,9 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
                 // CodeAnalysis / XmlReader.Create: provide settings instance and set resolver property to null or instance
-                var settings = new XmlReaderSettings()
-                {
-                    XmlResolver = null
-                };
+                var settings = new XmlReaderSettings();
+                settings.XmlResolver = null;
+
                 var reader = XmlReader.Create(stream, settings);
                 return (T)xmlSerializer.Deserialize(reader);
             }

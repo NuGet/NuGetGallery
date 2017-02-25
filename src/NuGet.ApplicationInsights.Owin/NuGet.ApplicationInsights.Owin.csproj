@@ -67,6 +67,7 @@
     <None Include="NuGet.ApplicationInsights.Owin.nuspec" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExceptionTrackingMiddleware.cs" />
     <Compile Include="RequestTrackingMiddleware.cs" />
     <Compile Include="OwinRequestIdContext.cs" />
     <Compile Include="OwinRequestIdTelemetryInitializer.cs" />
