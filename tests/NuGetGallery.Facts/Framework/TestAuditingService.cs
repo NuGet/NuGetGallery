@@ -15,13 +15,13 @@ namespace NuGetGallery.Framework
 
         public IReadOnlyList<AuditRecord> Records { get { return _records.AsReadOnly(); } }
 
-        public override Task<Uri> SaveAuditRecord(AuditRecord record)
+        public override Task<Uri> SaveAuditRecordAsync(AuditRecord record)
         {
             _records.Add(record);
             return Task.FromResult(new Uri("http://nuget.local/auditing/test"));
         }
 
-        protected override Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
+        protected override Task<Uri> SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
             // Not necessary since we override the only caller of this protected method
             throw new NotImplementedException();

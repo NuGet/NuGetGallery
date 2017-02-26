@@ -28,6 +28,11 @@ namespace NuGetGallery
 
         public static bool IsPassword(string type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return type.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase);
         }
 

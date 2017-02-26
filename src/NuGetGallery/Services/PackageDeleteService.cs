@@ -87,7 +87,7 @@ namespace NuGetGallery
                     package.Deleted = true;
                     packageDelete.Packages.Add(package);
 
-                    await _auditingService.SaveAuditRecord(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
+                    await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
                 }
 
                 _packageDeletesRepository.InsertOnCommit(packageDelete);
@@ -135,7 +135,7 @@ namespace NuGetGallery
                         "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
 
-                    await _auditingService.SaveAuditRecord(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.Delete, reason));
+                    await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.Delete, reason));
 
                     package.PackageRegistration.Packages.Remove(package);
                     _packageRepository.DeleteOnCommit(package);

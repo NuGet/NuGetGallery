@@ -362,13 +362,13 @@ namespace NuGetGallery.Operations
 
         internal static async Task<Uri> SaveAuditRecord(CloudStorageAccount storage, AuditRecord auditRecord)
         {
-            string localIP = await AuditActor.GetLocalIP();
+            string localIP = await AuditActor.GetLocalIpAddressAsync();
             CloudAuditingService audit = new CloudAuditingService(
                 Environment.MachineName,
                 localIP,
                 storage.CreateCloudBlobClient().GetContainerReference("auditing"),
                 getOnBehalfOf: null);
-            return await audit.SaveAuditRecord(auditRecord);
+            return await audit.SaveAuditRecordAsync(auditRecord);
         }
 
         public static string GenerateStatusString(int total, ref int counter)

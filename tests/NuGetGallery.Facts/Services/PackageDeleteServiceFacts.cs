@@ -227,7 +227,7 @@ namespace NuGetGallery
                 var testService = service as TestPackageDeleteService;
                 Assert.Equal(package.PackageRegistration.Id, testService.LastAuditRecord.Id);
                 Assert.Equal(package.Version, testService.LastAuditRecord.Version);
-                auditingService.Verify(x => x.SaveAuditRecord(testService.LastAuditRecord));
+                auditingService.Verify(x => x.SaveAuditRecordAsync(testService.LastAuditRecord));
             }
         }
 
@@ -405,7 +405,7 @@ namespace NuGetGallery
                 var testService = service as TestPackageDeleteService;
                 Assert.Equal(package.PackageRegistration.Id, testService.LastAuditRecord.Id);
                 Assert.Equal(package.Version, testService.LastAuditRecord.Version);
-                auditingService.Verify(x => x.SaveAuditRecord(testService.LastAuditRecord));
+                auditingService.Verify(x => x.SaveAuditRecordAsync(testService.LastAuditRecord));
             }
         }
     }

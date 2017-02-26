@@ -372,7 +372,7 @@ namespace NuGetGallery
                 FileSystemFileStorageService.ResolvePath(configuration.Current.FileStorageDirectory),
                 FileSystemAuditingService.DefaultContainerName);
 
-            builder.RegisterInstance(new FileSystemAuditingService(auditingPath, FileSystemAuditingService.GetAspNetOnBehalfOf))
+            builder.RegisterInstance(new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync))
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();
@@ -431,9 +431,9 @@ namespace NuGetGallery
                 instanceId = Environment.MachineName;
             }
 
-            var localIp = AuditActor.GetLocalIP().Result;
+            var localIp = AuditActor.GetLocalIpAddressAsync().Result;
 
-            builder.RegisterInstance(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, CloudAuditingService.GetAspNetOnBehalfOf))
+            builder.RegisterInstance(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, AuditActor.GetAspNetOnBehalfOfAsync))
                 .AsSelf()
                 .As<AuditingService>()
                 .SingleInstance();
