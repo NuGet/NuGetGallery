@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>NuGet.SupportRequests.Notifications.$branch$</id>
+    <version>$version$</version>
+    <title>NuGet.SupportRequests.Notifications</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>NuGet.SupportRequests.Notifications</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="bin"/>
+	
+    <file src="Scripts\OnCallDailyNotification.cmd" />
+    <file src="Scripts\WeeklySummaryNotification.cmd" />
+  </files>
+</package>
