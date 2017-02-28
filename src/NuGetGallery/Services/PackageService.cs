@@ -371,7 +371,7 @@ namespace NuGetGallery
             // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
             package.LastEdited = DateTime.UtcNow;
 
-            await _auditingService.SaveAuditRecord(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
+            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
 
             if (commitChanges)
             {
