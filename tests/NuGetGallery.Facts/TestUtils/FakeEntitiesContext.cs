@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -130,9 +131,18 @@ namespace NuGetGallery
             throw new NotSupportedException();
         }
 
+        public DbChangeTracker GetChangeTracker()
+        {
+            throw new NotSupportedException();
+        }
+
         public Database GetDatabase()
         {
             throw new NotSupportedException();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

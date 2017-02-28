@@ -996,11 +996,20 @@ namespace NuGetGallery
             {
                 action = "unlisted";
                 await _packageService.MarkPackageUnlistedAsync(package);
+
+                // Handle in separate transaction because of concurrency check with retry. Due to using
+                // separate transactions, we must always call UpdateIsLatest on delete/unlist. This is
+                // because a concurrent thread could be marking the package as latest before this thread
+                // is able to commit the delete /unlist.
+                await _packageService.UpdateIsLatestAsync(package.PackageRegistration);
             }
             else
             {
                 action = "listed";
                 await _packageService.MarkPackageListedAsync(package);
+
+                // handle in separate transaction because of concurrency check with retry
+                await _packageService.UpdateIsLatestAsync(package.PackageRegistration);
             }
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture,
@@ -1191,6 +1200,9 @@ namespace NuGetGallery
                     await _packageFileService.DeletePackageFileAsync(packageMetadata.Id, packageMetadata.Version.ToNormalizedString());
                     throw;
                 }
+
+                // handle in separate transaction because of concurrency check with retry
+                await _packageService.UpdateIsLatestAsync(package.PackageRegistration);
 
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();

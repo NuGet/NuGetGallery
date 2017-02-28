@@ -173,7 +173,7 @@ namespace NuGetGallery
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
-                packageService.Verify(x => x.UpdateIsLatestAsync(packageRegistration, false));
+                packageService.Verify(x => x.UpdateIsLatestAsync(packageRegistration));
             }
 
             [Fact]
@@ -351,7 +351,7 @@ namespace NuGetGallery
 
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
-                packageService.Verify(x => x.UpdateIsLatestAsync(packageRegistration, false));
+                packageService.Verify(x => x.UpdateIsLatestAsync(packageRegistration));
             }
 
             [Fact]
