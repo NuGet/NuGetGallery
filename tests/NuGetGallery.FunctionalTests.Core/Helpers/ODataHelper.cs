@@ -7,19 +7,23 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests
 {
+
     /// <summary>
     /// This class has the helper methods to do gallery operations via OData.
     /// </summary>
     public class ODataHelper
         : HelperBase
     {
+        private static readonly XNamespace FeedAtomNS = "http://www.w3.org/2005/Atom";
+        private static readonly XNamespace FeedAdoNS = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
+
         public ODataHelper()
             : this(ConsoleTestOutputHelper.New)
         {
@@ -74,58 +78,25 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        private static string GetPackagePropertyRegexPattern = "<d:([^ >]+)(\\s*m:type=\"([^\"]*)\")?>([^<]*)</d:";
-
         public async Task<Dictionary<string,object>> GetPackagePropertiesFromResponse(string url, string packageId, string version = "1.0.0")
         {
             WriteLine($"Getting properties for package '{packageId}' with version '{version}'.");
 
-            var packageResponse = await GetPackageDataInResponse(url, packageId, version);
-            if (!string.IsNullOrEmpty(packageResponse))
-            {
-                var propertiesStart = Math.Max(packageResponse.IndexOf("<m:properties>"), 0);
-                var propertiesEnd = packageResponse.IndexOf("</m:properties>", propertiesStart);
-                if (propertiesEnd > 0)
-                {
-                    propertiesStart += 14;
-                    var propertiesContent = packageResponse.Substring(propertiesStart, propertiesEnd - propertiesStart);
-                    var properties = new Dictionary<string, object>();
-
-                    var propertyRegEx = new Regex(GetPackagePropertyRegexPattern);
-                    foreach (Match m in propertyRegEx.Matches(propertiesContent))
-                    {
-                        var propertyName = m.Groups[1].Value;
-                        var propertyValue = GetPackageProperty(propertyType: m.Groups[3].Value, propertyValue: m.Groups[4].Value);
-
-                        properties[propertyName] = propertyValue;
-                    }
-
-                    return properties;
-                }
-            }
-            return null;
-        }
-
-        public async Task<string> GetPackageDataInResponse(string url, string packageId, string version = "1.0.0")
-        {
-            WriteLine($"Getting data for package '{packageId}' with version '{version}'.");
-
             var responseText = await GetResponseText(url);
 
-            var packageString = @"<id>" + UrlHelper.V2FeedRootUrl + @"Packages(Id='" + packageId + @"',Version='" + (string.IsNullOrEmpty(version) ? "" : version + "')</id>");
-            var endEntryTag = "</entry>";
+            var packagesXml = XDocument.Parse(responseText);
 
-            var startingIndex = responseText.IndexOf(packageString);
+            var entries = packagesXml.Root.Elements(FeedAtomNS + "entry").ToList();
+            var packageEntry = entries.First(e => e.Element(FeedAtomNS + "id").Value.Contains($"Id='{packageId}'"));
+            var packageProperties = packageEntry.Element(FeedAdoNS + "properties");
 
-            if (startingIndex < 0)
+            var properties = new Dictionary<string, object>();
+            foreach (var prop in packageProperties.Elements())
             {
-                WriteLine("Package not found in response text!");
-                return null;
+                var propType = prop.Attribute(FeedAdoNS + "type")?.Value;
+                properties[prop.Name.LocalName] = GetPackageProperty(propType, prop.Value);
             }
-
-            var endingIndex = responseText.IndexOf(endEntryTag, startingIndex);
-
-            return responseText.Substring(startingIndex, endingIndex - startingIndex);
+            return properties;
         }
 
         public async Task<bool> ContainsResponseText(string url, params string[] expectedTexts)

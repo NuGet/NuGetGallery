@@ -79,7 +79,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 packageIds.Add(packageId);
             }
 
-            await CheckPackageTimestampsInOrder(packageIds, "Created", uploadStartTimestamp, packagesListed: true);
+            await CheckPackageTimestampsInOrder(packageIds, "Created", uploadStartTimestamp);
 
             // Unlist the packages in order.
             var unlistStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
@@ -88,7 +88,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 await _clientSdkHelper.UnlistPackage(packageIds[i]);
             }
 
-            await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp, packagesListed: false);
+            await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp);
         }
 
         [Fact]
@@ -97,6 +97,11 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task PackageLatestSetCorrectlyOnConcurrentPushes()
         {
+            var latestAll = "7.0.2-abc";
+            var latestStableAll = "7.0.1";
+            var latestFirstHalf = "3.0.2-abc";
+            var latestStableFirstHalf = "3.0.1";
+
             var packageId = $"TestV2FeedPackageLatestSetCorrectlyOnConcurrentPushes.{DateTime.UtcNow.Ticks}";
             var packageVersions = new List<string>()
             {
@@ -117,7 +122,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
             Task.WaitAll(concurrentTasks);
             
-            await CheckPackageLatestVersions(packageId, packageVersions, expectedLatest: "7.0.2-abc", expectedLatestStable: "7.0.1");
+            await CheckPackageLatestVersions(packageId, packageVersions, latestAll, latestStableAll);
 
             // unlist last half and verify; ~1-2 concurrency conflicts seen in testing
             for (int i = concurrentTasks.Length - 1; i >= 15; i--)
@@ -127,7 +132,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
             Task.WaitAll(concurrentTasks);
 
-            await CheckPackageLatestVersions(packageId, packageVersions, expectedLatest: "3.0.2-abc", expectedLatestStable: "3.0.1");
+            await CheckPackageLatestVersions(packageId, packageVersions, latestFirstHalf, latestStableFirstHalf);
 
             // unlist remaining and verify; ~1-2 concurrency conflicts seen in testing
             for (int i = 14; i >= 0; i--)
@@ -147,7 +152,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
         private static string GetPackagesAppearInFeedInOrderUrl(DateTime time, string timestamp)
         {
-            return $"{UrlHelper.V2FeedRootUrl}/Packages?$filter={timestamp} gt DateTime'{time:o}'&$orderby={timestamp} desc&$select={timestamp},IsLatestVersion,IsAbsoluteLatestVersion";
+            return $"{UrlHelper.V2FeedRootUrl}/Packages?$filter={timestamp} gt DateTime'{time:o}'&$orderby={timestamp} desc&$select={timestamp},IsLatestVersion,IsAbsoluteLatestVersion,Published";
         }
 
         /// <summary>
@@ -158,7 +163,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         /// <param name="operationStartTimestamp">A timestamp that is before all of the timestamps expected to be found in the feed. This is used in a request to the feed.</param>
         /// <param name="packagesListed">Whether packages are listed, used to verify if latest flags are set properly.</param>
         private async Task CheckPackageTimestampsInOrder(List<string> packageIds, string timestampPropertyName,
-            DateTime operationStartTimestamp, bool packagesListed)
+            DateTime operationStartTimestamp)
         {
             var lastTimestamp = DateTime.MinValue;
             for (var i = 0; i < PackagesInOrderNumPackages; i++)
@@ -179,13 +184,16 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     $"Package #{i} was last modified after package #{i - 1} but has an earlier {timestampPropertyName} timestamp ({newTimestamp} should be greater than {lastTimestamp}).");
                 lastTimestamp = newTimestamp.Value;
 
+                var published= packageDetails["Published"] as DateTime?;
+                var isListed = !published?.Year.Equals(1900);
                 var isLatest = packageDetails["IsAbsoluteLatestVersion"] as bool?;
-                Assert.NotNull(isLatest);
-                Assert.Equal(isLatest, packagesListed);
-
                 var isLatestStable = packageDetails["IsLatestVersion"] as bool?;
+
+                Assert.NotNull(isLatest);
+                Assert.Equal(isLatest, isListed);
+
                 Assert.NotNull(isLatestStable);
-                Assert.Equal(isLatestStable, packagesListed);
+                Assert.Equal(isLatestStable, isListed);
             }
         }
         

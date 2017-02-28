@@ -795,6 +795,7 @@ namespace NuGetGallery
                 int retryCount = 1;
                 do
                 {
+                    await Task.Delay(retryCount * 250);
                     _trace.Information(String.Format("Retrying {0} for package '{1}' ({2}/{3})",
                         nameof(UpdateIsLatestAsync), packageRegistration.Id, retryCount, UpdateIsLatestMaxRetries));
 

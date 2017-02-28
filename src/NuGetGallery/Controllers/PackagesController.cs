@@ -997,11 +997,11 @@ namespace NuGetGallery
                 action = "unlisted";
                 await _packageService.MarkPackageUnlistedAsync(package);
 
-                // handle in separate transaction because of concurrency check with retry
-                if (package.IsLatest || package.IsLatestStable)
-                {
-                    await _packageService.UpdateIsLatestAsync(package.PackageRegistration);
-                }
+                // Handle in separate transaction because of concurrency check with retry. Due to using
+                // separate transactions, we must always call UpdateIsLatest on delete/unlist. This is
+                // because a concurrent thread could be marking the package as latest before this thread
+                // is able to commit the delete /unlist.
+                await _packageService.UpdateIsLatestAsync(package.PackageRegistration);
             }
             else
             {
