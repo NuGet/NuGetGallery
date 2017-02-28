@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,6 +30,11 @@ namespace NuGetGallery.Auditing
         public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<Credential> affected)
             : base(action)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
             Username = user.Username;
             EmailAddress = user.EmailAddress;
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;

@@ -284,7 +284,7 @@ namespace NuGetGallery
                 await _packageOwnerRequestRepository.CommitChangesAsync();
             }
             
-            await _auditingService.SaveAuditRecord(
+            await _auditingService.SaveAuditRecordAsync(
                 new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.AddOwner, user.Username));
         }
 
@@ -306,7 +306,7 @@ namespace NuGetGallery
             package.Owners.Remove(user);
             await _packageRepository.CommitChangesAsync();
 
-            await _auditingService.SaveAuditRecord(
+            await _auditingService.SaveAuditRecordAsync(
                 new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
         }
 
@@ -338,7 +338,7 @@ namespace NuGetGallery
 
             await UpdateIsLatestAsync(package.PackageRegistration, false);
             
-            await _auditingService.SaveAuditRecord(new PackageAuditRecord(package, AuditedPackageAction.List));
+            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.List));
 
             if (commitChanges)
             {
@@ -367,7 +367,7 @@ namespace NuGetGallery
                 await UpdateIsLatestAsync(package.PackageRegistration, false);
             }
 
-            await _auditingService.SaveAuditRecord(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
+            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
 
             if (commitChanges)
             {

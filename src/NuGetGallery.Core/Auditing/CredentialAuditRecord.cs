@@ -20,6 +20,11 @@ namespace NuGetGallery.Auditing
 
         public CredentialAuditRecord(Credential credential, bool removed)
         {
+            if (credential == null)
+            {
+                throw new ArgumentNullException(nameof(credential));
+            }
+
             Key = credential.Key;
             Type = credential.Type;
             Description = credential.Description;

@@ -312,7 +312,7 @@ namespace NuGetGallery
                             if (!packageRegistration.IsOwner(user))
                             {
                                 // Audit that a non-owner tried to push the package
-                                await AuditingService.SaveAuditRecord(
+                                await AuditingService.SaveAuditRecordAsync(
                                     new FailedAuthenticatedOperationAuditRecord(
                                         user.Username, 
                                         AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner, 
@@ -396,7 +396,7 @@ namespace NuGetGallery
                         IndexingService.UpdatePackage(package);
                         
                         // Write an audit record
-                        await AuditingService.SaveAuditRecord(
+                        await AuditingService.SaveAuditRecordAsync(
                             new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));
 
                         // Notify user of push

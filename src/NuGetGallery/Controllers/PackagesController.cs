@@ -146,7 +146,7 @@ namespace NuGetGallery
             }
             else if (numOK > 0)
             {
-                await _auditingService.SaveAuditRecord(new PackageAuditRecord(package, AuditedPackageAction.UndoEdit));
+                await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.UndoEdit));
 
                 TempData["Message"] = "Your pending edits for this package were successfully canceled.";
             }
@@ -916,7 +916,7 @@ namespace NuGetGallery
 
                     var packageWithEditsApplied = formData.Edit.ApplyTo(package);
 
-                    await _auditingService.SaveAuditRecord(new PackageAuditRecord(packageWithEditsApplied, AuditedPackageAction.Edit));
+                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(packageWithEditsApplied, AuditedPackageAction.Edit));
                 }
                 catch (EntityException ex)
                 {
@@ -1196,7 +1196,7 @@ namespace NuGetGallery
                 _indexingService.UpdateIndex();
 
                 // write an audit record
-                await _auditingService.SaveAuditRecord(
+                await _auditingService.SaveAuditRecordAsync(
                     new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
 
                 // notify user
