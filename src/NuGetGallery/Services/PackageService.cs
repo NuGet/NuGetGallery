@@ -21,6 +21,8 @@ namespace NuGetGallery
     {
         private const int UpdateIsLatestMaxRetries = 3;
 
+        private static readonly Lazy<Random> _randomGenerator = new Lazy<Random>();
+
         private readonly IIndexingService _indexingService;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
@@ -795,7 +797,8 @@ namespace NuGetGallery
                 int retryCount = 1;
                 do
                 {
-                    await Task.Delay(retryCount * 250);
+                    await Task.Delay(_randomGenerator.Value.Next(0, 1000));
+
                     _trace.Information(String.Format("Retrying {0} for package '{1}' ({2}/{3})",
                         nameof(UpdateIsLatestAsync), packageRegistration.Id, retryCount, UpdateIsLatestMaxRetries));
 
@@ -815,7 +818,7 @@ namespace NuGetGallery
                     }
                     retryCount++;
                 }
-                while (retryCount < UpdateIsLatestMaxRetries);
+                while (retryCount <= UpdateIsLatestMaxRetries);
             }
         }
 

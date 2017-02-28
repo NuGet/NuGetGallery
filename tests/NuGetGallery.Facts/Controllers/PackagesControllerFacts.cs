@@ -544,6 +544,8 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask).Verifiable();
                 packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true))
                     .Returns(package).Verifiable();
+                packageService.Setup(svc => svc.UpdateIsLatestAsync(It.IsAny<PackageRegistration>()))
+                    .Returns(Task.CompletedTask).Verifiable();
 
                 var indexingService = new Mock<IIndexingService>();
 
