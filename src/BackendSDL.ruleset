@@ -1,5 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="NuGet Backend With SDL" ToolsVersion="14.0">
-  <Include Path="backend.ruleset" Action="Default" />
-  <Include Path="sdl7.0.ruleset" Action="Default" />
-</RuleSet>
