@@ -93,7 +93,7 @@ namespace NuGet.Indexing
         /// <param name="original">Original string</param>
         /// <param name="substring">Substring to reove from original string</param>
         /// <returns>Original string with occurrences of substring removed</returns>
-        public static string RemoveSubstring(string original, string substring)
+        internal static string RemoveSubstring(string original, string substring)
         {
             if (string.IsNullOrEmpty(original) || string.IsNullOrEmpty(substring))
             {

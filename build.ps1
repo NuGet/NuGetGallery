@@ -2,6 +2,8 @@
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
+    [ValidateSet("Release","rtm", "rc", "beta", "beta2", "final", "xprivate", "zlocal")]
+    [string]$ReleaseLabel = 'zlocal',
     [int]$BuildNumber,
     [switch]$SkipRestore,
     [switch]$CleanCache,
@@ -9,7 +11,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '1c479a7381ebbc0fe1fded765de70d513b8bd68e'
+    [string]$BuildBranch = 'a8c27302d8720d094c2dce87e00324d84b4697b2'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -46,10 +48,7 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
-
-Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
-    -ev +BuildErrors
-
+    
 Invoke-BuildStep 'Cleaning test results' { Clean-Tests } `
     -ev +BuildErrors
 
@@ -64,22 +63,22 @@ Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Restoring solution packages' { `
-        Install-SolutionPackages -path (Join-Path $PSScriptRoot ".nuget\packages.config") -output (Join-Path $PSScriptRoot "packages") -ExcludeVersion
-    } `
+    Install-SolutionPackages -path (Join-Path $PSScriptRoot ".nuget\packages.config") -output (Join-Path $PSScriptRoot "packages") -ExcludeVersion } `
     -skip:$SkipRestore `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Building solution' { 
-        $SolutionPath = Join-Path $PSScriptRoot "NuGet.Services.Metadata.sln"
-        Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore `
+    param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore `
     } `
+    -args $Configuration, $BuildNumber, (Join-Path $PSScriptRoot "NuGet.Services.Metadata.sln"), $SkipRestore `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' {
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.Indexing\NuGet.Indexing.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
-        New-Package (Join-Path $PSScriptRoot "src\Catalog\NuGet.Services.Metadata.Catalog.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion  -Branch $Branch
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
-        New-Package (Join-Path $PSScriptRoot "src\Ng\Ng.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
+        New-Package (Join-Path $PSScriptRoot "src\NuGet.Indexing\NuGet.Indexing.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion -Branch $Branch
+        New-Package (Join-Path $PSScriptRoot "src\Catalog\NuGet.Services.Metadata.Catalog.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion  -Branch $Branch
+        New-Package (Join-Path $PSScriptRoot "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion -Branch $Branch
+        New-Package (Join-Path $PSScriptRoot "src\Ng\Ng.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion -Branch $Branch
     } `
     -ev +BuildErrors
 
