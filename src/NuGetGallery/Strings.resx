@@ -329,17 +329,8 @@ The {1} Team</value>
   <data name="JobLogBlobNameInvalid" xml:space="preserve">
     <value>Job Log Blob name is invalid Bob! Expected [jobname].[yyyy-MM-dd].json or [jobname].json. Got: {0}</value>
   </data>
-  <data name="NegativeIndexesAreInvalid" xml:space="preserve">
-    <value>Negative indexes are invalid.</value>
-  </data>
-  <data name="IndexDoesNotExist" xml:space="preserve">
-    <value>Index does not exist</value>
-  </data>
   <data name="PackageIsMissingRequiredData" xml:space="preserve">
     <value>The package is missing required data.</value>
-  </data>
-  <data name="Http404NotFound" xml:space="preserve">
-    <value>(404) Error - Not Found</value>
   </data>
   <data name="ErrorInSendingMail" xml:space="preserve">
     <value>Error in sending mail : {0}</value>

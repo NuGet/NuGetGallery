@@ -171,4 +171,13 @@
   <data name="Manifest_InvalidVersionSemVer200" xml:space="preserve">
     <value>The version '{0}' is not supported. The NuGet Gallery currently does not currently support Semantic Version 2.0 as it would break older NuGet clients.</value>
   </data>
+  <data name="Http404NotFound" xml:space="preserve">
+    <value>(404) Error - Not Found</value>
+  </data>
+  <data name="IndexDoesNotExist" xml:space="preserve">
+    <value>Index does not exist</value>
+  </data>
+  <data name="NegativeIndexesAreInvalid" xml:space="preserve">
+    <value>Negative indexes are invalid.</value>
+  </data>
 </root>
