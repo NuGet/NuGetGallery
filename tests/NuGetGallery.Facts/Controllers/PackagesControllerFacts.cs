@@ -44,7 +44,7 @@ namespace NuGetGallery
             Mock<ICacheService> cacheService = null,
             Mock<IPackageDeleteService> packageDeleteService = null,
             Mock<ISupportRequestService> supportRequestService = null,
-            AuditingService auditingService = null)
+            IAuditingService auditingService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)

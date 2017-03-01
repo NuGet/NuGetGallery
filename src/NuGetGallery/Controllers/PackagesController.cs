@@ -51,7 +51,7 @@ namespace NuGetGallery
         private readonly EditPackageService _editPackageService;
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly ISupportRequestService _supportRequestService;
-        private readonly AuditingService _auditingService;
+        private readonly IAuditingService _auditingService;
 
         public PackagesController(
             IPackageService packageService,
@@ -67,7 +67,7 @@ namespace NuGetGallery
             EditPackageService editPackageService,
             IPackageDeleteService packageDeleteService,
             ISupportRequestService supportRequestService,
-            AuditingService auditingService)
+            IAuditingService auditingService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;

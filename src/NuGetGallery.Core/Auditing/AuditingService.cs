@@ -11,7 +11,7 @@ namespace NuGetGallery.Auditing
     /// <summary>
     /// Base class for auditing services.
     /// </summary>
-    public abstract class AuditingService
+    public abstract class AuditingService : IAuditingService
     {
         /// <summary>
         /// An auditing service instance with no backing store.
@@ -41,10 +41,9 @@ namespace NuGetGallery.Auditing
         /// Persists the audit record to storage.
         /// </summary>
         /// <param name="record">An audit record.</param>
-        /// <returns>A task that represents the asynchronous save operation.
-        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="System.Uri"/>.</returns>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous save operation.</returns> 
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="record" /> is <c>null</c>.</exception>
-        public virtual async Task<Uri> SaveAuditRecordAsync(AuditRecord record)
+        public async Task SaveAuditRecordAsync(AuditRecord record)
         {
             if (record == null)
             {
@@ -54,7 +53,7 @@ namespace NuGetGallery.Auditing
             var entry = new AuditEntry(record, await GetActorAsync());
             var rendered = RenderAuditEntry(entry);
 
-            return await SaveAuditRecordAsync(rendered, record.GetResourceType(), record.GetPath(), record.GetAction(), entry.Actor.TimestampUtc);
+            await SaveAuditRecordAsync(rendered, record.GetResourceType(), record.GetPath(), record.GetAction(), entry.Actor.TimestampUtc);
         }
 
         /// <summary>
@@ -81,8 +80,8 @@ namespace NuGetGallery.Auditing
         /// <param name="filePath">The file-system path to use to identify the audit record</param>
         /// <param name="action">The action recorded in this audit record</param>
         /// <param name="timestamp">A timestamp indicating when the record was created</param>
-        /// <returns>The URI identifying the audit record resource</returns>
-        protected abstract Task<Uri> SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp);
+        /// <returns>A <see cref="Task"/> that represents the asynchronous save operation.</returns> 
+        protected abstract Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp);
 
         protected virtual Task<AuditActor> GetActorAsync()
         {
@@ -91,12 +90,9 @@ namespace NuGetGallery.Auditing
 
         private class NullAuditingService : AuditingService
         {
-            protected override Task<Uri> SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
+            protected override Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
             {
-                var uriString = $"http://auditing.local/{resourceType}/{filePath}/{timestamp:s}-{action.ToLowerInvariant()}";
-                var uri = new Uri(uriString);
-
-                return Task.FromResult(uri);
+                return Task.FromResult(0);
             }
         }
     }

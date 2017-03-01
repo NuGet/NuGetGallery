@@ -23,7 +23,7 @@ namespace NuGetGallery
             Mock<IPackageService> packageService = null,
             Mock<IIndexingService> indexingService = null,
             Mock<IPackageFileService> packageFileService = null,
-            Mock<AuditingService> auditingService = null,
+            Mock<IAuditingService> auditingService = null,
             Action<Mock<TestPackageDeleteService>> setup = null)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
@@ -37,7 +37,7 @@ namespace NuGetGallery
             indexingService = indexingService ?? new Mock<IIndexingService>();
             packageFileService = packageFileService ?? new Mock<IPackageFileService>();
 
-            auditingService = auditingService ?? new Mock<AuditingService>();
+            auditingService = auditingService ?? new Mock<IAuditingService>();
 
             var packageDeleteService = new Mock<TestPackageDeleteService>(
                 packageRepository.Object,
@@ -63,7 +63,7 @@ namespace NuGetGallery
         {
             public PackageAuditRecord LastAuditRecord { get; set; }
 
-            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, AuditingService auditingService)
+            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, IAuditingService auditingService)
                 : base(packageRepository, packageDeletesRepository, entitiesContext, packageService, indexingService, packageFileService, auditingService)
             {
             }
@@ -213,7 +213,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillCreateAuditRecordUsingAuditService()
             {
-                var auditingService = new Mock<AuditingService>();
+                var auditingService = new Mock<IAuditingService>();
                 var service = CreateService(auditingService: auditingService);
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
@@ -391,7 +391,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillCreateAuditRecordUsingAuditService()
             {
-                var auditingService = new Mock<AuditingService>();
+                var auditingService = new Mock<IAuditingService>();
                 var service = CreateService(auditingService: auditingService);
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };

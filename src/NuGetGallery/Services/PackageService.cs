@@ -29,7 +29,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
-        private readonly AuditingService _auditingService;
+        private readonly IAuditingService _auditingService;
         private readonly IDiagnosticsSource _trace;
 
         public PackageService(
@@ -40,7 +40,7 @@ namespace NuGetGallery
             IDiagnosticsService diagnostics,
             IIndexingService indexingService,
             IPackageNamingConflictValidator packageNamingConflictValidator,
-            AuditingService auditingService)
+            IAuditingService auditingService)
         {
             if (packageRegistrationRepository == null)
             {
