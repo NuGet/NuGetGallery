@@ -34,7 +34,7 @@ namespace NuGetGallery
         private readonly IPackageService _packageService;
         private readonly IIndexingService _indexingService;
         private readonly IPackageFileService _packageFileService;
-        private readonly AuditingService _auditingService;
+        private readonly IAuditingService _auditingService;
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
@@ -43,7 +43,7 @@ namespace NuGetGallery
             IPackageService packageService,
             IIndexingService indexingService,
             IPackageFileService packageFileService,
-            AuditingService auditingService)
+            IAuditingService auditingService)
         {
             _packageRepository = packageRepository;
             _packageDeletesRepository = packageDeletesRepository;

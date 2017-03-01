@@ -59,15 +59,13 @@ namespace NuGetGallery.Auditing
                     },
                     AuditedPackageAction.Create);
 
-                var uri = await service.SaveAuditRecordAsync(record);
-
-                Assert.True(Regex.IsMatch(uri.AbsoluteUri, "^https://auditing.local/package/b/1.0.0/[0-9a-f]{32}-create.audit.v1.json$"));
+                await service.SaveAuditRecordAsync(record);
 
                 var files = Directory.GetFiles(testDirectory.FullPath, "*", SearchOption.AllDirectories);
                 var actualFilePath = files.Single();
-                var expectedFilePath = Path.Combine(testDirectory.FullPath, uri.AbsolutePath.Replace('/', '\\').TrimStart('\\'));
+                var expectedFilePathPattern = new Regex(@"package\\b\\1.0.0\\[0-9a-f]{32}-create.audit.v1.json$");
 
-                Assert.Equal(expectedFilePath, actualFilePath);
+                Assert.True(expectedFilePathPattern.IsMatch(actualFilePath));
             }
         }
 

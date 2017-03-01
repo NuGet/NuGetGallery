@@ -45,7 +45,7 @@ namespace NuGetGallery.Auditing
             return await AuditActor.GetCurrentMachineActorAsync(onBehalfOf);
         }
 
-        protected override Task<Uri> SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
+        protected override Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
             // Build relative file path
             var relativeFilePath =
@@ -66,10 +66,7 @@ namespace NuGetGallery.Auditing
             // Write the data
             File.WriteAllText(fullFilePath, auditData);
 
-            // Generate a local URL
-            var uri = new Uri($"https://auditing.local/{relativeFilePath.Replace(Path.DirectorySeparatorChar, '/')}");
-
-            return Task.FromResult(uri);
+            return Task.FromResult(0);
         }
     }
 }

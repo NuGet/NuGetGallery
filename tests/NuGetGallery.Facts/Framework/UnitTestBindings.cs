@@ -43,7 +43,7 @@ namespace NuGetGallery.Framework
                 .SingleInstance();
 
             builder.RegisterType<TestAuditingService>()
-                .As<AuditingService>();
+                .As<IAuditingService>();
 
             builder.Register(_ =>
             {

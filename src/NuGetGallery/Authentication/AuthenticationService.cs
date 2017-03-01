@@ -41,7 +41,7 @@ namespace NuGetGallery.Authentication
 
         public AuthenticationService(
             IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics,
-            AuditingService auditing, IEnumerable<Authenticator> providers, ICredentialBuilder credentialBuilder,
+            IAuditingService auditing, IEnumerable<Authenticator> providers, ICredentialBuilder credentialBuilder,
             ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider)
         {
             if (entities == null)
@@ -98,7 +98,7 @@ namespace NuGetGallery.Authentication
 
         public IEntitiesContext Entities { get; private set; }
         public IDictionary<string, Authenticator> Authenticators { get; private set; }
-        public AuditingService Auditing { get; private set; }
+        public IAuditingService Auditing { get; private set; }
 
         private void InitCredentialFormatters()
         {

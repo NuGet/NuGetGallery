@@ -41,12 +41,12 @@ namespace NuGetGallery
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         public IStatusService StatusService { get; set; }
         public IMessageService MessageService { get; set; }
-        public AuditingService AuditingService { get; set; }
+        public IAuditingService AuditingService { get; set; }
         public IGalleryConfigurationService ConfigurationService { get; set; }
 
         protected ApiController()
         {
-            AuditingService = AuditingService.None;
+            AuditingService = NuGetGallery.Auditing.AuditingService.None;
         }
 
         public ApiController(
@@ -61,7 +61,7 @@ namespace NuGetGallery
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
             IMessageService messageService,
-            AuditingService auditingService,
+            IAuditingService auditingService,
             IGalleryConfigurationService configurationService)
         {
             EntitiesContext = entitiesContext;
@@ -93,7 +93,7 @@ namespace NuGetGallery
             IStatusService statusService,
             IStatisticsService statisticsService,
             IMessageService messageService,
-            AuditingService auditingService,
+            IAuditingService auditingService,
             IGalleryConfigurationService configurationService)
             : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService)
         {

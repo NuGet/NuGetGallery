@@ -148,6 +148,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auditing\AggregateAuditingServiceTests.cs" />
     <Compile Include="Auditing\AuditActorTests.cs" />
     <Compile Include="Auditing\AuditedAuthenticatedOperationActionTests.cs" />
     <Compile Include="Auditing\AuditedPackageActionTests.cs" />

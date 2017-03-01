@@ -123,6 +123,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auditing\AggregateAuditingService.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackage.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackageIdentifier.cs" />
     <Compile Include="Auditing\AuditedAuthenticatedOperationAction.cs" />
@@ -135,6 +136,7 @@
     <Compile Include="Auditing\CloudAuditingService.cs" />
     <Compile Include="Auditing\CredentialAuditRecord.cs" />
     <Compile Include="Auditing\AuditedPackageAction.cs" />
+    <Compile Include="Auditing\IAuditingService.cs" />
     <Compile Include="Auditing\PackageCreatedVia.cs" />
     <Compile Include="Auditing\AuditedPackageRegistrationAction.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackageRegistration.cs" />

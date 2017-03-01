@@ -103,7 +103,7 @@ namespace NuGetGallery
             Mock<IDiagnosticsService> diagnosticsService = null,
             Mock<IIndexingService> indexingService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
-            AuditingService auditingService = null,
+            IAuditingService auditingService = null,
             Action<Mock<PackageService>> setup = null)
         {
             return CreateServiceMock(
@@ -126,7 +126,7 @@ namespace NuGetGallery
             Mock<IDiagnosticsService> diagnosticsService = null,
             Mock<IIndexingService> indexingService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
-            AuditingService auditingService = null,
+            IAuditingService auditingService = null,
             Action<Mock<PackageService>> setup = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();

@@ -316,7 +316,7 @@ namespace NuGetGallery.Auditing
                 _saveDelegate = saveDelegate;
             }
 
-            protected override Task<Uri> SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
+            protected override Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
             {
                 return _saveDelegate(auditData, resourceType, filePath, action, timestamp);
             }

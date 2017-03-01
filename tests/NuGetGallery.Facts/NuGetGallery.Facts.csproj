@@ -383,6 +383,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
+    <Compile Include="App_Start\RuntimeServiceProviderTests.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />

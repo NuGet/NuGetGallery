@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -15,14 +17,14 @@ using Autofac;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Configuration.SecretReader;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
-using NuGetGallery.Infrastructure.Lucene;
-using NuGetGallery.Areas.Admin.Models;
-using NuGetGallery.Configuration.SecretReader;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery
 {
@@ -207,12 +209,12 @@ namespace NuGetGallery
                         var smtpUri = new SmtpUri(settings.Current.SmtpUri);
 
                         var mailSenderConfiguration = new MailSenderConfiguration
-                            {
-                                DeliveryMethod = SmtpDeliveryMethod.Network,
-                                Host = smtpUri.Host,
-                                Port = smtpUri.Port,
-                                EnableSsl = smtpUri.Secure
-                            };
+                        {
+                            DeliveryMethod = SmtpDeliveryMethod.Network,
+                            Host = smtpUri.Host,
+                            Port = smtpUri.Port,
+                            EnableSsl = smtpUri.Secure
+                        };
 
                         if (!string.IsNullOrWhiteSpace(smtpUri.UserName))
                         {
@@ -227,16 +229,14 @@ namespace NuGetGallery
                     else
                     {
                         var mailSenderConfiguration = new MailSenderConfiguration
-                            {
-                                DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
-                                PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
-                            };
+                        {
+                            DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
+                            PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
+                        };
 
                         return new MailSender(mailSenderConfiguration);
                     }
                 });
-
-
 
             builder.Register(c => mailSenderThunk.Value)
                 .AsSelf()
@@ -253,16 +253,22 @@ namespace NuGetGallery
                 .As<IPrincipal>()
                 .InstancePerLifetimeScope();
 
+            IAuditingService defaultAuditingService = null;
+
             switch (configuration.Current.StorageType)
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
                     ConfigureForLocalFileSystem(builder, configuration);
+                    defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
                     break;
                 case StorageType.AzureStorage:
                     ConfigureForAzureStorage(builder, configuration);
+                    defaultAuditingService = GetAuditingServiceForAzureStorage(configuration);
                     break;
             }
+
+            RegisterAuditingServices(builder, defaultAuditingService);
 
             builder.RegisterType<FileSystemService>()
                 .AsSelf()
@@ -321,6 +327,7 @@ namespace NuGetGallery
                     .InstancePerLifetimeScope();
             }
         }
+
         private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri != null &&
@@ -367,16 +374,6 @@ namespace NuGetGallery
                 .As<IStatisticsService>()
                 .SingleInstance();
 
-            // Setup auditing
-            var auditingPath = Path.Combine(
-                FileSystemFileStorageService.ResolvePath(configuration.Current.FileStorageDirectory),
-                FileSystemAuditingService.DefaultContainerName);
-
-            builder.RegisterInstance(new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync))
-                .AsSelf()
-                .As<AuditingService>()
-                .SingleInstance();
-
             // If we're not using azure storage, then aggregate stats comes from SQL
             builder.RegisterType<SqlAggregateStatsService>()
                 .AsSelf()
@@ -420,7 +417,19 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IStatisticsService>()
                 .SingleInstance();
+        }
 
+        private static IAuditingService GetAuditingServiceForLocalFileSystem(IGalleryConfigurationService configuration)
+        {
+            var auditingPath = Path.Combine(
+                FileSystemFileStorageService.ResolvePath(configuration.Current.FileStorageDirectory),
+                FileSystemAuditingService.DefaultContainerName);
+
+            return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
+        }
+
+        private static IAuditingService GetAuditingServiceForAzureStorage(IGalleryConfigurationService configuration)
+        {
             string instanceId;
             try
             {
@@ -433,10 +442,45 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIpAddressAsync().Result;
 
-            builder.RegisterInstance(new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, AuditActor.GetAspNetOnBehalfOfAsync))
-                .AsSelf()
-                .As<AuditingService>()
-                .SingleInstance();
+            return new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, AuditActor.GetAspNetOnBehalfOfAsync);
+        }
+
+        private static IAuditingService CombineServices(IEnumerable<IAuditingService> services)
+        {
+            if (!services.Any())
+            {
+                return null;
+            }
+
+            if (services.Count() == 1)
+            {
+                return services.First();
+            }
+
+            return new AggregateAuditingService(services);
+        }
+
+        private static void RegisterAuditingServices(ContainerBuilder builder, IAuditingService defaultAuditingService)
+        {
+            var addInsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "add-ins");
+
+            using (var serviceProvider = RuntimeServiceProvider.Create(addInsDirectoryPath))
+            {
+                var auditingServices = serviceProvider.GetExportedValues<IAuditingService>();
+                var services = new List<IAuditingService>(auditingServices);
+
+                if (defaultAuditingService != null)
+                {
+                    services.Add(defaultAuditingService);
+                }
+
+                var service = CombineServices(services);
+
+                builder.RegisterInstance(service)
+                    .AsSelf()
+                    .As<IAuditingService>()
+                    .SingleInstance();
+            }
         }
     }
 }

@@ -47,7 +47,7 @@ namespace NuGetGallery.Auditing
             return await AuditActor.GetCurrentMachineActorAsync(onBehalfOf);
         }
 
-        protected override async Task<Uri> SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
+        protected override async Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
             string fullPath =
                 $"{resourceType.ToLowerInvariant()}/" +
@@ -82,8 +82,6 @@ namespace NuGetGallery.Auditing
                     null);
                 await WriteBlob(auditData, fullPath, blob);
             }
-
-            return blob.Uri;
         }
 
         private static CloudBlobContainer GetContainer(string storageConnectionString)

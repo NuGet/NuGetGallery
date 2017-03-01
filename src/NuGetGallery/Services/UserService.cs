@@ -18,7 +18,7 @@ namespace NuGetGallery
         public IAppConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
-        public AuditingService Auditing { get; protected set; }
+        public IAuditingService Auditing { get; protected set; }
 
         protected UserService() { }
 
@@ -26,7 +26,7 @@ namespace NuGetGallery
             IAppConfiguration config,
             IEntityRepository<User> userRepository,
             IEntityRepository<Credential> credentialRepository,
-            AuditingService auditing)
+            IAuditingService auditing)
             : this()
         {
             Config = config;
