@@ -49,7 +49,7 @@ call %mstest% /TestContainer:"NuGetGallery.WebUITests.ReadOnlyMode\bin\%config%\
 if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run Load tests
-call %vstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /logger:trx /TestCaseFilter:"TestCategory=%testCategory%"
+call %vstest% "NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /logger:trx /TestCaseFilter:"TestCategory=%testCategory%"
 if not "%errorlevel%"=="0" set exitCode=-1
 
 exit /B %exitCode%
