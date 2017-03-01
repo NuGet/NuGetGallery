@@ -20,8 +20,8 @@ REM Clean previous test results
 if exist functionaltests.*.xml (
     del functionaltests.*.xml
 )
-if exist resultsfile.trx (
-    del resultsfile.trx
+if exist resultsfile.*.trx (
+    del resultsfile.*.trx
 )
 if exist TestResults (
     rd TestResults /S /Q
@@ -50,19 +50,19 @@ call %xunit% "%fluentTestDir%\NuGetGallery.FunctionalTests.Fluent.dll" -xml func
 if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI tests
-call %mstest% /TestContainer:"NuGetGallery.WebUITests.P0\bin\%config%\NuGetGallery.WebUITests.P0.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.trx
+call %mstest% /TestContainer:"NuGetGallery.WebUITests.P0\bin\%config%\NuGetGallery.WebUITests.P0.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.web1.trx
 if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI tests
-call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P1.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.trx
+call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P1.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.web2.trx
 if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI tests
-call %mstest% /TestContainer:"NuGetGallery.WebUITests.P2\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.trx
+call %mstest% /TestContainer:"NuGetGallery.WebUITests.P2\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.web3.trx
 if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run Load tests
-call %vstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /logger:trx /TestCaseFilter:"TestCategory=%testCategory%"
+call %mstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /TestSettings:Local.testsettings /detail:stdout /category:%testCategory% /resultsfile:resultsfile.load.trx
 if not "%errorlevel%"=="0" set exitCode=-1
 
 goto end
