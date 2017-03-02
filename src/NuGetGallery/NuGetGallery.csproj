@@ -1136,7 +1136,6 @@
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AntiForgeryErrorFilter.cs" />
     <Compile Include="Infrastructure\ApplicationVersionHelper.cs" />
-    <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ChallengeResult.cs" />
     <Compile Include="Infrastructure\Lucene\ExternalSearchService.cs" />
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
@@ -1147,7 +1146,6 @@
     <Compile Include="Infrastructure\SafeRedirectResult.cs" />
     <Compile Include="Infrastructure\StatisticsReport.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />
-    <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadExtensions.cs" />
     <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadModule.cs" />
     <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadProgress.cs" />

@@ -456,24 +456,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to (404) Error - Not Found.
-        /// </summary>
-        public static string Http404NotFound {
-            get {
-                return ResourceManager.GetString("Http404NotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Index does not exist.
-        /// </summary>
-        public static string IndexDoesNotExist {
-            get {
-                return ResourceManager.GetString("IndexDoesNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The API key &apos;{0}&apos; is invalid..
         /// </summary>
         public static string InvalidApiKey {
@@ -569,15 +551,6 @@ namespace NuGetGallery {
         public static string MultipleMatchingCredentials {
             get {
                 return ResourceManager.GetString("MultipleMatchingCredentials", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Negative indexes are invalid..
-        /// </summary>
-        public static string NegativeIndexesAreInvalid {
-            get {
-                return ResourceManager.GetString("NegativeIndexesAreInvalid", resourceCulture);
             }
         }
         

@@ -36,6 +36,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Elmah, Version=1.2.14706.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\elmah.corelibrary.1.2.2\lib\Elmah.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\entityframework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
@@ -181,6 +185,8 @@
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\Scope.cs" />
     <Compile Include="Entities\User.cs" />
+    <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="PackageReaderCoreExtensions.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />
     <Compile Include="Packaging\ManifestEdit.cs" />

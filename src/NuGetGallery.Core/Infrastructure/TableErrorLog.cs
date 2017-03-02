@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +8,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Elmah;
-using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -143,21 +143,10 @@ namespace NuGetGallery.Infrastructure
             private readonly string _connectionString;
             private readonly AzureEntityList<ErrorEntity> _entityList;
 
-            public TableErrorLog(IDictionary config)
-            {
-                _connectionString = (string)config["connectionString"] ?? RoleEnvironment.GetConfigurationSettingValue((string)config["connectionStringName"]);
-                _entityList = new AzureEntityList<ErrorEntity>(_connectionString, TableName);
-            }
-
             public TableErrorLog(string connectionString)
             {
                 _connectionString = connectionString;
                 _entityList = new AzureEntityList<ErrorEntity>(connectionString, TableName);
-            }
-
-            public TableErrorLog()
-            {
-                _entityList = new AzureEntityList<ErrorEntity>(_connectionString, TableName);
             }
 
             public override ErrorLogEntry GetError(string id)

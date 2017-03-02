@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -83,12 +84,12 @@ namespace NuGetGallery.Infrastructure
             {
                 if (index < 0)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.NegativeIndexesAreInvalid);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, CoreStrings.NegativeIndexesAreInvalid);
                 }
 
                 if (index >= LongCount)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.IndexDoesNotExist);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, CoreStrings.IndexDoesNotExist);
                 }
 
                 long page = index / 1000;
@@ -99,7 +100,7 @@ namespace NuGetGallery.Infrastructure
                 var response = _tableRef.Execute(TableOperation.Retrieve<T>(partitionKey, rowKey));
                 if (response.HttpStatusCode == 404)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.Http404NotFound);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, CoreStrings.Http404NotFound);
                 }
 
                 ThrowIfErrorStatus(response);
@@ -110,12 +111,12 @@ namespace NuGetGallery.Infrastructure
             {
                 if (index < 0)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.NegativeIndexesAreInvalid);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, CoreStrings.NegativeIndexesAreInvalid);
                 }
 
                 if (index >= LongCount)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), index, Strings.IndexDoesNotExist);
+                    throw new ArgumentOutOfRangeException(nameof(index), index, CoreStrings.IndexDoesNotExist);
                 }
 
                 long page = index / 1000;
