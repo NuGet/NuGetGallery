@@ -110,6 +110,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                     destinationStream.Seek(0, SeekOrigin.Begin);
                     await blob.UploadFromStreamAsync(destinationStream, cancellationToken);
+                    Trace.WriteLine(String.Format("Saved compressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
                 }
             }
             else
@@ -117,6 +118,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 using (Stream stream = content.GetContentStream())
                 {
                     await blob.UploadFromStreamAsync(stream, cancellationToken);
+                    Trace.WriteLine(String.Format("Saved uncompressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
                 }
             }
         }

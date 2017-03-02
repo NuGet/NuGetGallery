@@ -3,7 +3,7 @@
 
 namespace Ng
 {
-    static class Arguments
+    public static class Arguments
     {
 
         #region Shared

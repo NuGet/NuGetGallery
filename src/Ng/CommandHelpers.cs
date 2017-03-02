@@ -86,7 +86,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.StoragePath }
             };
 
-            return CreateStorageFactoryImpl(arguments, names, verbose);
+            return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
         }
 
         public static StorageFactory CreateCompressedStorageFactory(IDictionary<string, string> arguments, bool verbose)
@@ -105,7 +105,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.CompressedStoragePath }
             };
 
-            return CreateStorageFactoryImpl(arguments, names, verbose);
+            return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
         }
 
         public static StorageFactory CreateSuffixedStorageFactory(string suffix, IDictionary<string, string> arguments, bool verbose)
@@ -124,10 +124,13 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.StoragePath + suffix }
             };
 
-            return CreateStorageFactoryImpl(arguments, names, verbose);
+            return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
         }
 
-        private static StorageFactory CreateStorageFactoryImpl(IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap, bool verbose)
+        private static StorageFactory CreateStorageFactoryImpl(IDictionary<string, string> arguments, 
+                                                               IDictionary<string, string> argumentNameMap,
+                                                               bool verbose,
+                                                               bool compressed)
         {
             Uri storageBaseAddress = null;
             var storageBaseAddressStr = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageBaseAddress]);
@@ -162,7 +165,8 @@ namespace Ng
 
                 var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
                 var account = new CloudStorageAccount(credentials, true);
-                return new AzureStorageFactory(account, storageContainer, storagePath, storageBaseAddress) { Verbose = verbose };
+                return new AzureStorageFactory(account, storageContainer, storagePath, storageBaseAddress)
+                            { Verbose = verbose, CompressContent = compressed };
             }
             
             throw new ArgumentException($"Unrecognized storageType \"{storageType}\"");
