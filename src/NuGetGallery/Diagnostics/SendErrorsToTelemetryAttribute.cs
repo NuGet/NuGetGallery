@@ -3,7 +3,6 @@
 
 using System;
 using System.Web.Mvc;
-using Elmah.Contrib.Mvc;
 using Microsoft.ApplicationInsights;
 
 namespace NuGetGallery.Diagnostics
