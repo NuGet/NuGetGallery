@@ -251,4 +251,8 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <NuGetBuildPath Condition="'$(NuGetBuildPath)' == ''">..\..\build</NuGetBuildPath>
+  </PropertyGroup>
+  <Import Project="$(NuGetBuildPath)\sign.targets" Condition="Exists('$(NuGetBuildPath)\sign.targets')" />
 </Project>
