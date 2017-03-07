@@ -715,6 +715,26 @@ namespace NuGetGallery
                 Assert.Equal(apiKey.Description, credentialViewModel.Description);
                 Assert.Equal(apiKey.Expires, credentialViewModel.Expires);
             }
+
+            [Fact]
+            public async Task SendANotificationMailToUser()
+            {
+                var user = new User { Username = "the-username" };
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var result = await controller.GenerateApiKey(
+                    description: "description",
+                    scopes: new[] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
+                    subjects: new[] { "a" },
+                    expirationInDays: 90);
+
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+
+                GetMock<IMessageService>()
+                    .Verify(m => m.SendCredentialAddedNotice(user, apiKey));
+            }
         }
 
         public class TheChangeEmailAction : TestContainer
