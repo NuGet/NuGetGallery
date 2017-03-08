@@ -8,6 +8,8 @@ namespace NuGetGallery
 {
     public class ListPackageItemViewModel : PackageViewModel
     {
+        private int _descriptionLengthLimit = 350;
+
         public ListPackageItemViewModel(Package package)
             : base(package)
         {
@@ -16,12 +18,33 @@ namespace NuGetGallery
             Authors = package.FlattenedAuthors;
             MinClientVersion = package.MinClientVersion;
             Owners = package.PackageRegistration.Owners;
+
         }
 
         public string Authors { get; set; }
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public string MinClientVersion { get; set; }
+        public string ShortDescription
+        {
+            get
+            {
+                if (this.Description.Length > _descriptionLengthLimit)
+                {
+                    return this.Description.Substring(1, _descriptionLengthLimit) + "...";
+                }
+
+                return this.Description;
+            }
+        }
+
+        public int DescriptionLengthLimit
+        {
+            get
+            {
+                return _descriptionLengthLimit;
+            }
+        }
 
         public bool UseVersion
         {
