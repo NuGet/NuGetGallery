@@ -580,6 +580,8 @@ namespace NuGetGallery
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
 
+            _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredential);
+
             return Json(credentialViewModel);
         }
 
