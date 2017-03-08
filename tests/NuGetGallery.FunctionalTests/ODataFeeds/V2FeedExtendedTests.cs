@@ -113,12 +113,21 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                  "7.0.0-a",  "7.0.0-b",  "7.0.0",  "7.0.1",  "7.0.2-abc"
             };
 
-            // push all and verify; ~15-20 concurrency conflicts seen in testing
+            // first push should not be concurrent to avoid conflict on creation of package registration.
             var concurrentTasks = new Task[packageVersions.Count];
-            for (int i = 0; i < concurrentTasks.Length; i++)
+            concurrentTasks[0] = Task.Run(() => _clientSdkHelper.UploadNewPackage(packageId, version: packageVersions[0]));
+            concurrentTasks[0].Wait();
+
+            // push remaining packages over period of 5 seconds
+            var random = new Random();
+            for (int i = 1; i < concurrentTasks.Length; i++)
             {
                 var packageVersion = packageVersions[i];
-                concurrentTasks[i] = Task.Run(() => _clientSdkHelper.UploadNewPackage(packageId, version: packageVersion));
+                concurrentTasks[i] = Task.Run(async () =>
+                {
+                    await Task.Delay(random.Next(0, 5000));
+                    await _clientSdkHelper.UploadNewPackage(packageId, version: packageVersion);
+                });
             }
             Task.WaitAll(concurrentTasks);
             
