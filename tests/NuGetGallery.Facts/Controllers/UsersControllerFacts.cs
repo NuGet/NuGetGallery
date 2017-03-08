@@ -717,7 +717,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task SendANotificationMailToUser()
+            public async Task SendsNotificationMailToUser()
             {
                 var user = new User { Username = "the-username" };
 
