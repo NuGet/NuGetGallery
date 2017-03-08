@@ -43,11 +43,13 @@ namespace NuGetGallery.Controllers
             _searchService = searchService;
         }
 
-        // /api/v2/Packages
+        // /api/v2/Packages?semVerLevel=
         [HttpGet]
         [HttpPost]
         [CacheOutput(NoCache = true)]
-        public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options)
+        public async Task<IHttpActionResult> Get(
+            ODataQueryOptions<V2FeedPackage> options,
+            [FromODataUri]string semVerLevel = null)
         {
             // Setup the search
             var packages = _packagesRepository.GetAll()
@@ -90,7 +92,7 @@ namespace NuGetGallery.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
-            //Reject only when try to reach database.
+            // Reject only when try to reach database.
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V2Packages,
                 _configurationService.Current.IsODataFilterEnabled, nameof(Get)))
             {
@@ -101,28 +103,36 @@ namespace NuGetGallery.Controllers
             return QueryResult(options, queryable, MaxPageSize);
         }
 
-        // /api/v2/Packages/$count
+        // /api/v2/Packages/$count?semVerLevel=
         [HttpGet]
         [CacheOutput(NoCache = true)]
-        public async Task<IHttpActionResult> GetCount(ODataQueryOptions<V2FeedPackage> options)
+        public async Task<IHttpActionResult> GetCount(
+            ODataQueryOptions<V2FeedPackage> options,
+            [FromODataUri]string semVerLevel = null)
         {
-            return (await Get(options)).FormattedAsCountResult<V2FeedPackage>();
+            return (await Get(options, semVerLevel)).FormattedAsCountResult<V2FeedPackage>();
         }
 
         // /api/v2/Packages(Id=,Version=)
         [HttpGet]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
-        public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options, string id, string version)
+        public async Task<IHttpActionResult> Get(
+            ODataQueryOptions<V2FeedPackage> options, 
+            string id, 
+            string version)
         {
             var result = await GetCore(options, id, version, return404NotFoundWhenNoResults: true);
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
-        // /api/v2/FindPackagesById()?id=
+        // /api/v2/FindPackagesById()?id=&semVerLevel=
         [HttpGet]
         [HttpPost]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
-        public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V2FeedPackage> options, [FromODataUri]string id)
+        public async Task<IHttpActionResult> FindPackagesById(
+            ODataQueryOptions<V2FeedPackage> options, 
+            [FromODataUri]string id,
+            [FromODataUri]string semVerLevel = null)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -135,7 +145,11 @@ namespace NuGetGallery.Controllers
             return await GetCore(options, id, version: null, return404NotFoundWhenNoResults: false);
         }
 
-        private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V2FeedPackage> options, string id, string version, bool return404NotFoundWhenNoResults)
+        private async Task<IHttpActionResult> GetCore(
+            ODataQueryOptions<V2FeedPackage> options, 
+            string id, 
+            string version, 
+            bool return404NotFoundWhenNoResults)
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
@@ -211,7 +225,8 @@ namespace NuGetGallery.Controllers
             ODataQueryOptions<V2FeedPackage> options,
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
-            [FromODataUri]bool includePrerelease = false)
+            [FromODataUri]bool includePrerelease = false,
+            [FromODataUri]string semVerLevel = null)
         {
             // Handle OData-style |-separated list of frameworks.
             string[] targetFrameworkList = (targetFramework ?? "").Split(new[] { '\'', '|' }, StringSplitOptions.RemoveEmptyEntries);
@@ -277,20 +292,21 @@ namespace NuGetGallery.Controllers
             return QueryResult(options, queryable, MaxPageSize);
         }
 
-        // /api/v2/Search()/$count?searchTerm=&targetFramework=&includePrerelease=
+        // /api/v2/Search()/$count?searchTerm=&targetFramework=&includePrerelease=&semVerLevel=
         [HttpGet]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> SearchCount(
             ODataQueryOptions<V2FeedPackage> options,
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
-            [FromODataUri]bool includePrerelease = false)
+            [FromODataUri]bool includePrerelease = false,
+            [FromODataUri]string semVerLevel = null)
         {
             var searchResults = await Search(options, searchTerm, targetFramework, includePrerelease);
             return searchResults.FormattedAsCountResult<V2FeedPackage>();
         }
 
-        // /api/v2/GetUpdates()?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=
+        // /api/v2/GetUpdates()?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=&semVerLevel=
         [HttpGet]
         [HttpPost]
         public IHttpActionResult GetUpdates(
@@ -300,7 +316,8 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includePrerelease,
             [FromODataUri]bool includeAllVersions,
             [FromODataUri]string targetFrameworks = "",
-            [FromODataUri]string versionConstraints = "")
+            [FromODataUri]string versionConstraints = "",
+            [FromODataUri]string semVerLevel = null)
         {
             if (string.IsNullOrEmpty(packageIds) || string.IsNullOrEmpty(versions))
             {
@@ -365,14 +382,14 @@ namespace NuGetGallery.Controllers
                     idValues.Contains(p.PackageRegistration.Id.ToLower()))
                 .OrderBy(p => p.PackageRegistration.Id);
 
-            var queryable = GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions)
+            var queryable = GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions, semVerLevel)
                 .AsQueryable()
                 .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
 
             return QueryResult(options, queryable, MaxPageSize);
         }
 
-        // /api/v2/GetUpdates()/$count?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=
+        // /api/v2/GetUpdates()/$count?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=&semVerLevel=
         [HttpGet]
         [HttpPost]
         public IHttpActionResult GetUpdatesCount(
@@ -382,9 +399,10 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includePrerelease,
             [FromODataUri]bool includeAllVersions,
             [FromODataUri]string targetFrameworks = "",
-            [FromODataUri]string versionConstraints = "")
+            [FromODataUri]string versionConstraints = "",
+            [FromODataUri]string semVerLevel = null)
         {
-            return GetUpdates(options, packageIds, versions, includePrerelease, includeAllVersions, targetFrameworks, versionConstraints)
+            return GetUpdates(options, packageIds, versions, includePrerelease, includeAllVersions, targetFrameworks, versionConstraints, semVerLevel)
                 .FormattedAsCountResult<V2FeedPackage>();
         }
 
@@ -392,7 +410,8 @@ namespace NuGetGallery.Controllers
             IEnumerable<Package> packages,
             ILookup<string, Tuple<NuGetVersion, VersionRange>> versionLookup,
             IEnumerable<NuGetFramework> targetFrameworkValues,
-            bool includeAllVersions)
+            bool includeAllVersions,
+            string semVerLevel)
         {
             var updates = from p in packages.AsEnumerable()
                           let version = NuGetVersion.Parse(p.Version)
@@ -418,6 +437,7 @@ namespace NuGetGallery.Controllers
                 updates = updates.GroupBy(p => p.PackageRegistration.Id)
                     .Select(g => g.OrderByDescending(p => NuGetVersion.Parse(p.Version)).First());
             }
+
             return updates;
         }
     }

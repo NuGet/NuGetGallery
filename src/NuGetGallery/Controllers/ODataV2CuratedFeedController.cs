@@ -40,11 +40,11 @@ namespace NuGetGallery.Controllers
             _curatedFeedService = curatedFeedService;
         }
 
-        // /api/v2/curated-feed/curatedFeedName/Packages
+        // /api/v2/curated-feed/curatedFeedName/Packages?semVerLevel=
         [HttpGet]
         [HttpPost]
         [CacheOutput(NoCache = true)]
-        public IHttpActionResult Get(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName)
+        public IHttpActionResult Get(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string semVerLevel = null)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
@@ -59,12 +59,12 @@ namespace NuGetGallery.Controllers
             return QueryResult(options, queryable, MaxPageSize);
         }
 
-        // /api/v2/curated-feed/curatedFeedName/Packages/$count
+        // /api/v2/curated-feed/curatedFeedName/Packages/$count?semVerLevel=
         [HttpGet]
         [CacheOutput(NoCache = true)]
-        public IHttpActionResult GetCount(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName)
+        public IHttpActionResult GetCount(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string semVerLevel = null)
         {
-            return Get(options, curatedFeedName).FormattedAsCountResult<V2FeedPackage>();
+            return Get(options, curatedFeedName, semVerLevel).FormattedAsCountResult<V2FeedPackage>();
         }
 
         // /api/v2/curated-feed/curatedFeedName/Packages(Id=,Version=)
@@ -76,11 +76,15 @@ namespace NuGetGallery.Controllers
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
-        // /api/v2/curated-feed/curatedFeedName/FindPackagesById()?id=
+        // /api/v2/curated-feed/curatedFeedName/FindPackagesById()?id=&semVerLevel=
         [HttpGet]
         [HttpPost]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
-        public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, [FromODataUri]string id)
+        public async Task<IHttpActionResult> FindPackagesById(
+            ODataQueryOptions<V2FeedPackage> options, 
+            string curatedFeedName, 
+            [FromODataUri]string id,
+            string semVerLevel = null)
         {
             if (string.IsNullOrEmpty(curatedFeedName) || string.IsNullOrEmpty(id))
             {
@@ -167,7 +171,7 @@ namespace NuGetGallery.Controllers
             return BadRequest("Querying property " + propertyName + " is not supported.");
         }
 
-        // /api/v2/curated-feed/curatedFeedName/Search()?searchTerm=&targetFramework=&includePrerelease=
+        // /api/v2/curated-feed/curatedFeedName/Search()?searchTerm=&targetFramework=&includePrerelease=&semVerLevel=
         [HttpGet]
         [HttpPost]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
@@ -176,7 +180,8 @@ namespace NuGetGallery.Controllers
             string curatedFeedName,
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
-            [FromODataUri]bool includePrerelease = false)
+            [FromODataUri]bool includePrerelease = false,
+            [FromODataUri]string semVerLevel = null)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
@@ -247,9 +252,10 @@ namespace NuGetGallery.Controllers
             string curatedFeedName,
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
-            [FromODataUri]bool includePrerelease = false)
+            [FromODataUri]bool includePrerelease = false,
+            [FromODataUri]string semVerLevel = null)
         {
-            var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease);
+            var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease, semVerLevel);
             return searchResults.FormattedAsCountResult<V2FeedPackage>();
         }
     }
