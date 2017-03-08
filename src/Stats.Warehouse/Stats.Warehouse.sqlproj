@@ -146,4 +146,5 @@
   <ItemGroup>
     <RefactorLog Include="Stats.Warehouse.refactorlog" />
   </ItemGroup>
+  <Import Project="..\..\build\sign.targets" Condition="Exists('..\..\build\sign.targets')" />
 </Project>

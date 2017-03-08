@@ -14,4 +14,3 @@ using System.Runtime.InteropServices;
 [assembly: Guid("7ae7b3ef-d988-4692-a2f9-0eb885a6a8bd")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: InternalsVisibleTo("Tests.Stats.CollectAzureCdnLogs")]

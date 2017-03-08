@@ -2,16 +2,14 @@
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
-    [ValidateSet("Release","rtm", "rc", "beta", "beta2", "final", "xprivate", "zlocal")]
-    [string]$ReleaseLabel = 'zlocal',
     [int]$BuildNumber,
     [switch]$SkipRestore,
     [switch]$CleanCache,
     [string]$SimpleVersion = '1.0.0',
     [string]$SemanticVersion = '1.0.0-zlocal',
-    [string]$Branch,
+    [string]$Branch = 'zlocal',
     [string]$CommitSHA,
-    [string]$BuildBranch = 'a8c27302d8720d094c2dce87e00324d84b4697b2'
+    [string]$BuildBranch = '1c479a7381ebbc0fe1fded765de70d513b8bd68e'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -63,6 +61,9 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
+
+Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
+    -ev +BuildErrors
     
 Invoke-BuildStep 'Cleaning test results' { Clean-Tests } `
     -ev +BuildErrors
@@ -93,7 +94,8 @@ Invoke-BuildStep 'Prepare Validation.Callback.Vcs Package' { Prepare-Vcs-Callbac
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' {
-        $Projects = "src/Stats.CollectAzureCdnLogs/Stats.CollectAzureCdnLogs.csproj", `
+        $Projects = `
+            "src/Stats.CollectAzureCdnLogs/Stats.CollectAzureCdnLogs.csproj", `
             "src/Stats.AggregateCdnDownloadsInGallery/Stats.AggregateCdnDownloadsInGallery.csproj", `
             "src/Stats.ImportAzureCdnStatistics/Stats.ImportAzureCdnStatistics.csproj", `
             "src/Stats.CreateAzureCdnWarehouseReports/Stats.CreateAzureCdnWarehouseReports.csproj", `
@@ -108,7 +110,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj"
         
         Foreach ($Project in $Projects) {
-            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -ReleaseLabel $ReleaseLabel -Version $SemanticVersion -Branch $Branch
+            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
         }
     } `
     -ev +BuildErrors

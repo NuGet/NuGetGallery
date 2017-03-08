@@ -22,7 +22,7 @@ namespace NuGet.Jobs
     public sealed class AzureBlobJobTraceListener
         : JobTraceListener
     {
-        internal const int MaxLogBatchSize = 100;
+        public const int MaxLogBatchSize = 100;
 
         private const int _maxExpectedLogsPerRun = 1000000;
         private const string _jobLogNameFormat = "{0}/{1}.txt";
