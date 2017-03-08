@@ -2,12 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
+using Newtonsoft.Json;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery
@@ -22,19 +25,37 @@ namespace NuGetGallery
         public static void SetOwinContextCurrentUser(this AppController self, User user, string scopes = null)
         {
             ClaimsIdentity identity = null;
+            string apiKey = string.Empty;
 
-            if (scopes != null)
+            var credential = user.Credentials?.FirstOrDefault(c => c.Type.StartsWith(CredentialTypes.ApiKey.Prefix));
+            if (credential != null)
             {
-                identity = AuthenticationService.CreateIdentity(
-                    user,
-                    AuthenticationTypes.ApiKey,
-                    new Claim(NuGetClaims.ApiKey, string.Empty),
-                    new Claim(NuGetClaims.Scope, scopes));
+                apiKey = credential.Value;
+                scopes = JsonConvert.SerializeObject(credential.Scopes, Formatting.None);
             }
-            else
+            else if (scopes != null)
+            {
+                apiKey = "ffffffff-0000-ffff-0000-ffffffffffff";
+                credential = new Credential(CredentialTypes.ApiKey.V2, apiKey);
+            }
+
+            if (string.IsNullOrWhiteSpace(apiKey))
             {
                 identity = new ClaimsIdentity(
                     new[] { new Claim(ClaimTypes.Name, string.IsNullOrEmpty(user.Username) ? "theUserName" : user.Username) });
+            }
+            else
+            {
+                var claims = new List<Claim>()
+                {
+                    new Claim(NuGetClaims.ApiKey, apiKey)
+                };
+                if (scopes != null)
+                {
+                    claims.Add(new Claim(NuGetClaims.Scope, scopes));
+                }
+
+                identity = AuthenticationService.CreateIdentity(user, AuthenticationTypes.ApiKey, claims.ToArray());
             }
 
             var principal = new ClaimsPrincipal(identity);

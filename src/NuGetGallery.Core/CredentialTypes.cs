@@ -24,6 +24,12 @@ namespace NuGetGallery
             public const string V2 = Prefix + "v2";
         }
 
+        public static class VerificationApiKey
+        {
+            public const string Prefix = ApiKey.Prefix + "verify.";
+            public const string V2 = Prefix + "v2";
+        }
+
         public const string ExternalPrefix = "external.";
 
         public static bool IsPassword(string type)
@@ -36,9 +42,21 @@ namespace NuGetGallery
             return type.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase);
         }
 
+        /*public static bool IsApiKeyFull(string type)
+        {
+            return type.Equals(CredentialTypes.ApiKey.V1, StringComparison.OrdinalIgnoreCase) ||
+                type.Equals(CredentialTypes.ApiKey.V2, StringComparison.OrdinalIgnoreCase) ||
+                type.Equals(CredentialTypes.VerificationApiKey.V2, StringComparison.OrdinalIgnoreCase);
+        }*/
+
         public static bool IsApiKey(string type)
         {
             return type.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsPackageVerificationApiKey(string type)
+        {
+            return type.StartsWith(VerificationApiKey.Prefix, StringComparison.OrdinalIgnoreCase);
         }
 
         internal static List<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2 };

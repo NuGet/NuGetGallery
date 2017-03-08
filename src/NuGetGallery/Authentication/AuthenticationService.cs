@@ -688,7 +688,7 @@ namespace NuGetGallery.Authentication
                 .Include(u => u.User)
                 .Include(u => u.User.Roles)
                 .Include(u => u.Scopes)
-                .Where(c => (c.Type == CredentialTypes.ApiKey.V1 || c.Type == CredentialTypes.ApiKey.V2) && c.Value == apiKeyCredential.Value)
+                .Where(c => c.Type.StartsWith(CredentialTypes.ApiKey.Prefix) && c.Value == apiKeyCredential.Value)
                 .ToList();
 
             return ValidateFoundCredentials(results, "ApiKey");

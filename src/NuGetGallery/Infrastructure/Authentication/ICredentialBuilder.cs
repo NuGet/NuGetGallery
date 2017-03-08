@@ -11,6 +11,8 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         Credential CreateApiKey(TimeSpan? expiration);
 
+        Credential CreatePackageVerificationApiKey(string id);
+
         Credential CreateExternalCredential(string issuer, string value, string identity);
     }
 }

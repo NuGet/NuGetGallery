@@ -434,4 +434,7 @@ The {1} Team</value>
   <data name="NonScopedApiKeyDescription" xml:space="preserve">
     <value>Full access API key</value>
   </data>
+  <data name="ScopeDescription_VerifyPackage" xml:space="preserve">
+    <value>Verify package ownership</value>
+  </data>
 </root>

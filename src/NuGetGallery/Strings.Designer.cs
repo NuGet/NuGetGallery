@@ -771,6 +771,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Verify package ownership.
+        /// </summary>
+        public static string ScopeDescription_VerifyPackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_VerifyPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via SSL..
         /// </summary>
         public static string SSLRequired {

@@ -9,6 +9,7 @@ namespace NuGetGallery.Authentication
         public const string PackagePushVersion = "package:pushversion";
         public const string PackagePush = "package:push";
         public const string PackageUnlist = "package:unlist";
+        public const string PackageVerify = "package:verify";
 
         public static string Describe(string scope)
         {
@@ -22,6 +23,8 @@ namespace NuGetGallery.Authentication
                     return Strings.ScopeDescription_PushPackageVersion;
                 case PackageUnlist:
                     return Strings.ScopeDescription_UnlistPackage;
+                case PackageVerify:
+                    return Strings.ScopeDescription_VerifyPackage;
             }
 
             return Strings.ScopeDescription_Unknown;

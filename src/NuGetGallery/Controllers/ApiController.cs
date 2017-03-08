@@ -9,6 +9,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
@@ -21,6 +22,7 @@ using NuGetGallery.Auditing.AuditedEntities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
+using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
 
@@ -44,6 +46,7 @@ namespace NuGetGallery
         public IAuditingService AuditingService { get; set; }
         public IGalleryConfigurationService ConfigurationService { get; set; }
         public ITelemetryService TelemetryService { get; set; }
+        public ICredentialBuilder CredentialBuilder { get; set; }
 
         protected ApiController()
         {
@@ -64,7 +67,8 @@ namespace NuGetGallery
             IMessageService messageService,
             IAuditingService auditingService,
             IGalleryConfigurationService configurationService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            ICredentialBuilder credentialBuilder)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -81,6 +85,7 @@ namespace NuGetGallery
             ConfigurationService = configurationService;
             TelemetryService = telemetryService;
             StatisticsService = null;
+            CredentialBuilder = credentialBuilder;
         }
 
         public ApiController(
@@ -98,8 +103,9 @@ namespace NuGetGallery
             IMessageService messageService,
             IAuditingService auditingService,
             IGalleryConfigurationService configurationService,
-            ITelemetryService telemetryService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService)
+            ITelemetryService telemetryService,
+            ICredentialBuilder credentialBuilder)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService, credentialBuilder)
         {
             StatisticsService = statisticsService;
         }
@@ -188,24 +194,114 @@ namespace NuGetGallery
             return await StatusService.GetStatus();
         }
 
+        [HttpPut]
+        [RequireSsl]
+        [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [ActionName("CreatePackageVerificationKey")]
+        public virtual Task<ActionResult> CreatePackageVerificationKeyPutAsync(string id, string version)
+        {
+            return CreatePackageVerificationKeyInternalAsync(id, version);
+        }
+
+        [HttpPost]
+        [RequireSsl]
+        [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [ActionName("CreatePackageVerificationKey")]
+        public virtual Task<ActionResult> CreatePackageVerificationKeyPostAsync(string id, string version)
+        {
+            return CreatePackageVerificationKeyInternalAsync(id, version);
+        }
+        
+        private async Task<ActionResult> CreatePackageVerificationKeyInternalAsync(string id, string version)
+        {
+            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+            }
+            var user = GetCurrentUser();
+            var credential = CredentialBuilder.CreatePackageVerificationApiKey(id);
+            user.Credentials.Add(credential);
+
+            await EntitiesContext.SaveChangesAsync();
+
+            return Json(new
+            {
+                Key = credential.Value,
+                Expires = credential.Expires,
+                Scope = credential.Scopes.FirstOrDefault()?.Subject
+            });
+        }
+
+        private async Task<bool> DeletePackageVerificationKeyAsync(Credential credential)
+        {
+            var scopesToRemove = credential.Scopes.ToArray();
+            foreach (var scope in scopesToRemove)
+            {
+                EntitiesContext.Scopes.Remove(scope);
+            }
+            EntitiesContext.Credentials.Remove(credential);
+
+            var rowsUpdated = await EntitiesContext.SaveChangesAsync();
+
+            // Verify that credential and scope have been removed, and return a failure if the
+            // verification key was created incorrectly without a scope.
+            return rowsUpdated > 1;
+        }
+
+        private Credential GetCurrentCredential(User user)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            var apiKey = identity.GetClaimOrDefault(NuGetClaims.ApiKey);
+            
+            return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
+        }
+
         [HttpGet]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackageVerify)]
         [ActionName("VerifyPackageKey")]
-        public virtual ActionResult VerifyPackageKey(string id, string version)
+        public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
-            if (!String.IsNullOrEmpty(id))
+            var user = GetCurrentUser();
+            var credential = GetCurrentCredential(user);
+
+            var isPackageVerificationKey = CredentialTypes.IsPackageVerificationApiKey(credential.Type);
+            // Todo: Add telemetry based on whether isPackageVerificationKey
+
+            if (string.IsNullOrWhiteSpace(id))
             {
-                // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
-                var package = PackageService.FindPackageByIdAndVersion(id, version);
-                if (package == null)
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
+
+            // Verify that the user has permission to push for the specific Id \ version combination.
+            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+            }
+
+            if (!package.IsOwner(user))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
+
+            if (isPackageVerificationKey)
+            {
+                // Verify that verification key matches requested package scope.
+                if (!User.Identity.HasScopeThatAllowsActionForSubject(id, new[] { NuGetScopes.PackageVerify }))
                 {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
 
-                var user = GetCurrentUser();
-                if (!package.IsOwner(user))
+                // Expire package verification API key on first use. We delete these keys to minimize the
+                // size of the Credentials table. Return failure if delete detected an invalidly scoped key.
+                if (!await DeletePackageVerificationKeyAsync(credential))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }

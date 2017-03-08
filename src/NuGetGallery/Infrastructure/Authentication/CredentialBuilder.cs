@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGetGallery.Authentication;
 using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Infrastructure.Authentication
@@ -23,6 +24,18 @@ namespace NuGetGallery.Infrastructure.Authentication
                CredentialTypes.ApiKey.V2,
                Guid.NewGuid().ToString().ToLowerInvariant(),
                expiration: expiration);
+        }
+
+        public Credential CreatePackageVerificationApiKey(string id)
+        {
+            var credential = new Credential(
+               CredentialTypes.VerificationApiKey.V2,
+               Guid.NewGuid().ToString().ToLowerInvariant(),
+               expiration: TimeSpan.FromDays(1));
+
+            credential.Scopes.Add(new Scope(subject: id, allowedAction: NuGetScopes.PackageVerify));
+
+            return credential;
         }
 
         public Credential CreateExternalCredential(string issuer, string value, string identity)
