@@ -632,24 +632,30 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("PackageIDs")]
-        public virtual async Task<ActionResult> GetPackageIds(string partialId, bool? includePrerelease)
+        public virtual async Task<ActionResult> GetPackageIds(
+            string partialId, 
+            bool? includePrerelease,
+            string semVerLevel = null)
         {
             var query = GetService<IAutoCompletePackageIdsQuery>();
             return new JsonResult
             {
-                Data = (await query.Execute(partialId, includePrerelease)).ToArray(),
+                Data = (await query.Execute(partialId, includePrerelease, semVerLevel)).ToArray(),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
 
         [HttpGet]
         [ActionName("PackageVersions")]
-        public virtual async Task<ActionResult> GetPackageVersions(string id, bool? includePrerelease)
+        public virtual async Task<ActionResult> GetPackageVersions(
+            string id, 
+            bool? includePrerelease,
+            string semVerLevel = null)
         {
             var query = GetService<IAutoCompletePackageVersionsQuery>();
             return new JsonResult
             {
-                Data = (await query.Execute(id, includePrerelease)).ToArray(),
+                Data = (await query.Execute(id, includePrerelease, semVerLevel)).ToArray(),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }

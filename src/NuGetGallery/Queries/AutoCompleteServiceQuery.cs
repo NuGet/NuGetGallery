@@ -30,9 +30,18 @@ namespace NuGetGallery
             _httpClient = new RetryingHttpClientWrapper(new HttpClient());
         }
 
-        public async Task<IEnumerable<string>> RunQuery(string queryString, bool? includePrerelease)
+        public async Task<IEnumerable<string>> RunServiceQuery(
+            string queryString, 
+            bool? includePrerelease,
+            string semVerLevel = null)
         {
             queryString += $"&prerelease={includePrerelease ?? false}";
+
+            if (!string.IsNullOrEmpty(semVerLevel))
+            {
+                queryString += $"&semVerLevel={semVerLevel}";
+            }
+
             var endpoints = await _serviceDiscoveryClient.GetEndpointsForResourceType(_autocompleteServiceResourceType);
             endpoints = endpoints.Select(e => new Uri(e + "?" + queryString)).AsEnumerable();
 

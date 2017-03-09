@@ -32,22 +32,30 @@ ORDER BY MAX(pr.DownloadCount) DESC";
 
         public Task<IEnumerable<string>> Execute(
             string partialId,
-            bool? includePrerelease = false)
+            bool? includePrerelease = false,
+            string semVerLevel = null)
         {
+            if (!string.IsNullOrEmpty(semVerLevel))
+            {
+                // todo: create SQL filter on SemVerLevel
+            }
+
             if (string.IsNullOrWhiteSpace(partialId))
             {
-                return RunQuery(_noPartialIdSql);
+                // todo: apply SQL filter on SemVerLevel
+                return RunSqlQuery(_noPartialIdSql);
             }
 
             var prereleaseFilter = string.Empty;
             if (!includePrerelease.HasValue || !includePrerelease.Value)
             {
+                // todo: apply SQL filter on SemVerLevel
                 prereleaseFilter = "AND p.IsPrerelease = {1}";
             }
 
             var sql = string.Format(CultureInfo.InvariantCulture, _partialIdSqlFormat, prereleaseFilter);
 
-            return RunQuery(sql, partialId + "%", includePrerelease ?? false);
+            return RunSqlQuery(sql, partialId + "%", includePrerelease ?? false);
         }
     }
 }
