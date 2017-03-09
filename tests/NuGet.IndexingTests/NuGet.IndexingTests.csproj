@@ -175,6 +175,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CamelCaseFilterTests.cs" />
+    <Compile Include="DownloadsByVersionTests.cs" />
     <Compile Include="DownloadsScoreProviderTests.cs" />
     <Compile Include="ExpandAcronymsFilterTests.cs" />
     <Compile Include="Extraction\CatalogPackageMetadataExtractorTests.cs" />

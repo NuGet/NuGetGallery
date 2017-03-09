@@ -9,13 +9,13 @@ namespace NuGet.Indexing
 {
     public class DownloadsByVersion
     {
-        private IDictionary<string, int> _downloadsByVersion =
+        private readonly IDictionary<string, int> _downloadsByVersion =
             new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-        private int? total;
+        private int _total;
 
         /// <summary>
-        /// The total count of downloads across all versionss
+        /// The total count of downloads across all versions
         /// </summary>
         /// <remarks>
         /// This is thread safe as long as set is not being called from multiple threads
@@ -24,14 +24,7 @@ namespace NuGet.Indexing
         {
             get
             {
-                if (total.HasValue)
-                {
-                    return total.Value;
-                }
-
-                total = _downloadsByVersion.Values.Sum();
-
-                return total.Value;
+                return _total;
             }
         }
 
@@ -46,10 +39,14 @@ namespace NuGet.Indexing
                 return count;
             }
 
+            // Set is only ever called when the auxiliary data is reloaded, which is only ever done on one thread per instance.
             set
             {
+                int oldValue;
+                _downloadsByVersion.TryGetValue(version, out oldValue);
                 _downloadsByVersion[version] = value;
-                total = null;
+
+                _total = _total + value - oldValue;
             }
         }
     }
