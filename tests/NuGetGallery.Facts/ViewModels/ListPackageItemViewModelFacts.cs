@@ -198,16 +198,16 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var listPackageItemViewModel = new ListPackageItemViewModel(package);
             Assert.True(listPackageItemViewModel.UseVersion);
 
-            package.IsLatest = false;
-            package.IsLatestStable = true;
+            listPackageItemViewModel.LatestVersion = false;
+            listPackageItemViewModel.LatestStableVersion = true;
             Assert.True(listPackageItemViewModel.UseVersion);
 
-            package.IsLatest = false;
-            package.IsLatestStable = false;
+            listPackageItemViewModel.LatestVersion = false;
+            listPackageItemViewModel.LatestStableVersion = false;
             Assert.True(listPackageItemViewModel.UseVersion);
 
-            package.IsLatest = true;
-            package.IsLatestStable = true;
+            listPackageItemViewModel.LatestVersion = true;
+            listPackageItemViewModel.LatestStableVersion = true;
             Assert.False(listPackageItemViewModel.UseVersion);
         }
     }
