@@ -25,10 +25,10 @@
                 </span>
             </p>
             <p>
-                @Model.ShortDescription;
-                @if (Model.Description.Length > Model.DescriptionLengthLimit)
+                @Model.ShortDescription
+                @if (Model.IsDescriptionTruncated)
                 {
-                    @Html.Raw(string.Format(System.Globalization.CultureInfo.CurrentCulture, " <a href=\"{0}\">More information</a>", @Url.Package(Model)))
+                    @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version })
                 }
             </p>
 
@@ -46,12 +46,12 @@
             </p>
 
             @if (@Model.Tags.AnySafe())
-            {
+                    {
                 <div class="tags">
                     <h2>Tags</h2>
                     <ul class="tags">
                         @foreach (var tag in Model.Tags)
-                        {
+                    {
                             <li><a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a></li>
                         }
                     </ul>
