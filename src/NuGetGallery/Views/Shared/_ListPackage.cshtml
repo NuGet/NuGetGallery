@@ -46,14 +46,14 @@
             </p>
 
             @if (@Model.Tags.AnySafe())
-                    {
+            {
                 <div class="tags">
                     <h2>Tags</h2>
                     <ul class="tags">
-                        @foreach (var tag in Model.Tags)
+                    @foreach (var tag in Model.Tags)
                     {
-                            <li><a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a></li>
-                        }
+                        <li><a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a></li>
+                    }
                     </ul>
                 </div>
             }

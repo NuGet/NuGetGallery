@@ -52,10 +52,10 @@ namespace NuGetGallery.Helpers
             int nextSpace = input.LastIndexOf(" ", length, StringComparison.Ordinal);
 
             wasTruncated = true;
-            return string.Format(CultureInfo.CurrentCulture, "{2}{1}{0}",
-                                moreText,
+            return string.Format(CultureInfo.CurrentCulture, "{0}{1}{2}",
+                                input.Substring(0, (nextSpace > 0) ? nextSpace : length).Trim(),
                                 ommission,
-                                input.Substring(0, (nextSpace > 0) ? nextSpace : length).Trim());
+                                moreText);
         }
     }
 }
