@@ -484,6 +484,7 @@
     <Compile Include="UrlExtensionsFacts.cs" />
     <Compile Include="ViewModels\DependencySetsViewModelFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
+    <Compile Include="ViewModels\ListPackageItemViewModelFacts.cs" />
     <Compile Include="ViewModels\PackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
   </ItemGroup>

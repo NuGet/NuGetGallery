@@ -19,7 +19,7 @@ namespace NuGetGallery
 
             Authors = package.FlattenedAuthors;
             MinClientVersion = package.MinClientVersion;
-            Owners = package.PackageRegistration.Owners;
+            Owners = package.PackageRegistration?.Owners;
 
             bool wasTruncated;
             ShortDescription = Description.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, string.Empty, out wasTruncated);

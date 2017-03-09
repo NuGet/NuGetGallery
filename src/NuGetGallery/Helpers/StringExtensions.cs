@@ -43,7 +43,7 @@ namespace NuGetGallery.Helpers
             return text.Substring(0, length - 3) + "...";
         }
 
-        public static string TruncateAtWordBoundary(this string input, int length, string ommission, string moreText, out bool wasTruncated)
+        public static string TruncateAtWordBoundary(this string input, int length, string omission, out bool wasTruncated)
         {
             wasTruncated = false;
             if (string.IsNullOrEmpty(input) || input.Length < length)
@@ -52,10 +52,9 @@ namespace NuGetGallery.Helpers
             int nextSpace = input.LastIndexOf(" ", length, StringComparison.Ordinal);
 
             wasTruncated = true;
-            return string.Format(CultureInfo.CurrentCulture, "{0}{1}{2}",
+            return string.Format(CultureInfo.CurrentCulture, "{0}{1}",
                                 input.Substring(0, (nextSpace > 0) ? nextSpace : length).Trim(),
-                                ommission,
-                                moreText);
+                                omission);
         }
     }
 }
