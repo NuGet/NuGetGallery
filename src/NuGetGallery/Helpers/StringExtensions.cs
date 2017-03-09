@@ -47,7 +47,9 @@ namespace NuGetGallery.Helpers
         {
             wasTruncated = false;
             if (string.IsNullOrEmpty(input) || input.Length < length)
+            {
                 return input;
+            }
 
             int nextSpace = input.LastIndexOf(" ", length, StringComparison.Ordinal);
 

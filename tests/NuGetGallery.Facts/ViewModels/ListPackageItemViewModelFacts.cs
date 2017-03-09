@@ -115,6 +115,7 @@ namespace NuGetGallery.ViewModels
         [Fact]
         public void LongDescriptionsTruncated()
         {
+            var omission = "...";
             var description = @"A Longer description full of nonsense that will get truncated. Lorem ipsum dolor sit amet, ad nemore gubergren eam. Ea quaeque labores deseruisse his, eos munere convenire at, in eos audire persius corpora. Te his volumus detracto offendit, has ne illud choro. No illum quaestio mel, novum democritum te sea, et nam nisl officiis salutandi. Vis ut harum docendi incorrupte, nam affert putent sententiae id, mei cibo omnium id. Ea est falli graeci voluptatibus, est mollis denique ne.
 An nec tempor cetero vituperata.Ius cu dicunt regione interpretaris, posse veniam facilisis ad vim, sit ei sale integre. Mel cu aliquid impedit scribentur.Nostro recusabo sea ei, nec habeo instructior no, saepe altera adversarium vel cu.Nonumes molestiae sit at, per enim necessitatibus cu.
 At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex.Vim dolorem fuisset an. At sit veri illum oratio, et per dicat contentiones. In eam tale tation, mei dicta labitur corpora ei, homero equidem suscipit ut eam.";
@@ -128,7 +129,27 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
             Assert.NotEqual(description, listPackageItemViewModel.ShortDescription);
             Assert.Equal(true, listPackageItemViewModel.IsDescriptionTruncated);
-            Assert.True(listPackageItemViewModel.ShortDescription.EndsWith("..."));
+            Assert.True(listPackageItemViewModel.ShortDescription.EndsWith(omission));
+            Assert.True(description.Contains(listPackageItemViewModel.ShortDescription.Substring(0, listPackageItemViewModel.ShortDescription.Length - 1 - omission.Length)));
+        }
+
+        [Fact]
+        public void LongDescriptionsSingleWordTruncatedToLimit()
+        {
+            var charLimit = 300;
+            var omission = "...";
+            var description = @"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz";
+
+            var package = new Package()
+            {
+                Description = description
+            };
+
+            var listPackageItemViewModel = new ListPackageItemViewModel(package);
+
+            Assert.Equal(charLimit + omission.Length, listPackageItemViewModel.ShortDescription.Length);
+            Assert.Equal(true, listPackageItemViewModel.IsDescriptionTruncated);
+            Assert.True(listPackageItemViewModel.ShortDescription.EndsWith(omission));
         }
 
         [Fact]
