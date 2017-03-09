@@ -1207,7 +1207,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-                Credential[] creds = new Credential[5];
+                var creds = new Credential[5];
                 for (int i = 0; i < creds.Length; i++) {
                     creds[i] = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog" + i);
                     creds[i].Key = i + 1;
@@ -1216,7 +1216,7 @@ namespace NuGetGallery
                 var user = fakes.CreateUser("test", creds);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                Assert.Equal(5, user.Credentials.Count);
+                Assert.Equal(creds.Length, user.Credentials.Count);
 
                 for (int i = 0; i < creds.Length - 1; i++)
                 {
