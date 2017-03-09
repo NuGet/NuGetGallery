@@ -22,7 +22,7 @@ namespace NuGetGallery
             Owners = package.PackageRegistration?.Owners;
 
             bool wasTruncated;
-            ShortDescription = Description.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, string.Empty, out wasTruncated);
+            ShortDescription = Description.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, out wasTruncated);
             IsDescriptionTruncated = wasTruncated;
         }
 
