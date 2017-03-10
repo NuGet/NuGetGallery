@@ -1409,6 +1409,10 @@
     <Compile Include="PackageCurators\WebMatrixPackageCurator.cs" />
     <Compile Include="PackageCurators\Windows8PackageCurator.cs" />
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
+    <Compile Include="Queries\AutocompleteServicePackageIdsQuery.cs" />
+    <Compile Include="Queries\AutocompleteServicePackageVersionsQuery.cs" />
+    <Compile Include="Queries\IPackageIdsQuery.cs" />
+    <Compile Include="Queries\IPackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="RequestModels\EditPackageRequest.cs" />
