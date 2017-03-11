@@ -960,6 +960,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to API &apos;{0}&apos; is deprecated and may be removed in a future version..
+        /// </summary>
+        public static string WarningApiDeprecated {
+            get {
+                return ResourceManager.GetString("WarningApiDeprecated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your API key expires in {0} days. Visit {1} to regenerate your API key..
         /// </summary>
         public static string WarningApiKeyAboutToExpire {

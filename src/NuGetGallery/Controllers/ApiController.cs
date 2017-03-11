@@ -12,6 +12,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using System.Web.Routing;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
@@ -193,7 +194,7 @@ namespace NuGetGallery
             }
             return await StatusService.GetStatus();
         }
-
+        
         [HttpPut]
         [RequireSsl]
         [ApiAuthorize]
@@ -216,13 +217,36 @@ namespace NuGetGallery
         
         private async Task<ActionResult> CreatePackageVerificationKeyInternalAsync(string id, string version)
         {
-            var package = PackageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-            }
+            AddDeprecatedHeader();
+
             var user = GetCurrentUser();
+            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            if (package != null)
+            {
+                if (!package.IsOwner(user))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                }
+
+                if (!ApiKeyScopeAllows(id, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                }
+            }
+            else
+            {
+                // If the package doesn't exist we need VerifyPackageKey to return the 404 to preserve existing
+                // behavior. In this case we'll return a valid verification key with an invalid scope so that it
+                // gets past VerifyPackageKey authentication but can't be used for valid packages.
+
+                // Note that we should still verify that this user has push permissions.
+                if (!ApiKeyScopeAllows(null, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                }
+                id = "$"; // Invalid package id
+            }
+
             var credential = CredentialBuilder.CreatePackageVerificationApiKey(id);
             user.Credentials.Add(credential);
 
@@ -231,12 +255,24 @@ namespace NuGetGallery
             return Json(new
             {
                 Key = credential.Value,
-                Expires = credential.Expires,
-                Scope = credential.Scopes.FirstOrDefault()?.Subject
+                Expires = credential.Expires.Value.ToString("O", CultureInfo.CurrentCulture),
+                PackageScope = credential.Scopes.FirstOrDefault()?.Subject
             });
         }
 
-        private async Task<bool> DeletePackageVerificationKeyAsync(Credential credential)
+        private void AddDeprecatedHeader()
+        {
+            if (HttpContext.Response.Headers != null)
+            {
+                var routeDefaults = (RouteData.Route as Route)?.Defaults?.Values;
+                var apiName = routeDefaults == null ? "Unknown" : string.Join("/", routeDefaults);
+
+                HttpContext.Response.Headers.Add(Constants.WarningHeaderName,
+                    string.Format(CultureInfo.InvariantCulture, Strings.WarningApiDeprecated, apiName));
+            }
+        }
+        
+        private async Task DeletePackageVerificationKeyAsync(Credential credential)
         {
             var scopesToRemove = credential.Scopes.ToArray();
             foreach (var scope in scopesToRemove)
@@ -245,11 +281,7 @@ namespace NuGetGallery
             }
             EntitiesContext.Credentials.Remove(credential);
 
-            var rowsUpdated = await EntitiesContext.SaveChangesAsync();
-
-            // Verify that credential and scope have been removed, and return a failure if the
-            // verification key was created incorrectly without a scope.
-            return rowsUpdated > 1;
+            await EntitiesContext.SaveChangesAsync();
         }
 
         private Credential GetCurrentCredential(User user)
@@ -267,16 +299,7 @@ namespace NuGetGallery
         [ActionName("VerifyPackageKey")]
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
-            var user = GetCurrentUser();
-            var credential = GetCurrentCredential(user);
-
-            var isPackageVerificationKey = CredentialTypes.IsPackageVerificationApiKey(credential.Type);
-            // Todo: Add telemetry based on whether isPackageVerificationKey
-
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-            }
+            AddDeprecatedHeader();
 
             // Verify that the user has permission to push for the specific Id \ version combination.
             var package = PackageService.FindPackageByIdAndVersion(id, version);
@@ -286,26 +309,32 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
+            var user = GetCurrentUser();
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
-
-            if (isPackageVerificationKey)
+            
+            var credential = GetCurrentCredential(user);
+            if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
-                // Verify that verification key matches requested package scope.
-                if (!User.Identity.HasScopeThatAllowsActionForSubject(id, new[] { NuGetScopes.PackageVerify }))
-                {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                }
-
-                // Expire package verification API key on first use. We delete these keys to minimize the
-                // size of the Credentials table. Return failure if delete detected an invalidly scoped key.
-                if (!await DeletePackageVerificationKeyAsync(credential))
+                // Secure path: verify that verification key matches package scope.
+                if (!ApiKeyScopeAllows(id, NuGetScopes.PackageVerify))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
             }
+            else
+            {
+                // Insecure path: verify that API key is legacy or matches package scope.
+                if (!ApiKeyScopeAllows(id, NuGetScopes.PackageVerify, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                }
+            }
+
+            // Expire and delete verification key after first use to avoid growing the database tables.
+            await DeletePackageVerificationKeyAsync(credential);
 
             return new EmptyResult();
         }

@@ -293,8 +293,7 @@ namespace NuGetGallery
                 new
                 {
                     controller = "Api",
-                    action = "CreatePackageVerificationKey",
-                    version = UrlParameter.Optional
+                    action = "CreatePackageVerificationKey"
                 });
 
             var downloadRoute = routes.MapRoute(
