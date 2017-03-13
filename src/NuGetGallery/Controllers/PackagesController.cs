@@ -52,6 +52,7 @@ namespace NuGetGallery
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IAuditingService _auditingService;
+        private readonly ITelemetryService _telemetryService;
 
         public PackagesController(
             IPackageService packageService,
@@ -67,22 +68,24 @@ namespace NuGetGallery
             EditPackageService editPackageService,
             IPackageDeleteService packageDeleteService,
             ISupportRequestService supportRequestService,
-            IAuditingService auditingService)
+            IAuditingService auditingService,
+            ITelemetryService telemetryService)
         {
-            _packageService = packageService;
-            _uploadFileService = uploadFileService;
-            _messageService = messageService;
-            _searchService = searchService;
-            _autoCuratedPackageCmd = autoCuratedPackageCmd;
-            _packageFileService = packageFileService;
-            _entitiesContext = entitiesContext;
-            _config = config;
-            _indexingService = indexingService;
-            _cacheService = cacheService;
-            _editPackageService = editPackageService;
-            _packageDeleteService = packageDeleteService;
-            _supportRequestService = supportRequestService;
-            _auditingService = auditingService;
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _uploadFileService = uploadFileService ?? throw new ArgumentNullException(nameof(uploadFileService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
+            _autoCuratedPackageCmd = autoCuratedPackageCmd ?? throw new ArgumentNullException(nameof(autoCuratedPackageCmd));
+            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
+            _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+            _editPackageService = editPackageService ?? throw new ArgumentNullException(nameof(editPackageService));
+            _packageDeleteService = packageDeleteService ?? throw new ArgumentNullException(nameof(packageDeleteService));
+            _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         [HttpGet]
@@ -1220,6 +1223,8 @@ namespace NuGetGallery
 
             // delete the uploaded binary in the Uploads container
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+
+            _telemetryService.TrackPackagePushEvent(currentUser, User.Identity);
 
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);

@@ -58,6 +58,7 @@ namespace NuGetGallery
                .AsSelf()
                .As<FeatureConfiguration>();
 
+            builder.RegisterType<TelemetryService>().As<ITelemetryService>().SingleInstance();
             builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
             builder.RegisterType<CredentialValidator>().As<ICredentialValidator>().SingleInstance();
 

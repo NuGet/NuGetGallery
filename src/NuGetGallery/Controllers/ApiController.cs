@@ -43,6 +43,7 @@ namespace NuGetGallery
         public IMessageService MessageService { get; set; }
         public IAuditingService AuditingService { get; set; }
         public IGalleryConfigurationService ConfigurationService { get; set; }
+        public ITelemetryService TelemetryService { get; set; }
 
         protected ApiController()
         {
@@ -62,22 +63,24 @@ namespace NuGetGallery
             IStatusService statusService,
             IMessageService messageService,
             IAuditingService auditingService,
-            IGalleryConfigurationService configurationService)
+            IGalleryConfigurationService configurationService,
+            ITelemetryService telemetryService)
         {
-            EntitiesContext = entitiesContext;
-            PackageService = packageService;
-            PackageFileService = packageFileService;
-            UserService = userService;
-            NugetExeDownloaderService = nugetExeDownloaderService;
-            ContentService = contentService;
+            EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            PackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            PackageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            UserService = userService ?? throw new ArgumentNullException(nameof(userService));
+            NugetExeDownloaderService = nugetExeDownloaderService ?? throw new ArgumentNullException(nameof(nugetExeDownloaderService));
+            ContentService = contentService ?? throw new ArgumentNullException(nameof(contentService));
+            IndexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
+            SearchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
+            AutoCuratePackage = autoCuratePackage ?? throw new ArgumentNullException(nameof(autoCuratePackage));
+            StatusService = statusService ?? throw new ArgumentNullException(nameof(statusService));
+            MessageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            AuditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            ConfigurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
+            TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             StatisticsService = null;
-            IndexingService = indexingService;
-            SearchService = searchService;
-            AutoCuratePackage = autoCuratePackage;
-            StatusService = statusService;
-            MessageService = messageService;
-            AuditingService = auditingService;
-            ConfigurationService = configurationService;
         }
 
         public ApiController(
@@ -94,10 +97,11 @@ namespace NuGetGallery
             IStatisticsService statisticsService,
             IMessageService messageService,
             IAuditingService auditingService,
-            IGalleryConfigurationService configurationService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService)
+            IGalleryConfigurationService configurationService,
+            ITelemetryService telemetryService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService)
         {
-            StatisticsService = statisticsService;
+            StatisticsService = statisticsService ?? throw new ArgumentNullException(nameof(statisticsService));
         }
 
         [HttpGet]
@@ -364,6 +368,7 @@ namespace NuGetGallery
                             packageStreamMetadata,
                             user,
                             commitChanges: false);
+
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 
                         using (Stream uploadStream = packageStream)
@@ -407,6 +412,8 @@ namespace NuGetGallery
                             Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
+
+                        TelemetryService.TrackPackagePushEvent(user, User.Identity);
 
                         return new HttpStatusCodeResult(HttpStatusCode.Created);
                     }

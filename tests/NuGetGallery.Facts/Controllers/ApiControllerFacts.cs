@@ -36,6 +36,7 @@ namespace NuGetGallery
         public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
         public Mock<IMessageService> MockMessageService { get; private set; }
         public Mock<IGalleryConfigurationService> MockConfigurationService { get; private set; }
+        public Mock<ITelemetryService> MockTelemetryService { get; private set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -64,6 +65,21 @@ namespace NuGetGallery
             ConfigurationService = MockConfigurationService.Object;
 
             AuditingService = new TestAuditingService();
+
+            MockTelemetryService = new Mock<ITelemetryService>();
+            TelemetryService = MockTelemetryService.Object;
+
+            MockPackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).
+                Returns((PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges) =>
+                {
+                    var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
+
+                    var package = new Package();
+                    package.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id };
+                    package.Version = packageMetadata.Version.ToString();
+
+                    return Task.FromResult(package);
+                });
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
@@ -423,7 +439,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillCreateAPackageFromTheNuGetPackage()
+            public async Task WillCreateAPackageFromTheNuGetPackage()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
@@ -432,14 +448,14 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
-                controller.CreatePackagePut();
+                await controller.CreatePackagePut();
 
                 controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
             [Fact]
-            public void WillCurateThePackage()
+            public async Task WillCurateThePackage()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
@@ -448,14 +464,14 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
-                controller.CreatePackagePut();
+                await controller.CreatePackagePut();
 
                 controller.MockAutoCuratePackage.Verify(x => x.ExecuteAsync(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
             [Fact]
-            public void WillCurateThePackageViaApi()
+            public async Task WillCurateThePackageViaApi()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
@@ -464,14 +480,14 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
-                controller.CreatePackagePost();
+                await controller.CreatePackagePost();
 
                 controller.MockAutoCuratePackage.Verify(x => x.ExecuteAsync(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
             [Fact]
-            public void WillCreateAPackageWithTheUserMatchingTheApiKey()
+            public async Task WillCreateAPackageWithTheUserMatchingTheApiKey()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
@@ -480,7 +496,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
-                controller.CreatePackagePut();
+                await controller.CreatePackagePut();
 
                 controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
                 controller.MockEntitiesContext.VerifyCommitted();
@@ -594,6 +610,21 @@ namespace NuGetGallery
                         HttpStatusCode.Unauthorized,
                         Strings.ApiKeyNotAuthorized);
                 }
+            }
+
+            [Fact]
+            public async Task WillSendPackagePushEvent()
+            {
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                await controller.CreatePackagePut();
+
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushEvent(user, controller.OwinContext.Request.User.Identity), Times.Once);
             }
         }
 

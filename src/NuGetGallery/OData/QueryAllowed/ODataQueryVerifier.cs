@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Web.Http.OData.Query;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery.OData.QueryFilter
 {
@@ -19,7 +18,9 @@ namespace NuGetGallery.OData.QueryFilter
         private static Lazy<ODataQueryFilter> _v1Packages =
             new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1packages.json"); }, isThreadSafe: true);
         private static Lazy<ODataQueryFilter> _v1Search =
-            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1search.json");}, isThreadSafe: true); 
+            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1search.json");}, isThreadSafe: true);
+
+        private static ITelemetryService _telemetryService = new TelemetryService();
 
         #region Filters for ODataV2FeedController
         /// <summary>
@@ -114,9 +115,6 @@ namespace NuGetGallery.OData.QueryFilter
                                                            bool isFeatureEnabled,
                                                            string telemetryContext)
         {
-            var telemetryProperties = new Dictionary<string, string>();
-            telemetryProperties.Add("CallContext", $"{telemetryContext}:{nameof(AreODataOptionsAllowed)}");
-            telemetryProperties.Add("IsEnabled", $"{isFeatureEnabled}");
             // If validation of the ODataQueryOptions fails, we will not reject the request.
             var isAllowed = true;
 
@@ -126,13 +124,20 @@ namespace NuGetGallery.OData.QueryFilter
             }
             catch (Exception ex)
             {
-                //log and do not throw
+                var telemetryProperties = new Dictionary<string, string>();
+                telemetryProperties.Add(TelemetryService.CallContext, $"{telemetryContext}:{nameof(AreODataOptionsAllowed)}");
+                telemetryProperties.Add(TelemetryService.IsEnabled, $"{isFeatureEnabled}");
+
+                // Log and do not throw
                 Telemetry.TrackException(ex, telemetryProperties);
             }
 
-            telemetryProperties.Add("IsAllowed", isAllowed.ToString());
-            telemetryProperties.Add("QueryPattern", ODataQueryFilter.ODataOptionsMap(odataOptions).ToString());
-            Telemetry.TrackEvent("ODataQueryFilter", telemetryProperties, metrics: null);
+            _telemetryService.TrackODataQueryFilterEvent(
+                callContext: $"{telemetryContext}:{nameof(AreODataOptionsAllowed)}",
+                isEnabled: isFeatureEnabled,
+                isAllowed: isAllowed,
+                queryPattern: ODataQueryFilter.ODataOptionsMap(odataOptions).ToString());
+
             return isFeatureEnabled ? isAllowed : true;
         }
 
