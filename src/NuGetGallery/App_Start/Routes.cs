@@ -289,7 +289,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 "v1" + RouteName.CreatePackageVerificationKey,
-                "api/v1/package/create-verification-key/{id}/{version}",
+                "api/v1/package/create-verification-key/{id}",
                 new
                 {
                     controller = "Api",

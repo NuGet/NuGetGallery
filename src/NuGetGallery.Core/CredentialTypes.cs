@@ -46,16 +46,27 @@ namespace NuGetGallery
         {
             return type.Equals(ApiKey.V2Verify, StringComparison.OrdinalIgnoreCase);
         }
-
+        
         internal static List<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2 };
 
         /// <summary>
-        /// Forward compatibility - we support only the below subset of credentials in this code version.
-        /// Any unrecognized credential will be ignored.
+        /// Determines whether a credential is supported (internal or from the UI). For forward compatibility,
+        /// this version supports only the credentials below and ignores any others.
         /// </summary>
         /// <param name="credential"></param>
         /// <returns></returns>
         public static bool IsSupportedCredential(Credential credential)
+        {
+            return IsViewSupportedCredential(credential) || IsPackageVerificationApiKey(credential.Type);
+        }
+
+        /// <summary>
+        /// Determines whether a credential is supported from the user interface. For forward compatibility,
+        /// this version supports only the credentials below and ignores any others.
+        /// </summary>
+        /// <param name="credential"></param>
+        /// <returns></returns>
+        public static bool IsViewSupportedCredential(Credential credential)
         {
             return SupportedCredentialTypes.Any(credType => string.Compare(credential.Type, credType, StringComparison.OrdinalIgnoreCase) == 0)
                     || credential.Type.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase);
