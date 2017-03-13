@@ -211,6 +211,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             foreach (var version in versions)
             {
                 var feedUrl = $"{UrlHelper.V2FeedRootUrl}/Packages?$filter=Id eq '{packageId}' and Version eq '{version}'" +
+                    "and 1 eq 1" + // Disable search hijacking to get immediate results.
                     "&$select=Id,Version,IsLatestVersion,IsAbsoluteLatestVersion";
                 var packageDetails = await _odataHelper.GetPackagePropertiesFromResponse(feedUrl, packageId, version);
                 Assert.NotNull(packageDetails);

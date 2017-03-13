@@ -43,17 +43,20 @@ namespace NuGetGallery.Helpers
             return text.Substring(0, length - 3) + "...";
         }
 
-        public static string TruncateAtWordBoundary(this string input, int length = 300, string ommission = "...", string moreText = "")
+        public static string TruncateAtWordBoundary(this string input, int length, string omission, out bool wasTruncated)
         {
+            wasTruncated = false;
             if (string.IsNullOrEmpty(input) || input.Length < length)
+            {
                 return input;
+            }
 
             int nextSpace = input.LastIndexOf(" ", length, StringComparison.Ordinal);
 
-            return string.Format(CultureInfo.CurrentCulture, "{2}{1}{0}",
-                                moreText,
-                                ommission,
-                                input.Substring(0, (nextSpace > 0) ? nextSpace : length).Trim());
+            wasTruncated = true;
+            return string.Format(CultureInfo.CurrentCulture, "{0}{1}",
+                                input.Substring(0, (nextSpace > 0) ? nextSpace : length).Trim(),
+                                omission);
         }
     }
 }
