@@ -66,20 +66,20 @@ namespace NuGetGallery
             IGalleryConfigurationService configurationService,
             ITelemetryService telemetryService)
         {
-            EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
-            PackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            PackageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
-            UserService = userService ?? throw new ArgumentNullException(nameof(userService));
-            NugetExeDownloaderService = nugetExeDownloaderService ?? throw new ArgumentNullException(nameof(nugetExeDownloaderService));
-            ContentService = contentService ?? throw new ArgumentNullException(nameof(contentService));
-            IndexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
-            SearchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
-            AutoCuratePackage = autoCuratePackage ?? throw new ArgumentNullException(nameof(autoCuratePackage));
-            StatusService = statusService ?? throw new ArgumentNullException(nameof(statusService));
-            MessageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
-            AuditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
-            ConfigurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
-            TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            EntitiesContext = entitiesContext;
+            PackageService = packageService;
+            PackageFileService = packageFileService;
+            UserService = userService;
+            NugetExeDownloaderService = nugetExeDownloaderService;
+            ContentService = contentService;
+            IndexingService = indexingService;
+            SearchService = searchService;
+            AutoCuratePackage = autoCuratePackage;
+            StatusService = statusService;
+            MessageService = messageService;
+            AuditingService = auditingService;
+            ConfigurationService = configurationService;
+            TelemetryService = telemetryService;
             StatisticsService = null;
         }
 
@@ -101,7 +101,7 @@ namespace NuGetGallery
             ITelemetryService telemetryService)
             : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService)
         {
-            StatisticsService = statisticsService ?? throw new ArgumentNullException(nameof(statisticsService));
+            StatisticsService = statisticsService;
         }
 
         [HttpGet]
