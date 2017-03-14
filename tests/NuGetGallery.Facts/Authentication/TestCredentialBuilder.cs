@@ -39,7 +39,7 @@ namespace NuGetGallery.Authentication
 
         public static Credential CreateV2VerificationApiKey(Guid apiKey)
         {
-            return CreateApiKey(CredentialTypes.ApiKey.V2Verify, apiKey.ToString(), TimeSpan.FromDays(1));
+            return CreateApiKey(CredentialTypes.ApiKey.VerifyV1, apiKey.ToString(), TimeSpan.FromDays(1));
         }
 
         public static Credential CreateExternalCredential(string value)

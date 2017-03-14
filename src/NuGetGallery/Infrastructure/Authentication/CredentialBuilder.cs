@@ -29,7 +29,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         public Credential CreatePackageVerificationApiKey(string id)
         {
             var credential = new Credential(
-               CredentialTypes.ApiKey.V2Verify,
+               CredentialTypes.ApiKey.VerifyV1,
                Guid.NewGuid().ToString().ToLowerInvariant(),
                expiration: TimeSpan.FromDays(1));
 

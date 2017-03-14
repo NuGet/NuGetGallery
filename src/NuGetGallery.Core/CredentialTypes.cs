@@ -22,7 +22,7 @@ namespace NuGetGallery
             public const string Prefix = "apikey.";
             public const string V1 = Prefix + "v1";
             public const string V2 = Prefix + "v2";
-            public const string V2Verify = Prefix + "verify.v2";
+            public const string VerifyV1 = Prefix + "verify.v1";
         }
 
         public const string ExternalPrefix = "external.";
@@ -44,7 +44,7 @@ namespace NuGetGallery
 
         public static bool IsPackageVerificationApiKey(string type)
         {
-            return type.Equals(ApiKey.V2Verify, StringComparison.OrdinalIgnoreCase);
+            return type.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase);
         }
         
         internal static List<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2 };

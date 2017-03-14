@@ -213,7 +213,7 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1)]
             [InlineData(CredentialTypes.ApiKey.V2)]
-            [InlineData(CredentialTypes.ApiKey.V2Verify)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential(string apiKeyType)
             {
                 // Arrange
@@ -233,7 +233,7 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1)]
             [InlineData(CredentialTypes.ApiKey.V2)]
-            [InlineData(CredentialTypes.ApiKey.V2Verify)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public async Task GivenMatchingApiKeyCredential_ItWritesCredentialLastUsed(string apiKeyType)
             {
                 // Arrange
@@ -281,7 +281,7 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1)]
             [InlineData(CredentialTypes.ApiKey.V2)]
-            [InlineData(CredentialTypes.ApiKey.V2Verify)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public async Task GivenExpiredMatchingApiKeyCredential_ItReturnsNull(string apiKeyType)
             {
                 // Arrange

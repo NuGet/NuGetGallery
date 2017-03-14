@@ -1033,7 +1033,7 @@ namespace NuGetGallery
 
                 // Act
                 Assert.Equal(1, user.Credentials.Count);
-                var jsonResult = await controller.CreatePackageVerificationKeyPostAsync("packageId") as JsonResult;
+                var jsonResult = await controller.CreatePackageVerificationKeyAsync("foo", "1.0.0") as JsonResult;
 
                 // Assert
                 dynamic json = jsonResult?.Data;
@@ -1044,11 +1044,13 @@ namespace NuGetGallery
 
                 DateTime expires;
                 Assert.True(DateTime.TryParse(json.Expires, out expires));
-
-                Assert.Equal("packageId", json.PackageScope);
-
+                
                 Assert.Equal(2, user.Credentials.Count);
-                Assert.Equal(CredentialTypes.ApiKey.V2Verify, user.Credentials.Last().Type);
+
+                var verifyCred = user.Credentials.Last();
+                Assert.Equal(CredentialTypes.ApiKey.VerifyV1, verifyCred.Type);
+                Assert.Equal(1, verifyCred.Scopes.Count);
+                Assert.Equal("foo", verifyCred.Scopes.First().Subject);
             }
         }
 
@@ -1056,7 +1058,7 @@ namespace NuGetGallery
         {
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V2, "")]
-            [InlineData(CredentialTypes.ApiKey.V2Verify, "$")]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, "foo")]
             public async void VerifyPackageKeyReturns404IfPackageDoesNotExist(string credentialType, string subject)
             {
                 // Arrange
@@ -1085,7 +1087,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V2, "")]
-            [InlineData(CredentialTypes.ApiKey.V2Verify, "foo")]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, "foo")]
             public async void VerifyPackageKeyReturns403IfUserIsNotAnOwner(string credentialType, string subject)
             {
                 // Arrange
@@ -1111,9 +1113,9 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V2, "bar", NuGetScopes.PackageVerify)]
-            [InlineData(CredentialTypes.ApiKey.V2Verify, "$", NuGetScopes.PackageVerify)]
-            [InlineData(CredentialTypes.ApiKey.V2Verify, "foo", NuGetScopes.PackagePush)]
-            [InlineData(CredentialTypes.ApiKey.V2Verify, "foo", NuGetScopes.PackagePushVersion)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, "notfoo", NuGetScopes.PackageVerify)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, "foo", NuGetScopes.PackagePush)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, "foo", NuGetScopes.PackagePushVersion)]
             public async void VerifyPackageKeyReturns403IfOwnerScopeDoesNotMatch(string credentialType, string subject, string allowedAction)
             {
                 // Arrange
@@ -1142,7 +1144,7 @@ namespace NuGetGallery
             [InlineData(CredentialTypes.ApiKey.V2, "", "")]
             [InlineData(CredentialTypes.ApiKey.V2, "foo", NuGetScopes.PackagePush)]
             [InlineData(CredentialTypes.ApiKey.V2, "foo", NuGetScopes.PackagePushVersion)]
-            [InlineData(CredentialTypes.ApiKey.V2Verify, "foo", NuGetScopes.PackageVerify)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, "foo", NuGetScopes.PackageVerify)]
             public async void VerifyPackageKeyReturns200IfUserIsAnOwner(string credentialType, string subject, string allowedAction)
             {
                 // Arrange

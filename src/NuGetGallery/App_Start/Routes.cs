@@ -289,11 +289,12 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 "v1" + RouteName.CreatePackageVerificationKey,
-                "api/v1/package/create-verification-key/{id}",
+                "api/v1/package/create-verification-key/{id}/{version}",
                 new
                 {
                     controller = "Api",
-                    action = "CreatePackageVerificationKey"
+                    action = "CreatePackageVerificationKey",
+                    version = UrlParameter.Optional
                 });
 
             var downloadRoute = routes.MapRoute(
