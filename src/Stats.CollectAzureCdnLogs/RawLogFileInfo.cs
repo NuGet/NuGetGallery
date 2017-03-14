@@ -9,7 +9,7 @@ using Stats.AzureCdnLogs.Common;
 
 namespace Stats.CollectAzureCdnLogs
 {
-    internal sealed class RawLogFileInfo
+    public sealed class RawLogFileInfo
     {
         private const string _underscore = "_";
         private const string _logFileNameDateFormat = "yyyyMMdd";
