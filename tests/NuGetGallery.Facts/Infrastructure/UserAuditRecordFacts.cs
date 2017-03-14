@@ -21,11 +21,11 @@ namespace NuGetGallery.Infrastructure
             var credentialBuilder = new CredentialBuilder();
             var credentials = new List<Credential> {
                     credentialBuilder.CreatePasswordCredential("v3"),
-                    TestCredentialBuilder.CreatePbkdf2Password("pbkdf2"),
-                    TestCredentialBuilder.CreateSha1Password("sha1"),
-                    TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
-                    TestCredentialBuilder.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
-                    TestCredentialBuilder.CreateV2VerificationApiKey(Guid.NewGuid()),
+                    TestCredentialHelper.CreatePbkdf2Password("pbkdf2"),
+                    TestCredentialHelper.CreateSha1Password("sha1"),
+                    TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialHelper.CreateV2VerificationApiKey(Guid.NewGuid()),
                     credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"),
                     new Credential { Type = "unsupported" }
             };

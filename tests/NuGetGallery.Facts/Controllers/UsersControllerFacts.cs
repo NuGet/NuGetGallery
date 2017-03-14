@@ -62,7 +62,7 @@ namespace NuGetGallery
                 var user = fakes.CreateUser(
                     "test",
                     credentialBuilder.CreatePasswordCredential("hunter2"),
-                    TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
                     credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -90,10 +90,10 @@ namespace NuGetGallery
                 var credentials = new List<Credential>
                 {
                     credentialBuilder.CreatePasswordCredential("v3"),
-                    TestCredentialBuilder.CreatePbkdf2Password("pbkdf2"),
-                    TestCredentialBuilder.CreateSha1Password("sha1"),
-                    TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
-                    TestCredentialBuilder.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialHelper.CreatePbkdf2Password("pbkdf2"),
+                    TestCredentialHelper.CreateSha1Password("sha1"),
+                    TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
                     credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"),
                     new Credential() { Type = "unsupported" }
                 };

@@ -22,7 +22,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
             return new Credential(
                CredentialTypes.ApiKey.V2,
-               Guid.NewGuid().ToString().ToLowerInvariant(),
+               CreateKeyString(),
                expiration: expiration);
         }
 
@@ -30,7 +30,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
             var credential = new Credential(
                CredentialTypes.ApiKey.VerifyV1,
-               Guid.NewGuid().ToString().ToLowerInvariant(),
+               CreateKeyString(),
                expiration: TimeSpan.FromDays(1));
 
             credential.Scopes.Add(new Scope(subject: id, allowedAction: NuGetScopes.PackageVerify));
@@ -44,6 +44,11 @@ namespace NuGetGallery.Infrastructure.Authentication
             {
                 Identity = identity
             };
+        }
+
+        private static string CreateKeyString()
+        {
+            return Guid.NewGuid().ToString().ToLowerInvariant();
         }
     }
 }

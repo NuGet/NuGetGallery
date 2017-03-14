@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Web.Helpers;
 using NuGetGallery.Services.Authentication;
 
@@ -11,7 +10,7 @@ namespace NuGetGallery.Authentication
     /// <summary>
     /// Builds all kinds of supported credentials for test purposes.
     /// </summary>
-    public class TestCredentialBuilder
+    public class TestCredentialHelper
     {
         public static Credential CreatePbkdf2Password(string plaintextPassword)
         {
@@ -47,7 +46,7 @@ namespace NuGetGallery.Authentication
             return new Credential { Type = CredentialTypes.ExternalPrefix + "MicrosoftAccount", Value = value };
         }
 
-        public static Credential CreateApiKey(string type, string apiKey = "ffffffff-0000-ffff-0000-ffffffffffff", TimeSpan? expiration = null)
+        internal static Credential CreateApiKey(string type, string apiKey, TimeSpan? expiration)
         {
             return new Credential(type, apiKey.ToLowerInvariant(), expiration: expiration);
         }

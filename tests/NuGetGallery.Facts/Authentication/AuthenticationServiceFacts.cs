@@ -192,7 +192,7 @@ namespace NuGetGallery.Authentication
             {
                 // Act
                 var result = await _authenticationService.Authenticate(
-                    TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1));
+                    TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1));
 
                 // Assert
                 Assert.Null(result);
@@ -202,7 +202,7 @@ namespace NuGetGallery.Authentication
             public async Task WritesAuditRecordWhenGivenInvalidApiKeyCredential()
             {
                 // Act
-                await _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.Zero));
+                await _authenticationService.Authenticate(TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.Zero));
 
                 // Assert
                 Assert.True(_authenticationService.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
@@ -270,7 +270,7 @@ namespace NuGetGallery.Authentication
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result = await _authenticationService.Authenticate(TestCredentialBuilder.CreateExternalCredential(cred.Value));
+                var result = await _authenticationService.Authenticate(TestCredentialHelper.CreateExternalCredential(cred.Value));
 
                 // Assert
                 Assert.NotNull(result);
@@ -343,16 +343,16 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange
                 var entities = Get<IEntitiesContext>();
-                var cred = TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1);
+                var cred = TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1);
                 cred.Key = 42;
                 var creds = entities.Set<Credential>();
                 creds.Add(cred);
-                creds.Add(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
+                creds.Add(TestCredentialHelper.CreateV1ApiKey(Guid.Parse(cred.Value), Fakes.ExpirationForApiKeyV1));
 
                 // Act
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                     await
-                        _authenticationService.Authenticate(TestCredentialBuilder.CreateV1ApiKey(Guid.Parse(cred.Value),
+                        _authenticationService.Authenticate(TestCredentialHelper.CreateV1ApiKey(Guid.Parse(cred.Value),
                             Fakes.ExpirationForApiKeyV1)));
 
                 // Assert
@@ -883,8 +883,8 @@ namespace NuGetGallery.Authentication
                 {
                     return new[]
                     {
-                        new object[] {new Func<string, Credential>(TestCredentialBuilder.CreateSha1Password)},
-                        new object[] {new Func<string, Credential>(TestCredentialBuilder.CreatePbkdf2Password)}
+                        new object[] {new Func<string, Credential>(TestCredentialHelper.CreateSha1Password)},
+                        new object[] {new Func<string, Credential>(TestCredentialHelper.CreatePbkdf2Password)}
                     };
                 }
             }
@@ -920,7 +920,7 @@ namespace NuGetGallery.Authentication
             public async Task WritesAuditRecordWhenReplacingPasswordCredential()
             {
                 // Arrange
-                var oldCred = TestCredentialBuilder.CreatePbkdf2Password("thePassword");
+                var oldCred = TestCredentialHelper.CreatePbkdf2Password("thePassword");
                 var user = new User
                 {
                     Username = "user",
@@ -1258,7 +1258,7 @@ namespace NuGetGallery.Authentication
                 var mockConfig = GetMock<IAppConfiguration>();
                 mockConfig.SetupGet(x => x.ExpirationInDaysForApiKeyV1).Returns(expirationForApiKeyV1);
 
-                var cred = TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1);
+                var cred = TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1);
                 cred.LastUsed = hasBeenUsedInLastDays
                     ? DateTime.UtcNow
                     : DateTime.UtcNow - TimeSpan.FromDays(expirationForApiKeyV1 + 1);
