@@ -3,46 +3,41 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Globalization;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public class PackageVersionsQuery : IPackageVersionsQuery
+    public class AutoCompleteDatabasePackageVersionsQuery
+        : AutoCompleteDatabaseQuery, IAutoCompletePackageVersionsQuery
     {
-        private const string SqlFormat = @"SELECT p.[Version]
-FROM Packages p
-	JOIN PackageRegistrations pr on pr.[Key] = p.PackageRegistrationKey
+        private const string _sqlFormat = @"SELECT p.[Version]
+FROM Packages p (NOLOCK)
+	JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
 WHERE pr.ID = {{0}}
 	{0}";
-
-        private readonly IEntitiesContext _entities;
-
-        public PackageVersionsQuery(IEntitiesContext entities)
+        
+        public AutoCompleteDatabasePackageVersionsQuery(IEntitiesContext entities)
+            : base(entities)
         {
-            _entities = entities;
         }
 
         public Task<IEnumerable<string>> Execute(
             string id,
             bool? includePrerelease = false)
         {
-            if (String.IsNullOrWhiteSpace(id))
+            if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
-
-            var dbContext = (DbContext)_entities;
-
-            var prereleaseFilter = String.Empty;
+            
+            var prereleaseFilter = string.Empty;
             if (!includePrerelease.HasValue || !includePrerelease.Value)
             {
                 prereleaseFilter = "AND p.IsPrerelease = 0";
             }
-            return Task.FromResult(dbContext.Database.SqlQuery<string>(
-                String.Format(CultureInfo.InvariantCulture, SqlFormat, prereleaseFilter), id).AsEnumerable());
+            
+            return RunQuery(string.Format(CultureInfo.InvariantCulture, _sqlFormat, prereleaseFilter), id);
         }
     }
 }

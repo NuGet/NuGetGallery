@@ -3,26 +3,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Search.Client;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
-    public class AutocompleteServicePackageVersionsQuery : IPackageVersionsQuery
+    public class AutoCompleteServicePackageVersionsQuery
+        : AutoCompleteServiceQuery, IAutoCompletePackageVersionsQuery
     {
-        private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
-        private readonly string _autocompleteServiceResourceType;
-        private readonly RetryingHttpClientWrapper _httpClient;
-
-        public AutocompleteServicePackageVersionsQuery(IAppConfiguration configuration)
+        public AutoCompleteServicePackageVersionsQuery(IAppConfiguration configuration)
+            : base(configuration)
         {
-            _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
-            _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
-            _httpClient = new RetryingHttpClientWrapper(new HttpClient());
         }
 
         public async Task<IEnumerable<string>> Execute(
@@ -34,23 +25,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(id));
             }
 
-            var queryString = "id=" + Uri.EscapeUriString(id);
-            if (!includePrerelease.HasValue)
-            {
-                queryString += "&prerelease=false";
-            }
-            else
-            {
-                queryString += "&prerelease=" + includePrerelease.Value;
-            }
-
-            var endpoints = await _serviceDiscoveryClient.GetEndpointsForResourceType(_autocompleteServiceResourceType);
-            endpoints = endpoints.Select(e => new Uri(e + "?" + queryString)).AsEnumerable();
-
-            var result = await _httpClient.GetStringAsync(endpoints);
-            var resultObject = JObject.Parse(result);
-
-            return resultObject["data"].Select(entry => entry.ToString());
+            return await RunQuery("id=" + Uri.EscapeUriString(id), includePrerelease);
         }
     }
 }

@@ -566,7 +566,7 @@ namespace NuGetGallery
         [ActionName("PackageIDs")]
         public virtual async Task<ActionResult> GetPackageIds(string partialId, bool? includePrerelease)
         {
-            var query = GetService<IPackageIdsQuery>();
+            var query = GetService<IAutoCompletePackageIdsQuery>();
             return new JsonResult
             {
                 Data = (await query.Execute(partialId, includePrerelease)).ToArray(),
@@ -578,7 +578,7 @@ namespace NuGetGallery
         [ActionName("PackageVersions")]
         public virtual async Task<ActionResult> GetPackageVersions(string id, bool? includePrerelease)
         {
-            var query = GetService<IPackageVersionsQuery>();
+            var query = GetService<IAutoCompletePackageVersionsQuery>();
             return new JsonResult
             {
                 Data = (await query.Execute(id, includePrerelease)).ToArray(),

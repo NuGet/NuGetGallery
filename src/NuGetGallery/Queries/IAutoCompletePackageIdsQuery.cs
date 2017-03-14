@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public interface IPackageVersionsQuery
+    public interface IAutoCompletePackageIdsQuery
     {
         Task<IEnumerable<string>> Execute(
-            string id,
+            string partialId,
             bool? includePrerelease = false);
     }
 }

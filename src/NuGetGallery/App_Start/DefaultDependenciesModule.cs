@@ -333,26 +333,26 @@ namespace NuGetGallery
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
             {
-                builder.RegisterType<AutocompleteServicePackageIdsQuery>()
+                builder.RegisterType<AutoCompleteServicePackageIdsQuery>()
                     .AsSelf()
-                    .As<IPackageIdsQuery>()
+                    .As<IAutoCompletePackageIdsQuery>()
                     .SingleInstance();
 
-                builder.RegisterType<AutocompleteServicePackageVersionsQuery>()
+                builder.RegisterType<AutoCompleteServicePackageVersionsQuery>()
                     .AsSelf()
-                    .As<IPackageVersionsQuery>()
+                    .As<IAutoCompletePackageVersionsQuery>()
                     .InstancePerLifetimeScope();
             }
             else
             {
-                builder.RegisterType<PackageIdsQuery>()
+                builder.RegisterType<AutoCompleteDatabasePackageIdsQuery>()
                     .AsSelf()
-                    .As<IPackageIdsQuery>()
+                    .As<IAutoCompletePackageIdsQuery>()
                     .InstancePerLifetimeScope();
 
-                builder.RegisterType<PackageVersionsQuery>()
+                builder.RegisterType<AutoCompleteDatabasePackageVersionsQuery>()
                     .AsSelf()
-                    .As<IPackageVersionsQuery>()
+                    .As<IAutoCompletePackageVersionsQuery>()
                     .InstancePerLifetimeScope();
             }
         }

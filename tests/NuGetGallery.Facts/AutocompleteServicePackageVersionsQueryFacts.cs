@@ -23,16 +23,15 @@ namespace NuGetGallery
         [Fact]
         public async Task ExecuteThrowsForEmptyId()
         {
-            var query = new AutocompleteServicePackageVersionsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration());
             await Assert.ThrowsAsync<ArgumentNullException>(async () => await query.Execute("", false));
         }
 
         [Fact]
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
-            var query = new AutocompleteServicePackageVersionsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration());
             var result = await query.Execute("newtonsoft.json", false);
-            Assert.NotEmpty(result);
             Assert.True(result.Any());
         }
     }
