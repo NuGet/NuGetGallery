@@ -253,7 +253,7 @@
                              @item.ExpandLink("More Info", "Less Info")
                              @if (loginCredentials > 1)
                              {
-                                 using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type }, FormMethod.Post, new { @class = "form-inline" }))
+                                 using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }, FormMethod.Post, new { @class = "form-inline" }))
                                  {
                                      <fieldset class="form">
                                          <legend>Remove @cred.TypeCaption Credential</legend>

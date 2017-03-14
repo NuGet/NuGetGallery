@@ -715,6 +715,26 @@ namespace NuGetGallery
                 Assert.Equal(apiKey.Description, credentialViewModel.Description);
                 Assert.Equal(apiKey.Expires, credentialViewModel.Expires);
             }
+
+            [Fact]
+            public async Task SendsNotificationMailToUser()
+            {
+                var user = new User { Username = "the-username" };
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var result = await controller.GenerateApiKey(
+                    description: "description",
+                    scopes: new[] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
+                    subjects: new[] { "a" },
+                    expirationInDays: 90);
+
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+
+                GetMock<IMessageService>()
+                    .Verify(m => m.SendCredentialAddedNotice(user, apiKey));
+            }
         }
 
         public class TheChangeEmailAction : TestContainer
@@ -1200,6 +1220,36 @@ namespace NuGetGallery
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 GetMock<AuthenticationService>().VerifyAll();
                 GetMock<IMessageService>().VerifyAll();
+            }
+
+            [Fact]
+            public async Task GivenValidRequest_CanDeleteMicrosoftAccountWithMultipleMicrosoftAccounts()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var creds = new Credential[5];
+                for (int i = 0; i < creds.Length; i++) {
+                    creds[i] = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog" + i);
+                    creds[i].Key = i + 1;
+                }
+
+                var user = fakes.CreateUser("test", creds);
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+                Assert.Equal(creds.Length, user.Credentials.Count);
+
+                for (int i = 0; i < creds.Length - 1; i++)
+                {
+                    // Act
+                    var result = await controller.RemoveCredential(
+                        credentialType: creds[i].Type,
+                        credentialKey: creds[i].Key);
+
+                    // Assert
+                    ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                    Assert.Equal(Strings.CredentialRemoved, controller.TempData["Message"]);
+                    Assert.Equal(creds.Length - i - 1, user.Credentials.Count);
+                }
             }
         }
 

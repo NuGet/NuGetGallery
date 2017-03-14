@@ -11,6 +11,7 @@ using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
@@ -100,6 +101,7 @@ namespace NuGetGallery
             Mock<IEntityRepository<Package>> packageRepository = null,
             Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Mock<IEntitiesContext> entitiesContext = null,
+            Mock<IAppConfiguration> configuration = null,
             Mock<IDiagnosticsService> diagnosticsService = null,
             Mock<IIndexingService> indexingService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
@@ -111,6 +113,7 @@ namespace NuGetGallery
                 packageRepository,
                 packageOwnerRequestRepo,
                 entitiesContext,
+                configuration,
                 diagnosticsService,
                 indexingService,
                 packageNamingConflictValidator,
@@ -123,6 +126,7 @@ namespace NuGetGallery
             Mock<IEntityRepository<Package>> packageRepository = null,
             Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Mock<IEntitiesContext> entitiesContext = null,
+            Mock<IAppConfiguration> configuration = null,
             Mock<IDiagnosticsService> diagnosticsService = null,
             Mock<IIndexingService> indexingService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
@@ -137,6 +141,8 @@ namespace NuGetGallery
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
             entitiesContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
             entitiesContext.Setup(m => m.GetChangeTracker()).Returns(dbContext.Object.ChangeTracker);
+
+            configuration = configuration ?? new Mock<IAppConfiguration>();
 
             diagnosticsService = diagnosticsService ?? new Mock<IDiagnosticsService>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
@@ -154,6 +160,7 @@ namespace NuGetGallery
                 packageRepository.Object,
                 packageOwnerRequestRepo.Object,
                 entitiesContext.Object,
+                configuration.Object,
                 diagnosticsService.Object,
                 indexingService.Object,
                 packageNamingConflictValidator,
