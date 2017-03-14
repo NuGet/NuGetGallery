@@ -29,7 +29,7 @@ namespace NuGetGallery
             telemetryProperties.Add(CallContext, callContext);
             telemetryProperties.Add(IsEnabled, $"{isEnabled}");
 
-            telemetryProperties.Add(IsAllowed, isAllowed.ToString());
+            telemetryProperties.Add(IsAllowed, $"{isAllowed}");
             telemetryProperties.Add(QueryPattern, queryPattern);
 
             Telemetry.TrackEvent(ODataQueryFilter, telemetryProperties, metrics: null);
@@ -47,8 +47,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            bool isScoped;
-            string authenticationMethod = identity.GetAuthenticationType(out isScoped);
+            string authenticationMethod = identity.GetAuthenticationType();
+            bool isScoped = identity.IsScopedAuthentication();
 
             var telemetryProperties = new Dictionary<string, string>();
             telemetryProperties.Add(AuthenticatinMethod, authenticationMethod);

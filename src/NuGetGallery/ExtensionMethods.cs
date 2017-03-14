@@ -382,22 +382,25 @@ namespace NuGetGallery
             return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject, requestedActions);
         }
 
-        public static string GetAuthenticationType(this IIdentity self, out bool isScoped)
+        public static string GetAuthenticationType(this IIdentity self)
         {
-            isScoped = false;
+            var identity = self as ClaimsIdentity;
 
+            return identity?.GetClaimOrDefault(ClaimTypes.AuthenticationMethod);
+        }
+
+        public static bool IsScopedAuthentication(this IIdentity self)
+        {
             var identity = self as ClaimsIdentity;
 
             if (identity == null)
             {
-                return null;
+                return false;
             }
 
-            var authenticationMethodClaim = identity.GetClaimOrDefault(ClaimTypes.AuthenticationMethod);
             var scopeClaim = identity.GetClaimOrDefault(NuGetClaims.Scope);
 
-            isScoped = !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim);
-            return authenticationMethodClaim;
+            return !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim);
         }
 
         // This is a method because the first call will perform a database call
