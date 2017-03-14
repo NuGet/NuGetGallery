@@ -44,7 +44,8 @@ namespace NuGetGallery
             Mock<ICacheService> cacheService = null,
             Mock<IPackageDeleteService> packageDeleteService = null,
             Mock<ISupportRequestService> supportRequestService = null,
-            IAuditingService auditingService = null)
+            IAuditingService auditingService = null,
+            Mock<ITelemetryService> telemetryService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -79,6 +80,8 @@ namespace NuGetGallery
 
             auditingService = auditingService ?? new TestAuditingService();
 
+            telemetryService = telemetryService ?? new Mock<ITelemetryService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -93,7 +96,8 @@ namespace NuGetGallery
                 editPackageService.Object,
                 packageDeleteService.Object,
                 supportRequestService.Object,
-                auditingService);
+                auditingService,
+                telemetryService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -1844,6 +1848,38 @@ namespace NuGetGallery
                         ar.Action == AuditedPackageAction.Create
                         && ar.Id == fakePackage.PackageRegistration.Id
                         && ar.Version == fakePackage.Version));
+                }
+            }
+
+            [Fact]
+            public async Task WillSendPackagePublishedEvent()
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.CompletedTask);
+                    var fakePackageService = new Mock<IPackageService>();
+                    var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
+                    fakePackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                        .Returns(Task.FromResult(fakePackage));
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                    var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                    var controller = CreateController(
+                        packageService: fakePackageService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        telemetryService: fakeTelemetryService);
+
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    // Act
+                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = null });
+
+                    // Assert
+                    fakeTelemetryService.Verify(x => x.TrackPackagePushEvent(TestUtility.FakeUser, controller.OwinContext.Request.User.Identity), Times.Once);
                 }
             }
         }

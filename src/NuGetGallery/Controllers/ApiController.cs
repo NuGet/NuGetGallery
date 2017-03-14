@@ -43,6 +43,7 @@ namespace NuGetGallery
         public IMessageService MessageService { get; set; }
         public IAuditingService AuditingService { get; set; }
         public IGalleryConfigurationService ConfigurationService { get; set; }
+        public ITelemetryService TelemetryService { get; set; }
 
         protected ApiController()
         {
@@ -62,7 +63,8 @@ namespace NuGetGallery
             IStatusService statusService,
             IMessageService messageService,
             IAuditingService auditingService,
-            IGalleryConfigurationService configurationService)
+            IGalleryConfigurationService configurationService,
+            ITelemetryService telemetryService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -70,7 +72,6 @@ namespace NuGetGallery
             UserService = userService;
             NugetExeDownloaderService = nugetExeDownloaderService;
             ContentService = contentService;
-            StatisticsService = null;
             IndexingService = indexingService;
             SearchService = searchService;
             AutoCuratePackage = autoCuratePackage;
@@ -78,6 +79,8 @@ namespace NuGetGallery
             MessageService = messageService;
             AuditingService = auditingService;
             ConfigurationService = configurationService;
+            TelemetryService = telemetryService;
+            StatisticsService = null;
         }
 
         public ApiController(
@@ -94,8 +97,9 @@ namespace NuGetGallery
             IStatisticsService statisticsService,
             IMessageService messageService,
             IAuditingService auditingService,
-            IGalleryConfigurationService configurationService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService)
+            IGalleryConfigurationService configurationService,
+            ITelemetryService telemetryService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService)
         {
             StatisticsService = statisticsService;
         }
@@ -364,6 +368,7 @@ namespace NuGetGallery
                             packageStreamMetadata,
                             user,
                             commitChanges: false);
+
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 
                         using (Stream uploadStream = packageStream)
@@ -407,6 +412,8 @@ namespace NuGetGallery
                             Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
+
+                        TelemetryService.TrackPackagePushEvent(user, User.Identity);
 
                         return new HttpStatusCodeResult(HttpStatusCode.Created);
                     }

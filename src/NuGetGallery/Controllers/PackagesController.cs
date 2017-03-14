@@ -52,6 +52,7 @@ namespace NuGetGallery
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IAuditingService _auditingService;
+        private readonly ITelemetryService _telemetryService;
 
         public PackagesController(
             IPackageService packageService,
@@ -67,7 +68,8 @@ namespace NuGetGallery
             EditPackageService editPackageService,
             IPackageDeleteService packageDeleteService,
             ISupportRequestService supportRequestService,
-            IAuditingService auditingService)
+            IAuditingService auditingService,
+            ITelemetryService telemetryService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -83,6 +85,7 @@ namespace NuGetGallery
             _packageDeleteService = packageDeleteService;
             _supportRequestService = supportRequestService;
             _auditingService = auditingService;
+            _telemetryService = telemetryService;
         }
 
         [HttpGet]
@@ -1220,6 +1223,8 @@ namespace NuGetGallery
 
             // delete the uploaded binary in the Uploads container
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+
+            _telemetryService.TrackPackagePushEvent(currentUser, User.Identity);
 
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);

@@ -21,7 +21,7 @@ namespace NuGetGallery.Authentication
             string subject,
             string[] requestedActions)
         {
-            if (string.IsNullOrEmpty(scopeClaim) || scopeClaim == "[]")
+            if (IsEmptyScopeClaim(scopeClaim))
             {
                 // Legacy API key, allow access...
                 return true;
@@ -46,6 +46,11 @@ namespace NuGetGallery.Authentication
             }
 
             return false;
+        }
+
+        public static bool IsEmptyScopeClaim(string scopeClaim)
+        {
+            return string.IsNullOrEmpty(scopeClaim) || scopeClaim == "[]";
         }
     }
 }
