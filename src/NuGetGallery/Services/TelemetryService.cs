@@ -18,7 +18,7 @@ namespace NuGetGallery
 
         // Package push
         public const string PackagePush = "PackagePush";
-        public const string AuthenticatinMethod = "AuthenticatinMethod";
+        public const string AuthenticatinMethod = "AuthenticationMethod";
         public const string AccountCreationDate = "AccountCreationDate";
         public const string IsScoped = "IsScoped";
 
