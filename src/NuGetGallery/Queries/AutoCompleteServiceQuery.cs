@@ -20,6 +20,11 @@ namespace NuGetGallery
 
         public AutoCompleteServiceQuery(IAppConfiguration configuration)
         {
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
             _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
             _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
             _httpClient = new RetryingHttpClientWrapper(new HttpClient());
