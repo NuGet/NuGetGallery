@@ -1122,7 +1122,10 @@ namespace NuGetGallery
                 var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
 
                 // Assert
-                ResultAssert.IsEmpty(result);
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.Forbidden,
+                    Strings.ApiKeyNotAuthorized);
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
             }
@@ -1143,7 +1146,10 @@ namespace NuGetGallery
                 var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
 
                 // Assert
-                ResultAssert.IsEmpty(result);
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.Forbidden,
+                    Strings.ApiKeyNotAuthorized);
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
             }
