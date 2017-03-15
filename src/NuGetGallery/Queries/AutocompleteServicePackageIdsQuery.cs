@@ -1,0 +1,28 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using NuGetGallery.Configuration;
+
+namespace NuGetGallery
+{
+    public class AutoCompleteServicePackageIdsQuery 
+        : AutoCompleteServiceQuery, IAutoCompletePackageIdsQuery
+    {
+        public AutoCompleteServicePackageIdsQuery(IAppConfiguration configuration)
+            : base(configuration)
+        {
+        }
+
+        public async Task<IEnumerable<string>> Execute(
+            string partialId, 
+            bool? includePrerelease)
+        {
+            partialId = partialId ?? string.Empty;
+
+            return await RunQuery("take=30&q=" + Uri.EscapeUriString(partialId), includePrerelease);
+        }
+    }
+}

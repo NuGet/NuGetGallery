@@ -23,27 +23,24 @@ namespace NuGetGallery
         [Fact]
         public async Task ExecuteReturns30ResultsForEmptyQuery()
         {
-            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
             var result = await query.Execute("", false);
-            Assert.NotEmpty(result);
             Assert.True(result.Count() == 30);
         }
 
         [Fact]
         public async Task ExecuteReturns30ResultsForNullQuery()
         {
-            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
             var result = await query.Execute(null, false);
-            Assert.NotEmpty(result);
             Assert.True(result.Count() == 30);
         }
 
         [Fact]
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
-            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
             var result = await query.Execute("jquery", false);
-            Assert.NotEmpty(result);
             Assert.Contains("jquery", result, StringComparer.OrdinalIgnoreCase);
         }
     }
