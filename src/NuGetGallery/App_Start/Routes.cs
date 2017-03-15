@@ -284,7 +284,16 @@ namespace NuGetGallery
                 {
                     controller = "Api",
                     action = "VerifyPackageKey",
-                    id = UrlParameter.Optional,
+                    version = UrlParameter.Optional
+                });
+
+            routes.MapRoute(
+                "v1" + RouteName.CreatePackageVerificationKey,
+                "api/v1/package/create-verification-key/{id}/{version}",
+                new
+                {
+                    controller = "Api",
+                    action = "CreatePackageVerificationKey",
                     version = UrlParameter.Optional
                 });
 
@@ -379,7 +388,16 @@ namespace NuGetGallery
                 {
                     controller = "Api",
                     action = "VerifyPackageKey",
-                    id = UrlParameter.Optional,
+                    version = UrlParameter.Optional
+                });
+
+            routes.MapRoute(
+                "v2" + RouteName.CreatePackageVerificationKey,
+                "api/v2/package/create-verification-key/{id}/{version}",
+                new
+                {
+                    controller = "Api",
+                    action = "CreatePackageVerificationKey",
                     version = UrlParameter.Optional
                 });
 

@@ -10,7 +10,7 @@ namespace NuGetGallery.Authentication
     /// <summary>
     /// Builds all kinds of supported credentials for test purposes.
     /// </summary>
-    public class TestCredentialBuilder
+    public class TestCredentialHelper
     {
         public static Credential CreatePbkdf2Password(string plaintextPassword)
         {
@@ -34,6 +34,11 @@ namespace NuGetGallery.Authentication
         public static Credential CreateV2ApiKey(Guid apiKey, TimeSpan? expiration)
         {
             return CreateApiKey(CredentialTypes.ApiKey.V2, apiKey.ToString(), expiration);
+        }
+
+        public static Credential CreateV2VerificationApiKey(Guid apiKey)
+        {
+            return CreateApiKey(CredentialTypes.ApiKey.VerifyV1, apiKey.ToString(), TimeSpan.FromDays(1));
         }
 
         public static Credential CreateExternalCredential(string value)

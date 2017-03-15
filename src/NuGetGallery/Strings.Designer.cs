@@ -771,6 +771,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Verify package ownership.
+        /// </summary>
+        public static string ScopeDescription_VerifyPackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_VerifyPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via SSL..
         /// </summary>
         public static string SSLRequired {
@@ -947,6 +956,15 @@ namespace NuGetGallery {
         public static string UserNotFound {
             get {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to API &apos;{0}&apos; is deprecated and may be removed in a future version..
+        /// </summary>
+        public static string WarningApiDeprecated {
+            get {
+                return ResourceManager.GetString("WarningApiDeprecated", resourceCulture);
             }
         }
         

@@ -21,10 +21,11 @@ namespace NuGetGallery.Infrastructure
             var credentialBuilder = new CredentialBuilder();
             var credentials = new List<Credential> {
                     credentialBuilder.CreatePasswordCredential("v3"),
-                    TestCredentialBuilder.CreatePbkdf2Password("pbkdf2"),
-                    TestCredentialBuilder.CreateSha1Password("sha1"),
-                    TestCredentialBuilder.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
-                    TestCredentialBuilder.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialHelper.CreatePbkdf2Password("pbkdf2"),
+                    TestCredentialHelper.CreateSha1Password("sha1"),
+                    TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
+                    TestCredentialHelper.CreateV2VerificationApiKey(Guid.NewGuid()),
                     credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"),
                     new Credential { Type = "unsupported" }
             };
@@ -40,13 +41,14 @@ namespace NuGetGallery.Infrastructure
 
             // Assert
             var auditRecords = userAuditRecord.Credentials.ToDictionary(c => c.Type);
-            Assert.Equal(6, auditRecords.Count);
+            Assert.Equal(7, auditRecords.Count);
             Assert.True(auditRecords.ContainsKey(credentials[0].Type));
             Assert.True(auditRecords.ContainsKey(credentials[1].Type));
             Assert.True(auditRecords.ContainsKey(credentials[2].Type));
             Assert.True(auditRecords.ContainsKey(credentials[3].Type));
             Assert.True(auditRecords.ContainsKey(credentials[4].Type));
             Assert.True(auditRecords.ContainsKey(credentials[5].Type));
+            Assert.True(auditRecords.ContainsKey(credentials[6].Type));
         }
     }
 }

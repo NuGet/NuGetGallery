@@ -434,4 +434,10 @@ The {1} Team</value>
   <data name="NonScopedApiKeyDescription" xml:space="preserve">
     <value>Full access API key</value>
   </data>
+  <data name="ScopeDescription_VerifyPackage" xml:space="preserve">
+    <value>Verify package ownership</value>
+  </data>
+  <data name="WarningApiDeprecated" xml:space="preserve">
+    <value>API '{0}' is deprecated and may be removed in a future version.</value>
+  </data>
 </root>

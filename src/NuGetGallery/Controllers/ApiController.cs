@@ -9,6 +9,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
@@ -21,6 +22,7 @@ using NuGetGallery.Auditing.AuditedEntities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
+using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
 
@@ -44,6 +46,8 @@ namespace NuGetGallery
         public IAuditingService AuditingService { get; set; }
         public IGalleryConfigurationService ConfigurationService { get; set; }
         public ITelemetryService TelemetryService { get; set; }
+        public AuthenticationService AuthenticationService { get; set; }
+        public ICredentialBuilder CredentialBuilder { get; set; }
 
         protected ApiController()
         {
@@ -64,7 +68,9 @@ namespace NuGetGallery
             IMessageService messageService,
             IAuditingService auditingService,
             IGalleryConfigurationService configurationService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            AuthenticationService authenticationService,
+            ICredentialBuilder credentialBuilder)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -80,6 +86,8 @@ namespace NuGetGallery
             AuditingService = auditingService;
             ConfigurationService = configurationService;
             TelemetryService = telemetryService;
+            AuthenticationService = authenticationService;
+            CredentialBuilder = credentialBuilder;
             StatisticsService = null;
         }
 
@@ -98,8 +106,10 @@ namespace NuGetGallery
             IMessageService messageService,
             IAuditingService auditingService,
             IGalleryConfigurationService configurationService,
-            ITelemetryService telemetryService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService)
+            ITelemetryService telemetryService,
+            AuthenticationService authenticationService,
+            ICredentialBuilder credentialBuilder)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService, authenticationService, credentialBuilder)
         {
             StatisticsService = statisticsService;
         }
@@ -188,24 +198,84 @@ namespace NuGetGallery
             return await StatusService.GetStatus();
         }
 
+        private Credential GetCurrentCredential(User user)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            var apiKey = identity.GetClaimOrDefault(NuGetClaims.ApiKey);
+
+            return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
+        }
+
+        [HttpPost]
+        [RequireSsl]
+        [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [ActionName("CreatePackageVerificationKey")]
+        public async virtual Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
+        {
+            // For backwards compatibility, we must preserve existing behavior where the client always pushes
+            // symbols and the VerifyPackageKey callback returns the appropriate response. For this reason, we
+            // always create a temp key scoped to the unverified package ID here and defer package and owner
+            // validation until the VerifyPackageKey call.
+            var credential = CredentialBuilder.CreatePackageVerificationApiKey(id);
+
+            await AuthenticationService.AddCredential(GetCurrentUser(), credential);
+
+            return Json(new
+            {
+                Key = credential.Value,
+                Expires = credential.Expires.Value.ToString("O")
+            });
+        }
+
         [HttpGet]
         [RequireSsl]
         [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackageVerify, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("VerifyPackageKey")]
-        public virtual ActionResult VerifyPackageKey(string id, string version)
+        public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
-            if (!String.IsNullOrEmpty(id))
-            {
-                // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
-                var package = PackageService.FindPackageByIdAndVersion(id, version);
-                if (package == null)
-                {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-                }
+            var user = GetCurrentUser();
+            var credential = GetCurrentCredential(user);
 
-                var user = GetCurrentUser();
-                if (!package.IsOwner(user))
+            var result = VerifyPackageKeyInternal(user, credential, id, version);
+
+            // Expire and delete verification key after first use to avoid growing the database tables.
+            if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
+            {
+                await AuthenticationService.RemoveCredential(user, credential);
+            }
+
+            return result;
+        }
+
+        private ActionResult VerifyPackageKeyInternal(User user, Credential credential, string id, string version)
+        {
+            // Verify that the user has permission to push for the specific Id \ version combination.
+            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+            }
+            
+            if (!package.IsOwner(user))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
+            
+            if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
+            {
+                // Secure path: verify that verification key matches package scope.
+                if (!ApiKeyScopeAllows(id, NuGetScopes.PackageVerify))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                }
+            }
+            else
+            {
+                // Insecure path: verify that API key is legacy or matches package scope.
+                if (!ApiKeyScopeAllows(id, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
