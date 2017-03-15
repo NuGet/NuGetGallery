@@ -58,7 +58,7 @@ namespace NuGet.Services.BasicSearch
 
         public async Task WriteResponseAsync(IOwinContext context, Exception e, FrameworkLogger logger)
         {
-            logger.LogError("Internal server error", e);
+            logger.LogError("Internal server error: {0}", e);
 
             await WriteResponseAsync(context, HttpStatusCode.InternalServerError, JObject.FromObject(new
             {

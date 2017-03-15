@@ -22,7 +22,7 @@ Function Run-Tests {
     
     Trace-Log 'Running tests'
     
-    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
+    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console.2.1.0\tools\xunit.console.exe")
     
     $TestAssemblies = "tests\NgTests\bin\$Configuration\NgTests.dll", "tests\NuGet.IndexingTests\bin\$Configuration\NuGet.IndexingTests.dll", "tests\NuGet.Services.BasicSearchTests\bin\$Configuration\NuGet.Services.BasicSearchTests.dll"
     

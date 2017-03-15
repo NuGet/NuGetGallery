@@ -93,8 +93,10 @@
     <Compile Include="Constants.cs" />
     <Compile Include="EnvironmentSettings.cs" />
     <Compile Include="Models\LastCommitMetadata.cs" />
+    <Compile Include="Models\PackageVersion.cs" />
     <Compile Include="Models\SearchDiagResult.cs" />
     <Compile Include="Models\RegistrationCursor.cs" />
+    <Compile Include="Models\SearchResultEntry.cs" />
     <Compile Include="Models\ServiceEndpoint.cs" />
     <Compile Include="Models\ServiceEndpointsList.cs" />
     <Compile Include="TestSupport\RetryHandler.cs" />

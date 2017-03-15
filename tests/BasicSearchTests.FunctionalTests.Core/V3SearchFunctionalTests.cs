@@ -34,8 +34,26 @@ namespace BasicSearchTests.FunctionalTests.Core
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.True(result.TotalHits.HasValue && result.TotalHits.Value > 0, "No results found, should find atleast some results for empty string query.");
+            Assert.True(result.TotalHits.HasValue && result.TotalHits.Value > 0, "No results found, should find at least some results for empty string query.");
             Assert.NotNull(result.Data);
+        }
+
+        [Fact]
+        public async Task EmptyQueryResultHasDownloads()
+        {
+            // Act
+            var response = await Client.GetAsync(new V3SearchBuilder().RequestUri);
+            var result = await response.Content.ReadAsAsync<V3SearchResult>();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.True(result.TotalHits.HasValue && result.TotalHits.Value > 0, "No results found, should find at least some results for empty string query.");
+            Assert.NotNull(result.Data);
+
+            var topResult = result.Data[0];
+
+            var downloads = topResult.TotalDownloads;
+            Assert.True(downloads > 0);
         }
     }
 }
