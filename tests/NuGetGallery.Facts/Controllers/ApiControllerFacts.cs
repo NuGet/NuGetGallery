@@ -631,7 +631,7 @@ namespace NuGetGallery
 
                 await controller.CreatePackagePut();
 
-                controller.MockTelemetryService.Verify(x => x.TrackPackagePushEvent(user, controller.OwinContext.Request.User.Identity), Times.Once);
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushEvent(It.IsAny<Package>(), user, controller.OwinContext.Request.User.Identity), Times.Once);
             }
         }
 
@@ -1059,6 +1059,9 @@ namespace NuGetGallery
                 Assert.True(DateTime.TryParse(json.Expires, out expires));
 
                 controller.MockAuthenticationService.Verify(s => s.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
+                
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolsPushEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity), Times.Once);
             }
         }
 
@@ -1083,6 +1086,9 @@ namespace NuGetGallery
                     String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, "foo", "1.0.0"));
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolsPushCallbackEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 404), Times.Once);
             }
 
             [Theory]
@@ -1102,6 +1108,9 @@ namespace NuGetGallery
                     String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, "foo", "1.0.0"));
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
+
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolsPushCallbackEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 404), Times.Once);
             }
 
             [Theory]
@@ -1128,6 +1137,9 @@ namespace NuGetGallery
                     Strings.ApiKeyNotAuthorized);
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+                
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolsPushCallbackEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
             }
 
             [Theory]
@@ -1152,6 +1164,9 @@ namespace NuGetGallery
                     Strings.ApiKeyNotAuthorized);
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
+
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolsPushCallbackEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
             }
 
             [Theory]
@@ -1181,6 +1196,9 @@ namespace NuGetGallery
                     Strings.ApiKeyNotAuthorized);
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolsPushCallbackEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
             }
 
             [Theory]
@@ -1210,6 +1228,9 @@ namespace NuGetGallery
                     Strings.ApiKeyNotAuthorized);
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
+
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolsPushCallbackEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
             }
 
             [Theory]
@@ -1233,6 +1254,9 @@ namespace NuGetGallery
                 ResultAssert.IsEmpty(result);
                 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolsPushCallbackEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 200), Times.Once);
             }
 
             [Theory]
@@ -1254,6 +1278,9 @@ namespace NuGetGallery
                 ResultAssert.IsEmpty(result);
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
+
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolsPushCallbackEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 200), Times.Once);
             }
         }
 

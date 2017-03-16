@@ -219,7 +219,10 @@ namespace NuGetGallery
             // validation until the VerifyPackageKey call.
             var credential = CredentialBuilder.CreatePackageVerificationApiKey(id);
 
-            await AuthenticationService.AddCredential(GetCurrentUser(), credential);
+            var user = GetCurrentUser();
+            await AuthenticationService.AddCredential(user, credential);
+
+            TelemetryService.TrackSymbolsPushEvent(id, version, user, User.Identity);
 
             return Json(new
             {
@@ -245,11 +248,13 @@ namespace NuGetGallery
             {
                 await AuthenticationService.RemoveCredential(user, credential);
             }
+            
+            TelemetryService.TrackSymbolsPushCallbackEvent(id, version, user, User.Identity, result?.StatusCode ?? 200);
 
-            return result;
+            return (ActionResult)result ?? new EmptyResult();
         }
 
-        private ActionResult VerifyPackageKeyInternal(User user, Credential credential, string id, string version)
+        private HttpStatusCodeWithBodyResult VerifyPackageKeyInternal(User user, Credential credential, string id, string version)
         {
             // Verify that the user has permission to push for the specific Id \ version combination.
             var package = PackageService.FindPackageByIdAndVersion(id, version);
@@ -281,7 +286,7 @@ namespace NuGetGallery
                 }
             }
 
-            return new EmptyResult();
+            return null;
         }
 
         [HttpPut]
@@ -483,7 +488,7 @@ namespace NuGetGallery
                             Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
                             Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
 
-                        TelemetryService.TrackPackagePushEvent(user, User.Identity);
+                        TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
 
                         return new HttpStatusCodeResult(HttpStatusCode.Created);
                     }
