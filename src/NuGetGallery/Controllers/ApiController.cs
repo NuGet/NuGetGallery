@@ -222,7 +222,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             await AuthenticationService.AddCredential(user, credential);
 
-            TelemetryService.TrackSymbolsPushEvent(id, version, user, User.Identity);
+            TelemetryService.TrackCreatePackageVerificationKeyEvent(id, version, user, User.Identity);
 
             return Json(new
             {
@@ -249,7 +249,7 @@ namespace NuGetGallery
                 await AuthenticationService.RemoveCredential(user, credential);
             }
             
-            TelemetryService.TrackSymbolsPushCallbackEvent(id, version, user, User.Identity, result?.StatusCode ?? 200);
+            TelemetryService.TrackVerifyPackageKeyEvent(id, version, user, User.Identity, result?.StatusCode ?? 200);
 
             return (ActionResult)result ?? new EmptyResult();
         }

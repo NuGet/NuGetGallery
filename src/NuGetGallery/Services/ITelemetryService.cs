@@ -11,8 +11,8 @@ namespace NuGetGallery
 
         void TrackPackagePushEvent(Package package, User user, IIdentity identity);
 
-        void TrackSymbolsPushEvent(string packageId, string packageVersion, User user, IIdentity identity);
+        void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity);
 
-        void TrackSymbolsPushCallbackEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode);
+        void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode);
     }
 }
