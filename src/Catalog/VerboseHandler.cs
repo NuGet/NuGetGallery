@@ -13,10 +13,14 @@ namespace NuGet.Services.Metadata.Catalog
         public VerboseHandler() : base(new HttpClientHandler()) { }
         public VerboseHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            Trace.TraceInformation("HTTP {0} {1}", request.Method, request.RequestUri);
-            return base.SendAsync(request, cancellationToken);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
+            sw.Stop();
+            Trace.TraceInformation("HTTP {0}_{1}_{2}", request.Method, request.RequestUri, sw.ElapsedMilliseconds);
+            return response;
         }
     }
 }
