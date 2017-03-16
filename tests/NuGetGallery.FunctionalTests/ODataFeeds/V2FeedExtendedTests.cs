@@ -7,8 +7,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -341,6 +341,76 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 // We add angle brackets to prevent false failures due to duplicate package names in the page.
                 var condition = responseText.IndexOf(">" + packageName[i - 1] + "<", StringComparison.Ordinal) < responseText.IndexOf(">" + packageName[i] + "<", StringComparison.Ordinal);
                 Assert.True(condition, "Expected string " + packageName[i - 1] + " to come before " + packageName[i] + ".  Expected list is: " + packageName[0] + ", " + packageName[1] + ", " + packageName[2] + ", " + packageName[3] + ", " + packageName[4] + ", " + packageName[5] + ", " + packageName[6] + ", " + packageName[7] + ", " + packageName[8] + ", " + packageName[9]);
+            }
+        }
+
+        [Fact]
+        [Description("Verify that package verification succeeds for both temp and default API keys.")]
+        [Priority(1)]
+        [Category("P1Tests")]
+        public async Task VerifyPackageKeySupportsFullAndTempApiKeys()
+        {
+            var packageId = $"VerifyPackageKeySupportsFullAndTempApiKeys.{DateTime.UtcNow.Ticks}";
+            var packageVersion = "1.0.0";
+
+            // Verify NotFound before package push.
+            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion));
+
+            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+
+            // Verify support for full API key without deletion, and that version is optional.
+            Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId));
+            Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion));
+
+            // Verify support for verification API key with deletion.
+            var verificationKey = await CreateVerificationKey(packageId, packageVersion);
+
+            Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(verificationKey, packageId, packageVersion));
+            Assert.Equal(HttpStatusCode.Forbidden, await VerifyPackageKey(verificationKey, packageId, packageVersion));
+        }
+
+        private async Task<string> CreateVerificationKey(string packageId, string packageVersion)
+        {
+            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + $"package/create-verification-key/{packageId}/{packageVersion}");
+            request.Method = "POST";
+            request.ContentLength = 0;
+            request.Headers.Add("X-NuGet-ApiKey", EnvironmentSettings.TestAccountApiKey);
+            request.Headers.Add("X-NuGet-Client-Version", "NuGetGallery.FunctionalTests");
+
+            var response = await request.GetResponseAsync() as HttpWebResponse;
+            Assert.NotNull(response);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            
+            string responseText;
+            using (var sr = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = await sr.ReadToEndAsync();
+            }
+
+            var json = JObject.Parse(responseText);
+            var expiration = json.Value<DateTime>("Expires");
+            Assert.True(DateTime.UtcNow - expiration < TimeSpan.FromMinutes(5));
+
+            return json.Value<string>("Key");
+        }
+
+        private async Task<HttpStatusCode> VerifyPackageKey(string apiKey, string packageId, string packageVersion = null)
+        {
+            var route = string.IsNullOrWhiteSpace(packageVersion) ?
+                $"verifykey/{packageId}" :
+                $"verifykey/{packageId}/{packageVersion}";
+
+            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + route);
+            request.Headers.Add("X-NuGet-ApiKey", apiKey);
+            
+            try
+            {
+                var response = await request.GetResponseAsync() as HttpWebResponse;
+                return response.StatusCode;
+            }
+            catch (WebException e)
+            {
+                return ((HttpWebResponse)e.Response).StatusCode;
             }
         }
     }
