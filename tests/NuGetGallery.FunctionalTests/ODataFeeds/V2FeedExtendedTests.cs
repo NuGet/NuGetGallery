@@ -345,24 +345,40 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Fact]
-        [Description("Verify that package verification succeeds for both temp and default API keys.")]
+        [Description("VerifyPackageKey fails if package isn't found.")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task VerifyPackageKeySupportsFullAndTempApiKeys()
+        public async Task VerifyPackageKeyReturns404ForMissingPackage()
         {
-            var packageId = $"VerifyPackageKeySupportsFullAndTempApiKeys.{DateTime.UtcNow.Ticks}";
+            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, "VerifyPackageKeyReturns404ForMissingPackage", "1.0.0"));
+        }
+
+        [Fact]
+        [Description("VerifyPackageKey succeeds for full API key without deletion.")]
+        [Priority(1)]
+        [Category("P1Tests")]
+        public async Task VerifyPackageKeyReturns200ForFullApiKey()
+        {
+            var packageId = $"VerifyPackageKeyReturns200ForFullApiKey.{DateTimeOffset.UtcNow.Ticks}";
             var packageVersion = "1.0.0";
 
-            // Verify NotFound before package push.
-            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion));
-
             await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
-
-            // Verify support for full API key without deletion, and that version is optional.
+            
             Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId));
             Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion));
+        }
 
-            // Verify support for verification API key with deletion.
+        [Fact]
+        [Description("VerifyPackageKey succeeds for temp API key with deletion.")]
+        [Priority(1)]
+        [Category("P1Tests")]
+        public async Task VerifyPackageKeyReturns200ForTempApiKey()
+        {
+            var packageId = $"VerifyPackageKeySupportsFullAndTempApiKeys.{DateTimeOffset.UtcNow.Ticks}";
+            var packageVersion = "1.0.0";
+
+            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+            
             var verificationKey = await CreateVerificationKey(packageId, packageVersion);
 
             Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(verificationKey, packageId, packageVersion));
