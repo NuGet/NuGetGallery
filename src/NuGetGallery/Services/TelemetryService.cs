@@ -31,7 +31,7 @@ namespace NuGetGallery
         public const string PackageVersion = "PackageVersion";
 
         // Verify package properties
-        public const string HasVerifyScope = "HasVerifyScope";
+        public const string IsVerificationKeyUsed = "IsVerificationKeyUsed";
         public const string VerifyPackageKeyStatusCode = "VerifyPackageKeyStatusCode";
 
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)
@@ -110,7 +110,7 @@ namespace NuGetGallery
             {
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
-                properties.Add(HasVerifyScope, identity.HasVerifyScope().ToString());
+                properties.Add(IsVerificationKeyUsed, identity.HasVerifyScope().ToString());
                 properties.Add(VerifyPackageKeyStatusCode, statusCode.ToString());
             });
         }

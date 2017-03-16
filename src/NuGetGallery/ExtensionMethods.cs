@@ -407,8 +407,8 @@ namespace NuGetGallery
         {
             var scopeClaim = self.GetScopeClaim();
 
-            return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, null,
-                new [] { NuGetScopes.PackageVerify });
+            return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject: null,
+                requestedActions: new [] { NuGetScopes.PackageVerify });
         }
 
         // This is a method because the first call will perform a database call
