@@ -4,38 +4,76 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
+using System.Web;
 
 namespace NuGetGallery
 {
     public class TelemetryService : ITelemetryService
     {
-        // ODataQueryFilter
-        public const string ODataQueryFilter = "ODataQueryFilter";
+        // Event types
+        public const string ODataQueryFilterEvent = "ODataQueryFilter";
+        public const string PackagePushEvent = "PackagePush";
+        public const string CreatePackageVerificationKeyEvent = "CreatePackageVerificationKeyEvent";
+        public const string VerifyPackageKeyEvent = "VerifyPackageKeyEvent";
+
+        // ODataQueryFilter properties
         public const string CallContext = "CallContext";
         public const string IsEnabled = "IsEnabled";
         public const string IsAllowed = "IsAllowed";
         public const string QueryPattern = "QueryPattern";
 
-        // Package push
-        public const string PackagePush = "PackagePush";
-        public const string AuthenticatinMethod = "AuthenticationMethod";
+        // Package push properties
+        public const string AuthenticationMethod = "AuthenticationMethod";
         public const string AccountCreationDate = "AccountCreationDate";
+        public const string ClientVersion = "ClientVersion";
         public const string IsScoped = "IsScoped";
+        public const string PackageId = "PackageId";
+        public const string PackageVersion = "PackageVersion";
+
+        // Verify package properties
+        public const string IsVerificationKeyUsed = "IsVerificationKeyUsed";
+        public const string VerifyPackageKeyStatusCode = "VerifyPackageKeyStatusCode";
 
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)
         {
-            var telemetryProperties = new Dictionary<string, string>();
+            TrackEvent(ODataQueryFilterEvent, properties =>
+            {
+                properties.Add(CallContext, callContext);
+                properties.Add(IsEnabled, $"{isEnabled}");
 
-            telemetryProperties.Add(CallContext, callContext);
-            telemetryProperties.Add(IsEnabled, $"{isEnabled}");
-
-            telemetryProperties.Add(IsAllowed, $"{isAllowed}");
-            telemetryProperties.Add(QueryPattern, queryPattern);
-
-            Telemetry.TrackEvent(ODataQueryFilter, telemetryProperties, metrics: null);
+                properties.Add(IsAllowed, $"{isAllowed}");
+                properties.Add(QueryPattern, queryPattern);
+            });
         }
 
-        public void TrackPackagePushEvent(User user, IIdentity identity)
+        public void TrackPackagePushEvent(Package package, User user, IIdentity identity)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (identity == null)
+            {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            TrackEvent(PackagePushEvent, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(PackageId, package.PackageRegistration.Id);
+                properties.Add(PackageVersion, package.Version);
+                properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
+                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
+            });
+        }
+
+        public void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity)
         {
             if (user == null)
             {
@@ -47,15 +85,53 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            string authenticationMethod = identity.GetAuthenticationType();
-            bool isScoped = identity.IsScopedAuthentication();
+            TrackEvent(CreatePackageVerificationKeyEvent, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
+            });
+        }
 
+        public void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (identity == null)
+            {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            TrackEvent(VerifyPackageKeyEvent, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(IsVerificationKeyUsed, identity.HasVerifyScope().ToString());
+                properties.Add(VerifyPackageKeyStatusCode, statusCode.ToString());
+            });
+        }
+
+        private static string GetClientVersion()
+        {
+            return HttpContext.Current?.Request?.Headers[Constants.ClientVersionHeaderName];
+        }
+
+        private static string GetAccountCreationDate(User user)
+        {
+            return user.CreatedUtc != null ? user.CreatedUtc.Value.ToString("d") : "N/A";
+        }
+
+        private static void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)
+        {
             var telemetryProperties = new Dictionary<string, string>();
-            telemetryProperties.Add(AuthenticatinMethod, authenticationMethod);
-            telemetryProperties.Add(AccountCreationDate, user.CreatedUtc != null ? user.CreatedUtc.Value.ToString("d") : "N/A");
-            telemetryProperties.Add(IsScoped, isScoped.ToString());
 
-            Telemetry.TrackEvent(PackagePush, telemetryProperties, metrics: null);
+            addProperties(telemetryProperties);
+
+            Telemetry.TrackEvent(eventName, telemetryProperties, metrics: null);
         }
     }
 }

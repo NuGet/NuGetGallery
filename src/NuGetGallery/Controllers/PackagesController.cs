@@ -1224,7 +1224,7 @@ namespace NuGetGallery
             // delete the uploaded binary in the Uploads container
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
-            _telemetryService.TrackPackagePushEvent(currentUser, User.Identity);
+            _telemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
 
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);

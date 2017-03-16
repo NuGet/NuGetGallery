@@ -389,18 +389,26 @@ namespace NuGetGallery
             return identity?.GetClaimOrDefault(ClaimTypes.AuthenticationMethod);
         }
 
-        public static bool IsScopedAuthentication(this IIdentity self)
+        private static string GetScopeClaim(this IIdentity self)
         {
             var identity = self as ClaimsIdentity;
 
-            if (identity == null)
-            {
-                return false;
-            }
+            return identity?.GetClaimOrDefault(NuGetClaims.Scope);
+        }
 
-            var scopeClaim = identity.GetClaimOrDefault(NuGetClaims.Scope);
+        public static bool IsScopedAuthentication(this IIdentity self)
+        {
+            var scopeClaim = self.GetScopeClaim();
 
             return !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim);
+        }
+
+        public static bool HasVerifyScope(this IIdentity self)
+        {
+            var scopeClaim = self.GetScopeClaim();
+
+            return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject: null,
+                requestedActions: new [] { NuGetScopes.PackageVerify });
         }
 
         // This is a method because the first call will perform a database call

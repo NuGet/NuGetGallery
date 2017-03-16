@@ -9,6 +9,10 @@ namespace NuGetGallery
     {
         void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern);
 
-        void TrackPackagePushEvent(User user, IIdentity identity);
+        void TrackPackagePushEvent(Package package, User user, IIdentity identity);
+
+        void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity);
+
+        void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode);
     }
 }

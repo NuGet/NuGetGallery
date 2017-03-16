@@ -1879,7 +1879,7 @@ namespace NuGetGallery
                     await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = null });
 
                     // Assert
-                    fakeTelemetryService.Verify(x => x.TrackPackagePushEvent(TestUtility.FakeUser, controller.OwinContext.Request.User.Identity), Times.Once);
+                    fakeTelemetryService.Verify(x => x.TrackPackagePushEvent(It.IsAny<Package>(), TestUtility.FakeUser, controller.OwinContext.Request.User.Identity), Times.Once);
                 }
             }
         }
