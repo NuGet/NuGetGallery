@@ -7,8 +7,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -341,6 +341,92 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 // We add angle brackets to prevent false failures due to duplicate package names in the page.
                 var condition = responseText.IndexOf(">" + packageName[i - 1] + "<", StringComparison.Ordinal) < responseText.IndexOf(">" + packageName[i] + "<", StringComparison.Ordinal);
                 Assert.True(condition, "Expected string " + packageName[i - 1] + " to come before " + packageName[i] + ".  Expected list is: " + packageName[0] + ", " + packageName[1] + ", " + packageName[2] + ", " + packageName[3] + ", " + packageName[4] + ", " + packageName[5] + ", " + packageName[6] + ", " + packageName[7] + ", " + packageName[8] + ", " + packageName[9]);
+            }
+        }
+
+        [Fact]
+        [Description("VerifyPackageKey fails if package isn't found.")]
+        [Priority(1)]
+        [Category("P1Tests")]
+        public async Task VerifyPackageKeyReturns404ForMissingPackage()
+        {
+            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, "VerifyPackageKeyReturns404ForMissingPackage", "1.0.0"));
+        }
+
+        [Fact]
+        [Description("VerifyPackageKey succeeds for full API key without deletion.")]
+        [Priority(1)]
+        [Category("P1Tests")]
+        public async Task VerifyPackageKeyReturns200ForFullApiKey()
+        {
+            var packageId = $"VerifyPackageKeyReturns200ForFullApiKey.{DateTimeOffset.UtcNow.Ticks}";
+            var packageVersion = "1.0.0";
+
+            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+            
+            Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId));
+            Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion));
+        }
+
+        [Fact]
+        [Description("VerifyPackageKey succeeds for temp API key with deletion.")]
+        [Priority(1)]
+        [Category("P1Tests")]
+        public async Task VerifyPackageKeyReturns200ForTempApiKey()
+        {
+            var packageId = $"VerifyPackageKeySupportsFullAndTempApiKeys.{DateTimeOffset.UtcNow.Ticks}";
+            var packageVersion = "1.0.0";
+
+            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+            
+            var verificationKey = await CreateVerificationKey(packageId, packageVersion);
+
+            Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(verificationKey, packageId, packageVersion));
+            Assert.Equal(HttpStatusCode.Forbidden, await VerifyPackageKey(verificationKey, packageId, packageVersion));
+        }
+
+        private async Task<string> CreateVerificationKey(string packageId, string packageVersion)
+        {
+            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + $"package/create-verification-key/{packageId}/{packageVersion}");
+            request.Method = "POST";
+            request.ContentLength = 0;
+            request.Headers.Add("X-NuGet-ApiKey", EnvironmentSettings.TestAccountApiKey);
+            request.Headers.Add("X-NuGet-Client-Version", "NuGetGallery.FunctionalTests");
+
+            var response = await request.GetResponseAsync() as HttpWebResponse;
+            Assert.NotNull(response);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            
+            string responseText;
+            using (var sr = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = await sr.ReadToEndAsync();
+            }
+
+            var json = JObject.Parse(responseText);
+            var expiration = json.Value<DateTime>("Expires");
+            Assert.True(expiration - DateTime.UtcNow < TimeSpan.FromDays(1), "Verification keys should expire after 1 day.");
+
+            return json.Value<string>("Key");
+        }
+
+        private async Task<HttpStatusCode> VerifyPackageKey(string apiKey, string packageId, string packageVersion = null)
+        {
+            var route = string.IsNullOrWhiteSpace(packageVersion) ?
+                $"verifykey/{packageId}" :
+                $"verifykey/{packageId}/{packageVersion}";
+
+            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + route);
+            request.Headers.Add("X-NuGet-ApiKey", apiKey);
+            
+            try
+            {
+                var response = await request.GetResponseAsync() as HttpWebResponse;
+                return response.StatusCode;
+            }
+            catch (WebException e)
+            {
+                return ((HttpWebResponse)e.Response).StatusCode;
             }
         }
     }
