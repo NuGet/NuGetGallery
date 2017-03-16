@@ -181,45 +181,57 @@ Function Build-Solution {
     }
 }
 
-Function Update-Submodules {
+Function Invoke-Git {
     [CmdletBinding()]
-    param(
-        [string]$SubmodulePath,
-        [string]$Branch,
-        [string]$SubmoduleBranch
+    Param(
+        [string[]] $Arguments
     )
-    Trace-Log 'Updating and initializing submodules from remote'
+
     # We are invoking git through cmd here because otherwise the redirection does not process until after git has completed, leaving errors in the stream.
-    
-    $opts = 'submodule', 'foreach', 'git', 'reset', '--hard'
-    Trace-Log "git $opts"
-    & cmd /c "git $opts 2>&1"
-    
-    if ($SubmodulePath) {
-        $BranchToUse = $SubmoduleBranch
-        if (-not $SubmoduleBranch) {
-            # If no submodule branch is specified, use master.
-            if ($Branch -eq 'dev') {
-                # If we are on dev, use dev.
-                $BranchToUse = 'dev'
-            } else {
-                $BranchToUse = 'master'
-            }
-        }
-        Trace-Log "Using branch $BranchToUse for submodule at $SubmodulePath"
-        $opts = 'config', '-f', "$NuGetClientRoot\.gitmodules", "submodule.$SubmodulePath.branch", "$BranchToUse"
-        Trace-Log "git $opts"
-        & cmd /c "git $opts 2>&1"
-    } else {
-        Trace-Log "No submodule path specified! Using pre-existing submodule configuration."
+    Trace-Log "git $Arguments"
+    & cmd /c "git $Arguments 2>&1"
+}
+
+Function Reset-Submodules {
+    Trace-Log 'Resetting submodules'
+    $args = 'submodule', 'foreach', 'git', 'reset', '--hard'
+
+    Invoke-Git -Arguments $args
+}
+
+Function Update-Submodule {
+    [CmdletBinding()]
+    Param(
+        [string] $Name,
+        [string] $Path,
+        [string] $Branch,
+        [string] $RemoteUrl
+    )
+
+    Trace-Log "Configuring submodule $Name ($Path) to use branch $Branch."
+    $args = 'config', '-f', "$NuGetClientRoot\.gitmodules", "submodule.$Path.branch", "$Branch"
+
+    Invoke-Git -Arguments $args
+
+    If ($RemoteUrl) {
+        Trace-Log "Configuring submodule $Name ($Path) to use URL $RemoteUrl."
+        $args = 'config', '-f', "$NuGetClientRoot\.gitmodules", "submodule.$Path.url", "$RemoteUrl"
+
+        Invoke-Git -Arguments $args
+
+        Trace-Log "Synchronizing remote URL configuration for submodule $Name ($Path) to the value specified in $NuGetClientRoot\.gitmodules."
+        $args = 'submodule', 'sync', '--', "$Path"
+
+        Invoke-Git -Arguments $args
     }
-    
-    $opts = 'submodule', 'update', '--init', '--remote'
+
+    Trace-Log "Updating submodule $Name ($Path)."
+    $args = 'submodule', 'update', '--init', '--remote', '--', "$Path"
     if (-not $VerbosePreference) {
-        $opts += '--quiet'
+        $args += '--quiet'
     }
-    Trace-Log "git $opts"
-    & cmd /c "git $opts 2>&1"
+
+    Invoke-Git -Arguments $args
 }
 
 # Downloads NuGet.exe and VSTS Credential provider if missing
