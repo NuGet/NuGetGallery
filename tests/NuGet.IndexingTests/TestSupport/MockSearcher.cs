@@ -15,8 +15,8 @@ namespace NuGet.IndexingTests.TestSupport
 
     public class MockSearcher : NuGetIndexSearcher
     {
-        public MockSearcher(string indexName, int numDocs, Dictionary<string, string> commitUserData, VersionResult[] versions = null)
-            : base(manager: InitNuGetSearcherManager(indexName),
+        public MockSearcher(string indexName, int numDocs, Dictionary<string, string> commitUserData, VersionResult[] versions = null, DateTime? reloadTime = null, Dictionary<string, DateTime?> lastModifiedTimeForAuxFiles = null, string machineName = "TestMachine")
+            : base(manager: InitNuGetSearcherManager(indexName, reloadTime, lastModifiedTimeForAuxFiles, machineName),
                   reader: MockObjectFactory.CreateMockIndexReader(numDocs).Object,
                   commitUserData: commitUserData,
                   curatedFeeds: new Dictionary<string, Filter>(),
@@ -32,7 +32,7 @@ namespace NuGet.IndexingTests.TestSupport
             MockObjectFactory.MockPrefix = Constants.MockBase;
         }
 
-        private static NuGetSearcherManager InitNuGetSearcherManager(string indexName)
+        private static NuGetSearcherManager InitNuGetSearcherManager(string indexName, DateTime? reloadTime, Dictionary<string, DateTime?> lastModifiedTimeForAuxFiles, string machineName)
         {
             var mockSearcherManager = new Mock<NuGetSearcherManager>(new Mock<ILogger>().Object, null, null,
                 int.MaxValue, int.MaxValue)
@@ -40,8 +40,16 @@ namespace NuGet.IndexingTests.TestSupport
                 CallBase = true
             };
 
+            var time = reloadTime.HasValue ? reloadTime.Value : DateTime.UtcNow;
+            var mockAuxiliaryFiles = new Mock<AuxiliaryFiles>(null);
+            mockAuxiliaryFiles.Setup(y => y.LastModifiedTimeForFiles).Returns(lastModifiedTimeForAuxFiles);
+
             mockSearcherManager.Setup(x => x.IndexName).Returns(indexName);
             mockSearcherManager.Object.RegistrationBaseAddress[Constants.SchemeName] = new Uri(Constants.BaseUri);
+            mockSearcherManager.Setup(x => x.LastIndexReloadTime).Returns(time);
+            mockSearcherManager.Setup(x => x.LastAuxiliaryDataLoadTime).Returns(time);
+            mockSearcherManager.Setup(x => x.MachineName).Returns(machineName);
+            mockSearcherManager.Setup(x => x.AuxiliaryFiles).Returns(mockAuxiliaryFiles.Object);
 
             return mockSearcherManager.Object;
         }

@@ -38,8 +38,15 @@ namespace Ng.Jobs
                 }
 
                 Logger.LogInformation("Running job.");
-                await RunInternal(cancellationToken);
-                Logger.LogInformation("Job finished!");
+                try
+                {
+                    await RunInternal(cancellationToken);
+                    Logger.LogInformation("Job finished!");
+                }
+                catch (TransientException te)
+                {
+                    Logger.LogWarning("Job execution ended due to a transient exception. Exception: {1}, inner exception: {2}.", te, te.InnerException);
+                }
                 Logger.LogInformation("Waiting {Interval} seconds before starting job again.", intervalSec);
                 await Task.Delay(intervalSec * 1000, cancellationToken);
             } while (true);

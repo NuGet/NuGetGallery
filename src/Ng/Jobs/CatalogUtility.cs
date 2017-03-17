@@ -79,9 +79,17 @@ namespace Ng.Jobs
             var result = new SortedList<DateTime, IList<PackageDetails>>();
 
             XElement feed;
-            using (var stream = await client.GetStreamAsync(uri))
+            try
             {
-                feed = XElement.Load(stream);
+                using (var stream = await client.GetStreamAsync(uri))
+                {
+                    feed = XElement.Load(stream);
+                }
+            }
+            catch (TaskCanceledException tce)
+            {
+                // If the HTTP request timed out, a TaskCanceledException will be thrown.
+                throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(CatalogUtility.GetPackages)}.", tce);
             }
 
             XNamespace atom = "http://www.w3.org/2005/Atom";
@@ -171,7 +179,16 @@ namespace Ng.Jobs
                     // This query string will ensure the package is not cached
                     // (e.g. on the CDN) and returns the "latest and greatest" package metadata.
                     var packageUri = Utilities.GetNugetCacheBustingUri(packageItem.ContentUri, entry.Key.ToString("O"));
-                    var response = await client.GetAsync(packageUri, cancellationToken);
+                    HttpResponseMessage response = null;
+                    try
+                    {
+                        response = await client.GetAsync(packageUri, cancellationToken);
+                    }
+                    catch (TaskCanceledException tce)
+                    {
+                        // If the HTTP request timed out, a TaskCanceledException will be thrown.
+                        throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(CatalogUtility.DownloadMetadata2Catalog)}.", tce);
+                    }
 
                     if (response.IsSuccessStatusCode)
                     {

@@ -22,10 +22,18 @@ namespace NuGet.Indexing
             _folder = folder.Trim('\\') + '\\';
         }
 
-        public JsonReader GetReader(string name)
+        public JsonReader GetReader(string fileName)
         {
-            string fullName = _folder == null ? name : _folder + name;
+            string fullName = _folder == null ? fileName : Path.Combine(_folder, fileName);
             return new JsonTextReader(new StreamReader(fullName));
+        }
+
+        public DateTime? GetLastUpdateTime(string fileName)
+        {
+            string fullName = _folder == null ? fileName : Path.Combine(_folder, fileName);
+            return File.Exists(fullName)
+                ? File.GetLastWriteTimeUtc(fullName)
+                : (DateTime?)null;
         }
 
         public bool Reload(IndexingConfiguration config)

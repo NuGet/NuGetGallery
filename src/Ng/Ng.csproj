@@ -332,6 +332,7 @@
     <Compile Include="SearchIndexFromCatalogCollector.cs" />
     <Compile Include="SecondaryStorageBaseUrlRewriter.cs" />
     <Compile Include="StorageAccessHandler.cs" />
+    <Compile Include="TransientException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

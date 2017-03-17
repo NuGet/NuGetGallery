@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Newtonsoft.Json;
-using System.Threading.Tasks;
 
 namespace NuGet.Indexing
 {
@@ -16,5 +16,7 @@ namespace NuGet.Indexing
         /// <param name="config">Configuration to use.</param>
         /// <returns>Returns true if the data has changed.</returns>
         bool Reload(IndexingConfiguration config);
+
+        DateTime? GetLastUpdateTime(string name);
     }
 }

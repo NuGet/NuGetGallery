@@ -59,13 +59,16 @@ namespace NuGet.IndexingTests
 
         [Theory]
         [MemberData(nameof(StatsResultData))]
-        public void WriteStatsResultTest(
+        [MemberData(nameof(DiagAuxiliaryData))]
+        public void WriteDiagStatsResultTest(
             string indexName,
             int numDocs,
             Dictionary<string, string> commitUserData,
+            Dictionary<string, DateTime?> auxFileData,
             string expected)
         {
-            var searcher = new MockSearcher(indexName, numDocs, commitUserData);
+            var currentTime = DateTime.UtcNow;
+            var searcher = new MockSearcher(indexName, numDocs, commitUserData, versions: null, reloadTime: currentTime, lastModifiedTimeForAuxFiles: auxFileData, machineName: "TestMachineX");
 
             var sb = new StringBuilder();
             var sw = new StringWriter(sb);
@@ -73,8 +76,15 @@ namespace NuGet.IndexingTests
             using (var writer = new JsonTextWriter(sw))
             {
                 ResponseFormatter.WriteStatsResult(writer, searcher);
+                var expectedResult = string.Format(
+                    expected,
+                    searcher.Manager.MachineName.ToString(),
+                    searcher.LastReopen.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'FFFFFFFK"),
+                    searcher.Manager.LastIndexReloadTime.Value.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'FFFFFFFK"),
+                    searcher.Manager.LastAuxiliaryDataLoadTime.Value.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'FFFFFFFK")
+                );
 
-                Assert.Equal(string.Format(expected, searcher.LastReopen.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'FFFFFFFK")), sb.ToString());
+                Assert.Equal(expectedResult, sb.ToString());
             }
         }
 
@@ -264,7 +274,8 @@ namespace NuGet.IndexingTests
                         { "user1", "value1" },
                         { "user2", "value2" }
                     },
-                    "{{\"numDocs\":100,\"indexName\":\"mockIndexName\",\"lastReopen\":\"{0}\",\"CommitUserData\":{{\"user1\":\"value1\",\"user2\":\"value2\"}}}}"
+                    null,
+                    "{{\"numDocs\":100,\"indexName\":\"mockIndexName\",\"machineName\":\"{0}\",\"lastReopen\":\"{1}\",\"lastIndexReloadTime\":\"{2}\",\"lastIndexReloadDurationInMilliseconds\":-1,\"lastAuxiliaryDataLoadTime\":\"{3}\",\"lastAuxiliaryDataUpdateTime\":{{}},\"CommitUserData\":{{\"user1\":\"value1\",\"user2\":\"value2\"}}}}"
                 };
 
                 // no userData
@@ -273,7 +284,53 @@ namespace NuGet.IndexingTests
                     "mockNoUser",
                     10,
                     new Dictionary<string, string> {},
-                    "{{\"numDocs\":10,\"indexName\":\"mockNoUser\",\"lastReopen\":\"{0}\",\"CommitUserData\":{{}}}}"
+                    null,
+                    "{{\"numDocs\":10,\"indexName\":\"mockNoUser\",\"machineName\":\"{0}\",\"lastReopen\":\"{1}\",\"lastIndexReloadTime\":\"{2}\",\"lastIndexReloadDurationInMilliseconds\":-1,\"lastAuxiliaryDataLoadTime\":\"{3}\",\"lastAuxiliaryDataUpdateTime\":{{}},\"CommitUserData\":{{}}}}"
+                };
+            }
+        }
+
+        public static IEnumerable<object[]> DiagAuxiliaryData
+        {
+            get
+            {
+                // no auxiliary data should return empty object
+                yield return new object[]
+                {
+                    "mockNoUser",
+                    10,
+                    new Dictionary<string, string> {},
+                    new Dictionary<string, DateTime?> {},
+                    "{{\"numDocs\":10,\"indexName\":\"mockNoUser\",\"machineName\":\"{0}\",\"lastReopen\":\"{1}\",\"lastIndexReloadTime\":\"{2}\",\"lastIndexReloadDurationInMilliseconds\":-1,\"lastAuxiliaryDataLoadTime\":\"{3}\",\"lastAuxiliaryDataUpdateTime\":{{}},\"CommitUserData\":{{}}}}"
+                };
+
+                // missing auxiliary should return null values
+                yield return new object[]
+                {
+                    "mockNoUser",
+                    10,
+                    new Dictionary<string, string> {},
+                    new Dictionary<string, DateTime?> {
+                        {"owners.json", null },
+                        {"downloads.json", null }
+                    },
+                    "{{\"numDocs\":10,\"indexName\":\"mockNoUser\",\"machineName\":\"{0}\",\"lastReopen\":\"{1}\",\"lastIndexReloadTime\":\"{2}\",\"lastIndexReloadDurationInMilliseconds\":-1,\"lastAuxiliaryDataLoadTime\":\"{3}\",\"lastAuxiliaryDataUpdateTime\":{{\"owners.json\":null,\"downloads.json\":null}},\"CommitUserData\":{{}}}}"
+                };
+
+                // Aux data with timings should be returned correctly.
+                var time = DateTime.UtcNow;
+                var stringTime = JsonConvert.SerializeObject(time);
+                var expectedAuxData = "\"owners.json\":" + stringTime + ",\"downloads.json\":" + stringTime;
+                yield return new object[]
+                {
+                    "mockNoUser",
+                    10,
+                    new Dictionary<string, string> {},
+                    new Dictionary<string, DateTime?> {
+                        {"owners.json", time },
+                        {"downloads.json", time }
+                    },
+                    "{{\"numDocs\":10,\"indexName\":\"mockNoUser\",\"machineName\":\"{0}\",\"lastReopen\":\"{1}\",\"lastIndexReloadTime\":\"{2}\",\"lastIndexReloadDurationInMilliseconds\":-1,\"lastAuxiliaryDataLoadTime\":\"{3}\",\"lastAuxiliaryDataUpdateTime\":{{"+ expectedAuxData +"}},\"CommitUserData\":{{}}}}"
                 };
             }
         }

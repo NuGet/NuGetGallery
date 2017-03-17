@@ -19,15 +19,19 @@ namespace NuGet.Indexing
     public class NuGetSearcherManager : SearcherManager<NuGetIndexSearcher>
     {
         public static readonly TimeSpan AuxiliaryDataRefreshRate = TimeSpan.FromHours(1);
-        
-        private readonly FrameworkLogger _logger;
 
-        private DateTime _lastTimeIndexReloaded = DateTime.MinValue;
-        private readonly TimeSpan _indexReloadRate;
+        public virtual AuxiliaryFiles AuxiliaryFiles { get; private set; }
+        public virtual string IndexName => _indexProvider.GetIndexContainerName();
+        public virtual long LastIndexReloadDurationInMilliseconds { get; private set; } = -1;
+        public virtual DateTime? LastIndexReloadTime { get; private set; } = null;
+        public virtual DateTime? LastAuxiliaryDataLoadTime { get; private set; } = null;
+        public virtual string MachineName => Environment.MachineName;
+        public IDictionary<string, Uri> RegistrationBaseAddress { get; }
+
+        private readonly FrameworkLogger _logger;
         private readonly IIndexDirectoryProvider _indexProvider;
         private readonly ILoader _loader;
-
-        private DateTime _lastTimeAuxiliaryDataRefreshed = DateTime.MinValue;
+        private readonly TimeSpan _indexReloadRate;
         private readonly TimeSpan _auxiliaryDataRefreshRate;
         private readonly IDictionary<string, HashSet<string>> _owners = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
         private readonly IDictionary<string, HashSet<string>> _curatedFeeds = new Dictionary<string, HashSet<string>>();
@@ -48,18 +52,17 @@ namespace NuGet.Indexing
             }
 
             _logger = logger;
-            
+
             RegistrationBaseAddress = new Dictionary<string, Uri>();
 
             _indexProvider = indexProvider;
             _loader = loader;
 
+            AuxiliaryFiles = new AuxiliaryFiles(_loader);
+
             _indexReloadRate = TimeSpan.FromSeconds(indexReloadRateSec);
             _auxiliaryDataRefreshRate = TimeSpan.FromSeconds(auxiliaryDataRefreshRateSec);
         }
-
-        public virtual string IndexName => _indexProvider.GetIndexContainerName();
-        public IDictionary<string, Uri> RegistrationBaseAddress { get; }
 
         /// <summary>Initializes a <see cref="NuGetSearcherManager"/> instance.</summary>
         /// <param name="directory">
@@ -115,7 +118,7 @@ namespace NuGet.Indexing
             // If a loader has been specified, use it.
             // Otherwise, create a StorageLoader from the configuration.
             loader = loader ?? new StorageLoader(config, logger);
-            
+
             var searcherManager = new NuGetSearcherManager(logger, indexProvider, loader, config.AuxiliaryDataRefreshRateSec, config.IndexReloadRateSec);
 
             var registrationBaseAddress = config.RegistrationBaseAddress;
@@ -131,18 +134,21 @@ namespace NuGet.Indexing
         {
             return _indexProvider.GetDirectory();
         }
-        
+
         private bool ReloadIndexAndLoaderIfExpired(IndexingConfiguration config)
         {
             var hasReloaded = false;
 
-            if (_lastTimeIndexReloaded < DateTime.UtcNow - _indexReloadRate)
+            if (LastIndexReloadTime == null || LastIndexReloadTime < DateTime.UtcNow - _indexReloadRate)
             {
+                var indexReload = Stopwatch.StartNew();
                 var hasReloadedIndex = _indexProvider.Reload(config);
                 var hasReloadedLoader = _loader.Reload(config);
-                hasReloaded = hasReloadedIndex || hasReloadedLoader;
+                indexReload.Stop();
 
-                _lastTimeIndexReloaded = DateTime.UtcNow;
+                hasReloaded = hasReloadedIndex || hasReloadedLoader;
+                LastIndexReloadTime = DateTime.UtcNow;
+                LastIndexReloadDurationInMilliseconds = indexReload.ElapsedMilliseconds;
             }
 
             return hasReloaded;
@@ -200,6 +206,7 @@ namespace NuGet.Indexing
                     throw;
                 }
 
+                var reloadTime = Stopwatch.StartNew();
                 // The point of the IndexReaderProcessor is to allow us to loop of the IndexReader fewer times.
                 // Looping over the reader, accessing the Document and then accessing the fields inside the Document are not
                 // inexpensive operations especially when you are going to do that for every Document in the index.
@@ -276,6 +283,9 @@ namespace NuGet.Indexing
 
                 _logger.LogInformation("NuGetSearcherManager.CreateSearcher: Creating a new NuGetIndexSearcher...");
 
+                reloadTime.Stop();
+                LastIndexReloadTime = DateTime.UtcNow;
+                LastIndexReloadDurationInMilliseconds = reloadTime.ElapsedMilliseconds;
                 // Create a NuGetIndexSearcher
                 return new NuGetIndexSearcher(
                     this,
@@ -301,15 +311,16 @@ namespace NuGet.Indexing
 
         private void ReloadAuxiliaryDataIfExpired()
         {
-            if (_lastTimeAuxiliaryDataRefreshed < DateTime.UtcNow - _auxiliaryDataRefreshRate)
+            if (LastAuxiliaryDataLoadTime == null || LastAuxiliaryDataLoadTime < DateTime.UtcNow - _auxiliaryDataRefreshRate)
             {
-                IndexingUtils.Load("owners.json", _loader, _logger, _owners);
-                IndexingUtils.Load("curatedfeeds.json", _loader, _logger, _curatedFeeds);
-                _downloads.Load("downloads.v1.json", _loader, _logger);
-                _rankings = DownloadRankings.Load("rankings.v1.json", _loader, _logger);
-                _queryBoostingContext = QueryBoostingContext.Load("searchSettings.v1.json", _loader, _logger);
+                IndexingUtils.Load(AuxiliaryFiles.Owners, _loader, _logger, _owners);
+                IndexingUtils.Load(AuxiliaryFiles.CuratedFeeds, _loader, _logger, _curatedFeeds);
+                _downloads.Load(AuxiliaryFiles.DownloadsV1, _loader, _logger);
+                _rankings = DownloadRankings.Load(AuxiliaryFiles.RankingsV1, _loader, _logger);
+                _queryBoostingContext = QueryBoostingContext.Load(AuxiliaryFiles.SearchSettingsV1, _loader, _logger);
 
-                _lastTimeAuxiliaryDataRefreshed = DateTime.UtcNow;
+                LastAuxiliaryDataLoadTime = DateTime.UtcNow;
+                AuxiliaryFiles.UpdateLastModifiedTime();
             }
         }
 
