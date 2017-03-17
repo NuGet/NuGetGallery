@@ -402,7 +402,18 @@ namespace NuGetGallery.Authentication
             var passwordCredential = user.Credentials.FirstOrDefault(
                 credential => credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
 
-            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.RequestPasswordReset, passwordCredential));
+            UserAuditRecord auditRecord;
+
+            if (passwordCredential == null)
+            {
+                auditRecord = new UserAuditRecord(user, AuditedUserAction.RequestPasswordReset);
+            }
+            else
+            {
+                auditRecord = new UserAuditRecord(user, AuditedUserAction.RequestPasswordReset, passwordCredential);
+            }
+
+            await Auditing.SaveAuditRecordAsync(auditRecord);
 
             await Entities.SaveChangesAsync();
         }
