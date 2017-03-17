@@ -346,7 +346,19 @@ namespace NuGet.Indexing
             jsonWriter.WriteStartObject();
             WriteProperty(jsonWriter, "numDocs", searcher.IndexReader.NumDocs());
             WriteProperty(jsonWriter, "indexName", searcher.Manager.IndexName);
+            WriteProperty(jsonWriter, "machineName", searcher.Manager.MachineName);
             WriteProperty(jsonWriter, "lastReopen", searcher.LastReopen);
+            WriteProperty(jsonWriter, "lastIndexReloadTime", searcher.Manager.LastIndexReloadTime);
+            WriteProperty(jsonWriter, "lastIndexReloadDurationInMilliseconds", searcher.Manager.LastIndexReloadDurationInMilliseconds);
+            WriteProperty(jsonWriter, "lastAuxiliaryDataLoadTime", searcher.Manager.LastAuxiliaryDataLoadTime);
+
+            jsonWriter.WritePropertyName("lastAuxiliaryDataUpdateTime");
+            jsonWriter.WriteStartObject();
+            foreach (var userData in searcher.Manager.AuxiliaryFiles?.LastModifiedTimeForFiles ?? new Dictionary<string, DateTime?>())
+            {
+                WriteProperty(jsonWriter, userData.Key, userData.Value);
+            }
+            jsonWriter.WriteEndObject();
 
             jsonWriter.WritePropertyName("CommitUserData");
             jsonWriter.WriteStartObject();

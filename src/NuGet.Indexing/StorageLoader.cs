@@ -6,9 +6,8 @@ using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using System;
 using System.IO;
-using System.Threading.Tasks;
-using NuGet.Services.Configuration;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGet.Indexing
 {
@@ -18,7 +17,8 @@ namespace NuGet.Indexing
 
         private string _dataContainerName;
         private string _storageAccountConnectionString;
-        private CloudStorageAccount _storageAccount;
+        private CloudBlobClient _client;
+        private CloudBlobContainer _container;
 
         public StorageLoader(IndexingConfiguration config, FrameworkLogger logger)
         {
@@ -26,20 +26,47 @@ namespace NuGet.Indexing
             Reload(config);
         }
 
-        public JsonReader GetReader(string name)
+        public JsonReader GetReader(string blobName)
         {
             try
             {
-                _logger.LogInformation("StorageLoader.GetReader: {ReaderTarget}", name);
+                _logger.LogInformation($"{nameof(StorageLoader)}.${nameof(GetReader)}: {blobName}");
 
-                var client = _storageAccount.CreateCloudBlobClient();
-                var container = client.GetContainerReference(_dataContainerName);
-                var blob = container.GetBlockBlobReference(name);
+                var blob = GetBlob(blobName);
                 return new JsonTextReader(new StreamReader(blob.OpenRead()));
             }
             catch (Exception e)
             {
-                _logger.LogError($"Exception {e.Message} attempting to load {name}", e);
+                _logger.LogError($"Exception {e.Message} attempting to load {blobName}", e);
+                throw;
+            }
+        }
+
+        public DateTime? GetLastUpdateTime(string blobName)
+        {
+            try
+            {
+                _logger.LogInformation($"{nameof(StorageLoader)}.{nameof(GetLastUpdateTime)}: {blobName}");
+
+                var blob = GetBlob(blobName);
+                if (!blob.Exists())
+                {
+                    return null;
+                }
+
+                blob.FetchAttributes();
+
+                // LastModified time is always in UTC for Azure blobs
+                DateTimeOffset? lastModifiedUtcTime = blob.Properties.LastModified;
+
+                // However, the blobs' LastModified time's UTC locale isn't specified in the object, hence, explicitly set kind to UTC zone.
+                return lastModifiedUtcTime.HasValue
+                    ? new DateTime(lastModifiedUtcTime.Value.Ticks, DateTimeKind.Utc)
+                    : (DateTime?)null;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Exception {e.Message} attempting to get metadata for blob {blobName}", e);
                 throw;
             }
         }
@@ -52,7 +79,9 @@ namespace NuGet.Indexing
 
             var oldStorageAccountConnectionString = _storageAccountConnectionString;
             _storageAccountConnectionString = config.StoragePrimary;
-            _storageAccount = CloudStorageAccount.Parse(_storageAccountConnectionString);
+            var storageAccount = CloudStorageAccount.Parse(_storageAccountConnectionString);
+            _client = storageAccount.CreateCloudBlobClient();
+            _container = _client.GetContainerReference(_dataContainerName);
 
             _logger.LogInformation("StorageLoader data container: {DataContainerName}", _dataContainerName);
 
@@ -60,6 +89,11 @@ namespace NuGet.Indexing
             return
                 !(oldDataContainerName == _dataContainerName &&
                   oldStorageAccountConnectionString == _storageAccountConnectionString);
+        }
+
+        private CloudBlockBlob GetBlob(string blobName)
+        {
+            return _container.GetBlockBlobReference(blobName);
         }
     }
 }

@@ -260,6 +260,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuxiliaryFiles.cs" />
     <Compile Include="BitSetCollector.cs" />
     <Compile Include="AzureDirectorySynchronizer.cs" />
     <Compile Include="DownloadRankings.cs" />

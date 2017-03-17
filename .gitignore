@@ -198,3 +198,4 @@ FakesAssemblies/
 .vs/
 Results.*.xml
 
+/tests/packages
