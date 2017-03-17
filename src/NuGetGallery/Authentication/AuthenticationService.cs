@@ -295,7 +295,7 @@ namespace NuGetGallery.Authentication
             }
 
             // Write an audit record
-            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(newUser, AuditedUserAction.Register));
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(newUser, AuditedUserAction.Register, credential));
 
             Entities.Users.Add(newUser);
             await Entities.SaveChangesAsync();
@@ -399,7 +399,10 @@ namespace NuGetGallery.Authentication
             user.PasswordResetToken = CryptographyService.GenerateToken();
             user.PasswordResetTokenExpirationDate = _dateTimeProvider.UtcNow.AddMinutes(expirationInMinutes);
 
-            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.RequestPasswordReset));
+            var passwordCredential = user.Credentials.FirstOrDefault(
+                credential => credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.RequestPasswordReset, passwordCredential));
 
             await Entities.SaveChangesAsync();
         }
