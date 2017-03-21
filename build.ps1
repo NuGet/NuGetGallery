@@ -101,7 +101,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Stats.CreateAzureCdnWarehouseReports/Stats.CreateAzureCdnWarehouseReports.csproj", `
             "src/UpdateLicenseReports/UpdateLicenseReports.csproj", `
             "src/Gallery.CredentialExpiration/Gallery.CredentialExpiration.csproj", `
-            "src/Gallery.Maintenance/Gallery.Maintenance.csproj", `
+            "src/Gallery.Maintenance/Gallery.Maintenance.nuspec", `
             "src/ArchivePackages/ArchivePackages.csproj", `
             "src/Search.GenerateAuxiliaryData/Search.GenerateAuxiliaryData.csproj", `
             "src/HandlePackageEdits/HandlePackageEdits.csproj", `

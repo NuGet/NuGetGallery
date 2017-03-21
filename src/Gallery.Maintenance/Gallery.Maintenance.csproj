@@ -87,6 +87,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Gallery.Maintenance.nuspec">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="project.json" />
     <None Include="Scripts\Functions.ps1" />
     <None Include="Scripts\Gallery.Maintenance.cmd" />
