@@ -27,7 +27,7 @@ namespace NuGetGallery
         /// <param name="originalVersion">The package's non-normalized, original version string.</param>
         /// <param name="dependencies">The package's direct dependencies as defined in the package's manifest.</param>
         /// <returns>Returns <c>null</c> when unknown; otherwise the identified SemVer-level.</returns>
-        public static int? ForPackage(NuGetVersion originalVersion, ICollection<PackageDependency> dependencies)
+        public static int? ForPackage(NuGetVersion originalVersion, IEnumerable<PackageDependency> dependencies)
         {
             if (originalVersion == null)
             {
