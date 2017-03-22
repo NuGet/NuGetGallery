@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -12,7 +13,9 @@ using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
+using NuGet.Versioning;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NgTests
 {
@@ -88,5 +91,46 @@ namespace NgTests
             Assert.Null(otherPackageNuspec.Key);
             Assert.Null(otherPackageNupkg.Key);
         }
+
+        [Theory]
+        [InlineData("1.2.0")]
+        [InlineData("1.2")]
+        [InlineData("0.1.2")]
+        [InlineData("1.2.3.0")]
+        [InlineData("1.2.3.4")]
+        [InlineData("1.2.3-beta1")]
+        [Description("Test the dnxmarker save and delete scenarios.")]
+        public async Task DnxMarkerTestVersion(string version)
+        {
+            string id = "testid";
+            // Arrange
+            var catalogToDnxStorage = new MemoryStorage();
+            var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
+            DnxMaker marker = new DnxMaker(catalogToDnxStorageFactory);
+
+            var nupkg = new MemoryStream();
+            StreamWriter writer = new StreamWriter(nupkg);
+            writer.Write("nupkg data");
+            writer.Flush();
+            nupkg.Position = 0;
+
+            //Act
+            var dnxEntry = await marker.AddPackage(nupkg, "nuspec data", id, version, CancellationToken.None);
+            string normalizedVer = NuGetVersion.Parse(version).ToNormalizedString();
+            string expectedNuspec = $"{catalogToDnxStorage.BaseAddress}{id}/{normalizedVer}/{id}.nuspec";
+            string expectedNupkg = $"{catalogToDnxStorage.BaseAddress}{id}/{normalizedVer}/{id}.{normalizedVer}.nupkg";
+
+            //Assert
+            Assert.Equal(expectedNuspec, dnxEntry.Nuspec.ToString());
+            Assert.Equal(expectedNupkg, dnxEntry.Nupkg.ToString());
+            //three items : nuspec, nupkg, and index.json
+            Assert.Equal(catalogToDnxStorage.Content.Count, 3);
+
+            //Act
+            await marker.DeletePackage(id, version, CancellationToken.None);
+            //Assert
+            Assert.Equal(catalogToDnxStorage.Content.Count, 0);
+        }
+
     }
 }

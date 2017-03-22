@@ -69,6 +69,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 return true;
             }
+            if (Verbose)
+            {
+                Trace.WriteLine(String.Format("The blob {0} does not exist.", packageRegistrationUri));
+            }
             return false;
         }
 
