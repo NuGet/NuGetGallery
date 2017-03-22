@@ -151,7 +151,7 @@ namespace NuGetGallery
         /// </summary>
         /// <remarks>
         /// If the field value is null, the SemVer level of this version is unknown,
-        /// and could either indicate the package version is SemVer1- or non-SemVer-compliant at all.
+        /// and could either indicate the package version is SemVer1- or non-SemVer-compliant at all (e.g. System.Versioning pattern).
         /// </remarks>
         public int? SemVerLevelKey { get; set; }
 

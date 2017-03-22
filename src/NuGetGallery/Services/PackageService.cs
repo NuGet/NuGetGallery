@@ -506,8 +506,8 @@ namespace NuGetGallery
             package.Version = packageMetadata.Version.ToString();
             package.NormalizedVersion = packageMetadata.Version.ToNormalizedString();
 
-            // Identify the SemVerLevel using the original package version string
-            package.SemVerLevelKey = SemVerLevel.ForPackage(packageMetadata.Version, package.Dependencies);
+            // Identify the SemVerLevelKey using the original package version string and package dependencies
+            package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
 
             package.Description = packageMetadata.Description;
             package.ReleaseNotes = packageMetadata.ReleaseNotes;

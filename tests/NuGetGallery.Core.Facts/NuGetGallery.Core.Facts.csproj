@@ -141,7 +141,7 @@
     <Compile Include="Packaging\PackageMetadataFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Packaging\NupkgRewriterFacts.cs" />
-    <Compile Include="SemVerLevelFacts.cs" />
+    <Compile Include="SemVerLevelKeyFacts.cs" />
     <Compile Include="Utilities\TestDirectory.cs" />
   </ItemGroup>
   <ItemGroup>

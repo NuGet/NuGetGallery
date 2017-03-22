@@ -7,18 +7,18 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class SemVerLevelFacts
+    public class SemVerLevelKeyFacts
     {
         [Fact]
         public void AssertUnknownKeyNotChanged()
         {
-            Assert.Null(SemVerLevel.UnknownKey);
+            Assert.Null(SemVerLevelKey.Unknown);
         }
 
         [Fact]
         public void AssertSemVer2KeyNotChanged()
         {
-            Assert.Equal(2, SemVerLevel.SemVer2Key);
+            Assert.Equal(2, SemVerLevelKey.SemVer2);
         }
 
         public class TheForPackageMethod
@@ -26,7 +26,7 @@ namespace NuGetGallery
             [Fact]
             public void ThrowsArgumentNullWhenOriginalVersionStringIsNull()
             {
-                Assert.Throws<ArgumentNullException>(() => SemVerLevel.ForPackage(null, null));
+                Assert.Throws<ArgumentNullException>(() => SemVerLevelKey.ForPackage(null, null));
             }
 
             [Theory]
@@ -44,10 +44,10 @@ namespace NuGetGallery
                 var nugetVersion = NuGetVersion.Parse(originalVersionString);
 
                 // Act
-                var key = SemVerLevel.ForPackage(nugetVersion, null);
+                var key = SemVerLevelKey.ForPackage(nugetVersion, null);
 
                 // Assert
-                Assert.Equal(SemVerLevel.UnknownKey, key);
+                Assert.Equal(SemVerLevelKey.Unknown, key);
             }
 
             [Theory]
@@ -61,10 +61,10 @@ namespace NuGetGallery
                 var nugetVersion = NuGetVersion.Parse(originalVersionString);
 
                 // Act
-                var key = SemVerLevel.ForPackage(nugetVersion, null);
+                var key = SemVerLevelKey.ForPackage(nugetVersion, null);
 
                 // Assert
-                Assert.Equal(SemVerLevel.SemVer2Key, key);
+                Assert.Equal(SemVerLevelKey.SemVer2, key);
             }
 
             [Theory]
@@ -80,10 +80,10 @@ namespace NuGetGallery
                 var dependency = new PackageDependency { VersionSpec = versionSpec };
 
                 // Act
-                var key = SemVerLevel.ForPackage(packageVersion, new[] { dependency });
+                var key = SemVerLevelKey.ForPackage(packageVersion, new[] { dependency });
 
                 // Assert
-                Assert.Equal(SemVerLevel.SemVer2Key, key);
+                Assert.Equal(SemVerLevelKey.SemVer2, key);
             }
 
             [Theory]
@@ -100,10 +100,10 @@ namespace NuGetGallery
                 var dependency = new PackageDependency { VersionSpec = versionSpec };
 
                 // Act
-                var key = SemVerLevel.ForPackage(packageVersion, new[] { dependency });
+                var key = SemVerLevelKey.ForPackage(packageVersion, new[] { dependency });
 
                 // Assert
-                Assert.Equal(SemVerLevel.UnknownKey, key);
+                Assert.Equal(SemVerLevelKey.Unknown, key);
             }
         }
     }

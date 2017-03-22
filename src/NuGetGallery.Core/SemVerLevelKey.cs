@@ -9,17 +9,18 @@ namespace NuGetGallery
 {
     // Hard-coded for now, but we can easily expand to use an additional Sql table to join with 
     // when supporting additional semVerLevel's is needed.
-    public static class SemVerLevel
+    public static class SemVerLevelKey
     {
         /// <summary>
-        /// This could either indicate being SemVer1-compliant, or non-SemVer-compliant at all.
+        /// This could either indicate being SemVer1-compliant, or non-SemVer-compliant at all (e.g. System.Versioning pattern).
         /// </summary>
-        public static readonly int? UnknownKey = null;
+        public static readonly int? Unknown = null;
 
         /// <summary>
         /// Indicates being SemVer2-compliant, but not SemVer1-compliant.
+        /// This key corresponds to semVerLevel=2.0.0
         /// </summary>
-        public static readonly int SemVer2Key = 2;
+        public static readonly int SemVer2 = 2;
 
         /// <summary>
         /// Identifies the SemVer-level of a package based on original version string and dependency versions.
@@ -38,7 +39,7 @@ namespace NuGetGallery
             {
                 // No need to further check the dependencies: 
                 // the original version already is identified to be SemVer2-compliant, but not SemVer1-compliant.
-                return SemVer2Key;
+                return SemVer2;
             }
 
             if (dependencies != null)
@@ -47,18 +48,18 @@ namespace NuGetGallery
                 {
                     // Check the package dependencies for SemVer-compliance.
                     // As soon as a SemVer2-compliant dependency version is found that is not SemVer1-compliant,
-                    // this package in itself is to be identified as to have SemVerLevel.SemVer2.
+                    // this package in itself is to be identified as to have SemVerLevelKey.SemVer2.
                     var dependencyVersionRange = VersionRange.Parse(dependency.VersionSpec);
 
                     if ((dependencyVersionRange.MinVersion != null && dependencyVersionRange.MinVersion.IsSemVer2)
                         || (dependencyVersionRange.MaxVersion != null && dependencyVersionRange.MaxVersion.IsSemVer2))
                     {
-                        return SemVer2Key;
+                        return SemVer2;
                     }
                 }
             }
 
-            return UnknownKey;
+            return Unknown;
         }
     }
 }
