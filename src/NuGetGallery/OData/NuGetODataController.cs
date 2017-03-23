@@ -80,10 +80,7 @@ namespace NuGetGallery.OData
         }
 
         /// <summary>
-        /// The orderbyId will be skipped when the request has and OrderBy clause that does not inlude Id 
-        /// For example: api/v2/Packages?$orderby=Id,DownloadCount will return false
-        ///              api/v2/Packages?$orderby=DownloadCount,Id will return false
-        ///              api/v2/Packages?$orderby=DownloadCount will return true
+        /// The orderbyId will be skipped when the request has and OrderBy clause that does not include Id 
         /// </summary>
         /// <param name="options">The request OData options.</param>
         /// <returns></returns>

@@ -84,9 +84,6 @@ namespace NuGetGallery
             Assert.Equal(new[] { packageAb, packageAc, packageAa }, resultB);
         }
 
-        /// <summary>
-        /// ///////////////////
-        /// </summary>
         [Fact]
         public void RemoveIdSortRemovesThenByOnId()
         {
