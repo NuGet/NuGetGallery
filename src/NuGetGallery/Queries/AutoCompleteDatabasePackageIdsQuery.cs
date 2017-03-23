@@ -13,7 +13,7 @@ namespace NuGetGallery
         private const string _partialIdSqlFormat = @"SELECT TOP 30 pr.ID
 FROM Packages p (NOLOCK)
     JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
-WHERE pr.ID LIKE {{0}}
+WHERE p.[SemVerLevelKey] IS NULL AND pr.ID LIKE {{0}}
     {0}
 GROUP BY pr.ID
 ORDER BY pr.ID";
@@ -21,6 +21,7 @@ ORDER BY pr.ID";
         private const string _noPartialIdSql = @"SELECT TOP 30 pr.ID
 FROM Packages p (NOLOCK)
     JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
+WHERE  p.[SemVerLevelKey] IS NULL 
 GROUP BY pr.ID
 ORDER BY MAX(pr.DownloadCount) DESC";
         
