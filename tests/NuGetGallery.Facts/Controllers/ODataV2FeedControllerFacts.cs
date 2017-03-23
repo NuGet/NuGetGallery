@@ -7,8 +7,8 @@ using Xunit;
 
 namespace NuGetGallery.Controllers
 {
-    public class ODataV1FeedControllerFacts
-            : ODataV1ControllerFactsBase
+    public class ODataV2FeedControllerFacts
+        : ODataV2ControllerFactsBase
     {
         [Fact]
         public async Task Get_FiltersSemVerV2PackageVersions()
@@ -16,7 +16,7 @@ namespace NuGetGallery.Controllers
             // Act
             var resultSet = await GetCollection(
                 (controller, options) => controller.Get(options),
-                "/api/v1/Packages");
+                "/api/v2/Packages");
 
             // Assert
             foreach (var feedPackage in resultSet)
@@ -37,9 +37,9 @@ namespace NuGetGallery.Controllers
         public async Task GetCount_FiltersSemVerV2PackageVersions()
         {
             // Act
-            var count = await GetInt(
+            var count =  await GetInt(
                 (controller, options) => controller.GetCount(options),
-                "/api/v1/Packages/$count");
+                "/api/v2/Packages/$count");
 
             // Assert
             Assert.Equal(NonSemVer2Packages.Count, count);
@@ -49,9 +49,9 @@ namespace NuGetGallery.Controllers
         public async Task FindPackagesById_FiltersSemVerV2PackageVersions()
         {
             // Act
-            var resultSet = await GetCollectionAsync(
+            var resultSet = await GetCollection(
                 async (controller, options) => await controller.FindPackagesById(options, TestPackageId),
-                $"/api/v1/FindPackagesById?id='{TestPackageId}'");
+                $"/api/v2/FindPackagesById?id='{TestPackageId}'");
 
             // Assert
             foreach (var feedPackage in resultSet)
@@ -72,9 +72,9 @@ namespace NuGetGallery.Controllers
         public async Task Search_FiltersSemVerV2PackageVersions()
         {
             // Act
-            var resultSet = await GetCollectionAsync(
+            var resultSet = await GetCollection(
                 async (controller, options) => await controller.Search(options, TestPackageId),
-                $"/api/v1/Search?searchTerm='{TestPackageId}'");
+                $"/api/v2/Search?searchTerm='{TestPackageId}'");
 
             // Assert
             foreach (var feedPackage in resultSet)
@@ -95,9 +95,9 @@ namespace NuGetGallery.Controllers
         public async Task SearchCount_FiltersSemVerV2PackageVersions()
         {
             // Act
-            var searchCount = await GetIntAsync(
+            var searchCount = await GetInt(
                 async (controller, options) => await controller.SearchCount(options, TestPackageId),
-                $"/api/v1/Search/$count?searchTerm='{TestPackageId}'");
+                $"/api/v2/Search/$count?searchTerm='{TestPackageId}'");
 
             // Assert
             Assert.Equal(NonSemVer2Packages.Count, searchCount);

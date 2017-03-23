@@ -392,7 +392,10 @@
     <Compile Include="Controllers\CuratedFeedsControllerFacts.cs" />
     <Compile Include="Controllers\CuratedPackagesControllerFacts.cs" />
     <Compile Include="Controllers\JsonApiControllerFacts.cs" />
+    <Compile Include="Controllers\ODataFeedControllerFactsBase.cs" />
     <Compile Include="Controllers\ODataV1ControllerFactsBase.cs" />
+    <Compile Include="Controllers\ODataV2ControllerFactsBase.cs" />
+    <Compile Include="Controllers\ODataV2FeedControllerFacts.cs" />
     <Compile Include="Controllers\ODataV1FeedControllerFacts.cs" />
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />

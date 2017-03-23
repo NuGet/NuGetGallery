@@ -1,15 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web.Http;
-using System.Web.Http.OData;
-using System.Web.Http.OData.Query;
-using System.Web.Http.Results;
 using NuGet.Frameworks;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
@@ -19,6 +10,14 @@ using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
 using QueryInterceptor;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Http;
+using System.Web.Http.OData;
+using System.Web.Http.OData.Query;
 using WebApi.OutputCache.V2;
 
 // ReSharper disable once CheckNamespace
@@ -52,7 +51,7 @@ namespace NuGetGallery.Controllers
         {
             // Setup the search
             var packages = _packagesRepository.GetAll()
-                                .Where(p => !p.Deleted)
+                                .Where(p => !p.Deleted && p.SemVerLevelKey == SemVerLevelKey.Unknown)
                                 .WithoutSortOnColumn(Version)
                                 .WithoutSortOnColumn(Id, ShouldIgnoreOrderById<V2FeedPackage>(options))
                                 .InterceptWith(new NormalizeVersionInterceptor()) ;
@@ -140,7 +139,7 @@ namespace NuGetGallery.Controllers
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && !p.Deleted);
+                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && !p.Deleted && p.SemVerLevelKey == SemVerLevelKey.Unknown);
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -235,7 +234,7 @@ namespace NuGetGallery.Controllers
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Where(p => p.Listed && !p.Deleted)
+                .Where(p => p.Listed && !p.Deleted && p.SemVerLevelKey == SemVerLevelKey.Unknown)
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version)
                 .AsNoTracking();
 

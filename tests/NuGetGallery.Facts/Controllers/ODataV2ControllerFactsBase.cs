@@ -11,17 +11,19 @@ using System.Web.Http.OData.Query;
 
 namespace NuGetGallery.Controllers
 {
-    public abstract class ODataV1ControllerFactsBase
-        : ODataFeedControllerFactsBase<ODataV1FeedController>
+    public abstract class ODataV2ControllerFactsBase
+        : ODataFeedControllerFactsBase<ODataV2FeedController>
     {
-        protected override ODataV1FeedController CreateController(IEntityRepository<Package> packagesRepository,
-            IGalleryConfigurationService configurationService, ISearchService searchService)
+        protected override ODataV2FeedController CreateController(
+            IEntityRepository<Package> packagesRepository,
+            IGalleryConfigurationService configurationService, 
+            ISearchService searchService)
         {
-            return new ODataV1FeedController(packagesRepository, configurationService, searchService);
+            return new ODataV2FeedController(packagesRepository, configurationService, searchService);
         }
 
-        protected async Task<IReadOnlyCollection<V1FeedPackage>> GetCollection(
-            Func<ODataV1FeedController, ODataQueryOptions<V1FeedPackage>, IHttpActionResult> controllerAction,
+        protected async Task<IReadOnlyCollection<V2FeedPackage>> GetCollection(
+            Func<ODataV2FeedController, ODataQueryOptions<V2FeedPackage>, IHttpActionResult> controllerAction,
             string requestPath)
         {
             var queryResult = InvokeODataFeedControllerAction(controllerAction, requestPath);
@@ -30,7 +32,7 @@ namespace NuGetGallery.Controllers
         }
 
         protected async Task<int> GetInt(
-            Func<ODataV1FeedController, ODataQueryOptions<V1FeedPackage>, IHttpActionResult> controllerAction,
+            Func<ODataV2FeedController, ODataQueryOptions<V2FeedPackage>, IHttpActionResult> controllerAction,
             string requestPath)
         {
             var queryResult = InvokeODataFeedControllerAction(controllerAction, requestPath);
@@ -38,8 +40,8 @@ namespace NuGetGallery.Controllers
             return int.Parse(await GetValueFromQueryResult(queryResult));
         }
 
-        protected async Task<IReadOnlyCollection<V1FeedPackage>> GetCollectionAsync(
-            Func<ODataV1FeedController, ODataQueryOptions<V1FeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
+        protected async Task<IReadOnlyCollection<V2FeedPackage>> GetCollection(
+            Func<ODataV2FeedController, ODataQueryOptions<V2FeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
             string requestPath)
         {
             var queryResult = await InvokeODataFeedControllerActionAsync(asyncControllerAction, requestPath);
@@ -47,8 +49,8 @@ namespace NuGetGallery.Controllers
             return await GetValueFromQueryResult(queryResult);
         }
 
-        protected async Task<int> GetIntAsync(
-            Func<ODataV1FeedController, ODataQueryOptions<V1FeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
+        protected async Task<int> GetInt(
+            Func<ODataV2FeedController, ODataQueryOptions<V2FeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
             string requestPath)
         {
             var queryResult = await InvokeODataFeedControllerActionAsync(asyncControllerAction, requestPath);
