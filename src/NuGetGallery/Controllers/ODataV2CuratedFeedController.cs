@@ -52,6 +52,7 @@ namespace NuGetGallery.Controllers
             }
 
             var queryable = _curatedFeedService.GetPackages(curatedFeedName)
+                .Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown)
                 .ToV2FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
                 .InterceptWith(new NormalizeVersionInterceptor());
 
@@ -101,7 +102,8 @@ namespace NuGetGallery.Controllers
             }
 
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+                .Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown
+                            && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -201,6 +203,7 @@ namespace NuGetGallery.Controllers
             // Perform actual search
             var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
+                .Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown)
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options

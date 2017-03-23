@@ -30,25 +30,25 @@ namespace NuGetGallery.Controllers
         protected readonly IReadOnlyCollection<Package> NonSemVer2Packages;
         protected readonly IReadOnlyCollection<Package> SemVer2Packages;
         protected readonly IEntityRepository<Package> PackagesRepository;
+        protected readonly IQueryable<Package> AllPackages;
 
         protected ODataFeedControllerFactsBase()
         {
             // Arrange
-            var packagesQueryable = CreatePackagesQueryable();
-            NonSemVer2Packages = packagesQueryable.Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown).ToList();
-            SemVer2Packages = packagesQueryable.Where(p => p.SemVerLevelKey == SemVerLevelKey.SemVer2).ToList();
-
+            AllPackages = CreatePackagesQueryable();
+            NonSemVer2Packages = AllPackages.Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown).ToList();
+            SemVer2Packages = AllPackages.Where(p => p.SemVerLevelKey == SemVerLevelKey.SemVer2).ToList();
 
             var packagesRepositoryMock = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            packagesRepositoryMock.Setup(m => m.GetAll()).Returns(packagesQueryable).Verifiable();
+            packagesRepositoryMock.Setup(m => m.GetAll()).Returns(AllPackages).Verifiable();
             PackagesRepository = packagesRepositoryMock.Object;
         }
 
         protected abstract TController CreateController(
             IEntityRepository<Package> packagesRepository,
-            IGalleryConfigurationService configurationService, 
+            IGalleryConfigurationService configurationService,
             ISearchService searchService);
-        
+
         protected TController CreateTestableODataFeedController(HttpRequestMessage request)
         {
             var searchService = new Mock<ISearchService>().Object;
@@ -56,14 +56,7 @@ namespace NuGetGallery.Controllers
             configurationService.Current.SiteRoot = _siteRoot;
 
             var controller = CreateController(PackagesRepository, configurationService, searchService);
-
-            InitializeRequestContext(request, controller);
-
-            return controller;
-        }
-
-        private static void InitializeRequestContext(HttpRequestMessage request, TController controller)
-        {
+            
             var httpRequest = new HttpRequest(string.Empty, request.RequestUri.AbsoluteUri, request.RequestUri.Query);
             var httpResponse = new HttpResponse(new StringWriter());
             var httpContext = new HttpContext(httpRequest, httpResponse);
@@ -75,6 +68,48 @@ namespace NuGetGallery.Controllers
 
             controller.ControllerContext.Controller = controller;
             controller.ControllerContext.Configuration = new HttpConfiguration();
+
+            return controller;
+        }
+
+        protected async Task<IReadOnlyCollection<TFeedPackage>> GetCollection<TFeedPackage>(
+            Func<TController, ODataQueryOptions<TFeedPackage>, IHttpActionResult> controllerAction,
+            string requestPath)
+            where TFeedPackage : class
+        {
+            var queryResult = InvokeODataFeedControllerAction(controllerAction, requestPath);
+
+            return await GetValueFromQueryResult(queryResult);
+        }
+
+        protected async Task<IReadOnlyCollection<TFeedPackage>> GetCollection<TFeedPackage>(
+            Func<TController, ODataQueryOptions<TFeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
+            string requestPath)
+            where TFeedPackage : class
+        {
+            var queryResult = await InvokeODataFeedControllerActionAsync(asyncControllerAction, requestPath);
+
+            return await GetValueFromQueryResult(queryResult);
+        }
+        
+        protected async Task<int> GetInt<TFeedPackage>(
+            Func<TController, ODataQueryOptions<TFeedPackage>, IHttpActionResult> controllerAction,
+            string requestPath) 
+            where TFeedPackage : class
+        {
+            var queryResult = InvokeODataFeedControllerAction(controllerAction, requestPath);
+
+            return int.Parse(await GetValueFromQueryResult(queryResult));
+        }
+
+        protected async Task<int> GetInt<TFeedPackage>(
+            Func<TController, ODataQueryOptions<TFeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
+            string requestPath) 
+            where TFeedPackage : class
+        {
+            var queryResult = await InvokeODataFeedControllerActionAsync(asyncControllerAction, requestPath);
+
+            return int.Parse(await GetValueFromQueryResult(queryResult));
         }
 
         private static IQueryable<Package> CreatePackagesQueryable()
@@ -130,7 +165,7 @@ namespace NuGetGallery.Controllers
             return list.AsQueryable();
         }
 
-        protected static ODataQueryContext CreateODataQueryContext<TFeedPackage>()
+        private static ODataQueryContext CreateODataQueryContext<TFeedPackage>()
             where TFeedPackage : class
         {
             var oDataModelBuilder = new ODataConventionModelBuilder();
@@ -138,8 +173,8 @@ namespace NuGetGallery.Controllers
 
             return new ODataQueryContext(oDataModelBuilder.GetEdmModel(), typeof(TFeedPackage));
         }
-        
-        protected static async Task<dynamic> GetValueFromQueryResult<TEntity>(QueryResult<TEntity> queryResult)
+
+        private static async Task<dynamic> GetValueFromQueryResult<TEntity>(QueryResult<TEntity> queryResult)
         {
             var httpResponseMessage = await queryResult.ExecuteAsync(CancellationToken.None);
 
@@ -159,8 +194,8 @@ namespace NuGetGallery.Controllers
                 return ((IQueryable<TEntity>)objectContent.Value).ToList();
             }
         }
-        
-        protected async Task<QueryResult<TFeedPackage>> InvokeODataFeedControllerActionAsync<TFeedPackage>(
+
+        private async Task<QueryResult<TFeedPackage>> InvokeODataFeedControllerActionAsync<TFeedPackage>(
             Func<TController, ODataQueryOptions<TFeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
             string requestPath)
             where TFeedPackage : class
@@ -172,9 +207,9 @@ namespace NuGetGallery.Controllers
                 new ODataQueryOptions<TFeedPackage>(CreateODataQueryContext<TFeedPackage>(), request));
         }
 
-        protected QueryResult<TFeedPackage> InvokeODataFeedControllerAction<TFeedPackage>(
+        private QueryResult<TFeedPackage> InvokeODataFeedControllerAction<TFeedPackage>(
             Func<TController, ODataQueryOptions<TFeedPackage>, IHttpActionResult> controllerAction,
-            string requestPath) 
+            string requestPath)
             where TFeedPackage : class
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_siteRoot}{requestPath}");
