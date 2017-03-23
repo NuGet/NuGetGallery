@@ -1,6 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Http;
+using System.Web.Http.OData;
+using System.Web.Http.OData.Query;
 using NuGet.Frameworks;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
@@ -10,14 +18,6 @@ using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
 using QueryInterceptor;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web.Http;
-using System.Web.Http.OData;
-using System.Web.Http.OData.Query;
 using WebApi.OutputCache.V2;
 
 // ReSharper disable once CheckNamespace

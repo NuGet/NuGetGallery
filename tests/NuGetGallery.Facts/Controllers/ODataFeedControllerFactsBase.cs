@@ -1,11 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Moq;
-using NuGetGallery.Configuration;
-using NuGetGallery.Framework;
-using NuGetGallery.OData;
-using NuGetGallery.WebApi;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +13,11 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Builder;
 using System.Web.Http.OData.Query;
+using Moq;
+using NuGetGallery.Configuration;
+using NuGetGallery.Framework;
+using NuGetGallery.OData;
+using NuGetGallery.WebApi;
 
 namespace NuGetGallery.Controllers
 {
