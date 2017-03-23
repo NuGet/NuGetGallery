@@ -144,6 +144,17 @@ namespace NuGetGallery
         [StringLength(64)]
         public string NormalizedVersion { get; set; }
 
+        /// <summary>
+        /// Gets or sets the minimum required SemVer level for consumers of this package, 
+        /// based on the Version property containing the original version string,
+        /// or the dependency version ranges of this package.
+        /// </summary>
+        /// <remarks>
+        /// If the field value is null, the SemVer level of this version is unknown,
+        /// and could either indicate the package version is SemVer1- or non-SemVer-compliant at all (e.g. System.Versioning pattern).
+        /// </remarks>
+        public int? SemVerLevelKey { get; set; }
+
         public virtual ICollection<PackageLicenseReport> LicenseReports { get; set; }
 
         // Pre-calculated data for the feed

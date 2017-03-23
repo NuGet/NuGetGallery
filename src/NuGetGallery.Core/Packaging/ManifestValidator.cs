@@ -166,7 +166,7 @@ namespace NuGetGallery.Packaging
 
         private static ValidationResult ValidateVersion(NuGetVersion version)
         {
-            if (version.IsSemVer200())
+            if (version.IsSemVer2)
             {
                 return new ValidationResult(string.Format(
                     CultureInfo.CurrentCulture,

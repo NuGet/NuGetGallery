@@ -506,6 +506,9 @@ namespace NuGetGallery
             package.Version = packageMetadata.Version.ToString();
             package.NormalizedVersion = packageMetadata.Version.ToNormalizedString();
 
+            // Identify the SemVerLevelKey using the original package version string and package dependencies
+            package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
+
             package.Description = packageMetadata.Description;
             package.ReleaseNotes = packageMetadata.ReleaseNotes;
             package.HashAlgorithm = packageStreamMetadata.HashAlgorithm;
