@@ -83,5 +83,84 @@ namespace NuGetGallery
             Assert.Equal(new[] { packageAc, packageAb, packageAa }, resultA);
             Assert.Equal(new[] { packageAb, packageAc, packageAa }, resultB);
         }
+
+        /// <summary>
+        /// ///////////////////
+        /// </summary>
+        [Fact]
+        public void RemoveIdSortRemovesThenByOnId()
+        {
+            // Arrange
+            var package1 = new V2FeedPackage { Id = "A", Version = "C" };
+            var package2 = new V2FeedPackage { Id = "B", Version = "A" };
+            var package3 = new V2FeedPackage { Id = "A", Version = "A" };
+
+            var source = new[] { package1, package2, package3 }.AsQueryable();
+
+            // Act
+            var resultA = source.OrderBy(p => p.Version).ThenBy(p => p.Id);
+            var resultB = source.WithoutIdSort().OrderBy(p => p.Version).ThenBy(p => p.Id);
+
+            // Assert
+            Assert.Equal(new[] { package3, package2, package1 }, resultA);
+            Assert.Equal(new[] { package2, package3, package1 }, resultB);
+        }
+
+        [Fact]
+        public void RemoveIdSortRemovesThenByDescendingOnId()
+        {
+            // Arrange
+            var package1 = new V2FeedPackage { Id = "A", Version = "A" };
+            var package2 = new V2FeedPackage { Id = "B", Version = "A" };
+            var package3 = new V2FeedPackage { Id = "C", Version = "A" };
+
+            var source = new[] { package1, package2, package3 }.AsQueryable();
+
+            // Act
+            var resultA = source.OrderBy(p => p.Version).ThenByDescending(p => p.Id);
+            var resultB = source.WithoutIdSort().OrderBy(p => p.Version).ThenByDescending(p => p.Id);
+
+            // Assert
+            Assert.Equal(new[] { package3, package2, package1 }, resultA);
+            Assert.Equal(new[] { package1, package2, package3 }, resultB);
+        }
+
+        [Fact]
+        public void RemoveIdSortRemovesThenByWhenItIsNestedInsideAnotherThenBy()
+        {
+            // Arrange
+            var package1 = new V2FeedPackage { Id = "B", Version = "A" };
+            var package2 = new V2FeedPackage { Id = "A", Version = "A" };
+            var package3 = new V2FeedPackage { Id = "C", Version = "A" };
+
+            var source = new[] { package1, package2, package3 }.AsQueryable();
+
+            // Act
+            var resultA = source.OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.Id);
+            var resultB = source.WithoutIdSort().OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.Id);
+
+            // Assert
+            Assert.Equal(new[] { package3, package1, package2 }, resultA);
+            Assert.Equal(new[] { package1, package2, package3 }, resultB);
+        }
+
+        [Fact]
+        public void RemoveIdSortRemovesThenByWhenVersionIsRepresentedInAWrapperObject()
+        {
+            // Arrange
+            var package1 = new { Version = "A", WrapperObject = new { Id = "B" } };
+            var package2 = new { Version = "A", WrapperObject = new { Id = "A" } };
+            var package3 = new { Version = "A", WrapperObject = new { Id = "C" } };
+
+            var source = new[] { package1, package2, package3 }.AsQueryable();
+
+            // Act
+            var resultA = source.OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.WrapperObject.Id);
+            var resultB = source.WithoutIdSort().OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.WrapperObject.Id);
+
+            // Assert
+            Assert.Equal(new[] { package3, package1, package2 }, resultA);
+            Assert.Equal(new[] { package1, package2, package3 }, resultB);
+        }
     }
 }

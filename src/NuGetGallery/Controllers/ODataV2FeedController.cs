@@ -51,7 +51,14 @@ namespace NuGetGallery.Controllers
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options)
         {
             // Setup the search
-            var packages = _packagesRepository
+            var packages = IgnoreOrderById<V2FeedPackage>(options) ? 
+                _packagesRepository
+                .GetAll()
+                .Where(p => !p.Deleted)
+                .WithoutVersionSort()
+                .WithoutIdSort()
+                .InterceptWith(new NormalizeVersionInterceptor()) :
+                 _packagesRepository
                 .GetAll()
                 .Where(p => !p.Deleted)
                 .WithoutVersionSort()

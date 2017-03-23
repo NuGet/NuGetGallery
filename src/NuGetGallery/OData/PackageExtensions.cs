@@ -109,7 +109,12 @@ namespace NuGetGallery.OData
 
         internal static IQueryable<TVal> WithoutVersionSort<TVal>(this IQueryable<TVal> feedQuery)
         {
-            return feedQuery.InterceptWith(new ODataRemoveVersionSorter());
+            return feedQuery.InterceptWith(new ODataRemoveSorter("Version"));
+        }
+
+        internal static IQueryable<TVal> WithoutIdSort<TVal>(this IQueryable<TVal> feedQuery)
+        {
+            return feedQuery.InterceptWith(new ODataRemoveSorter("Id"));
         }
 
         private static string EnsureTrailingSlash(string siteRoot)

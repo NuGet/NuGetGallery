@@ -837,6 +837,7 @@
     <Compile Include="OData\QueryAllowed\ODataQueryFilter.cs" />
     <Compile Include="OData\QueryAllowed\ODataQueryVerifier.cs" />
     <Compile Include="OData\QueryAllowed\ODataQueryRequest.cs" />
+    <Compile Include="OData\QueryInterceptors\ODataRemoveVersionSorter.cs" />
     <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -1093,7 +1094,6 @@
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
-    <Compile Include="OData\QueryInterceptors\ODataRemoveVersionSorter.cs" />
     <Compile Include="OData\QueryInterceptors\CountInterceptor.cs">
       <SubType>Code</SubType>
     </Compile>
