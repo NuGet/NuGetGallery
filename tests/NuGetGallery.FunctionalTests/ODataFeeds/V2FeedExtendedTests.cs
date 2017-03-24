@@ -131,7 +131,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             // goal is unlist of package that would be marked latest/latestStable by concurrent UpdateIsLatest            
             var rowCount = 6;
             var columnCount = 5;
-            var concurrentUnlists = new Task[5];
+            var concurrentUnlists = new Task[columnCount];
             for (int r = rowCount; r > 0; r--)
             {
                 // verify current latest/latestStable before unlisting next row
