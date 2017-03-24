@@ -143,26 +143,28 @@ namespace NuGetGallery
 
             var filePath = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
 
-            var dirPath = System.IO.Path.GetDirectoryName(filePath);
+            var dirPath = Path.GetDirectoryName(filePath);
 
             _fileSystemService.CreateDirectory(dirPath);
-
-            if (_fileSystemService.FileExists(filePath))
+                        
+            try
             {
-                if (overwrite)
+                using (var file = _fileSystemService.OpenWrite(filePath, overwrite))
                 {
-                    _fileSystemService.DeleteFile(filePath);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        String.Format(CultureInfo.CurrentCulture, "There is already a file with name {0} in folder {1}.", fileName, folderName));
+                    packageFile.CopyTo(file);
                 }
             }
-
-            using (var file = _fileSystemService.OpenWrite(filePath))
+            catch (IOException ex)
             {
-                packageFile.CopyTo(file);
+                ex.Log();
+
+                throw new InvalidOperationException(
+                    String.Format(
+                        CultureInfo.CurrentCulture,
+                        "There is already a file with name {0} in folder {1}.",
+                        fileName,
+                        folderName),
+                    ex);
             }
 
             return Task.FromResult(0);

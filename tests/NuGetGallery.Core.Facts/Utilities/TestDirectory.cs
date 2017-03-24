@@ -6,7 +6,7 @@ using System.IO;
 
 namespace NuGetGallery.Utilities
 {
-    internal sealed class TestDirectory : IDisposable
+    public sealed class TestDirectory : IDisposable
     {
         public string FullPath { get; }
 
@@ -20,7 +20,7 @@ namespace NuGetGallery.Utilities
             DeleteDirectory(FullPath);
         }
 
-        internal static TestDirectory Create()
+        public static TestDirectory Create()
         {
             var baseDirectoryPath = Path.Combine(Path.GetTempPath(), "NuGetTestFolder");
             var subdirectoryName = Guid.NewGuid().ToString();

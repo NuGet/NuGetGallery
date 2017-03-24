@@ -503,6 +503,10 @@
       <Project>{1DACF781-5CD0-4123-8BAC-CD385D864BE5}</Project>
       <Name>NuGetGallery</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Core.Facts\NuGetGallery.Core.Facts.csproj">
+      <Project>{8ac9e39e-366c-47e5-80ae-38e71cd31386}</Project>
+      <Name>NuGetGallery.Core.Facts</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

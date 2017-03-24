@@ -12,7 +12,7 @@ namespace NuGetGallery
         bool DirectoryExists(string path);
         bool FileExists(string path);
         Stream OpenRead(string path);
-        Stream OpenWrite(string path);
+        Stream OpenWrite(string path, bool overwrite);
         DateTimeOffset GetCreationTimeUtc(string path);
 
         IFileReference GetFileReference(string path);
