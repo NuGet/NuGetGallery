@@ -156,8 +156,6 @@ namespace NuGetGallery
             }
             catch (IOException ex)
             {
-                ex.Log();
-
                 throw new InvalidOperationException(
                     String.Format(
                         CultureInfo.CurrentCulture,
