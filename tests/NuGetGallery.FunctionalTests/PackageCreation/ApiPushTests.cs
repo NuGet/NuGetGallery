@@ -62,7 +62,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                         TestOutputHelper.WriteLine($"Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
                     }
 
-                    var downloadUrl = $"http://nuget.localtest.me/api/v2/package/{packageId}/{packageVersion}";
+                    var downloadUrl = $"{UrlHelper.V2FeedRootUrl}package/{packageId}/{packageVersion}";
                     using (var response = await client.GetAsync(downloadUrl))
                     {
                         TestOutputHelper.WriteLine($"Package download: HTTP {(int)response.StatusCode}");
@@ -88,12 +88,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             Barrier barrier)
         {
             using (var package = File.OpenRead(packagePath))
-            using (var request = new HttpRequestMessage(HttpMethod.Put, "http://nuget.localtest.me/api/v2/package"))
-            // using (var request = new HttpRequestMessage(HttpMethod.Put, UrlHelper.V2FeedPushSourceUrl))
+            using (var request = new HttpRequestMessage(HttpMethod.Put, UrlHelper.V2FeedPushSourceUrl))
             {
                 request.Content = new StreamContent(new BarrierStream(package, barrier));
-                // request.Headers.Add("X-NuGet-ApiKey", EnvironmentSettings.TestAccountApiKey_Push);
-                request.Headers.Add("X-NuGet-ApiKey", "25cbd955-0b03-4c36-8c44-f0a86004ec42");
+                request.Headers.Add("X-NuGet-ApiKey", EnvironmentSettings.TestAccountApiKey_Push);
 
                 using (var response = await client.SendAsync(request))
                 {
