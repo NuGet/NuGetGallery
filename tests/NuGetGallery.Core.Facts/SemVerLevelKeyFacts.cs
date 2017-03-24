@@ -106,5 +106,127 @@ namespace NuGetGallery
                 Assert.Equal(SemVerLevelKey.Unknown, key);
             }
         }
+
+        public class TheForSemVerLevelMethod
+        {
+            [Theory]
+            [InlineData("")]
+            [InlineData("this.is.not.a.version.string")]
+            [InlineData("1.0.0-alpha.01")] // no leading zeros in numeric identifiers
+            [InlineData("1.0.0")]
+            [InlineData("2.0.0-alpha")]
+            public void DefaultsToUnknownKeyWhenVersionStringIsInvalidOrLowerThanVersion200(string semVerLevel)
+            {
+                // Act
+                var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+
+                // Assert
+                Assert.Equal(SemVerLevelKey.Unknown, semVerLevelKey);
+            }
+
+            [Theory]
+            [InlineData("3.0.0")]
+            [InlineData("3.0.0-alpha")]
+            [InlineData("2.0.0")]
+            [InlineData("2.0.1")]
+            public void ReturnsSemVer2KeyWhenVersionStringAtLeastVersion200(string semVerLevel)
+            {
+                // Act
+                var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+
+                // Assert
+                Assert.Equal(SemVerLevelKey.SemVer2, semVerLevelKey);
+            }
+
+            [Fact]
+            public void DefaultsToUnknownKeyWhenVersionStringIsNull()
+            {
+                // Act
+                var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(null);
+
+                // Assert
+                Assert.Equal(SemVerLevelKey.Unknown, semVerLevelKey);
+            }
+        }
+
+        public class TheIsCompliantWithSemVerLevelMethod
+        {
+            [Theory]
+            // Versions higher than SemVer v2.0.0
+            [InlineData("3.0.0")]
+            [InlineData("3.0.0-alpha")]
+            [InlineData("2.0.0")]
+            [InlineData("2.0.1")]
+            // Versions lower than SemVer v2.0.0
+            [InlineData("2.0.0-alpha")] // no leading zeros in numeric identifiers
+            [InlineData("1.0.1")]
+            // Invalid/undefined versions
+            [InlineData(null)]
+            [InlineData("this.is.not.a.valid.version.string")]
+            [InlineData("2.0.0-alpha.01")] // no leading zeros in numeric identifiers
+            [InlineData("-2.0.1")]
+            public void UnknownKey_IsCompliantWithAnySemVerLevelString(string semVerLevel)
+            {
+                // Act
+                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.Unknown, semVerLevel);
+
+                // Assert
+                Assert.True(isCompliant);
+            }
+
+            [Theory]
+            // Versions higher than SemVer v2.0.0
+            [InlineData("3.0.0")]
+            [InlineData("3.0.0-alpha")]
+            [InlineData("2.0.0")]
+            [InlineData("2.0.1")]
+            public void SemVer2Key_IsCompliantWithSemVerLevel200OrHigher(string semVerLevel)
+            {
+                // Act
+                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.SemVer2, semVerLevel);
+
+                // Assert
+                Assert.True(isCompliant);
+            }
+
+            [Theory]
+            // Invalid versions
+            [InlineData("this.is.not.a.valid.version.string")]
+            [InlineData("2.0.0-alpha.01")] // no leading zeros in numeric identifiers
+            [InlineData("-2.0.1")]
+            public void SemVer2Key_IsNotCompliantWithInvalidVersionStrings(string semVerLevel)
+            {
+                // Act
+                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.SemVer2, semVerLevel);
+
+                // Assert
+                Assert.False(isCompliant);
+            }
+
+
+            [Theory]
+            // Versions lower than SemVer v2.0.0
+            [InlineData(null)]
+            [InlineData("2.0.0-alpha")] // no leading zeros in numeric identifiers
+            [InlineData("1.0.1")]
+            public void SemVer2Key_IsNotCompliantWithVersionStringLowerThanSemVer2(string semVerLevel)
+            {
+                // Act
+                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.SemVer2, semVerLevel);
+
+                // Assert
+                Assert.False(isCompliant);
+            }
+
+            [Fact]
+            public void SemVer2Key_IsNotCompliantWithUnknownSemVerLevel()
+            {
+                // Act
+                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.SemVer2, null);
+
+                // Assert
+                Assert.False(isCompliant);
+            }
+        }
     }
 }

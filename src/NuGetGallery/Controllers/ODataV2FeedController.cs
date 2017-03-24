@@ -53,7 +53,7 @@ namespace NuGetGallery.Controllers
         {
             // Setup the search
             var packages = _packagesRepository.GetAll()
-                                .Where(p => !p.Deleted && p.SemVerLevelKey == SemVerLevelKey.Unknown)
+                                .Where(p => !p.Deleted && SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel))
                                 .WithoutSortOnColumn(Version)
                                 .WithoutSortOnColumn(Id, ShouldIgnoreOrderById<V2FeedPackage>(options))
                                 .InterceptWith(new NormalizeVersionInterceptor()) ;
@@ -121,7 +121,7 @@ namespace NuGetGallery.Controllers
             string id, 
             string version)
         {
-            var result = await GetCore(options, id, version, return404NotFoundWhenNoResults: true);
+            var result = await GetCore(options, id, version, semVerLevel: null, return404NotFoundWhenNoResults: true);
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
@@ -142,18 +142,21 @@ namespace NuGetGallery.Controllers
                 return QueryResult(options, emptyResult, MaxPageSize);
             }
 
-            return await GetCore(options, id, version: null, return404NotFoundWhenNoResults: false);
+            return await GetCore(options, id, version: null, semVerLevel: semVerLevel, return404NotFoundWhenNoResults: false);
         }
 
         private async Task<IHttpActionResult> GetCore(
             ODataQueryOptions<V2FeedPackage> options, 
             string id, 
             string version, 
+            string semVerLevel,
             bool return404NotFoundWhenNoResults)
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && !p.Deleted && p.SemVerLevelKey == SemVerLevelKey.Unknown);
+                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) 
+                            && !p.Deleted 
+                            && SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel));
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -249,7 +252,7 @@ namespace NuGetGallery.Controllers
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Where(p => p.Listed && !p.Deleted && p.SemVerLevelKey == SemVerLevelKey.Unknown)
+                .Where(p => p.Listed && !p.Deleted && SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel))
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version)
                 .AsNoTracking();
 
@@ -302,7 +305,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includePrerelease = false,
             [FromODataUri]string semVerLevel = null)
         {
-            var searchResults = await Search(options, searchTerm, targetFramework, includePrerelease);
+            var searchResults = await Search(options, searchTerm, targetFramework, includePrerelease, semVerLevel);
             return searchResults.FormattedAsCountResult<V2FeedPackage>();
         }
 
@@ -415,7 +418,7 @@ namespace NuGetGallery.Controllers
         {
             var updates = from p in packages.AsEnumerable()
                           let version = NuGetVersion.Parse(p.Version)
-                          where p.SemVerLevelKey == SemVerLevelKey.Unknown
+                          where SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel)
                                 && versionLookup[p.PackageRegistration.Id].Any(versionTuple =>
                                 {
                                     NuGetVersion clientVersion = versionTuple.Item1;

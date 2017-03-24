@@ -52,7 +52,7 @@ namespace NuGetGallery.Controllers
             }
 
             var queryable = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown)
+                .Where(p => SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel))
                 .ToV2FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
                 .InterceptWith(new NormalizeVersionInterceptor());
 
@@ -72,7 +72,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string id, string version)
         {
-            var result = await GetCore(options, curatedFeedName, id, version, return404NotFoundWhenNoResults: true);
+            var result = await GetCore(options, curatedFeedName, id, version, return404NotFoundWhenNoResults: true, semVerLevel: null);
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
@@ -94,10 +94,16 @@ namespace NuGetGallery.Controllers
                 return QueryResult(options, emptyResult, MaxPageSize);
             }
 
-            return await GetCore(options, curatedFeedName, id, version: null, return404NotFoundWhenNoResults: false);
+            return await GetCore(options, curatedFeedName, id, version: null, return404NotFoundWhenNoResults: false, semVerLevel: semVerLevel);
         }
 
-        private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string id, string version, bool return404NotFoundWhenNoResults)
+        private async Task<IHttpActionResult> GetCore(
+            ODataQueryOptions<V2FeedPackage> options, 
+            string curatedFeedName, 
+            string id, 
+            string version, 
+            bool return404NotFoundWhenNoResults,
+            string semVerLevel)
         {
             var curatedFeed = _entities.CuratedFeeds.FirstOrDefault(cf => cf.Name == curatedFeedName);
             if (curatedFeed == null)
@@ -106,7 +112,7 @@ namespace NuGetGallery.Controllers
             }
 
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown
+                .Where(p => SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel)
                             && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(version))
@@ -208,7 +214,7 @@ namespace NuGetGallery.Controllers
             // Perform actual search
             var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown)
+                .Where(p => SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel))
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options

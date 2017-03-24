@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Search.Client;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -37,7 +38,8 @@ namespace NuGetGallery
         {
             queryString += $"&prerelease={includePrerelease ?? false}";
 
-            if (!string.IsNullOrEmpty(semVerLevel))
+            NuGetVersion semVerLevelVersion;
+            if (!string.IsNullOrEmpty(semVerLevel) && NuGetVersion.TryParse(semVerLevel, out semVerLevelVersion))
             {
                 queryString += $"&semVerLevel={semVerLevel}";
             }
