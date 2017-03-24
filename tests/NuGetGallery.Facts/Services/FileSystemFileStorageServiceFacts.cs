@@ -2,8 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
@@ -292,6 +295,7 @@ namespace NuGetGallery
             private const string FolderName = "theFolderName";
             private const string FileName = "theFileName";
             private const string FileContent = "theFileContent";
+            private const int TaskCount = 16;
 
             [Theory]
             [InlineData(null)]
@@ -502,7 +506,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillThrowIfFuleExistsAndOverwriteFalseAndRealFileSystemIsUsed()
+            public async Task WillThrowIfFileExistsAndOverwriteFalseAndRealFileSystemIsUsed()
             {
                 // Arrange
                 using (var testDirectory = TestDirectory.Create())
@@ -532,6 +536,67 @@ namespace NuGetGallery
 
                     Assert.True(File.Exists(filePath), $"The file at path {filePath} should exist, but does not.");
                     Assert.Equal(FileContent, File.ReadAllText(filePath));
+                }
+            }
+
+            [Fact]
+            public async Task WillThrowIfFileExistsWhenManyThreadsAreTryingToSaveWithoutOverwriting()
+            {
+                // Arrange
+                using (var testDirectory = TestDirectory.Create())
+                {
+                    var fileSystemService = new FileSystemService();
+
+                    var configuration = new Mock<IAppConfiguration>();
+                    configuration
+                        .Setup(x => x.FileStorageDirectory)
+                        .Returns(testDirectory);
+
+                    var service = new FileSystemFileStorageService(
+                        configuration.Object,
+                        fileSystemService);
+
+                    for (var i = 0; i < 10; i++)
+                    {
+                        var fileName = FileName + i;
+                        var barrier = new Barrier(TaskCount);
+                        var tasks = new List<Task<bool>>();
+
+                        // Act
+                        for (var taskIndex = 0; taskIndex < TaskCount; taskIndex++)
+                        {
+                            var task = SaveFileAsync(service, fileName, barrier);
+                            tasks.Add(task);
+                        }
+
+                        var results = await Task.WhenAll(tasks);
+
+                        // Assert
+                        // One task should succeed. One should fail.
+                        Assert.Equal(1, results.Count(success => success));
+                        Assert.Equal(TaskCount - 1, results.Count(success => !success));
+                    }
+                }
+            }
+
+            private static async Task<bool> SaveFileAsync(FileSystemFileStorageService service, string fileName, Barrier barrier)
+            {
+                await Task.Yield();
+
+                try
+                {
+                    barrier.SignalAndWait();
+                    await service.SaveFileAsync(
+                        FolderName,
+                        fileName,
+                        new MemoryStream(),
+                        overwrite: false);
+
+                    return true;
+                }
+                catch
+                {
+                    return false;
                 }
             }
         }
