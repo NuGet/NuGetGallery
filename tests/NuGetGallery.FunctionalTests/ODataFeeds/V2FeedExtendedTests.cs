@@ -97,11 +97,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task PackageLatestSetCorrectlyOnConcurrentPushes()
         {
-            var latestAll = "7.0.2-abc";
-            var latestStableAll = "7.0.1";
-            var latestFirstHalf = "3.0.2-abc";
-            var latestStableFirstHalf = "3.0.1";
-
             var packageId = $"TestV2FeedPackageLatestSetCorrectlyOnConcurrentPushes.{DateTime.UtcNow.Ticks}";
             var packageVersions = new List<string>()
             {
@@ -109,8 +104,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                  "2.0.0-a",  "2.0.0-b",  "2.0.0",  "2.0.1",  "2.0.2-abc",
                  "3.0.0-a",  "3.0.0-b",  "3.0.0",  "3.0.1",  "3.0.2-abc",
                  "4.0.0-a",  "4.0.0-b",  "4.0.0",  "4.0.1",  "4.0.2-abc",
-                 "6.0.0-a",  "6.0.0-b",  "6.0.0",  "6.0.1",  "6.0.2-abc",
-                 "7.0.0-a",  "7.0.0-b",  "7.0.0",  "7.0.1",  "7.0.2-abc"
+                 "5.0.0-a",  "5.0.0-b",  "5.0.0",  "5.0.1",  "5.0.2-abc",
+                 "6.0.0-a",  "6.0.0-b",  "6.0.0",  "6.0.1",  "6.0.2-abc"
             };
 
             // first push should not be concurrent to avoid conflict on creation of package registration.
@@ -119,6 +114,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             concurrentTasks[0].Wait();
 
             // push remaining packages over period of 5 seconds
+            // goal is insert of multiple packages that would be marked as new latest/latestStable
             var random = new Random();
             for (int i = 1; i < concurrentTasks.Length; i++)
             {
@@ -130,27 +126,30 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 });
             }
             Task.WaitAll(concurrentTasks);
-            
-            await CheckPackageLatestVersions(packageId, packageVersions, latestAll, latestStableAll);
 
-            // unlist last half and verify; ~1-2 concurrency conflicts seen in testing
-            for (int i = concurrentTasks.Length - 1; i >= 15; i--)
+            // unlist packages a row at a time
+            // goal is unlist of package that would be marked latest/latestStable by concurrent UpdateIsLatest            
+            var rowCount = 6;
+            var columnCount = 5;
+            var concurrentUnlists = new Task[5];
+            for (int r = rowCount; r > 0; r--)
             {
-                var packageVersion = packageVersions[i];
-                concurrentTasks[i] = Task.Run(() => _clientSdkHelper.UnlistPackage(packageId, version: packageVersion));
+                // verify current latest/latestStable before unlisting next row
+                var latestIndex = (r * columnCount) - 1;
+                var latestStableIndex = (r * columnCount) - 2;
+                await CheckPackageLatestVersions(packageId, packageVersions, packageVersions[latestIndex], packageVersions[latestStableIndex]);
+
+                // unlist each package in the current row
+                for (int c = 1; c <= columnCount; c++)
+                {
+                    var index = (r * columnCount) - c;
+                    var versionToUnlist = packageVersions[index];
+                    concurrentUnlists[c - 1] = Task.Run(() => _clientSdkHelper.UnlistPackage(packageId, version: versionToUnlist));
+                }
+                Task.WaitAll(concurrentUnlists);
             }
-            Task.WaitAll(concurrentTasks);
 
-            await CheckPackageLatestVersions(packageId, packageVersions, latestFirstHalf, latestStableFirstHalf);
-
-            // unlist remaining and verify; ~1-2 concurrency conflicts seen in testing
-            for (int i = 14; i >= 0; i--)
-            {
-                var packageVersion = packageVersions[i];
-                concurrentTasks[i] = Task.Run(() => _clientSdkHelper.UnlistPackage(packageId, version: packageVersion));
-            }
-            Task.WaitAll(concurrentTasks);
-
+            // no latest/latestStable, as all packages have been unlisted
             await CheckPackageLatestVersions(packageId, packageVersions, string.Empty, string.Empty);
         }
 
