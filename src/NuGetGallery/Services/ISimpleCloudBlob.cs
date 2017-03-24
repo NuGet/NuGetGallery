@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace NuGetGallery
 
         Task<bool> ExistsAsync();
         Task SetPropertiesAsync();
-        Task UploadFromStreamAsync(Stream packageFile);
+        Task UploadFromStreamAsync(Stream packageFile, bool overwrite);
 
         Task FetchAttributesAsync();
     }
