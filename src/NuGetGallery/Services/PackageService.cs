@@ -386,6 +386,7 @@ namespace NuGetGallery
             package.LastEdited = DateTime.UtcNow;
 
             await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
+            Task.Delay(250).Wait();
 
             if (commitChanges)
             {

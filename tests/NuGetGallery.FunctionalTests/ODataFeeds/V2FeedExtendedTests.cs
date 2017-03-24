@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -89,6 +90,72 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
 
             await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp);
+        }
+
+        [Fact]
+        [Description("Verifies that the IsLatest/IsLatestStable flags are correct after concurrent pushes/relists or unlists of different versions.")]
+        [Priority(1)]
+        [Category("P0Tests")]
+        public async Task PackageLatestSetCorrectlyForConcurrentInsertsAndDeletes()
+        {
+            var packageId = $"PackageLatestSetCorrectlyForConcurrentInsertsAndDeletes.{DateTime.UtcNow.Ticks}";
+
+            var versions = new[] { "1.0.0", "1.1.0-rc", "2.0.0", "2.1.0-rc", "3.0.0", "3.1.0-rc" };
+            
+            foreach (var version in versions)
+            {
+                await _clientSdkHelper.UploadNewPackage(packageId, version);
+            }
+
+            await CheckPackageLatestVersions(packageId, versions.ToList(), expectedLatest: versions[5], expectedLatestStable: versions[4]);
+
+            for (int i = 0; i < 250; i++)
+            {
+                // concurrently unlist last 2 versions
+                UnlistPackagesConcurrently(packageId, versions[5], versions[4], versions[3], versions[2]);
+                
+                await CheckPackageLatestVersions(packageId, versions.ToList(), expectedLatest: versions[1], expectedLatestStable: versions[0]);
+
+                // concurrenctly list last 2 versions
+                ListPackagesConcurrently(packageId, versions[5], versions[4], versions[3], versions[2]);
+
+                await CheckPackageLatestVersions(packageId, versions.ToList(), expectedLatest: versions[5], expectedLatestStable: versions[4]);
+            }
+        }
+
+        private void ListPackagesConcurrently(string id, params string[] versions)
+        {
+            EditPackagesConcurrently(id, versions, method: "POST");
+        }
+
+        private void UnlistPackagesConcurrently(string id, params string[] versions)
+        {
+            EditPackagesConcurrently(id, versions, method: "DELETE");
+        }
+        
+        private void EditPackagesConcurrently(string id, string[] versions, string method)
+        {
+            var editUrl = $"{UrlHelper.V2FeedPushSourceUrl}/{id}/";
+            var sem = new SemaphoreSlim(initialCount: 0, maxCount: versions.Length);
+
+            var rand = new Random();
+            var tasks = versions.OrderBy(_ => rand.Next())
+                .Select(version => CreateBlockingEditRequest(editUrl + version, method, sem))
+                .ToArray();
+            
+            sem.Release(versions.Length);
+            Task.WaitAll(tasks);
+        }
+
+        private async Task<WebResponse> CreateBlockingEditRequest(string url, string method, SemaphoreSlim sem)
+        {
+            var request = WebRequest.Create(url);
+            request.Method = method;
+            request.ContentLength = 0;
+            request.Headers.Add("X-NuGet-ApiKey", EnvironmentSettings.TestAccountApiKey);
+
+            await sem.WaitAsync();
+            return await request.GetResponseAsync();
         }
 
         [Fact]
