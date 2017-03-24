@@ -9,6 +9,9 @@ namespace NuGetGallery.OData.QueryInterceptors
 {
     public class ODataRemoveSorter : ExpressionVisitor
     {
+        private const string ThenByOperator = "ThenBy";
+        private const string ThenByDescendingOperator = "ThenByDescending";
+
         private string _columnName = string.Empty;
 
         public ODataRemoveSorter(string columnName) : base()
@@ -29,7 +32,7 @@ namespace NuGetGallery.OData.QueryInterceptors
 
         private bool IsSortingOnColumnName(MethodCallExpression expression)
         {
-            var methodsToIgnore = new[] { "ThenBy", "ThenByDescending" };
+            var methodsToIgnore = new[] { ThenByOperator, ThenByDescendingOperator };
             var method = expression.Method;
 
             if (method.DeclaringType == typeof(Queryable) && methodsToIgnore.Contains(method.Name, StringComparer.Ordinal))

@@ -53,8 +53,8 @@ namespace NuGetGallery.Controllers
             // Setup the search
             var packages = _packagesRepository.GetAll()
                                 .Where(p => !p.Deleted)
-                                .WithoutSortOnColumn("Version")
-                                .WithoutSortOnColumn("Id", ShouldIgnoreOrderById<V2FeedPackage>(options))
+                                .WithoutSortOnColumn(Version)
+                                .WithoutSortOnColumn(Id, ShouldIgnoreOrderById<V2FeedPackage>(options))
                                 .InterceptWith(new NormalizeVersionInterceptor()) ;
 
             // Try the search service

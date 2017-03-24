@@ -16,6 +16,8 @@ namespace NuGetGallery.OData
         : ODataController
     {
         private readonly IGalleryConfigurationService _configurationService;
+        protected const string Id = "Id";
+        protected const string Version = "Version";
 
         protected NuGetODataController(IGalleryConfigurationService configurationService)
         {
@@ -90,7 +92,7 @@ namespace NuGetGallery.OData
                    !options.OrderBy.OrderByNodes.Any((node) =>
                                     {
                                         string nodeName = ((OrderByPropertyNode)node).Property.Name;
-                                        return string.Equals(nodeName, "Id", StringComparison.Ordinal);
+                                        return string.Equals(nodeName, Id, StringComparison.Ordinal);
                                     });
         }
     }

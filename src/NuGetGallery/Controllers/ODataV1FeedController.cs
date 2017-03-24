@@ -51,8 +51,8 @@ namespace NuGetGallery.Controllers
             } 
             var queryable = _packagesRepository.GetAll()
                                 .Where(p => !p.IsPrerelease && !p.Deleted)
-                                .WithoutSortOnColumn("Version")
-                                .WithoutSortOnColumn("Id", ShouldIgnoreOrderById<V1FeedPackage>(options))
+                                .WithoutSortOnColumn(Version)
+                                .WithoutSortOnColumn(Id, ShouldIgnoreOrderById<V1FeedPackage>(options))
                                 .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
 
             return QueryResult(options, queryable, MaxPageSize);
