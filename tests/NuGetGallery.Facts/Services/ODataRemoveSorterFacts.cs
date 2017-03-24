@@ -6,7 +6,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class ODataRemoveVersionSorterFacts
+    public class ODataRemoveSorterFacts
     {
         [Fact]
         public void RemoveVersionSortRemovesThenByOnVersion()
@@ -20,7 +20,7 @@ namespace NuGetGallery
 
             // Act
             var resultA = source.OrderBy(p => p.Id).ThenBy(p => p.Version);
-            var resultB = source.WithoutVersionSort().OrderBy(p => p.Id).ThenBy(p => p.Version);
+            var resultB = source.WithoutSortOnColumn("Version").OrderBy(p => p.Id).ThenBy(p => p.Version);
 
             // Assert
             Assert.Equal(new[] { packageAa, packageAb, packageCa }, resultA);
@@ -39,7 +39,7 @@ namespace NuGetGallery
 
             // Act
             var resultA = source.OrderBy(p => p.Id).ThenByDescending(p => p.Version);
-            var resultB = source.WithoutVersionSort().OrderBy(p => p.Id).ThenByDescending(p => p.Version);
+            var resultB = source.WithoutSortOnColumn("Version").OrderBy(p => p.Id).ThenByDescending(p => p.Version);
 
             // Assert
             Assert.Equal(new[] { packageAc, packageAb, packageAa }, resultA);
@@ -58,7 +58,7 @@ namespace NuGetGallery
 
             // Act
             var resultA = source.OrderBy(p => p.Id).ThenBy(p => p.Id).ThenByDescending(p => p.Version);
-            var resultB = source.WithoutVersionSort().OrderBy(p => p.Id).ThenBy(p => p.Id).ThenByDescending(p => p.Version);
+            var resultB = source.WithoutSortOnColumn("Version").OrderBy(p => p.Id).ThenBy(p => p.Id).ThenByDescending(p => p.Version);
 
             // Assert
             Assert.Equal(new[] { packageAc, packageAb, packageAa }, resultA);
@@ -77,7 +77,7 @@ namespace NuGetGallery
 
             // Act
             var resultA = source.OrderBy(p => p.Id).ThenBy(p => p.Id).ThenByDescending(p => p.WrapperObject.Version);
-            var resultB = source.WithoutVersionSort().OrderBy(p => p.Id).ThenBy(p => p.Id).ThenByDescending(p => p.WrapperObject.Version);
+            var resultB = source.WithoutSortOnColumn("Version").OrderBy(p => p.Id).ThenBy(p => p.Id).ThenByDescending(p => p.WrapperObject.Version);
 
             // Assert
             Assert.Equal(new[] { packageAc, packageAb, packageAa }, resultA);
@@ -96,7 +96,7 @@ namespace NuGetGallery
 
             // Act
             var resultA = source.OrderBy(p => p.Version).ThenBy(p => p.Id);
-            var resultB = source.WithoutIdSort().OrderBy(p => p.Version).ThenBy(p => p.Id);
+            var resultB = source.WithoutSortOnColumn("Id").OrderBy(p => p.Version).ThenBy(p => p.Id);
 
             // Assert
             Assert.Equal(new[] { package3, package2, package1 }, resultA);
@@ -115,7 +115,7 @@ namespace NuGetGallery
 
             // Act
             var resultA = source.OrderBy(p => p.Version).ThenByDescending(p => p.Id);
-            var resultB = source.WithoutIdSort().OrderBy(p => p.Version).ThenByDescending(p => p.Id);
+            var resultB = source.WithoutSortOnColumn("Id").OrderBy(p => p.Version).ThenByDescending(p => p.Id);
 
             // Assert
             Assert.Equal(new[] { package3, package2, package1 }, resultA);
@@ -134,7 +134,7 @@ namespace NuGetGallery
 
             // Act
             var resultA = source.OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.Id);
-            var resultB = source.WithoutIdSort().OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.Id);
+            var resultB = source.WithoutSortOnColumn("Id").OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.Id);
 
             // Assert
             Assert.Equal(new[] { package3, package1, package2 }, resultA);
@@ -153,11 +153,28 @@ namespace NuGetGallery
 
             // Act
             var resultA = source.OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.WrapperObject.Id);
-            var resultB = source.WithoutIdSort().OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.WrapperObject.Id);
+            var resultB = source.WithoutSortOnColumn("Id").OrderBy(p => p.Version).ThenBy(p => p.Version).ThenByDescending(p => p.WrapperObject.Id);
 
             // Assert
             Assert.Equal(new[] { package3, package1, package2 }, resultA);
             Assert.Equal(new[] { package1, package2, package3 }, resultB);
+        }
+
+        [Fact]
+        public void RemoveSortWithInvalidColumn()
+        {
+            // Arrange
+            var package1 = new V2FeedPackage { Id = "B", Version = "A" };
+            var package2 = new V2FeedPackage { Id = "A", Version = "A" };
+            var package3 = new V2FeedPackage { Id = "C", Version = "A" };
+
+            var source = new[] { package1, package2, package3 }.AsQueryable();
+
+            // Act
+            var result = source.WithoutSortOnColumn("Dummy").OrderBy(p => p.Version).ThenBy(p => p.Id);
+
+            // Assert
+            Assert.Equal(new[] { package2, package1, package3 }, result);
         }
     }
 }

@@ -48,19 +48,12 @@ namespace NuGetGallery.Controllers
                 _configurationService.Current.IsODataFilterEnabled, nameof(Get)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
-            }
-
-            var queryable = IgnoreOrderById<V1FeedPackage>(options) ? 
-                _packagesRepository.GetAll()
-                .Where(p => !p.IsPrerelease && !p.Deleted)
-                .WithoutVersionSort()
-                .WithoutIdSort()
-                .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps())) :
-                _packagesRepository.GetAll()
-                .Where(p => !p.IsPrerelease && !p.Deleted)
-                .WithoutVersionSort()
-                .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()))
-                ;
+            } 
+            var queryable = _packagesRepository.GetAll()
+                                .Where(p => !p.IsPrerelease && !p.Deleted)
+                                .WithoutSortOnColumn("Version")
+                                .WithoutSortOnColumn("Id", ShouldIgnoreOrderById<V1FeedPackage>(options))
+                                .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
 
             return QueryResult(options, queryable, MaxPageSize);
         }
@@ -235,7 +228,5 @@ namespace NuGetGallery.Controllers
             var searchResults = await Search(options, searchTerm, targetFramework);
             return searchResults.FormattedAsCountResult<V1FeedPackage>();
         }
-
-
     }
 }

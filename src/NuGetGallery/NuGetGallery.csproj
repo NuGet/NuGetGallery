@@ -837,7 +837,7 @@
     <Compile Include="OData\QueryAllowed\ODataQueryFilter.cs" />
     <Compile Include="OData\QueryAllowed\ODataQueryVerifier.cs" />
     <Compile Include="OData\QueryAllowed\ODataQueryRequest.cs" />
-    <Compile Include="OData\QueryInterceptors\ODataRemoveVersionSorter.cs" />
+    <Compile Include="OData\QueryInterceptors\ODataRemoveSorter.cs" />
     <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />

@@ -80,26 +80,18 @@ namespace NuGetGallery.OData
         }
 
         /// <summary>
-        /// The orderbyId will be skipped when the request has and OrderBy clause that does not include Id 
+        /// The OrderById will be skipped when the request has an OrderBy clause that does not include Id 
         /// </summary>
         /// <param name="options">The request OData options.</param>
         /// <returns></returns>
-        protected bool IgnoreOrderById<T>(ODataQueryOptions<T> options)
+        protected bool ShouldIgnoreOrderById<T>(ODataQueryOptions<T> options)
         {
-            if (options.OrderBy != null)
-            {
-                if (options.OrderBy
-                    .OrderByNodes
-                    .Any((node) => {
-                        string nodeName = ((OrderByPropertyNode)node).Property.Name;
-                        return string.Equals(nodeName, "Id", StringComparison.Ordinal);
-                    }))
-                {
-                    return false;
-                }
-                return true;
-            }
-            return false;
+            return options.OrderBy != null && 
+                   !options.OrderBy.OrderByNodes.Any((node) =>
+                                    {
+                                        string nodeName = ((OrderByPropertyNode)node).Property.Name;
+                                        return string.Equals(nodeName, "Id", StringComparison.Ordinal);
+                                    });
         }
     }
 }

@@ -107,14 +107,9 @@ namespace NuGetGallery.OData
                 });
         }
 
-        internal static IQueryable<TVal> WithoutVersionSort<TVal>(this IQueryable<TVal> feedQuery)
+        internal static IQueryable<TVal> WithoutSortOnColumn<TVal>(this IQueryable<TVal> feedQuery, string columnName, bool confirmToIgnoreSort=true)
         {
-            return feedQuery.InterceptWith(new ODataRemoveSorter("Version"));
-        }
-
-        internal static IQueryable<TVal> WithoutIdSort<TVal>(this IQueryable<TVal> feedQuery)
-        {
-            return feedQuery.InterceptWith(new ODataRemoveSorter("Id"));
+            return confirmToIgnoreSort ? feedQuery.InterceptWith(new ODataRemoveSorter(columnName)) : feedQuery;
         }
 
         private static string EnsureTrailingSlash(string siteRoot)

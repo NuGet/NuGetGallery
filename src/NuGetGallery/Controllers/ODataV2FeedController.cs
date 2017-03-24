@@ -51,18 +51,11 @@ namespace NuGetGallery.Controllers
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options)
         {
             // Setup the search
-            var packages = IgnoreOrderById<V2FeedPackage>(options) ? 
-                _packagesRepository
-                .GetAll()
-                .Where(p => !p.Deleted)
-                .WithoutVersionSort()
-                .WithoutIdSort()
-                .InterceptWith(new NormalizeVersionInterceptor()) :
-                 _packagesRepository
-                .GetAll()
-                .Where(p => !p.Deleted)
-                .WithoutVersionSort()
-                .InterceptWith(new NormalizeVersionInterceptor());
+            var packages = _packagesRepository.GetAll()
+                                .Where(p => !p.Deleted)
+                                .WithoutSortOnColumn("Version")
+                                .WithoutSortOnColumn("Id", ShouldIgnoreOrderById<V2FeedPackage>(options))
+                                .InterceptWith(new NormalizeVersionInterceptor()) ;
 
             // Try the search service
             try
