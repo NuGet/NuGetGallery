@@ -48,12 +48,12 @@ namespace NuGetGallery.Controllers
                 _configurationService.Current.IsODataFilterEnabled, nameof(Get)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
-            }
-
+            } 
             var queryable = _packagesRepository.GetAll()
-                .Where(p => !p.IsPrerelease && !p.Deleted)
-                .WithoutVersionSort()
-                .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
+                                .Where(p => !p.IsPrerelease && !p.Deleted)
+                                .WithoutSortOnColumn(Version)
+                                .WithoutSortOnColumn(Id, ShouldIgnoreOrderById<V1FeedPackage>(options))
+                                .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
 
             return QueryResult(options, queryable, MaxPageSize);
         }
