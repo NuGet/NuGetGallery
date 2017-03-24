@@ -729,7 +729,14 @@ namespace NuGetGallery
 
                 query.AppendLine($"UPDATE [dbo].[Packages]");
                 query.AppendLine($"SET [IsLatest] = {isLatest}, [IsLatestStable] = {isLatestStable}, [LastUpdated] = GETUTCDATE()");
-                query.AppendLine($"WHERE [Key] = {key} AND [IsLatest] = {originalIsLatest} AND [IsLatestStable] = {originalIsLatestStable}");
+                query.AppendLine($"WHERE [Key] = {key}");
+                // optimistic concurrency check to prevent concurrent sets of latest/latestStable
+                query.AppendLine($" AND [IsLatest] = {originalIsLatest} AND [IsLatestStable] = {originalIsLatestStable}");
+                // ensure new latest/latestStable was not concurrently unlisted/deleted
+                if (packageEntry.Entity.IsLatest || packageEntry.Entity.IsLatestStable)
+                {
+                    query.AppendLine($" AND [Listed] = 1 AND [Deleted] = 0");
+                }
                 query.AppendLine($"SET @rowCount = @rowCount + @@ROWCOUNT");
             }
             query.AppendLine("SELECT @rowCount");
