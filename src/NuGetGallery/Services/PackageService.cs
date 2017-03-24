@@ -12,7 +12,6 @@ using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
-using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Packaging;
 
@@ -26,7 +25,6 @@ namespace NuGetGallery
 
         private readonly IIndexingService _indexingService;
         private readonly IEntitiesContext _entitiesContext;
-        private readonly IAppConfiguration _configuration;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
@@ -39,7 +37,6 @@ namespace NuGetGallery
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IEntitiesContext entitiesContext,
-            IAppConfiguration configuration,
             IDiagnosticsService diagnostics,
             IIndexingService indexingService,
             IPackageNamingConflictValidator packageNamingConflictValidator,
@@ -58,16 +55,6 @@ namespace NuGetGallery
             if (packageOwnerRequestRepository == null)
             {
                 throw new ArgumentNullException(nameof(packageOwnerRequestRepository));
-            }
-
-            if (entitiesContext == null)
-            {
-                throw new ArgumentNullException(nameof(entitiesContext));
-            }
-
-            if (configuration == null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
             }
 
             if (indexingService == null)
@@ -89,7 +76,6 @@ namespace NuGetGallery
             _packageRepository = packageRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _entitiesContext = entitiesContext;
-            _configuration = configuration;
             _indexingService = indexingService;
             _packageNamingConflictValidator = packageNamingConflictValidator;
             _auditingService = auditingService;
@@ -794,7 +780,7 @@ namespace NuGetGallery
         
         protected internal virtual IEntitiesContext CreateNewEntitiesContext()
         {
-            return new EntitiesContext(_configuration.SqlConnectionString, readOnly: false);
+            return new EntitiesContext();
         }
         
         public async Task UpdateIsLatestAsync(PackageRegistration packageRegistration)

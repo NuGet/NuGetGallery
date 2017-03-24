@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
-using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
@@ -286,7 +285,6 @@ namespace NuGetGallery
             var packageOwnerRequestRepo = new Mock<IEntityRepository<PackageOwnerRequest>>();
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var entitiesContext = new Mock<IEntitiesContext>();
-            var configuration = new Mock<IAppConfiguration>();
             var indexingService = new Mock<IIndexingService>();
             var packageNamingConflictValidator = new PackageNamingConflictValidator(
                     packageRegistrationRepository.Object,
@@ -298,7 +296,6 @@ namespace NuGetGallery
                 packageRepository.Object,
                 packageOwnerRequestRepo.Object,
                 entitiesContext.Object,
-                configuration.Object,
                 diagnosticsService.Object,
                 indexingService.Object,
                 packageNamingConflictValidator,
