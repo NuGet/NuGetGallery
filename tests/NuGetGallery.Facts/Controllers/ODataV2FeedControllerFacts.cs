@@ -3,6 +3,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using Xunit;
@@ -103,6 +104,51 @@ namespace NuGetGallery.Controllers
 
             // Assert
             Assert.Equal(NonSemVer2Packages.Count, searchCount);
+        }
+        
+        [Fact]
+        public async Task GetUpdates_FiltersSemVerV2PackageVersions()
+        {
+            // Arrange
+            const string currentVersionString = "1.0.0";
+            var currentVersion = NuGetVersion.Parse(currentVersionString);
+            var expected = NonSemVer2Packages.Where(p => NuGetVersion.Parse(p.Version) > currentVersion);
+
+            // Act
+            var resultSet = await GetCollection<V2FeedPackage>(
+                (controller, options) => controller.GetUpdates(options, TestPackageId, currentVersionString, includePrerelease: true, includeAllVersions: true),
+                $"/api/v2/GetUpdates()?packageIds='{TestPackageId}'&versions='{currentVersionString}'&includePrerelease=true&includeAllVersions=true");
+
+            // Assert
+            foreach (var feedPackage in resultSet)
+            {
+                // Assert none of the items in the result set are SemVer v.2.0.0 packages (checking on original version is enough in this case)
+                Assert.Empty(SemVer2Packages.Where(p => string.Equals(p.Version, feedPackage.Version)));
+
+                // Assert each of the items in the result set is a non-SemVer v2.0.0 package
+                Assert.Single(NonSemVer2Packages.Where(p =>
+                            string.Equals(p.Version, feedPackage.Version) &&
+                            string.Equals(p.PackageRegistration.Id, feedPackage.Id)));
+            }
+
+            Assert.Equal(expected.Count(), resultSet.Count);
+        }
+
+        [Fact]
+        public async Task GetUpdatesCount_FiltersSemVerV2PackageVersions()
+        {
+            // Arrange
+            const string currentVersionString = "1.0.0";
+            var currentVersion = NuGetVersion.Parse(currentVersionString);
+            var expected = NonSemVer2Packages.Where(p => NuGetVersion.Parse(p.Version) > currentVersion);
+
+            // Act
+            var updatesCount = await GetInt<V2FeedPackage>(
+                (controller, options) => controller.GetUpdatesCount(options, TestPackageId, currentVersionString, includePrerelease: true, includeAllVersions: true),
+                $"/api/v2/GetUpdates()?packageIds='{TestPackageId}'&versions='{currentVersionString}'&includePrerelease=true&includeAllVersions=true");
+
+            // Assert
+            Assert.Equal(expected.Count(), updatesCount);
         }
 
         protected override ODataV2FeedController CreateController(

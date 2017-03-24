@@ -396,20 +396,21 @@ namespace NuGetGallery.Controllers
         {
             var updates = from p in packages.AsEnumerable()
                           let version = NuGetVersion.Parse(p.Version)
-                          where versionLookup[p.PackageRegistration.Id]
-                            .Any(versionTuple =>
-                            {
-                                NuGetVersion clientVersion = versionTuple.Item1;
-                                var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
+                          where p.SemVerLevelKey == SemVerLevelKey.Unknown
+                                && versionLookup[p.PackageRegistration.Id].Any(versionTuple =>
+                                {
+                                    NuGetVersion clientVersion = versionTuple.Item1;
+                                    var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
 
-                                VersionRange versionConstraint = versionTuple.Item2;
+                                    VersionRange versionConstraint = versionTuple.Item2;
 
-                                return (version > clientVersion) &&
-                                        (targetFrameworkValues == null ||
-                                        !supportedPackageFrameworks.Any() ||
-                                        targetFrameworkValues.Any(s => supportedPackageFrameworks.Any(supported => NuGetFrameworkUtility.IsCompatibleWithFallbackCheck(s, supported)))) &&
-                                        (versionConstraint == null || versionConstraint.Satisfies(version));
-                            })
+                                    return version > clientVersion 
+                                            && (targetFrameworkValues == null 
+                                                || !supportedPackageFrameworks.Any() 
+                                                || targetFrameworkValues.Any(s => supportedPackageFrameworks.Any(supported => NuGetFrameworkUtility.IsCompatibleWithFallbackCheck(s, supported)))) 
+                                            && (versionConstraint == null 
+                                                || versionConstraint.Satisfies(version));
+                                })
                           select p;
 
             if (!includeAllVersions)
