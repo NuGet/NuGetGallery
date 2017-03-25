@@ -34,53 +34,51 @@ namespace NuGetGallery
                 return null;
             }
 
-            // Must suspend the retry execution strategy in order to use transactions.
-            using (EntitiesConfiguration.SuspendRetriableExecutionStrategy())
+            EntitiesConfiguration.SuspendExecutionStrategy = true;
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
-                using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+                // 1) Download package binary to memory
+                using (var packageStream = await _packageFileService.DownloadPackageFileAsync(package))
                 {
-                    // 1) Download package binary to memory
-                    using (var packageStream = await _packageFileService.DownloadPackageFileAsync(package))
+                    using (var packageArchive = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
                     {
-                        using (var packageArchive = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
+                        // 2) Determine package metadata from binary
+                        var packageStreamMetadata = new PackageStreamMetadata
                         {
-                            // 2) Determine package metadata from binary
-                            var packageStreamMetadata = new PackageStreamMetadata
-                            {
-                                HashAlgorithm = Constants.Sha512HashAlgorithmId,
-                                Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
-                                Size = packageStream.Length,
-                            };
+                            HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                            Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
+                            Size = packageStream.Length,
+                        };
 
-                            var packageMetadata = PackageMetadata.FromNuspecReader(packageArchive.GetNuspecReader());
+                        var packageMetadata = PackageMetadata.FromNuspecReader(packageArchive.GetNuspecReader());
 
-                            // 3) Clear referenced objects that will be reflowed
-                            ClearSupportedFrameworks(package);
-                            ClearAuthors(package);
-                            ClearDependencies(package);
+                        // 3) Clear referenced objects that will be reflowed
+                        ClearSupportedFrameworks(package);
+                        ClearAuthors(package);
+                        ClearDependencies(package);
 
-                            // 4) Reflow the package
-                            var listed = package.Listed;
+                        // 4) Reflow the package
+                        var listed = package.Listed;
 
-                            package = _packageService.EnrichPackageFromNuGetPackage(
-                                package,
-                                packageArchive,
-                                packageMetadata,
-                                packageStreamMetadata,
-                                package.User);
+                        package = _packageService.EnrichPackageFromNuGetPackage(
+                            package,
+                            packageArchive,
+                            packageMetadata,
+                            packageStreamMetadata,
+                            package.User);
 
-                            package.LastEdited = DateTime.UtcNow;
-                            package.Listed = listed;
+                        package.LastEdited = DateTime.UtcNow;
+                        package.Listed = listed;
 
-                            // 5) Save and profit
-                            await _entitiesContext.SaveChangesAsync();
-                        }
+                        // 5) Save and profit
+                        await _entitiesContext.SaveChangesAsync();
                     }
-
-                    // Commit transaction
-                    transaction.Commit();
                 }
+
+                // Commit transaction
+                transaction.Commit();
             }
+            EntitiesConfiguration.SuspendExecutionStrategy = false;
 
             return package;
         }
