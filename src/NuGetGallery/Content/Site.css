@@ -951,8 +951,13 @@ fieldset.form legend {
     height: 2.25em;
 }
 
-.form-field.form-field-full input {
+.form-field.form-field-full input,
+.form-field.form-field-full textarea {
     width: 100%;
+}
+
+.form-field.form-field-full textarea {
+    height: 96px;    
 }
 
 .form-field input[data-val-required],
@@ -1045,6 +1050,15 @@ fieldset.form legend {
     margin-top: 5px;
     width: 416px;
     z-index: 550;
+}
+
+.form-field-full > .field-validation-error,
+.form-field-full > .field-hint-message {
+    width: 98.5%;
+    padding-top: 5px;
+    padding-left: 5px;
+    padding-bottom: 5px;
+    padding-right: 0px;
 }
 
 textarea + .field-validation-error {
