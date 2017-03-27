@@ -2,7 +2,7 @@
 @if (Model.DependencySets.Any())
 {
     <ul id="dependencySets">
-        @foreach (var dependencySet in Model.DependencySets)
+        @foreach (var dependencySet in Model.DependencySets.OrderBy(x => x.Key))
         {
             var dependencySetTitle = dependencySet.Key.Replace("Windows 0.0", "Windows");
             if (dependencySetTitle == ".NETPlatform 5.0")
@@ -20,20 +20,23 @@
                     <h4>@dependencySetTitle</h4>
                 }
                 <ul class="dependencySet">
-                    @foreach (var dependency in dependencySet.Value)
+                    @if (dependencySet.Value.First() == null)
                     {
                         <li>
-                            @if (dependency == null)
-                            {
-                                @:No dependencies.
-                            }
-                            else
-                            {
-                                <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
-                                <span>@dependency.VersionSpec</span>
-                            }
+                            No dependencies.
                         </li>
                     }
+                    else
+                    {
+                        foreach (var dependency in dependencySet.Value.Where(x => x != null).OrderBy(x => x.Id))
+                        {
+                            <li>
+                                    <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                                    <span>@dependency.VersionSpec</span>
+                            </li>
+                        }
+                    }
+                    
                 </ul>
             </li>
         }
