@@ -56,55 +56,52 @@ namespace NuGetGallery
 
         public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
         {
-            List<PackageRegistration> packageRegistrations;
-
-            // Must suspend the retry execution strategy in order to use transactions.
-            using (EntitiesConfiguration.SuspendRetriableExecutionStrategy())
+            EntitiesConfiguration.SuspendExecutionStrategy = true;
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
-                using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+                // Increase command timeout
+                _entitiesContext.SetCommandTimeout(seconds: 300);
+
+                // Keep package registrations
+                var packageRegistrations = packages
+                    .GroupBy(p => p.PackageRegistration)
+                    .Select(g => g.First().PackageRegistration)
+                    .ToList();
+
+                // Backup the package binaries and remove from main storage
+                // We're doing this early in the process as we need the metadata to still exist in the DB.
+                await BackupPackageBinaries(packages);
+
+                // Store the soft delete in the database
+                var packageDelete = new PackageDelete
                 {
-                    // Increase command timeout
-                    _entitiesContext.SetCommandTimeout(seconds: 300);
+                    DeletedOn = DateTime.UtcNow,
+                    DeletedBy = deletedBy,
+                    Reason = reason,
+                    Signature = signature
+                };
 
-                    // Keep package registrations
-                    packageRegistrations = packages
-                        .GroupBy(p => p.PackageRegistration)
-                        .Select(g => g.First().PackageRegistration)
-                        .ToList();
+                foreach (var package in packages)
+                {
+                    package.Listed = false;
+                    package.Deleted = true;
+                    packageDelete.Packages.Add(package);
 
-                    // Backup the package binaries and remove from main storage
-                    // We're doing this early in the process as we need the metadata to still exist in the DB.
-                    await BackupPackageBinaries(packages);
-
-                    // Store the soft delete in the database
-                    var packageDelete = new PackageDelete
-                    {
-                        DeletedOn = DateTime.UtcNow,
-                        DeletedBy = deletedBy,
-                        Reason = reason,
-                        Signature = signature
-                    };
-
-                    foreach (var package in packages)
-                    {
-                        package.Listed = false;
-                        package.Deleted = true;
-                        packageDelete.Packages.Add(package);
-
-                        await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
-                    }
-
-                    _packageDeletesRepository.InsertOnCommit(packageDelete);
-
-                    // Commit changes
-                    await _packageRepository.CommitChangesAsync();
-                    await _packageDeletesRepository.CommitChangesAsync();
-                    transaction.Commit();
+                    await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
                 }
-            }
 
-            // handle in separate transaction because of concurrency check with retry
-            await UpdateIsLatestAsync(packageRegistrations);
+                _packageDeletesRepository.InsertOnCommit(packageDelete);
+
+                // Update latest versions
+                await UpdateIsLatestAsync(packageRegistrations);
+
+                // Commit changes
+                await _packageRepository.CommitChangesAsync();
+                await _packageDeletesRepository.CommitChangesAsync();
+                transaction.Commit();
+            }
+            EntitiesConfiguration.SuspendExecutionStrategy = false;
+
 
             // Force refresh the index
             UpdateSearchIndex();
@@ -112,58 +109,54 @@ namespace NuGetGallery
 
         public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration)
         {
-            List<PackageRegistration> packageRegistrations;
-
-            // Must suspend the retry execution strategy in order to use transactions.
-            using (EntitiesConfiguration.SuspendRetriableExecutionStrategy())
+            EntitiesConfiguration.SuspendExecutionStrategy = true;
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
-                using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+                // Increase command timeout
+                _entitiesContext.SetCommandTimeout(seconds: 300);
+
+                // Keep package registrations
+                var packageRegistrations = packages.GroupBy(p => p.PackageRegistration).Select(g => g.First().PackageRegistration).ToList();
+
+                // Backup the package binaries and remove from main storage
+                // We're doing this early in the process as we need the metadata to still exist in the DB.
+                await BackupPackageBinaries(packages);
+
+                // Remove the package and related entities from the database
+                foreach (var package in packages)
                 {
-                    // Increase command timeout
-                    _entitiesContext.SetCommandTimeout(seconds: 300);
+                    await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
+                        "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key",
+                        new SqlParameter("@key", package.Key));
+                    await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
+                        "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key",
+                        new SqlParameter("@key", package.Key));
+                    await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
+                        "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key",
+                        new SqlParameter("@key", package.Key));
 
-                    // Keep package registrations
-                    packageRegistrations = packages.GroupBy(p => p.PackageRegistration).Select(g => g.First().PackageRegistration).ToList();
+                    await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.Delete, reason));
 
-                    // Backup the package binaries and remove from main storage
-                    // We're doing this early in the process as we need the metadata to still exist in the DB.
-                    await BackupPackageBinaries(packages);
-
-                    // Remove the package and related entities from the database
-                    foreach (var package in packages)
-                    {
-                        await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
-                            "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key",
-                            new SqlParameter("@key", package.Key));
-                        await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
-                            "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key",
-                            new SqlParameter("@key", package.Key));
-                        await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
-                            "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key",
-                            new SqlParameter("@key", package.Key));
-
-                        await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.Delete, reason));
-
-                        package.PackageRegistration.Packages.Remove(package);
-                        _packageRepository.DeleteOnCommit(package);
-                    }
-
-                    // Commit changes to package repository
-                    await _packageRepository.CommitChangesAsync();
-
-                    // Remove package registrations that have no more packages?
-                    if (deleteEmptyPackageRegistration)
-                    {
-                        await RemovePackageRegistrationsWithoutPackages(packageRegistrations);
-                    }
-
-                    // Commit transaction
-                    transaction.Commit();
+                    package.PackageRegistration.Packages.Remove(package);
+                    _packageRepository.DeleteOnCommit(package);
                 }
-            }
 
-            // handle in separate transaction because of concurrency check with retry
-            await UpdateIsLatestAsync(packageRegistrations);
+                // Update latest versions
+                await UpdateIsLatestAsync(packageRegistrations);
+
+                // Commit changes to package repository
+                await _packageRepository.CommitChangesAsync();
+
+                // Remove package registrations that have no more packages?
+                if (deleteEmptyPackageRegistration)
+                {
+                    await RemovePackageRegistrationsWithoutPackages(packageRegistrations);
+                }
+
+                // Commit transaction
+                transaction.Commit();
+            }
+            EntitiesConfiguration.SuspendExecutionStrategy = false;
 
             // Force refresh the index
             UpdateSearchIndex();
@@ -176,9 +169,10 @@ namespace NuGetGallery
 
         private async Task UpdateIsLatestAsync(IEnumerable<PackageRegistration> packageRegistrations)
         {
+            // Update latest versions
             foreach (var packageRegistration in packageRegistrations)
             {
-                await _packageService.UpdateIsLatestAsync(packageRegistration);
+                await _packageService.UpdateIsLatestAsync(packageRegistration, false);
             }
         }
 

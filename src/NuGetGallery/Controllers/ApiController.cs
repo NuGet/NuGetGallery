@@ -473,9 +473,6 @@ namespace NuGetGallery
                             throw;
                         }
 
-                        // Handle in separate transaction because of concurrency check with retry
-                        await PackageService.UpdateIsLatestAsync(package.PackageRegistration);
-
                         IndexingService.UpdatePackage(package);
                         
                         // Write an audit record
@@ -555,13 +552,6 @@ namespace NuGetGallery
             }
 
             await PackageService.MarkPackageUnlistedAsync(package);
-
-            // Handle in separate transaction because of concurrency check with retry. Due to using
-            // separate transactions, we must always call UpdateIsLatest on delete/unlist. This is
-            // because a concurrent thread could be marking the package as latest before this thread
-            // is able to commit the delete /unlist.
-            await PackageService.UpdateIsLatestAsync(package.PackageRegistration);
-
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
         }
@@ -595,10 +585,6 @@ namespace NuGetGallery
             }
 
             await PackageService.MarkPackageListedAsync(package);
-            
-            // handle in separate transaction because of concurrency check with retry
-            await PackageService.UpdateIsLatestAsync(package.PackageRegistration);
-
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
         }

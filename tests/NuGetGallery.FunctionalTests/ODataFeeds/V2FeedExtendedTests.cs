@@ -91,68 +91,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp);
         }
 
-        [Fact]
-        [Description("Verifies that the IsLatest/IsLatestStable flags are set correctly when different package versions are pushed concurrently")]
-        [Priority(1)]
-        [Category("P0Tests")]
-        public async Task PackageLatestSetCorrectlyOnConcurrentPushes()
-        {
-            var packageId = $"TestV2FeedPackageLatestSetCorrectlyOnConcurrentPushes.{DateTime.UtcNow.Ticks}";
-            var packageVersions = new List<string>()
-            {
-                 "1.0.0-a",  "1.0.0-b",  "1.0.0",  "1.0.1",  "1.0.2-abc",
-                 "2.0.0-a",  "2.0.0-b",  "2.0.0",  "2.0.1",  "2.0.2-abc",
-                 "3.0.0-a",  "3.0.0-b",  "3.0.0",  "3.0.1",  "3.0.2-abc",
-                 "4.0.0-a",  "4.0.0-b",  "4.0.0",  "4.0.1",  "4.0.2-abc",
-                 "5.0.0-a",  "5.0.0-b",  "5.0.0",  "5.0.1",  "5.0.2-abc",
-                 "6.0.0-a",  "6.0.0-b",  "6.0.0",  "6.0.1",  "6.0.2-abc"
-            };
-
-            // first push should not be concurrent to avoid conflict on creation of package registration.
-            var concurrentTasks = new Task[packageVersions.Count];
-            concurrentTasks[0] = Task.Run(() => _clientSdkHelper.UploadNewPackage(packageId, version: packageVersions[0]));
-            concurrentTasks[0].Wait();
-
-            // push remaining packages over period of 5 seconds
-            // goal is insert of multiple packages that would be marked as new latest/latestStable
-            var random = new Random();
-            for (int i = 1; i < concurrentTasks.Length; i++)
-            {
-                var packageVersion = packageVersions[i];
-                concurrentTasks[i] = Task.Run(async () =>
-                {
-                    await Task.Delay(random.Next(0, 5000));
-                    await _clientSdkHelper.UploadNewPackage(packageId, version: packageVersion);
-                });
-            }
-            Task.WaitAll(concurrentTasks);
-
-            // unlist packages a row at a time
-            // goal is unlist of package that would be marked latest/latestStable by concurrent UpdateIsLatest            
-            var rowCount = 6;
-            var columnCount = 5;
-            var concurrentUnlists = new Task[columnCount];
-            for (int r = rowCount; r > 0; r--)
-            {
-                // verify current latest/latestStable before unlisting next row
-                var latestIndex = (r * columnCount) - 1;
-                var latestStableIndex = (r * columnCount) - 2;
-                await CheckPackageLatestVersions(packageId, packageVersions, packageVersions[latestIndex], packageVersions[latestStableIndex]);
-
-                // unlist each package in the current row
-                for (int c = 1; c <= columnCount; c++)
-                {
-                    var index = (r * columnCount) - c;
-                    var versionToUnlist = packageVersions[index];
-                    concurrentUnlists[c - 1] = Task.Run(() => _clientSdkHelper.UnlistPackage(packageId, version: versionToUnlist));
-                }
-                Task.WaitAll(concurrentUnlists);
-            }
-
-            // no latest/latestStable, as all packages have been unlisted
-            await CheckPackageLatestVersions(packageId, packageVersions, string.Empty, string.Empty);
-        }
-
         private static string GetPackagesAppearInFeedInOrderPackageId(DateTime startingTime, int i)
         {
             return $"TestV2FeedPackagesAppearInFeedInOrderTest.{startingTime.Ticks}.{i}";
@@ -160,7 +98,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
         private static string GetPackagesAppearInFeedInOrderUrl(DateTime time, string timestamp)
         {
-            return $"{UrlHelper.V2FeedRootUrl}/Packages?$filter={timestamp} gt DateTime'{time:o}'&$orderby={timestamp} desc&$select={timestamp},IsLatestVersion,IsAbsoluteLatestVersion,Published";
+            return $"{UrlHelper.V2FeedRootUrl}/Packages?$filter={timestamp} gt DateTime'{time:o}'&$orderby={timestamp} desc&$select={timestamp}";
         }
 
         /// <summary>
@@ -169,7 +107,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         /// <param name="packageIds">An ordered list of package ids. Each package id in the list must have a timestamp in the feed earlier than all package ids after it.</param>
         /// <param name="timestampPropertyName">The timestamp property to test the ordering of. For example, "Created" or "LastEdited".</param>
         /// <param name="operationStartTimestamp">A timestamp that is before all of the timestamps expected to be found in the feed. This is used in a request to the feed.</param>
-        /// <param name="packagesListed">Whether packages are listed, used to verify if latest flags are set properly.</param>
         private async Task CheckPackageTimestampsInOrder(List<string> packageIds, string timestampPropertyName,
             DateTime operationStartTimestamp)
         {
@@ -179,55 +116,17 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 var packageId = packageIds[i];
                 TestOutputHelper.WriteLine($"Attempting to check order of package #{i} {timestampPropertyName} timestamp in feed.");
 
-                var feedUrl = GetPackagesAppearInFeedInOrderUrl(operationStartTimestamp, timestampPropertyName);
-                var packageDetails = await _odataHelper.GetPackagePropertiesFromResponse(feedUrl, packageId);
-                Assert.NotNull(packageDetails);
-                
-                var newTimestamp = (DateTime?)(packageDetails.ContainsKey(timestampPropertyName)
-                    ? packageDetails[timestampPropertyName]
-                    : null);
+                var newTimestamp =
+                    await
+                        _odataHelper.GetTimestampOfPackageFromResponse(
+                            GetPackagesAppearInFeedInOrderUrl(operationStartTimestamp, timestampPropertyName),
+                            timestampPropertyName,
+                            packageId);
 
                 Assert.True(newTimestamp.HasValue);
                 Assert.True(newTimestamp.Value > lastTimestamp,
                     $"Package #{i} was last modified after package #{i - 1} but has an earlier {timestampPropertyName} timestamp ({newTimestamp} should be greater than {lastTimestamp}).");
                 lastTimestamp = newTimestamp.Value;
-
-                var published= packageDetails["Published"] as DateTime?;
-                var isListed = !published?.Year.Equals(1900);
-                var isLatest = packageDetails["IsAbsoluteLatestVersion"] as bool?;
-                var isLatestStable = packageDetails["IsLatestVersion"] as bool?;
-
-                Assert.NotNull(isLatest);
-                Assert.Equal(isLatest, isListed);
-
-                Assert.NotNull(isLatestStable);
-                Assert.Equal(isLatestStable, isListed);
-            }
-        }
-        
-        private async Task CheckPackageLatestVersions(string packageId, List<string> versions, string expectedLatest, string expectedLatestStable)
-        {
-            foreach (var version in versions)
-            {
-                var feedUrl = $"{UrlHelper.V2FeedRootUrl}/Packages?$filter=Id eq '{packageId}' and Version eq '{version}'" +
-                    "and 1 eq 1" + // Disable search hijacking to get immediate results.
-                    "&$select=Id,Version,IsLatestVersion,IsAbsoluteLatestVersion";
-                var packageDetails = await _odataHelper.GetPackagePropertiesFromResponse(feedUrl, packageId, version);
-                Assert.NotNull(packageDetails);
-
-                var actualId = packageDetails["Id"] as string;
-                Assert.True(packageId.Equals(actualId, StringComparison.InvariantCultureIgnoreCase));
-
-                var actualVersion = packageDetails["Version"] as string;
-                Assert.True(version.Equals(actualVersion, StringComparison.InvariantCultureIgnoreCase));
-
-                var isLatest = packageDetails["IsAbsoluteLatestVersion"] as bool?;
-                Assert.NotNull(isLatest);
-                Assert.Equal(isLatest, expectedLatest.Equals(version, StringComparison.InvariantCultureIgnoreCase));
-
-                var isLatestStable = packageDetails["IsLatestVersion"] as bool?;
-                Assert.NotNull(isLatestStable);
-                Assert.Equal(isLatestStable, expectedLatestStable.Equals(version, StringComparison.InvariantCultureIgnoreCase));
             }
         }
 
