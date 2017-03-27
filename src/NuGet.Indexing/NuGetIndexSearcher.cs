@@ -8,20 +8,21 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
+using NuGet.Versioning;
 
 namespace NuGet.Indexing
 {
     public class NuGetIndexSearcher : IndexSearcher
     {
         private readonly IDictionary<string, Filter> _curatedFeeds;
-        private readonly Filter[][] _latest;
+        private readonly Dictionary<LatestListedMask, Filter> _latest;
 
         public NuGetIndexSearcher(
             NuGetSearcherManager manager,
             IndexReader reader,
             IDictionary<string, string> commitUserData,
             IDictionary<string, Filter> curatedFeeds,
-            Filter[][] latest,
+            Dictionary<LatestListedMask, Filter> latest,
             IReadOnlyDictionary<string, int[]> docIdMapping,
             Downloads downloads,
             VersionResult[] versions,
@@ -29,6 +30,8 @@ namespace NuGet.Indexing
             QueryBoostingContext context,
             OpenBitSet latestBitSet,
             OpenBitSet latestStableBitSet,
+            OpenBitSet latestSemVer2BitSet,
+            OpenBitSet latestStableSemVer2BitSet,
             OwnersResult owners)
             : base(reader)
         {
@@ -48,6 +51,8 @@ namespace NuGet.Indexing
             Rankings = rankings;
             LatestBitSet = latestBitSet;
             LatestStableBitSet = latestStableBitSet;
+            LatestSemVer2BitSet = latestSemVer2BitSet;
+            LatestStableSemVer2BitSet = latestStableSemVer2BitSet;
             Owners = owners;
             QueryBoostingContext = context;
             LastReopen = DateTime.UtcNow;
@@ -60,14 +65,22 @@ namespace NuGet.Indexing
         public RankingResult Rankings { get; }
         public OpenBitSet LatestBitSet { get; }
         public OpenBitSet LatestStableBitSet { get; }
+        public OpenBitSet LatestSemVer2BitSet { get; }
+        public OpenBitSet LatestStableSemVer2BitSet { get; }
         public OwnersResult Owners { get; }
         public DateTime LastReopen { get; }
         public IReadOnlyDictionary<string, int[]> DocIdMapping { get; }
         public QueryBoostingContext QueryBoostingContext { get; }
 
-        public bool TryGetFilter(bool includeUnlisted, bool includePrerelease, string curatedFeed, out Filter filter)
+        public bool TryGetFilter(bool includeUnlisted, bool includePrerelease, NuGetVersion semVerLevel, string curatedFeed, out Filter filter)
         {
-            Filter visibilityFilter = _latest[includeUnlisted ? 1 : 0][includePrerelease ? 1 : 0];
+            var includeSemVer2 = SemVerHelpers.ShouldIncludeSemVer2Results(semVerLevel);
+
+            LatestListedMask filterMask = (includeUnlisted ? LatestListedMask.IncludeUnlisted : 0) |
+                                          (includePrerelease ? LatestListedMask.IncludePrerelease : 0) |
+                                          (includeSemVer2 ? LatestListedMask.IncludeSemVer2 : 0);
+
+            Filter visibilityFilter = _latest[filterMask];
 
             Filter curatedFeedFilter;
             if (!string.IsNullOrEmpty(curatedFeed) && _curatedFeeds.TryGetValue(curatedFeed, out curatedFeedFilter))

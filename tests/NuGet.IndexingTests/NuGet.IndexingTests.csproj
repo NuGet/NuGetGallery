@@ -139,6 +139,9 @@
     <Reference Include="NuGet.Services.KeyVault, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.2.1.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Versioning, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Versioning.3.5.0-rc1-final\lib\net45\NuGet.Versioning.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -180,6 +183,7 @@
     <Compile Include="ExpandAcronymsFilterTests.cs" />
     <Compile Include="Extraction\CatalogPackageMetadataExtractorTests.cs" />
     <Compile Include="Extraction\DocumentCreatorTests.cs" />
+    <Compile Include="LatestListedHandlerTests.cs" />
     <Compile Include="NuGetQueryTests.cs" />
     <Compile Include="ResponseFormatterTests.cs" />
     <Compile Include="TestSupport\Constants.cs" />

@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using NuGet.Indexing;
+using NuGet.Versioning;
 
 namespace NuGet.Services.BasicSearch
 {
@@ -15,6 +16,7 @@ namespace NuGet.Services.BasicSearch
             var skip = GetSkip(context);
             var take = GetTake(context);
             var includePrerelease = GetIncludePrerelease(context);
+            var semVerLevel = GetSemVerLevel(context);
             bool includeExplanation = GetBool(context, nameof(includeExplanation));
 
             var q = context.Request.Query["q"] ?? string.Empty;
@@ -24,7 +26,7 @@ namespace NuGet.Services.BasicSearch
             await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => ServiceImpl.Search(jsonWriter, searcherManager, scheme, q, includePrerelease, skip, take, feed, includeExplanation));
+                jsonWriter => ServiceImpl.Search(jsonWriter, searcherManager, scheme, q, includePrerelease, semVerLevel, skip, take, feed, includeExplanation));
         }
 
         public static async Task AutoCompleteAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
@@ -32,6 +34,7 @@ namespace NuGet.Services.BasicSearch
             var skip = GetSkip(context);
             var take = GetTake(context);
             var includePrerelease = GetIncludePrerelease(context);
+            var semVerLevel = GetSemVerLevel(context);
             bool explanation = GetBool(context, nameof(explanation));
 
             var q = context.Request.Query["q"];
@@ -44,18 +47,7 @@ namespace NuGet.Services.BasicSearch
             await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => ServiceImpl.AutoComplete(jsonWriter, searcherManager, q, id, includePrerelease, skip, take, explanation));
-        }
-
-        public static async Task FindAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
-        {
-            var id = context.Request.Query["id"] ?? string.Empty;
-            var scheme = context.Request.Uri.Scheme;
-
-            await responseWriter.WriteResponseAsync(
-                context,
-                HttpStatusCode.OK,
-                jsonWriter => ServiceImpl.Find(jsonWriter, searcherManager, id, scheme));
+                jsonWriter => ServiceImpl.AutoComplete(jsonWriter, searcherManager, q, id, includePrerelease, semVerLevel, skip, take, explanation));
         }
 
         public static async Task V2SearchAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
@@ -65,6 +57,7 @@ namespace NuGet.Services.BasicSearch
             var ignoreFilter = GetIgnoreFilter(context);
             var countOnly = GetCountOnly(context);
             var includePrerelease = GetIncludePrerelease(context);
+            var semVerLevel = GetSemVerLevel(context);
 
             var q = context.Request.Query["q"] ?? string.Empty;
             var sortBy = context.Request.Query["sortBy"] ?? string.Empty;
@@ -75,15 +68,7 @@ namespace NuGet.Services.BasicSearch
             await responseWriter.WriteResponseAsync(
                 context,
                 HttpStatusCode.OK,
-                jsonWriter => GalleryServiceImpl.Search(jsonWriter, searcherManager, q, countOnly, includePrerelease, sortBy, skip, take, feed, ignoreFilter, luceneQuery));
-        }
-
-        public static async Task RankingsAsync(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
-        {
-            await responseWriter.WriteResponseAsync(
-                context,
-                HttpStatusCode.OK,
-                jsonWriter => ServiceInfoImpl.Rankings(jsonWriter, searcherManager));
+                jsonWriter => GalleryServiceImpl.Search(jsonWriter, searcherManager, q, countOnly, includePrerelease, semVerLevel, sortBy, skip, take, feed, ignoreFilter, luceneQuery));
         }
 
         public static async Task Stats(IOwinContext context, NuGetSearcherManager searcherManager, ResponseWriter responseWriter)
@@ -114,6 +99,17 @@ namespace NuGet.Services.BasicSearch
             }
 
             return includePrerelease;
+        }
+
+        private static NuGetVersion GetSemVerLevel(IOwinContext context)
+        {
+            NuGetVersion semVerLevel;
+            if (NuGetVersion.TryParse(context.Request.Query["semVerLevel"], out semVerLevel))
+            {
+                return semVerLevel;
+            }
+
+            return SemVerHelpers.SemVer1Level;
         }
 
         private static bool GetLuceneQuery(IOwinContext context)

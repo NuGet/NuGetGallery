@@ -283,6 +283,7 @@
     <Compile Include="IAcronymExpansionProvider.cs" />
     <Compile Include="IndexDirectoryProvider\IIndexDirectoryProvider.cs" />
     <Compile Include="IndexDirectoryProvider\CloudIndexDirectoryProvider.cs" />
+    <Compile Include="LatestListedMask.cs" />
     <Compile Include="NuGetAcronymExpansionProvider.cs" />
     <Compile Include="NuGetMergePolicyApplyer.cs" />
     <Compile Include="NuGetQueryParser.cs" />
@@ -312,6 +313,7 @@
     <Compile Include="ResponseFormatter.cs" />
     <Compile Include="Retry.cs" />
     <Compile Include="IndexingConfiguration.cs" />
+    <Compile Include="SemVerHelpers.cs" />
     <Compile Include="Sql2Lucene.cs" />
     <Compile Include="StorageLoader.cs" />
     <Compile Include="UriFormatter.cs" />

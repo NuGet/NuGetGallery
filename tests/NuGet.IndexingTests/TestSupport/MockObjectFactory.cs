@@ -12,7 +12,15 @@ namespace NuGet.IndexingTests.TestSupport
     {
         public static string MockPrefix = "Mock";
 
-        public static Document GetBasicDocument(int MockId)
+        public static Document GetSemVerDocument(int MockId, bool listed = true, string semVerLevel = null)
+        {
+            var mockDocument = GetBasicDocument(MockId, listed);
+            mockDocument.Add(new Field(Constants.LucenePropertySemVerLevel, semVerLevel == null ? Constants.SemVerLevel2Value : semVerLevel, Field.Store.YES, Field.Index.NO));
+
+            return mockDocument;
+        }
+
+        public static Document GetBasicDocument(int MockId, bool listed = true)
         {
             var mockDocument = new Document();
             mockDocument.Add(new Field(Constants.LucenePropertyId, MockPrefix + Constants.LucenePropertyId + MockId, Field.Store.YES, Field.Index.NO));
@@ -23,11 +31,12 @@ namespace NuGet.IndexingTests.TestSupport
             mockDocument.Add(new Field(Constants.LucenePropertyIconUrl, MockPrefix + Constants.LucenePropertyIconUrl + MockId, Field.Store.YES, Field.Index.NO));
             mockDocument.Add(new Field(Constants.LucenePropertyLicenseUrl, MockPrefix + Constants.LucenePropertyLicenseUrl + MockId, Field.Store.YES, Field.Index.NO));
             mockDocument.Add(new Field(Constants.LucenePropertyProjectUrl, MockPrefix + Constants.LucenePropertyProjectUrl + MockId, Field.Store.YES, Field.Index.NO));
+            mockDocument.Add(new Field(Constants.LucenePropertyListed, listed ? "true" : "false", Field.Store.YES, Field.Index.NO));
 
             return mockDocument;
         }
 
-        public static Mock<IndexReader> CreateMockIndexReader(int numberOfDocs)
+        public static Mock<IndexReader> CreateMockIndexReader(int numberOfDocs, int numberOfSubReaders = 0)
         {
             var mockIndexReader = new Mock<IndexReader>();
             var numDocs = numberOfDocs;
@@ -35,8 +44,28 @@ namespace NuGet.IndexingTests.TestSupport
             mockIndexReader.Setup(x => x.MaxDoc).Returns(numDocs);
             mockIndexReader.Setup(x => x.TermDocs()).Returns((TermDocs)null);
             mockIndexReader.Setup(x => x.NumDocs()).Returns(numDocs);
+            mockIndexReader.Setup(x => x.GetSequentialSubReaders()).Returns(MakeFakeSubReaders(numberOfSubReaders));
 
             return mockIndexReader;
+        }
+
+        private static SegmentReader[] MakeFakeSubReaders(int numberOfReaders)
+        {
+            if (numberOfReaders <= 0)
+            {
+                return null;
+            }
+
+            var readers = new SegmentReader[numberOfReaders];
+
+            for (var i = 0; i < numberOfReaders; i ++)
+            {
+                var mockReader = new Mock<SegmentReader>();
+                mockReader.Setup(x => x.SegmentName).Returns(Constants.SegmentReaderPrefix + i);
+                readers[i] = mockReader.Object;
+            }
+
+            return readers;
         }
 
         public static Mock<ILogger> CreateMockLogger()

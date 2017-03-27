@@ -5,12 +5,24 @@ using System;
 using System.Collections.Generic;
 using Lucene.Net.Search;
 using Newtonsoft.Json;
+using NuGet.Versioning;
 
 namespace NuGet.Indexing
 {
     public class GalleryServiceImpl
     {
-        public static void Search(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string q, bool countOnly, bool includePrerelease, string sortBy, int skip, int take, string feed, bool ignoreFilter, bool luceneQuery)
+        public static void Search(JsonWriter jsonWriter, 
+            NuGetSearcherManager searcherManager, 
+            string q, 
+            bool countOnly, 
+            bool includePrerelease, 
+            NuGetVersion semVerLevel, 
+            string sortBy, 
+            int skip, 
+            int take, 
+            string feed, 
+            bool ignoreFilter, 
+            bool luceneQuery)
         {
             if (jsonWriter == null)
             {
@@ -41,7 +53,7 @@ namespace NuGet.Indexing
                 feed = ignoreFilter ? null : feed;
 
                 Filter filter = null;
-                if (!ignoreFilter && searcher.TryGetFilter(includeUnlisted, includePrerelease, feed, out filter))
+                if (!ignoreFilter && searcher.TryGetFilter(includeUnlisted, includePrerelease, semVerLevel, feed, out filter))
                 {
                     // Filter before running the query (make the search set smaller)
                     query = new FilteredQuery(query, filter);
@@ -53,7 +65,7 @@ namespace NuGet.Indexing
                 }
                 else
                 {
-                    ListDocumentsImpl(jsonWriter, searcher, query, sortBy, skip, take);
+                    ListDocumentsImpl(jsonWriter, searcher, query, sortBy, skip, take, semVerLevel);
                 }
             }
             finally
@@ -73,7 +85,8 @@ namespace NuGet.Indexing
             Query query,
             string sortBy,
             int skip,
-            int take)
+            int take,
+            NuGetVersion semVerLevel)
         {
             Query boostedQuery = new DownloadsBoostedQuery(query,
                 searcher.DocIdMapping,
@@ -88,7 +101,7 @@ namespace NuGet.Indexing
                 ? searcher.Search(boostedQuery, nDocs)
                 : searcher.Search(boostedQuery, null, nDocs, sort);
 
-            ResponseFormatter.WriteV2Result(jsonWriter, searcher, topDocs, skip, take);
+            ResponseFormatter.WriteV2Result(jsonWriter, searcher, topDocs, skip, take, semVerLevel);
         }
 
         private static readonly Dictionary<string, Func<Sort>> _sorts = new Dictionary<string, Func<Sort>>(StringComparer.OrdinalIgnoreCase) {

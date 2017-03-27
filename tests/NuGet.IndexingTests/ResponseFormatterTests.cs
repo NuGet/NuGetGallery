@@ -51,7 +51,7 @@ namespace NuGet.IndexingTests
 
             using (var writer = new JsonTextWriter(sw))
             {
-                ResponseFormatter.WriteV2Result(writer, searcher, topDocs, skip, take);
+                ResponseFormatter.WriteV2Result(writer, searcher, topDocs, skip, take, SemVerHelpers.SemVer2Level);
 
                 Assert.Equal(expected, sb.ToString());
             }
@@ -141,70 +141,6 @@ namespace NuGet.IndexingTests
                 ResponseFormatter.WriteAutoCompleteVersionResult(writer, searcher, includePrerelease, topDocs);
 
                 Assert.Equal(string.Format(expected, searcher.LastReopen), sb.ToString());
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(FindResultData))]
-        public void WriteFindResultTest(
-            string indexName,
-            int numDocs,
-            Dictionary<string, string> commitUserData,
-            int topDocsTotalHits,
-            float topDocsMaxScore,
-            string expected)
-        {
-            var searcher = new MockSearcher(indexName, numDocs, commitUserData, versions: Constants.VersionResults);
-            var topDocs = new TopDocs(topDocsTotalHits, Constants.ScoreDocs, topDocsMaxScore);
-
-            var sb = new StringBuilder();
-            var sw = new StringWriter(sb);
-
-            using (var writer = new JsonTextWriter(sw))
-            {
-                ResponseFormatter.WriteFindResult(writer, searcher, Constants.SchemeName, topDocs);
-
-                Assert.Equal(string.Format(expected,
-                    searcher.LastReopen,
-                    Constants.BaseUri,
-                    Constants.MockBase.ToLower(),
-                    Constants.LucenePropertyId.ToLower()), sb.ToString());
-            }
-        }
-
-        [Fact]
-        public void WriteRankingsResultTest()
-        {
-            var rankingsSegment = new RankingBySegment();
-
-            rankingsSegment[Constants.RankingsSegmentName] = GenerateRankings(numRankings: 5, idPrefix: Constants.RankingsIdPrefix);
-            var rankingResult = new RankingResult(3, rankingsSegment);
-
-            var sb = new StringBuilder();
-            var sw = new StringWriter(sb);
-
-            using (var writer = new JsonTextWriter(sw))
-            {
-                ResponseFormatter.WriteRankingsResult(writer, rankingResult);
-
-                Assert.Equal(string.Format("{{\"rankings\":[{{\"id\":\"{0}0\",\"Rank\":0}},{{\"id\":\"{0}1\",\"Rank\":1}},{{\"id\":\"{0}2\",\"Rank\":2}},{{\"id\":\"{0}3\",\"Rank\":3}},{{\"id\":\"{0}4\",\"Rank\":4}}]}}", Constants.RankingsIdPrefix), sb.ToString());
-            }
-        }
-
-        [Fact]
-        public void WriteRankingsResultNoRankingsTest()
-        {
-            var emptyRankings = new RankingBySegment();
-            var rankingResult = new RankingResult(3, emptyRankings);
-
-            var sb = new StringBuilder();
-            var sw = new StringWriter(sb);
-
-            using (var writer = new JsonTextWriter(sw))
-            {
-                ResponseFormatter.WriteRankingsResult(writer, rankingResult);
-
-                Assert.Equal("{\"rankings\":[]}", sb.ToString());
             }
         }
 

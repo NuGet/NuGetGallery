@@ -27,6 +27,8 @@ namespace NuGet.IndexingTests.TestSupport
                   context: null,
                   latestBitSet: Constants.LatestBitSet,
                   latestStableBitSet: Constants.LatestStableBitSet,
+                  latestSemVer2BitSet: Constants.LatestSemVer2BitSet,
+                  latestStableSemVer2BitSet: Constants.LatestStableSemVer2BitSet,
                   owners: Constants.EmptyOwnersResult)
         {
             MockObjectFactory.MockPrefix = Constants.MockBase;

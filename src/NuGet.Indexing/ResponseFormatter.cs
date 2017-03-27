@@ -7,6 +7,7 @@ using System.Linq;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Newtonsoft.Json;
+using NuGet.Versioning;
 
 namespace NuGet.Indexing
 {
@@ -198,34 +199,12 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        // V3 find implementation
-        public static void WriteFindResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, string scheme, TopDocs topDocs)
-        {
-            Uri baseAddress = searcher.Manager.RegistrationBaseAddress[scheme];
-
-            jsonWriter.WriteStartObject();
-            WriteInfo(jsonWriter, null, searcher, topDocs);
-
-            if (topDocs.TotalHits > 0)
-            {
-                ScoreDoc scoreDoc = topDocs.ScoreDocs[0];
-                Document document = searcher.Doc(scoreDoc.Doc);
-                string id = document.Get("Id");
-
-                string relativeAddress = UriFormatter.MakeRegistrationRelativeAddress(id);
-
-                WriteProperty(jsonWriter, "registration", new Uri(baseAddress, relativeAddress).AbsoluteUri);
-            }
-
-            jsonWriter.WriteEndObject();
-        }
-
         // V2 search implementation - called from the NuGet Gallery
-        public static void WriteV2Result(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
+        public static void WriteV2Result(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, NuGetVersion semVerLevel)
         {
             jsonWriter.WriteStartObject();
             WriteInfoV2(jsonWriter, searcher, topDocs);
-            WriteDataV2(jsonWriter, searcher, topDocs, skip, take);
+            WriteDataV2(jsonWriter, searcher, topDocs, skip, take, semVerLevel);
             jsonWriter.WriteEndObject();
         }
 
@@ -282,11 +261,16 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndObject();
         }
 
-        private static void WriteDataV2(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take)
+        private static void WriteDataV2(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, NuGetVersion semVerLevel)
         {
             jsonWriter.WritePropertyName("data");
 
             jsonWriter.WriteStartArray();
+
+            var includeSemVer2 = SemVerHelpers.ShouldIncludeSemVer2Results(semVerLevel);
+
+            var isLatestBitSet = includeSemVer2 ? searcher.LatestSemVer2BitSet : searcher.LatestBitSet;
+            var isLatestStableBitSet = includeSemVer2 ? searcher.LatestStableSemVer2BitSet : searcher.LatestStableBitSet;
 
             for (int i = skip; i < Math.Min(skip + take, topDocs.ScoreDocs.Length); i++)
             {
@@ -298,8 +282,8 @@ namespace NuGet.Indexing
 
                 Tuple<int, int> downloadCounts = NuGetIndexSearcher.DownloadCounts(searcher.Versions[scoreDoc.Doc], version);
 
-                bool isLatest = searcher.LatestBitSet.Get(scoreDoc.Doc);
-                bool isLatestStable = searcher.LatestStableBitSet.Get(scoreDoc.Doc);
+                bool isLatest = isLatestBitSet.Get(scoreDoc.Doc);
+                bool isLatestStable = isLatestStableBitSet.Get(scoreDoc.Doc);
 
                 jsonWriter.WriteStartObject();
                 WriteRegistrationV2(jsonWriter, id, downloadCounts.Item1, NuGetIndexSearcher.GetOwners(searcher, id));
@@ -368,35 +352,6 @@ namespace NuGet.Indexing
             }
 
             jsonWriter.WriteEndObject();
-            jsonWriter.WriteEndObject();
-        }
-
-        public static void WriteRankingsResult(JsonWriter jsonWriter, RankingResult rankings)
-        {
-            jsonWriter.WriteStartObject();
-            jsonWriter.WritePropertyName("rankings");
-            jsonWriter.WriteStartArray();
-
-            var flattenedRankings = rankings.DocumentRankings.Flatten();
-
-            string previousId = string.Empty;
-            foreach (var ranking in flattenedRankings)
-            {
-                if (ranking.Id == previousId)
-                {
-                    continue;
-                }
-
-                jsonWriter.WriteStartObject();
-                jsonWriter.WritePropertyName("id");
-                jsonWriter.WriteValue(ranking.Id);
-                jsonWriter.WritePropertyName("Rank");
-                jsonWriter.WriteValue(ranking.Rank);
-                jsonWriter.WriteEndObject();
-
-                previousId = ranking.Id;
-            }
-            jsonWriter.WriteEndArray();
             jsonWriter.WriteEndObject();
         }
 

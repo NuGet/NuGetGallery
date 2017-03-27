@@ -18,11 +18,13 @@ namespace NuGet.Indexing
 
         private readonly bool _includeUnlisted;
         private readonly bool _includePrerelease;
+        private readonly bool _includeSemVer2;
 
-        public LatestListedHandler(bool includeUnlisted, bool includePrerelease)
+        public LatestListedHandler(bool includeUnlisted, bool includePrerelease, bool includeSemVer2)
         {
             _includeUnlisted = includeUnlisted;
             _includePrerelease = includePrerelease;
+            _includeSemVer2 = includeSemVer2;
         }
 
         public Filter Result { get; private set; }
@@ -74,36 +76,49 @@ namespace NuGet.Indexing
             }
 
             bool isListed = GetListed(document);
+            bool isSemVer2 = IsSemVer2(document);
 
-            Update(isListed, readerName, perSegmentDocumentNumber, id, version);
+            Update(isListed, isSemVer2, readerName, perSegmentDocumentNumber, id, version);
         }
 
-        private void Update(bool isListed, string readerName, int n, string id, NuGetVersion version)
+        private void Update(bool isListed,
+            bool isSemVer2,
+            string readerName,
+            int n,
+            string id,
+            NuGetVersion version)
         {
-            if (isListed || _includeUnlisted)
+            if ((!_includeSemVer2 && isSemVer2) ||
+                (!_includeUnlisted && isListed) ||
+                (!_includePrerelease && version.IsPrerelease))
             {
-                if (!version.IsPrerelease || _includePrerelease)
+                return;
+            }
+
+            Tuple<NuGetVersion, string, int> existingVersion;
+            if (_lookup.TryGetValue(id, out existingVersion))
+            {
+                if (version > existingVersion.Item1)
                 {
-                    Tuple<NuGetVersion, string, int> existingVersion;
-                    if (_lookup.TryGetValue(id, out existingVersion))
-                    {
-                        if (version > existingVersion.Item1)
-                        {
-                            _lookup[id] = Tuple.Create(version, readerName, n);
-                        }
-                    }
-                    else
-                    {
-                        _lookup.Add(id, Tuple.Create(version, readerName, n));
-                    }
+                    _lookup[id] = Tuple.Create(version, readerName, n);
                 }
+            }
+            else
+            {
+                _lookup.Add(id, Tuple.Create(version, readerName, n));
             }
         }
 
-        private static bool GetListed(Document document)
+        internal static bool GetListed(Document document)
         {
             string listed = document.Get("Listed");
             return (listed == null) ? false : listed.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        internal static bool IsSemVer2(Document document)
+        {
+            string semVerLevel = document.Get("SemVerLevel");
+            return (semVerLevel == null) ? false : semVerLevel.Equals("2");
         }
     }
 }

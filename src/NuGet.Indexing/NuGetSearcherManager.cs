@@ -238,17 +238,20 @@ namespace NuGet.Indexing
                 // reader is Segmented then the filter must be too. Theoretically Lucene should be able to store a cached version of the
                 // filter corresponding to each segment. We are not currently making use of that.
 
-                // There are four flavors of Latest/Listed filter to reflect all the possible combinations.
 
-                var h00 = new LatestListedHandler(includeUnlisted: false, includePrerelease: false);
-                var h01 = new LatestListedHandler(includeUnlisted: false, includePrerelease: true);
-                var h10 = new LatestListedHandler(includeUnlisted: true, includePrerelease: false);
-                var h11 = new LatestListedHandler(includeUnlisted: true, includePrerelease: true);
-
-                indexReaderProcessor.AddHandler(h00);
-                indexReaderProcessor.AddHandler(h01);
-                indexReaderProcessor.AddHandler(h10);
-                indexReaderProcessor.AddHandler(h11);
+                // Set filters
+                var latestListedHandlerMask = new Dictionary<LatestListedMask, LatestListedHandler>();
+                
+                // 8 here comes from 2 to the power of the number of bits we have.
+                for (var i = 0; i < 8; i++)
+                {
+                    var castMask = (LatestListedMask)i;
+                    var latestListedHandler = new LatestListedHandler(includeUnlisted: (LatestListedMask.IncludeUnlisted & castMask) == LatestListedMask.IncludeUnlisted,
+                        includePrerelease: (LatestListedMask.IncludePrerelease & castMask) == LatestListedMask.IncludePrerelease,
+                        includeSemVer2: (LatestListedMask.IncludeSemVer2 & castMask) == LatestListedMask.IncludeSemVer2);
+                    indexReaderProcessor.AddHandler(latestListedHandler);
+                    latestListedHandlerMask.Add(castMask, latestListedHandler);
+                }
 
                 // We want to be able to filter on curated feeds as well
                 var curatedFeedHandler = new CuratedFeedHandler(_curatedFeeds);
@@ -265,15 +268,17 @@ namespace NuGet.Indexing
                     throw;
                 }
 
-                // Set filters
-                var latest = new Filter[][]
-                {
-                    new Filter[] { h00.Result, h01.Result },
-                    new Filter[] { h10.Result, h11.Result }
-                };
+                var latest = new Dictionary<LatestListedMask, Filter>();
 
-                var latestBitSet = BitSetCollector.CreateBitSet(reader, latest[0][1]);
-                var latestStableBitSet = BitSetCollector.CreateBitSet(reader, latest[0][0]);
+                foreach(var key in latestListedHandlerMask.Keys)
+                {
+                    latest[key] = latestListedHandlerMask[key].Result;
+                }
+
+                var latestBitSet = BitSetCollector.CreateBitSet(reader, latest[LatestListedMask.IncludePrerelease]);
+                var latestBitSetSemVer2 = BitSetCollector.CreateBitSet(reader, latest[LatestListedMask.IncludePrerelease | LatestListedMask.IncludeSemVer2]);
+                var latestStableBitSet = BitSetCollector.CreateBitSet(reader, latest[LatestListedMask.None]);
+                var latestStableBitSetSemVer2 = BitSetCollector.CreateBitSet(reader, latest[LatestListedMask.IncludeSemVer2]);
 
                 // Done loading index
                 _logger.LogInformation("NuGetSearcherManager.CreateSearcher: Original {MaxDoc} (deletes: {NumDeletedDocs})", reader.MaxDoc, reader.NumDeletedDocs);
@@ -300,6 +305,8 @@ namespace NuGet.Indexing
                     _queryBoostingContext,
                     latestBitSet,
                     latestStableBitSet,
+                    latestBitSetSemVer2,
+                    latestStableBitSetSemVer2,
                     ownersHandler.Result);
             }
             catch (Exception ex)
@@ -357,16 +364,16 @@ namespace NuGet.Indexing
             // Warmup field caches by fetching data from them
             using (var writer = new JsonTextWriter(new StreamWriter(new MemoryStream())))
             {
-                ResponseFormatter.WriteV2Result(writer, searcher, topDocs1, 0, 250);
+                ResponseFormatter.WriteV2Result(writer, searcher, topDocs1, 0, 250, SemVerHelpers.SemVer2Level);
                 ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs1, 0, 250, false, false, boostedQuery);
 
-                ResponseFormatter.WriteV2Result(writer, searcher, topDocs2, 0, 250);
+                ResponseFormatter.WriteV2Result(writer, searcher, topDocs2, 0, 250, SemVerHelpers.SemVer2Level);
                 ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs2, 0, 250, false, false, boostedQuery);
 
-                ResponseFormatter.WriteV2Result(writer, searcher, topDocs3, 0, 250);
+                ResponseFormatter.WriteV2Result(writer, searcher, topDocs3, 0, 250, SemVerHelpers.SemVer2Level);
                 ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs3, 0, 250, false, false, boostedQuery);
 
-                ResponseFormatter.WriteV2Result(writer, searcher, topDocs4, 0, 250);
+                ResponseFormatter.WriteV2Result(writer, searcher, topDocs4, 0, 250, SemVerHelpers.SemVer2Level);
                 ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs4, 0, 250, false, false, boostedQuery);
             }
 
