@@ -16,23 +16,13 @@ namespace NuGetGallery
         IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);
 
-        /// <summary>
-        /// Updates IsLatest/IsLatestStable flags after a package create, update or delete operation.
-        /// 
-        /// Due to the manual optimistic concurrency check added to the underlying implementation,
-        /// IsLatest/IsLatestStable changes will be applied in memory and should not be committed with EF.
-        /// Callers should ensure that all other commits are complete before calling UpdateIsLatestAsync.
-        /// </summary>
-        /// <param name="packageRegistration"></param>
-        /// <returns></returns>
-        Task UpdateIsLatestAsync(PackageRegistration packageRegistration);
+        Task UpdateIsLatestAsync(PackageRegistration packageRegistration, bool commitChanges = true);
 
         /// <summary>
         /// Populate the related database tables to create the specified package for the specified user.
         /// </summary>
         /// <remarks>
         /// This method doesn't upload the package binary to the blob storage. The caller must do it after this call.
-        /// This method doesn't update IsLatest/IsLatestStable flags. The caller must do it after this call.
         /// </remarks>
         /// <param name="nugetPackage">The package to be created.</param>
         /// <param name="packageStreamMetadata">The package stream's metadata.</param>
@@ -43,49 +33,10 @@ namespace NuGetGallery
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 
-        /// <summary>
-        /// Publishes a package by listing it.
-        /// </summary>
-        /// <remarks>
-        /// This method doesn't update IsLatest/IsLatestStable flags. The caller must do it after this call.
-        /// </remarks>
-        /// <param name="id">ID for the package to publish</param>
-        /// <param name="version">Package version</param>
-        /// <param name="commitChanges">Whether to commit changes to the database.</param>
-        /// <returns></returns>
         Task PublishPackageAsync(string id, string version, bool commitChanges = true);
-
-        /// <summary>
-        /// Publishes a package by listing it.
-        /// </summary>
-        /// <remarks>
-        /// This method doesn't update IsLatest/IsLatestStable flags. The caller must do it after this call.
-        /// </remarks>
-        /// <param name="package">The package to publish</param>
-        /// <param name="commitChanges">Whether to commit changes to the database.</param>
-        /// <returns></returns>
         Task PublishPackageAsync(Package package, bool commitChanges = true);
 
-        /// <summary>
-        /// Mark a package as unlisted.
-        /// </summary>
-        /// <remarks>
-        /// This method doesn't update IsLatest/IsLatestStable flags. The caller must do it after this call.
-        /// </remarks>
-        /// <param name="package">The package to unlist</param>
-        /// <param name="commitChanges">Whether to commit changes to the database.</param>
-        /// <returns></returns>
         Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true);
-
-        /// <summary>
-        /// Mark a package as listed.
-        /// </summary>
-        /// <remarks>
-        /// This method doesn't update IsLatest/IsLatestStable flags. The caller must do it after this call.
-        /// </remarks>
-        /// <param name="package">The package to list.</param>
-        /// <param name="commitChanges">Whether to commit changes to the database.</param>
-        /// <returns></returns>
         Task MarkPackageListedAsync(Package package, bool commitChanges = true);
 
         Task<PackageOwnerRequest> CreatePackageOwnerRequestAsync(PackageRegistration package, User currentOwner, User newOwner);
