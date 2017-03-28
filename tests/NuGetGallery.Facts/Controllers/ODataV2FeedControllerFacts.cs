@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Versioning;
@@ -22,17 +23,7 @@ namespace NuGetGallery.Controllers
                 "/api/v2/Packages");
 
             // Assert
-            foreach (var feedPackage in resultSet)
-            {
-                // Assert none of the items in the result set are SemVer v.2.0.0 packages (checking on original version is enough in this case)
-                Assert.Empty(SemVer2Packages.Where(p => string.Equals(p.Version, feedPackage.Version)));
-
-                // Assert each of the items in the result set is a non-SemVer v2.0.0 package
-                Assert.Single(NonSemVer2Packages.Where(p =>
-                            string.Equals(p.Version, feedPackage.Version) &&
-                            string.Equals(p.PackageRegistration.Id, feedPackage.Id)));
-            }
-
+            AssertResultCorrect(resultSet);
             Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
         }
 
@@ -57,17 +48,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v2/FindPackagesById?id='{TestPackageId}'");
 
             // Assert
-            foreach (var feedPackage in resultSet)
-            {
-                // Assert none of the items in the result set are SemVer v.2.0.0 packages (checking on original version is enough in this case)
-                Assert.Empty(SemVer2Packages.Where(p => string.Equals(p.Version, feedPackage.Version)));
-
-                // Assert each of the items in the result set is a non-SemVer v2.0.0 package
-                Assert.Single(NonSemVer2Packages.Where(p =>
-                            string.Equals(p.Version, feedPackage.Version) &&
-                            string.Equals(p.PackageRegistration.Id, feedPackage.Id)));
-            }
-
+            AssertResultCorrect(resultSet);
             Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
         }
 
@@ -80,17 +61,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v2/Search?searchTerm='{TestPackageId}'");
 
             // Assert
-            foreach (var feedPackage in resultSet)
-            {
-                // Assert none of the items in the result set are SemVer v.2.0.0 packages (checking on original version is enough in this case)
-                Assert.Empty(SemVer2Packages.Where(p => string.Equals(p.Version, feedPackage.Version)));
-
-                // Assert each of the items in the result set is a non-SemVer v2.0.0 package
-                Assert.Single(NonSemVer2Packages.Where(p =>
-                            string.Equals(p.Version, feedPackage.Version) &&
-                            string.Equals(p.PackageRegistration.Id, feedPackage.Id)));
-            }
-
+            AssertResultCorrect(resultSet);
             Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
         }
 
@@ -120,17 +91,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v2/GetUpdates()?packageIds='{TestPackageId}'&versions='{currentVersionString}'&includePrerelease=true&includeAllVersions=true");
 
             // Assert
-            foreach (var feedPackage in resultSet)
-            {
-                // Assert none of the items in the result set are SemVer v.2.0.0 packages (checking on original version is enough in this case)
-                Assert.Empty(SemVer2Packages.Where(p => string.Equals(p.Version, feedPackage.Version)));
-
-                // Assert each of the items in the result set is a non-SemVer v2.0.0 package
-                Assert.Single(NonSemVer2Packages.Where(p =>
-                            string.Equals(p.Version, feedPackage.Version) &&
-                            string.Equals(p.PackageRegistration.Id, feedPackage.Id)));
-            }
-
+            AssertResultCorrect(resultSet);
             Assert.Equal(expected.Count(), resultSet.Count);
         }
 
@@ -157,6 +118,20 @@ namespace NuGetGallery.Controllers
             ISearchService searchService)
         {
             return new ODataV2FeedController(packagesRepository, configurationService, searchService);
+        }
+
+        private void AssertResultCorrect(IEnumerable<V2FeedPackage> resultSet)
+        {
+            foreach (var feedPackage in resultSet)
+            {
+                // Assert none of the items in the result set are SemVer v.2.0.0 packages (checking on original version is enough in this case)
+                Assert.Empty(SemVer2Packages.Where(p => string.Equals(p.Version, feedPackage.Version)));
+
+                // Assert each of the items in the result set is a non-SemVer v2.0.0 package
+                Assert.Single(NonSemVer2Packages.Where(p =>
+                    string.Equals(p.Version, feedPackage.Version) &&
+                    string.Equals(p.PackageRegistration.Id, feedPackage.Id)));
+            }
         }
     }
 }
