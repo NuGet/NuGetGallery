@@ -95,12 +95,20 @@ namespace NuGetGallery
                 state: null);
         }
 
-        public Task UploadFromStreamAsync(Stream packageFile)
+        public async Task UploadFromStreamAsync(Stream packageFile, bool overwrite)
         {
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginUploadFromStream(packageFile, cb, state), 
-                ar => _blob.EndUploadFromStream(ar),
-                state: null);
+            if (overwrite)
+            {
+                await _blob.UploadFromStreamAsync(packageFile);
+            }
+            else
+            {
+                await _blob.UploadFromStreamAsync(
+                    packageFile,
+                    AccessCondition.GenerateIfNoneMatchCondition("*"),
+                    new BlobRequestOptions(),
+                    new OperationContext());
+            }
         }
 
         public Task FetchAttributesAsync()
