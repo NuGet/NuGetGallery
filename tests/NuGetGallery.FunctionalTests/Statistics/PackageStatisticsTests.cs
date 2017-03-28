@@ -14,6 +14,12 @@ namespace NuGetGallery.FunctionalTests.Statistics
 {
     public class PackageStatisticsTests
     {
+        public PackageStatisticsTests()
+        {
+            // Suppress SSL validation for *.cloudapp.net.
+            ServicePointManagerInitializer.InitializeServerCertificateValidationCallback();
+        }
+
         /// <summary>
         /// Double-checks whether expected fields exist in the packages feed.
         /// </summary>

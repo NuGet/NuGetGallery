@@ -17,6 +17,9 @@ namespace NuGetGallery.FunctionalTests.WebPages
 
         public LinksTests(ITestOutputHelper testOutputHelper)
         {
+            // Suppress SSL validation for *.cloudapp.net.
+            ServicePointManagerInitializer.InitializeServerCertificateValidationCallback();
+
             _fluentLinkChecker = new FluentLinkChecker(testOutputHelper);
         }
 
