@@ -49,7 +49,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(NoCache = true)]
         public async Task<IHttpActionResult> Get(
             ODataQueryOptions<V2FeedPackage> options,
-            [FromODataUri]string semVerLevel = null)
+            [FromUri]string semVerLevel = null)
         {
             // Setup the search
             var packages = _packagesRepository.GetAll()
@@ -108,7 +108,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(NoCache = true)]
         public async Task<IHttpActionResult> GetCount(
             ODataQueryOptions<V2FeedPackage> options,
-            [FromODataUri]string semVerLevel = null)
+            [FromUri]string semVerLevel = null)
         {
             return (await Get(options, semVerLevel)).FormattedAsCountResult<V2FeedPackage>();
         }
@@ -132,7 +132,7 @@ namespace NuGetGallery.Controllers
         public async Task<IHttpActionResult> FindPackagesById(
             ODataQueryOptions<V2FeedPackage> options, 
             [FromODataUri]string id,
-            [FromODataUri]string semVerLevel = null)
+            [FromUri]string semVerLevel = null)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -229,7 +229,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
             [FromODataUri]bool includePrerelease = false,
-            [FromODataUri]string semVerLevel = null)
+            [FromUri]string semVerLevel = null)
         {
             // Handle OData-style |-separated list of frameworks.
             string[] targetFrameworkList = (targetFramework ?? "").Split(new[] { '\'', '|' }, StringSplitOptions.RemoveEmptyEntries);
@@ -303,7 +303,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
             [FromODataUri]bool includePrerelease = false,
-            [FromODataUri]string semVerLevel = null)
+            [FromUri]string semVerLevel = null)
         {
             var searchResults = await Search(options, searchTerm, targetFramework, includePrerelease, semVerLevel);
             return searchResults.FormattedAsCountResult<V2FeedPackage>();
@@ -320,7 +320,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includeAllVersions,
             [FromODataUri]string targetFrameworks = "",
             [FromODataUri]string versionConstraints = "",
-            [FromODataUri]string semVerLevel = null)
+            [FromUri]string semVerLevel = null)
         {
             if (string.IsNullOrEmpty(packageIds) || string.IsNullOrEmpty(versions))
             {
@@ -403,7 +403,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includeAllVersions,
             [FromODataUri]string targetFrameworks = "",
             [FromODataUri]string versionConstraints = "",
-            [FromODataUri]string semVerLevel = null)
+            [FromUri]string semVerLevel = null)
         {
             return GetUpdates(options, packageIds, versions, includePrerelease, includeAllVersions, targetFrameworks, versionConstraints, semVerLevel)
                 .FormattedAsCountResult<V2FeedPackage>();

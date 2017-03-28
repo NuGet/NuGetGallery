@@ -44,7 +44,10 @@ namespace NuGetGallery.Controllers
         [HttpGet]
         [HttpPost]
         [CacheOutput(NoCache = true)]
-        public IHttpActionResult Get(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string semVerLevel = null)
+        public IHttpActionResult Get(
+            ODataQueryOptions<V2FeedPackage> options,
+            string curatedFeedName,
+            [FromUri] string semVerLevel = null)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
@@ -62,7 +65,10 @@ namespace NuGetGallery.Controllers
         // /api/v2/curated-feed/curatedFeedName/Packages/$count?semVerLevel=
         [HttpGet]
         [CacheOutput(NoCache = true)]
-        public IHttpActionResult GetCount(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string semVerLevel = null)
+        public IHttpActionResult GetCount(
+            ODataQueryOptions<V2FeedPackage> options,
+            string curatedFeedName,
+            [FromUri] string semVerLevel = null)
         {
             return Get(options, curatedFeedName, semVerLevel).FormattedAsCountResult<V2FeedPackage>();
         }
@@ -81,10 +87,10 @@ namespace NuGetGallery.Controllers
         [HttpPost]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(
-            ODataQueryOptions<V2FeedPackage> options, 
-            string curatedFeedName, 
-            [FromODataUri]string id,
-            string semVerLevel = null)
+            ODataQueryOptions<V2FeedPackage> options,
+            string curatedFeedName,
+            [FromODataUri] string id,
+            [FromUri] string semVerLevel = null)
         {
             if (string.IsNullOrEmpty(curatedFeedName) || string.IsNullOrEmpty(id))
             {
@@ -98,10 +104,10 @@ namespace NuGetGallery.Controllers
         }
 
         private async Task<IHttpActionResult> GetCore(
-            ODataQueryOptions<V2FeedPackage> options, 
-            string curatedFeedName, 
-            string id, 
-            string version, 
+            ODataQueryOptions<V2FeedPackage> options,
+            string curatedFeedName,
+            string id,
+            string version,
             bool return404NotFoundWhenNoResults,
             string semVerLevel)
         {
@@ -187,7 +193,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
             [FromODataUri]bool includePrerelease = false,
-            [FromODataUri]string semVerLevel = null)
+            [FromUri]string semVerLevel = null)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
@@ -259,7 +265,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
             [FromODataUri]bool includePrerelease = false,
-            [FromODataUri]string semVerLevel = null)
+            [FromUri]string semVerLevel = null)
         {
             var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease, semVerLevel);
             return searchResults.FormattedAsCountResult<V2FeedPackage>();
