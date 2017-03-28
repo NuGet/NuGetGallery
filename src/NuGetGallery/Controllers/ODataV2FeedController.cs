@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
-using System.Web.Http.Results;
 using NuGet.Frameworks;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
@@ -52,7 +51,7 @@ namespace NuGetGallery.Controllers
         {
             // Setup the search
             var packages = _packagesRepository.GetAll()
-                                .Where(p => !p.Deleted)
+                                .Where(p => !p.Deleted && p.SemVerLevelKey == SemVerLevelKey.Unknown)
                                 .WithoutSortOnColumn(Version)
                                 .WithoutSortOnColumn(Id, ShouldIgnoreOrderById<V2FeedPackage>(options))
                                 .InterceptWith(new NormalizeVersionInterceptor()) ;
@@ -140,7 +139,7 @@ namespace NuGetGallery.Controllers
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && !p.Deleted);
+                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && !p.Deleted && p.SemVerLevelKey == SemVerLevelKey.Unknown);
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -235,7 +234,7 @@ namespace NuGetGallery.Controllers
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Where(p => p.Listed && !p.Deleted)
+                .Where(p => p.Listed && !p.Deleted && p.SemVerLevelKey == SemVerLevelKey.Unknown)
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version)
                 .AsNoTracking();
 
@@ -397,20 +396,21 @@ namespace NuGetGallery.Controllers
         {
             var updates = from p in packages.AsEnumerable()
                           let version = NuGetVersion.Parse(p.Version)
-                          where versionLookup[p.PackageRegistration.Id]
-                            .Any(versionTuple =>
-                            {
-                                NuGetVersion clientVersion = versionTuple.Item1;
-                                var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
+                          where p.SemVerLevelKey == SemVerLevelKey.Unknown
+                                && versionLookup[p.PackageRegistration.Id].Any(versionTuple =>
+                                {
+                                    NuGetVersion clientVersion = versionTuple.Item1;
+                                    var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
 
-                                VersionRange versionConstraint = versionTuple.Item2;
+                                    VersionRange versionConstraint = versionTuple.Item2;
 
-                                return (version > clientVersion) &&
-                                        (targetFrameworkValues == null ||
-                                        !supportedPackageFrameworks.Any() ||
-                                        targetFrameworkValues.Any(s => supportedPackageFrameworks.Any(supported => NuGetFrameworkUtility.IsCompatibleWithFallbackCheck(s, supported)))) &&
-                                        (versionConstraint == null || versionConstraint.Satisfies(version));
-                            })
+                                    return version > clientVersion 
+                                            && (targetFrameworkValues == null 
+                                                || !supportedPackageFrameworks.Any() 
+                                                || targetFrameworkValues.Any(s => supportedPackageFrameworks.Any(supported => NuGetFrameworkUtility.IsCompatibleWithFallbackCheck(s, supported)))) 
+                                            && (versionConstraint == null 
+                                                || versionConstraint.Satisfies(version));
+                                })
                           select p;
 
             if (!includeAllVersions)
