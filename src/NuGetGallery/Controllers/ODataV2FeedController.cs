@@ -57,7 +57,7 @@ namespace NuGetGallery.Controllers
                                 .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
                                 .WithoutSortOnColumn(Version)
                                 .WithoutSortOnColumn(Id, ShouldIgnoreOrderById<V2FeedPackage>(options))
-                                .InterceptWith(new NormalizeVersionInterceptor()) ;
+                                .InterceptWith(new NormalizeVersionInterceptor());
 
             // Try the search service
             try
@@ -122,6 +122,11 @@ namespace NuGetGallery.Controllers
             string id, 
             string version)
         {
+            // We are defaulting to semVerLevel = null ("Unknown"), 
+            // because the client is requesting a specific package version already.
+            // We'll never return a SemVer2 package version from this endpoint.
+            // This effectively means that we'll return HTTP 404 if the only available
+            // package version matching the normalized version parameter is a SemVer2 package version.
             var result = await GetCore(options, id, version, semVerLevel: null, return404NotFoundWhenNoResults: true);
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
@@ -155,7 +160,7 @@ namespace NuGetGallery.Controllers
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) 
+                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase)
                             && !p.Deleted)
                 .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel));
 
