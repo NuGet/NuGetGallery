@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -95,7 +96,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             using (var request = new HttpRequestMessage(HttpMethod.Put, UrlHelper.V2FeedPushSourceUrl))
             {
                 request.Content = new StreamContent(new BarrierStream(package, barrier));
-                request.Headers.Add("X-NuGet-ApiKey", EnvironmentSettings.TestAccountApiKey_Push);
+                request.Headers.Add("X-NuGet-ApiKey", EnvironmentSettings.TestAccountApiKey);
 
                 using (var response = await client.SendAsync(request))
                 {
