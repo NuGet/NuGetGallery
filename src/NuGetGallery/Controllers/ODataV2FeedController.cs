@@ -164,7 +164,12 @@ namespace NuGetGallery.Controllers
 
             if (!string.IsNullOrEmpty(version))
             {
-                packages = packages.Where(p => p.Version == version);
+                NuGetVersion nugetVersion;
+                if (NuGetVersion.TryParse(version, out nugetVersion))
+                {
+                    var normalizedString = nugetVersion.ToNormalizedString();
+                    packages = packages.Where(p => p.NormalizedVersion == normalizedString);
+                }
             }
 
             // try the search service
