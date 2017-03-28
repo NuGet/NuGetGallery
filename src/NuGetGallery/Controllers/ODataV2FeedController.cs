@@ -122,12 +122,10 @@ namespace NuGetGallery.Controllers
             string id, 
             string version)
         {
-            // We are defaulting to semVerLevel = null ("Unknown"), 
-            // because the client is requesting a specific package version already.
-            // We'll never return a SemVer2 package version from this endpoint.
-            // This effectively means that we'll return HTTP 404 if the only available
-            // package version matching the normalized version parameter is a SemVer2 package version.
-            var result = await GetCore(options, id, version, semVerLevel: null, return404NotFoundWhenNoResults: true);
+            // We are defaulting to semVerLevel = "2.0.0" by design.
+            // The client is requesting a specific package version and should support what it requests.
+            // If not, too bad :)
+            var result = await GetCore(options, id, version, semVerLevel: "2.0.0", return404NotFoundWhenNoResults: true);
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
