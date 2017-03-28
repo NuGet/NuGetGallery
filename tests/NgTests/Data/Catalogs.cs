@@ -65,5 +65,32 @@ namespace NgTests.Data
 
             return catalogStorage;
         }
+
+        public static MemoryStorage CreateTestCatalogWithThreeItemsForSamePackage(string pageContent)
+        {
+            var catalogStorage = new MemoryStorage();
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesIndex));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(pageContent));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2017.02.08.16.49.48/mypackage.3.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageMyPackageCreated));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2017.02.08.16.49.59/mypackage.3.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageMyPackageUnlisted));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2017.02.08.17.16.18/mypackage.3.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageMyPackageListed));
+
+            return catalogStorage;
+        }
     }
 }

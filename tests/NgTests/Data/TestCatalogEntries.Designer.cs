@@ -84,6 +84,116 @@ namespace NgTests.Data {
         
         /// <summary>
         ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///  &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///  &quot;commitId&quot;: &quot;8a9e7694-73d4-4775-9b7a-20aa59b9773e&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2017-02-08T17:18:55.3335317Z&quot;,
+        ///  &quot;count&quot;: 3,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.17.16.18/mypackage.3.0.0.json&quot;,
+        ///      &quot;@type&quot;: &quot;nuget:PackageDetails&quot;,
+        ///      &quot;commitId&quot;: &quot;0d1d02f5-4800-4c69-96e1-2daaf560edc4&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2017-02-08T17:16:18.5448099Z&quot;,
+        ///      &quot;nuget:id&quot;: &quot;mypackage&quot;,
+        ///      &quot;nuget:version&quot;:  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogPageForMyPackage_Option1 {
+            get {
+                return ResourceManager.GetString("TestCatalogPageForMyPackage_Option1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///  &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///  &quot;commitId&quot;: &quot;8a9e7694-73d4-4775-9b7a-20aa59b9773e&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2017-02-08T17:18:55.3335317Z&quot;,
+        ///  &quot;count&quot;: 3,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.16.49.59/mypackage.3.0.0.json&quot;,
+        ///      &quot;@type&quot;: &quot;nuget:PackageDetails&quot;,
+        ///      &quot;commitId&quot;: &quot;d6f4acc0-73c4-4c34-9c92-e1484e749314&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2017-02-08T16:49:59.6916605Z&quot;,
+        ///      &quot;nuget:id&quot;: &quot;mypackage&quot;,
+        ///      &quot;nuget:version&quot;:  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogPageForMyPackage_Option2 {
+            get {
+                return ResourceManager.GetString("TestCatalogPageForMyPackage_Option2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///	&quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.16.49.48/mypackage.3.0.0.json&quot;,
+        ///	&quot;@type&quot;: [&quot;PackageDetails&quot;,
+        ///	&quot;catalog:Permalink&quot;],
+        ///	&quot;authors&quot;: &quot;NuGet&quot;,
+        ///	&quot;catalog:commitId&quot;: &quot;51ca9169-a861-4e00-8243-7de49c625da6&quot;,
+        ///	&quot;catalog:commitTimeStamp&quot;: &quot;2017-02-08T16:49:48.2383888Z&quot;,
+        ///	&quot;created&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///	&quot;description&quot;: &quot;My package&quot;,
+        ///	&quot;id&quot;: &quot;mypackage&quot;,
+        ///	&quot;isPrerelease&quot;: false,
+        ///	&quot;lastEdited&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///	&quot;listed&quot;: false,
+        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1QJcmkD8QNqS [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogStorageMyPackageCreated {
+            get {
+                return ResourceManager.GetString("TestCatalogStorageMyPackageCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///	&quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.17.16.18/mypackage.3.0.0.json&quot;,
+        ///	&quot;@type&quot;: [&quot;PackageDetails&quot;,
+        ///	&quot;catalog:Permalink&quot;],
+        ///	&quot;authors&quot;: &quot;NuGet&quot;,
+        ///	&quot;catalog:commitId&quot;: &quot;0d1d02f5-4800-4c69-96e1-2daaf560edc4&quot;,
+        ///	&quot;catalog:commitTimeStamp&quot;: &quot;2017-02-08T17:16:18.5448099Z&quot;,
+        ///	&quot;created&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///	&quot;description&quot;: &quot;My package&quot;,
+        ///	&quot;id&quot;: &quot;mypackage&quot;,
+        ///	&quot;isPrerelease&quot;: false,
+        ///	&quot;lastEdited&quot;: &quot;2017-02-08T17:15:40.4Z&quot;,
+        ///	&quot;listed&quot;: true,
+        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1QJcmkD8QNqSZXe [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogStorageMyPackageListed {
+            get {
+                return ResourceManager.GetString("TestCatalogStorageMyPackageListed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///	&quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.16.49.59/mypackage.3.0.0.json&quot;,
+        ///	&quot;@type&quot;: [&quot;PackageDetails&quot;,
+        ///	&quot;catalog:Permalink&quot;],
+        ///	&quot;authors&quot;: &quot;NuGet&quot;,
+        ///	&quot;catalog:commitId&quot;: &quot;d6f4acc0-73c4-4c34-9c92-e1484e749314&quot;,
+        ///	&quot;catalog:commitTimeStamp&quot;: &quot;2017-02-08T16:49:59.6916605Z&quot;,
+        ///	&quot;created&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///	&quot;description&quot;: &quot;My package&quot;,
+        ///	&quot;id&quot;: &quot;mypackage&quot;,
+        ///	&quot;isPrerelease&quot;: false,
+        ///	&quot;lastEdited&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///	&quot;listed&quot;: false,
+        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1QJcmkD8QNqS [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogStorageMyPackageUnlisted {
+            get {
+                return ResourceManager.GetString("TestCatalogStorageMyPackageUnlisted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
         ///  &quot;@id&quot;: &quot;http://tempuri.org/index.json&quot;,
         ///  &quot;@type&quot;: [
         ///    &quot;CatalogRoot&quot;,

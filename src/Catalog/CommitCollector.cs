@@ -94,6 +94,7 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 CommitTimeStamp = commitTimeStamp;
                 Items = items.ToList();
+                Items.Sort();
             }
 
             public DateTime CommitTimeStamp { get; private set; }
