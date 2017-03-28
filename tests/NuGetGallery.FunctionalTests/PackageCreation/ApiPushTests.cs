@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -23,6 +24,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         }
 
         [Fact]
+        [Description("Pushes many packages of the same ID and version. Verifies exactly one push succeeds and the rest fail with a conflict.")]
+        [Priority(2)]
+        [Category("P2Tests")]
         public async Task DuplicatePushesAreRejectedAndNotDeleted()
         {
             // Arrange
@@ -128,8 +132,14 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
 
             public override long Position
             {
-                get => _innerStream.Position;
-                set => _innerStream.Position = value;
+                get
+                {
+                    return _innerStream.Position;
+                }
+                set
+                {
+                    _innerStream.Position = value;
+                }
             }
 
             public override void Flush()
