@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using NuGet.Versioning;
 
 namespace NuGetGallery
@@ -100,19 +101,19 @@ namespace NuGetGallery
         /// <summary>
         /// Indicates whether the provided SemVer-level key is compliant with the provided SemVer-level version string.
         /// </summary>
-        /// <param name="key">The SemVer-level key to be checked for compliance.</param>
         /// <param name="semVerLevel">The SemVer-level string indicating the SemVer-level to comply with.</param>
         /// <returns><c>True</c> if compliant; otherwise <c>false</c>.</returns>
-        public static bool IsCompliantWithSemVerLevel(int? key, string semVerLevel)
+        public static Expression<Func<Package, bool>> IsPackageCompliantWithSemVerLevel(string semVerLevel)
         {
+            // Note: we must return an expression that Linq to Entities is able to translate to SQL
             var parsedSemVerLevelKey = ForSemVerLevel(semVerLevel);
 
             if (parsedSemVerLevelKey == SemVer2)
             {
-                return key == Unknown || key == parsedSemVerLevelKey;
+                return p => p.SemVerLevelKey == Unknown || p.SemVerLevelKey == parsedSemVerLevelKey;
             }
 
-            return key == Unknown;
+            return p => p.SemVerLevelKey == Unknown;
         }
     }
 }

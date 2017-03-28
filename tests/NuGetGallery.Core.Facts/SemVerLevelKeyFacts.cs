@@ -167,8 +167,12 @@ namespace NuGetGallery
             [InlineData("-2.0.1")]
             public void UnknownKey_IsCompliantWithAnySemVerLevelString(string semVerLevel)
             {
+                // Arrange
+                var package = new Package { SemVerLevelKey = SemVerLevelKey.Unknown };
+                var compiledFunction = SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel).Compile();
+
                 // Act
-                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.Unknown, semVerLevel);
+                var isCompliant = compiledFunction(package);
 
                 // Assert
                 Assert.True(isCompliant);
@@ -182,8 +186,12 @@ namespace NuGetGallery
             [InlineData("2.0.1")]
             public void SemVer2Key_IsCompliantWithSemVerLevel200OrHigher(string semVerLevel)
             {
+                // Arrange
+                var package = new Package { SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                var compiledFunction = SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel).Compile();
+
                 // Act
-                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.SemVer2, semVerLevel);
+                var isCompliant = compiledFunction(package);
 
                 // Assert
                 Assert.True(isCompliant);
@@ -196,8 +204,12 @@ namespace NuGetGallery
             [InlineData("-2.0.1")]
             public void SemVer2Key_IsNotCompliantWithInvalidVersionStrings(string semVerLevel)
             {
+                // Arrange
+                var package = new Package { SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                var compiledFunction = SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel).Compile();
+
                 // Act
-                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.SemVer2, semVerLevel);
+                var isCompliant = compiledFunction(package);
 
                 // Assert
                 Assert.False(isCompliant);
@@ -211,8 +223,12 @@ namespace NuGetGallery
             [InlineData("1.0.1")]
             public void SemVer2Key_IsNotCompliantWithVersionStringLowerThanSemVer2(string semVerLevel)
             {
+                // Arrange
+                var package = new Package { SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                var compiledFunction = SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel).Compile();
+
                 // Act
-                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.SemVer2, semVerLevel);
+                var isCompliant = compiledFunction(package);
 
                 // Assert
                 Assert.False(isCompliant);
@@ -221,8 +237,12 @@ namespace NuGetGallery
             [Fact]
             public void SemVer2Key_IsNotCompliantWithUnknownSemVerLevel()
             {
+                // Arrange
+                var package = new Package { SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                var compiledFunction = SemVerLevelKey.IsPackageCompliantWithSemVerLevel(null).Compile();
+
                 // Act
-                var isCompliant = SemVerLevelKey.IsCompliantWithSemVerLevel(SemVerLevelKey.SemVer2, null);
+                var isCompliant = compiledFunction(package);
 
                 // Assert
                 Assert.False(isCompliant);

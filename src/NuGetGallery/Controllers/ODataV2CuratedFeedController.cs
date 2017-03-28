@@ -55,7 +55,7 @@ namespace NuGetGallery.Controllers
             }
 
             var queryable = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel))
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
                 .ToV2FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
                 .InterceptWith(new NormalizeVersionInterceptor());
 
@@ -118,8 +118,8 @@ namespace NuGetGallery.Controllers
             }
 
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel)
-                            && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
+                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -220,7 +220,7 @@ namespace NuGetGallery.Controllers
             // Perform actual search
             var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => SemVerLevelKey.IsCompliantWithSemVerLevel(p.SemVerLevelKey, semVerLevel))
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options

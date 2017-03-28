@@ -121,7 +121,7 @@ namespace NuGetGallery
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
             // Ideally shouldn't be necessary?
-            if (!PackageIdValidator.IsValidPackageId(id ?? ""))
+            if (!PackageIdValidator.IsValidPackageId(id ?? string.Empty))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
