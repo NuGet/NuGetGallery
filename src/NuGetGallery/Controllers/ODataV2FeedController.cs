@@ -167,6 +167,8 @@ namespace NuGetGallery.Controllers
                 NuGetVersion nugetVersion;
                 if (NuGetVersion.TryParse(version, out nugetVersion))
                 {
+                    // Our APIs expect to receive normalized version strings.
+                    // We need to compare normalized versions or we can never retrieve SemVer2 package versions.
                     var normalizedString = nugetVersion.ToNormalizedString();
                     packages = packages.Where(p => p.NormalizedVersion == normalizedString);
                 }
