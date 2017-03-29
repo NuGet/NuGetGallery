@@ -30,7 +30,7 @@ namespace NuGet.IndexingTests.TestSupport
         public static readonly string RankingsSegmentName = "testReader";
         public static readonly string SchemeName = "test";
         public static readonly string SegmentReaderPrefix = "SegmentReader";
-        public static readonly string SemVerLevel2Value = "2.0.0";
+        public static readonly string SemVerLevel2Value = "2";
 
         public static readonly ScoreDoc[] ScoreDocs = {
                 new ScoreDoc(0, (float)1.0),

@@ -89,7 +89,7 @@ namespace NuGet.Indexing
             NuGetVersion version)
         {
             if ((!_includeSemVer2 && isSemVer2) ||
-                (!_includeUnlisted && isListed) ||
+                (!_includeUnlisted && !isListed) ||
                 (!_includePrerelease && version.IsPrerelease))
             {
                 return;
