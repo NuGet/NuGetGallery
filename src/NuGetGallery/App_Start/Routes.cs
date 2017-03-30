@@ -2,14 +2,23 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Web.Mvc;
 using System.Web.Routing;
+using NuGetGallery.Configuration;
 using RouteMagic;
 
 namespace NuGetGallery
 {
     public static class Routes
     {
+        private static bool PackageVerificationKeysEnabled { get; set; }
+
         public static void RegisterRoutes(RouteCollection routes, bool feedOnlyMode = false)
         {
+            var configuration = DependencyResolver.Current.GetService<IAppConfiguration>();
+            if (configuration != null)
+            {
+                PackageVerificationKeysEnabled = configuration.PackageVerificationKeysEnabled;
+            }
+
             if (!feedOnlyMode)
             {
                 RegisterUIRoutes(routes);
@@ -287,15 +296,18 @@ namespace NuGetGallery
                     version = UrlParameter.Optional
                 });
 
-            routes.MapRoute(
-                "v1" + RouteName.CreatePackageVerificationKey,
-                "api/v1/package/create-verification-key/{id}/{version}",
-                new
-                {
-                    controller = "Api",
-                    action = "CreatePackageVerificationKey",
-                    version = UrlParameter.Optional
-                });
+            if (PackageVerificationKeysEnabled)
+            {
+                routes.MapRoute(
+                    "v1" + RouteName.CreatePackageVerificationKey,
+                    "api/v1/package/create-verification-key/{id}/{version}",
+                    new
+                    {
+                        controller = "Api",
+                        action = "CreatePackageVerificationKey",
+                        version = UrlParameter.Optional
+                    });
+            }
 
             var downloadRoute = routes.MapRoute(
                 "v1" + RouteName.DownloadPackage,
@@ -391,15 +403,18 @@ namespace NuGetGallery
                     version = UrlParameter.Optional
                 });
 
-            routes.MapRoute(
-                "v2" + RouteName.CreatePackageVerificationKey,
-                "api/v2/package/create-verification-key/{id}/{version}",
-                new
-                {
-                    controller = "Api",
-                    action = "CreatePackageVerificationKey",
-                    version = UrlParameter.Optional
-                });
+            if (PackageVerificationKeysEnabled)
+            {
+                routes.MapRoute(
+                    "v2" + RouteName.CreatePackageVerificationKey,
+                    "api/v2/package/create-verification-key/{id}/{version}",
+                    new
+                    {
+                        controller = "Api",
+                        action = "CreatePackageVerificationKey",
+                        version = UrlParameter.Optional
+                    });
+            }
 
             routes.MapRoute(
                 "v2CuratedFeeds" + RouteName.DownloadPackage,

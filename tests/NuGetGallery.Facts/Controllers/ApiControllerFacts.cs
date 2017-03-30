@@ -5,11 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
+using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
@@ -22,7 +23,6 @@ using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using Xunit;
-using System.Globalization;
 
 namespace NuGetGallery
 {
@@ -1036,6 +1036,50 @@ namespace NuGetGallery
 
         public class TheCreatePackageVerificationKeyAction : PackageVerificationKeyContainer
         {
+            [Fact]
+            public void CreatePackageKeyRoutesFoundIfFeatureFlagEnabled()
+            {
+                // Arrange
+                var config = new AppConfiguration()
+                {
+                    PackageVerificationKeysEnabled = true
+                };
+
+                var mockResolver = new Mock<IDependencyResolver>();
+                mockResolver.Setup(dr => dr.GetService(typeof(IAppConfiguration))).Returns(config);
+                DependencyResolver.SetResolver(mockResolver.Object);
+
+                // Act
+                var routes = new RouteCollection();
+                Routes.RegisterRoutes(routes);
+
+                // Assert
+                Assert.NotNull(routes["v1" + RouteName.CreatePackageVerificationKey]);
+                Assert.NotNull(routes["v2" + RouteName.CreatePackageVerificationKey]);
+            }
+
+            [Fact]
+            public void CreatePackageKeyRoutesMissingIfFeatureFlagDisabled()
+            {
+                // Arrange
+                var config = new AppConfiguration()
+                {
+                    PackageVerificationKeysEnabled = false
+                };
+
+                var mockResolver = new Mock<IDependencyResolver>();
+                mockResolver.Setup(dr => dr.GetService(typeof(IAppConfiguration))).Returns(config);
+                DependencyResolver.SetResolver(mockResolver.Object);
+                
+                // Act
+                var routes = new RouteCollection();
+                Routes.RegisterRoutes(routes);
+
+                // Assert
+                Assert.Null(routes["v1" + RouteName.CreatePackageVerificationKey]);
+                Assert.Null(routes["v2" + RouteName.CreatePackageVerificationKey]);
+            }
+
             [Theory]
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]

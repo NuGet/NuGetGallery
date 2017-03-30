@@ -215,5 +215,10 @@ namespace NuGetGallery.Configuration
         /// Gets/sets a bool that indicates if the OData requests will be filtered.
         /// </summary>
         public bool IsODataFilterEnabled { get; set; }
+
+        /// <summary>
+        /// Gets a bool indicating if the endpoint for creating package verification keys is enabled.
+        /// </summary>
+        public bool PackageVerificationKeysEnabled { get; set; }
     }
 }
