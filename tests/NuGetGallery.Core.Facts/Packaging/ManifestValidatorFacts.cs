@@ -249,7 +249,7 @@ namespace NuGetGallery.Packaging
                   </metadata>
                 </package>";
 
-        private const string NuSpecDependencySetContainsInvalidTargetFramework = @"<?xml version=""1.0""?>
+        private const string NuSpecDependencySetContainsInvalidVersionRange = @"<?xml version=""1.0""?>
                 <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                   <metadata>
                     <id>packageA</id>
@@ -264,9 +264,7 @@ namespace NuGetGallery.Packaging
                       <reference file=""a.dll"" />
                     </references>
                     <dependencies>
-                        <group targetFramework=""net40-client-full-awesome-unicorns"">
-                          <dependency id=""a.b.c"" version=""1.0-alpha"" />
-                        </group>
+                        <dependency id=""a.b.c"" version=""{0}"" />
                     </dependencies>
                   </metadata>
                 </package>";
@@ -514,7 +512,25 @@ namespace NuGetGallery.Packaging
             Assert.Equal(GetErrors(nuspecStream).Length, 0);
         }
 
-        private string[] GetErrors(Stream nuspecStream)
+        [Theory]
+        [InlineData("$version$")]
+        [InlineData("[15.106.0.preview]")]
+        [InlineData("0.0.0-~4")]
+        [InlineData("(2.0.0, 1.0.0(")]
+        public void ReturnsErrorIfDependencyVersionRangeInvalid(string versionRange)
+        {
+            // Arrange
+            var nuspec = string.Format(NuSpecDependencySetContainsInvalidVersionRange, versionRange);
+            var nuspecStream = CreateNuspecStream(nuspec);
+
+            // Act
+            var errors = GetErrors(nuspecStream);
+
+            // Assert
+            Assert.Equal(new[] { $"Invalid package version for a dependency with id 'a.b.c' in package 'packageA.1.0.1-alpha': '{versionRange}'" }, errors);
+        }
+
+        private static string[] GetErrors(Stream nuspecStream)
         {
             NuspecReader reader;
 
@@ -524,7 +540,7 @@ namespace NuGetGallery.Packaging
                 .ToArray();
         }
 
-        private Stream CreateNuspecStream(string nuspec)
+        private static Stream CreateNuspecStream(string nuspec)
         {
             byte[] byteArray = Encoding.ASCII.GetBytes(nuspec);
             return new MemoryStream(byteArray);

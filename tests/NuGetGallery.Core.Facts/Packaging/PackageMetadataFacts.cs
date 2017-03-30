@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using Xunit;
 
@@ -38,6 +39,17 @@ namespace NuGetGallery.Packaging
             Assert.Equal("http://www.nuget.org/", packageMetadata.LicenseUrl.ToString());
         }
 
+        [Fact]
+        public static void ThrowsPackagingExceptionWhenInvalidDepencencyVersionRangeDetected()
+        {
+            var packageStream = CreateTestPackageStreamWithInvalidDependencyVersion();
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act & Assert
+            Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(nuspec));
+        }
+
         private static Stream CreateTestPackageStream()
         {
             var packageStream = new MemoryStream();
@@ -61,6 +73,42 @@ namespace NuGetGallery.Packaging
                         <iconUrl>http://www.nuget.org/</iconUrl>
                         <licenseUrl>http://www.nuget.org/</licenseUrl>
                         <dependencies />
+                      </metadata>
+                    </package>");
+                }
+
+                packageArchive.CreateEntry("content\\HelloWorld.cs", CompressionLevel.Fastest);
+            }
+
+            packageStream.Position = 0;
+
+            return packageStream;
+        }
+        private static Stream CreateTestPackageStreamWithInvalidDependencyVersion()
+        {
+            var packageStream = new MemoryStream();
+            using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Create, true))
+            {
+                var nuspecEntry = packageArchive.CreateEntry("TestPackage.nuspec", CompressionLevel.Fastest);
+                using (var streamWriter = new StreamWriter(nuspecEntry.Open()))
+                {
+                    streamWriter.WriteLine(@"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>TestPackage</id>
+                        <version>0.0.0.1</version>
+                        <title>Package A</title>
+                        <authors>ownera, ownerb</authors>
+                        <owners>ownera, ownerb</owners>
+                        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                        <description>package A description.</description>
+                        <language>en-US</language>
+                        <projectUrl>http://www.nuget.org/</projectUrl>
+                        <iconUrl>http://www.nuget.org/</iconUrl>
+                        <licenseUrl>http://www.nuget.org/</licenseUrl>
+                        <dependencies>
+                          <dependency id=""SampleDependency"" version=""$version$""/>
+                        </dependencies>
                       </metadata>
                     </package>");
                 }

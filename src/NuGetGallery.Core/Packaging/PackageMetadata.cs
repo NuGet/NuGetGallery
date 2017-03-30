@@ -144,11 +144,19 @@ namespace NuGetGallery.Packaging
             return alternateValue;
         }
 
+        /// <summary>
+        /// Gets package metadata from a the provided <see cref="NuspecReader"/> instance.
+        /// </summary>
+        /// <param name="nuspecReader">The <see cref="NuspecReader"/> instance used to read the <see cref="PackageMetadata"/></param>
+        /// <exception cref="PackagingException">
+        /// We default to use a strict version-check on dependency groups. 
+        /// When an invalid dependency version range is detected, a <see cref="PackagingException"/> will be thrown.
+        /// </exception>
         public static PackageMetadata FromNuspecReader(NuspecReader nuspecReader)
         {
             return new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-                nuspecReader.GetDependencyGroups(),
+                nuspecReader.GetDependencyGroups(useStrictVersionCheck: true),
                 nuspecReader.GetFrameworkReferenceGroups(),
                 nuspecReader.GetPackageTypes(),
                 nuspecReader.GetMinClientVersion()

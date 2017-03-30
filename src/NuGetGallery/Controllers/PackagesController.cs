@@ -17,6 +17,7 @@ using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
@@ -1157,7 +1158,8 @@ namespace NuGetGallery
                     package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
                     Debug.Assert(package.PackageRegistration != null);
                 }
-                catch (EntityException ex)
+                catch(Exception ex) 
+                    when (ex is PackagingException || ex is EntityException)
                 {
                     TempData["Message"] = ex.Message;
                     return Redirect(Url.UploadPackage());
