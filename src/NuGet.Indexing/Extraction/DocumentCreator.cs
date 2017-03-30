@@ -9,6 +9,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Newtonsoft.Json;
 using NuGet.Versioning;
+using LuceneConstants = NuGet.Indexing.MetadataConstants.LuceneMetadata;
 
 namespace NuGet.Indexing
 {
@@ -41,26 +42,27 @@ namespace NuGet.Indexing
             AddId(document, package, errors);
             AddVersion(document, package, errors);
             AddTitle(document, package);
-            AddField(document, "Description", package, "description", Field.Index.ANALYZED);
-            AddField(document, "Summary", package, "summary", Field.Index.ANALYZED);
-            AddField(document, "Tags", package, "tags", Field.Index.ANALYZED, 2.0f);
-            AddField(document, "Authors", package, "authors", Field.Index.ANALYZED);
+            AddField(document, LuceneConstants.DescriptionPropertyName, package, MetadataConstants.DescriptionPropertyName, Field.Index.ANALYZED);
+            AddField(document, LuceneConstants.SummaryPropertyName, package, MetadataConstants.SummaryPropertyName, Field.Index.ANALYZED);
+            AddField(document, LuceneConstants.TagsPropertyName, package, MetadataConstants.TagsPropertyName, Field.Index.ANALYZED, 2.0f);
+            AddField(document, LuceneConstants.AuthorsPropertyName, package, MetadataConstants.AuthorsPropertyName, Field.Index.ANALYZED);
 
             // add fields used by filtering and sorting
+            AddField(document, LuceneConstants.SemVerLevelPropertyName, package, MetadataConstants.SemVerLevelKeyPropertyName, Field.Index.ANALYZED);
             AddListed(document, package, errors);
             AddDates(document, package, errors);
             AddSortableTitle(document, package);
 
             // add fields used when materializing the result
-            AddField(document, "IconUrl", package, "iconUrl", Field.Index.NOT_ANALYZED);
-            AddField(document, "ProjectUrl", package, "projectUrl", Field.Index.NOT_ANALYZED);
-            AddField(document, "MinClientVersion", package, "minClientVersion", Field.Index.NOT_ANALYZED);
-            AddField(document, "ReleaseNotes", package, "releaseNotes", Field.Index.NOT_ANALYZED);
-            AddField(document, "Copyright", package, "copyright", Field.Index.NOT_ANALYZED);
-            AddField(document, "Language", package, "language", Field.Index.NOT_ANALYZED);
-            AddField(document, "LicenseUrl", package, "licenseUrl", Field.Index.NOT_ANALYZED);
-            AddField(document, "PackageHash", package, "packageHash", Field.Index.NOT_ANALYZED);
-            AddField(document, "PackageHashAlgorithm", package, "packageHashAlgorithm", Field.Index.NOT_ANALYZED);
+            AddField(document, LuceneConstants.IconUrlPropertyName, package, MetadataConstants.IconUrlPropertyName, Field.Index.NOT_ANALYZED);
+            AddField(document, LuceneConstants.ProjectUrlPropertyName, package, MetadataConstants.ProjectUrlPropertyName, Field.Index.NOT_ANALYZED);
+            AddField(document, LuceneConstants.MinClientVersionPropertyName, package, MetadataConstants.MinClientVersionPropertyName, Field.Index.NOT_ANALYZED);
+            AddField(document, LuceneConstants.ReleaseNotesPropertyName, package, MetadataConstants.ReleaseNotesPropertyName, Field.Index.NOT_ANALYZED);
+            AddField(document, LuceneConstants.CopyrightPropertyName, package, MetadataConstants.CopyrightPropertyName, Field.Index.NOT_ANALYZED);
+            AddField(document, LuceneConstants.LanguagePropertyName, package, MetadataConstants.LanguagePropertyName, Field.Index.NOT_ANALYZED);
+            AddField(document, LuceneConstants.LicenseUrlPropertyName, package, MetadataConstants.LicenseUrlPropertyName, Field.Index.NOT_ANALYZED);
+            AddField(document, LuceneConstants.PackageHashPropertyName, package, MetadataConstants.PackageHashPropertyName, Field.Index.NOT_ANALYZED);
+            AddField(document, LuceneConstants.PackageHashAlgorithmPropertyName, package, MetadataConstants.PackageHashAlgorithmPropertyName, Field.Index.NOT_ANALYZED);
             AddPackageSize(document, package, errors);
             AddRequiresLicenseAcceptance(document, package, errors);
             AddDependencies(document, package);
@@ -75,57 +77,57 @@ namespace NuGet.Indexing
         private static void AddId(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
-            if (package.TryGetValue("id", out value))
+            if (package.TryGetValue(MetadataConstants.IdPropertyName, out value))
             {
                 float boost = 2.0f;
-                if (!package.ContainsKey("tags"))
+                if (!package.ContainsKey(MetadataConstants.TagsPropertyName))
                 {
                     boost += 0.5f;
                 }
 
-                AddField(document, "Id", value, Field.Index.ANALYZED, boost);
-                AddField(document, "IdAutocomplete", value, Field.Index.ANALYZED, boost);
-                AddField(document, "TokenizedId", value, Field.Index.ANALYZED, boost);
-                AddField(document, "ShingledId", value, Field.Index.ANALYZED, boost);
+                AddField(document, LuceneConstants.IdPropertyName, value, Field.Index.ANALYZED, boost);
+                AddField(document, LuceneConstants.IdAutocompletePropertyName, value, Field.Index.ANALYZED, boost);
+                AddField(document, LuceneConstants.TokenizedIdPropertyName, value, Field.Index.ANALYZED, boost);
+                AddField(document, LuceneConstants.ShingledIdPropertyName, value, Field.Index.ANALYZED, boost);
             }
             else
             {
-                errors.Add("Required property 'id' not found.");
+                errors.Add($"Required property '{MetadataConstants.IdPropertyName}' not found.");
             }
         }
 
         private static void AddVersion(Document document, IDictionary<string, string> package, List<string> errors)
         {
-            string originalVersion;
-            if (package.TryGetValue("originalVersion", out originalVersion))
+            string verbatimVersion;
+            if (package.TryGetValue(MetadataConstants.VersionPropertyName, out verbatimVersion))
             {
-                AddField(document, "OriginalVersion", originalVersion, Field.Index.NOT_ANALYZED);
+                AddField(document, LuceneConstants.VersionPropertyName, verbatimVersion, Field.Index.NOT_ANALYZED);
             }
 
             string version;
-            if (!package.TryGetValue("version", out version))
+            if (!package.TryGetValue(MetadataConstants.NormalizedVersionPropertyName, out version))
             {
-                if (originalVersion != null)
+                if (verbatimVersion != null)
                 {
                     NuGetVersion nuGetVersion;
-                    if (NuGetVersion.TryParse(originalVersion, out nuGetVersion))
+                    if (NuGetVersion.TryParse(verbatimVersion, out nuGetVersion))
                     {
                         version = nuGetVersion.ToNormalizedString();
                     }
                     else
                     {
-                        errors.Add("Unable to parse 'originalVersion' as NuGetVersion.");
+                        errors.Add($"Unable to parse '{MetadataConstants.VersionPropertyName}' as NuGetVersion.");
                     }
                 }
             }
 
             if (version != null)
             {
-                AddField(document, "Version", version, Field.Index.ANALYZED);
+                AddField(document, LuceneConstants.NormalizedVersionPropertyName, version, Field.Index.ANALYZED);
             }
             else
             {
-                errors.Add("Required property 'version' or 'originalVersion' not found.");
+                errors.Add($"Required property '{MetadataConstants.NormalizedVersionPropertyName}' or '{MetadataConstants.VersionPropertyName}' not found.");
             }
         }
 
@@ -133,34 +135,34 @@ namespace NuGet.Indexing
         {
             string value;
 
-            package.TryGetValue("title", out value);
+            package.TryGetValue(MetadataConstants.TitlePropertyName, out value);
 
             if (string.IsNullOrEmpty(value))
             {
-                package.TryGetValue("id", out value);
+                package.TryGetValue(MetadataConstants.IdPropertyName, out value);
             }
 
-            AddField(document, "Title", value ?? string.Empty, Field.Index.ANALYZED);
+            AddField(document, LuceneConstants.TitlePropertyName, value ?? string.Empty, Field.Index.ANALYZED);
         }
 
         private static void AddListed(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
-            if (package.TryGetValue("listed", out value))
+            if (package.TryGetValue(MetadataConstants.ListedPropertyName, out value))
             {
                 bool listed;
                 if (bool.TryParse(value, out listed))
                 {
-                    AddField(document, "Listed", value, Field.Index.ANALYZED);
+                    AddField(document, LuceneConstants.ListedPropertyName, value, Field.Index.ANALYZED);
                 }
                 else
                 {
-                    errors.Add("Unable to parse 'listed' as Boolean.");
+                    errors.Add($"Unable to parse '{MetadataConstants.ListedPropertyName}' as Boolean.");
                 }
             }
             else
             {
-                errors.Add("Required property 'listed' not found.");
+                errors.Add($"Required property '{MetadataConstants.ListedPropertyName}' not found.");
             }
         }
 
@@ -168,43 +170,43 @@ namespace NuGet.Indexing
         {
             string value;
 
-            package.TryGetValue("title", out value);
+            package.TryGetValue(MetadataConstants.TitlePropertyName, out value);
 
             if (string.IsNullOrEmpty(value))
             {
-                package.TryGetValue("id", out value);
+                package.TryGetValue(MetadataConstants.IdPropertyName, out value);
             }
-            
-            AddField(document, "SortableTitle", (value ?? string.Empty).Trim().ToLower(), Field.Index.NOT_ANALYZED);
+
+            AddField(document, LuceneConstants.SortableTitlePropertyName, (value ?? string.Empty).Trim().ToLower(), Field.Index.NOT_ANALYZED);
         }
 
         private static void AddDates(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string created;
-            if (package.TryGetValue("created", out created))
+            if (package.TryGetValue(MetadataConstants.CreatedPropertyName, out created))
             {
-                AddField(document, "OriginalCreated", created, Field.Index.NOT_ANALYZED);
+                AddField(document, LuceneConstants.OriginalCreatedPropertyName, created, Field.Index.NOT_ANALYZED);
             }
 
             string published;
-            if (package.TryGetValue("published", out published))
+            if (package.TryGetValue(MetadataConstants.PublishedPropertyName, out published))
             {
-                AddField(document, "OriginalPublished", published, Field.Index.NOT_ANALYZED);
+                AddField(document, LuceneConstants.OriginalPublishedPropertyName, published, Field.Index.NOT_ANALYZED);
 
                 DateTimeOffset publishedDateTime;
                 if (DateTimeOffset.TryParse(published, out publishedDateTime))
                 {
-                    AddDateField(document, "PublishedDate", publishedDateTime);
+                    AddDateField(document, LuceneConstants.PublishedDatePropertyName, publishedDateTime);
                 }
                 else
                 {
-                    errors.Add("Unable to parse 'published' as DateTime.");
+                    errors.Add($"Unable to parse '{MetadataConstants.PublishedPropertyName}' as DateTime.");
                 }
 
                 string lastEdited;
-                if (package.TryGetValue("lastEdited", out lastEdited) && lastEdited != "01/01/0001 00:00:00")
+                if (package.TryGetValue(MetadataConstants.LastEditedPropertyName, out lastEdited) && lastEdited != MetadataConstants.DateTimeZeroStringValue)
                 {
-                    AddField(document, "OriginalLastEdited", lastEdited, Field.Index.NOT_ANALYZED);
+                    AddField(document, LuceneConstants.OriginalLastEditedPropertyName, lastEdited, Field.Index.NOT_ANALYZED);
                 }
                 else
                 {
@@ -214,32 +216,32 @@ namespace NuGet.Indexing
                 DateTimeOffset lastEditedDateTime;
                 if (DateTimeOffset.TryParse(lastEdited, out lastEditedDateTime))
                 {
-                    AddDateField(document, "LastEditedDate", lastEditedDateTime);
+                    AddDateField(document, LuceneConstants.LastEditedDatePropertyName, lastEditedDateTime);
                 }
                 else
                 {
-                    errors.Add("Unable to parse 'lastEdited' as DateTime.");
+                    errors.Add($"Unable to parse '{MetadataConstants.LastEditedPropertyName}' as DateTime.");
                 }
             }
             else
             {
-                errors.Add("Required property 'published' not found.");
+                errors.Add($"Required property '{MetadataConstants.PublishedPropertyName}' not found.");
             }
         }
 
         private static void AddPackageSize(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
-            if (package.TryGetValue("packageSize", out value))
+            if (package.TryGetValue(MetadataConstants.PackageSizePropertyName, out value))
             {
                 int packageSize;
                 if (int.TryParse(value, out packageSize))
                 {
-                    AddField(document, "PackageSize", value, Field.Index.NOT_ANALYZED);
+                    AddField(document, LuceneConstants.PackageSizePropertyName, value, Field.Index.NOT_ANALYZED);
                 }
                 else
                 {
-                    errors.Add("Unable to parse 'packageSize' as Int32.");
+                    errors.Add($"Unable to parse '{MetadataConstants.PackageSizePropertyName}' as Int32.");
                 }
             }
         }
@@ -247,16 +249,16 @@ namespace NuGet.Indexing
         private static void AddRequiresLicenseAcceptance(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string value;
-            if (package.TryGetValue("requireLicenseAcceptance", out value))
+            if (package.TryGetValue(MetadataConstants.RequiresLicenseAcceptancePropertyName, out value))
             {
                 bool requiresLicenseAcceptance;
                 if (bool.TryParse(value, out requiresLicenseAcceptance))
                 {
-                    AddField(document, "RequiresLicenseAcceptance", value, Field.Index.NOT_ANALYZED);
+                    AddField(document, LuceneConstants.RequiresLicenseAcceptancePropertyName, value, Field.Index.NOT_ANALYZED);
                 }
                 else
                 {
-                    errors.Add("Unable to parse 'requireLicenseAcceptance' as Boolean.");
+                    errors.Add($"Unable to parse '{MetadataConstants.RequiresLicenseAcceptancePropertyName}' as Boolean.");
                 }
             }
         }
@@ -264,9 +266,9 @@ namespace NuGet.Indexing
         private static void AddDependencies(Document document, IDictionary<string, string> package)
         {
             string value;
-            if (package.TryGetValue("flattenedDependencies", out value))
+            if (package.TryGetValue(MetadataConstants.FlattenedDependenciesPropertyName, out value))
             {
-                AddField(document, "FlattenedDependencies", value, Field.Index.NOT_ANALYZED);
+                AddField(document, LuceneConstants.FlattenedDependenciesPropertyName, value, Field.Index.NOT_ANALYZED);
 
                 if (!string.IsNullOrWhiteSpace(value))
                 {
@@ -302,7 +304,7 @@ namespace NuGet.Indexing
                             textWriter.Flush();
                             string dependencies = textWriter.ToString();
 
-                            AddField(document, "Dependencies", dependencies, Field.Index.NOT_ANALYZED);
+                            AddField(document, LuceneConstants.DependenciesPropertyName, dependencies, Field.Index.NOT_ANALYZED);
                         }
                     }
                 }
@@ -312,7 +314,7 @@ namespace NuGet.Indexing
         private static void AddSupportedFrameworks(Document document, IDictionary<string, string> package)
         {
             string value;
-            if (package.TryGetValue("supportedFrameworks", out value))
+            if (package.TryGetValue(MetadataConstants.SupportedFrameworksPropertyName, out value))
             {
                 using (var textWriter = new StringWriter())
                 {
@@ -328,7 +330,7 @@ namespace NuGet.Indexing
                         textWriter.Flush();
                         string supportedFrameworks = textWriter.ToString();
 
-                        document.Add(new Field("SupportedFrameworks", supportedFrameworks, Field.Store.YES, Field.Index.NOT_ANALYZED));
+                        document.Add(new Field(LuceneConstants.SupportedFrameworksPropertyName, supportedFrameworks, Field.Store.YES, Field.Index.NOT_ANALYZED));
                     }
                 }
             }
@@ -338,7 +340,7 @@ namespace NuGet.Indexing
         {
             string id;
             string language;
-            if (package.TryGetValue("id", out id) && package.TryGetValue("language", out language))
+            if (package.TryGetValue(MetadataConstants.IdPropertyName, out id) && package.TryGetValue(MetadataConstants.LanguagePropertyName, out language))
             {
                 if (!string.IsNullOrWhiteSpace(language))
                 {
@@ -391,7 +393,7 @@ namespace NuGet.Indexing
 
         private static void AddField(Document document, string destination, string value, Field.Index index, float boost = 1.0f)
         {
-            var termVector = index == Field.Index.ANALYZED 
+            var termVector = index == Field.Index.ANALYZED
                 ? Field.TermVector.WITH_POSITIONS_OFFSETS
                 : Field.TermVector.NO;
 

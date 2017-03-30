@@ -266,6 +266,7 @@
     <Compile Include="DownloadRankings.cs" />
     <Compile Include="DownloadsByVersion.cs" />
     <Compile Include="DynamicDocIdSet.cs" />
+    <Compile Include="Extraction\MetadataConstants.cs" />
     <Compile Include="IndexDirectoryProvider\LocalIndexDirectoryProvider.cs" />
     <Compile Include="ExpandAcronymsFilter.cs" />
     <Compile Include="Extraction\CatalogNuspecReader.cs" />

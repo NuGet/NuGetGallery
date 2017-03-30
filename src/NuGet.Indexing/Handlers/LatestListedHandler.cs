@@ -111,14 +111,14 @@ namespace NuGet.Indexing
 
         internal static bool GetListed(Document document)
         {
-            string listed = document.Get("Listed");
+            string listed = document.Get(MetadataConstants.LuceneMetadata.ListedPropertyName);
             return (listed == null) ? false : listed.Equals("true", StringComparison.InvariantCultureIgnoreCase);
         }
 
         internal static bool IsSemVer2(Document document)
         {
-            string semVerLevel = document.Get("SemVerLevel");
-            return (semVerLevel == null) ? false : semVerLevel.Equals("2");
+            string semVerLevel = document.Get(MetadataConstants.LuceneMetadata.SemVerLevelPropertyName);
+            return (semVerLevel == null) ? false : semVerLevel.Equals(MetadataConstants.SemVerLevel2Value);
         }
     }
 }

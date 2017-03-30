@@ -26,33 +26,33 @@ namespace NuGet.Indexing
                 _package = package;
                 _metadata = new Dictionary<string, string>();
 
-                AddString("id", package.PackageRegistration.Id);
-                AddString("version", package.NormalizedVersion);
-                AddString("originalVersion", package.Version);
-                AddString("title", package.Title);
-                AddString("description", package.Description);
-                AddString("summary", package.Summary);
-                AddString("tags", package.Tags);
-                AddString("authors", package.FlattenedAuthors);
+                AddString(MetadataConstants.IdPropertyName, package.PackageRegistration.Id);
+                AddString(MetadataConstants.NormalizedVersionPropertyName, package.NormalizedVersion);
+                AddString(MetadataConstants.VersionPropertyName, package.Version);
+                AddString(MetadataConstants.TitlePropertyName, package.Title);
+                AddString(MetadataConstants.DescriptionPropertyName, package.Description);
+                AddString(MetadataConstants.SummaryPropertyName, package.Summary);
+                AddString(MetadataConstants.TagsPropertyName, package.Tags);
+                AddString(MetadataConstants.AuthorsPropertyName, package.FlattenedAuthors);
 
-                AddString("listed", package.Listed.ToString());
-                AddString("created", package.Created.ToString("O"));
-                AddString("published", package.Published.ToString("O"));
-                AddString("lastEdited", package.LastEdited?.ToString("O"));
+                AddString(MetadataConstants.ListedPropertyName, package.Listed.ToString());
+                AddString(MetadataConstants.CreatedPropertyName, package.Created.ToString("O"));
+                AddString(MetadataConstants.PublishedPropertyName, package.Published.ToString("O"));
+                AddString(MetadataConstants.LastEditedPropertyName, package.LastEdited?.ToString("O"));
 
-                AddString("iconUrl", package.IconUrl);
-                AddString("projectUrl", package.ProjectUrl);
-                AddString("minClientVersion", package.MinClientVersion);
-                AddString("releaseNotes", package.ReleaseNotes);
-                AddString("copyright", package.Copyright);
-                AddString("language", package.Language);
-                AddString("licenseUrl", package.LicenseUrl);
-                AddString("packageHash", package.Hash);
-                AddString("packageHashAlgorithm", package.HashAlgorithm);
-                AddString("packageSize", package.PackageFileSize.ToString());
-                AddString("requiresLicenseAcceptance", package.RequiresLicenseAcceptance.ToString());
+                AddString(MetadataConstants.IconUrlPropertyName, package.IconUrl);
+                AddString(MetadataConstants.ProjectUrlPropertyName, package.ProjectUrl);
+                AddString(MetadataConstants.MinClientVersionPropertyName, package.MinClientVersion);
+                AddString(MetadataConstants.ReleaseNotesPropertyName, package.ReleaseNotes);
+                AddString(MetadataConstants.CopyrightPropertyName, package.Copyright);
+                AddString(MetadataConstants.LanguagePropertyName, package.Language);
+                AddString(MetadataConstants.LicenseUrlPropertyName, package.LicenseUrl);
+                AddString(MetadataConstants.PackageHashPropertyName, package.Hash);
+                AddString(MetadataConstants.PackageHashAlgorithmPropertyName, package.HashAlgorithm);
+                AddString(MetadataConstants.PackageSizePropertyName, package.PackageFileSize.ToString());
+                AddString(MetadataConstants.RequiresLicenseAcceptancePropertyName, package.RequiresLicenseAcceptance.ToString());
 
-                AddString("flattenedDependencies", package.FlattenedDependencies);
+                AddString(MetadataConstants.FlattenedDependenciesPropertyName, package.FlattenedDependencies);
                 AddSupportedFrameworks();
 
                 return _metadata;
@@ -77,7 +77,7 @@ namespace NuGet.Indexing
 
                 var supportedFrameworks = _package.SupportedFrameworks.Select(f => f.TargetFramework).ToArray();
                 var flattened = string.Join("|", supportedFrameworks);
-                AddString("supportedFrameworks", flattened);
+                AddString(MetadataConstants.SupportedFrameworksPropertyName, flattened);
             }
         }
     }
