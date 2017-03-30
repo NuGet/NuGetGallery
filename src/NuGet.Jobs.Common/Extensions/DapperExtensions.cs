@@ -10,16 +10,22 @@ namespace System.Data.SqlClient
 {
     public static class DapperExtensions
     {
-        public static Task<int> ExecuteAsync(this SqlConnection connection, string sql, SqlTransaction transaction = null, int timeout = 30)
+        public static Task<int> ExecuteAsync(this SqlConnection connection, string sql, SqlTransaction transaction = null, TimeSpan? commandTimeout = null)
         {
             SqlCommand cmd = connection.CreateCommand();
             cmd.CommandText = sql;
             cmd.CommandType = CommandType.Text;
-            cmd.CommandTimeout = timeout;
+
+            if (commandTimeout.HasValue)
+            {
+                cmd.CommandTimeout = (int)commandTimeout.Value.TotalSeconds;
+            }
+
             if (transaction != null)
             {
                 cmd.Transaction = transaction;
             }
+
             return cmd.ExecuteNonQueryAsync();
         }
 
@@ -28,7 +34,7 @@ namespace System.Data.SqlClient
             string sql,
             object param = null,
             IDbTransaction transaction = null,
-            int? commandTimeout = null,
+            TimeSpan? commandTimeout = null,
             CommandType? commandType = null,
             int maxRetries = 10,
             Action onRetry = null)
@@ -37,7 +43,7 @@ namespace System.Data.SqlClient
             {
                 try
                 {
-                    return await connection.QueryAsync<T>(sql, param, transaction, commandTimeout, commandType);
+                    return await connection.QueryAsync<T>(sql, param, transaction, (int?)commandTimeout?.TotalSeconds, commandType);
                 }
                 catch (SqlException ex)
                 {
@@ -68,15 +74,16 @@ namespace System.Data.SqlClient
                     }
                 }
             }
+
             throw new Exception("Unknown error! Should have thrown the final timeout!");
         }
-        
+
         public static async Task<T> ExecuteScalarWithRetryAsync<T>(
             this SqlConnection connection,
             string sql,
             object param = null,
             IDbTransaction transaction = null,
-            int? commandTimeout = null,
+            TimeSpan? commandTimeout = null,
             CommandType? commandType = null,
             int maxRetries = 10,
             Action onRetry = null)
@@ -85,7 +92,7 @@ namespace System.Data.SqlClient
             {
                 try
                 {
-                    return await connection.ExecuteScalarAsync<T>(sql, param, transaction, commandTimeout, commandType);
+                    return await connection.ExecuteScalarAsync<T>(sql, param, transaction, (int?)commandTimeout?.TotalSeconds, commandType);
                 }
                 catch (SqlException ex)
                 {
@@ -116,6 +123,7 @@ namespace System.Data.SqlClient
                     }
                 }
             }
+
             throw new Exception("Unknown error! Should have thrown the final timeout!");
         }
     }

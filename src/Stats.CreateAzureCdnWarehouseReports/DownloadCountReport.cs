@@ -18,7 +18,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         : ReportBase
     {
         private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
-        private const int _defaultCommandTimeout = 1800; // 30 minutes max
+        private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
         internal const string ReportName = "downloads.v1.json";
 
         public DownloadCountReport(IEnumerable<StorageContainerTarget> targets, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
