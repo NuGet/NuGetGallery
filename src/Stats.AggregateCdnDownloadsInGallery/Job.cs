@@ -96,7 +96,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                             _storedProcedureName,
                             transaction: statisticsDatabaseTransaction,
                             commandType: CommandType.StoredProcedure,
-                            commandTimeout: (int)TimeSpan.FromMinutes(15).TotalSeconds,
+                            commandTimeout: TimeSpan.FromMinutes(15),
                             maxRetries: 3))
                         .ToList();
                 }
@@ -174,7 +174,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                         _logger.LogDebug("Updating destination database Download Counts... ({RecordCount} package registrations to process).", packageRegistrationGroups.Count());
 
                         await destinationDatabase.ExecuteAsync(_updateFromTempTable,
-                            timeout: (int)TimeSpan.FromMinutes(30).TotalSeconds);
+                            commandTimeout: TimeSpan.FromMinutes(30));
 
                         _logger.LogInformation("Updated destination database Download Counts.");
                     }
@@ -199,7 +199,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             // Ensure results are sorted deterministically.
             var packageRegistrationData = (await sqlConnection.QueryWithRetryAsync<PackageRegistrationData>(
                     "SELECT [Key], LOWER([Id]) AS LowercasedId, [Id] AS OriginalId FROM [dbo].[PackageRegistrations] (NOLOCK) ORDER BY [Id] ASC",
-                    commandTimeout: (int)TimeSpan.FromMinutes(10).TotalSeconds,
+                    commandTimeout: TimeSpan.FromMinutes(10),
                     maxRetries: 5)).ToList();
 
             // We are not using .ToDictionary() and instead explicitly looping through these items to be able to detect

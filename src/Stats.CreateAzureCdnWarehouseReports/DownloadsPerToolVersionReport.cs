@@ -18,7 +18,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         : ReportBase
     {
         private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerToolVersion]";
-        private const int _defaultCommandTimeout = 1800; // 30 minutes max
+        private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
         internal const string ReportName = "tools.v1.json";
 
         public DownloadsPerToolVersionReport(CloudStorageAccount cloudStorageAccount, string statisticsContainerName, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)

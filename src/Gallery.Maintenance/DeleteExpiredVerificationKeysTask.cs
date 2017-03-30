@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
@@ -12,8 +13,8 @@ namespace Gallery.Maintenance
 {
     internal class DeleteExpiredVerificationKeysTask : IMaintenanceTask
     {
-        private const int DefaultCommandTimeoutInSeconds = 300;
-        
+        private readonly TimeSpan _commandTimeout = TimeSpan.FromMinutes(5);
+
         private const string SelectQuery = @"
 SELECT s.[CredentialKey], c.[UserKey], u.[Username], c.[Expires], s.[Subject] as ScopeSubject
 FROM [dbo].[Credentials] c
@@ -34,7 +35,7 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
             {
                 expiredKeys = await connection.QueryWithRetryAsync<PackageVerificationKey>(
                     SelectQuery,
-                    commandTimeout: DefaultCommandTimeoutInSeconds,
+                    commandTimeout: _commandTimeout,
                     maxRetries: 3);
             }
 
@@ -58,13 +59,13 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
                     {
                         rowCount = await connection.ExecuteAsync(
                             string.Format(DeleteQuery, string.Join(",", credentialKeys)),
-                            transaction, DefaultCommandTimeoutInSeconds);
+                            transaction, _commandTimeout);
 
                         transaction.Commit();
                     }
                 }
             }
-            
+
             job.Logger.LogInformation("Deleted {0} expired verification keys and scopes. Expected={1}.", rowCount, expectedRowCount);
 
             return rowCount == expectedRowCount;

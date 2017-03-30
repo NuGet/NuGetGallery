@@ -20,7 +20,7 @@ namespace Gallery.CredentialExpiration
 {
     public class Job : JobBase
     {
-        private const int DefaultCommandTimeout = 1800; // 30 minutes max
+        private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
 
         private readonly ConcurrentDictionary<string, DateTimeOffset> _contactedUsers = new ConcurrentDictionary<string, DateTimeOffset>();
         private readonly string _cursorFile = "cursor.json";
@@ -65,7 +65,7 @@ namespace Gallery.CredentialExpiration
                 var smtpUri = new SmtpUri(new Uri(smtpConnectionString));
                 _smtpClient = CreateSmtpClient(smtpUri);
 
-                _warnDaysBeforeExpiration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.WarnDaysBeforeExpiration) 
+                _warnDaysBeforeExpiration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.WarnDaysBeforeExpiration)
                     ?? _warnDaysBeforeExpiration;
 
                 _allowEmailResendAfterDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.AllowEmailResendAfterDays)
@@ -113,7 +113,7 @@ namespace Gallery.CredentialExpiration
                     expiredCredentials = (await galleryConnection.QueryWithRetryAsync<ExpiredCredentialData>(
                         string.Format(Strings.GetExpiredCredentialsQuery, _warnDaysBeforeExpiration),
                         maxRetries: 3,
-                        commandTimeout: DefaultCommandTimeout)).ToList();
+                        commandTimeout: _defaultCommandTimeout)).ToList();
 
                     _logger.LogInformation("Retrieved {ExpiredCredentials} expired credentials.",
                         expiredCredentials.Count);
@@ -246,7 +246,7 @@ namespace Gallery.CredentialExpiration
                 : string.Format(Strings.ApiKeyExpiring, description, (int)expiryInDays);
 
             // \u2022 - Unicode for bullet point.
-            return "\u2022 "+ message + Environment.NewLine;
+            return "\u2022 " + message + Environment.NewLine;
         }
 
         private SmtpClient CreateSmtpClient(SmtpUri smtpUri)

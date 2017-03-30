@@ -23,7 +23,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         internal const string ReportName = "stats-totals.json";
 
         public GalleryTotalsReport(CloudStorageAccount cloudStorageAccount, string statisticsContainerName, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
-            : base(new [] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) }, statisticsDatabase, galleryDatabase)
+            : base(new[] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) }, statisticsDatabase, galleryDatabase)
         {
         }
 
@@ -47,7 +47,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
                 totalsData.Downloads = (await connection.ExecuteScalarWithRetryAsync<long>(
-                    WarehouseStoredProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction));
+                    WarehouseStoredProcedureName,
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: TimeSpan.FromMinutes(5),
+                    transaction: transaction));
             }
             Trace.TraceInformation("Total downloads: {0}", totalsData.Downloads);
 
