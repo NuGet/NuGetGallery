@@ -70,14 +70,21 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             if (_itemAddress == null)
             {
                 INode subject = _catalogItem.CreateUriNode(_catalogUri);
-                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version))
+                    .FirstOrDefault()
+                    .Object
+                    .ToString()
+                    .ToLowerInvariant();
+
+                version = NuGetVersionUtility.NormalizeVersion(version);
+
                 _itemAddress = new Uri(BaseAddress, version + ".json");
             }
 
             return _itemAddress;
         }
 
-        Uri GetRegistrationAddress()
+       private Uri GetRegistrationAddress()
         {
             if (_registrationAddress == null)
             {
@@ -90,7 +97,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return _registrationAddress;
         }
                 
-        DateTime GetPublishedDate()
+        private DateTime GetPublishedDate()
         {
             if (_publishedDate == DateTime.MinValue)
             {
@@ -120,7 +127,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return _publishedDate;
         }
 
-        Uri GetPackageContentAddress()
+        private Uri GetPackageContentAddress()
         {
             if (PackagePathProvider == null)
             {

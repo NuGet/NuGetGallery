@@ -14,7 +14,7 @@ namespace NgTests.Infrastructure
         public bool Listed { get; set; }
 
         public DateTime Created { get; set; }
-        public DateTime LastEdited { get; set; }
+        public DateTime? LastEdited { get; set; }
         public DateTime Published { get; set; }
         public string LicenseNames { get; set; }
         public string LicenseReportUrl { get; set; }

@@ -119,5 +119,24 @@ namespace NgTests.Data
 
             return catalogStorage;
         }
+
+        public static MemoryStorage CreateTestCatalogWithSemVer2Package()
+        {
+            var catalogStorage = new MemoryStorage();
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithSemVer2Index));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithSemVer2Page000));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/testpackage.semver2.1.0.0-alpha.1.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithSemVer2Package));
+
+            return catalogStorage;
+        }
     }
 }

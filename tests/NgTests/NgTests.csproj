@@ -218,6 +218,10 @@
     <Compile Include="Data\Catalogs.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\CatalogTests\TestData\TestPackage.SemVer2.1.0.0-alpha.1.nupkg">
+      <Link>Packages\TestPackage.SemVer2.1.0.0-alpha.1.nupkg</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>

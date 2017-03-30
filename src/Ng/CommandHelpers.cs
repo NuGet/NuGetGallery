@@ -1,20 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Lucene.Net.Store;
-using Lucene.Net.Store.Azure;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using Lucene.Net.Store;
+using Lucene.Net.Store.Azure;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using NuGet.Services.Configuration;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Ng
 {
@@ -103,6 +103,25 @@ namespace Ng
                 { Arguments.StorageKeyValue, Arguments.CompressedStorageKeyValue },
                 { Arguments.StorageContainer, Arguments.CompressedStorageContainer },
                 { Arguments.StoragePath, Arguments.CompressedStoragePath }
+            };
+
+            return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
+        }
+
+        public static StorageFactory CreateSemVer2StorageFactory(IDictionary<string, string> arguments, bool verbose)
+        {
+            if (!arguments.GetOrDefault(Arguments.UseSemVer2Storage, false))
+            {
+                return null;
+            }
+
+            IDictionary<string, string> names = new Dictionary<string, string>
+            {
+                { Arguments.StorageBaseAddress, Arguments.SemVer2StorageBaseAddress },
+                { Arguments.StorageAccountName, Arguments.SemVer2StorageAccountName },
+                { Arguments.StorageKeyValue, Arguments.SemVer2StorageKeyValue },
+                { Arguments.StorageContainer, Arguments.SemVer2StorageContainer },
+                { Arguments.StoragePath, Arguments.SemVer2StoragePath }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);

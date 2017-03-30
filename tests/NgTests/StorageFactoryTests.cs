@@ -12,9 +12,9 @@ namespace NgTests
     public class StorageFactoryTests
     {
         [Theory]
-        [Description("The azure commpressed factory should compress the content.")]
+        [Description("The azure compressed factory should compress the content.")]
         [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath", "azure")]
-        public void AzureCommpressedFactory(string storageBaseAddress,
+        public void AzureCompressedFactory(string storageBaseAddress,
                                             string storageAccountName,
                                             string storageKeyValue,
                                             string storageContainer,
@@ -40,9 +40,9 @@ namespace NgTests
         }
 
         [Theory]
-        [Description("The azure commpressed factory will be null if the UseCompressedStorage is false.")]
+        [Description("The azure compressed factory will be null if the UseCompressedStorage is false.")]
         [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath", "azure")]
-        public void AzureCommpressedFactoryNull(string storageBaseAddress,
+        public void AzureCompressedFactoryNull(string storageBaseAddress,
                                             string storageAccountName,
                                             string storageKeyValue,
                                             string storageContainer,
@@ -56,8 +56,8 @@ namespace NgTests
                 { Arguments.CompressedStorageKeyValue, storageKeyValue },
                 { Arguments.CompressedStorageContainer, storageContainer },
                 { Arguments.CompressedStoragePath, storagePath },
-                { Arguments.StorageType, storageType},
-                { Arguments.UseCompressedStorage, "false"}
+                { Arguments.StorageType, storageType },
+                { Arguments.UseCompressedStorage, "false" }
             };
 
             StorageFactory factory = CommandHelpers.CreateCompressedStorageFactory(arguments, true);
@@ -90,6 +90,33 @@ namespace NgTests
             // Assert
             Assert.True(azureFactory != null, "The CreateCompressedStorageFactory should return an AzureStorageFactory type.");
             Assert.False(azureFactory.CompressContent, "The azure storage factory should not compress the content.");
+        }
+
+        [Theory]
+        [Description("The SemVer 2.0.0 Azure factory should compress the content.")]
+        [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath")]
+        public void AzureSemVer2Factory(string storageBaseAddress,
+                                        string storageAccountName,
+                                        string storageKeyValue,
+                                        string storageContainer,
+                                        string storagePath)
+        {
+            Dictionary<string, string> arguments = new Dictionary<string, string>()
+            {
+                { Arguments.SemVer2StorageBaseAddress, storageBaseAddress },
+                { Arguments.SemVer2StorageAccountName, storageAccountName },
+                { Arguments.SemVer2StorageKeyValue, storageKeyValue },
+                { Arguments.SemVer2StorageContainer, storageContainer },
+                { Arguments.SemVer2StoragePath, storagePath },
+                { Arguments.StorageType, "azure" },
+                { Arguments.UseSemVer2Storage, "true" }
+            };
+
+            var factory = CommandHelpers.CreateSemVer2StorageFactory(arguments, verbose: true);
+
+            // Assert
+            var azureFactory = Assert.IsType<AzureStorageFactory>(factory);
+            Assert.True(azureFactory.CompressContent, "The Azure storage factory should compress the content.");
         }
     }
 }

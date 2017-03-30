@@ -40,13 +40,14 @@ namespace NgTests
             mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
             mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
             mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
+            mockServer.SetAction("/package/TestPackage.SemVer2/1.0.0-alpha.1", request => GetStreamContentActionAsync(request, "Packages\\TestPackage.SemVer2.1.0.0-alpha.1.nupkg"));
 
             // Act
             var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
             await feed2catalogTestJob.RunOnce(CancellationToken.None);
 
             // Assert
-            Assert.Equal(5, catalogStorage.Content.Count);
+            Assert.Equal(6, catalogStorage.Content.Count);
 
             // Ensure catalog has index.json
             var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
@@ -72,6 +73,10 @@ namespace NgTests
             Assert.Contains("\"nuget:id\":\"UnlistedPackage\",", pageZero.Value.GetContentString());
             Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
+            Assert.Contains("/testpackage.semver2.1.0.0-alpha.1.json\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:id\":\"TestPackage.SemVer2\",", pageZero.Value.GetContentString());
+            Assert.Contains("\"nuget:version\":\"1.0.0-alpha.1+githash\"", pageZero.Value.GetContentString());
+
             // Check individual package entries
             var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json"));
             Assert.NotNull(package1.Key);
@@ -91,9 +96,15 @@ namespace NgTests
             Assert.Contains("\"id\": \"UnlistedPackage\",", package3.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.0\",", package3.Value.GetContentString());
 
+            var package4 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2.1.0.0-alpha.1.json"));
+            Assert.NotNull(package4.Key);
+            Assert.Contains("\"PackageDetails\",", package4.Value.GetContentString());
+            Assert.Contains("\"id\": \"TestPackage.SemVer2\",", package4.Value.GetContentString());
+            Assert.Contains("\"version\": \"1.0.0-alpha.1+githash\",", package4.Value.GetContentString());
+
             // Ensure catalog does not have the deleted "OtherPackage" as a fresh catalog should not care about deletes
-            var package4 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json"));
-            Assert.Null(package4.Key);
+            var package5 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json"));
+            Assert.Null(package5.Key);
         }
 
         [Fact]
@@ -306,7 +317,6 @@ namespace NgTests
                     Listed = true,
 
                     Created = new DateTime(2015, 1, 1),
-                    LastEdited = new DateTime(2015, 1, 1),
                     Published = new DateTime(2015, 1, 1)
                 },
                 new ODataPackage
@@ -318,8 +328,18 @@ namespace NgTests
                     Listed = false,
 
                     Created = new DateTime(2015, 1, 1),
-                    LastEdited = new DateTime(2015, 1, 1),
                     Published = Convert.ToDateTime("1900-01-01T00:00:00Z")
+                },
+                new ODataPackage
+                {
+                    Id = "TestPackage.SemVer2",
+                    Version = "1.0.0-alpha.1+githash",
+                    Description = "A package with SemVer 2.0.0",
+                    Hash = "",
+                    Listed = false,
+
+                    Created = new DateTime(2015, 1, 1),
+                    Published = new DateTime(2015, 1, 1)
                 }
             };
 
@@ -342,9 +362,9 @@ namespace NgTests
                     Hash = "",
                     Listed = true,
 
-                    Created = new DateTime(2015, 1, 1),
+                    Created = new DateTime(2014, 1, 1),
                     LastEdited = new DateTime(2015, 1, 1),
-                    Published = new DateTime(2015, 1, 1)
+                    Published = new DateTime(2014, 1, 1)
                 }
             };
 
@@ -377,7 +397,6 @@ namespace NgTests
                     Listed = true,
 
                     Created = new DateTime(2015, 1, 1, 1, 1, 3),
-                    LastEdited = new DateTime(2015, 1, 1, 1, 1, 3),
                     Published = new DateTime(2015, 1, 1, 1, 1, 3)
                 }
             };

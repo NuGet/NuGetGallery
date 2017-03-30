@@ -1,13 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGet.Services.Metadata.Catalog.Registration;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Metadata.Catalog.Registration;
 using VDS.RDF;
 
 namespace CatalogTests
@@ -161,7 +162,10 @@ namespace CatalogTests
 
             FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
 
-            CollectorBase collector = new RegistrationCollector(catalogUri, factory)
+            CollectorBase collector = new RegistrationCollector(
+                catalogUri,
+                factory,
+                semVer2StorageFactory: null)
             {
                 Concurrent = false
             };

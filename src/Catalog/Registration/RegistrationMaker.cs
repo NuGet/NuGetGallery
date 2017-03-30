@@ -1,18 +1,47 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public static class RegistrationMaker
     {
-        public static async Task Process(RegistrationKey registrationKey, IDictionary<string, IGraph> newItems, StorageFactory storageFactory, Uri contentBaseAddress, int partitionSize, int packageCountThreshold, CancellationToken cancellationToken)
+        public static async Task Process(
+            RegistrationKey registrationKey,
+            IDictionary<string, IGraph> newItems,
+            StorageFactory storageFactory,
+            Uri contentBaseAddress,
+            int partitionSize,
+            int packageCountThreshold,
+            CancellationToken cancellationToken)
+        {
+            await Process(
+                registrationKey,
+                newItems,
+                (k, u, g) => true,
+                storageFactory,
+                contentBaseAddress,
+                partitionSize,
+                packageCountThreshold,
+                cancellationToken);
+        }
+
+        public static async Task Process(
+            RegistrationKey registrationKey,
+            IDictionary<string, IGraph> newItems,
+            ShouldIncludeRegistrationPackage shouldInclude,
+            StorageFactory storageFactory,
+            Uri contentBaseAddress,
+            int partitionSize,
+            int packageCountThreshold,
+            CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationMaker.Process: registrationKey = {0} newItems: {1}", registrationKey, newItems.Count);
 
@@ -22,7 +51,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             Trace.TraceInformation("RegistrationMaker.Process: existing = {0}", existing.Count);
 
-            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta = PromoteRegistrationKey(newItems);
+            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta = PromoteRegistrationKey(newItems, shouldInclude);
 
             Trace.TraceInformation("RegistrationMaker.Process: delta = {0}", delta.Count);
             
@@ -33,12 +62,18 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             await registration.Save(resulting, cancellationToken);
         }
 
-        static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> PromoteRegistrationKey(IDictionary<string, IGraph> newItems)
+        private static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> PromoteRegistrationKey(
+            IDictionary<string, IGraph> newItems,
+            ShouldIncludeRegistrationPackage shouldInclude)
         {
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> promoted = new Dictionary<RegistrationEntryKey, RegistrationCatalogEntry>();
             foreach (var newItem in newItems)
             {
-                var promotedEntry = RegistrationCatalogEntry.Promote(newItem.Key, newItem.Value, isExistingItem: false);
+                var promotedEntry = RegistrationCatalogEntry.Promote(
+                    newItem.Key,
+                    newItem.Value,
+                    shouldInclude,
+                    isExistingItem: false);
 
                 promoted[promotedEntry.Key] = promotedEntry.Value;
             }
@@ -46,7 +81,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return promoted;
         }
 
-        static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> Apply(
+        private static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> Apply(
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> existing, 
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta)
         {

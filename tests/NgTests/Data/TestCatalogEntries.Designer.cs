@@ -209,6 +209,78 @@ namespace NgTests.Data {
         ///      &quot;@type&quot;: &quot;CatalogPage&quot;,
         ///      &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
         ///      &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///      &quot;count&quot;: 1
+        ///    }
+        ///  ],
+        ///  &quot;nuget:las [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogStorageWithSemVer2Index {
+            get {
+                return ResourceManager.GetString("TestCatalogStorageWithSemVer2Index", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/data/2015.10.12.10.08.54/testpackage.semver2.1.0.0-alpha.1.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDetails&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;authors&quot;: &quot;TestPackage.SemVer2&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///  &quot;created&quot;: &quot;2017-01-01T08:15:00Z&quot;,
+        ///  &quot;description&quot;: &quot;Package Description&quot;,
+        ///  &quot;id&quot;: &quot;TestPackage.SemVer2&quot;,
+        ///  &quot;isPrerelease&quot;: true,
+        ///  &quot;lastEdited&quot;: &quot;2017-01-02T08:15:00Z&quot;,
+        ///  &quot;lis [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogStorageWithSemVer2Package {
+            get {
+                return ResourceManager.GetString("TestCatalogStorageWithSemVer2Package", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///  &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///  &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///  &quot;count&quot;: 1,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/data/2015.10.12.10.08.54/testpackage.semver2.1.0.0-alpha.1.json&quot;,
+        ///      &quot;@type&quot;: &quot;nuget:PackageDetails&quot;,
+        ///      &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///      &quot;nuget:id&quot;: &quot;TestPackage.SemVer [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogStorageWithSemVer2Page000 {
+            get {
+                return ResourceManager.GetString("TestCatalogStorageWithSemVer2Page000", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/index.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;CatalogRoot&quot;,
+        ///    &quot;AppendOnlyCatalog&quot;,
+        ///    &quot;Permalink&quot;
+        ///  ],
+        ///  &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///  &quot;count&quot;: 1,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///      &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///      &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
         ///      &quot;count&quot;: 4
         ///    }
         ///  ],

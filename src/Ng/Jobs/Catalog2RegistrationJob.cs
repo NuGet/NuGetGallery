@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Registration;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Metadata.Catalog.Registration;
 
 namespace Ng.Jobs
 {
@@ -49,7 +49,15 @@ namespace Ng.Jobs
                    + $"-{Arguments.CompressedStorageAccountName} <azure-acc> "
                    + $"-{Arguments.CompressedStorageKeyValue} <azure-key> "
                    + $"-{Arguments.CompressedStorageContainer} <azure-container> "
-                   + $"-{Arguments.CompressedStoragePath} <path>";
+                   + $"-{Arguments.CompressedStoragePath} <path>"
+                   + Environment.NewLine
+                   + "To generate registration blobs that contain SemVer 2.0.0 packages, add: "
+                   + $"-{Arguments.UseSemVer2Storage} [true|false] "
+                   + $"-{Arguments.SemVer2StorageBaseAddress} <storage-base-address> "
+                   + $"-{Arguments.SemVer2StorageAccountName} <azure-acc> "
+                   + $"-{Arguments.SemVer2StorageKeyValue} <azure-key> "
+                   + $"-{Arguments.SemVer2StorageContainer} <azure-container> "
+                   + $"-{Arguments.SemVer2StoragePath} <path>";
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
@@ -60,10 +68,15 @@ namespace Ng.Jobs
 
             var contentBaseAddress = arguments.GetOrDefault<string>(Arguments.ContentBaseAddress);
 
-            StorageFactory storageFactoryToUse;
+            // The term "legacy" here refers to the registration hives that do not contain any SemVer 2.0.0 packages.
+            // In production, this is two registration hives:
+            //   1) the first hive released, which is not gzipped and does not have SemVer 2.0.0 packages
+            //   2) the secondary hive released, which is gzipped but does not have SemVer 2.0.0 packages
+            StorageFactory legacyStorageFactory;
 
             var storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             var compressedStorageFactory = CommandHelpers.CreateCompressedStorageFactory(arguments, verbose);
+            var semVer2StorageFactory = CommandHelpers.CreateSemVer2StorageFactory(arguments, verbose);
 
             Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\"", source, storageFactory);
 
@@ -82,23 +95,29 @@ namespace Ng.Jobs
                     new[] { compressedStorageFactory },
                     secondaryStorageBaseUrlRewriter.Rewrite);
 
-                storageFactoryToUse = aggregateStorageFactory;
+                legacyStorageFactory = aggregateStorageFactory;
             }
             else
             {
-                storageFactoryToUse = storageFactory;
+                legacyStorageFactory = storageFactory;
             }
 
-            _collector = new RegistrationCollector(new Uri(source), storageFactoryToUse, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
+            _collector = new RegistrationCollector(
+                new Uri(source),
+                legacyStorageFactory,
+                semVer2StorageFactory,
+                CommandHelpers.GetHttpMessageHandlerFactory(verbose))
             {
                 ContentBaseAddress = contentBaseAddress == null
                     ? null
                     : new Uri(contentBaseAddress)
             };
 
-            var storage = storageFactoryToUse.Create();
-            _front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
+            var cursorStorage = legacyStorageFactory.Create();
+            _front = new DurableCursor(cursorStorage.ResolveUri("cursor.json"), cursorStorage, MemoryCursor.MinValue);
             _back = MemoryCursor.CreateMax();
+
+            semVer2StorageFactory?.Create();
         }
 
         protected override async Task RunInternal(CancellationToken cancellationToken)

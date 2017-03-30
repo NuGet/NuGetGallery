@@ -12,6 +12,8 @@ namespace CatalogTests
 {
     public class CatalogTests
     {
+        public static object Registration { get; internal set; }
+
         public async Task Test0Async()
         {
             DateTime lastReadTime = DateTime.Parse("5/28/2014 9:04:10 PM");

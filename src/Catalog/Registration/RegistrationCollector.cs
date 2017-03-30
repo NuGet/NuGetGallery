@@ -1,26 +1,38 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationCollector : SortingGraphCollector
     {
-        StorageFactory _storageFactory;
+        private readonly StorageFactory _legacyStorageFactory;
+        private readonly StorageFactory _semVer2StorageFactory;
 
-        public RegistrationCollector(Uri index, StorageFactory storageFactory, Func<HttpMessageHandler> handlerFunc = null)
+        public RegistrationCollector(
+            Uri index,
+            StorageFactory legacyStorageFactory,
+            StorageFactory semVer2StorageFactory,
+            Func<HttpMessageHandler> handlerFunc = null)
             : base(index, new Uri[] { Schema.DataTypes.PackageDetails, Schema.DataTypes.PackageDelete }, handlerFunc)
         {
-            _storageFactory = storageFactory;
+            if (legacyStorageFactory == null)
+            {
+                throw new ArgumentNullException(nameof(legacyStorageFactory));
+            }
+
+            _legacyStorageFactory = legacyStorageFactory;
+            _semVer2StorageFactory = semVer2StorageFactory;
 
             ContentBaseAddress = new Uri("http://tempuri.org");
 
@@ -69,16 +81,36 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return item["nuget:id"].ToString();
         }
 
-        protected override Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs, CancellationToken cancellationToken)
+        protected override async Task ProcessGraphs(
+            KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs,
+            CancellationToken cancellationToken)
         {
-            return RegistrationMaker.Process(
-                new RegistrationKey(sortedGraphs.Key),
-                sortedGraphs.Value,
-                _storageFactory,
-                ContentBaseAddress,
-                PartitionSize,
-                PackageCountThreshold,
-                cancellationToken);
+            await RegistrationMaker.Process(
+                registrationKey: new RegistrationKey(sortedGraphs.Key),
+                newItems: sortedGraphs.Value,
+                shouldInclude: IsNotSemVer2,
+                storageFactory: _legacyStorageFactory,
+                contentBaseAddress: ContentBaseAddress,
+                partitionSize: PartitionSize,
+                packageCountThreshold: PackageCountThreshold,
+                cancellationToken: cancellationToken);
+
+            if (_semVer2StorageFactory != null)
+            {
+                await RegistrationMaker.Process(
+                   registrationKey: new RegistrationKey(sortedGraphs.Key),
+                   newItems: sortedGraphs.Value,
+                   storageFactory: _semVer2StorageFactory,
+                   contentBaseAddress: ContentBaseAddress,
+                   partitionSize: PartitionSize,
+                   packageCountThreshold: PackageCountThreshold,
+                   cancellationToken: cancellationToken);
+            }
+        }
+
+        private static bool IsNotSemVer2(RegistrationEntryKey key, string resourceUri, IGraph graph)
+        {
+            return !NuGetVersionUtility.IsGraphSemVer2(key.Version, resourceUri, graph);
         }
     }
 }

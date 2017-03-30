@@ -57,8 +57,15 @@ namespace Ng
         public const string CompressedStorageKeyValue = "compressedStorageKeyValue";
         public const string CompressedStoragePath = "compressedStoragePath";
 
+        public const string SemVer2StorageAccountName = "semVer2StorageAccountName";
+        public const string SemVer2StorageBaseAddress = "semVer2StorageBaseAddress";
+        public const string SemVer2StorageContainer = "semVer2StorageContainer";
+        public const string SemVer2StorageKeyValue = "semVer2StorageKeyValue";
+        public const string SemVer2StoragePath = "semVer2StoragePath";
+
         public const string UnlistShouldDelete = "unlistShouldDelete";
         public const string UseCompressedStorage = "useCompressedStorage";
+        public const string UseSemVer2Storage = "useSemVer2Storage";
         #endregion
 
         #region CopyLucene
