@@ -121,6 +121,26 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal(scheme + "theuri/", result.Url);
             }
+
+            [Theory]
+            [InlineData("https://theUri:20943", 20943)]
+            [InlineData("https://theUri", 443)]
+            public async Task WillUseBlobUriPort(string blobUrl, int expectedPort)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                var result = await service.CreateDownloadFileActionResultAsync(new Uri(HttpsRequestUrlString), Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                var redirectUrl = new Uri(result.Url);
+                Assert.Equal(expectedPort, redirectUrl.Port);
+            }
         }
 
         public class TheCtor
