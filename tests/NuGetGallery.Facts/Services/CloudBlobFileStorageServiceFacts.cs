@@ -120,19 +120,21 @@ namespace NuGetGallery
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
                 fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
-                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                var requestUri = new Uri(requestUrl);
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri(requestUri.Scheme + "://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(requestUri, Constants.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(scheme + "theuri/", result.Url);
             }
 
             [Theory]
-            [InlineData("https://theUri:20943", 20943)]
-            [InlineData("https://theUri", 443)]
-            public async Task WillUseBlobUriPort(string blobUrl, int expectedPort)
+            [InlineData(HttpsRequestUrlString, "https://theUri:20943", 20943)]
+            [InlineData(HttpRequestUrlString, "http://theUri", 80)]
+            [InlineData(HttpsRequestUrlString, "https://theUri", 443)]
+            public async Task WillUseBlobUriPort(string requestUrl, string blobUrl, int expectedPort)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -144,7 +146,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(new Uri(HttpsRequestUrlString), Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), Constants.PackagesFolderName, "theFileName") as RedirectResult;
                 var redirectUrl = new Uri(result.Url);
                 Assert.Equal(expectedPort, redirectUrl.Port);
             }

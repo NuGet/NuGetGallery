@@ -37,7 +37,7 @@ namespace NuGetGallery
             var blob = container.GetBlobReference(fileName);
 
             var redirectUri = GetRedirectUri(requestUrl, blob.Uri);
-            return new RedirectResult(redirectUri.OriginalString, false);
+            return new RedirectResult(redirectUri.AbsoluteUri, false);
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
@@ -254,7 +254,7 @@ namespace NuGetGallery
             var blob = container.GetBlobReference(fileName);
 
             var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri);
-            return new RedirectResult(redirectUri.OriginalString, false);
+            return new RedirectResult(redirectUri.AbsoluteUri, false);
         }
 
         internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri)
@@ -265,9 +265,21 @@ namespace NuGetGallery
                 throw new InvalidOperationException("Unsafe redirects are not allowed");
             }
 
-            var host = string.IsNullOrEmpty(_configuration.AzureCdnHost)
-                ? blobUri.Host 
-                : _configuration.AzureCdnHost;
+            string host;
+            int port;
+            string scheme;
+            if (string.IsNullOrEmpty(_configuration.AzureCdnHost))
+            {
+                host = blobUri.Host;
+                port = blobUri.Port;
+                scheme = blobUri.Scheme;
+            }
+            else
+            {
+                host = _configuration.AzureCdnHost;
+                port = requestUrl.Port;
+                scheme = requestUrl.Scheme;
+            }
 
             // When a blob query string is passed, that one always wins.
             // This will only happen on private NuGet gallery instances,
@@ -284,7 +296,7 @@ namespace NuGetGallery
                 queryString = queryString.TrimStart('?');
             }
 
-            var urlBuilder = new UriBuilder(requestUrl.Scheme, host)
+            var urlBuilder = new UriBuilder(scheme, host, port)
             {
                 Path = blobUri.LocalPath,
                 Query = queryString
