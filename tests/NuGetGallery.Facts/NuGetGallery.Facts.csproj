@@ -397,6 +397,7 @@
     <Compile Include="Controllers\ODataV2FeedControllerFacts.cs" />
     <Compile Include="Controllers\ODataV1FeedControllerFacts.cs" />
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
+    <Compile Include="Controllers\PagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
