@@ -216,7 +216,7 @@
 {
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
-    <div class="form-field">
+    <div class="form-field  form-field-full">
         <div style="display: block">
             @Html.LabelFor(func, new { style = "display: inline-block" })
             <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>

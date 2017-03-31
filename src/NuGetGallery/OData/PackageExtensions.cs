@@ -107,9 +107,9 @@ namespace NuGetGallery.OData
                 });
         }
 
-        internal static IQueryable<TVal> WithoutVersionSort<TVal>(this IQueryable<TVal> feedQuery)
+        internal static IQueryable<TVal> WithoutSortOnColumn<TVal>(this IQueryable<TVal> feedQuery, string columnName, bool confirmToIgnoreSort=true)
         {
-            return feedQuery.InterceptWith(new ODataRemoveVersionSorter());
+            return confirmToIgnoreSort ? feedQuery.InterceptWith(new ODataRemoveSorter(columnName)) : feedQuery;
         }
 
         private static string EnsureTrailingSlash(string siteRoot)

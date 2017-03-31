@@ -122,7 +122,7 @@ namespace NuGetGallery
 
         private static string GetAccountCreationDate(User user)
         {
-            return user.CreatedUtc != null ? user.CreatedUtc.Value.ToString("d") : "N/A";
+            return user.CreatedUtc != null ? user.CreatedUtc.Value.ToString("o") : "N/A";
         }
 
         private static void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)

@@ -32,9 +32,13 @@ namespace NuGetGallery
             return File.OpenRead(path);
         }
 
-        public Stream OpenWrite(string path)
+        public Stream OpenWrite(string path, bool overwrite)
         {
-            return File.OpenWrite(path);
+            return new FileStream(
+                path,
+                overwrite ? FileMode.Create : FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None);
         }
 
         public DateTimeOffset GetCreationTimeUtc(string path)

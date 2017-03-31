@@ -1,15 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
     public interface IEntitiesContext
-        : IDisposable
     {
         IDbSet<CuratedFeed> CuratedFeeds { get; set; }
         IDbSet<CuratedPackage> CuratedPackages { get; set; }
@@ -23,8 +20,6 @@ namespace NuGetGallery
         IDbSet<T> Set<T>() where T : class;
         void DeleteOnCommit<T>(T entity) where T : class;
         void SetCommandTimeout(int? seconds);
-
-        DbChangeTracker GetChangeTracker();
         Database GetDatabase();
     }
 }

@@ -2,28 +2,22 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests
 {
-
     /// <summary>
     /// This class has the helper methods to do gallery operations via OData.
     /// </summary>
     public class ODataHelper
         : HelperBase
     {
-        private static readonly XNamespace FeedAtomNS = "http://www.w3.org/2005/Atom";
-        private static readonly XNamespace FeedAdoNS = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
-
         public ODataHelper()
             : this(ConsoleTestOutputHelper.New)
         {
@@ -65,38 +59,55 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        private object GetPackageProperty(string propertyType, string propertyValue)
+        public async Task<DateTime?> GetTimestampOfPackageFromResponse(string url, string propertyName, string packageId, string version = "1.0.0")
         {
-            switch (propertyType)
+            WriteLine($"Getting '{propertyName}' timestamp of package '{packageId}' with version '{version}'.");
+
+            var packageResponse = await GetPackageDataInResponse(url, packageId, version);
+            if (string.IsNullOrEmpty(packageResponse))
             {
-                case "Edm.DateTime":
-                    return DateTime.Parse(propertyValue);
-                case "Edm.Boolean":
-                    return Boolean.Parse(propertyValue);
-                default:
-                    return propertyValue;
+                return null;
             }
+
+            var timestampStartTag = "<d:" + propertyName + " m:type=\"Edm.DateTime\">";
+            var timestampEndTag = "</d:" + propertyName + ">";
+
+            var timestampTagIndex = packageResponse.IndexOf(timestampStartTag);
+            if (timestampTagIndex < 0)
+            {
+                WriteLine($"Package data does not contain '{propertyName}' timestamp!");
+                return null;
+            }
+
+            var timestampStartIndex = timestampTagIndex + timestampStartTag.Length;
+            var timestampLength = packageResponse.Substring(timestampStartIndex).IndexOf(timestampEndTag);
+
+            var timestamp =
+                DateTime.Parse(packageResponse.Substring(timestampStartIndex, timestampLength));
+            WriteLine($"'{propertyName}' timestamp of package '{packageId}' with version '{version}' is '{timestamp}'");
+            return timestamp;
         }
 
-        public async Task<Dictionary<string,object>> GetPackagePropertiesFromResponse(string url, string packageId, string version = "1.0.0")
+        public async Task<string> GetPackageDataInResponse(string url, string packageId, string version = "1.0.0")
         {
-            WriteLine($"Getting properties for package '{packageId}' with version '{version}'.");
+            WriteLine($"Getting data for package '{packageId}' with version '{version}'.");
 
             var responseText = await GetResponseText(url);
 
-            var packagesXml = XDocument.Parse(responseText);
+            var packageString = @"<id>" + UrlHelper.V2FeedRootUrl + @"Packages(Id='" + packageId + @"',Version='" + (string.IsNullOrEmpty(version) ? "" : version + "')</id>");
+            var endEntryTag = "</entry>";
 
-            var entries = packagesXml.Root.Elements(FeedAtomNS + "entry").ToList();
-            var packageEntry = entries.First(e => e.Element(FeedAtomNS + "id").Value.Contains($"Id='{packageId}'"));
-            var packageProperties = packageEntry.Element(FeedAdoNS + "properties");
+            var startingIndex = responseText.IndexOf(packageString);
 
-            var properties = new Dictionary<string, object>();
-            foreach (var prop in packageProperties.Elements())
+            if (startingIndex < 0)
             {
-                var propType = prop.Attribute(FeedAdoNS + "type")?.Value;
-                properties[prop.Name.LocalName] = GetPackageProperty(propType, prop.Value);
+                WriteLine("Package not found in response text!");
+                return null;
             }
-            return properties;
+
+            var endingIndex = responseText.IndexOf(endEntryTag, startingIndex);
+
+            return responseText.Substring(startingIndex, endingIndex - startingIndex);
         }
 
         public async Task<bool> ContainsResponseText(string url, params string[] expectedTexts)

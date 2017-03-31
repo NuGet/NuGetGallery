@@ -3,44 +3,30 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
-using NuGetGallery.Configuration;
-using NuGetGallery.Diagnostics;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
-        private const int UpdateIsLatestMaxRetries = 3;
-
-        private static readonly Lazy<Random> _randomGenerator = new Lazy<Random>();
-
         private readonly IIndexingService _indexingService;
-        private readonly IEntitiesContext _entitiesContext;
-        private readonly IAppConfiguration _configuration;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
-        private readonly IDiagnosticsSource _trace;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
-            IEntitiesContext entitiesContext,
-            IAppConfiguration configuration,
-            IDiagnosticsService diagnostics,
             IIndexingService indexingService,
             IPackageNamingConflictValidator packageNamingConflictValidator,
             IAuditingService auditingService)
@@ -58,16 +44,6 @@ namespace NuGetGallery
             if (packageOwnerRequestRepository == null)
             {
                 throw new ArgumentNullException(nameof(packageOwnerRequestRepository));
-            }
-
-            if (entitiesContext == null)
-            {
-                throw new ArgumentNullException(nameof(entitiesContext));
-            }
-
-            if (configuration == null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
             }
 
             if (indexingService == null)
@@ -88,13 +64,9 @@ namespace NuGetGallery
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
-            _entitiesContext = entitiesContext;
-            _configuration = configuration;
             _indexingService = indexingService;
             _packageNamingConflictValidator = packageNamingConflictValidator;
             _auditingService = auditingService;
-
-            _trace = diagnostics.SafeGetSource("PackageService");
         }
 
         public void EnsureValid(PackageArchiveReader packageArchiveReader)
@@ -111,7 +83,7 @@ namespace NuGetGallery
                 ValidateSupportedFrameworks(supportedFrameworks);
             }
         }
-        
+
         public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
         {
             var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
@@ -124,6 +96,7 @@ namespace NuGetGallery
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
             packageRegistration.Packages.Add(package);
+            await UpdateIsLatestAsync(packageRegistration, false);
 
             if (commitChanges)
             {
@@ -268,7 +241,7 @@ namespace NuGetGallery
 
             return dependents.Select(d => d.Package);
         }
-        
+
         public async Task PublishPackageAsync(string id, string version, bool commitChanges = true)
         {
             var package = FindPackageByIdAndVersion(id, version);
@@ -280,7 +253,7 @@ namespace NuGetGallery
 
             await PublishPackageAsync(package, commitChanges);
         }
-        
+
         public async Task PublishPackageAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
@@ -290,6 +263,8 @@ namespace NuGetGallery
 
             package.Published = DateTime.UtcNow;
             package.Listed = true;
+
+            await UpdateIsLatestAsync(package.PackageRegistration, false);
 
             if (commitChanges)
             {
@@ -334,7 +309,7 @@ namespace NuGetGallery
             await _auditingService.SaveAuditRecordAsync(
                 new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
         }
-        
+
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
@@ -360,6 +335,8 @@ namespace NuGetGallery
             package.LastUpdated = DateTime.UtcNow;
             // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
             package.LastEdited = DateTime.UtcNow;
+
+            await UpdateIsLatestAsync(package.PackageRegistration, false);
             
             await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.List));
 
@@ -368,7 +345,7 @@ namespace NuGetGallery
                 await _packageRepository.CommitChangesAsync();
             }
         }
-        
+
         public async Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true)
         {
             if (package == null)
@@ -384,6 +361,11 @@ namespace NuGetGallery
             package.LastUpdated = DateTime.UtcNow;
             // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
             package.LastEdited = DateTime.UtcNow;
+
+            if (package.IsLatest || package.IsLatestStable)
+            {
+                await UpdateIsLatestAsync(package.PackageRegistration, false);
+            }
 
             await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
 
@@ -505,6 +487,9 @@ namespace NuGetGallery
             // However, we do also store a normalized copy for looking up later.
             package.Version = packageMetadata.Version.ToString();
             package.NormalizedVersion = packageMetadata.Version.ToNormalizedString();
+
+            // Identify the SemVerLevelKey using the original package version string and package dependencies
+            package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
 
             package.Description = packageMetadata.Description;
             package.ReleaseNotes = packageMetadata.ReleaseNotes;
@@ -696,143 +681,51 @@ namespace NuGetGallery
             }
         }
 
-        protected internal async virtual Task<bool> TryUpdateIsLatestInDatabase(IEntitiesContext context)
+        public async Task UpdateIsLatestAsync(PackageRegistration packageRegistration, bool commitChanges = true)
         {
-            // Use the EF change tracker to identify changes made in TryUpdateIsLatestAsync which
-            // need to be applied to the database below.
-            // Note that the change tracker is not mocked which make this method hard to unit test.
-            var changeTracker = context.GetChangeTracker();
-            var modifiedPackages = changeTracker.Entries<Package>().Where(p => p.State == EntityState.Modified).ToList();
-            if (modifiedPackages.Count == 0)
+            if (!packageRegistration.Packages.Any())
             {
-                return true;
+                return;
             }
 
-            // Apply changes to the database with an optimistic concurrency check to prevent multiple
-            // threads (in the same or different gallery instance) from setting IsLatest/IsLatestStable
-            // flag to true on different package versions.
-            // To preserve existing behavior, we only want to reject concurrent updates which set the
-            // IsLatest/IsLatestStable columns. For this reason, we must avoid the EF ConcurrencyCheck
-            // attribute which could reject any package update or delete.
-            var query = new StringBuilder("DECLARE @rowCount INT = 0");
-            foreach (var packageEntry in modifiedPackages)
+            // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
+            foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
             {
-                // Set LastUpdated after all IsLatest/IsLatestStable changes are complete to ensure
-                // that we don't update rows where IsLatest/IsLatestStable hasn't changed.
-                packageEntry.Entity.LastUpdated = DateTime.UtcNow;
-
-                var isLatest = packageEntry.Entity.IsLatest ? 1 : 0;
-                var isLatestStable = packageEntry.Entity.IsLatestStable ? 1 : 0;
-                var key = packageEntry.Entity.Key;
-                var originalIsLatest = Boolean.Parse(packageEntry.OriginalValues["IsLatest"].ToString()) ? 1 : 0;
-                var originalIsLatestStable = Boolean.Parse(packageEntry.OriginalValues["IsLatestStable"].ToString()) ? 1 : 0;
-
-                query.AppendLine($"UPDATE [dbo].[Packages]");
-                query.AppendLine($"SET [IsLatest] = {isLatest}, [IsLatestStable] = {isLatestStable}, [LastUpdated] = GETUTCDATE()");
-                query.AppendLine($"WHERE [Key] = {key} AND [IsLatest] = {originalIsLatest} AND [IsLatestStable] = {originalIsLatestStable}");
-                query.AppendLine($"SET @rowCount = @rowCount + @@ROWCOUNT");
+                pv.IsLatest = false;
+                pv.IsLatestStable = false;
+                pv.LastUpdated = DateTime.UtcNow;
             }
-            query.AppendLine("SELECT @rowCount");
 
-            using (var transaction = context.GetDatabase().BeginTransaction(IsolationLevel.ReadCommitted))
+            // If the last listed package was just unlisted, then we won't find another one
+            var latestPackage = FindPackage(packageRegistration.Packages, p => !p.Deleted && p.Listed);
+
+            if (latestPackage != null)
             {
-                var rowCount = await context.GetDatabase().ExecuteSqlCommandAsync(query.ToString());
-                if (rowCount == modifiedPackages.Count)
+                latestPackage.IsLatest = true;
+                latestPackage.LastUpdated = DateTime.UtcNow;
+
+                if (latestPackage.IsPrerelease)
                 {
-                    transaction.Commit();
-                    return true;
+                    // If the newest uploaded package is a prerelease package, we need to find an older package that is
+                    // a release version and set it to IsLatest.
+                    var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
+                    if (latestReleasePackage != null)
+                    {
+                        // We could have no release packages
+                        latestReleasePackage.IsLatestStable = true;
+                        latestReleasePackage.LastUpdated = DateTime.UtcNow;
+                    }
                 }
                 else
                 {
-                    // RowCount will not match if one or more updates failed the concurrency check. This
-                    // likely means another thread is trying to clear the current IsLatest/IsLatestStable.
-                    transaction.Rollback();
-                    return false;
+                    // Only release versions are marked as IsLatestStable.
+                    latestPackage.IsLatestStable = true;
                 }
             }
-        }
-        
-        private Task<bool> TryUpdateIsLatestAsync(IEntitiesContext context, PackageRegistration packageRegistration)
-        {
-            if (packageRegistration.Packages.Any())
+
+            if (commitChanges)
             {
-                // Update in memory first to avoid putting request entities in a bad state should a concurrency
-                // conflict occur.
-                foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
-                {
-                    pv.IsLatest = false;
-                    pv.IsLatestStable = false;
-                }
-
-                // If the last listed package was just unlisted, then we won't find another one.
-                var latestPackage = FindPackage(packageRegistration.Packages, p => !p.Deleted && p.Listed);
-
-                if (latestPackage != null)
-                {
-                    latestPackage.IsLatest = true;
-                    latestPackage.IsLatestStable = !latestPackage.IsPrerelease;
-
-                    if (latestPackage.IsPrerelease)
-                    {
-                        // If the newest uploaded package is a prerelease package, we need to find an older package
-                        // that is a release version and set it to IsLatestStable.
-                        var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
-                        if (latestReleasePackage != null)
-                        {
-                            latestReleasePackage.IsLatest = false;
-                            latestReleasePackage.IsLatestStable = true;
-                        }
-                    }
-                }
-                // Now try to apply the changes to the database. If this fails, we still keep the in-memory changes
-                // for the current executing request. More than likely the concurrent thread is just making the
-                // same changes and the in-memory changes will be correct.
-                return TryUpdateIsLatestInDatabase(context);
-            }
-            return Task.FromResult(true);
-        }
-        
-        protected internal virtual IEntitiesContext CreateNewEntitiesContext()
-        {
-            return new EntitiesContext(_configuration.SqlConnectionString, readOnly: false);
-        }
-        
-        public async Task UpdateIsLatestAsync(PackageRegistration packageRegistration)
-        {
-            // Must suspend the retry execution strategy in order to use transactions.
-            using (EntitiesConfiguration.SuspendRetriableExecutionStrategy())
-            {
-                if (await TryUpdateIsLatestAsync(_entitiesContext, packageRegistration))
-                {
-                    return;
-                }
-
-                // Retry the update in case a concurrency conflict was detected on the first attempt.
-                int retryCount = 1;
-                do
-                {
-                    await Task.Delay(_randomGenerator.Value.Next(0, 1000));
-
-                    _trace.Information(String.Format("Retrying {0} for package '{1}' ({2}/{3})",
-                        nameof(UpdateIsLatestAsync), packageRegistration.Id, retryCount, UpdateIsLatestMaxRetries));
-
-                    // Since EF contexts are short-lived and do not really support refresh, we will use a
-                    // different context than the request on retry to avoid putting the request context in
-                    // a bad state. More than likely the retry will detect that the concurrent update has
-                    // already made the right updates and no changes will be necessary.
-                    using (var detachedRetryContext = CreateNewEntitiesContext())
-                    {
-                        var detachedPackageRegistration = detachedRetryContext.PackageRegistrations.SingleOrDefault(
-                            pr => pr.Id == packageRegistration.Id);
-
-                        if (await TryUpdateIsLatestAsync(detachedRetryContext, detachedPackageRegistration))
-                        {
-                            return;
-                        }
-                    }
-                    retryCount++;
-                }
-                while (retryCount <= UpdateIsLatestMaxRetries);
+                await _packageRepository.CommitChangesAsync();
             }
         }
 

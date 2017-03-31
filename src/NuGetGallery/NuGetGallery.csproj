@@ -829,6 +829,10 @@
     <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.Designer.cs">
       <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.cs" />
+    <Compile Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.Designer.cs">
+      <DependentUpon>201703221228170_AddSemVerLevelKeyColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -836,6 +840,7 @@
     <Compile Include="OData\QueryAllowed\ODataQueryFilter.cs" />
     <Compile Include="OData\QueryAllowed\ODataQueryVerifier.cs" />
     <Compile Include="OData\QueryAllowed\ODataQueryRequest.cs" />
+    <Compile Include="OData\QueryInterceptors\ODataRemoveSorter.cs" />
     <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -1092,7 +1097,6 @@
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
-    <Compile Include="OData\QueryInterceptors\ODataRemoveVersionSorter.cs" />
     <Compile Include="OData\QueryInterceptors\CountInterceptor.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -1668,6 +1672,9 @@
     <Content Include="Scripts\d3.v3.min.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
+    <EmbeddedResource Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.resx">
+      <DependentUpon>201703221228170_AddSemVerLevelKeyColumn.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
