@@ -29,14 +29,21 @@ namespace NuGetGallery
         private static readonly Uri HttpsRequestUrl = new Uri(HttpsRequestUrlString);
 
         private static CloudBlobFileStorageService CreateService(
-            Mock<ICloudBlobClient> fakeBlobClient = null)
+            Mock<ICloudBlobClient> fakeBlobClient = null,
+            ISourceDestinationRedirectPolicy redirectPolicy = null)
         {
             if (fakeBlobClient == null)
             {
                 fakeBlobClient = new Mock<ICloudBlobClient>();
             }
 
-            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IAppConfiguration>());
+            if (redirectPolicy == null)
+            {
+                redirectPolicy = new NoLessSecureDestinationRedirectPolicy();
+            }
+
+
+            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IAppConfiguration>(), redirectPolicy);
         }
 
         private class FolderNamesDataAttribute : DataAttribute
@@ -140,6 +147,44 @@ namespace NuGetGallery
                 var result = await service.CreateDownloadFileActionResultAsync(new Uri(HttpsRequestUrlString), Constants.PackagesFolderName, "theFileName") as RedirectResult;
                 var redirectUrl = new Uri(result.Url);
                 Assert.Equal(expectedPort, redirectUrl.Port);
+            }
+
+            [Fact]
+            public async Task WillUseISourceDestinationRedirectPolicy()
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                var fakePolicy = new Mock<ISourceDestinationRedirectPolicy>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                bool called = false;
+                fakePolicy.Setup(x => x.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(true).Callback(() => { called = true; });
+                var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy.Object);
+
+                var result = await service.CreateDownloadFileActionResultAsync(new Uri(HttpsRequestUrlString), Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                Assert.True(called);
+            }
+
+            [Fact]
+            public async Task WillThrowIfRedirectIsNotAllowed()
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                var fakePolicy = new Mock<ISourceDestinationRedirectPolicy>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                fakePolicy.Setup(x => x.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(false);
+                var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy.Object);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => service.CreateDownloadFileActionResultAsync(new Uri(HttpsRequestUrlString), Constants.PackagesFolderName, "theFileName"));
             }
         }
 

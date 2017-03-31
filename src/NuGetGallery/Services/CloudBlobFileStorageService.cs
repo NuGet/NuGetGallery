@@ -13,6 +13,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using NuGetGallery.Configuration;
+using System.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -21,11 +22,13 @@ namespace NuGetGallery
         private readonly ICloudBlobClient _client;
         private readonly IAppConfiguration _configuration;
         private readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
+        private readonly ISourceDestinationRedirectPolicy _redirectPolicy;
 
-        public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration)
+        public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration, ISourceDestinationRedirectPolicy redirectPolicy)
         {
             _client = client;
             _configuration = configuration;
+            _redirectPolicy = redirectPolicy;
         }
 
         public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
@@ -256,6 +259,12 @@ namespace NuGetGallery
 
         internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri)
         {
+            if (!_redirectPolicy.IsAllowed(requestUrl, blobUri))
+            {
+                Trace.TraceInformation("Redirect from {0} to {1} was not allowed", requestUrl, blobUri);
+                throw new InvalidOperationException("Unsafe redirects are not allowed");
+            }
+
             var host = string.IsNullOrEmpty(_configuration.AzureCdnHost)
                 ? blobUri.Host 
                 : _configuration.AzureCdnHost;

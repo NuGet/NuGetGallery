@@ -58,6 +58,8 @@ namespace NuGetGallery
         public static readonly string ReturnUrlParameterName = "ReturnUrl";
         public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
 
+        public const string DevelopmentEnvironment = "Development";
+
         public static class ContentNames
         {
             public static readonly string Home = "Home";
