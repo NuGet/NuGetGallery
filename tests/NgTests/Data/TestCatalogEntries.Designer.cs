@@ -140,7 +140,7 @@ namespace NgTests.Data {
         ///	&quot;isPrerelease&quot;: false,
         ///	&quot;lastEdited&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
         ///	&quot;listed&quot;: false,
-        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1QJcmkD8QNqS [rest of string was truncated]&quot;;.
+        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvG [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string TestCatalogStorageMyPackageCreated {
             get {
@@ -162,7 +162,7 @@ namespace NgTests.Data {
         ///	&quot;isPrerelease&quot;: false,
         ///	&quot;lastEdited&quot;: &quot;2017-02-08T17:15:40.4Z&quot;,
         ///	&quot;listed&quot;: true,
-        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1QJcmkD8QNqSZXe [rest of string was truncated]&quot;;.
+        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1Q [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string TestCatalogStorageMyPackageListed {
             get {
@@ -184,7 +184,7 @@ namespace NgTests.Data {
         ///	&quot;isPrerelease&quot;: false,
         ///	&quot;lastEdited&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
         ///	&quot;listed&quot;: false,
-        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1QJcmkD8QNqS [rest of string was truncated]&quot;;.
+        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvG [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string TestCatalogStorageMyPackageUnlisted {
             get {

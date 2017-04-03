@@ -64,6 +64,7 @@ namespace NgTests
             // Check package entries - ListedPackage
             var package1Index = _catalogToRegistrationStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/index.json"));
             Assert.NotNull(package1Index.Key);
+            Assert.Contains("\"listed\":true,", package1Index.Value.GetContentString());
             Assert.Contains("\"catalog:CatalogRoot\"", package1Index.Value.GetContentString());
             Assert.Contains("\"PackageRegistration\"", package1Index.Value.GetContentString());
             Assert.Contains("\"http://tempuri.org/data/2015.10.12.10.08.54/listedpackage.1.0.0.json\"", package1Index.Value.GetContentString());
@@ -74,14 +75,17 @@ namespace NgTests
             Assert.Contains("\"upper\":\"1.0.1\"", package1Index.Value.GetContentString());
 
             var package1 = _catalogToRegistrationStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.0.json"));
+            Assert.Contains("\"listed\":true,", package1.Value.GetContentString());
             Assert.NotNull(package1.Key);
 
             var package2 = _catalogToRegistrationStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1.json"));
+            Assert.Contains("\"listed\":true,", package2.Value.GetContentString());
             Assert.NotNull(package2.Key);
 
             // Check package entries - UnlistedPackage
             var package2Index = _catalogToRegistrationStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/index.json"));
-            Assert.NotNull(package1Index.Key);
+            Assert.NotNull(package2Index.Key);
+            Assert.Contains("\"listed\":false,", package2Index.Value.GetContentString());
             Assert.Contains("\"catalog:CatalogRoot\"", package2Index.Value.GetContentString());
             Assert.Contains("\"PackageRegistration\"", package2Index.Value.GetContentString());
             Assert.Contains("\"http://tempuri.org/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json\"", package2Index.Value.GetContentString());
@@ -90,6 +94,7 @@ namespace NgTests
             Assert.Contains("\"upper\":\"1.0.0\"", package2Index.Value.GetContentString());
 
             var package3 = _catalogToRegistrationStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0.json"));
+            Assert.Contains("\"listed\":false,", package3.Value.GetContentString());
             Assert.NotNull(package3.Key);
 
             // Ensure storage does not have the deleted "OtherPackage"

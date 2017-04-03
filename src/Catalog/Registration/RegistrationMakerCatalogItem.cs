@@ -1,13 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using System;
-using System.Linq;
 using VDS.RDF;
 using VDS.RDF.Query;
-using System.Globalization;
 
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
@@ -106,7 +108,14 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 }
             }
 
-            _listed = (_publishedDate.Year == 1900) ? false : true;
+            var utcYear = _publishedDate.ToUniversalTime().Year;
+            if ((utcYear < 1900) ||
+                (utcYear > 1900 && utcYear < 2010))
+            {
+                Trace.TraceWarning($"Package with published date less than 2010 encountered. Catalog URI: '{_catalogUri}'. Published date: '{_publishedDate:O}'");
+            }
+
+            _listed = utcYear != 1900;
 
             return _publishedDate;
         }
