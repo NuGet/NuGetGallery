@@ -440,4 +440,7 @@ The {1} Team</value>
   <data name="WarningApiDeprecated" xml:space="preserve">
     <value>API '{0}' is deprecated and may be removed in a future version.</value>
   </data>
+  <data name="NuGetPackagePropertyMissing" xml:space="preserve">
+    <value>A nuget package's {0} property is required.</value>
+  </data>
 </root>
