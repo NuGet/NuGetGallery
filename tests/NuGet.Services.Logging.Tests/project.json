@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "SerilogTraceListener": "2.0.10027",
+    "xunit": "2.1.0"
+  },
+  "frameworks": {
+    "net452": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}
