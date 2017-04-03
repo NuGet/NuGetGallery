@@ -1,71 +1,28 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Versioning;
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
 {
     public class CatalogIndexReader
     {
+        public const int MaxDegreeOfParallelism = 32;
+
         private readonly Uri _indexUri;
         private readonly CollectorHttpClient _httpClient;
         private JObject _context;
-
-        public CatalogIndexReader(Uri indexUri)
-            : this(indexUri, new CollectorHttpClient())
-        {
-
-        }
 
         public CatalogIndexReader(Uri indexUri, CollectorHttpClient httpClient)
         {
             _indexUri = indexUri;
             _httpClient = httpClient;
-        }
-
-        public JObject GetContext()
-        {
-            if (_context == null)
-            {
-                GetEntries().Wait();
-            }
-
-            return _context;
-        }
-
-        /// <summary>
-        /// Returns only the latest id/version combination for each package. Older edits are skipped.
-        /// </summary>
-        public async Task<IEnumerable<CatalogIndexEntry>> GetRolledUpEntries()
-        {
-            HashSet<CatalogIndexEntry> set = new HashSet<CatalogIndexEntry>(CatalogIndexEntry.IdVersionComparer);
-
-            var entries = await GetEntriesCommitTimeDesc();
-
-            foreach (var entry in entries)
-            {
-                // ignore items we have already seen
-                if (!set.Contains(entry))
-                {
-                    set.Add(entry);
-                }
-            }
-
-            return set;
-        }
-
-        public async Task<IEnumerable<CatalogIndexEntry>> GetEntriesCommitTimeDesc()
-        {
-            var entries = await GetEntries();
-
-            return entries.OrderByDescending(e => e.CommitTimeStamp);
         }
 
         public async Task<IEnumerable<CatalogIndexEntry>> GetEntries()
@@ -86,37 +43,58 @@ namespace NuGet.Services.Metadata.Catalog
                 pages.Add(new Tuple<DateTime, Uri>(DateTime.Parse(item["commitTimeStamp"].ToString()), new Uri(item["@id"].ToString())));
             }
 
-            return GetEntries(pages.Select(p => p.Item2));
+            return await GetEntriesAsync(pages.Select(p => p.Item2));
         }
 
-        private ConcurrentBag<CatalogIndexEntry> GetEntries(IEnumerable<Uri> pageUris)
+        private async Task<ConcurrentBag<CatalogIndexEntry>> GetEntriesAsync(IEnumerable<Uri> pageUris)
         {
-            ConcurrentBag<CatalogIndexEntry> entries = new ConcurrentBag<CatalogIndexEntry>();
+            var pageUriBag = new ConcurrentBag<Uri>(pageUris);
+            var entries = new ConcurrentBag<CatalogIndexEntry>();
+            var interner = new StringInterner();
 
-            ParallelOptions options = new ParallelOptions();
-            options.MaxDegreeOfParallelism = 8;
+            var tasks = Enumerable
+                .Range(0, MaxDegreeOfParallelism)
+                .Select(i => ProcessPageUris(pageUriBag, entries, interner))
+                .ToList();
 
-            Parallel.ForEach(pageUris.ToArray(), options, uri =>
+            await Task.WhenAll(tasks);
+
+            return entries;
+        }
+
+        private async Task ProcessPageUris(ConcurrentBag<Uri> pageUriBag, ConcurrentBag<CatalogIndexEntry> entries, StringInterner interner)
+        {
+            await Task.Yield();
+            Uri pageUri;
+            while (pageUriBag.TryTake(out pageUri))
             {
-                var task = _httpClient.GetJObjectAsync(uri);
-                task.Wait();
-
-                JObject json = task.Result;
+                var json = await _httpClient.GetJObjectAsync(pageUri);
 
                 foreach (var item in json["items"])
                 {
-                    var entry = new CatalogIndexEntry(new Uri(item["@id"].ToString()),
-                            item["@type"].ToString(),
-                            item["commitId"].ToString(),
-                            DateTime.Parse(item["commitTimeStamp"].ToString()),
-                            item["nuget:id"].ToString(),
-                            NuGetVersion.Parse(item["nuget:version"].ToString()));
+                    // This string is unique.
+                    var id = item["@id"].ToString();
+                    
+                    // These strings should be shared.
+                    var type = interner.Intern(item["@type"].ToString());
+                    var commitId = interner.Intern(item["commitId"].ToString());
+                    var nugetId = interner.Intern(item["nuget:id"].ToString());
+                    var nugetVersion = interner.Intern(item["nuget:version"].ToString());
+
+                    // No string is directly operated on here.
+                    var commitTimeStamp = item["commitTimeStamp"].ToObject<DateTime>();
+
+                    var entry = new CatalogIndexEntry(
+                        new Uri(id),
+                        type,
+                        commitId,
+                        commitTimeStamp,
+                        nugetId,
+                        NuGetVersion.Parse(nugetVersion));
 
                     entries.Add(entry);
                 }
-            });
-
-            return entries;
+            }
         }
     }
 }

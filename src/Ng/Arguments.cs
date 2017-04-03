@@ -108,13 +108,10 @@ namespace Ng
         #region Lightning
         public const string Command = "command";
         public const string OutputFolder = "outputFolder";
-        public const string CatalogIndex = "catalogIndex";
         public const string TemplateFile = "templateFile";
         public const string BatchSize = "batchSize";
-        public const string StorageAccount = "storageAccount";
         public const string IndexFile = "indexFile";
         public const string CursorFile = "cursorFile";
-        public const string Compress = "compress";
         #endregion
     }
 }

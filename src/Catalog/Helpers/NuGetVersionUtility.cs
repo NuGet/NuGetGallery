@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using NuGet.Versioning;
 using VDS.RDF;
 using VDS.RDF.Query;
@@ -91,6 +92,16 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             if (graph == null)
             {
                 throw new ArgumentNullException(nameof(graph));
+            }
+            
+            // Is the verbatim version SemVer 2.0.0?
+            var parsedResourceUri = new Uri(resourceUri);
+            var verbatimVersion = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(parsedResourceUri),
+                graph.CreateUriNode(Schema.Predicates.VerbatimVersion)).FirstOrDefault()?.Object as ILiteralNode;
+            if (verbatimVersion != null && IsVersionSemVer2(verbatimVersion.Value))
+            {
+                return true;
             }
 
             // Are any of the dependency version ranges SemVer 2.0.0?

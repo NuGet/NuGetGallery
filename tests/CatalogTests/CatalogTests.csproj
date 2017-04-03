@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CatalogTests</RootNamespace>
     <AssemblyName>CatalogTests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -135,6 +136,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CatalogIndexReaderTests.cs" />
     <Compile Include="Helpers\NuGetVersionUtilityTests.cs" />
     <Compile Include="PackageCatalogItemTests.cs" />
     <Compile Include="RegistrationMakerTests.cs" />
@@ -145,6 +147,7 @@
     <Compile Include="Registration\RegistrationCatalogEntryTests.cs" />
     <Compile Include="ReindexTests.cs" />
     <Compile Include="StorageTests.cs" />
+    <Compile Include="StringInternerTests.cs" />
     <Compile Include="TestCollector.cs" />
     <None Include="BuilderTests.cs" />
     <Compile Include="CatalogTests.cs" />
@@ -180,6 +183,10 @@
     <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NgTests\NgTests.csproj">
+      <Project>{05c1c78a-9966-4922-9065-a099023e7366}</Project>
+      <Name>NgTests</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

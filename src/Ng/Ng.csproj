@@ -329,6 +329,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CommandHelpers.cs" />
+    <Compile Include="RegistrationStorageFactories.cs" />
     <Compile Include="SearchIndexFromCatalogCollector.cs" />
     <Compile Include="SecondaryStorageBaseUrlRewriter.cs" />
     <Compile Include="StorageAccessHandler.cs" />
@@ -386,7 +387,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="lightning-template.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

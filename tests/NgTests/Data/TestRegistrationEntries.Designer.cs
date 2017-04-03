@@ -22,7 +22,7 @@ namespace NgTests.Data {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class TestRegistrationEntries {
+    public class TestRegistrationEntries {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace NgTests.Data {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NgTests.Data.TestRegistrationEntries", typeof(TestRegistrationEntries).Assembly);
@@ -51,7 +51,7 @@ namespace NgTests.Data {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace NgTests.Data {
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/container1/antlr/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;682b9969-ac84-45ca-860d-08bc3d9fa0f1&quot;,&quot;commitTimeStamp&quot;:&quot;2016-02-26T08:28:24.6757212Z&quot;,&quot;count&quot;:1,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/container1/antlr/index.json#page/3.1.1/3.1.3.42154&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;682b9969-ac84-45ca-860d-08bc3d9fa0f1&quot;,&quot;commitTimeStamp&quot;:&quot;2016-02-26T08:28:24.6757212Z&quot;,&quot;count&quot;:2,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/c [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string AntlrIndexJson {
+        public static string AntlrIndexJson {
             get {
                 return ResourceManager.GetString("AntlrIndexJson", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace NgTests.Data {
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/container1/antlr/3.1.1.json&quot;,&quot;@type&quot;:[&quot;Package&quot;,&quot;http://schema.nuget.org/catalog#Permalink&quot;],&quot;catalogEntry&quot;:&quot;https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.40/antlr.3.1.1.json&quot;,&quot;listed&quot;:true,&quot;packageContent&quot;:&quot;https://api.nuget.org/packages/antlr.3.1.1.nupkg&quot;,&quot;published&quot;:&quot;2011-01-07T08:49:52.917+01:00&quot;,&quot;registration&quot;:&quot;https://api.nuget.org/container1/antlr/index.json&quot;,&quot;@context&quot;:{&quot;@vocab&quot;:&quot;http://schema.nuget.org/schema#&quot;,&quot;xsd&quot;:&quot;http://www.w3.org/2001/XMLSchema#&quot;,&quot; [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string AntlrVersion1 {
+        public static string AntlrVersion1 {
             get {
                 return ResourceManager.GetString("AntlrVersion1", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace NgTests.Data {
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/container1/antlr/3.1.3.42154.json&quot;,&quot;@type&quot;:[&quot;Package&quot;,&quot;http://schema.nuget.org/catalog#Permalink&quot;],&quot;catalogEntry&quot;:&quot;https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.40/antlr.3.1.3.42154.json&quot;,&quot;listed&quot;:true,&quot;packageContent&quot;:&quot;https://api.nuget.org/packages/antlr.3.1.3.42154.nupkg&quot;,&quot;published&quot;:&quot;2011-01-07T08:49:54.527+01:00&quot;,&quot;registration&quot;:&quot;https://api.nuget.org/container1/antlr/index.json&quot;,&quot;@context&quot;:{&quot;@vocab&quot;:&quot;http://schema.nuget.org/schema#&quot;,&quot;xsd&quot;:&quot;http://www.w3.org/ [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string AntlrVersion2 {
+        public static string AntlrVersion2 {
             get {
                 return ResourceManager.GetString("AntlrVersion2", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace NgTests.Data {
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/container1/automapper/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;e1746e1d-fdc7-4aab-bee5-09fb677026fc&quot;,&quot;commitTimeStamp&quot;:&quot;2016-02-26T08:28:33.5999394Z&quot;,&quot;count&quot;:1,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/container1/automapper/index.json#page/1.1.0.118/1.1.0.118&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;e1746e1d-fdc7-4aab-bee5-09fb677026fc&quot;,&quot;commitTimeStamp&quot;:&quot;2016-02-26T08:28:33.5999394Z&quot;,&quot;count&quot;:1,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string AutomapperIndexJson {
+        public static string AutomapperIndexJson {
             get {
                 return ResourceManager.GetString("AutomapperIndexJson", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace NgTests.Data {
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/container1/automapper/1.1.0.118.json&quot;,&quot;@type&quot;:[&quot;Package&quot;,&quot;http://schema.nuget.org/catalog#Permalink&quot;],&quot;catalogEntry&quot;:&quot;https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.46/automapper.1.1.0.118.json&quot;,&quot;listed&quot;:true,&quot;packageContent&quot;:&quot;https://api.nuget.org/packages/automapper.1.1.0.118.nupkg&quot;,&quot;published&quot;:&quot;2011-09-07T22:48:17.403+02:00&quot;,&quot;registration&quot;:&quot;https://api.nuget.org/container1/automapper/index.json&quot;,&quot;@context&quot;:{&quot;@vocab&quot;:&quot;http://schema.nuget.org/schema#&quot;,&quot;xsd&quot;:&quot;http [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string AutomapperVersion1 {
+        public static string AutomapperVersion1 {
             get {
                 return ResourceManager.GetString("AutomapperVersion1", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace NgTests.Data {
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/container1/businessframework/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;2df1945a-8dd4-4b44-8330-527f4204f370&quot;,&quot;commitTimeStamp&quot;:&quot;2016-02-26T09:22:09.4438705Z&quot;,&quot;count&quot;:1,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/container1/businessframework/index.json#page/0.2.0/0.2.0&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;2df1945a-8dd4-4b44-8330-527f4204f370&quot;,&quot;commitTimeStamp&quot;:&quot;2016-02-26T09:22:09.4438705Z&quot;,&quot;count&quot;:1,&quot;items&quot;:[{&quot;@id&quot;:&quot;https [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string BusinessFrameworkIndexJson {
+        public static string BusinessFrameworkIndexJson {
             get {
                 return ResourceManager.GetString("BusinessFrameworkIndexJson", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace NgTests.Data {
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/container1/businessframework/0.2.0.json&quot;,&quot;@type&quot;:[&quot;Package&quot;,&quot;http://schema.nuget.org/catalog#Permalink&quot;],&quot;catalogEntry&quot;:&quot;https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.46/businessframework.0.2.0.json&quot;,&quot;listed&quot;:true,&quot;packageContent&quot;:&quot;https://api.nuget.org/packages/businessframework.0.2.0.nupkg&quot;,&quot;published&quot;:&quot;2011-01-07T08:50:40.807+01:00&quot;,&quot;registration&quot;:&quot;https://api.nuget.org/container1/businessframework/index.json&quot;,&quot;@context&quot;:{&quot;@vocab&quot;:&quot;http://schema.nuget.org/sche [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string BusinessFrameworkVersion1 {
+        public static string BusinessFrameworkVersion1 {
             get {
                 return ResourceManager.GetString("BusinessFrameworkVersion1", resourceCulture);
             }
@@ -128,7 +128,7 @@ namespace NgTests.Data {
         ///  &quot;value&quot;: &quot;2016-01-05T09:32:51.9339612&quot;
         ///}.
         /// </summary>
-        internal static string CursorJson {
+        public static string CursorJson {
             get {
                 return ResourceManager.GetString("CursorJson", resourceCulture);
             }

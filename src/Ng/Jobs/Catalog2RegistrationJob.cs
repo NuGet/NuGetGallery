@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Registration;
 
 namespace Ng.Jobs
@@ -72,40 +71,19 @@ namespace Ng.Jobs
             // In production, this is two registration hives:
             //   1) the first hive released, which is not gzipped and does not have SemVer 2.0.0 packages
             //   2) the secondary hive released, which is gzipped but does not have SemVer 2.0.0 packages
-            StorageFactory legacyStorageFactory;
+            var storageFactories = CommandHelpers.CreateRegistrationStorageFactories(arguments, verbose);
 
-            var storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-            var compressedStorageFactory = CommandHelpers.CreateCompressedStorageFactory(arguments, verbose);
-            var semVer2StorageFactory = CommandHelpers.CreateSemVer2StorageFactory(arguments, verbose);
-
-            Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\"", source, storageFactory);
+            Logger.LogInformation(
+                "CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\"",
+                source,
+                storageFactories.LegacyStorageFactory);
 
             RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
 
-            if (compressedStorageFactory != null)
-            {
-                var secondaryStorageBaseUrlRewriter = new SecondaryStorageBaseUrlRewriter(new List<KeyValuePair<string, string>>
-                {
-                    // always rewrite storage root url in seconary
-                    new KeyValuePair<string, string>(storageFactory.BaseAddress.ToString(), compressedStorageFactory.BaseAddress.ToString())
-                });
-
-                var aggregateStorageFactory = new AggregateStorageFactory(
-                    storageFactory,
-                    new[] { compressedStorageFactory },
-                    secondaryStorageBaseUrlRewriter.Rewrite);
-
-                legacyStorageFactory = aggregateStorageFactory;
-            }
-            else
-            {
-                legacyStorageFactory = storageFactory;
-            }
-
             _collector = new RegistrationCollector(
                 new Uri(source),
-                legacyStorageFactory,
-                semVer2StorageFactory,
+                storageFactories.LegacyStorageFactory,
+                storageFactories.SemVer2StorageFactory,
                 CommandHelpers.GetHttpMessageHandlerFactory(verbose))
             {
                 ContentBaseAddress = contentBaseAddress == null
@@ -113,11 +91,11 @@ namespace Ng.Jobs
                     : new Uri(contentBaseAddress)
             };
 
-            var cursorStorage = legacyStorageFactory.Create();
+            var cursorStorage = storageFactories.LegacyStorageFactory.Create();
             _front = new DurableCursor(cursorStorage.ResolveUri("cursor.json"), cursorStorage, MemoryCursor.MinValue);
             _back = MemoryCursor.CreateMax();
 
-            semVer2StorageFactory?.Create();
+            storageFactories.SemVer2StorageFactory?.Create();
         }
 
         protected override async Task RunInternal(CancellationToken cancellationToken)

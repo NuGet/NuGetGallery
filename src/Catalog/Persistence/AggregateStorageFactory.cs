@@ -1,15 +1,13 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AggregateStorageFactory : StorageFactory
     {
-        private readonly StorageFactory _primaryStorageFactory;
-        private readonly StorageFactory[] _secondaryStorageFactories;
         private readonly AggregateStorage.WriteSecondaryStorageContentInterceptor _writeSecondaryStorageContentInterceptor;
 
         public AggregateStorageFactory(StorageFactory primaryStorageFactory, StorageFactory[] secondaryStorageFactories)
@@ -20,19 +18,26 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public AggregateStorageFactory(StorageFactory primaryStorageFactory, StorageFactory[] secondaryStorageFactories,
             AggregateStorage.WriteSecondaryStorageContentInterceptor writeSecondaryStorageContentInterceptor)
         { 
-            _primaryStorageFactory = primaryStorageFactory;
-            _secondaryStorageFactories = secondaryStorageFactories;
+            PrimaryStorageFactory = primaryStorageFactory;
+            SecondaryStorageFactories = secondaryStorageFactories;
             _writeSecondaryStorageContentInterceptor = writeSecondaryStorageContentInterceptor;
 
-            BaseAddress = _primaryStorageFactory.BaseAddress;
+            BaseAddress = PrimaryStorageFactory.BaseAddress;
         }
 
         public override Storage Create(string name = null)
         {
-            var primaryStorage = _primaryStorageFactory.Create(name);
-            var secondaryStorage = _secondaryStorageFactories.Select(f => f.Create(name)).ToArray();
+            var primaryStorage = PrimaryStorageFactory.Create(name);
+            var secondaryStorage = SecondaryStorageFactories.Select(f => f.Create(name)).ToArray();
 
-            return new AggregateStorage(_primaryStorageFactory.BaseAddress, primaryStorage, secondaryStorage, _writeSecondaryStorageContentInterceptor);
+            return new AggregateStorage(
+                PrimaryStorageFactory.BaseAddress,
+                primaryStorage,
+                secondaryStorage,
+                _writeSecondaryStorageContentInterceptor);
         }
+
+        public StorageFactory PrimaryStorageFactory { get; }
+        public IEnumerable<StorageFactory> SecondaryStorageFactories { get; }
     }
 }

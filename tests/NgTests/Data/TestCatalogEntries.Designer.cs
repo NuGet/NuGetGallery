@@ -22,7 +22,7 @@ namespace NgTests.Data {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class TestCatalogEntries {
+    public class TestCatalogEntries {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace NgTests.Data {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NgTests.Data.TestCatalogEntries", typeof(TestCatalogEntries).Assembly);
@@ -51,7 +51,7 @@ namespace NgTests.Data {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -76,7 +76,7 @@ namespace NgTests.Data {
         ///        &quot;hashAlgorithm&quot;: &quot;SHA512&quot;,
         ///        &quot;hash&quot;: &quot;Cj01MWn4xDwYEcApDHqrR3hCzHv0eDWiOO9TQUA46055TdDBac2FVgITPgtoEERoP5Y1jYSPtfoV/lv [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string DeleteAuditRecordForOtherPackage100 {
+        public static string DeleteAuditRecordForOtherPackage100 {
             get {
                 return ResourceManager.GetString("DeleteAuditRecordForOtherPackage100", resourceCulture);
             }
@@ -98,7 +98,7 @@ namespace NgTests.Data {
         ///      &quot;nuget:id&quot;: &quot;mypackage&quot;,
         ///      &quot;nuget:version&quot;:  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogPageForMyPackage_Option1 {
+        public static string TestCatalogPageForMyPackage_Option1 {
             get {
                 return ResourceManager.GetString("TestCatalogPageForMyPackage_Option1", resourceCulture);
             }
@@ -120,7 +120,7 @@ namespace NgTests.Data {
         ///      &quot;nuget:id&quot;: &quot;mypackage&quot;,
         ///      &quot;nuget:version&quot;:  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogPageForMyPackage_Option2 {
+        public static string TestCatalogPageForMyPackage_Option2 {
             get {
                 return ResourceManager.GetString("TestCatalogPageForMyPackage_Option2", resourceCulture);
             }
@@ -142,7 +142,7 @@ namespace NgTests.Data {
         ///	&quot;listed&quot;: false,
         ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvG [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageMyPackageCreated {
+        public static string TestCatalogStorageMyPackageCreated {
             get {
                 return ResourceManager.GetString("TestCatalogStorageMyPackageCreated", resourceCulture);
             }
@@ -164,7 +164,7 @@ namespace NgTests.Data {
         ///	&quot;listed&quot;: true,
         ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1Q [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageMyPackageListed {
+        public static string TestCatalogStorageMyPackageListed {
             get {
                 return ResourceManager.GetString("TestCatalogStorageMyPackageListed", resourceCulture);
             }
@@ -186,7 +186,7 @@ namespace NgTests.Data {
         ///	&quot;listed&quot;: false,
         ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvG [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageMyPackageUnlisted {
+        public static string TestCatalogStorageMyPackageUnlisted {
             get {
                 return ResourceManager.GetString("TestCatalogStorageMyPackageUnlisted", resourceCulture);
             }
@@ -214,7 +214,7 @@ namespace NgTests.Data {
         ///  ],
         ///  &quot;nuget:las [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithSemVer2Index {
+        public static string TestCatalogStorageWithSemVer2Index {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithSemVer2Index", resourceCulture);
             }
@@ -237,7 +237,7 @@ namespace NgTests.Data {
         ///  &quot;lastEdited&quot;: &quot;2017-01-02T08:15:00Z&quot;,
         ///  &quot;lis [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithSemVer2Package {
+        public static string TestCatalogStorageWithSemVer2Package {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithSemVer2Package", resourceCulture);
             }
@@ -258,7 +258,7 @@ namespace NgTests.Data {
         ///      &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
         ///      &quot;nuget:id&quot;: &quot;TestPackage.SemVer [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithSemVer2Page000 {
+        public static string TestCatalogStorageWithSemVer2Page000 {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithSemVer2Page000", resourceCulture);
             }
@@ -286,7 +286,7 @@ namespace NgTests.Data {
         ///  ],
         ///  &quot;nuget:las [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithThreePackagesAndDeleteIndex {
+        public static string TestCatalogStorageWithThreePackagesAndDeleteIndex {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithThreePackagesAndDeleteIndex", resourceCulture);
             }
@@ -308,7 +308,7 @@ namespace NgTests.Data {
         ///      &quot;nuget:id&quot;: &quot;UnlistedPackage&quot;,
         ///      &quot;nuge [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithThreePackagesAndDeletePage {
+        public static string TestCatalogStorageWithThreePackagesAndDeletePage {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithThreePackagesAndDeletePage", resourceCulture);
             }
@@ -336,7 +336,7 @@ namespace NgTests.Data {
         ///  ],
         ///  &quot;nuget:las [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithThreePackagesIndex {
+        public static string TestCatalogStorageWithThreePackagesIndex {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithThreePackagesIndex", resourceCulture);
             }
@@ -360,7 +360,7 @@ namespace NgTests.Data {
         ///  &quot;licenseNames&quot;: &quot;&quot;,
         ///  &quot;licenseRepor [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithThreePackagesListedPackage100 {
+        public static string TestCatalogStorageWithThreePackagesListedPackage100 {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithThreePackagesListedPackage100", resourceCulture);
             }
@@ -384,7 +384,7 @@ namespace NgTests.Data {
         ///  &quot;licenseNames&quot;: &quot;&quot;,
         ///  &quot;licenseRepor [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithThreePackagesListedPackage101 {
+        public static string TestCatalogStorageWithThreePackagesListedPackage101 {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithThreePackagesListedPackage101", resourceCulture);
             }
@@ -407,7 +407,7 @@ namespace NgTests.Data {
         ///    &quot;@vocab&quot;: &quot;http://schema.nuget.org/schema#&quot;,
         ///    &quot;catalog&quot;: &quot;http://schema.nuget.org/ [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithThreePackagesOtherPackage100 {
+        public static string TestCatalogStorageWithThreePackagesOtherPackage100 {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithThreePackagesOtherPackage100", resourceCulture);
             }
@@ -429,7 +429,7 @@ namespace NgTests.Data {
         ///      &quot;nuget:id&quot;: &quot;UnlistedPackage&quot;,
         ///      &quot;nuge [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithThreePackagesPage {
+        public static string TestCatalogStorageWithThreePackagesPage {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithThreePackagesPage", resourceCulture);
             }
@@ -453,7 +453,7 @@ namespace NgTests.Data {
         ///  &quot;licenseNames&quot;: &quot;&quot;,
         ///  &quot;licenseR [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogStorageWithThreePackagesUnlistedPackage100 {
+        public static string TestCatalogStorageWithThreePackagesUnlistedPackage100 {
             get {
                 return ResourceManager.GetString("TestCatalogStorageWithThreePackagesUnlistedPackage100", resourceCulture);
             }

@@ -75,6 +75,39 @@ namespace Ng
             return new SecretInjector(secretReader);
         }
 
+        public static RegistrationStorageFactories CreateRegistrationStorageFactories(IDictionary<string, string> arguments, bool verbose)
+        {
+            StorageFactory legacyStorageFactory;
+            var semVer2StorageFactory = CreateSemVer2StorageFactory(arguments, verbose);
+
+            var storageFactory = CreateStorageFactory(arguments, verbose);
+            var compressedStorageFactory = CreateCompressedStorageFactory(arguments, verbose);
+            if (compressedStorageFactory != null)
+            {
+                var secondaryStorageBaseUrlRewriter = new SecondaryStorageBaseUrlRewriter(new List<KeyValuePair<string, string>>
+                {
+                    // always rewrite storage root url in seconary
+                    new KeyValuePair<string, string>(storageFactory.BaseAddress.ToString(), compressedStorageFactory.BaseAddress.ToString())
+                });
+
+                var aggregateStorageFactory = new AggregateStorageFactory(
+                    storageFactory,
+                    new[] { compressedStorageFactory },
+                    secondaryStorageBaseUrlRewriter.Rewrite)
+                {
+                    Verbose = verbose
+                };
+
+                legacyStorageFactory = aggregateStorageFactory;
+            }
+            else
+            {
+                legacyStorageFactory = storageFactory;
+            }
+
+            return new RegistrationStorageFactories(legacyStorageFactory, semVer2StorageFactory);
+        }
+
         public static StorageFactory CreateStorageFactory(IDictionary<string, string> arguments, bool verbose)
         {
             IDictionary<string, string> names = new Dictionary<string, string>

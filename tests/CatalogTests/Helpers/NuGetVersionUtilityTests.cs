@@ -115,6 +115,23 @@ namespace CatalogTests.Helpers
         }
 
         [Fact]
+        public void IsGraphSemVer2_WithSemVer1PackageVersionAndSemVer2VerbatimVersion_IsSemVer2()
+        {
+            // Arrange
+            var graph = new Graph();
+            graph.Assert(
+                graph.CreateUriNode(new Uri(TD.ResourceUri)),
+                graph.CreateUriNode(Schema.Predicates.VerbatimVersion),
+                graph.CreateLiteralNode(TD.SemVer2Version));
+
+            // Act
+            var actual = NuGetVersionUtility.IsGraphSemVer2(TD.SemVer1Version, TD.ResourceUri, graph);
+
+            // Assert
+            Assert.True(actual);
+        }
+
+        [Fact]
         public void IsGraphSemVer2_WithSemVer1PackageVersionAndSemVer1Dependencies_IsSemVer1()
         {
             // Arrange

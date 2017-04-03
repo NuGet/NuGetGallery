@@ -73,6 +73,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Prefix = new Uri(Prefixes.NuGet + "prefix");
             public static readonly Uri Id = new Uri(Prefixes.NuGet + "id");
             public static readonly Uri Version = new Uri(Prefixes.NuGet + "version");
+            public static readonly Uri VerbatimVersion = new Uri(Prefixes.NuGet + "verbatimVersion");
             public static readonly Uri OriginalId = new Uri(Prefixes.NuGet + "originalId");
 
             public static readonly Uri Upper = new Uri(Prefixes.NuGet + "upper");

@@ -243,12 +243,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Data\TestCatalogEntries.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>TestCatalogEntries.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Data\TestRegistrationEntries.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>TestRegistrationEntries.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>

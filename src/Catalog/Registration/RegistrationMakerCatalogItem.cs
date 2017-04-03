@@ -99,7 +99,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 
         private DateTime GetPublishedDate()
         {
-            if (_publishedDate == DateTime.MinValue)
+            if (_publishedDate == default(DateTime))
             {
                 INode subject = _catalogItem.CreateUriNode(_catalogUri);
                 var pubTriple = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Published)).SingleOrDefault();

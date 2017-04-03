@@ -16,6 +16,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationCollector : SortingGraphCollector
     {
+        public const int PartitionSize = 64;
+        public const int PackageCountThreshold = 128;
+
         private readonly StorageFactory _legacyStorageFactory;
         private readonly StorageFactory _semVer2StorageFactory;
 
@@ -35,14 +38,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _semVer2StorageFactory = semVer2StorageFactory;
 
             ContentBaseAddress = new Uri("http://tempuri.org");
-
-            PartitionSize = 64;
-            PackageCountThreshold = 128;
         }
 
         public Uri ContentBaseAddress { get; set; }
-        public int PartitionSize { get; set; }
-        public int PackageCountThreshold { get; set; }
 
         protected override Task<IEnumerable<CatalogItemBatch>> CreateBatches(IEnumerable<CatalogItem> catalogItems)
         {
@@ -108,7 +106,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
         }
 
-        private static bool IsNotSemVer2(RegistrationEntryKey key, string resourceUri, IGraph graph)
+        public static bool IsNotSemVer2(RegistrationEntryKey key, string resourceUri, IGraph graph)
         {
             return !NuGetVersionUtility.IsGraphSemVer2(key.Version, resourceUri, graph);
         }
