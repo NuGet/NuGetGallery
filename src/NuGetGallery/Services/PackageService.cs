@@ -579,11 +579,7 @@ namespace NuGetGallery
                     throw new EntityException(Strings.NuGetPackageReleaseVersionContainsOnlyNumerics, "Version");
                 }
             }
-            if (packageMetadata.Authors == null || packageMetadata.Authors.Flatten().Length == 0)
-            {
-                throw new EntityException(Strings.NuGetPackagePropertyMissing, "Authors");
-            }
-            else if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > 4000)
+            if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
             }
