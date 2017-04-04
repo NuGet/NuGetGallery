@@ -22,12 +22,12 @@ namespace NgTests
     public class SearchIndexFromCatalogCollectorTests
     {
         [Theory]
-        [InlineData("/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json", "0001-01-01T08:00:00.0000000Z")]
+        [InlineData("/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json", null)]
         [InlineData("/data/2015.10.12.10.08.55/listedpackage.1.0.1.json", "2015-10-12T10:08:54.1506742Z")]
         [InlineData("/data/2015.10.12.10.08.55/anotherpackage.1.0.0.json", "2015-10-12T10:08:54.1506742Z")]
         public async Task DoesNotSkipPackagesWhenExceptionOccurs(string catalogUri, string expectedCursorBeforeRetry)
         {
-            // Arrange 
+            // Arrange
             var storage = new MemoryStorage();
             var storageFactory = new TestStorageFactory(name => storage.WithName(name));
 
@@ -41,6 +41,8 @@ namespace NgTests
             // Make the first request for a catalog leaf node fail. This will cause the registration collector
             // to fail the first time but pass the second time.
             FailFirstRequest(mockServer, catalogUri);
+
+            expectedCursorBeforeRetry = expectedCursorBeforeRetry ?? MemoryCursor.MinValue.ToString("O");
 
             ReadWriteCursor front = new DurableCursor(
                 storage.ResolveUri("cursor.json"),
