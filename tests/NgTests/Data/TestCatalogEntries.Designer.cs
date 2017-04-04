@@ -386,5 +386,79 @@ namespace NgTests.Data {
                 return ResourceManager.GetString("TestCatalogStorageWithThreePackagesUnlistedPackage100", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/data/2015.10.12.10.08.55/anotherpackage.1.0.0.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDetails&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;authors&quot;: &quot;NuGet&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;8a9e7694-73d4-4775-9b7a-20aa59b9773e&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2015-10-12T10:08:55.3335317Z&quot;,
+        ///  &quot;created&quot;: &quot;2015-01-01T00:00:00Z&quot;,
+        ///  &quot;description&quot;: &quot;Package description.&quot;,
+        ///  &quot;id&quot;: &quot;AnotherPackage&quot;,
+        ///  &quot;isPrerelease&quot;: false,
+        ///  &quot;lastEdited&quot;: &quot;2015-01-01T00:00:00Z&quot;,
+        ///  &quot;licenseNames&quot;: &quot;&quot;,
+        ///  &quot;licenseRep [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogWithCommitThenTwoPackageCommitAnotherPackage100 {
+            get {
+                return ResourceManager.GetString("TestCatalogWithCommitThenTwoPackageCommitAnotherPackage100", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/index.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;CatalogRoot&quot;,
+        ///    &quot;AppendOnlyCatalog&quot;,
+        ///    &quot;Permalink&quot;
+        ///  ],
+        ///  &quot;commitId&quot;: &quot;8a9e7694-73d4-4775-9b7a-20aa59b9773e&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-12T10:08:55.3335317Z&quot;,
+        ///  &quot;count&quot;: 1,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///      &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///      &quot;commitId&quot;: &quot;69345a10-6800-46f2-8131-34c78b0188aa&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-12T10:08:55.3335317Z&quot;,
+        ///      &quot;count&quot;: 3
+        ///    }
+        ///  ],
+        ///  &quot;nuget:las [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogWithCommitThenTwoPackageCommitIndex {
+            get {
+                return ResourceManager.GetString("TestCatalogWithCommitThenTwoPackageCommitIndex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///  &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///  &quot;commitId&quot;: &quot;8a9e7694-73d4-4775-9b7a-20aa59b9773e&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-12T10:08:55.3335317Z&quot;,
+        ///  &quot;count&quot;: 3,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json&quot;,
+        ///      &quot;@type&quot;: &quot;nuget:PackageDetails&quot;,
+        ///      &quot;commitId&quot;: &quot;9a37734f-1960-4c07-8934-c8bc797e35c1&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-12T10:08:54.1506742Z&quot;,
+        ///      &quot;nuget:id&quot;: &quot;UnlistedPackage&quot;,
+        ///      &quot;nuge [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestCatalogWithCommitThenTwoPackageCommitPage {
+            get {
+                return ResourceManager.GetString("TestCatalogWithCommitThenTwoPackageCommitPage", resourceCulture);
+            }
+        }
     }
 }

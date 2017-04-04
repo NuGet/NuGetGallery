@@ -23,7 +23,7 @@ namespace NgTests
         private MockServerHttpClientHandler _mockServer;
         private RegistrationCollector _target;
 
-        void SharedInit()
+        private void SharedInit()
         {
             _catalogToRegistrationStorage = new MemoryStorage();
             _catalogToRegistrationStorageFactory = new TestStorageFactory(name => _catalogToRegistrationStorage.WithName(name));
@@ -37,6 +37,71 @@ namespace NgTests
             };
 
             RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
+        }
+
+        [Theory]
+        [InlineData("/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json", "0001-01-01T08:00:00.0000000Z")]
+        [InlineData("/data/2015.10.12.10.08.55/listedpackage.1.0.1.json", "2015-10-12T10:08:54.1506742Z")]
+        [InlineData("/data/2015.10.12.10.08.55/anotherpackage.1.0.0.json", "2015-10-12T10:08:54.1506742Z")]
+        public async Task DoesNotSkipPackagesWhenExceptionOccurs(string catalogUri, string expectedCursorBeforeRetry)
+        {
+            // Arrange 
+            SharedInit();
+
+            var catalogStorage = Catalogs.CreateTestCatalogWithCommitThenTwoPackageCommit();
+            await _mockServer.AddStorage(catalogStorage);
+
+            // Make the first request for a catalog leaf node fail. This will cause the registration collector
+            // to fail the first time but pass the second time.
+            FailFirstRequest(catalogUri);
+
+            ReadWriteCursor front = new DurableCursor(
+                _catalogToRegistrationStorage.ResolveUri("cursor.json"),
+                _catalogToRegistrationStorage,
+                MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            // Act
+            await Assert.ThrowsAsync<Exception>(() => _target.Run(front, back, CancellationToken.None));
+            var cursorBeforeRetry = front.Value;
+            await _target.Run(front, back, CancellationToken.None);
+            var cursorAfterRetry = front.Value;
+
+            // Assert
+            var unlistedPackage100 = _catalogToRegistrationStorage
+                .Content
+                .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0.json"));
+            Assert.NotNull(unlistedPackage100.Key);
+
+            var listedPackage101 = _catalogToRegistrationStorage
+                .Content
+                .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1.json"));
+            Assert.NotNull(listedPackage101.Key);
+
+            var anotherPackage100 = _catalogToRegistrationStorage
+                .Content
+                .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/anotherpackage/1.0.0.json"));
+            Assert.NotNull(anotherPackage100.Key);
+
+            Assert.Equal(DateTime.Parse(expectedCursorBeforeRetry).ToUniversalTime(), cursorBeforeRetry);
+            Assert.Equal(DateTime.Parse("2015-10-12T10:08:55.3335317Z").ToUniversalTime(), cursorAfterRetry);
+        }
+
+        private void FailFirstRequest(string relativeUri)
+        {
+            var originalAction = _mockServer.Actions[relativeUri];
+            var hasFailed = false;
+            Func<HttpRequestMessage, Task<HttpResponseMessage>> failFirst = request =>
+            {
+                if (!hasFailed)
+                {
+                    hasFailed = true;
+                    throw new HttpRequestException("Simulated HTTP failure.");
+                }
+
+                return originalAction(request);
+            };
+            _mockServer.SetAction(relativeUri, failFirst);
         }
 
         [Fact]

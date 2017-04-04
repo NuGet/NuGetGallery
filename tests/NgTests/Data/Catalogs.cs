@@ -35,7 +35,34 @@ namespace NgTests.Data
 
             return catalogStorage;
         }
-        
+
+        public static MemoryStorage CreateTestCatalogWithCommitThenTwoPackageCommit()
+        {
+            var catalogStorage = new MemoryStorage();
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithCommitThenTwoPackageCommitIndex));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithCommitThenTwoPackageCommitPage));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesUnlistedPackage100));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/listedpackage.1.0.1.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesListedPackage101));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/anotherpackage.1.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithCommitThenTwoPackageCommitAnotherPackage100));
+
+            return catalogStorage;
+        }
+
         public static MemoryStorage CreateTestCatalogWithThreePackagesAndDelete()
         {
             var catalogStorage = new MemoryStorage();

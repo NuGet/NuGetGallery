@@ -1,6 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -45,9 +46,20 @@ namespace NuGet.Services.Metadata.Catalog
                     .ToList();
 
                 var lastBatch = orderedBatches.LastOrDefault();
+                DateTime? previousCommitTimeStamp = null;
 
                 foreach (var batch in orderedBatches)
                 {
+                    // If the commit timestamp has changed from the previous batch, commit. This is important because if
+                    // two batches have the same commit timestamp but processing the second fails, we should not
+                    // progress the cursor forward.
+                    if (previousCommitTimeStamp.HasValue && previousCommitTimeStamp != batch.CommitTimeStamp)
+                    {
+                        front.Value = previousCommitTimeStamp.Value;
+                        await front.Save(cancellationToken);
+                        Trace.TraceInformation("CommitCatalog.Fetch front.Value saved since timestamp changed from previous: {0}", front);
+                    }
+
                     acceptNextBatch = await OnProcessBatch(
                         client, 
                         batch.Items.Select(item => item.Value), 
@@ -56,10 +68,17 @@ namespace NuGet.Services.Metadata.Catalog
                         batch.CommitTimeStamp == lastBatch.CommitTimeStamp, 
                         cancellationToken);
 
-                    front.Value = batch.CommitTimeStamp;
-                    await front.Save(cancellationToken);
+                    // If this is the last batch, commit the cursor.
+                    if (ReferenceEquals(batch, lastBatch))
+                    {
+                        front.Value = batch.CommitTimeStamp;
+                        await front.Save(cancellationToken);
+                        Trace.TraceInformation("CommitCatalog.Fetch front.Value saved due to last batch: {0}", front);
+                    }
 
-                    Trace.TraceInformation("CommitCatalog.Fetch front.Save has value: {0}", front);
+                    previousCommitTimeStamp = batch.CommitTimeStamp;
+
+                    Trace.TraceInformation("CommitCatalog.Fetch front.Value is: {0}", front);
 
                     if (!acceptNextBatch)
                     {
