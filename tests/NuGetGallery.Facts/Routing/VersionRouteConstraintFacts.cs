@@ -63,6 +63,17 @@ namespace NuGetGallery.Routing
 
                 Assert.True(result);
             }
+
+            [Fact]
+            public void ReturnsTrueIfVersionIsPrerelease()
+            {
+                var routeValues = new RouteValueDictionary { { "version", "prerelease" } };
+                var constraint = new VersionRouteConstraint();
+
+                var result = constraint.Match(null, null, "version", routeValues, RouteDirection.IncomingRequest);
+
+                Assert.True(result);
+            }
         }
     }
 }

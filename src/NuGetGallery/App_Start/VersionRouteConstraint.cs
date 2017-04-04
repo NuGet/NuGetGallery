@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using System;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -32,7 +33,12 @@ namespace NuGetGallery
             {
                 return true;
             }
-            
+
+            if (versionText.Equals("prerelease", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
+            }
+
             NuGetVersion ignored;
             return NuGetVersion.TryParse(versionText, out ignored);
         }

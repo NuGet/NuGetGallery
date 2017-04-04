@@ -375,6 +375,45 @@ namespace NuGetGallery
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Equal("A modified package!", model.Title);
             }
+
+            [Fact]
+            public async Task GivenAPrereleaseVersionItQueriesTheCorrectVersion()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
+                var controller = CreateController(
+                    packageService: packageService, indexingService: indexingService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+                
+               packageService
+                    .Setup(p => p.FindPackageByLatestPrerelease("Foo"))
+                    .Returns(new Package()
+                    {
+                        PackageRegistration = new PackageRegistration()
+                        {
+                            Id = "Foo",
+                            Owners = new List<User>()
+                        },
+                        Version = "2.0.0a",
+                        NormalizedVersion = "2.0.0a",
+                        IsPrerelease = true,
+                        Title = "A test package!"
+                    });
+               
+
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", "prerelease");
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal("Foo", model.Id);
+                Assert.Equal("2.0.0a", model.Version);
+                Assert.Equal("A test package!", model.Title);
+                Assert.True(model.Prerelease);
+            }
         }
 
         public class TheConfirmOwnerMethod
