@@ -17,7 +17,6 @@ using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
-using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
@@ -743,7 +742,7 @@ namespace NuGetGallery
 
             return View(model);
         }
-        
+
         [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("delete a package")]
@@ -773,10 +772,10 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            
+
             var reflowPackageService = new ReflowPackageService(
-                _entitiesContext, 
-                (PackageService) _packageService,
+                _entitiesContext,
+                (PackageService)_packageService,
                 _packageFileService);
 
             try
@@ -1158,8 +1157,7 @@ namespace NuGetGallery
                     package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
                     Debug.Assert(package.PackageRegistration != null);
                 }
-                catch(Exception ex) 
-                    when (ex is PackagingException || ex is EntityException)
+                catch (InvalidPackageException ex)
                 {
                     TempData["Message"] = ex.Message;
                     return Redirect(Url.UploadPackage());
