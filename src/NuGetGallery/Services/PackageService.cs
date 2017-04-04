@@ -171,18 +171,17 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual Package FindPackageByLatestPrerelease(string id)
+        public virtual Package FindAbsoluteLatestPackageById(string id)
         {
             var packageVersions = _packageRepository.GetAll()
                 .Include(p => p.LicenseReports)
                 .Include(p => p.PackageRegistration)
-                .Where(p => (p.PackageRegistration.Id == id))
-                .Where(p => p.IsPrerelease)
+                .Where(p => p.PackageRegistration.Id == id)
                 .ToList();
 
             Package package = packageVersions.FirstOrDefault(p => p.IsLatest);
 
-            // If we couldn't find a package marked as latest, then return the most recent prerelease one 
+            // If we couldn't find a package marked as latest, then return the most recent one 
             if (package == null)
             {
                 package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();

@@ -67,7 +67,7 @@ namespace NuGetGallery.Routing
             [Fact]
             public void ReturnsTrueIfVersionIsPrerelease()
             {
-                var routeValues = new RouteValueDictionary { { "version", "prerelease" } };
+                var routeValues = new RouteValueDictionary { { "version", Constants.AbsoluteLatestUrlString } };
                 var constraint = new VersionRouteConstraint();
 
                 var result = constraint.Match(null, null, "version", routeValues, RouteDirection.IncomingRequest);

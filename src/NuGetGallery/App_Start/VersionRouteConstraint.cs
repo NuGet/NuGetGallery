@@ -34,7 +34,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            if (versionText.Equals("prerelease", StringComparison.InvariantCultureIgnoreCase))
+            if (versionText.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;
             }

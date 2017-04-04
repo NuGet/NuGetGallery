@@ -308,9 +308,9 @@ namespace NuGetGallery
             }
             
             Package package;
-            if (version.Equals("prerelease", StringComparison.InvariantCultureIgnoreCase))
+            if (version != null && version.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
-                package = _packageService.FindPackageByLatestPrerelease(id);
+                package = _packageService.FindAbsoluteLatestPackageById(id);
             }
             else
             {
