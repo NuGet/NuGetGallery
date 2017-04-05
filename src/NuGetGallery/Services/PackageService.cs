@@ -116,6 +116,7 @@ namespace NuGetGallery
         public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
         {
             PackageMetadata packageMetadata;
+            PackageRegistration packageRegistration;
 
             try
             {
@@ -124,15 +125,15 @@ namespace NuGetGallery
                 ValidateNuGetPackageMetadata(packageMetadata);
 
                 ValidatePackageTitle(packageMetadata);
+
+                packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata);
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
                 // Wrap the exception for consistency of this API.
                 throw new InvalidPackageException(exception.Message, exception);
             }
-
-            var packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata);
-
+            
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
             packageRegistration.Packages.Add(package);
             await UpdateIsLatestAsync(packageRegistration, false);
