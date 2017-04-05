@@ -171,7 +171,7 @@ namespace NuGetGallery
                 Assert.Equal("package A description.", result.Description);
                 Assert.Equal("en-US", result.Language);
 
-                Assert.Equal("WebActivator:[1.1.0, ):net40|PackageC:[1.1.0, 2.0.1):net40|jQuery:(, ):net451", result.FlattenedDependencies);
+                Assert.Equal("WebActivator:[1.1.0, ):net40|PackageC:[1.1.0, 2.0.1):net40|jQuery:[1.0.0, ):net451", result.FlattenedDependencies);
                 Assert.Equal(3, result.Dependencies.Count);
 
                 Assert.True(result.Dependencies.Any(d =>
@@ -186,7 +186,7 @@ namespace NuGetGallery
 
                 Assert.True(result.Dependencies.Any(d =>
                     d.Id == "jQuery"
-                    && d.VersionSpec == "(, )"
+                    && d.VersionSpec == "[1.0.0, )"
                     && d.TargetFramework == "net451"));
 
                 Assert.Equal(0, result.SupportedFrameworks.Count);
@@ -248,7 +248,7 @@ namespace NuGetGallery
 
             var framework = new PackageFramework();
             var author = new PackageAuthor { Name = "maarten" };
-            var dependency = new PackageDependency { Id = "other" };
+            var dependency = new PackageDependency { Id = "other", VersionSpec = "1.0.0" };
 
             var package = new Package
             {
@@ -375,7 +375,7 @@ namespace NuGetGallery
                               <dependency id=""PackageC"" version=""[1.1.0, 2.0.1)"" />
                             </group>
                             <group targetFramework=""net451"">
-                              <dependency id=""jQuery"" />
+                              <dependency id=""jQuery"" version=""1.0.0""/>
                             </group>
                         </dependencies>
                       </metadata>
