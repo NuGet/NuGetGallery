@@ -1225,6 +1225,54 @@ namespace NuGetGallery
             }
         }
 
+        public class TheFindAbsoluteLatestPackageByIdMethod
+        {
+            [Fact]
+            public void ReturnsTheLatestVersion()
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
+                var package2 = new Package { Version = "2.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.FindAbsoluteLatestPackageById("theId");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("2.0.0a", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsTheMostRecentVersion()
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
+                var package2 = new Package { Version = "2.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
+                var package3 = new Package { Version = "2.0.0", PackageRegistration = packageRegistration, Listed = true };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.FindAbsoluteLatestPackageById("theId");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("2.0.0a", result.Version);
+            }
+        }
+
         public class TheFindPackagesByOwnerMethod : TestContainer
         {
             [Fact]

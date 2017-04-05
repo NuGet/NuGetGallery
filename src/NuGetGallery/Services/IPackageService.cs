@@ -12,6 +12,7 @@ namespace NuGetGallery
     {
         PackageRegistration FindPackageRegistrationById(string id);
         Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true);
+        Package FindAbsoluteLatestPackageById(string id);
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted);
         IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);

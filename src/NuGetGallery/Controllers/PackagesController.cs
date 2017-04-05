@@ -306,8 +306,16 @@ namespace NuGetGallery
                 // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
-
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            
+            Package package;
+            if (version != null && version.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            {
+                package = _packageService.FindAbsoluteLatestPackageById(id);
+            }
+            else
+            {
+                package = _packageService.FindPackageByIdAndVersion(id, version);
+            }
 
             if (package == null)
             {

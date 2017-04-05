@@ -171,6 +171,25 @@ namespace NuGetGallery
             return package;
         }
 
+        public virtual Package FindAbsoluteLatestPackageById(string id)
+        {
+            var packageVersions = _packageRepository.GetAll()
+                .Include(p => p.LicenseReports)
+                .Include(p => p.PackageRegistration)
+                .Where(p => p.PackageRegistration.Id == id)
+                .ToList();
+
+            Package package = packageVersions.FirstOrDefault(p => p.IsLatest);
+
+            // If we couldn't find a package marked as latest, then return the most recent one 
+            if (package == null)
+            {
+                package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
+            }
+
+            return package;
+        }
+
         public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted)
         {
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
