@@ -742,7 +742,7 @@ namespace NuGetGallery
 
             return View(model);
         }
-        
+
         [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("delete a package")]
@@ -772,10 +772,10 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            
+
             var reflowPackageService = new ReflowPackageService(
-                _entitiesContext, 
-                (PackageService) _packageService,
+                _entitiesContext,
+                (PackageService)_packageService,
                 _packageFileService);
 
             try
@@ -1157,7 +1157,7 @@ namespace NuGetGallery
                     package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
                     Debug.Assert(package.PackageRegistration != null);
                 }
-                catch (EntityException ex)
+                catch (InvalidPackageException ex)
                 {
                     TempData["Message"] = ex.Message;
                     return Redirect(Url.UploadPackage());

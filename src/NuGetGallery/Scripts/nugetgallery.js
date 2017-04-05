@@ -1,5 +1,5 @@
 ﻿// Global utility script for NuGetGallery
-/// <reference path="jquery-1.6.4.js" />
+/// <reference path="jquery-1.11.0.js" />
 (function (window, $, undefined) {
     $(function () {
         // Export an object with global config data

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Packaging;
@@ -69,28 +70,66 @@ namespace NuGetGallery
             _auditingService = auditingService;
         }
 
+        /// <summary>
+        /// When no exceptions thrown, this method ensures the package metadata is valid.
+        /// </summary>
+        /// <param name="packageArchiveReader">
+        /// The <see cref="PackageArchiveReader"/> instance providing the package metadata.
+        /// </param>
+        /// <exception cref="InvalidPackageException">
+        /// This exception will be thrown when a package metadata property violates a data validation constraint.
+        /// </exception>
         public void EnsureValid(PackageArchiveReader packageArchiveReader)
         {
-            var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
-
-            ValidateNuGetPackageMetadata(packageMetadata);
-
-            ValidatePackageTitle(packageMetadata);
-
-            var supportedFrameworks = GetSupportedFrameworks(packageArchiveReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
-            if (!supportedFrameworks.AnySafe(sf => sf == null))
+            try
             {
-                ValidateSupportedFrameworks(supportedFrameworks);
+                var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
+
+                ValidateNuGetPackageMetadata(packageMetadata);
+
+                ValidatePackageTitle(packageMetadata);
+
+                var supportedFrameworks = GetSupportedFrameworks(packageArchiveReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
+                if (!supportedFrameworks.AnySafe(sf => sf == null))
+                {
+                    ValidateSupportedFrameworks(supportedFrameworks);
+                }
+            }
+            catch (Exception exception) when (exception is EntityException || exception is PackagingException)
+            {
+                // Wrap the exception for consistency of this API.
+                throw new InvalidPackageException(exception.Message, exception);
             }
         }
 
+        /// <summary>
+        /// Validates and creates a <see cref="Package"/> entity from a NuGet package archive.
+        /// </summary>
+        /// <param name="nugetPackage">A <see cref="PackageArchiveReader"/> instance from which package metadata can be read.</param>
+        /// <param name="packageStreamMetadata">The <see cref="PackageStreamMetadata"/> instance providing metadata about the package stream.</param>
+        /// <param name="user">The <see cref="User"/> creating the package.</param>
+        /// <param name="commitChanges"><c>True</c> to commit the changes to the data store and notify the indexing service; otherwise <c>false</c>.</param>
+        /// <returns>Returns the created <see cref="Package"/> entity.</returns>
+        /// <exception cref="InvalidPackageException">
+        /// This exception will be thrown when a package metadata property violates a data validation constraint.
+        /// </exception>
         public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
         {
-            var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
+            PackageMetadata packageMetadata;
 
-            ValidateNuGetPackageMetadata(packageMetadata);
+            try
+            {
+                packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
-            ValidatePackageTitle(packageMetadata);
+                ValidateNuGetPackageMetadata(packageMetadata);
+
+                ValidatePackageTitle(packageMetadata);
+            }
+            catch (Exception exception) when (exception is EntityException || exception is PackagingException)
+            {
+                // Wrap the exception for consistency of this API.
+                throw new InvalidPackageException(exception.Message, exception);
+            }
 
             var packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata);
 

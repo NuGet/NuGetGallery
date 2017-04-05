@@ -19,7 +19,7 @@ namespace NuGetGallery.Packaging
 
         public PackageMetadata(
             Dictionary<string, string> metadata,
-            IEnumerable<PackageDependencyGroup> dependencyGroups, 
+            IEnumerable<PackageDependencyGroup> dependencyGroups,
             IEnumerable<FrameworkSpecificGroup> frameworkGroups,
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes,
             NuGetVersion minClientVersion)
@@ -42,26 +42,26 @@ namespace NuGetGallery.Packaging
             {
                 throw new FormatException(string.Format(CoreStrings.PackageMetadata_VersionStringInvalid, versionString));
             }
-            
+
             NuGetVersion nugetVersion;
             if (NuGetVersion.TryParse(versionString, out nugetVersion))
             {
                 Version = nugetVersion;
             }
 
-            IconUrl = GetValue(PackageMetadataStrings.IconUrl, (Uri) null);
-            ProjectUrl = GetValue(PackageMetadataStrings.ProjectUrl, (Uri) null);
-            LicenseUrl = GetValue(PackageMetadataStrings.LicenseUrl, (Uri) null);
-            Copyright = GetValue(PackageMetadataStrings.Copyright, (string) null);
-            Description = GetValue(PackageMetadataStrings.Description, (string) null);
-            ReleaseNotes = GetValue(PackageMetadataStrings.ReleaseNotes, (string) null);
+            IconUrl = GetValue(PackageMetadataStrings.IconUrl, (Uri)null);
+            ProjectUrl = GetValue(PackageMetadataStrings.ProjectUrl, (Uri)null);
+            LicenseUrl = GetValue(PackageMetadataStrings.LicenseUrl, (Uri)null);
+            Copyright = GetValue(PackageMetadataStrings.Copyright, (string)null);
+            Description = GetValue(PackageMetadataStrings.Description, (string)null);
+            ReleaseNotes = GetValue(PackageMetadataStrings.ReleaseNotes, (string)null);
             RequireLicenseAcceptance = GetValue(PackageMetadataStrings.RequireLicenseAcceptance, false);
-            Summary = GetValue(PackageMetadataStrings.Summary, (string) null);
-            Title = GetValue(PackageMetadataStrings.Title, (string) null);
-            Tags = GetValue(PackageMetadataStrings.Tags, (string) null);
-            Language = GetValue(PackageMetadataStrings.Language, (string) null);
+            Summary = GetValue(PackageMetadataStrings.Summary, (string)null);
+            Title = GetValue(PackageMetadataStrings.Title, (string)null);
+            Tags = GetValue(PackageMetadataStrings.Tags, (string)null);
+            Language = GetValue(PackageMetadataStrings.Language, (string)null);
 
-            Owners = GetValue(PackageMetadataStrings.Owners, (string) null);
+            Owners = GetValue(PackageMetadataStrings.Owners, (string)null);
 
             var authorsString = GetValue(PackageMetadataStrings.Authors, Owners ?? string.Empty);
             Authors = new List<string>(authorsString.Split(',').Select(author => author.Trim()));
@@ -87,7 +87,7 @@ namespace NuGetGallery.Packaging
 
         public string GetValueFromMetadata(string key)
         {
-            return GetValue(key, (string) null);
+            return GetValue(key, (string)null);
         }
 
         public IReadOnlyCollection<PackageDependencyGroup> GetDependencyGroups()
@@ -131,7 +131,7 @@ namespace NuGetGallery.Packaging
 
         private Uri GetValue(string key, Uri alternateValue)
         {
-            var value = GetValue(key, (string) null);
+            var value = GetValue(key, (string)null);
             if (!string.IsNullOrEmpty(value))
             {
                 Uri result;
@@ -144,11 +144,19 @@ namespace NuGetGallery.Packaging
             return alternateValue;
         }
 
+        /// <summary>
+        /// Gets package metadata from a the provided <see cref="NuspecReader"/> instance.
+        /// </summary>
+        /// <param name="nuspecReader">The <see cref="NuspecReader"/> instance used to read the <see cref="PackageMetadata"/></param>
+        /// <exception cref="PackagingException">
+        /// We default to use a strict version-check on dependency groups. 
+        /// When an invalid dependency version range is detected, a <see cref="PackagingException"/> will be thrown.
+        /// </exception>
         public static PackageMetadata FromNuspecReader(NuspecReader nuspecReader)
         {
             return new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-                nuspecReader.GetDependencyGroups(),
+                nuspecReader.GetDependencyGroups(useStrictVersionCheck: true),
                 nuspecReader.GetFrameworkReferenceGroups(),
                 nuspecReader.GetPackageTypes(),
                 nuspecReader.GetMinClientVersion()
