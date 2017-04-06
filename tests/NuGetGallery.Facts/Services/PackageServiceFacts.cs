@@ -702,25 +702,21 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageSpecialVersionContainsADot()
+            private async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsADot()
             {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(id: "theId", version: "1.2.3-alpha.0");
 
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
-
-                Assert.Equal(String.Format(Strings.NuGetPackageReleaseVersionWithDot, "Version"), ex.Message);
+                await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null);
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageSpecialVersionContainsOnlyNumbers()
+            private async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsOnlyNumbers()
             {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(id: "theId", version: "1.2.3-12345");
 
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
-
-                Assert.Equal(String.Format(Strings.NuGetPackageReleaseVersionContainsOnlyNumerics, "Version"), ex.Message);
+                await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null);
             }
 
             [Fact]
