@@ -28,7 +28,7 @@ namespace NuGetGallery.Packaging
             catch (Exception ex)
             {
                 nuspecReader = null;
-                return new [] { new ValidationResult(ex.Message) };
+                return new[] { new ValidationResult(ex.Message) };
             }
 
             return Enumerable.Empty<ValidationResult>();
@@ -59,7 +59,7 @@ namespace NuGetGallery.Packaging
             // Check and validate URL properties
             foreach (var result in CheckUrls(
                 packageMetadata.GetValueFromMetadata("IconUrl"),
-                packageMetadata.GetValueFromMetadata("ProjectUrl"), 
+                packageMetadata.GetValueFromMetadata("ProjectUrl"),
                 packageMetadata.GetValueFromMetadata("LicenseUrl")))
             {
                 yield return result;
@@ -74,12 +74,6 @@ namespace NuGetGallery.Packaging
                     CultureInfo.CurrentCulture,
                     CoreStrings.Manifest_InvalidVersion,
                     version));
-            }
-
-            var versionValidationResult = ValidateVersion(packageMetadata.Version);
-            if (versionValidationResult != null)
-            {
-                yield return versionValidationResult;
             }
 
             // Check framework reference groups
@@ -143,17 +137,19 @@ namespace NuGetGallery.Packaging
                         // Versions
                         if (dependency.VersionRange.MinVersion != null)
                         {
-                            var versionRangeValidationResult = ValidateVersion(dependency.VersionRange.MinVersion);
+                            var versionRangeValidationResult =
+                                ValidateDependencyVersion(dependency.VersionRange.MinVersion);
                             if (versionRangeValidationResult != null)
                             {
                                 yield return versionRangeValidationResult;
                             }
                         }
 
-                        if (dependency.VersionRange.MaxVersion != null 
+                        if (dependency.VersionRange.MaxVersion != null
                             && dependency.VersionRange.MaxVersion != dependency.VersionRange.MinVersion)
                         {
-                            var versionRangeValidationResult = ValidateVersion(dependency.VersionRange.MaxVersion);
+                            var versionRangeValidationResult =
+                                ValidateDependencyVersion(dependency.VersionRange.MaxVersion);
                             if (versionRangeValidationResult != null)
                             {
                                 yield return versionRangeValidationResult;
@@ -164,21 +160,14 @@ namespace NuGetGallery.Packaging
             }
         }
 
-        private static ValidationResult ValidateVersion(NuGetVersion version)
+        private static ValidationResult ValidateDependencyVersion(NuGetVersion version)
         {
-            if (version.IsSemVer2)
+            if (version.HasMetadata)
             {
                 return new ValidationResult(string.Format(
                     CultureInfo.CurrentCulture,
-                    CoreStrings.Manifest_InvalidVersionSemVer200,
+                    CoreStrings.Manifest_InvalidDependencyVersion,
                     version.ToFullString()));
-            }
-            else if (!version.IsValidVersionForLegacyClients())
-            {
-                return new ValidationResult(string.Format(
-                    CultureInfo.CurrentCulture,
-                    CoreStrings.Manifest_InvalidVersion,
-                    version));
             }
 
             return null;
