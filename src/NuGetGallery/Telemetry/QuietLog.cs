@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Web;
 using Elmah;
-using Microsoft.ApplicationInsights;
 
 namespace NuGetGallery
 {

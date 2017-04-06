@@ -83,6 +83,9 @@
       <HintPath>..\..\packages\MarkdownSharp.1.13.0.0\lib\35\MarkdownSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.ApplicationInsights, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.ApplicationInsights.2.2.0\lib\net46\Microsoft.ApplicationInsights.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Azure.Common, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Azure.Common.2.0.4\lib\net45\Microsoft.Azure.Common.dll</HintPath>
       <Private>True</Private>
@@ -409,6 +412,7 @@
     <Compile Include="Services\ReflowPackageServiceFacts.cs" />
     <Compile Include="Services\ScopeEvaluatorFacts.cs" />
     <Compile Include="Services\SearchAdaptorFacts.cs" />
+    <Compile Include="Telemetry\ClientInformationTelemetryEnricherTests.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV1Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV2Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestDependencyResolver.cs" />
