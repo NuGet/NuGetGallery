@@ -626,21 +626,6 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength);
             }
-            if (packageMetadata.Version.IsPrerelease)
-            {
-                var release = packageMetadata.Version.Release;
-
-                if (release.Contains("."))
-                {
-                    throw new EntityException(Strings.NuGetPackageReleaseVersionWithDot, "Version");
-                }
-
-                long temp;
-                if (long.TryParse(release, out temp))
-                {
-                    throw new EntityException(Strings.NuGetPackageReleaseVersionContainsOnlyNumerics, "Version");
-                }
-            }
             if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
