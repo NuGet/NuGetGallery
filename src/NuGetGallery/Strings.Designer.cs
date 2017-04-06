@@ -600,24 +600,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Package {0} invalid: the release label can not only contain numerics..
-        /// </summary>
-        public static string NuGetPackageReleaseVersionContainsOnlyNumerics {
-            get {
-                return ResourceManager.GetString("NuGetPackageReleaseVersionContainsOnlyNumerics", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Package {0} invalid: no &apos;.&apos; allowed in the release label..
-        /// </summary>
-        public static string NuGetPackageReleaseVersionWithDot {
-            get {
-                return ResourceManager.GetString("NuGetPackageReleaseVersionWithDot", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Package created from API..
         /// </summary>
         public static string PackageCreatedFromApi {
