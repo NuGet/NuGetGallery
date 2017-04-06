@@ -424,44 +424,29 @@ namespace NuGetGallery.Packaging
         }
 
         [Fact]
-        public void ReturnsErrorIfVersionIsSemVer200()
+        public void ReturnsNoErrorIfVersionIsSemVer200()
         {
             var nuspecStream = CreateNuspecStream(NuSpecSemVer200);
 
-            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidVersionSemVer200, "2.0.0+123") }, GetErrors(nuspecStream));
+            Assert.Empty(GetErrors(nuspecStream));
         }
 
-        [Theory]
-        [InlineData("1.0.0-beta.1")]
-        [InlineData("3.0.0-beta+12")]
-        public void ReturnsErrorIfDependencyVersionIsSemVer200(string version)
+        [Fact]
+        public void ReturnsNoErrorIfDependencyVersionIsSemVer200WithoutMetadataPart()
         {
+            const string version = "1.0.0-beta.1";
             var nuspecStream = CreateNuspecStream(string.Format(NuSpecDependencyVersionPlaceholder, version));
-
-            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidVersionSemVer200, version) }, GetErrors(nuspecStream));
+            
+            Assert.Empty(GetErrors(nuspecStream));
         }
 
-        [Theory]
-        [InlineData("1.0.0-10")]
-        [InlineData("1.0.0--")]
-        public void ReturnsErrorIfVersionIsInvalid(string version)
+        [Fact]
+        public void ReturnsErrorIfDependencyVersionIsSemVer200WithMetadataPart()
         {
-            // https://github.com/NuGet/NuGetGallery/issues/3226
-
-            var nuspecStream = CreateNuspecStream(string.Format(NuSpecPlaceholderVersion, version));
-
-            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidVersion, version) }, GetErrors(nuspecStream));
-        }
-
-
-        [Theory]
-        [InlineData("1.0.0-10")]
-        [InlineData("1.0.0--")]
-        public void ReturnsErrorIfDependencyVersionIsInvalid(string version)
-        {
+            const string version = "3.0.0-beta+12";
             var nuspecStream = CreateNuspecStream(string.Format(NuSpecDependencyVersionPlaceholder, version));
-
-            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidVersion, version) }, GetErrors(nuspecStream));
+            
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidDependencyVersion, version) }, GetErrors(nuspecStream));
         }
 
         [Fact]
