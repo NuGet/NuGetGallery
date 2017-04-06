@@ -13,15 +13,15 @@ namespace NuGetGallery
         private const string _partialIdSqlFormat = @"SELECT TOP 30 pr.ID
 FROM Packages p (NOLOCK)
     JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
-WHERE p.[SemVerLevelKey] IS NULL AND pr.ID LIKE {{0}}
-    {0}
+WHERE {0} AND pr.ID LIKE {{0}}
+    {1}
 GROUP BY pr.ID
 ORDER BY pr.ID";
 
         private const string _noPartialIdSql = @"SELECT TOP 30 pr.ID
 FROM Packages p (NOLOCK)
     JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
-WHERE  p.[SemVerLevelKey] IS NULL 
+WHERE  {0} 
 GROUP BY pr.ID
 ORDER BY MAX(pr.DownloadCount) DESC";
         
@@ -32,11 +32,24 @@ ORDER BY MAX(pr.DownloadCount) DESC";
 
         public Task<IEnumerable<string>> Execute(
             string partialId,
-            bool? includePrerelease = false)
+            bool? includePrerelease = false,
+            string semVerLevel = null)
         {
+            // Create SQL filter on SemVerLevel
+            // By default, we filter out SemVer v2.0.0 package versions.
+            var semVerLevelSqlFilter = "p.[SemVerLevelKey] IS NULL";
+            if (!string.IsNullOrEmpty(semVerLevel))
+            {
+                var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+                if (semVerLevelKey == SemVerLevelKey.SemVer2)
+                {
+                    semVerLevelSqlFilter = "p.[SemVerLevelKey] = " + SemVerLevelKey.SemVer2;
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(partialId))
             {
-                return RunQuery(_noPartialIdSql);
+                return RunSqlQuery(string.Format(CultureInfo.InvariantCulture, _noPartialIdSql, semVerLevelSqlFilter));
             }
 
             var prereleaseFilter = string.Empty;
@@ -45,9 +58,9 @@ ORDER BY MAX(pr.DownloadCount) DESC";
                 prereleaseFilter = "AND p.IsPrerelease = {1}";
             }
 
-            var sql = string.Format(CultureInfo.InvariantCulture, _partialIdSqlFormat, prereleaseFilter);
+            var sql = string.Format(CultureInfo.InvariantCulture, _partialIdSqlFormat, semVerLevelSqlFilter, prereleaseFilter);
 
-            return RunQuery(sql, partialId + "%", includePrerelease ?? false);
+            return RunSqlQuery(sql, partialId + "%", includePrerelease ?? false);
         }
     }
 }
