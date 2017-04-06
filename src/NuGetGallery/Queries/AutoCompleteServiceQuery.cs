@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Search.Client;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -30,9 +31,19 @@ namespace NuGetGallery
             _httpClient = new RetryingHttpClientWrapper(new HttpClient());
         }
 
-        public async Task<IEnumerable<string>> RunQuery(string queryString, bool? includePrerelease)
+        public async Task<IEnumerable<string>> RunServiceQuery(
+            string queryString, 
+            bool? includePrerelease,
+            string semVerLevel = null)
         {
             queryString += $"&prerelease={includePrerelease ?? false}";
+
+            NuGetVersion semVerLevelVersion;
+            if (!string.IsNullOrEmpty(semVerLevel) && NuGetVersion.TryParse(semVerLevel, out semVerLevelVersion))
+            {
+                queryString += $"&semVerLevel={semVerLevel}";
+            }
+
             var endpoints = await _serviceDiscoveryClient.GetEndpointsForResourceType(_autocompleteServiceResourceType);
             endpoints = endpoints.Select(e => new Uri(e + "?" + queryString)).AsEnumerable();
 

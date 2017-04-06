@@ -60,6 +60,7 @@ namespace NuGetGallery
             searchAction.Parameter<string>("searchTerm");
             searchAction.Parameter<string>("targetFramework");
             searchAction.Parameter<bool>("includePrerelease");
+            searchAction.Parameter<string>("semVerLevel");
             searchAction.ReturnsCollectionFromEntitySet<V2FeedPackage>("Packages");
 
             var findPackagesAction = builder.Action("FindPackagesById");
@@ -73,6 +74,7 @@ namespace NuGetGallery
             getUpdatesAction.Parameter<bool>("includeAllVersions");
             getUpdatesAction.Parameter<string>("targetFrameworks");
             getUpdatesAction.Parameter<string>("versionConstraints");
+            getUpdatesAction.Parameter<string>("semVerLevel");
             getUpdatesAction.ReturnsCollectionFromEntitySet<V2FeedPackage>("Packages");
 
             var model = builder.GetEdmModel();

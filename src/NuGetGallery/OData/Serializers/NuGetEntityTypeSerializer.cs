@@ -68,6 +68,10 @@ namespace NuGetGallery.OData.Serializers
             var instance = entityInstanceContext.EntityInstance as V2FeedPackage;
             if (instance != null)
             {
+                // Patch links to use normalized versions
+                var normalizedVersion = NuGetVersionNormalizer.Normalize(instance.Version);
+                NormalizeNavigationLinks(entry, entityInstanceContext.Request, instance, normalizedVersion);
+
                 // Set Atom entry metadata
                 var atomEntryMetadata = new AtomEntryMetadata();
                 atomEntryMetadata.Title = instance.Id;
@@ -89,8 +93,28 @@ namespace NuGetGallery.OData.Serializers
                 entry.MediaResource = new ODataStreamReferenceValue
                 {
                     ContentType = ContentType,
-                    ReadLink = BuildLinkForStreamProperty("v2", instance.Id, instance.Version, entityInstanceContext.Request)
+                    ReadLink = BuildLinkForStreamProperty("v2", instance.Id, normalizedVersion, entityInstanceContext.Request)
                 };
+            }
+        }
+
+        private static void NormalizeNavigationLinks(ODataEntry entry, HttpRequestMessage request, V2FeedPackage instance, string normalizedVersion)
+        {
+            var idLink = BuildIdLink("v2", instance.Id, normalizedVersion, request);
+
+            if (entry.ReadLink != null)
+            {
+                entry.ReadLink = idLink;
+            }
+
+            if (entry.EditLink != null)
+            {
+                entry.EditLink = idLink;
+            }
+
+            if (entry.Id != null)
+            {
+                entry.Id = idLink.ToString();
             }
         }
 
@@ -109,6 +133,11 @@ namespace NuGetGallery.OData.Serializers
             builder.Query = string.Empty;
 
             return builder.Uri;
+        }
+
+        private static Uri BuildIdLink(string routePrefix, string id, string version, HttpRequestMessage request)
+        {
+            return new Uri($"{request.RequestUri.Scheme}://{request.RequestUri.Host}/api/{routePrefix}/Packages(Id='{id}',Version='{version}')");
         }
 
         private static string EnsureTrailingSlash(string url)
