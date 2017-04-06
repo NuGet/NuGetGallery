@@ -124,6 +124,7 @@ namespace Ng.Jobs
         private TextWriter _log;
         private string _contentBaseAddress;
         private RegistrationStorageFactories _storageFactories;
+        private ShouldIncludeRegistrationPackage _shouldIncludeSemVer2;
         private IDictionary<string, string> _arguments;
         #endregion
 
@@ -157,6 +158,7 @@ namespace Ng.Jobs
             _log = _verbose ? Console.Out : new StringWriter();
             _contentBaseAddress = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
             _storageFactories = CommandHelpers.CreateRegistrationStorageFactories(arguments, _verbose);
+            _shouldIncludeSemVer2 = RegistrationCollector.GetShouldIncludeRegistrationPackage(_storageFactories.SemVer2StorageFactory);
 
             // We save the arguments because the "prepare" command generates "strike" commands. Some of the arguments
             // used by "prepare" should be used when executing "strike".
@@ -448,7 +450,7 @@ namespace Ng.Jobs
             await RegistrationMaker.Process(
                 new RegistrationKey(packageId),
                 sortedGraphs,
-                RegistrationCollector.IsNotSemVer2,
+                _shouldIncludeSemVer2,
                 _storageFactories.LegacyStorageFactory,
                 new Uri(_contentBaseAddress),
                 RegistrationCollector.PartitionSize,

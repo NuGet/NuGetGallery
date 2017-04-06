@@ -291,7 +291,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task IgnoresSemVer2Packages()
+        public async Task IgnoresSemVer2PackagesInLegacyStorageWhenSemVer2IsEnabled()
         {
             // Arrange
             SharedInit(useLegacy: true, useSemVer2: true);
@@ -306,11 +306,46 @@ namespace NgTests
             await _target.Run(front, back, CancellationToken.None);
 
             // Assert
-            // Verify the contents of the SemVer 1.0.0 storage
-            Assert.Equal(1, _legacyStorage.Content.Count);
-
             var legacyCursor = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
             Assert.NotNull(legacyCursor.Key);
+            var legacyIndex = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2/index.json"));
+            Assert.Null(legacyIndex.Key);
+            var legacyLeaf = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2/1.0.0-alpha.1.json"));
+            Assert.Null(legacyLeaf.Key);
+            Assert.Equal(1, _legacyStorage.Content.Count);
+
+            var semVer2Cursor = _semVer2Storage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
+            Assert.Null(semVer2Cursor.Key);
+            var semVer2Index = _semVer2Storage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2/index.json"));
+            Assert.NotNull(semVer2Index.Key);
+            var semVer2Leaf = _semVer2Storage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2/1.0.0-alpha.1.json"));
+            Assert.NotNull(semVer2Leaf.Key);
+            Assert.Equal(2, _semVer2Storage.Content.Count);
+        }
+
+        [Fact]
+        public async Task PutsSemVer2PackagesInLegacyStorageWhenSemVer2IsDisabled()
+        {
+            // Arrange
+            SharedInit(useLegacy: true, useSemVer2: false);
+
+            var catalogStorage = Catalogs.CreateTestCatalogWithSemVer2Package();
+            await _mockServer.AddStorage(catalogStorage);
+
+            var front = new DurableCursor(_legacyStorage.ResolveUri("cursor.json"), _legacyStorage, MemoryCursor.MinValue);
+            var back = MemoryCursor.CreateMax();
+
+            // Act
+            await _target.Run(front, back, CancellationToken.None);
+
+            // Assert
+            var legacyCursor = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
+            Assert.NotNull(legacyCursor.Key);
+            var legacyIndex = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2/index.json"));
+            Assert.NotNull(legacyIndex.Key);
+            var legacyLeaf = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2/1.0.0-alpha.1.json"));
+            Assert.NotNull(legacyLeaf.Key);
+            Assert.Equal(3, _legacyStorage.Content.Count);
         }
     }
 }

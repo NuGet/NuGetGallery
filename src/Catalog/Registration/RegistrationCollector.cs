@@ -21,6 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         private readonly StorageFactory _legacyStorageFactory;
         private readonly StorageFactory _semVer2StorageFactory;
+        private readonly ShouldIncludeRegistrationPackage _shouldIncludeSemVer2;
 
         public RegistrationCollector(
             Uri index,
@@ -36,6 +37,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             _legacyStorageFactory = legacyStorageFactory;
             _semVer2StorageFactory = semVer2StorageFactory;
+            _shouldIncludeSemVer2 = GetShouldIncludeRegistrationPackage(_semVer2StorageFactory);
 
             ContentBaseAddress = new Uri("http://tempuri.org");
         }
@@ -86,7 +88,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             await RegistrationMaker.Process(
                 registrationKey: new RegistrationKey(sortedGraphs.Key),
                 newItems: sortedGraphs.Value,
-                shouldInclude: IsNotSemVer2,
+                shouldInclude: _shouldIncludeSemVer2,
                 storageFactory: _legacyStorageFactory,
                 contentBaseAddress: ContentBaseAddress,
                 partitionSize: PartitionSize,
@@ -106,9 +108,19 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
         }
 
-        public static bool IsNotSemVer2(RegistrationEntryKey key, string resourceUri, IGraph graph)
+        public static ShouldIncludeRegistrationPackage GetShouldIncludeRegistrationPackage(StorageFactory semVer2StorageFactory)
         {
-            return !NuGetVersionUtility.IsGraphSemVer2(key.Version, resourceUri, graph);
+            // If SemVer 2.0.0 storage is disabled, put SemVer 2.0.0 registration in the legacy storage factory. In no
+            // case should a package be completely ignored. That is, if a package is SemVer 2.0.0 but SemVer 2.0.0
+            // storage is not enabled, our only choice is to put SemVer 2.0.0 packages in the legacy storage.
+            if (semVer2StorageFactory == null)
+            {
+                return (k, u, g) => true;
+            }
+            else
+            {
+                return (k, u, g) => !NuGetVersionUtility.IsGraphSemVer2(k.Version, u, g);
+            }
         }
     }
 }
