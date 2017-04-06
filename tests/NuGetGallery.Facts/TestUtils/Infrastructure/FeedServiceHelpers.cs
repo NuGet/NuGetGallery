@@ -45,6 +45,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                 {
                     PackageRegistration = fooPackage,
                     Version = "1.0.0",
+                    NormalizedVersion = "1.0.0",
                     IsPrerelease = false,
                     Listed = true,
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
@@ -57,6 +58,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                 {
                     PackageRegistration = fooPackage,
                     Version = "1.0.1-a",
+                    NormalizedVersion = "1.0.1-a",
                     IsPrerelease = true,
                     Listed = true,
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
@@ -69,6 +71,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                 {
                     PackageRegistration = barPackage,
                     Version = "1.0.0",
+                    NormalizedVersion = "1.0.0",
                     IsPrerelease = false,
                     Listed = true,
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
@@ -81,6 +84,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                 {
                     PackageRegistration = barPackage,
                     Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
                     IsPrerelease = false,
                     Listed = true,
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
@@ -93,6 +97,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                 {
                     PackageRegistration = barPackage,
                     Version = "2.0.1-a",
+                    NormalizedVersion = "2.0.1-a",
                     IsPrerelease = true,
                     Listed = true,
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
@@ -105,6 +110,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                 {
                     PackageRegistration = barPackage,
                     Version = "2.0.1-b",
+                    NormalizedVersion = "2.0.1-b",
                     IsPrerelease = true,
                     Listed = false,
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
@@ -117,6 +123,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                 {
                     PackageRegistration = bazPackage,
                     Version = "1.0.0",
+                    NormalizedVersion = "1.0.0",
                     IsPrerelease = false,
                     Listed = false,
                     Deleted = true, // plot twist: this package is a soft-deleted one
