@@ -18,11 +18,12 @@ namespace NuGetGallery
 
         public async Task<IEnumerable<string>> Execute(
             string partialId, 
-            bool? includePrerelease)
+            bool? includePrerelease,
+            string semVerLevel = null)
         {
             partialId = partialId ?? string.Empty;
 
-            return await RunQuery("take=30&q=" + Uri.EscapeUriString(partialId), includePrerelease);
+            return await RunServiceQuery("take=30&q=" + Uri.EscapeUriString(partialId), includePrerelease, semVerLevel);
         }
     }
 }

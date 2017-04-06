@@ -18,14 +18,15 @@ namespace NuGetGallery
 
         public async Task<IEnumerable<string>> Execute(
             string id, 
-            bool? includePrerelease)
+            bool? includePrerelease,
+            string semVerLevel = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
 
-            return await RunQuery("id=" + Uri.EscapeUriString(id), includePrerelease);
+            return await RunServiceQuery("id=" + Uri.EscapeUriString(id), includePrerelease, semVerLevel);
         }
     }
 }

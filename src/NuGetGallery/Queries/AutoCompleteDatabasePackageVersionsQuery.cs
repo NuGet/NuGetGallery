@@ -14,9 +14,9 @@ namespace NuGetGallery
         private const string _sqlFormat = @"SELECT p.[Version]
 FROM Packages p (NOLOCK)
 	JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
-WHERE p.[SemVerLevelKey] IS NULL AND pr.ID = {{0}}
-	{0}";
-        
+WHERE {0} AND pr.ID = {{0}}
+	{1}";
+
         public AutoCompleteDatabasePackageVersionsQuery(IEntitiesContext entities)
             : base(entities)
         {
@@ -24,20 +24,33 @@ WHERE p.[SemVerLevelKey] IS NULL AND pr.ID = {{0}}
 
         public Task<IEnumerable<string>> Execute(
             string id,
-            bool? includePrerelease = false)
+            bool? includePrerelease = false,
+            string semVerLevel = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
             
+            // Create SQL filter on SemVerLevel
+            // By default, we filter out SemVer v2.0.0 package versions.
+            var semVerLevelSqlFilter = "p.[SemVerLevelKey] IS NULL";
+            if (!string.IsNullOrEmpty(semVerLevel))
+            {
+                var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+                if (semVerLevelKey == SemVerLevelKey.SemVer2)
+                {
+                    semVerLevelSqlFilter = "p.[SemVerLevelKey] = " + SemVerLevelKey.SemVer2;
+                }
+            }
+
             var prereleaseFilter = string.Empty;
             if (!includePrerelease.HasValue || !includePrerelease.Value)
             {
                 prereleaseFilter = "AND p.IsPrerelease = 0";
             }
             
-            return RunQuery(string.Format(CultureInfo.InvariantCulture, _sqlFormat, prereleaseFilter), id);
+            return RunSqlQuery(string.Format(CultureInfo.InvariantCulture, _sqlFormat, semVerLevelSqlFilter, prereleaseFilter), id);
         }
     }
 }

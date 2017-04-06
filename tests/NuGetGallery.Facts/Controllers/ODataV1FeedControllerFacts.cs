@@ -22,7 +22,7 @@ namespace NuGetGallery.Controllers
                 "/api/v1/Packages");
 
             // Assert
-            AssertResultCorrect(resultSet);
+            AssertSemVer2PackagesFilteredFromResult(resultSet);
             Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
         }
 
@@ -47,7 +47,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v1/FindPackagesById?id='{TestPackageId}'");
 
             // Assert
-            AssertResultCorrect(resultSet);
+            AssertSemVer2PackagesFilteredFromResult(resultSet);
             Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
         }
 
@@ -60,7 +60,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v1/Search?searchTerm='{TestPackageId}'");
 
             // Assert
-            AssertResultCorrect(resultSet);
+            AssertSemVer2PackagesFilteredFromResult(resultSet);
             Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
         }
 
@@ -82,7 +82,7 @@ namespace NuGetGallery.Controllers
             return new ODataV1FeedController(packagesRepository, configurationService, searchService);
         }
 
-        private void AssertResultCorrect(IEnumerable<V1FeedPackage> resultSet)
+        private void AssertSemVer2PackagesFilteredFromResult(IEnumerable<V1FeedPackage> resultSet)
         {
             foreach (var feedPackage in resultSet)
             {
