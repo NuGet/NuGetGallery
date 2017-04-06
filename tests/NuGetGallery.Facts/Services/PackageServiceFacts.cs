@@ -350,7 +350,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage(id: idThatMatchesExistingTitle);
 
                 // Assert
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
 
                 Assert.Equal(String.Format(Strings.NewRegistrationIdMatchesExistingPackageTitle, idThatMatchesExistingTitle), ex.Message);
             }
