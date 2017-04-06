@@ -118,6 +118,7 @@
     <Compile Include="Auditing\AuditActorTests.cs" />
     <Compile Include="Auditing\AuditedAuthenticatedOperationActionTests.cs" />
     <Compile Include="Auditing\AuditedPackageActionTests.cs" />
+    <Compile Include="Auditing\AuditedPackageFacts.cs" />
     <Compile Include="Auditing\AuditedPackageRegistrationActionTests.cs" />
     <Compile Include="Auditing\AuditedUserActionTests.cs" />
     <Compile Include="Auditing\AuditEntryTests.cs" />
