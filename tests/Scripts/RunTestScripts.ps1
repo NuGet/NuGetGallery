@@ -7,33 +7,29 @@ $dividerSymbol = "~"
 $failedTests = New-Object System.Collections.ArrayList
 
 $TestCategories.Split(';') | ForEach-Object {
-    Write-Host ($dividerSymbol * 20)
-    Write-Host "Testing $_."
-    Write-Host ($dividerSymbol * 10)
+    Write-Output ($dividerSymbol * 20)
+    Write-Output "Testing $_."
+    Write-Output ($dividerSymbol * 10)
     
     & $env:COMSPEC /c "$PSScriptRoot\Run$_.bat"
     
-    Write-Host ($dividerSymbol * 10)
+    Write-Output ($dividerSymbol * 10)
     
-    Write-Host "Finished testing $_."
+    Write-Output "Finished testing $_."
     if ($LastExitCode) {
-        Write-Host "$_ failed!"
+        Write-Output "$_ failed!"
         $failedTests.Add($_) | Out-Null
     } else {
-        Write-Host "$_ succeeded!"
+        Write-Output "$_ succeeded!"
     }
 }
 
-Write-Host ($dividerSymbol * 20)
+Write-Output ($dividerSymbol * 20)
 if ($failedTests.Count -gt 0) {
-    Write-Host "Some functional tests failed!"
-    
-    $failedTestsStrings = $failedTests | ForEach-Object { $_ }
-    $failedTestsString = [string]::Join(", ", $failedTestsStrings)
-    Write-Host "$failedTestsString failed!"
-    
+    Write-Output "Some functional tests failed!"
+    Write-Output "$($failedTests -join ', ') failed!"
     exit 1
 }
 
-Write-Host "All functional tests succeeded!"
+Write-Output "All functional tests succeeded!"
 exit 0
