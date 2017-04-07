@@ -1,14 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Helpers;
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using VDS.RDF;
 using VDS.RDF.Query;
 
@@ -16,12 +17,12 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationPersistence : IRegistrationPersistence
     {
-        Uri _registrationUri;
-        int _packageCountThreshold;
-        int _partitionSize;
-        RecordingStorage _storage;
-        Uri _registrationBaseAddress;
-        Uri _contentBaseAddress;
+        private readonly Uri _registrationUri;
+        private readonly int _packageCountThreshold;
+        private readonly int _partitionSize;
+        private readonly RecordingStorage _storage;
+        private readonly Uri _registrationBaseAddress;
+        private readonly Uri _contentBaseAddress;
 
         public RegistrationPersistence(StorageFactory storageFactory, RegistrationKey registrationKey, int partitionSize, int packageCountThreshold, Uri contentBaseAddress)
         {
@@ -105,7 +106,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             IGraph graph = SparqlHelpers.Construct(store, sparql.ToString());
 
-            resources.Add(RegistrationCatalogEntry.Promote(catalogEntry.AbsoluteUri, graph, isExistingItem: true));
+            resources.Add(RegistrationCatalogEntry.Promote(
+                catalogEntry.AbsoluteUri,
+                graph,
+                shouldInclude: (k, u, g) => true,
+                isExistingItem: true));
         }
 
         static async Task<IGraph> LoadCatalog(IStorage storage, Uri resourceUri, CancellationToken cancellationToken)

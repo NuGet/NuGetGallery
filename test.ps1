@@ -24,7 +24,11 @@ Function Run-Tests {
     
     $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console.2.1.0\tools\xunit.console.exe")
     
-    $TestAssemblies = "tests\NgTests\bin\$Configuration\NgTests.dll", "tests\NuGet.IndexingTests\bin\$Configuration\NuGet.IndexingTests.dll", "tests\NuGet.Services.BasicSearchTests\bin\$Configuration\NuGet.Services.BasicSearchTests.dll"
+    $TestAssemblies = `
+        "tests\NgTests\bin\$Configuration\NgTests.dll", `
+        "tests\NuGet.IndexingTests\bin\$Configuration\NuGet.IndexingTests.dll", `
+        "tests\NuGet.Services.BasicSearchTests\bin\$Configuration\NuGet.Services.BasicSearchTests.dll", `
+        "tests\CatalogTests\bin\$Configuration\CatalogTests.exe"
     
     $TestCount = 0
     

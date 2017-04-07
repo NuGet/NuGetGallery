@@ -46,12 +46,12 @@ namespace NuGet.Indexing
             // TODO: extract supported frameworks from the folder structure
 
             nupkgStream.Seek(0, SeekOrigin.Begin);
-            package["packageSize"] = nupkgStream.Length.ToString();
-            using (HashAlgorithm hashAlgorithm = HashAlgorithm.Create("SHA512"))
+            package[MetadataConstants.PackageSizePropertyName] = nupkgStream.Length.ToString();
+            using (HashAlgorithm hashAlgorithm = HashAlgorithm.Create(MetadataConstants.HashAlgorithmValue))
             {
                 string hash = Convert.ToBase64String(hashAlgorithm.ComputeHash(nupkgStream));
-                package["packageHash"] = hash;
-                package["packageHashAlgorithm"] = "SHA512";
+                package[MetadataConstants.PackageHashPropertyName] = hash;
+                package[MetadataConstants.PackageHashAlgorithmPropertyName] = MetadataConstants.HashAlgorithmValue;
             }
 
             return package;
@@ -65,26 +65,26 @@ namespace NuGet.Indexing
                 return;
             }
 
-            ExtractProperty(package, document, "id");
-            ExtractProperty(package, document, "version", "originalVersion");
-            ExtractProperty(package, document, "title");
-            ExtractProperty(package, document, "summary");
-            ExtractProperty(package, document, "tags");
-            ExtractProperty(package, document, "authors");
-            ExtractProperty(package, document, "description");
-            ExtractProperty(package, document, "iconUrl");
-            ExtractProperty(package, document, "projectUrl");
-            ExtractProperty(package, document, "minClientVersion");
-            ExtractProperty(package, document, "releaseNotes");
-            ExtractProperty(package, document, "copyright");
-            ExtractProperty(package, document, "language");
-            ExtractProperty(package, document, "licenseUrl");
-            ExtractProperty(package, document, "requiresLicenseAcceptance");
+            ExtractProperty(package, document, MetadataConstants.IdPropertyName);
+            ExtractProperty(package, document, MetadataConstants.NuPkgMetadata.VersionPropertyName, MetadataConstants.VersionPropertyName);
+            ExtractProperty(package, document, MetadataConstants.TitlePropertyName);
+            ExtractProperty(package, document, MetadataConstants.SummaryPropertyName);
+            ExtractProperty(package, document, MetadataConstants.TagsPropertyName);
+            ExtractProperty(package, document, MetadataConstants.AuthorsPropertyName);
+            ExtractProperty(package, document, MetadataConstants.DescriptionPropertyName);
+            ExtractProperty(package, document, MetadataConstants.IconUrlPropertyName);
+            ExtractProperty(package, document, MetadataConstants.ProjectUrlPropertyName);
+            ExtractProperty(package, document, MetadataConstants.MinClientVersionPropertyName);
+            ExtractProperty(package, document, MetadataConstants.ReleaseNotesPropertyName);
+            ExtractProperty(package, document, MetadataConstants.CopyrightPropertyName);
+            ExtractProperty(package, document, MetadataConstants.LanguagePropertyName);
+            ExtractProperty(package, document, MetadataConstants.LicenseUrlPropertyName);
+            ExtractProperty(package, document, MetadataConstants.RequiresLicenseAcceptancePropertyName);
 
             // TODO: extract from the XML - refer to the XSLT for an accurate definition of the generic structure
 
-            package["published"] = DateTimeOffset.UtcNow.ToString("O");
-            package["listed"] = "true";
+            package[MetadataConstants.PublishedPropertyName] = DateTimeOffset.UtcNow.ToString("O");
+            package[MetadataConstants.ListedPropertyName] = "true";
         }
 
         static bool TryLoad(Stream stream, out XDocument document, List<string> errors)

@@ -2,15 +2,15 @@
 
 :Top
 
-title [cursor]
+title [cursorFile]
 
 @echo starting
 
-start /w ng.exe lightning -command strike -indexFile [index] -cursorFile [cursor] -contentBaseAddress [contentbaseaddress] -storageAccount [storageaccount] -storageContainer [storagecontainer] -storageBaseAddress [storagebaseaddress] -compress [compress] -verbose true
+start /w ng.exe lightning -command strike -indexFile "[indexFile]" -cursorFile "[cursorFile]" -contentBaseAddress "[contentBaseAddress]" -verbose "[verbose]" -storageBaseAddress "[storageBaseAddress]" -storageAccountName "[storageAccountName]" -storageKeyValue "[storageKeyValue]" -storageContainer "[storageContainer]" -useCompressedStorage "[useCompressedStorage]" -compressedStorageBaseAddress "[compressedStorageBaseAddress]" -compressedStorageAccountName "[compressedStorageAccountName]" -compressedStorageKeyValue "[compressedStorageKeyValue]" -compressedStorageContainer "[compressedStorageContainer]" -useSemVer2Storage "[useSemVer2Storage]" -semVer2StorageBaseAddress "[semVer2StorageBaseAddress]" -semVer2StorageAccountName "[semVer2StorageAccountName]" -semVer2StorageKeyValue "[semVer2StorageKeyValue]" -semVer2StorageContainer "[semVer2StorageContainer]"
 
 @echo finished
 
-If exist DONE[cursor] GOTO EOF
+If exist DONE[cursorFile] GOTO EOF
 
 Goto Top
 

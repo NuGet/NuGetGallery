@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using Ng;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
@@ -12,9 +14,9 @@ namespace NgTests
     public class StorageFactoryTests
     {
         [Theory]
-        [Description("The azure commpressed factory should compress the content.")]
+        [Description("The azure compressed factory should compress the content.")]
         [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath", "azure")]
-        public void AzureCommpressedFactory(string storageBaseAddress,
+        public void AzureCompressedFactory(string storageBaseAddress,
                                             string storageAccountName,
                                             string storageKeyValue,
                                             string storageContainer,
@@ -40,9 +42,9 @@ namespace NgTests
         }
 
         [Theory]
-        [Description("The azure commpressed factory will be null if the UseCompressedStorage is false.")]
+        [Description("The azure compressed factory will be null if the UseCompressedStorage is false.")]
         [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath", "azure")]
-        public void AzureCommpressedFactoryNull(string storageBaseAddress,
+        public void AzureCompressedFactoryNull(string storageBaseAddress,
                                             string storageAccountName,
                                             string storageKeyValue,
                                             string storageContainer,
@@ -56,8 +58,8 @@ namespace NgTests
                 { Arguments.CompressedStorageKeyValue, storageKeyValue },
                 { Arguments.CompressedStorageContainer, storageContainer },
                 { Arguments.CompressedStoragePath, storagePath },
-                { Arguments.StorageType, storageType},
-                { Arguments.UseCompressedStorage, "false"}
+                { Arguments.StorageType, storageType },
+                { Arguments.UseCompressedStorage, "false" }
             };
 
             StorageFactory factory = CommandHelpers.CreateCompressedStorageFactory(arguments, true);
@@ -90,6 +92,172 @@ namespace NgTests
             // Assert
             Assert.True(azureFactory != null, "The CreateCompressedStorageFactory should return an AzureStorageFactory type.");
             Assert.False(azureFactory.CompressContent, "The azure storage factory should not compress the content.");
+        }
+
+        [Theory]
+        [Description("The SemVer 2.0.0 Azure factory should compress the content.")]
+        [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath")]
+        public void AzureSemVer2Factory(string storageBaseAddress,
+                                        string storageAccountName,
+                                        string storageKeyValue,
+                                        string storageContainer,
+                                        string storagePath)
+        {
+            Dictionary<string, string> arguments = new Dictionary<string, string>()
+            {
+                { Arguments.SemVer2StorageBaseAddress, storageBaseAddress },
+                { Arguments.SemVer2StorageAccountName, storageAccountName },
+                { Arguments.SemVer2StorageKeyValue, storageKeyValue },
+                { Arguments.SemVer2StorageContainer, storageContainer },
+                { Arguments.SemVer2StoragePath, storagePath },
+                { Arguments.StorageType, "azure" },
+                { Arguments.UseSemVer2Storage, "true" }
+            };
+
+            var factory = CommandHelpers.CreateSemVer2StorageFactory(arguments, verbose: true);
+
+            // Assert
+            var azureFactory = Assert.IsType<AzureStorageFactory>(factory);
+            Assert.True(azureFactory.CompressContent, "The Azure storage factory should compress the content.");
+        }
+
+        [Fact]
+        public void CreateRegistrationStorageFactories_WithAllThreeFactories()
+        {
+            // Arrange
+            var arguments = new Dictionary<string, string>()
+            {
+                { Arguments.StorageType, "azure" },
+
+                { Arguments.StorageBaseAddress, "http://localhost/reg" },
+                { Arguments.StorageAccountName, "testAccount" },
+                { Arguments.StorageKeyValue, "AiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.StorageContainer, "testContainer" },
+                { Arguments.StoragePath, "testStoragePath" },
+
+                { Arguments.UseCompressedStorage, "true" },
+                { Arguments.CompressedStorageBaseAddress, "http://localhost/reg-gz" },
+                { Arguments.CompressedStorageAccountName, "testAccount-gz" },
+                { Arguments.CompressedStorageKeyValue, "BiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.CompressedStorageContainer, "testContainer-gz" },
+                { Arguments.CompressedStoragePath, "testStoragePath-gz" },
+
+                { Arguments.UseSemVer2Storage, "true" },
+                { Arguments.SemVer2StorageBaseAddress, "http://localhost/reg-gz-semver2" },
+                { Arguments.SemVer2StorageAccountName, "testAccount-semver2" },
+                { Arguments.SemVer2StorageKeyValue, "CiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.SemVer2StorageContainer, "testContainer-semver2" },
+                { Arguments.SemVer2StoragePath, "testStoragePath-semver2" },
+            };
+
+            // Act
+            var factories = CommandHelpers.CreateRegistrationStorageFactories(arguments, verbose: true);
+
+            // Assert
+            var legacy = Assert.IsType<AggregateStorageFactory>(factories.LegacyStorageFactory);
+            Assert.True(legacy.Verbose, "verbose should be true on the aggregate storage factory");
+            Assert.Equal(legacy.BaseAddress, new Uri("http://localhost/reg/testStoragePath/"));
+
+            var originalFactory = Assert.IsType<AzureStorageFactory>(legacy.PrimaryStorageFactory);
+            Assert.True(originalFactory.Verbose, "verbose should be true on the original storage factory");
+            Assert.False(originalFactory.CompressContent, "compress should be false on the original storage factory");
+            Assert.Equal(originalFactory.BaseAddress, new Uri("http://localhost/reg/testStoragePath/"));
+
+            Assert.Equal(1, legacy.SecondaryStorageFactories.Count());
+            var compressFactory = Assert.IsType<AzureStorageFactory>(legacy.SecondaryStorageFactories.First());
+            Assert.True(compressFactory.Verbose, "verbose should be true on the compress storage factory");
+            Assert.True(compressFactory.CompressContent, "compress should be true on the compress storage factory");
+            Assert.Equal(compressFactory.BaseAddress, new Uri("http://localhost/reg-gz/testStoragePath-gz/"));
+
+            var semVer2 = Assert.IsType<AzureStorageFactory>(factories.SemVer2StorageFactory);
+            Assert.True(semVer2.Verbose, "verbose should be true on the SemVer 2.0.0 storage factory");
+            Assert.True(semVer2.CompressContent, "compress should be true on the SemVer 2.0.0 storage factory");
+            Assert.Equal(semVer2.BaseAddress, new Uri("http://localhost/reg-gz-semver2/testStoragePath-semver2/"));
+        }
+
+        [Fact]
+        public void CreateRegistrationStorageFactories_WithNoCompressFactory()
+        {
+            // Arrange
+            var arguments = new Dictionary<string, string>()
+            {
+                { Arguments.StorageType, "azure" },
+
+                { Arguments.StorageBaseAddress, "http://localhost/reg" },
+                { Arguments.StorageAccountName, "testAccount" },
+                { Arguments.StorageKeyValue, "AiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.StorageContainer, "testContainer" },
+                { Arguments.StoragePath, "testStoragePath" },
+
+                { Arguments.UseCompressedStorage, "false" },
+
+                { Arguments.UseSemVer2Storage, "true" },
+                { Arguments.SemVer2StorageBaseAddress, "http://localhost/reg-gz-semver2" },
+                { Arguments.SemVer2StorageAccountName, "testAccount-semver2" },
+                { Arguments.SemVer2StorageKeyValue, "CiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.SemVer2StorageContainer, "testContainer-semver2" },
+                { Arguments.SemVer2StoragePath, "testStoragePath-semver2" },
+            };
+
+            // Act
+            var factories = CommandHelpers.CreateRegistrationStorageFactories(arguments, verbose: true);
+
+            // Assert
+            var originalFactory = Assert.IsType<AzureStorageFactory>(factories.LegacyStorageFactory);
+            Assert.True(originalFactory.Verbose, "verbose should be true on the original storage factory");
+            Assert.False(originalFactory.CompressContent, "compress should be false on the original storage factory");
+            Assert.Equal(originalFactory.BaseAddress, new Uri("http://localhost/reg/testStoragePath/"));
+
+            var semVer2 = Assert.IsType<AzureStorageFactory>(factories.SemVer2StorageFactory);
+            Assert.True(semVer2.Verbose, "verbose should be true on the SemVer 2.0.0 storage factory");
+            Assert.True(semVer2.CompressContent, "compress should be true on the SemVer 2.0.0 storage factory");
+            Assert.Equal(semVer2.BaseAddress, new Uri("http://localhost/reg-gz-semver2/testStoragePath-semver2/"));
+        }
+
+        [Fact]
+        public void CreateRegistrationStorageFactories_WithNoSemVer2Factory()
+        {
+            // Arrange
+            var arguments = new Dictionary<string, string>()
+            {
+                { Arguments.StorageType, "azure" },
+
+                { Arguments.StorageBaseAddress, "http://localhost/reg" },
+                { Arguments.StorageAccountName, "testAccount" },
+                { Arguments.StorageKeyValue, "AiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.StorageContainer, "testContainer" },
+                { Arguments.StoragePath, "testStoragePath" },
+
+                { Arguments.UseCompressedStorage, "true" },
+                { Arguments.CompressedStorageBaseAddress, "http://localhost/reg-gz" },
+                { Arguments.CompressedStorageAccountName, "testAccount-gz" },
+                { Arguments.CompressedStorageKeyValue, "BiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.CompressedStorageContainer, "testContainer-gz" },
+                { Arguments.CompressedStoragePath, "testStoragePath-gz" },
+
+                { Arguments.UseSemVer2Storage, "false" },
+            };
+
+            // Act
+            var factories = CommandHelpers.CreateRegistrationStorageFactories(arguments, verbose: true);
+
+            // Assert
+            var legacy = Assert.IsType<AggregateStorageFactory>(factories.LegacyStorageFactory);
+            Assert.True(legacy.Verbose, "verbose should be true on the aggregate storage factory");
+            Assert.Equal(legacy.BaseAddress, new Uri("http://localhost/reg/testStoragePath/"));
+
+            var originalFactory = Assert.IsType<AzureStorageFactory>(legacy.PrimaryStorageFactory);
+            Assert.True(originalFactory.Verbose, "verbose should be true on the original storage factory");
+            Assert.False(originalFactory.CompressContent, "compress should be false on the original storage factory");
+            Assert.Equal(originalFactory.BaseAddress, new Uri("http://localhost/reg/testStoragePath/"));
+
+            Assert.Equal(1, legacy.SecondaryStorageFactories.Count());
+            var compressFactory = Assert.IsType<AzureStorageFactory>(legacy.SecondaryStorageFactories.First());
+            Assert.True(compressFactory.Verbose, "verbose should be true on the compress storage factory");
+            Assert.True(compressFactory.CompressContent, "compress should be true on the compress storage factory");
+            Assert.Equal(compressFactory.BaseAddress, new Uri("http://localhost/reg-gz/testStoragePath-gz/"));
+
+            Assert.Null(factories.SemVer2StorageFactory);
         }
     }
 }

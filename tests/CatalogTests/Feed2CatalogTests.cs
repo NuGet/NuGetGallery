@@ -43,7 +43,7 @@ namespace CatalogTests
                 string catalog = args[1];
                 Uri catalogIndex = new Uri(catalog);
 
-                CatalogIndexReader reader = new CatalogIndexReader(catalogIndex);
+                CatalogIndexReader reader = new CatalogIndexReader(catalogIndex, new CollectorHttpClient());
 
                 var task = reader.GetEntries();
                 task.Wait();

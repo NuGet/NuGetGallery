@@ -7,6 +7,7 @@ using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Newtonsoft.Json;
+using NuGet.Versioning;
 
 namespace NuGet.Indexing
 {
@@ -17,6 +18,7 @@ namespace NuGet.Indexing
             string scheme,
             string q,
             bool includePrerelease,
+            NuGetVersion semVerLevel,
             int skip,
             int take,
             string feed,
@@ -30,7 +32,7 @@ namespace NuGet.Indexing
 
                 Filter filter = null;
 
-                if (searcher.TryGetFilter(false, includePrerelease, feed, out filter))
+                if (searcher.TryGetFilter(false, includePrerelease, semVerLevel, feed, out filter))
                 {
                     // Filter before running the query (make the search set smaller)
                     query = new FilteredQuery(query, filter);
@@ -38,7 +40,7 @@ namespace NuGet.Indexing
 
                 TopDocs topDocs = searcher.Search(query, skip + take);
 
-                ResponseFormatter.WriteSearchResult(jsonWriter, searcher, scheme, topDocs, skip, take, includePrerelease, includeExplanation, query);
+                ResponseFormatter.WriteSearchResult(jsonWriter, searcher, scheme, topDocs, skip, take, includePrerelease, includeExplanation, semVerLevel, query);
             }
             finally
             {
@@ -46,7 +48,16 @@ namespace NuGet.Indexing
             }
         }
 
-        public static void AutoComplete(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string q, string id, bool includePrerelease, int skip, int take, bool includeExplanation)
+        public static void AutoComplete(
+            JsonWriter jsonWriter,
+            NuGetSearcherManager searcherManager,
+            string q,
+            string id,
+            bool includePrerelease,
+            NuGetVersion semVerLevel,
+            int skip,
+            int take,
+            bool includeExplanation)
         {
             var searcher = searcherManager.Get();
             try
@@ -61,7 +72,7 @@ namespace NuGet.Indexing
                         searcher.Rankings,
                         searcher.QueryBoostingContext);
 
-                    if (searcher.TryGetFilter(false, includePrerelease, null, out filter))
+                    if (searcher.TryGetFilter(false, includePrerelease, semVerLevel, null, out filter))
                     {
                         // Filter before running the query (make the search set smaller)
                         query = new FilteredQuery(query, filter);
@@ -74,30 +85,15 @@ namespace NuGet.Indexing
                 {
                     Query query = MakeAutoCompleteVersionQuery(id);
 
-                    if (searcher.TryGetFilter(false, includePrerelease, null, out filter))
+                    if (searcher.TryGetFilter(false, includePrerelease, semVerLevel, null, out filter))
                     {
                         // Filter before running the query (make the search set smaller)
                         query = new FilteredQuery(query, filter);
                     }
 
                     TopDocs topDocs = searcher.Search(query, 1);
-                    ResponseFormatter.WriteAutoCompleteVersionResult(jsonWriter, searcher, includePrerelease, topDocs);
+                    ResponseFormatter.WriteAutoCompleteVersionResult(jsonWriter, searcher, includePrerelease, semVerLevel, topDocs);
                 }
-            }
-            finally
-            {
-                searcherManager.Release(searcher);
-            }
-        }
-
-        public static void Find(JsonWriter jsonWriter, NuGetSearcherManager searcherManager, string id, string scheme)
-        {
-            var searcher = searcherManager.Get();
-            try
-            {
-                Query query = MakeFindQuery(id);
-                TopDocs topDocs = searcher.Search(query, 1);
-                ResponseFormatter.WriteFindResult(jsonWriter, searcher, scheme, topDocs);
             }
             finally
             {

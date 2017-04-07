@@ -96,12 +96,13 @@ namespace NuGet.Indexing
                     downloads = downloadsByVersion[versionStr];
                 }
 
-                result.VersionDetails.Add(new VersionDetail
+                result.AllVersionDetails.Add(new VersionDetail
                 {
                     Version = versionStr,
                     Downloads = downloads,
                     IsStable = !registrationEntry.Version.IsPrerelease,
-                    IsListed = registrationEntry.IsListed
+                    IsListed = registrationEntry.IsListed,
+                    IsSemVer2 = registrationEntry.Version.IsSemVer2
                 });
             }
 

@@ -19,8 +19,26 @@ namespace NuGet.IndexingTests.Extraction
             var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
 
             // Assert
-            Assert.Contains("listed", metadata.Keys);
-            Assert.Equal(expected, metadata["listed"]);
+            Assert.Contains(MetadataConstants.ListedPropertyName, metadata.Keys);
+            Assert.Equal(expected, metadata[MetadataConstants.ListedPropertyName]);
+        }
+
+        [Theory, MemberData(nameof(AddsSemVerLevelKeyData))]
+        public void AddsSemVerLevelKey(object catalogEntry, bool expectedToContainKey, string expected)
+        {
+            // Arrange
+            var catalogEntryJObject = CatalogEntry(catalogEntry);
+
+            // Act
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
+
+
+            // Assert
+            Assert.Equal(expectedToContainKey, metadata.Keys.Contains(MetadataConstants.SemVerLevelKeyPropertyName));
+            if (expectedToContainKey)
+            {
+                Assert.Equal(expected, metadata[MetadataConstants.SemVerLevelKeyPropertyName]);
+            }
         }
 
         [Theory, MemberData(nameof(AddsSupportedFrameworksData))]
@@ -33,8 +51,8 @@ namespace NuGet.IndexingTests.Extraction
             var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
 
             // Assert
-            Assert.Contains("supportedFrameworks", metadata.Keys);
-            Assert.Equal(expected.Split('|').OrderBy(f => f), metadata["supportedFrameworks"].Split('|').OrderBy(f => f));
+            Assert.Contains(MetadataConstants.SupportedFrameworksPropertyName, metadata.Keys);
+            Assert.Equal(expected.Split('|').OrderBy(f => f), metadata[MetadataConstants.SupportedFrameworksPropertyName].Split('|').OrderBy(f => f));
         }
 
         [Theory, MemberData(nameof(AddsFlattenedDependenciesData))]
@@ -47,8 +65,8 @@ namespace NuGet.IndexingTests.Extraction
             var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
 
             // Assert
-            Assert.Contains("flattenedDependencies", metadata.Keys);
-            Assert.Equal(expected, metadata["flattenedDependencies"]);
+            Assert.Contains(MetadataConstants.FlattenedDependenciesPropertyName, metadata.Keys);
+            Assert.Equal(expected, metadata[MetadataConstants.FlattenedDependenciesPropertyName]);
         }
 
         public static IEnumerable<object[]> AddsListedData
@@ -63,6 +81,184 @@ namespace NuGet.IndexingTests.Extraction
                 yield return new object[] { new { published = "1900-01-01T00:00:00" }, "false" };
                 yield return new object[] { new { published = "1900-01-02T00:00:00" }, "true" };
                 yield return new object[] { new { published = "1900-01-01T00:00:00", listed = "True" }, "True" };
+            }
+        }
+
+        public static IEnumerable<object[]> AddsSemVerLevelKeyData
+        {
+            get
+            {
+                // no dependencies
+                yield return new object[] { new { verbatimVersion = "1.0.0" }, false, null };
+                yield return new object[] { new { verbatimVersion = "1.0.0-semver1" }, false, null };
+                yield return new object[] { new { verbatimVersion = "1.0.0-semver2.0" }, true, "2" };
+                yield return new object[] { new { verbatimVersion = "1.0.0-semver2.0+again" }, true, "2" };
+                yield return new object[] { new { verbatimVersion = "1.0.0+aThirdTime" }, true, "2" };
+
+                // dependencies
+                yield return new object[] { new {
+                    verbatimVersion = "1.0.0",
+                    dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Newtonsoft.Json", range = "4.5.11" },
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+                    },
+                    false,
+                    null
+                };
+
+                yield return new object[] { new {
+                    verbatimVersion = "1.0.0+semver2",
+                    dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Newtonsoft.Json", range = "4.5.11" },
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+                    },
+                    true,
+                    "2"
+                };
+
+                // dependencies show semver2
+                yield return new object[] { new {
+                    verbatimVersion = "1.0.0",
+                    dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Newtonsoft.Json", range = "4.5.11-semver2.0.dep" },
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+                    },
+                    true,
+                    "2"
+                };
+
+                yield return new object[] { new {
+                    verbatimVersion = "1.0.0",
+                    dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Newtonsoft.Json", range = "4.5.11-semver2.0.dep+meta" },
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+                    },
+                    true,
+                    "2"
+                };
+
+                // semver2 in real ranges
+                yield return new object[] { new {
+                    verbatimVersion = "1.0.0",
+                    dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Newtonsoft.Json", range = "(4.5.11, 6.0.0-semver.2]" },
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+                    },
+                    true,
+                    "2"
+                };
+
+                yield return new object[] { new {
+                    verbatimVersion = "1.0.0",
+                    dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Newtonsoft.Json", range = "(4.5.11-semver.2, 6.0.0]" },
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+                    },
+                    true,
+                    "2"
+                };
+
+                yield return new object[] { new {
+                    verbatimVersion = "1.0.0",
+                    dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Newtonsoft.Json", range = "(4.5.11-semver.2, ]" },
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+                    },
+                    true,
+                    "2"
+                };
+
+                yield return new object[] { new {
+                    verbatimVersion = "1.0.0",
+                    dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Newtonsoft.Json", range = "(, 6.0.0-semver.2]" },
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+                    },
+                    true,
+                    "2"
+                };
+
+                yield return new object[] { new {
+                    verbatimVersion = "1.0.0",
+                    dependencyGroups = new object[]
+                        {
+                            new
+                            {
+                                dependencies = new object[]
+                                {
+                                    new { id = "Newtonsoft.Json", range = "(, 6.0.0]" },
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                }
+                            }
+                        },
+                    },
+                    false,
+                    null
+                };
             }
         }
 
@@ -87,7 +283,7 @@ namespace NuGet.IndexingTests.Extraction
                     },
                     "net40-client|net40|net45"
                 };
-                
+
                 // a single framework assembly
                 yield return new object[] { new { frameworkAssemblyGroup = new { targetFramework = ".NETFramework4.0, .NETFramework4.5" } }, "net40|net45" };
 

@@ -107,7 +107,7 @@ namespace Ng.Jobs
             }
         }
 
-        private static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory)
+        public static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory)
         {
             var create = !IndexReader.IndexExists(directory);
 

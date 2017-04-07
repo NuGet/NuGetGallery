@@ -172,6 +172,496 @@
   }
 }</value>
   </data>
+  <data name="TestCatalogPageForMyPackage_Option1" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/page0.json",
+  "@type": "CatalogPage",
+  "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+  "commitTimeStamp": "2017-02-08T17:18:55.3335317Z",
+  "count": 3,
+  "items": [
+    {
+      "@id": "http://tempuri.org/data/2017.02.08.17.16.18/mypackage.3.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "0d1d02f5-4800-4c69-96e1-2daaf560edc4",
+      "commitTimeStamp": "2017-02-08T17:16:18.5448099Z",
+      "nuget:id": "mypackage",
+      "nuget:version": "3.0.0"
+    },
+    {
+      "@id": "http://tempuri.org/data/2017.02.08.16.49.59/mypackage.3.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "d6f4acc0-73c4-4c34-9c92-e1484e749314",
+      "commitTimeStamp": "2017-02-08T16:49:59.6916605Z",
+      "nuget:id": "mypackage",
+      "nuget:version": "3.0.0"
+    },
+    {
+      "@id": "http://tempuri.org/data/2017.02.08.16.49.48/mypackage.3.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "51ca9169-a861-4e00-8243-7de49c625da6",
+      "commitTimeStamp": "2017-02-08T16:49:48.2383888Z",
+      "nuget:id": "mypackage",
+      "nuget:version": "3.0.0"
+    }
+  ],
+  "parent": "http://tempuri.org/index.json",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/catalog#",
+    "nuget": "http://schema.nuget.org/schema#",
+    "items": {
+      "@id": "item",
+      "@container": "@set"
+    },
+    "parent": {
+      "@type": "@id"
+    },
+    "commitTimeStamp": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastCreated": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastEdited": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastDeleted": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogPageForMyPackage_Option2" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/page0.json",
+  "@type": "CatalogPage",
+  "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+  "commitTimeStamp": "2017-02-08T17:18:55.3335317Z",
+  "count": 3,
+  "items": [
+    {
+      "@id": "http://tempuri.org/data/2017.02.08.16.49.59/mypackage.3.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "d6f4acc0-73c4-4c34-9c92-e1484e749314",
+      "commitTimeStamp": "2017-02-08T16:49:59.6916605Z",
+      "nuget:id": "mypackage",
+      "nuget:version": "3.0.0"
+    },
+    {
+      "@id": "http://tempuri.org/data/2017.02.08.16.49.48/mypackage.3.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "51ca9169-a861-4e00-8243-7de49c625da6",
+      "commitTimeStamp": "2017-02-08T16:49:48.2383888Z",
+      "nuget:id": "mypackage",
+      "nuget:version": "3.0.0"
+    },
+	{
+      "@id": "http://tempuri.org/data/2017.02.08.17.16.18/mypackage.3.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "0d1d02f5-4800-4c69-96e1-2daaf560edc4",
+      "commitTimeStamp": "2017-02-08T17:16:18.5448099Z",
+      "nuget:id": "mypackage",
+      "nuget:version": "3.0.0"
+    }
+  ],
+  "parent": "http://tempuri.org/index.json",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/catalog#",
+    "nuget": "http://schema.nuget.org/schema#",
+    "items": {
+      "@id": "item",
+      "@container": "@set"
+    },
+    "parent": {
+      "@type": "@id"
+    },
+    "commitTimeStamp": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastCreated": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastEdited": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastDeleted": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogStorageMyPackageCreated" xml:space="preserve">
+    <value>{
+	"@id": "http://tempuri.org/data/2017.02.08.16.49.48/mypackage.3.0.0.json",
+	"@type": ["PackageDetails",
+	"catalog:Permalink"],
+	"authors": "NuGet",
+	"catalog:commitId": "51ca9169-a861-4e00-8243-7de49c625da6",
+	"catalog:commitTimeStamp": "2017-02-08T16:49:48.2383888Z",
+	"created": "2017-02-08T16:48:56.567Z",
+	"description": "My package",
+	"id": "mypackage",
+	"isPrerelease": false,
+	"lastEdited": "2017-02-08T16:48:56.567Z",
+	"listed": false,
+	"packageHash": "iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1QJcmkD8QNqSZXecWyegeb1kJ7evzRgRpu7gFrN7L3HY2HgZCg==",
+	"packageHashAlgorithm": "SHA512",
+	"packageSize": 20652,
+	"published": "1900-01-01T00:00:00Z",
+	"requireLicenseAcceptance": false,
+	"verbatimVersion": "3.0.0",
+	"version": "3.0.0",
+	"@context": {
+		"@vocab": "http://schema.nuget.org/schema#",
+		"catalog": "http://schema.nuget.org/catalog#",
+		"xsd": "http://www.w3.org/2001/XMLSchema#",
+		"dependencies": {
+			"@id": "dependency",
+			"@container": "@set"
+		},
+		"dependencyGroups": {
+			"@id": "dependencyGroup",
+			"@container": "@set"
+		},
+		"packageEntries": {
+			"@id": "packageEntry",
+			"@container": "@set"
+		},
+		"supportedFrameworks": {
+			"@id": "supportedFramework",
+			"@container": "@set"
+		},
+		"tags": {
+			"@id": "tag",
+			"@container": "@set"
+		},
+		"published": {
+			"@type": "xsd:dateTime"
+		},
+		"created": {
+			"@type": "xsd:dateTime"
+		},
+		"lastEdited": {
+			"@type": "xsd:dateTime"
+		},
+		"catalog:commitTimeStamp": {
+			"@type": "xsd:dateTime"
+		}
+	}
+}</value>
+  </data>
+  <data name="TestCatalogStorageMyPackageListed" xml:space="preserve">
+    <value>{
+	"@id": "http://tempuri.org/data/2017.02.08.17.16.18/mypackage.3.0.0.json",
+	"@type": ["PackageDetails",
+	"catalog:Permalink"],
+	"authors": "NuGet",
+	"catalog:commitId": "0d1d02f5-4800-4c69-96e1-2daaf560edc4",
+	"catalog:commitTimeStamp": "2017-02-08T17:16:18.5448099Z",
+	"created": "2017-02-08T16:48:56.567Z",
+	"description": "My package",
+	"id": "mypackage",
+	"isPrerelease": false,
+	"lastEdited": "2017-02-08T17:15:40.4Z",
+	"listed": true,
+	"packageHash": "iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1QJcmkD8QNqSZXecWyegeb1kJ7evzRgRpu7gFrN7L3HY2HgZCg==",
+	"packageHashAlgorithm": "SHA512",
+	"packageSize": 20652,
+	"published": "2017-02-08T16:48:56.567Z",
+	"requireLicenseAcceptance": false,
+	"verbatimVersion": "3.0.0",
+	"version": "3.0.0",
+	"@context": {
+		"@vocab": "http://schema.nuget.org/schema#",
+		"catalog": "http://schema.nuget.org/catalog#",
+		"xsd": "http://www.w3.org/2001/XMLSchema#",
+		"dependencies": {
+			"@id": "dependency",
+			"@container": "@set"
+		},
+		"dependencyGroups": {
+			"@id": "dependencyGroup",
+			"@container": "@set"
+		},
+		"packageEntries": {
+			"@id": "packageEntry",
+			"@container": "@set"
+		},
+		"supportedFrameworks": {
+			"@id": "supportedFramework",
+			"@container": "@set"
+		},
+		"tags": {
+			"@id": "tag",
+			"@container": "@set"
+		},
+		"published": {
+			"@type": "xsd:dateTime"
+		},
+		"created": {
+			"@type": "xsd:dateTime"
+		},
+		"lastEdited": {
+			"@type": "xsd:dateTime"
+		},
+		"catalog:commitTimeStamp": {
+			"@type": "xsd:dateTime"
+		}
+	}
+}</value>
+  </data>
+  <data name="TestCatalogStorageMyPackageUnlisted" xml:space="preserve">
+    <value>{
+	"@id": "http://tempuri.org/data/2017.02.08.16.49.59/mypackage.3.0.0.json",
+	"@type": ["PackageDetails",
+	"catalog:Permalink"],
+	"authors": "NuGet",
+	"catalog:commitId": "d6f4acc0-73c4-4c34-9c92-e1484e749314",
+	"catalog:commitTimeStamp": "2017-02-08T16:49:59.6916605Z",
+	"created": "2017-02-08T16:48:56.567Z",
+	"description": "My package",
+	"id": "mypackage",
+	"isPrerelease": false,
+	"lastEdited": "2017-02-08T16:48:56.567Z",
+	"listed": false,
+	"packageHash": "iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1QJcmkD8QNqSZXecWyegeb1kJ7evzRgRpu7gFrN7L3HY2HgZCg==",
+	"packageHashAlgorithm": "SHA512",
+	"packageSize": 20652,
+	"published": "1900-01-01T00:00:00Z",
+	"requireLicenseAcceptance": false,
+	"verbatimVersion": "3.0.0",
+	"version": "3.0.0",
+	"@context": {
+		"@vocab": "http://schema.nuget.org/schema#",
+		"catalog": "http://schema.nuget.org/catalog#",
+		"xsd": "http://www.w3.org/2001/XMLSchema#",
+		"dependencies": {
+			"@id": "dependency",
+			"@container": "@set"
+		},
+		"dependencyGroups": {
+			"@id": "dependencyGroup",
+			"@container": "@set"
+		},
+		"packageEntries": {
+			"@id": "packageEntry",
+			"@container": "@set"
+		},
+		"supportedFrameworks": {
+			"@id": "supportedFramework",
+			"@container": "@set"
+		},
+		"tags": {
+			"@id": "tag",
+			"@container": "@set"
+		},
+		"published": {
+			"@type": "xsd:dateTime"
+		},
+		"created": {
+			"@type": "xsd:dateTime"
+		},
+		"lastEdited": {
+			"@type": "xsd:dateTime"
+		},
+		"catalog:commitTimeStamp": {
+			"@type": "xsd:dateTime"
+		}
+	}
+}</value>
+  </data>
+  <data name="TestCatalogStorageWithSemVer2Index" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/index.json",
+  "@type": [
+    "CatalogRoot",
+    "AppendOnlyCatalog",
+    "Permalink"
+  ],
+  "commitId": "afc8c1f4-486e-4142-b3ec-cf5841eb8883",
+  "commitTimeStamp": "2015-10-13T06:40:07.7850657Z",
+  "count": 1,
+  "items": [
+    {
+      "@id": "http://tempuri.org/page0.json",
+      "@type": "CatalogPage",
+      "commitId": "afc8c1f4-486e-4142-b3ec-cf5841eb8883",
+      "commitTimeStamp": "2015-10-13T06:40:07.7850657Z",
+      "count": 1
+    }
+  ],
+  "nuget:lastCreated": "2015-01-01T00:00:00Z",
+  "nuget:lastDeleted": "2015-01-01T01:01:01.0748028Z",
+  "nuget:lastEdited": "2015-01-01T01:01:01.0748028Z",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/catalog#",
+    "nuget": "http://schema.nuget.org/schema#",
+    "items": {
+      "@id": "item",
+      "@container": "@set"
+    },
+    "parent": {
+      "@type": "@id"
+    },
+    "commitTimeStamp": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastCreated": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastEdited": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastDeleted": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogStorageWithSemVer2Package" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/data/2015.10.12.10.08.54/testpackage.semver2.1.0.0-alpha.1.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "TestPackage.SemVer2",
+  "catalog:commitId": "afc8c1f4-486e-4142-b3ec-cf5841eb8883",
+  "catalog:commitTimeStamp": "2015-10-13T06:40:07.7850657Z",
+  "created": "2017-01-01T08:15:00Z",
+  "description": "Package Description",
+  "id": "TestPackage.SemVer2",
+  "isPrerelease": true,
+  "lastEdited": "2017-01-02T08:15:00Z",
+  "listed": true,
+  "packageHash": "JMWmWRMlkaAniUmfyFgfNfIQh+EMy1SBzKNbTQ+3xHd+nq2NOCNsVBNcHIKuscAVbE44720YzcL6snUf2RBgXw==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 3419,
+  "published": "2017-01-03T08:15:00Z",
+  "requireLicenseAcceptance": false,
+  "verbatimVersion": "1.0.0-alpha.1+githash",
+  "version": "1.0.0-alpha.1+githash",
+  "dependencyGroups": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#dependencygroup/.netstandard1.4",
+      "@type": "PackageDependencyGroup",
+      "dependencies": [
+        {
+          "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#dependencygroup/.netstandard1.4/netstandard.library",
+          "@type": "PackageDependency",
+          "id": "NETStandard.Library",
+          "range": "[1.6.1, )"
+        },
+        {
+          "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#dependencygroup/.netstandard1.4/fakepackage.semver2",
+          "@type": "PackageDependency",
+          "id": "FakePackage.SemVer2",
+          "range": "[1.6.1-beta.2, )"
+        }
+      ],
+      "targetFramework": ".NETStandard1.4"
+    }
+  ],
+  "packageEntries": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#TestPackage.SemVer2.nuspec",
+      "@type": "PackageEntry",
+      "compressedLength": 358,
+      "fullName": "TestPackage.SemVer2.nuspec",
+      "length": 736,
+      "name": "TestPackage.SemVer2.nuspec"
+    },
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#lib/netstandard1.4/TestPackage.SemVer2.dll",
+      "@type": "PackageEntry",
+      "compressedLength": 1409,
+      "fullName": "lib/netstandard1.4/TestPackage.SemVer2.dll",
+      "length": 4096,
+      "name": "TestPackage.SemVer2.dll"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogStorageWithSemVer2Page000" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/page0.json",
+  "@type": "CatalogPage",
+  "commitId": "afc8c1f4-486e-4142-b3ec-cf5841eb8883",
+  "commitTimeStamp": "2015-10-13T06:40:07.7850657Z",
+  "count": 1,
+  "items": [
+    {
+      "@id": "http://tempuri.org/data/2015.10.12.10.08.54/testpackage.semver2.1.0.0-alpha.1.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "afc8c1f4-486e-4142-b3ec-cf5841eb8883",
+      "commitTimeStamp": "2015-10-13T06:40:07.7850657Z",
+      "nuget:id": "TestPackage.SemVer2",
+      "nuget:version": "1.0.0-alpha.1+githash"
+    }
+  ],
+  "parent": "http://tempuri.org/index.json",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/catalog#",
+    "nuget": "http://schema.nuget.org/schema#",
+    "items": {
+      "@id": "item",
+      "@container": "@set"
+    },
+    "parent": {
+      "@type": "@id"
+    },
+    "commitTimeStamp": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastCreated": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastEdited": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastDeleted": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}</value>
+  </data>
   <data name="TestCatalogStorageWithThreePackagesAndDeleteIndex" xml:space="preserve">
     <value>{
   "@id": "http://tempuri.org/index.json",
@@ -581,11 +1071,11 @@
   "lastEdited": "2015-01-01T00:00:00Z",
   "licenseNames": "",
   "licenseReportUrl": "",
-  "listed": true,
+  "listed": false,
   "packageHash": "0LUKl3HqBsrLxjTaA+J6vaa+XB5zWb5hTJb1Ht74oIzPsBJmZalApZAIdueMgzbsUxG74jjfnDZWoxUrs2A3dg==",
   "packageHashAlgorithm": "SHA512",
   "packageSize": 2540,
-  "published": "1900-01-01T01:00:00+01:00",
+  "published": "1900-01-01T01:00:00+00:00",
   "requireLicenseAcceptance": false,
   "verbatimVersion": "1.0.0",
   "version": "1.0.0",
@@ -624,6 +1114,177 @@
     },
     "catalog:commitTimeStamp": {
       "@type": "xsd:dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogWithCommitThenTwoPackageCommitAnotherPackage100" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/data/2015.10.12.10.08.55/anotherpackage.1.0.0.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "NuGet",
+  "catalog:commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+  "catalog:commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+  "created": "2015-01-01T00:00:00Z",
+  "description": "Package description.",
+  "id": "AnotherPackage",
+  "isPrerelease": false,
+  "lastEdited": "2015-01-01T00:00:00Z",
+  "licenseNames": "",
+  "licenseReportUrl": "",
+  "listed": true,
+  "packageHash": "EpTkeONwnhX59JBzl5QfuFNNgZADaAbwYxNGn0KEkJ4ylukUQFcS15vISqFUnrWy/+yylox6L6QT3MD/+Us+vg==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 2529,
+  "published": "2015-01-01T00:00:00Z",
+  "requireLicenseAcceptance": false,
+  "verbatimVersion": "1.0.0",
+  "version": "1.0.0",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogWithCommitThenTwoPackageCommitIndex" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/index.json",
+  "@type": [
+    "CatalogRoot",
+    "AppendOnlyCatalog",
+    "Permalink"
+  ],
+  "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+  "commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+  "count": 1,
+  "items": [
+    {
+      "@id": "http://tempuri.org/page0.json",
+      "@type": "CatalogPage",
+      "commitId": "69345a10-6800-46f2-8131-34c78b0188aa",
+      "commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+      "count": 3
+    }
+  ],
+  "nuget:lastCreated": "2015-01-01T00:00:00Z",
+  "nuget:lastDeleted": "2015-01-01T00:00:00Z",
+  "nuget:lastEdited": "2015-01-01T00:00:00Z",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/catalog#",
+    "nuget": "http://schema.nuget.org/schema#",
+    "items": {
+      "@id": "item",
+      "@container": "@set"
+    },
+    "parent": {
+      "@type": "@id"
+    },
+    "commitTimeStamp": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastCreated": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastEdited": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastDeleted": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="TestCatalogWithCommitThenTwoPackageCommitPage" xml:space="preserve">
+    <value>{
+  "@id": "http://tempuri.org/page0.json",
+  "@type": "CatalogPage",
+  "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+  "commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+  "count": 3,
+  "items": [
+    {
+      "@id": "http://tempuri.org/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "9a37734f-1960-4c07-8934-c8bc797e35c1",
+      "commitTimeStamp": "2015-10-12T10:08:54.1506742Z",
+      "nuget:id": "UnlistedPackage",
+      "nuget:version": "1.0.0"
+    },
+    {
+      "@id": "http://tempuri.org/data/2015.10.12.10.08.55/listedpackage.1.0.1.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+      "commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+      "nuget:id": "ListedPackage",
+      "nuget:version": "1.0.1"
+    },
+    {
+      "@id": "http://tempuri.org/data/2015.10.12.10.08.55/anotherpackage.1.0.0.json",
+      "@type": "nuget:PackageDetails",
+      "commitId": "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+      "commitTimeStamp": "2015-10-12T10:08:55.3335317Z",
+      "nuget:id": "AnotherPackage",
+      "nuget:version": "1.0.0"
+    }
+  ],
+  "parent": "http://tempuri.org/index.json",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/catalog#",
+    "nuget": "http://schema.nuget.org/schema#",
+    "items": {
+      "@id": "item",
+      "@container": "@set"
+    },
+    "parent": {
+      "@type": "@id"
+    },
+    "commitTimeStamp": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastCreated": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastEdited": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "nuget:lastDeleted": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
     }
   }
 }</value>

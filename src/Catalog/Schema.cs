@@ -73,6 +73,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Prefix = new Uri(Prefixes.NuGet + "prefix");
             public static readonly Uri Id = new Uri(Prefixes.NuGet + "id");
             public static readonly Uri Version = new Uri(Prefixes.NuGet + "version");
+            public static readonly Uri VerbatimVersion = new Uri(Prefixes.NuGet + "verbatimVersion");
             public static readonly Uri OriginalId = new Uri(Prefixes.NuGet + "originalId");
 
             public static readonly Uri Upper = new Uri(Prefixes.NuGet + "upper");
@@ -140,7 +141,10 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri SupportedFramework = new Uri(Prefixes.NuGet + "supportedFramework");
             public static readonly Uri Owner = new Uri(Prefixes.NuGet + "owner");
             public static readonly Uri Namespace = new Uri(Prefixes.NuGet + "namespace");
-            
+
+            public static readonly Uri DependencyGroup = new Uri(Prefixes.NuGet + "dependencyGroup");
+            public static readonly Uri Dependency = new Uri(Prefixes.NuGet + "dependency");
+            public static readonly Uri Range = new Uri(Prefixes.NuGet + "range");
 
             public static readonly Uri NameIdentifier = new Uri(Prefixes.NuGet + "nameIdentifier");
             public static readonly Uri GivenName = new Uri(Prefixes.NuGet + "givenName");

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Versioning;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.XPath;
+using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -40,22 +42,17 @@ namespace NuGet.Services.Metadata.Catalog
 
         public string NormalizeVersion(string original)
         {
-            NuGetVersion nugetVersion;
-            if (NuGetVersion.TryParse(original, out nugetVersion))
-            {
-                return nugetVersion.ToNormalizedString();
-            }
-            return original;
+            return NuGetVersionUtility.NormalizeVersion(original);
+        }
+
+        public string GetFullVersionString(string original)
+        {
+            return NuGetVersionUtility.GetFullVersionString(original);
         }
 
         public string NormalizeVersionRange(string original)
         {
-            VersionRange versionRange;
-            if (VersionRange.TryParse(original, out versionRange))
-            {
-                return versionRange.ToString();
-            }
-            return original;
+            return NuGetVersionUtility.NormalizeVersionRange(original);
         }
         
         public string IsPrerelease(string original)

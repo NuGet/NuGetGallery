@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CatalogTests</RootNamespace>
     <AssemblyName>CatalogTests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -121,13 +122,32 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\VDS.Common.1.5.0\lib\net40-client\VDS.Common.dll</HintPath>
     </Reference>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.assert, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\xunit.assert.2.1.0\lib\dotnet\xunit.assert.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.core, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\xunit.extensibility.core.2.1.0\lib\dotnet\xunit.core.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.execution.desktop, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\xunit.extensibility.execution.2.1.0\lib\net45\xunit.execution.desktop.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CatalogIndexReaderTests.cs" />
+    <Compile Include="Helpers\NuGetVersionUtilityTests.cs" />
+    <Compile Include="PackageCatalogItemTests.cs" />
     <Compile Include="RegistrationMakerTests.cs" />
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="GalleryCompareTests.cs" />
+    <Compile Include="Registration\RegistrationMakerCatalogItemTests.cs" />
+    <Compile Include="Registration\PackagesFolderPackagePathProviderTests.cs" />
+    <Compile Include="Registration\RegistrationCatalogEntryTests.cs" />
     <Compile Include="ReindexTests.cs" />
     <Compile Include="StorageTests.cs" />
+    <Compile Include="StringInternerTests.cs" />
     <Compile Include="TestCollector.cs" />
     <None Include="BuilderTests.cs" />
     <Compile Include="CatalogTests.cs" />
@@ -142,6 +162,18 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestCatalogItem.cs" />
     <Compile Include="WarehouseCatalogTests.cs" />
+    <None Include="TestData\Newtonsoft.Json.9.0.2-beta1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\Newtonsoft.Json.9.0.2-beta1.nupkg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\TestPackage.SemVer2.1.0.0-alpha.1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\TestPackage.SemVer2.1.0.0-alpha.1.nupkg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -151,6 +183,10 @@
     <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NgTests\NgTests.csproj">
+      <Project>{05c1c78a-9966-4922-9065-a099023e7366}</Project>
+      <Name>NgTests</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

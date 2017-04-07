@@ -8,6 +8,7 @@ using System;
 using System.Net.Http;
 using BasicSearchTests.FunctionalTests.Core.Models;
 using Newtonsoft.Json;
+using System.Reflection;
 
 namespace BasicSearchTests.FunctionalTests.Core
 {
@@ -43,7 +44,6 @@ namespace BasicSearchTests.FunctionalTests.Core
         [Fact]
         public async Task IndexIsFresh()
         {
-
             var response = await Client.GetAsync("/search/diag");
             var content = await response.Content.ReadAsAsync<SearchDiagResult>();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -53,6 +53,31 @@ namespace BasicSearchTests.FunctionalTests.Core
             var diffTimes = lastRegistrationCommitTime.Subtract(content.CommitUserData.CommitTimeStamp).TotalHours;
             //Last CommitTimeStamp for search service shouldn't be far off from the last registration timestamp.
             Assert.True(diffTimes >= 0 && diffTimes <= IndexDifferenceLimitInHrs, "Search index is ahead of last registration timestamp");
+        }
+
+        [Fact]
+        public async Task ValidateDiagnosticsMetadata()
+        {
+            // Act
+            var response = await Client.GetAsync("/search/diag");
+            var content = await response.Content.ReadAsAsync<SearchDiagResult>();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(content);
+            Assert.False(string.IsNullOrEmpty(content.MachineName), "Machine name should be specified");
+            Assert.False(string.IsNullOrEmpty(content.IndexName), "IndexName should be specified");
+            Assert.NotNull(content.LastReopen);
+            Assert.NotNull(content.LastIndexReloadTime);
+            Assert.NotNull(content.LastAuxiliaryDataLoadTime);
+            Assert.True(content.NumDocs > 0, "No data loaded in search index");
+            Assert.True(content.LastIndexReloadDurationInMilliseconds >= 0, "Search index was never loaded");
+
+            var properties = typeof(AuxiliaryFilesUpdateTime).GetProperties();
+            foreach (PropertyInfo property in properties)
+            {
+                Assert.NotNull(property.GetValue(content.LastAuxiliaryDataUpdateTime));
+            }
         }
 
         private async Task<DateTime> GetLastRegistrationCommitTime()

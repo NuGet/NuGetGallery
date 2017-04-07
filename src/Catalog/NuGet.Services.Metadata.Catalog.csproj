@@ -114,7 +114,9 @@
     <Compile Include="CloudBlobStorageExtensions.cs" />
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CommitMetadata.cs" />
+    <Compile Include="Helpers\NuGetVersionUtility.cs" />
     <Compile Include="Persistence\StorageListItem.cs" />
+    <Compile Include="StringInterner.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="DeleteCatalogItem.cs" />
     <Compile Include="Dnx\DnxCatalogCollector.cs" />
@@ -140,9 +142,6 @@
     <Compile Include="ReindexCatalogCollector.cs" />
     <Compile Include="HttpReadCursor.cs" />
     <Compile Include="NuspecCollector.cs" />
-    <Compile Include="RegistrationCatalogCreator.cs" />
-    <Compile Include="RegistrationCatalogItem.cs" />
-    <Compile Include="RegistrationCatalogWriter.cs" />
     <Compile Include="ReindexCatalogItem.cs" />
     <Compile Include="ResourceSaveOperation.cs" />
     <Compile Include="SortingCollector.cs" />
@@ -232,6 +231,7 @@
     <EmbeddedResource Include="sparql\ConstructRegistrationPageContentGraph.rq" />
     <None Include="NuGet.Services.Metadata.Catalog.nuspec" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="sparql\SelectDistinctDependencyVersionRanges.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

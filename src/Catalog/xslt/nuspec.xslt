@@ -125,7 +125,7 @@
 
             <xsl:when test="self::nuget:version">
               <ng:version>
-                <xsl:value-of select="obj:NormalizeVersion(.)"/>
+                <xsl:value-of select="obj:GetFullVersionString(.)"/>
               </ng:version>
               <ng:verbatimVersion>
                 <xsl:value-of select="."/>

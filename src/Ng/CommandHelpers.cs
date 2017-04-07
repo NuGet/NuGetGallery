@@ -1,20 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Lucene.Net.Store;
-using Lucene.Net.Store.Azure;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using Lucene.Net.Store;
+using Lucene.Net.Store.Azure;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using NuGet.Services.Configuration;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Ng
 {
@@ -75,6 +75,39 @@ namespace Ng
             return new SecretInjector(secretReader);
         }
 
+        public static RegistrationStorageFactories CreateRegistrationStorageFactories(IDictionary<string, string> arguments, bool verbose)
+        {
+            StorageFactory legacyStorageFactory;
+            var semVer2StorageFactory = CreateSemVer2StorageFactory(arguments, verbose);
+
+            var storageFactory = CreateStorageFactory(arguments, verbose);
+            var compressedStorageFactory = CreateCompressedStorageFactory(arguments, verbose);
+            if (compressedStorageFactory != null)
+            {
+                var secondaryStorageBaseUrlRewriter = new SecondaryStorageBaseUrlRewriter(new List<KeyValuePair<string, string>>
+                {
+                    // always rewrite storage root url in seconary
+                    new KeyValuePair<string, string>(storageFactory.BaseAddress.ToString(), compressedStorageFactory.BaseAddress.ToString())
+                });
+
+                var aggregateStorageFactory = new AggregateStorageFactory(
+                    storageFactory,
+                    new[] { compressedStorageFactory },
+                    secondaryStorageBaseUrlRewriter.Rewrite)
+                {
+                    Verbose = verbose
+                };
+
+                legacyStorageFactory = aggregateStorageFactory;
+            }
+            else
+            {
+                legacyStorageFactory = storageFactory;
+            }
+
+            return new RegistrationStorageFactories(legacyStorageFactory, semVer2StorageFactory);
+        }
+
         public static StorageFactory CreateStorageFactory(IDictionary<string, string> arguments, bool verbose)
         {
             IDictionary<string, string> names = new Dictionary<string, string>
@@ -103,6 +136,25 @@ namespace Ng
                 { Arguments.StorageKeyValue, Arguments.CompressedStorageKeyValue },
                 { Arguments.StorageContainer, Arguments.CompressedStorageContainer },
                 { Arguments.StoragePath, Arguments.CompressedStoragePath }
+            };
+
+            return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
+        }
+
+        public static StorageFactory CreateSemVer2StorageFactory(IDictionary<string, string> arguments, bool verbose)
+        {
+            if (!arguments.GetOrDefault(Arguments.UseSemVer2Storage, false))
+            {
+                return null;
+            }
+
+            IDictionary<string, string> names = new Dictionary<string, string>
+            {
+                { Arguments.StorageBaseAddress, Arguments.SemVer2StorageBaseAddress },
+                { Arguments.StorageAccountName, Arguments.SemVer2StorageAccountName },
+                { Arguments.StorageKeyValue, Arguments.SemVer2StorageKeyValue },
+                { Arguments.StorageContainer, Arguments.SemVer2StorageContainer },
+                { Arguments.StoragePath, Arguments.SemVer2StoragePath }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);

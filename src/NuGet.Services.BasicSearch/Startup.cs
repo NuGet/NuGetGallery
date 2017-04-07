@@ -285,9 +285,6 @@ namespace NuGet.Services.BasicSearch
                             context.Response.StatusCode = (int)HttpStatusCode.OK;
                             await context.Response.WriteAsync("READY");
                             break;
-                        case "/find":
-                            await ServiceEndpoints.FindAsync(context, _searcherManager, _responseWriter);
-                            break;
                         case "/query":
                             await ServiceEndpoints.V3SearchAsync(context, _searcherManager, _responseWriter);
                             break;
@@ -296,9 +293,6 @@ namespace NuGet.Services.BasicSearch
                             break;
                         case "/search/query":
                             await ServiceEndpoints.V2SearchAsync(context, _searcherManager, _responseWriter);
-                            break;
-                        case "/rankings":
-                            await ServiceEndpoints.RankingsAsync(context, _searcherManager, _responseWriter);
                             break;
                         case "/search/diag":
                             await ServiceEndpoints.Stats(context, _searcherManager, _responseWriter);

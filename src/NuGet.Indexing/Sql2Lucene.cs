@@ -82,7 +82,8 @@ namespace NuGet.Indexing
                         Packages.Created                        'created',
                         Packages.LastEdited                     'lastEdited',
                         Packages.Published                      'published',
-                        Packages.Listed                         'listed'
+                        Packages.Listed                         'listed',
+                        Packages.SemVerLevelKey                 'semVerLevelKey'
                     FROM Packages
                     INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
                       AND Packages.[Key] >= @BeginKey

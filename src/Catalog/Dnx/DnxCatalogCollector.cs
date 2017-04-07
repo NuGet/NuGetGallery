@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog.Dnx
 {
@@ -31,7 +32,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             foreach (JToken item in items)
             {
                 string id = item["nuget:id"].ToString().ToLowerInvariant();
-                string version = item["nuget:version"].ToString().ToLowerInvariant();
+                string version = NuGetVersionUtility.NormalizeVersion(item["nuget:version"].ToString().ToLowerInvariant());
                 string type = item["@type"].ToString().Replace("nuget:", Schema.Prefixes.NuGet);
 
                 if (type == Schema.DataTypes.PackageDetails.ToString())

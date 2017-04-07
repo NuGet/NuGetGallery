@@ -35,7 +35,34 @@ namespace NgTests.Data
 
             return catalogStorage;
         }
-        
+
+        public static MemoryStorage CreateTestCatalogWithCommitThenTwoPackageCommit()
+        {
+            var catalogStorage = new MemoryStorage();
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithCommitThenTwoPackageCommitIndex));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithCommitThenTwoPackageCommitPage));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesUnlistedPackage100));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/listedpackage.1.0.1.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesListedPackage101));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/anotherpackage.1.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithCommitThenTwoPackageCommitAnotherPackage100));
+
+            return catalogStorage;
+        }
+
         public static MemoryStorage CreateTestCatalogWithThreePackagesAndDelete()
         {
             var catalogStorage = new MemoryStorage();
@@ -62,6 +89,52 @@ namespace NgTests.Data
             catalogStorage.Content.Add(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.13.06.40.07/otherpackage.1.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesOtherPackage100));
+
+            return catalogStorage;
+        }
+
+        public static MemoryStorage CreateTestCatalogWithThreeItemsForSamePackage(string pageContent)
+        {
+            var catalogStorage = new MemoryStorage();
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesIndex));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(pageContent));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2017.02.08.16.49.48/mypackage.3.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageMyPackageCreated));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2017.02.08.16.49.59/mypackage.3.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageMyPackageUnlisted));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2017.02.08.17.16.18/mypackage.3.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageMyPackageListed));
+
+            return catalogStorage;
+        }
+
+        public static MemoryStorage CreateTestCatalogWithSemVer2Package()
+        {
+            var catalogStorage = new MemoryStorage();
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithSemVer2Index));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithSemVer2Page000));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/testpackage.semver2.1.0.0-alpha.1.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithSemVer2Package));
 
             return catalogStorage;
         }

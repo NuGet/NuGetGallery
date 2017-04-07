@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Xml.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NgTests.Infrastructure
 {
@@ -34,11 +35,11 @@ namespace NgTests.Infrastructure
             string nsMetadata = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
             string downloadUrl = string.Format(
                 CultureInfo.InvariantCulture,
-                "{0}package/{1}/{2}", baseUri, package.Id, package.Version);
+                "{0}package/{1}/{2}", baseUri, package.Id, NuGetVersionUtility.NormalizeVersion(package.Version));
             string entryId = string.Format(
                 CultureInfo.InvariantCulture,
                 "{0}Packages(Id='{1}',Version='{2}')",
-                baseUri, package.Id, package.Version);
+                baseUri, package.Id, NuGetVersionUtility.NormalizeVersion(package.Version));
 
             var entry = new XElement(XName.Get("entry", nsAtom),
                 new XAttribute(XNamespace.Xmlns + "d", nsDataService.ToString()),

@@ -92,6 +92,7 @@
     <Compile Include="AutocompleteFunctionalTests.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="EnvironmentSettings.cs" />
+    <Compile Include="Models\AuxiliaryFilesUpdateTime.cs" />
     <Compile Include="Models\LastCommitMetadata.cs" />
     <Compile Include="Models\PackageVersion.cs" />
     <Compile Include="Models\SearchDiagResult.cs" />

@@ -14,5 +14,15 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
         public DateTime? LastReopen { get; set; }
 
         public string IndexName { get; set; }
+
+        public string MachineName { get; set; }
+
+        public DateTime? LastIndexReloadTime { get; set; }
+
+        public long LastIndexReloadDurationInMilliseconds { get; set; }
+
+        public DateTime? LastAuxiliaryDataLoadTime { get; set; }
+
+        public AuxiliaryFilesUpdateTime LastAuxiliaryDataUpdateTime { get; set; }
     }
 }

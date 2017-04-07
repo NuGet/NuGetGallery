@@ -55,7 +55,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private async Task<Uri> SaveNuspec(Storage storage, string id, string version, string nuspec, CancellationToken cancellationToken)
         {
-            var relativeAddress = string.Format("{1}/{0}.nuspec", id, version);
+            var relativeAddress = GetRelativeAddressNuspec(id, version);
             var nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
             await storage.Save(nuspecUri, new StringStorageContent(nuspec, "text/xml", "max-age=120"), cancellationToken);
             return nuspecUri;
@@ -113,14 +113,14 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private async Task<Uri> SaveNupkg(Stream nupkgStream, Storage storage, string id, string version, CancellationToken cancellationToken)
         {
-            Uri nupkgUri = new Uri(storage.BaseAddress, string.Format("{1}/{0}.{1}.nupkg", id, version));
+            Uri nupkgUri = new Uri(storage.BaseAddress, GetRelativeAddressNupkg(id, version));
             await storage.Save(nupkgUri, new StreamStorageContent(nupkgStream, "application/octet-stream", "max-age=120"), cancellationToken);
             return nupkgUri;
         }
 
         private async Task DeleteNuspec(Storage storage, string id, string version, CancellationToken cancellationToken)
         {
-            string relativeAddress = string.Format("{1}/{0}.nuspec", id, version);
+            string relativeAddress = GetRelativeAddressNuspec(id, version);
             Uri nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
             if (storage.Exists(relativeAddress))
             {
@@ -130,12 +130,22 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private async Task DeleteNupkg(Storage storage, string id, string version, CancellationToken cancellationToken)
         {
-            string relativeAddress = string.Format("{1}/{0}.{1}.nupkg", id, version);
+            string relativeAddress = GetRelativeAddressNupkg(id, version);
             Uri nupkgUri = new Uri(storage.BaseAddress, relativeAddress);
             if (storage.Exists(relativeAddress))
             {
                 await storage.Delete(nupkgUri, cancellationToken);
             }
+        }
+
+        private static string GetRelativeAddressNuspec(string id, string version)
+        {
+            return $"{NuGetVersion.Parse(version).ToNormalizedString()}/{id}.nuspec"; 
+        }
+
+        private static string GetRelativeAddressNupkg(string id, string version)
+        {
+            return $"{NuGetVersion.Parse(version).ToNormalizedString()}/{id}.{NuGetVersion.Parse(version).ToNormalizedString()}.nupkg";
         }
     }
 }

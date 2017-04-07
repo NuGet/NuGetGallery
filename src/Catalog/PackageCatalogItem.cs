@@ -1,9 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Linq;
-using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using VDS.RDF;
 
@@ -11,12 +12,13 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class PackageCatalogItem : AppendOnlyCatalogItem
     {
-        NupkgMetadata _nupkgMetadata;
-        DateTime? _createdDate;
-        DateTime? _lastEditedDate;
-        DateTime? _publishedDate;
-        string _id;
-        string _version;
+        private readonly NupkgMetadata _nupkgMetadata;
+        private readonly DateTime? _createdDate;
+        private readonly DateTime? _lastEditedDate;
+        private readonly DateTime? _publishedDate;
+        private string _id;
+        private string _fullVersion;
+        private string _normalizedVersion;
 
         public PackageCatalogItem(NupkgMetadata nupkgMetadata, DateTime? createdDate = null, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
         {
@@ -119,7 +121,8 @@ namespace NuGet.Services.Metadata.Catalog
             Triple version = graph.GetTriplesWithSubjectPredicate(resource.Subject, versionPredicate).FirstOrDefault();
             if (version != null)
             {
-                _version = ((ILiteralNode)version.Object).Value;
+                _fullVersion = ((ILiteralNode)version.Object).Value;
+                _normalizedVersion = NuGetVersionUtility.NormalizeVersion(_fullVersion);
             }
         }
 
@@ -169,9 +172,9 @@ namespace NuGet.Services.Metadata.Catalog
                 graph.Assert(subject, idPredicate, graph.CreateLiteralNode(_id));
             }
 
-            if (_version != null)
+            if (_fullVersion != null)
             {
-                graph.Assert(subject, versionPredicate, graph.CreateLiteralNode(_version));
+                graph.Assert(subject, versionPredicate, graph.CreateLiteralNode(_fullVersion));
             }
 
             return graph;
@@ -179,7 +182,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected override string GetItemIdentity()
         {
-            return (_id + "." + _version).ToLowerInvariant();
+            return (_id + "." + _normalizedVersion).ToLowerInvariant();
         }
     }
 }

@@ -19,18 +19,5 @@ namespace NuGet.Indexing
                 searcherManager.Release(searcher);
             }
         }
-
-        public static void Rankings(JsonWriter jsonWriter, NuGetSearcherManager searcherManager)
-        {
-            var searcher = searcherManager.Get();
-            try
-            {
-                ResponseFormatter.WriteRankingsResult(jsonWriter, searcher.Rankings);
-            }
-            finally
-            {
-                searcherManager.Release(searcher);
-            }
-        }
     }
 }
