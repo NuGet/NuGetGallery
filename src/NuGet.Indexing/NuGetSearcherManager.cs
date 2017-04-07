@@ -365,16 +365,16 @@ namespace NuGet.Indexing
             using (var writer = new JsonTextWriter(new StreamWriter(new MemoryStream())))
             {
                 ResponseFormatter.WriteV2Result(writer, searcher, topDocs1, 0, 250, SemVerHelpers.SemVer2Level);
-                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs1, 0, 250, false, false, boostedQuery);
+                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs1, 0, 250, false, false, SemVerHelpers.SemVer2Level, boostedQuery);
 
                 ResponseFormatter.WriteV2Result(writer, searcher, topDocs2, 0, 250, SemVerHelpers.SemVer2Level);
-                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs2, 0, 250, false, false, boostedQuery);
+                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs2, 0, 250, false, false, SemVerHelpers.SemVer2Level, boostedQuery);
 
                 ResponseFormatter.WriteV2Result(writer, searcher, topDocs3, 0, 250, SemVerHelpers.SemVer2Level);
-                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs3, 0, 250, false, false, boostedQuery);
+                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs3, 0, 250, false, false, SemVerHelpers.SemVer2Level, boostedQuery);
 
                 ResponseFormatter.WriteV2Result(writer, searcher, topDocs4, 0, 250, SemVerHelpers.SemVer2Level);
-                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs4, 0, 250, false, false, boostedQuery);
+                ResponseFormatter.WriteSearchResult(writer, searcher, "http", topDocs4, 0, 250, false, false, SemVerHelpers.SemVer2Level, boostedQuery);
             }
 
             // Done, we're warm.

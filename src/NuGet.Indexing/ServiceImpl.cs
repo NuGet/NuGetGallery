@@ -40,7 +40,7 @@ namespace NuGet.Indexing
 
                 TopDocs topDocs = searcher.Search(query, skip + take);
 
-                ResponseFormatter.WriteSearchResult(jsonWriter, searcher, scheme, topDocs, skip, take, includePrerelease, includeExplanation, query);
+                ResponseFormatter.WriteSearchResult(jsonWriter, searcher, scheme, topDocs, skip, take, includePrerelease, includeExplanation, semVerLevel, query);
             }
             finally
             {
@@ -92,7 +92,7 @@ namespace NuGet.Indexing
                     }
 
                     TopDocs topDocs = searcher.Search(query, 1);
-                    ResponseFormatter.WriteAutoCompleteVersionResult(jsonWriter, searcher, includePrerelease, topDocs);
+                    ResponseFormatter.WriteAutoCompleteVersionResult(jsonWriter, searcher, includePrerelease, semVerLevel, topDocs);
                 }
             }
             finally

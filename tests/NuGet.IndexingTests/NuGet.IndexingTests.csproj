@@ -202,6 +202,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestSupport\TokenAttributes.cs" />
     <Compile Include="TestSupport\TokenStreamExtensions.cs" />
+    <Compile Include="VersionResultTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

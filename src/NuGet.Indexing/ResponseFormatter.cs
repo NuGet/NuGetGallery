@@ -14,13 +14,23 @@ namespace NuGet.Indexing
     public static class ResponseFormatter
     {
         // V3 implementation - called directly from the integrated Visual Studio client
-        public static void WriteSearchResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, string scheme, TopDocs topDocs, int skip, int take, bool includePrerelease, bool includeExplanation, Query query)
+        public static void WriteSearchResult(
+            JsonWriter jsonWriter,
+            NuGetIndexSearcher searcher,
+            string scheme,
+            TopDocs topDocs,
+            int skip,
+            int take,
+            bool includePrerelease,
+            bool includeExplanation,
+            NuGetVersion semVerLevel,
+            Query query)
         {
             Uri baseAddress = searcher.Manager.RegistrationBaseAddress[scheme];
 
             jsonWriter.WriteStartObject();
             WriteInfo(jsonWriter, baseAddress, searcher, topDocs);
-            WriteData(jsonWriter, searcher, topDocs, skip, take, baseAddress, includePrerelease, includeExplanation, query);
+            WriteData(jsonWriter, searcher, topDocs, skip, take, baseAddress, includePrerelease, includeExplanation, semVerLevel, query);
             jsonWriter.WriteEndObject();
         }
 
@@ -47,7 +57,17 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndObject();
         }
 
-        private static void WriteData(JsonWriter jsonWriter, NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, Uri baseAddress, bool includePrerelease, bool includeExplanation, Query query)
+        private static void WriteData(
+            JsonWriter jsonWriter, 
+            NuGetIndexSearcher searcher, 
+            TopDocs topDocs,
+            int skip,
+            int take,
+            Uri baseAddress,
+            bool includePrerelease,
+            bool includeExplanation,
+            NuGetVersion semVerLevel,
+            Query query)
         {
             jsonWriter.WritePropertyName("data");
 
@@ -81,8 +101,8 @@ namespace NuGet.Indexing
                 WriteDocumentValue(jsonWriter, "projectUrl", document, "ProjectUrl");
                 WriteDocumentValueAsArray(jsonWriter, "tags", document, "Tags");
                 WriteDocumentValueAsArray(jsonWriter, "authors", document, "Authors", true);
-                WriteProperty(jsonWriter, "totalDownloads", searcher.Versions[scoreDoc.Doc].VersionDetails.Select(item => item.Downloads).Sum());
-                WriteVersions(jsonWriter, baseAddress, id, includePrerelease, searcher.Versions[scoreDoc.Doc]);
+                WriteProperty(jsonWriter, "totalDownloads", searcher.Versions[scoreDoc.Doc].AllVersionDetails.Select(item => item.Downloads).Sum());
+                WriteVersions(jsonWriter, baseAddress, id, includePrerelease, semVerLevel, searcher.Versions[scoreDoc.Doc]);
 
                 if (includeExplanation)
                 {
@@ -101,15 +121,18 @@ namespace NuGet.Indexing
             Uri baseAddress,
             string id,
             bool includePrerelease,
+            NuGetVersion semVerLevel,
             VersionResult versionResult)
         {
+            var includeSemVer2 = SemVerHelpers.ShouldIncludeSemVer2Results(semVerLevel);
+
             jsonWriter.WritePropertyName("versions");
 
             jsonWriter.WriteStartArray();
 
             var results = includePrerelease
-                ? versionResult.VersionDetails
-                : versionResult.StableVersionDetails;
+                ? (includeSemVer2 ? versionResult.SemVer2VersionDetails : versionResult.LegacyVersionDetails)
+                : (includeSemVer2 ? versionResult.StableSemVer2VersionDetails : versionResult.StableLegacyVersionDetails);
 
             foreach (var item in results.Where(r => r.IsListed))
             {
@@ -142,11 +165,11 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndObject();
         }
 
-        public static void WriteAutoCompleteVersionResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, bool includePrerelease, TopDocs topDocs)
+        public static void WriteAutoCompleteVersionResult(JsonWriter jsonWriter, NuGetIndexSearcher searcher, bool includePrerelease, NuGetVersion semVerLevel, TopDocs topDocs)
         {
             jsonWriter.WriteStartObject();
             WriteInfo(jsonWriter, null, searcher, topDocs);
-            WriteVersions(jsonWriter, searcher, includePrerelease, topDocs);
+            WriteVersions(jsonWriter, searcher, includePrerelease, semVerLevel, topDocs);
             jsonWriter.WriteEndObject();
         }
 
@@ -177,8 +200,10 @@ namespace NuGet.Indexing
             jsonWriter.WriteEndArray();
         }
 
-        private static void WriteVersions(JsonWriter jsonWriter, NuGetIndexSearcher searcher, bool includePrerelease, TopDocs topDocs)
+        private static void WriteVersions(JsonWriter jsonWriter, NuGetIndexSearcher searcher, bool includePrerelease, NuGetVersion semVerLevel, TopDocs topDocs)
         {
+            var includeSemVer2 = SemVerHelpers.ShouldIncludeSemVer2Results(semVerLevel);
+
             jsonWriter.WritePropertyName("data");
             jsonWriter.WriteStartArray();
 
@@ -187,8 +212,8 @@ namespace NuGet.Indexing
                 ScoreDoc scoreDoc = topDocs.ScoreDocs[0];
 
                 var versions = includePrerelease
-                    ? searcher.Versions[scoreDoc.Doc].GetVersions(onlyListed: true)
-                    : searcher.Versions[scoreDoc.Doc].GetStableVersions(onlyListed: true);
+                    ? searcher.Versions[scoreDoc.Doc].GetVersions(onlyListed: true, includeSemVer2: includeSemVer2)
+                    : searcher.Versions[scoreDoc.Doc].GetStableVersions(onlyListed: true, includeSemVer2: includeSemVer2);
 
                 foreach (var version in versions)
                 {

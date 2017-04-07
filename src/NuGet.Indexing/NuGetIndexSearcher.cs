@@ -95,7 +95,7 @@ namespace NuGet.Indexing
 
         public static int TotalDownloadCounts(VersionResult versions)
         {
-            int allVersions = versions.VersionDetails.Select(v => v.Downloads).Sum();
+            int allVersions = versions.AllVersionDetails.Select(v => v.Downloads).Sum();
 
             return allVersions;
         }
@@ -104,7 +104,7 @@ namespace NuGet.Indexing
         {
             int allVersions = TotalDownloadCounts(versions);
 
-            int thisVersion = versions.VersionDetails
+            int thisVersion = versions.AllVersionDetails
                 .Where(v => v.Version.Equals(version, StringComparison.OrdinalIgnoreCase))
                 .Select(v => v.Downloads)
                 .FirstOrDefault();

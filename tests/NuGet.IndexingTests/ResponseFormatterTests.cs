@@ -138,7 +138,7 @@ namespace NuGet.IndexingTests
 
             using (var writer = new JsonTextWriter(sw))
             {
-                ResponseFormatter.WriteAutoCompleteVersionResult(writer, searcher, includePrerelease, topDocs);
+                ResponseFormatter.WriteAutoCompleteVersionResult(writer, searcher, includePrerelease, SemVerHelpers.SemVer2Level, topDocs);
 
                 Assert.Equal(string.Format(expected, searcher.LastReopen), sb.ToString());
             }
@@ -166,7 +166,7 @@ namespace NuGet.IndexingTests
 
             using (var writer = new JsonTextWriter(sw))
             {
-                ResponseFormatter.WriteSearchResult(writer, searcher, Constants.SchemeName, topDocs, skip, take, includePrerelease, includeExplanation, NuGetQuery.MakeQuery("test"));
+                ResponseFormatter.WriteSearchResult(writer, searcher, Constants.SchemeName, topDocs, skip, take, includePrerelease, includeExplanation, SemVerHelpers.SemVer2Level, NuGetQuery.MakeQuery("test"));
 
                 Assert.Equal(string.Format(expected,
                     Constants.BaseUri,

@@ -12,5 +12,6 @@ namespace NuGet.Indexing
         public int Downloads { get; set; }
         public bool IsStable { get; set; }
         public bool IsListed { get; set; }
+        public bool IsSemVer2 { get; set; }
     }
 }
