@@ -76,6 +76,12 @@ namespace NuGetGallery.Packaging
                     version));
             }
 
+            var versionValidationResult = ValidateVersionForLegacyClients(packageMetadata.Version);
+            if (versionValidationResult != null)
+            {
+                yield return versionValidationResult;
+            }
+
             // Check framework reference groups
             var frameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
             if (frameworkReferenceGroups != null)
@@ -160,6 +166,19 @@ namespace NuGetGallery.Packaging
             }
         }
 
+        private static ValidationResult ValidateVersionForLegacyClients(NuGetVersion version)
+        {
+            if (!version.IsSemVer2 && !version.IsValidVersionForLegacyClients())
+            {
+                return new ValidationResult(string.Format(
+                    CultureInfo.CurrentCulture,
+                    CoreStrings.Manifest_InvalidVersion,
+                    version));
+            }
+
+            return null;
+        }
+
         private static ValidationResult ValidateDependencyVersion(NuGetVersion version)
         {
             if (version.HasMetadata)
@@ -170,7 +189,7 @@ namespace NuGetGallery.Packaging
                     version.ToFullString()));
             }
 
-            return null;
+            return ValidateVersionForLegacyClients(version);
         }
 
         private static IEnumerable<ValidationResult> CheckUrls(params string[] urls)
