@@ -166,6 +166,12 @@ namespace NuGetGallery.Packaging
             }
         }
 
+        /// <summary>
+        /// Checks whether the provided version is consumable by legacy 2.x clients,
+        /// which do not support a `.` in release labels, or release labels starting with numberic characters.
+        /// </summary>
+        /// <param name="version">The <see cref="NuGetVersion"/> to check for 2.x client compatibility.</param>
+        /// <returns>Returns a <see cref="ValidationResult"/> when non-compliant; otherwise <c>null</c>.</returns>
         private static ValidationResult ValidateVersionForLegacyClients(NuGetVersion version)
         {
             if (!version.IsSemVer2 && !version.IsValidVersionForLegacyClients())
