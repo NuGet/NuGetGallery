@@ -443,7 +443,7 @@ namespace NuGetGallery.Packaging
         [Theory]
         [InlineData("1.0.0-10")]
         [InlineData("1.0.0--")]
-        public void ReturnsErrorIfVersionIsInvalid(string version)
+        public void ReturnsErrorIfNonSemVer2VersionIsNotCompliantWith2XClients(string version)
         {
             // https://github.com/NuGet/NuGetGallery/issues/3226
 
