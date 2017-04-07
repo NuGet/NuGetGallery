@@ -23,7 +23,9 @@ namespace NuGetGallery
                 if (httpContext != null && httpContext.Request != null)
                 {
                     // ClientVersion will be available for NuGet clients starting version 4.1.0
-                    telemetry.Context.Properties.Add(ClientVersionPropertyKey, httpContext.Request.Headers[Constants.ClientVersionHeaderName]);
+                    telemetry.Context.Properties.Add(
+                        ClientVersionPropertyKey,
+                        httpContext.Request.Headers[Constants.ClientVersionHeaderName]);
 
                     // Best effort attempt to extract client information from the user-agent header.
                     // According to documentation here: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent 
