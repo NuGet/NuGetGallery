@@ -55,6 +55,7 @@ namespace NuGetGallery
         internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
         internal const string ClientVersionHeaderName = "X-NuGet-Client-Version";
         internal const string WarningHeaderName = "X-NuGet-Warning";
+        internal const string UserAgentHeaderName = "User-Agent";
 
         public static readonly string ReturnUrlParameterName = "ReturnUrl";
         public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";

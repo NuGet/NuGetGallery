@@ -59,7 +59,12 @@ namespace NuGetGallery
             {
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
 
+                // Add enrichers
+                TelemetryConfiguration.Active.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
+
                 var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
+
+                // Add filters
                 telemetryProcessorChainBuilder.Use(next => new TelemetryResponseCodeFilter(next));
 
                 // Note: sampling rate must be a factor 100/N where N is a whole number
