@@ -11,7 +11,7 @@ $TestCategories.Split(';') | ForEach-Object {
     Write-Host "Testing $_."
     Write-Host ($dividerSymbol * 10)
     
-    & cmd /c "$PSScriptRoot\Run$_.bat"
+    & $env:COMSPEC /c "$PSScriptRoot\Run$_.bat"
     
     Write-Host ($dividerSymbol * 10)
     
