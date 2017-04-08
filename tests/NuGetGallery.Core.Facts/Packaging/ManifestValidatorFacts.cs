@@ -445,8 +445,6 @@ namespace NuGetGallery.Packaging
         [InlineData("1.0.0--")]
         public void ReturnsErrorIfNonSemVer2VersionIsNotCompliantWith2XClients(string version)
         {
-            // https://github.com/NuGet/NuGetGallery/issues/3226
-
             var nuspecStream = CreateNuspecStream(string.Format(NuSpecPlaceholderVersion, version));
 
             Assert.Equal(new[] {String.Format(CoreStrings.Manifest_InvalidVersion, version)}, GetErrors(nuspecStream));
