@@ -440,6 +440,16 @@ namespace NuGetGallery.Packaging
             Assert.Empty(GetErrors(nuspecStream));
         }
 
+        [Theory]
+        [InlineData("1.0.0-10")]
+        [InlineData("1.0.0--")]
+        public void ReturnsErrorIfNonSemVer2VersionIsNotCompliantWith2XClients(string version)
+        {
+            var nuspecStream = CreateNuspecStream(string.Format(NuSpecPlaceholderVersion, version));
+
+            Assert.Equal(new[] {String.Format(CoreStrings.Manifest_InvalidVersion, version)}, GetErrors(nuspecStream));
+        }
+
         [Fact]
         public void ReturnsErrorIfDependencyVersionIsSemVer200WithMetadataPart()
         {
