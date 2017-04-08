@@ -76,6 +76,12 @@ namespace NuGetGallery.Packaging
                     version));
             }
 
+            var versionValidationResult = ValidateVersionForLegacyClients(packageMetadata.Version);
+            if (versionValidationResult != null)
+            {
+                yield return versionValidationResult;
+            }
+
             // Check framework reference groups
             var frameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
             if (frameworkReferenceGroups != null)
@@ -160,6 +166,26 @@ namespace NuGetGallery.Packaging
             }
         }
 
+        /// <summary>
+        /// Checks whether the provided version is consumable by legacy 2.x clients,
+        /// which do not support a `.` in release labels, or release labels starting with numeric characters.
+        /// See also https://github.com/NuGet/NuGetGallery/issues/3226.
+        /// </summary>
+        /// <param name="version">The <see cref="NuGetVersion"/> to check for 2.x client compatibility.</param>
+        /// <returns>Returns a <see cref="ValidationResult"/> when non-compliant; otherwise <c>null</c>.</returns>
+        private static ValidationResult ValidateVersionForLegacyClients(NuGetVersion version)
+        {
+            if (!version.IsSemVer2 && !version.IsValidVersionForLegacyClients())
+            {
+                return new ValidationResult(string.Format(
+                    CultureInfo.CurrentCulture,
+                    CoreStrings.Manifest_InvalidVersion,
+                    version));
+            }
+
+            return null;
+        }
+
         private static ValidationResult ValidateDependencyVersion(NuGetVersion version)
         {
             if (version.HasMetadata)
@@ -170,7 +196,7 @@ namespace NuGetGallery.Packaging
                     version.ToFullString()));
             }
 
-            return null;
+            return ValidateVersionForLegacyClients(version);
         }
 
         private static IEnumerable<ValidationResult> CheckUrls(params string[] urls)
