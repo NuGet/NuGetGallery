@@ -830,6 +830,18 @@ namespace NuGetGallery
             }
 
             [Fact]
+            private async Task WillThrowIfTheNuGetPackageDescriptionIsNull()
+            {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage(description: null);
+
+                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyMissing, "Description"), ex.Message);
+            }
+
+
+            [Fact]
             private async Task WillThrowIfTheNuGetPackageDescriptionIsLongerThan4000()
             {
                 var service = CreateService();

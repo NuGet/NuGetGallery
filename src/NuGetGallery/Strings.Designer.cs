@@ -582,6 +582,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A nuget package&apos;s {0} property is required..
+        /// </summary>
+        public static string NuGetPackagePropertyMissing {
+            get {
+                return ResourceManager.GetString("NuGetPackagePropertyMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
         public static string NuGetPackagePropertyTooLong {

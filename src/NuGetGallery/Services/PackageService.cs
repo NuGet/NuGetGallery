@@ -649,7 +649,11 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000");
             }
-            if (packageMetadata.Description != null && packageMetadata.Description.Length > 4000)
+            if (packageMetadata.Description == null)
+            {
+                throw new EntityException(Strings.NuGetPackagePropertyMissing, "Description");
+            }
+            else if (packageMetadata.Description != null && packageMetadata.Description.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Description", "4000");
             }
