@@ -71,6 +71,10 @@ namespace NuGetGallery
                 return View();
             }
 
+            // since HTML is allowed in these fields, encode it to avoid malicious HTML
+            contactForm.Message = HttpUtility.HtmlEncode(contactForm.Message);
+            contactForm.SubjectLine = HttpUtility.HtmlEncode(contactForm.SubjectLine);
+
             var user = GetCurrentUser();
             var request = new ContactSupportRequest
             {

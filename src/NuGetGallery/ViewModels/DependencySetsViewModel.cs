@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -17,9 +17,7 @@ namespace NuGetGallery
             {
                 DependencySets = new Dictionary<string, IEnumerable<DependencyViewModel>>();
 
-                var dependencySets = packageDependencies
-                    .GroupBy(d => d.TargetFramework)
-                    .OrderBy(ds => ds.Key);
+                var dependencySets = packageDependencies.GroupBy(d => d.TargetFramework);
 
                 OnlyHasAllFrameworks = dependencySets.Count() == 1 && dependencySets.First().Key == null;
 
@@ -32,15 +30,18 @@ namespace NuGetGallery
                     if (!DependencySets.ContainsKey(targetFramework))
                     {
                         DependencySets.Add(targetFramework,
-                            dependencySet.Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec)));
+                            dependencySet.OrderBy(x => x.Id).Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec)));
                     }
                 }
+
+                // Order the top level frameworks by their resulting friendly name
+                DependencySets = DependencySets.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
             }
             catch (Exception e)
             {
+                // Just set Dependency Sets to null but still render the package.
                 DependencySets = null;
                 QuietLog.LogHandledException(e);
-                // Just set Dependency Sets to null but still render the package.
             }
         }
 

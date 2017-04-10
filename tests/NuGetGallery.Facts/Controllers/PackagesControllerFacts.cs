@@ -375,6 +375,80 @@ namespace NuGetGallery
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Equal("A modified package!", model.Title);
             }
+
+            [Fact]
+            public async Task GivenAnAbsoluteLatestVersionItQueriesTheCorrectVersion()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
+                var controller = CreateController(
+                    packageService: packageService, indexingService: indexingService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+                
+               packageService
+                    .Setup(p => p.FindAbsoluteLatestPackageById("Foo"))
+                    .Returns(new Package()
+                    {
+                        PackageRegistration = new PackageRegistration()
+                        {
+                            Id = "Foo",
+                            Owners = new List<User>()
+                        },
+                        Version = "2.0.0a",
+                        NormalizedVersion = "2.0.0a",
+                        IsLatest = true,
+                        Title = "A test package!"
+                    });
+               
+
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", Constants.AbsoluteLatestUrlString);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal("Foo", model.Id);
+                Assert.Equal("2.0.0a", model.Version);
+                Assert.Equal("A test package!", model.Title);
+                Assert.True(model.LatestVersion);
+            }
+
+            [Fact]
+            public async Task GivenAValidPackageWithNoVersionThatTheCurrentUserDoesNotOwnItDisplaysCurrentMetadata()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
+                var controller = CreateController(
+                    packageService: packageService, indexingService: indexingService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", null, true))
+                    .Returns(new Package()
+                    {
+                        PackageRegistration = new PackageRegistration()
+                        {
+                            Id = "Foo",
+                            Owners = new List<User>()
+                        },
+                        Version = "01.1.01",
+                        NormalizedVersion = "1.1.1",
+                        Title = "A test package!"
+                    });
+
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal("Foo", model.Id);
+                Assert.Equal("1.1.1", model.Version);
+                Assert.Equal("A test package!", model.Title);
+            }
         }
 
         public class TheConfirmOwnerMethod

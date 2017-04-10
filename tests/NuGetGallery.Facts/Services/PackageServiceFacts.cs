@@ -350,7 +350,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage(id: idThatMatchesExistingTitle);
 
                 // Assert
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
 
                 Assert.Equal(String.Format(Strings.NewRegistrationIdMatchesExistingPackageTitle, idThatMatchesExistingTitle), ex.Message);
             }
@@ -660,7 +660,7 @@ namespace NuGetGallery
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
                 var nugetPackage = CreateNuGetPackage();
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
 
                 Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), ex.Message);
             }
@@ -688,7 +688,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage(title: newPackageTitle);
 
                 // Assert
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, true));
 
                 Assert.Equal(String.Format(Strings.TitleMatchesExistingRegistration, newPackageTitle), ex.Message);
             }
@@ -699,7 +699,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(id: "theId".PadRight(131, '_'));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength), ex.Message);
             }
@@ -710,7 +710,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(id: "theId", version: "1.2.3-alpha.0");
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackageReleaseVersionWithDot, "Version"), ex.Message);
             }
@@ -721,7 +721,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(id: "theId", version: "1.2.3-12345");
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackageReleaseVersionContainsOnlyNumerics, "Version"), ex.Message);
             }
@@ -732,7 +732,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(authors: "theFirstAuthor".PadRight(2001, '_') + ", " + "theSecondAuthor".PadRight(2001, '_'));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Authors", "4000"), ex.Message);
             }
@@ -743,7 +743,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(copyright:  "theCopyright".PadRight(4001, '_'));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000"), ex.Message);
             }
@@ -755,7 +755,7 @@ namespace NuGetGallery
                 var versionString = "1.0.0-".PadRight(65, 'a');
                 var nugetPackage = CreateNuGetPackage(version: versionString);
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Version", "64"), ex.Message);
             }
@@ -780,7 +780,7 @@ namespace NuGetGallery
                         packageDependencies),
                 });
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue), ex.Message);
             }
@@ -802,7 +802,7 @@ namespace NuGetGallery
                                 })
                     });
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength), ex.Message);
             }
@@ -824,7 +824,7 @@ namespace NuGetGallery
                                 })
                     });
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", 256), ex.Message);
             }
@@ -835,7 +835,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(description:  "theDescription".PadRight(4001, '_'));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Description", "4000"), ex.Message);
             }
@@ -846,7 +846,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(iconUrl: new Uri("http://theIconUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000"), ex.Message);
             }
@@ -857,7 +857,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(licenseUrl: new Uri("http://theLicenseUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000"), ex.Message);
             }
@@ -868,7 +868,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(projectUrl: new Uri("http://theProjectUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000"), ex.Message);
             }
@@ -879,7 +879,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(summary: "theSummary".PadRight(4001, '_'));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Summary", "4000"), ex.Message);
             }
@@ -890,7 +890,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(tags:  "theTags".PadRight(4001, '_'));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Tags", "4000"), ex.Message);
             }
@@ -901,7 +901,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(title: "theTitle".PadRight(4001, '_'));
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Title", "256"), ex.Message);
             }
@@ -914,7 +914,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage(language: new string('a', 21));
 
                 // Act
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 // Assert
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Language", "20"), ex.Message);
@@ -1222,6 +1222,54 @@ namespace NuGetGallery
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal("1.0.0b", result.Version);
+            }
+        }
+
+        public class TheFindAbsoluteLatestPackageByIdMethod
+        {
+            [Fact]
+            public void ReturnsTheLatestVersion()
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
+                var package2 = new Package { Version = "2.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.FindAbsoluteLatestPackageById("theId");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("2.0.0a", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsTheMostRecentVersion()
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
+                var package2 = new Package { Version = "2.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
+                var package3 = new Package { Version = "2.0.0", PackageRegistration = packageRegistration, Listed = true };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.FindAbsoluteLatestPackageById("theId");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("2.0.0a", result.Version);
             }
         }
 

@@ -105,18 +105,21 @@ namespace NuGetGallery
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
 
-            if (overwrite)
+            try
             {
-                await blob.DeleteIfExistsAsync();
+                await blob.UploadFromStreamAsync(packageFile, overwrite);
             }
-            else if (await blob.ExistsAsync())
+            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict)
             {
                 throw new InvalidOperationException(
-                    String.Format(CultureInfo.CurrentCulture, "There is already a blob with name {0} in container {1}.",
-                        fileName, folderName));
+                    String.Format(
+                        CultureInfo.CurrentCulture,
+                        "There is already a blob with name {0} in container {1}.",
+                        fileName,
+                        folderName),
+                    ex);
             }
 
-            await blob.UploadFromStreamAsync(packageFile);
             blob.Properties.ContentType = GetContentType(folderName);
             await blob.SetPropertiesAsync();
         }

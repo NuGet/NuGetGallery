@@ -16,6 +16,8 @@ namespace NuGetGallery.OData
         : ODataController
     {
         private readonly IGalleryConfigurationService _configurationService;
+        protected const string Id = "Id";
+        protected const string Version = "Version";
 
         protected NuGetODataController(IGalleryConfigurationService configurationService)
         {
@@ -77,6 +79,21 @@ namespace NuGetGallery.OData
         protected virtual IHttpActionResult QueryResult<TModel>(ODataQueryOptions<TModel> options, IQueryable<TModel> queryable, int maxPageSize, long totalResults, Func<ODataQueryOptions<TModel>, ODataQuerySettings, long?, Uri> generateNextLink)
         {
             return new QueryResult<TModel>(options, queryable, this, maxPageSize, totalResults, generateNextLink);
+        }
+
+        /// <summary>
+        /// The OrderById will be skipped when the request has an OrderBy clause that does not include Id 
+        /// </summary>
+        /// <param name="options">The request OData options.</param>
+        /// <returns></returns>
+        protected bool ShouldIgnoreOrderById<T>(ODataQueryOptions<T> options)
+        {
+            return options.OrderBy != null && 
+                   !options.OrderBy.OrderByNodes.Any((node) =>
+                                    {
+                                        string nodeName = ((OrderByPropertyNode)node).Property.Name;
+                                        return string.Equals(nodeName, Id, StringComparison.Ordinal);
+                                    });
         }
     }
 }

@@ -306,8 +306,16 @@ namespace NuGetGallery
                 // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
-
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            
+            Package package;
+            if (version != null && version.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            {
+                package = _packageService.FindAbsoluteLatestPackageById(id);
+            }
+            else
+            {
+                package = _packageService.FindPackageByIdAndVersion(id, version);
+            }
 
             if (package == null)
             {
@@ -734,7 +742,7 @@ namespace NuGetGallery
 
             return View(model);
         }
-        
+
         [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("delete a package")]
@@ -764,10 +772,10 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            
+
             var reflowPackageService = new ReflowPackageService(
-                _entitiesContext, 
-                (PackageService) _packageService,
+                _entitiesContext,
+                (PackageService)_packageService,
                 _packageFileService);
 
             try
@@ -1149,7 +1157,7 @@ namespace NuGetGallery
                     package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
                     Debug.Assert(package.PackageRegistration != null);
                 }
-                catch (EntityException ex)
+                catch (InvalidPackageException ex)
                 {
                     TempData["Message"] = ex.Message;
                     return Redirect(Url.UploadPackage());
