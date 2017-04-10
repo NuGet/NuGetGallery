@@ -27,7 +27,7 @@ $TestCategories.Split(';') | ForEach-Object {
 Write-Output ($dividerSymbol * 20)
 if ($failedTests.Count -gt 0) {
     Write-Output "Some functional tests failed!"
-    Write-Output "$($failedTests -join ', ') failed!"
+    $failedTests | ForEach-Object { Write-Output $_ }
     exit 1
 }
 
