@@ -302,9 +302,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
 
             var json = JObject.Parse(responseText);
-            var expiration = json.Value<DateTime>("Expires");
-            Assert.True(expiration - DateTime.UtcNow < TimeSpan.FromDays(1), "Verification keys should expire after 1 day.");
-
             return json.Value<string>("Key");
         }
 
