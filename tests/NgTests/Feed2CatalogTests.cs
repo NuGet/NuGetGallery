@@ -18,6 +18,8 @@ namespace NgTests
 {
     public class Feed2CatalogTests
     {
+        private const string FeedUrlSuffix = "&$top=20&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
+
         [Fact]
         public async Task CreatesNewCatalogFromCreatedAndEditedPackages()
         {
@@ -31,11 +33,11 @@ namespace NgTests
             var mockServer = new MockServerHttpClientHandler();
             
             mockServer.SetAction(" / ", GetRootActionAsync);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetCreatedPackages);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
+            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetCreatedPackages);
+            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetEmptyPackages);
 
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEditedPackages);
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
+            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEditedPackages);
+            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEmptyPackages);
             
             mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
             mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
@@ -124,11 +126,11 @@ namespace NgTests
             var mockServer = new MockServerHttpClientHandler();
 
             mockServer.SetAction(" / ", GetRootActionAsync);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetCreatedPackages);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
+            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetCreatedPackages);
+            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetEmptyPackages);
 
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEditedPackages);
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
+            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEditedPackages);
+            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEmptyPackages);
 
             mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
             mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
@@ -209,12 +211,12 @@ namespace NgTests
             var mockServer = new MockServerHttpClientHandler();
 
             mockServer.SetAction(" / ", GetRootActionAsync);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetCreatedPackages);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetCreatedPackagesSecondRequest);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T01:01:03.0000000Z'&$top=20&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
+            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetCreatedPackages);
+            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetCreatedPackagesSecondRequest);
+            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T01:01:03.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetEmptyPackages);
 
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEditedPackages);
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$top=20&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl", GetEmptyPackages);
+            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEditedPackages);
+            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEmptyPackages);
             
             mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
             mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
