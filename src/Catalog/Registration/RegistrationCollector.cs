@@ -85,7 +85,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs,
             CancellationToken cancellationToken)
         {
-            await RegistrationMaker.Process(
+            var tasks = new List<Task>();
+
+            var legacyTask = RegistrationMaker.Process(
                 registrationKey: new RegistrationKey(sortedGraphs.Key),
                 newItems: sortedGraphs.Value,
                 shouldInclude: _shouldIncludeSemVer2,
@@ -94,10 +96,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 partitionSize: PartitionSize,
                 packageCountThreshold: PackageCountThreshold,
                 cancellationToken: cancellationToken);
+            tasks.Add(legacyTask);
 
             if (_semVer2StorageFactory != null)
             {
-                await RegistrationMaker.Process(
+                var semVer2Task = RegistrationMaker.Process(
                    registrationKey: new RegistrationKey(sortedGraphs.Key),
                    newItems: sortedGraphs.Value,
                    storageFactory: _semVer2StorageFactory,
@@ -105,7 +108,10 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                    partitionSize: PartitionSize,
                    packageCountThreshold: PackageCountThreshold,
                    cancellationToken: cancellationToken);
+                tasks.Add(semVer2Task);
             }
+
+            await Task.WhenAll(tasks);
         }
 
         public static ShouldIncludeRegistrationPackage GetShouldIncludeRegistrationPackage(StorageFactory semVer2StorageFactory)

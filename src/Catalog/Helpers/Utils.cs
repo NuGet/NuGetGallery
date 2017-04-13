@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -244,11 +245,21 @@ namespace NuGet.Services.Metadata.Catalog
 
         public static IGraph CreateGraph(JToken compacted)
         {
+            return CreateGraph(compacted, readOnly: false);
+        }
+
+        public static IGraph CreateGraph(JToken compacted, bool readOnly)
+        {
             JToken flattened = JsonLdProcessor.Flatten(compacted, new JsonLdOptions());
 
             IRdfReader rdfReader = new JsonLdReader();
             IGraph graph = new Graph();
             rdfReader.Load(graph, new StringReader(flattened.ToString(Newtonsoft.Json.Formatting.None, new Newtonsoft.Json.JsonConverter[0])));
+
+            if (readOnly)
+            {
+                graph = new ReadOnlyGraph(graph);
+            }
 
             return graph;
         }

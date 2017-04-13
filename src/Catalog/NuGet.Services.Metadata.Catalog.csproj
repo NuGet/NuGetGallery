@@ -115,6 +115,7 @@
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CommitMetadata.cs" />
     <Compile Include="Helpers\NuGetVersionUtility.cs" />
+    <Compile Include="ReadOnlyGraph.cs" />
     <Compile Include="Persistence\StorageListItem.cs" />
     <Compile Include="StringInterner.cs" />
     <Compile Include="Utilities.cs" />
