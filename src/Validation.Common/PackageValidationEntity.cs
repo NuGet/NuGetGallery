@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.WindowsAzure.Storage.Table;
 using NuGet.Jobs.Validation.Common.Validators;
 
@@ -48,7 +49,7 @@ namespace NuGet.Jobs.Validation.Common
 
         public void ValidatorCompleted(string validator, ValidationResult result)
         {
-            var completedValidators = CompletedValidators.Split(new [] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            var completedValidators = GetCompletedValidatorsList();
             if (!completedValidators.Contains(validator))
             {
                 completedValidators.Add(validator);
@@ -56,7 +57,7 @@ namespace NuGet.Jobs.Validation.Common
             }
 
             if (ValidationResult >= 0)
-            { 
+            {
                 ValidationResult = (int)result;
             }
 
@@ -64,6 +65,11 @@ namespace NuGet.Jobs.Validation.Common
             {
                 Finished = DateTimeOffset.UtcNow;
             }
+        }
+
+        public List<string> GetCompletedValidatorsList()
+        {
+            return CompletedValidators.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
         }
     }
 }

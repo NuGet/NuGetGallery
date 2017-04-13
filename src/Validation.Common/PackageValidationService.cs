@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Jobs.Validation.Common
@@ -15,13 +16,15 @@ namespace NuGet.Jobs.Validation.Common
         private readonly PackageValidationQueue _packageValidationQueue;
         private readonly PackageValidationAuditor _packageValidationAuditor;
         private readonly INotificationService _notificationService;
+        private readonly ILogger<PackageValidationService> _logger;
 
-        public PackageValidationService(CloudStorageAccount cloudStorageAccount, string containerNamePrefix)
+        public PackageValidationService(CloudStorageAccount cloudStorageAccount, string containerNamePrefix, ILoggerFactory loggerFactory)
         {
             _packageValidationTable = new PackageValidationTable(cloudStorageAccount, containerNamePrefix);
-            _packageValidationQueue = new PackageValidationQueue(cloudStorageAccount, containerNamePrefix);
-            _packageValidationAuditor = new PackageValidationAuditor(cloudStorageAccount, containerNamePrefix);
+            _packageValidationQueue = new PackageValidationQueue(cloudStorageAccount, containerNamePrefix, loggerFactory);
+            _packageValidationAuditor = new PackageValidationAuditor(cloudStorageAccount, containerNamePrefix, loggerFactory);
             _notificationService = new NotificationService(cloudStorageAccount, containerNamePrefix);
+            _logger = loggerFactory.CreateLogger<PackageValidationService>();
         }
 
         public async Task StartValidationProcessAsync(NuGetPackage package, string[] validators)
@@ -31,9 +34,13 @@ namespace NuGet.Jobs.Validation.Common
             var packageVersion = package.NormalizedVersion ?? package.Version;
             var created = DateTimeOffset.UtcNow;
 
-            Trace.TraceInformation(
-                "Starting validation process for validation {0} - package {1} {2}...", 
-                validationId, packageId, packageVersion);
+            _logger.LogInformation(
+                    $"Starting validation process for validation {{{TraceConstant.ValidationId}}} " +
+                    $"- package {{{TraceConstant.PackageId}}} " +
+                    $"v. {{{TraceConstant.PackageVersion}}}...", 
+                validationId, 
+                packageId, 
+                packageVersion);
 
             // Write a tracking entity
             await _packageValidationTable.StoreAsync(new PackageValidationEntity
@@ -69,7 +76,13 @@ namespace NuGet.Jobs.Validation.Common
             {
                 var logMessage = $"Error while starting validation process for validation {validationId} - package {packageId} {packageVersion}: {ex.Message} {ex.StackTrace}";
 
-                Trace.TraceError(logMessage);
+                _logger.LogError(TraceEvent.StartValidationAuditFailed, ex, 
+                        $"Error while starting validation process for validation {{{TraceConstant.ValidationId}}} " +
+                        $"- package {{{TraceConstant.PackageId}}} " +
+                        $"v. {{{TraceConstant.PackageVersion}}}",
+                    validationId,
+                    packageId,
+                    packageVersion);
 
                 await _notificationService.SendNotificationAsync(
                     "exception",
@@ -79,7 +92,12 @@ namespace NuGet.Jobs.Validation.Common
                 throw;
             }
 
-            Trace.TraceInformation("Started validation process for validation {0} - package {1} {2}.", validationId, packageId, packageVersion);
+            _logger.LogInformation($"Started validation process for validation {{{TraceConstant.ValidationId}}} " +
+                    $"- package {{{TraceConstant.PackageId}}} " +
+                    $"v. {{{TraceConstant.PackageVersion}}}", 
+                validationId, 
+                packageId, 
+                packageVersion);
         }
     }
 }

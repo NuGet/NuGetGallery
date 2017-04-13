@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
@@ -17,17 +17,25 @@ namespace NuGet.Jobs.Validation.Common
     public class PackageValidationAuditor
     {
         private readonly CloudBlobContainer _auditsContainer;
+        private readonly ILogger<PackageValidationAuditor> _logger;
 
-        public PackageValidationAuditor(CloudStorageAccount cloudStorageAccount, string containerNamePrefix)
+        public PackageValidationAuditor(CloudStorageAccount cloudStorageAccount, string containerNamePrefix, ILoggerFactory loggerFactory)
         {
             var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
             _auditsContainer = cloudBlobClient.GetContainerReference(containerNamePrefix + "-audit");
             _auditsContainer.CreateIfNotExists(BlobContainerPublicAccessType.Blob);
+            _logger = loggerFactory.CreateLogger<PackageValidationAuditor>();
         }
 
         public async Task StartAuditAsync(Guid validationId, string[] validators, DateTimeOffset started, string packageId, string packageVersion, NuGetPackage package)
         {
-            Trace.TraceInformation("Start writing Start PackageValidationAudit for validation {0} - package {1} {2}...", validationId, package.Id, packageVersion);
+            _logger.LogInformation("Start writing Start PackageValidationAudit for " +
+                    $"validation {{{TraceConstant.ValidationId}}} " +
+                    $"- package {{{TraceConstant.PackageId}}} " +
+                    $"v. {{{TraceConstant.PackageVersion}}}...", 
+                validationId,
+                package.Id,
+                packageVersion);
 
             var packageValidationAudit = new PackageValidationAudit();
             packageValidationAudit.ValidationId = validationId;
@@ -40,7 +48,13 @@ namespace NuGet.Jobs.Validation.Common
             await StoreAuditAsync(validationId, packageValidationAudit.PackageId, packageValidationAudit.PackageVersion,
                 _ => packageValidationAudit);
 
-            Trace.TraceInformation("Finished writing Start PackageValidationAudit for validation {0} - package {1} {2}.", validationId, package.Id, packageVersion);
+            _logger.LogInformation("Finished writing Start PackageValidationAudit for " +
+                    $"validation {{{TraceConstant.ValidationId}}} " +
+                    $"- package {{{TraceConstant.PackageId}}} " +
+                    $"v. {{{TraceConstant.PackageVersion}}}.", 
+                validationId, 
+                package.Id, 
+                packageVersion);
         }
 
         public async Task WriteAuditEntryAsync(Guid validationId, string packageId, string packageVersion, PackageValidationAuditEntry entry)
@@ -50,7 +64,13 @@ namespace NuGet.Jobs.Validation.Common
 
         public async Task WriteAuditEntriesAsync(Guid validationId, string packageId, string packageVersion, IEnumerable<PackageValidationAuditEntry> entries)
         {
-            Trace.TraceInformation("Start writing AuditEntry PackageValidationAudit for validation {0} - package {1} {2}...", validationId, packageId, packageVersion);
+            _logger.LogInformation("Start writing AuditEntry PackageValidationAudit for " +
+                    $"validation {{{TraceConstant.ValidationId}}} " +
+                    $"- package {{{TraceConstant.PackageId}}} " +
+                    $"v. {{{TraceConstant.PackageVersion}}}...", 
+                validationId, 
+                packageId, 
+                packageVersion);
 
             await StoreAuditAsync(validationId, packageId, packageVersion,
                 packageValidationAudit =>
@@ -59,12 +79,24 @@ namespace NuGet.Jobs.Validation.Common
                     return packageValidationAudit;
                 });
 
-            Trace.TraceInformation("Finished writing AuditEntry PackageValidationAudit for validation {0} - package {1} {2}.", validationId, packageId, packageVersion);
+            _logger.LogInformation("Finished writing AuditEntry PackageValidationAudit for " +
+                    $"validation {{{TraceConstant.ValidationId}}} " +
+                    $"- package {{{TraceConstant.PackageId}}} " +
+                    $"v. {{{TraceConstant.PackageVersion}}}.",
+                validationId,
+                packageId,
+                packageVersion);
         }
 
         public async Task CompleteAuditAsync(Guid validationId, DateTimeOffset completed, string packageId, string packageVersion)
         {
-            Trace.TraceInformation("Start writing Complete PackageValidationAudit for validation {0} - package {1} {2}...", validationId, packageId, packageVersion);
+            _logger.LogInformation("Start writing Complete PackageValidationAudit for " +
+                    $"validation {{{TraceConstant.ValidationId}}} " +
+                    $"- package {{{TraceConstant.PackageId}}} " +
+                    $"v. {{{TraceConstant.PackageVersion}}}...", 
+                validationId, 
+                packageId, 
+                packageVersion);
 
             await StoreAuditAsync(validationId, packageId, packageVersion, 
                 packageValidationAudit =>
@@ -73,7 +105,13 @@ namespace NuGet.Jobs.Validation.Common
                     return packageValidationAudit;
                 });
 
-            Trace.TraceInformation("Finished writing Complete PackageValidationAudit for validation {0} - package {1} {2}.", validationId, packageId, packageVersion);
+            _logger.LogInformation("Finished writing Complete PackageValidationAudit for " +
+                    $"validation {{{TraceConstant.ValidationId}}} " +
+                    $"- package {{{TraceConstant.PackageId}}} " +
+                    $"v. {{{TraceConstant.PackageVersion}}}.",
+                validationId,
+                packageId,
+                packageVersion);
         }
 
         public async Task StoreAuditAsync(Guid validationId, string packageId, string packageVersion, Func<PackageValidationAudit, PackageValidationAudit> updateAudit)

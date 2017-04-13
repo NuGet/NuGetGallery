@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.VirusScanning.Vcs;
 
 namespace NuGet.Jobs.Validation.Common.Validators.Vcs
@@ -17,10 +18,13 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
         private readonly Uri _callbackUrl;
         private readonly VcsVirusScanningService _scanningService;
 
-        public VcsValidator(string serviceUrl, string callbackUrl, string submitterAlias, string packageUrlTemplate)
+        private readonly ILogger<VcsValidator> _logger;
+
+        public VcsValidator(string serviceUrl, string callbackUrl, string contactAlias, string submitterAlias, string packageUrlTemplate, ILoggerFactory loggerFactory)
         {
+            _logger = loggerFactory.CreateLogger<VcsValidator>();
             _packageUrlTemplate = packageUrlTemplate;
-            _scanningService = new VcsVirusScanningService(new Uri(serviceUrl), "DIRECT", submitterAlias, submitterAlias);
+            _scanningService = new VcsVirusScanningService(new Uri(serviceUrl), "DIRECT", contactAlias, submitterAlias);
             _callbackUrl = new Uri(callbackUrl);
         }
 
@@ -35,7 +39,15 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
         public override async Task<ValidationResult> ValidateAsync(PackageValidationMessage message, List<PackageValidationAuditEntry> auditEntries)
         {
             var description = $"NuGet - {message.ValidationId} - {message.PackageId} {message.PackageVersion}";
-
+            _logger.LogInformation("Submitting virus scan job with description {description}, " +
+                    $" {{{TraceConstant.ValidatorName}}} {{{TraceConstant.ValidationId}}} " +
+                    $" for package {{{TraceConstant.PackageId}}} " +
+                    $"v. {{{TraceConstant.PackageVersion}}}", 
+                description,
+                Name,
+                message.ValidationId,
+                message.PackageId,
+                message.PackageVersion);
             WriteAuditEntry(auditEntries, $"Submitting virus scan job with description \"{description}\"...");
 
             string errorMessage;
@@ -46,17 +58,39 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 
                 if (string.IsNullOrEmpty(result.ErrorMessage))
                 {
+                    _logger.LogInformation("Submission completed for " +
+                        $"{{{TraceConstant.ValidatorName}}} {{{TraceConstant.ValidationId}}}. " +
+                        $"package {{{TraceConstant.PackageId}}} " +
+                        $"v. {{{TraceConstant.PackageVersion}}}" +
+                        "Request id: {RequestId} - job id: {JobId}", 
+                        Name,
+                        message.ValidationId,
+                        message.PackageId,
+                        message.PackageVersion,
+                        result.RequestId, 
+                        result.JobId);
                     WriteAuditEntry(auditEntries, $"Submission completed. Request id: {result.RequestId} - job id: {result.JobId}");
                     return ValidationResult.Asynchronous;
                 }
                 else
                 {
                     errorMessage = result.ErrorMessage;
+
+                    _logger.LogError($"Submission failed for {{{TraceConstant.ValidatorName}}} {{{TraceConstant.ValidationId}}} " +
+                            $"package {{{TraceConstant.PackageId}}} " +
+                            $"v. {{{TraceConstant.PackageVersion}}} " +
+                            "with: {ErrorMessage}",
+                        Name,
+                        message.ValidationId,
+                        message.PackageId,
+                        message.PackageVersion,
+                        errorMessage);
                 }
             }
             catch (Exception ex)
             {
                 errorMessage = ex.Message;
+                _logger.TrackValidatorException(ValidatorName, message.ValidationId, ex, message.PackageId, message.PackageVersion);
             }
 
             WriteAuditEntry(auditEntries, $"Submission failed. Error message: {errorMessage}");

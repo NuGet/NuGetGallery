@@ -7,12 +7,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.Common.OData;
 using NuGet.Jobs.Validation.Common.Validators;
 using NuGet.Jobs.Validation.Common.Validators.Unzip;
 using NuGet.Jobs.Validation.Common.Validators.Vcs;
+using NuGet.Services.Logging;
 
 namespace NuGet.Jobs.Validation.Runner
 {
@@ -26,11 +28,25 @@ namespace NuGet.Jobs.Validation.Runner
         private string _containerName;
         private string[] _runValidationTasks;
         private string[] _requestValidationTasks;
+        private ILoggerFactory _loggerFactory;
+        private ILogger<Job> _logger;
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
             {
+                if (!ApplicationInsights.Initialized)
+                {
+                    string instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
+                    if (!string.IsNullOrWhiteSpace(instrumentationKey))
+                    {
+                        ApplicationInsights.Initialize(instrumentationKey);
+                    }
+                }
+
+                _loggerFactory = LoggingSetup.CreateLoggerFactory();
+                _logger = _loggerFactory.CreateLogger<Job>();
+
                 // Configure job
                 _galleryBaseAddress = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
 
@@ -45,22 +61,36 @@ namespace NuGet.Jobs.Validation.Runner
                 // Add validators
                 if (_runValidationTasks.Contains(UnzipValidator.ValidatorName))
                 {
-                    _validators.Add(new UnzipValidator());
+                    _validators.Add(new UnzipValidator(_loggerFactory));
                 }
                 if (_runValidationTasks.Contains(VcsValidator.ValidatorName))
                 {
+                    // if contact alias set, use it, if not, use submitter alias.
+                    string submitterAlias = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorSubmitterAlias);
+                    string contactAlias = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.VcsContactAlias) 
+                        ?? submitterAlias;
+
                     _validators.Add(new VcsValidator(
                         JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorServiceUrl),
                         JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorCallbackUrl),
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorAlias),
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsPackageUrlTemplate)));
+                        contactAlias,
+                        submitterAlias,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsPackageUrlTemplate),
+                        _loggerFactory));
                 }
 
                 return true;
             }
             catch (Exception ex)
             {
-                Trace.TraceError(ex.ToString());
+                if (_logger != null)
+                {
+                    _logger.LogError(TraceEvent.CommandLineProcessingFailed, ex, "Exception occurred while processing command line arguments");
+                }
+                else
+                {
+                    Trace.TraceError("Exception occurred while processing command line arguments: {0}", ex);
+                }
             }
 
             return false;
@@ -118,12 +148,15 @@ namespace NuGet.Jobs.Validation.Runner
 
         private async Task RunValidationsAsync(IValidator validator)
         {
-            Trace.TraceInformation("Start running RunValidationsAsync for validator {0}...", validator.Name);
+            _logger.LogInformation($"{{{TraceConstant.EventName}}}: " +
+                    $"Checking the queue of {{{TraceConstant.ValidatorName}}}",
+                "ValidatorQueueCheck",
+                validator.Name);
 
             // Services
             var packageValidationTable = new PackageValidationTable(_cloudStorageAccount, _containerName);
-            var packageValidationAuditor = new PackageValidationAuditor(_cloudStorageAccount, _containerName);
-            var packageValidationQueue = new PackageValidationQueue(_cloudStorageAccount, _containerName);
+            var packageValidationAuditor = new PackageValidationAuditor(_cloudStorageAccount, _containerName, _loggerFactory);
+            var packageValidationQueue = new PackageValidationQueue(_cloudStorageAccount, _containerName, _loggerFactory);
             var notificationService = new NotificationService(_cloudStorageAccount, _containerName);
 
             // Get messages to process
@@ -152,9 +185,27 @@ namespace NuGet.Jobs.Validation.Runner
                     try
                     {
                         // Perform the validation
-                        Trace.TraceInformation("Start running validator {0} for validation {1} - package {2} {3}...", validator.Name, message.ValidationId, message.PackageId, message.PackageVersion);
+                        _logger.LogInformation($"Starting validator {{{TraceConstant.ValidatorName}}} " +
+                                $"for validation {{{TraceConstant.ValidationId}}} " +
+                                $"- package {{{TraceConstant.PackageId}}} " +
+                                $"v. {{{TraceConstant.PackageVersion}}}...", 
+                            validator.Name, 
+                            message.ValidationId, 
+                            message.PackageId, 
+                            message.PackageVersion);
+
                         validationResult = await validator.ValidateAsync(message, auditEntries);
-                        Trace.TraceInformation("Finished running validator {0} for validation {1} - package {2} {3}. Result: {4}", validator.Name, message.ValidationId, message.PackageId, message.PackageVersion, validationResult);
+
+                        _logger.LogInformation($"Finished running validator {{{TraceConstant.ValidatorName}}} " +
+                                $"for validation {{{TraceConstant.ValidationId}}} " +
+                                $"- package {{{TraceConstant.PackageId}}} " +
+                                $"v. {{{TraceConstant.PackageVersion}}}. " +
+                                $"Result: {{{TraceConstant.ValidationResult}}}", 
+                            validator.Name, 
+                            message.ValidationId, 
+                            message.PackageId, 
+                            message.PackageVersion, 
+                            validationResult);
                     }
                     catch (Exception ex)
                     {
@@ -167,16 +218,26 @@ namespace NuGet.Jobs.Validation.Runner
                             Message = $"Exception thrown during validation - {ex.Message}\r\n{ex.StackTrace}"
                         });
 
-                        Trace.TraceInformation("Exception while running validator {0} for validation {1} - package {2} {3}. {4} {5}", validator.Name, message.ValidationId, message.PackageId, message.PackageVersion, ex.Message, ex.StackTrace);
+                        _logger.LogError(TraceEvent.ValidatorException, ex, 
+                                $"Exception while running validator {{{TraceConstant.ValidatorName}}} " +
+                                $"for validation {{{TraceConstant.ValidationId}}} " +
+                                $"- package {{{TraceConstant.PackageId}}} " +
+                                $"v. {{{TraceConstant.PackageVersion}}}",
+                            validator.Name,
+                            message.ValidationId, 
+                            message.PackageId, 
+                            message.PackageVersion);
                     }
                 }
 
                 // Process message
                 if (validationResult != ValidationResult.Unknown)
                 {
+                    TrackValidatorResult(validator.Name, message.ValidationId, validationResult.ToString(), message.PackageId, message.PackageVersion);
+
                     // Update our tracking entity
                     var packageValidationEntity = await packageValidationTable.GetValidationAsync(message.ValidationId);
-                    if (packageValidationEntity != null)
+                    if (packageValidationEntity != null && validationResult != ValidationResult.Asynchronous)
                     {
                         packageValidationEntity.ValidatorCompleted(validator.Name, validationResult);
                         await packageValidationTable.StoreAsync(packageValidationEntity);
@@ -201,17 +262,20 @@ namespace NuGet.Jobs.Validation.Runner
                 }
             }
 
-            Trace.TraceInformation("Finished running RunValidationsAsync for validator {0}.", validator.Name);
+            _logger.LogInformation($"Done checking the queue of {{{TraceConstant.ValidatorName}}}", validator.Name);
         }
 
         private async Task RunOrchestrateAsync()
         {
+            _logger.LogInformation($"{{{TraceConstant.EventName}}}: Attempting orchestration",
+                "OrchestrationAttempt");
+
             // Retrieve cursor (last created / last edited)
-            var cursor = new PackageValidationOrchestrationCursor(_cloudStorageAccount, _containerName + "-audit", "cursor.json");
+            var cursor = new PackageValidationOrchestrationCursor(_cloudStorageAccount, _containerName + "-audit", "cursor.json", _loggerFactory);
             await cursor.LoadAsync();
             
             // Setup package validation service
-            var packageValidationService = new PackageValidationService(_cloudStorageAccount, _containerName);
+            var packageValidationService = new PackageValidationService(_cloudStorageAccount, _containerName, _loggerFactory);
 
             // Get reference timestamps
             var referenceLastCreated = cursor.LastCreated ?? DateTimeOffset.UtcNow.AddMinutes(-15);
@@ -225,6 +289,7 @@ namespace NuGet.Jobs.Validation.Runner
                 var feed = new NuGetV2Feed(client);
 
                 var createdPackagesUrl = MakePackageQueryUrl(_galleryBaseAddress, "Created", referenceLastCreated);
+                _logger.LogInformation("Querying packages created since {StartTime}, URL: {QueryUrl}", referenceLastCreated, createdPackagesUrl);
                 var createdPackages = await feed.GetPackagesAsync(createdPackagesUrl, continuationsToFollow: 0);
                 foreach (var package in createdPackages)
                 {
@@ -270,6 +335,36 @@ namespace NuGet.Jobs.Validation.Runner
                 since.UtcDateTime.ToString("O"));
 
             return new Uri(address);
+        }
+
+        /// <summary>
+        /// Tracks the result of validation. If result is <see cref="ValidationResult.Asynchronous"/> then tracks it in 
+        /// a separate event (since it is non-terminal result, want to make it trivially distinguishable from terminal).
+        /// </summary>
+        /// <param name="validatorName">The name of the validator</param>
+        /// <param name="validationId">Validation ID of the finished validator</param>
+        /// <param name="result">String representation of the outcome</param>
+        /// <param name="packageId">Package ID</param>
+        /// <param name="packageVersion">Package version</param>
+        private void TrackValidatorResult(string validatorName, Guid validationId, string result, string packageId, string packageVersion)
+        {
+            if (result == ValidationResult.Asynchronous.ToString())
+            {
+                _logger.LogInformation($"{{{TraceConstant.EventName}}}: " +
+                        $"running a {{{TraceConstant.ValidatorName}}} " +
+                        $"ValidationID: {{{TraceConstant.ValidationId}}} " +
+                        $"for package {{{TraceConstant.PackageId}}} " +
+                        $"v.{{{TraceConstant.PackageVersion}}} resulted in starting async task",
+                    "ValidatorAsync",
+                    validatorName,
+                    validationId,
+                    packageId,
+                    packageVersion);
+            }
+            else
+            {
+                _logger.TrackValidatorResult(validatorName, validationId, result, packageId, packageVersion);
+            }
         }
     }
 }

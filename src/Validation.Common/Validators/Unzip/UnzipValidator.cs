@@ -8,6 +8,7 @@ using System.IO.Packaging;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Jobs.Validation.Common.Validators.Unzip
 {
@@ -15,6 +16,13 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
         : ValidatorBase, IValidator
     {
         public const string ValidatorName = "validator-unzip";
+
+        private readonly ILogger<UnzipValidator> _logger;
+
+        public UnzipValidator(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger<UnzipValidator>();
+        }
 
         public override string Name
         {
@@ -38,6 +46,7 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
                         {
                             await packageStream.CopyToAsync(packageFileStream);
 
+                            _logger.LogInformation($"Downloaded package from {{{TraceConstant.Url}}}", message.Package.DownloadUrl);
                             WriteAuditEntry(auditEntries, $"Downloaded package from {message.Package.DownloadUrl}");
 
                             packageFileStream.Position = 0;
@@ -45,6 +54,7 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
                             using (var packageZipStream = Package.Open(packageFileStream))
                             {
                                 var parts = packageZipStream.GetParts();
+                                _logger.LogInformation("Found {PartsCount} parts in package.", parts.Count());
                                 WriteAuditEntry(auditEntries, $"Found {parts.Count()} parts in package.");
 
                                 return ValidationResult.Succeeded;
@@ -54,6 +64,7 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
                 }
                 catch (Exception ex)
                 {
+                    _logger.TrackValidatorException(ValidatorName, message.ValidationId, ex, message.PackageId, message.PackageVersion);
                     WriteAuditEntry(auditEntries, $"Exception thrown during validation - {ex.Message}\r\n{ex.StackTrace}");
                     return ValidationResult.Failed;
                 }
