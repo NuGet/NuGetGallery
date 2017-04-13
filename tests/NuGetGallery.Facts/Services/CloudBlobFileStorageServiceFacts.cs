@@ -30,7 +30,7 @@ namespace NuGetGallery
 
         private static CloudBlobFileStorageService CreateService(
             Mock<ICloudBlobClient> fakeBlobClient = null,
-            ISourceDestinationRedirectPolicy redirectPolicy = null)
+            Mock<ISourceDestinationRedirectPolicy> redirectPolicy = null)
         {
             if (fakeBlobClient == null)
             {
@@ -39,11 +39,11 @@ namespace NuGetGallery
 
             if (redirectPolicy == null)
             {
-                redirectPolicy = new NoLessSecureDestinationRedirectPolicy();
+                redirectPolicy = new Mock<ISourceDestinationRedirectPolicy>();
+                redirectPolicy.Setup(p => p.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(true);
             }
 
-
-            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IAppConfiguration>(), redirectPolicy);
+            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IAppConfiguration>(), redirectPolicy.Object);
         }
 
         private class FolderNamesDataAttribute : DataAttribute
@@ -163,12 +163,14 @@ namespace NuGetGallery
                 fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
                 fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
-                bool called = false;
-                fakePolicy.Setup(x => x.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(true).Callback(() => { called = true; });
-                var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy.Object);
+                fakePolicy.Setup(x => x.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(true).Verifiable();
+                var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy);
 
-                var result = await service.CreateDownloadFileActionResultAsync(new Uri(HttpsRequestUrlString), Constants.PackagesFolderName, "theFileName") as RedirectResult;
-                Assert.True(called);
+                var result = await service.CreateDownloadFileActionResultAsync(
+                    new Uri(HttpsRequestUrlString), 
+                    Constants.PackagesFolderName, 
+                    "theFileName") as RedirectResult;
+                fakePolicy.Verify();
             }
 
             [Fact]
@@ -184,9 +186,13 @@ namespace NuGetGallery
                 fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 fakePolicy.Setup(x => x.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(false);
-                var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy.Object);
+                var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy);
 
-                await Assert.ThrowsAsync<InvalidOperationException>(() => service.CreateDownloadFileActionResultAsync(new Uri(HttpsRequestUrlString), Constants.PackagesFolderName, "theFileName"));
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => service.CreateDownloadFileActionResultAsync(
+                        new Uri(HttpsRequestUrlString), 
+                        Constants.PackagesFolderName, "theFileName")
+                    );
             }
         }
 
