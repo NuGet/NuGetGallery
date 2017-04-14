@@ -10,7 +10,7 @@ namespace NuGetGallery.Configuration
 {
     public class AppConfiguration : IAppConfiguration
     {
-        [DefaultValue("Development")]
+        [DefaultValue(Constants.DevelopmentEnvironment)]
         public string Environment { get; set; }
 
         [DefaultValue("")]

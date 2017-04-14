@@ -1420,7 +1420,10 @@
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
     <Compile Include="Authentication\ScopeEvaluator.cs" />
+    <Compile Include="Services\AllowLocalHttpRedirectPolicy.cs" />
+    <Compile Include="Services\ISourceDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ITelemetryService.cs" />
+    <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />

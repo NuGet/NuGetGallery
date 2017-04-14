@@ -303,6 +303,19 @@ namespace NuGetGallery
                 .As<IAutomaticallyCuratePackageCommand>()
                 .InstancePerLifetimeScope();
 
+            if (configuration.Current.Environment == Constants.DevelopmentEnvironment)
+            {
+                builder.RegisterType<AllowLocalHttpRedirectPolicy>()
+                    .As<ISourceDestinationRedirectPolicy>()
+                    .InstancePerLifetimeScope();
+            }
+            else
+            {
+                builder.RegisterType<NoLessSecureDestinationRedirectPolicy>()
+                    .As<ISourceDestinationRedirectPolicy>()
+                    .InstancePerLifetimeScope();
+            }
+
             ConfigureAutocomplete(builder, configuration);
         }
 
