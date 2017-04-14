@@ -407,7 +407,8 @@
     <Compile Include="SearchClient\CorrelatingHttpClientHandlerFacts.cs" />
     <Compile Include="SearchClient\RequestInspectingHandler.cs" />
     <Compile Include="SearchClient\WebApiCorrelationHandlerFacts.cs" />
-    <Compile Include="Services\ISourceDestinationRedirectPolicyImplementationsFacts.cs" />
+    <Compile Include="Services\AllowLocalHttpRedirectPolicyFacts.cs" />
+    <Compile Include="Services\NoLessSecureDestinationRedirectPolicyFacts.cs" />
     <Compile Include="Services\PagerDutyClientFacts.cs" />
     <Compile Include="Services\ReflowPackageServiceFacts.cs" />
     <Compile Include="Services\ScopeEvaluatorFacts.cs" />
