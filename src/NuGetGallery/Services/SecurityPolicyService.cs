@@ -24,10 +24,23 @@ namespace NuGetGallery
 
         public SecurityPolicyService(IEntitiesContext entities, IAuditingService auditing, IDiagnosticsService diagnostics)
         {
-            Entities = entities ?? throw new ArgumentNullException(nameof(entities));
-            Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
+            if (entities == null)
+            {
+                throw new ArgumentNullException(nameof(entities));
+            }
+            if (auditing == null)
+            {
+                throw new ArgumentNullException(nameof(auditing));
+            }
+            if (diagnostics == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostics));
+            }
+            
+            Entities = entities;
+            Auditing = auditing;
 
-            Trace = diagnostics?.SafeGetSource("SecurityPolicyService") ?? throw new ArgumentNullException(nameof(diagnostics));
+            Trace = diagnostics.SafeGetSource("SecurityPolicyService");
         }
 
         /// <summary>
