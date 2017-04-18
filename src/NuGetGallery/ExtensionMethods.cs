@@ -407,8 +407,28 @@ namespace NuGetGallery
         {
             var scopeClaim = self.GetScopeClaim();
 
-            return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject: null,
+            return !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim) &&
+                ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject: null,
                 requestedActions: new [] { NuGetScopes.PackageVerify });
+        }
+
+        public static bool IsApiKeyWithPushCapability(this Credential credential)
+        {
+            return CredentialTypes.IsApiKey(credential.Type) &&
+                (credential.Scopes.Count == 0 || credential.Scopes.Any(s => s.AllowsPush()));
+        }
+
+        /// <summary>
+        /// Get the credential used for authentication by the current user.
+        /// </summary>
+        /// <param name="user">Current user.</param>
+        /// <param name="identity">Authenticated claims identity.</param>
+        /// <returns>Current credential.</returns>
+        public static Credential GetCurrentCredential(this User user, IIdentity identity)
+        {
+            var apiKey = ((ClaimsIdentity)identity).GetClaimOrDefault(NuGetClaims.ApiKey);
+
+            return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
         }
 
         // This is a method because the first call will perform a database call

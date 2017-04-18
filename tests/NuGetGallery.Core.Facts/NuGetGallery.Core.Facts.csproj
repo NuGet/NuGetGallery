@@ -132,6 +132,7 @@
     <Compile Include="Auditing\ScopeAuditRecordTests.cs" />
     <Compile Include="Auditing\UserAuditRecordTests.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
+    <Compile Include="Entities\SecurityPolicyFacts.cs" />
     <Compile Include="Entities\UserFacts.cs" />
     <Compile Include="Packaging\ManifestValidatorFacts.cs" />
     <Compile Include="Packaging\PackageIdValidatorTest.cs" />

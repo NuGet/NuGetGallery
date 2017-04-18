@@ -443,4 +443,7 @@ The {1} Team</value>
   <data name="NuGetPackagePropertyMissing" xml:space="preserve">
     <value>A nuget package's {0} property is required.</value>
   </data>
+  <data name="PackageVerificationKeysPolicyError" xml:space="preserve">
+    <value>Your account requires NuGet client version '{0}' or higher. Please contact support for more details.</value>
+  </data>
 </root>

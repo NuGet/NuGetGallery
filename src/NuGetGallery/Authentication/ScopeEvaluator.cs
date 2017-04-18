@@ -33,13 +33,7 @@ namespace NuGetGallery.Authentication
             {
                 var subjectMatches = string.IsNullOrEmpty(subject) || (!string.IsNullOrEmpty(subject) && subject.MatchesPackagePattern(scopeFromClaim.Subject));
 
-                var actionMatches = requestedActions.Any(
-                    allowed => string.IsNullOrEmpty(allowed)
-                               || string.IsNullOrEmpty(scopeFromClaim.AllowedAction)
-                               || string.Equals(scopeFromClaim.AllowedAction, allowed, StringComparison.OrdinalIgnoreCase)
-                               || string.Equals(scopeFromClaim.AllowedAction, NuGetScopes.All, StringComparison.OrdinalIgnoreCase));
-
-                if (subjectMatches && actionMatches)
+                if (subjectMatches && ActionAllows(scopeFromClaim.AllowedAction, requestedActions))
                 {
                     return true;
                 }
@@ -51,6 +45,20 @@ namespace NuGetGallery.Authentication
         public static bool IsEmptyScopeClaim(string scopeClaim)
         {
             return string.IsNullOrEmpty(scopeClaim) || scopeClaim == "[]";
+        }
+
+        public static bool AllowsPush(this Scope scope)
+        {
+            return ActionAllows(scope.AllowedAction, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion);
+        }
+
+        private static bool ActionAllows(string allowedAction, params string[] requestedActions)
+        {
+            return requestedActions.Any(
+                requestedAction => string.IsNullOrEmpty(requestedAction)
+                           || string.IsNullOrEmpty(allowedAction)
+                           || string.Equals(allowedAction, requestedAction, StringComparison.OrdinalIgnoreCase)
+                           || string.Equals(allowedAction, NuGetScopes.All, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

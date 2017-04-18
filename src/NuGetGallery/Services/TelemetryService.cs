@@ -29,6 +29,7 @@ namespace NuGetGallery
         public const string IsScoped = "IsScoped";
         public const string PackageId = "PackageId";
         public const string PackageVersion = "PackageVersion";
+        public const string Username = "Username";
 
         // Verify package properties
         public const string IsVerificationKeyUsed = "IsVerificationKeyUsed";
@@ -67,6 +68,7 @@ namespace NuGetGallery
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(PackageId, package.PackageRegistration.Id);
                 properties.Add(PackageVersion, package.Version);
+                properties.Add(Username, user.Username);
                 properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
@@ -89,6 +91,7 @@ namespace NuGetGallery
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
+                properties.Add(Username, user.Username);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
             });
@@ -110,6 +113,7 @@ namespace NuGetGallery
             {
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
+                properties.Add(Username, user.Username);
                 properties.Add(IsVerificationKeyUsed, identity.HasVerifyScope().ToString());
                 properties.Add(VerifyPackageKeyStatusCode, statusCode.ToString());
             });
@@ -117,7 +121,7 @@ namespace NuGetGallery
 
         private static string GetClientVersion()
         {
-            return HttpContext.Current?.Request?.Headers[Constants.ClientVersionHeaderName];
+            return HttpContext.Current?.Request?.GetNuGetClientVersion();
         }
 
         private static string GetAccountCreationDate(User user)

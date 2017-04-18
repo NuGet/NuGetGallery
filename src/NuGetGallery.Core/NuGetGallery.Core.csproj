@@ -122,6 +122,7 @@
     <Compile Include="Auditing\AuditedEntities\AuditedPackage.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackageIdentifier.cs" />
     <Compile Include="Auditing\AuditedAuthenticatedOperationAction.cs" />
+    <Compile Include="Auditing\AuditedEntities\AuditedSecurityPolicy.cs" />
     <Compile Include="Auditing\AuditEntry.cs" />
     <Compile Include="Auditing\AuditActor.cs" />
     <Compile Include="Auditing\AuditingService.cs" />
@@ -132,6 +133,7 @@
     <Compile Include="Auditing\CredentialAuditRecord.cs" />
     <Compile Include="Auditing\AuditedPackageAction.cs" />
     <Compile Include="Auditing\IAuditingService.cs" />
+    <Compile Include="Auditing\PackageVerificationKeysPolicyAuditRecord.cs" />
     <Compile Include="Auditing\PackageCreatedVia.cs" />
     <Compile Include="Auditing\AuditedPackageRegistrationAction.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackageRegistration.cs" />
@@ -141,6 +143,8 @@
     <Compile Include="Auditing\ScopeAuditRecord.cs" />
     <Compile Include="Auditing\UserAuditAction.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
+    <Compile Include="Auditing\UserSecurityPolicyAuditAction.cs" />
+    <Compile Include="Auditing\UserSecurityPolicyAuditRecord.cs" />
     <Compile Include="CoreConstants.cs" />
     <Compile Include="CredentialTypes.cs" />
     <Compile Include="Completion.cs" />
@@ -148,6 +152,8 @@
     <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
+    <Compile Include="Entities\MinClientVersionPolicy.cs" />
+    <Compile Include="Entities\PackageVerificationKeysPolicy.cs" />
     <Compile Include="Entities\PackageDelete.cs" />
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />
@@ -175,6 +181,7 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\Scope.cs" />
+    <Compile Include="Entities\SecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />

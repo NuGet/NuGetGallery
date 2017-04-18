@@ -831,6 +831,10 @@
     <Compile Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.Designer.cs">
       <DependentUpon>201703221228170_AddSemVerLevelKeyColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201703281605205_SecurityPolicies.cs" />
+    <Compile Include="Migrations\201703281605205_SecurityPolicies.Designer.cs">
+      <DependentUpon>201703281605205_SecurityPolicies.cs</DependentUpon>
+    </Compile>
     <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
     <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
     <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
@@ -1422,9 +1426,12 @@
     <Compile Include="Authentication\ScopeEvaluator.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicy.cs" />
     <Compile Include="Services\ISourceDestinationRedirectPolicy.cs" />
+    <Compile Include="Services\ISecurityPolicyService.cs" />
     <Compile Include="Services\ITelemetryService.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
+    <Compile Include="Services\SecurityPolicyResult.cs" />
+    <Compile Include="Services\SecurityPolicyService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
@@ -1675,6 +1682,9 @@
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
     <EmbeddedResource Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.resx">
       <DependentUpon>201703221228170_AddSemVerLevelKeyColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201703281605205_SecurityPolicies.resx">
+      <DependentUpon>201703281605205_SecurityPolicies.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
