@@ -107,7 +107,7 @@ namespace NuGetGallery
                 Assert.Equal(1, user.Credentials.Count);
 
                 var expires = user.Credentials.First().Expires.Value;
-                Assert.Equal(shouldExpire, expires <= DateTime.UtcNow.AddDays(1));
+                Assert.Equal(shouldExpire, expires <= DateTime.UtcNow.AddDays(7));
             }
 
             private SecurityPolicyService CreateService()

@@ -87,13 +87,13 @@ namespace NuGetGallery
                     await Auditing.SaveAuditRecordAsync(
                         new UserAuditRecord(user, AuditedUserAction.ExpireCredential, credential));
 
-                    // Provide 24-hour window before expiration to allow setup of new keys.
-                    credential.Expires = DateTime.UtcNow.AddDays(1);
+                    // Provide 1-week window before expiration to allow setup of new keys.
+                    credential.Expires = DateTime.UtcNow.AddDays(7);
                     expiredCount++;
                 }
             }
 
-            Trace.Verbose($"Expired '{expiredCount}' API keys with push scopes for policy '{nameof(PackageVerificationKeysPolicy)}'.");
+            Trace.Verbose($"Expiring '{expiredCount}' API keys with push scopes in 1 week for policy '{nameof(PackageVerificationKeysPolicy)}'.");
 
             await Entities.SaveChangesAsync();
         }
