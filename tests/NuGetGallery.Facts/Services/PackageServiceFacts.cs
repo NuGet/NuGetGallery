@@ -835,7 +835,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(description: null);
 
-                var ex = await Assert.ThrowsAsync<EntityException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyMissing, "Description"), ex.Message);
             }
