@@ -92,6 +92,11 @@ namespace NuGetGallery.WebApi
 
                 return response;
             }
+            catch(Exception e)
+            {
+                Telemetry.TrackException(e);
+                throw;
+            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
