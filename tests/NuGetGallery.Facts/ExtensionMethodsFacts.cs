@@ -1,20 +1,62 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Versioning;
-using System.Text;
-using System.Threading.Tasks;
-using NuGet;
+using System.Security.Claims;
 using NuGet.Frameworks;
+using NuGetGallery.Authentication;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery
 {
     public class ExtensionMethodsFacts
     {
+        public class TheHasPackageVerifyScopeClaimMethod
+        {
+            [Fact]
+            public void ReturnsTrueIfPackageVerifyScopeClaimExists()
+            {
+                // Arrange
+                var scope = "[{\"a\":\"package:verify\", \"s\":\"foo\"}]";
+                var identity = AuthenticationService.CreateIdentity(
+                    new User("testuser"),
+                    AuthenticationTypes.ApiKey,
+                    new Claim(NuGetClaims.ApiKey, string.Empty),
+                    new Claim(NuGetClaims.Scope, scope));
+
+                // Act & Assert
+                Assert.True(identity.HasPackageVerifyScopeClaim());
+            }
+
+            [Theory]
+            [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
+            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
+            [InlineData("[{\"a\":\"package:unlist\", \"s\":\"foo\"}]")]
+            public void ReturnsFalseIfPackageVerifyScopeClaimDoesNotExist(string scope)
+            {
+                // Arrange
+                var identity = AuthenticationService.CreateIdentity(
+                    new User("testuser"),
+                    AuthenticationTypes.ApiKey,
+                    new Claim(NuGetClaims.ApiKey, string.Empty),
+                    new Claim(NuGetClaims.Scope, scope));
+
+                // Act & Assert
+                Assert.False(identity.HasPackageVerifyScopeClaim());
+            }
+
+            [Fact]
+            public void ReturnsFalseIfScopeClaimDoesNotExist()
+            {
+                // Arrange
+                var identity = AuthenticationService.CreateIdentity(
+                    new User("testuser"),
+                    AuthenticationTypes.ApiKey,
+                    new Claim(NuGetClaims.ApiKey, string.Empty));
+
+                // Act & Assert
+                Assert.False(identity.HasPackageVerifyScopeClaim());
+            }
+        }
+
         public class TheToFriendlyNameMethod
         {
             [Theory]

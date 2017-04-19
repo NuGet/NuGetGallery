@@ -110,7 +110,7 @@ namespace NuGetGallery
             {
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
-                properties.Add(IsVerificationKeyUsed, identity.HasVerifyScope().ToString());
+                properties.Add(IsVerificationKeyUsed, identity.HasPackageVerifyScopeClaim().ToString());
                 properties.Add(VerifyPackageKeyStatusCode, statusCode.ToString());
             });
         }
