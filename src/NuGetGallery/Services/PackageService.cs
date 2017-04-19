@@ -542,7 +542,7 @@ namespace NuGetGallery
             PackageStreamMetadata packageStreamMetadata,
             User user)
         {
-            // Version must always be the exact string from the nuspec, which ToFullString will return to us.
+            // Version must always be the non-normalized string, which ToFullString will provide us.
             // However, we do also store a normalized copy for looking up later.
             package.Version = packageMetadata.Version.ToFullString();
             package.NormalizedVersion = packageMetadata.Version.ToNormalizedString();
