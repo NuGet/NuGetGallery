@@ -22,15 +22,17 @@ $env:DOTNET_INSTALL_DIR=$CLIRoot
 Function Run-Tests {
     [CmdletBinding()]
     param()
-    
+
     Trace-Log 'Running tests'
-    
+
     $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
-    
-    $TestAssemblies = "tests\NuGet.Services.KeyVault.Tests\bin\$Configuration\NuGet.Services.KeyVault.Tests.dll", "tests\NuGet.Services.Configuration.Tests\bin\$Configuration\NuGet.Services.Configuration.Tests.dll"
-    
+
+    $TestAssemblies = "tests\NuGet.Services.KeyVault.Tests\bin\$Configuration\NuGet.Services.KeyVault.Tests.dll", `
+        "tests\NuGet.Services.Configuration.Tests\bin\$Configuration\NuGet.Services.Configuration.Tests.dll", `
+        "tests\NuGet.Services.Logging.Tests\bin\$Configuration\NuGet.Services.Logging.Tests.dll"
+
     $TestCount = 0
-    
+
     foreach ($Test in $TestAssemblies) {
         & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
         $TestCount++
