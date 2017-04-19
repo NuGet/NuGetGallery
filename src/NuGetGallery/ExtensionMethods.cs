@@ -402,12 +402,16 @@ namespace NuGetGallery
 
             return !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim);
         }
-
-        public static bool HasVerifyScope(this IIdentity self)
+        
+        /// <summary>
+        /// Determines if authentication is scoped and uses package verify claim.
+        /// </summary>
+        public static bool HasPackageVerifyScopeClaim(this IIdentity self)
         {
             var scopeClaim = self.GetScopeClaim();
-
-            return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject: null,
+            
+            return !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim) &&
+                ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject: null,
                 requestedActions: new [] { NuGetScopes.PackageVerify });
         }
 
