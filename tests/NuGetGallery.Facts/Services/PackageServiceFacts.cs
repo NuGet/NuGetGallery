@@ -380,9 +380,6 @@ namespace NuGetGallery
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
-                // Yes, I know this is a lot of asserts. Yes, I know I broke the golden, one assert per test rule.
-                // That said, it's still asserting one "thing": that the package data was read.
-                // I'm sorry, but I just can't imagine adding a test per property.
                 // Note that there is no assertion on package identifier, because that's at the package registration level (and covered in another test).
                 Assert.Equal("1.0.42", package.Version);
                 Assert.Equal("1.0.42", package.NormalizedVersion);
