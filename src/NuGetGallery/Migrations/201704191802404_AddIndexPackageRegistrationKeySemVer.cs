@@ -8,7 +8,7 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_PackageRegKeySemVer' AND object_id = OBJECT_ID('Packages')) " +
-                "CREATE NONCLUSTERED INDEX [nci_wi_Packages_PackageRegKeySemVer] ON [dbo].[Packages]([PackageRegistrationKey] ASC) INCLUDE ([SemVerLevelKey]) ");
+                "CREATE NONCLUSTERED INDEX [nci_wi_Packages_PackageRegKeySemVer] ON [dbo].[Packages]([PackageRegistrationKey] ASC, [SemVerLevelKey] ASC ) ");
         }
 
         public override void Down()
