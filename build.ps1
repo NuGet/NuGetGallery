@@ -59,9 +59,15 @@ Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
-        Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.KeyVault\Properties\AssemblyInfo.g.cs" -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
-        Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.Logging\Properties\AssemblyInfo.g.cs" -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
-        Set-VersionInfo -Path "$PSScriptRoot\src\NuGet.Services.Configuration\Properties\AssemblyInfo.g.cs" -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+        $versionMetadata = `
+            "$PSScriptRoot\src\NuGet.Services.KeyVault\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.Logging\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.Configuration\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.Build\Properties\AssemblyInfo.g.cs"
+            
+        $versionMetadata | ForEach-Object {
+            Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+        }
     } `
     -ev +BuildErrors
     
@@ -77,9 +83,15 @@ Invoke-BuildStep 'Building solution' { `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' { `
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj") -Configuration $Configuration -Symbols -IncludeReferencedProjects
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.Logging\NuGet.Services.Logging.csproj") -Configuration $Configuration -Symbols -IncludeReferencedProjects
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj") -Configuration $Configuration -Symbols -IncludeReferencedProjects
+        $projects = `
+            "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj", `
+            "src\NuGet.Services.Logging\NuGet.Services.Logging.csproj", `
+            "src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj", `
+            "src\NuGet.Services.Build\NuGet.Services.Build.csproj"
+        
+        $projects | ForEach-Object {
+            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -IncludeReferencedProjects -MSBuildVersion "14"
+        }
     } `
     -ev +BuildErrors
 
