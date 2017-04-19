@@ -10,79 +10,42 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 ## Build and Run the Gallery in (arbitrary number) easy steps
 
-1. Prerequisites. Install these if you don't already have them:
- 1. Visual Studio 2015 - Custom install so that you may also install Microsoft SQL Server Data Tools. This will provide the LocalDB that Windows Azure SDK requires.
- 2. PowerShell 2.0 (comes with Windows 7+)
- 3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
- 4. [Windows Azure SDK](http://www.microsoft.com/windowsazure/sdk/)
+1. Prerequisites:
+    1. Visual Studio 2017 - Install the following `Workloads`:
+        * ASP.NET and web development
+        * Azure development
+    2. PowerShell 4.0
 2. Clone it!
     
-    ```git clone git@github.com:NuGet/NuGetGallery.git```
+    ```PS C:\Code> git clone git@github.com:NuGet/NuGetGallery.git```
 3. Build it!
     
     ```
-    cd NuGetGallery
-    .\build
+    PS C:\Code> cd NuGetGallery
+    PS C:\Code\NuGetGallery> .\build
     ```
-4. Set up the website in IIS Express!
- 1. We highly recommend using IIS Express. Use the [Web Platform Installer](http://microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though). Make sure to at least once run IIS Express as an administrator.
- 2. In an ADMIN powershell prompt, run the `.\tools\Enable-LocalTestMe.ps1` file. It allows non-admins to host websites at: `http(s)://nuget.localtest.me`, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on `localtest.me`, check out [readme.localtest.me](http://readme.localtest.me). However, because [Server Name Indication](https://en.wikipedia.org/wiki/Server_Name_Indication) is not supported in the Network Shell on versions of Windows before 8, you must have at least Windows 8 to run this script successfully.
- 3. If you're having trouble, go to the _Project Properties_ for the Website project, click on the _Web_ tab and change the URL to `localhost:port` where _port_ is some port number above 1024.
- 
-5. Create the Database!
-  
-  There are two ways you can create the databases. From Visual Studio 2015 or from the command line.
-  
-  1. From Visual Studio 2015
-    1. Open Visual Studio 2015
-    2. Open the Package Manager Console window
-    3. Ensure that the Default Project is set to `NuGetGallery`
-    4. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
-    5. Run the following command in the Package Manager Console:
-    
-       ``` powershell
-       Update-Database -StartUpProjectName NuGetGallery -ConfigurationTypeName MigrationsConfiguration
-       ```
-    If this fails, you are likely to get more useful output by passing `-Debug` than `-Verbose`.
-  2. From the command line. ***Important:*** You must have successfully built the Gallery (step 3) for this to succeed.
-    * Run `Update-Databases.ps1` in the `tools` folder to migrate the databases to the latest version.
-      * To Update both databases, Nuget Gallery and Support Request, run this command
-        ``` powershell
-        .\tools\Update-Databases.ps1 -MigrationTargets NugetGallery,NugetGallerySupportRequest
-        ```
-      * To update only the Nuget Gallery DB, run this
-        ``` powershell
-        .\tools\Update-Databases.ps1 -MigrationTargets NugetGallery
-        ```
-      * And to update only the Support Request DB, run this
-        ``` powershell
-        .\tools\Update-Databases.ps1 -MigrationTargets NugetGallerySupportRequest
-        ```
-    * Additionally you can provide a `-NugetGallerySitePath` parameter to the `Update-Databases.ps1` script to indicate that you want to perform the migration on a site other than the one that is built with this repository.
+4. Set up the website!
 
-6. When working with the gallery, e-mail messages are saved to the file system (under `~/App_Data`).
-    * To change this to use an SMTP server, edit `src\NuGetGallery\Web.Config` and add a `Gallery.SmtpUri` setting. Its value should be an SMTP connection string, for example `smtp://user:password@smtpservername:25`.
-    * To turn off e-mail confirmations, edit `src\NuGetGallery\Web.Config` and change the value of `Gallery.ConfirmEmailAddresses` to `false`.
+    ```PS C:\Code\NuGetGallery> .\tools\Setup-DevEnvironment.ps1```
+5. Ensure the `NugetGallery` project is the StartUp Project and press `F5` to run the site! That's it!
 
-7. Ensure the 'NuGetGallery' project (under the Frontend folder) is set to the Startup Project
-  
+When working with the gallery, e-mail messages are saved to the file system (under `~/App_Data`).
+You can use an SMTP server instead by editing `src\NuGetGallery\Web.Config` and adding a `Gallery.SmtpUri`
+setting. Its value should be an SMTP connection string, such as: `smtp://user:password@smtpservername:25`.
+You can also turn off e-email confirmations by changing the value of `Gallery.ConfirmEmailAddresses` to `false`
+in the `src\NugetGallery\Web.Config` file.
 
-That's it! You should now be able to press Ctrl-F5 to run the site!
-
-Be aware that you might detect a change in the __applicationhost.config__:
-
-Unfortunately Visual Studio will replace the relative path with an absolute path. The committed applicationhost.config-file is currently the easiest way to setup the localtest.me-binding for IIS Express.
-
-However, you can force Git to ignore the change with this command:
+Visual Studio may modify the `applicationhost.config` file. You can force git to ignore changes to this file
+with:
 
     git update-index --assume-unchanged .vs/config/applicationhost.config
 
 You can undo this with this command:
 
-	git update-index --no-assume-unchanged .vs/config/applicationhost.config
+    git update-index --no-assume-unchanged .vs/config/applicationhost.config
 
-This should help to prevent unwanted file commits.
-	
+This should help prevent unwanted file commits.
+    
 ## Contribute
 If you find a bug with the gallery, please visit the [Issue tracker](https://github.com/NuGet/NuGetGallery/issues) and 
 create an issue. If you're feeling generous, please search to see if the issue is already logged before creating a 
@@ -122,8 +85,7 @@ This is the Git workflow we're currently using:
 
 ### Setting up
 
-1. Clone and checkout the following branches (to make sure local copies are made): '
-2. '.
+Clone and checkout the `dev` branch.
 
 ### When starting a new feature/unit of work.
     
@@ -136,13 +98,13 @@ This is the Git workflow we're currently using:
         git pull dev
     
 2.  __Create a topic branch to do your work.__
-    You must work in topic branches, in order to help us keep our features isolated and easily moved between branches.
+    You must work in topic branches to help us keep our features isolated and easily moved between branches.
     Our policy is to start all topic branches off of the 'dev' branch. 
-    Branch names should use the following format '[user]-[bugnumber]-[shortdescription]'. If there is no bug yet, 
+    Branch names should use the following format '[user]-[bugnumber]'. If there is no bug yet,
     create one and assign it to yourself!
 
         git checkout dev
-        git checkout -b anurse-123-makesuckless
+        git checkout -b anurse-123
     
 3.  __Do your work.__
     Now, do your work using the following highly accurate and efficient algorithm :)
@@ -160,7 +122,7 @@ This is the Git workflow we're currently using:
     5. if (moreWorkToDo) go to #3.1 else go to #4.
 
 4.  __Start a code review.__
-    Start a code review by pushing your branch up to GitHub (```git push origin anurse-123-makesuckless```) and 
+    Start a code review by pushing your branch up to GitHub (```git push origin anurse-123```) and
     creating a Pull Request from your branch to ***dev***. Wait for at least someone on the team to respond with: ":shipit:" (that's called the
     "Ship-It Squirrel" and you can put it in your own comments by typing ```:shipit:```).
 
@@ -171,7 +133,7 @@ This is the Git workflow we're currently using:
 
         git checkout dev
         git pull origin dev
-        git merge anurse-123-makesuckless
+        git merge anurse-123
         ... resolve conflicts ...
         git push origin dev
     
