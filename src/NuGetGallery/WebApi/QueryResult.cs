@@ -94,7 +94,7 @@ namespace NuGetGallery.WebApi
             }
             catch(Exception e)
             {
-                Telemetry.TrackException(e);
+                QuietLog.LogHandledException(e);
                 throw;
             }
         }
