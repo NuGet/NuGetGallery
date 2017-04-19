@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -52,11 +50,8 @@ namespace NuGet.Services.Logging
             var loggerFactory = new LoggerFactory();
             loggerFactory.AddSerilog();
 
-            if (!Trace.Listeners.OfType<SerilogTraceListener.SerilogTraceListener>().Any())
-            {
-                // hook into anything that is being traced in other libs using system.diagnostics.trace
-                Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
-            }
+            // hook into anything that is being traced in other libs using system.diagnostics.trace
+            System.Diagnostics.Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
 
             return loggerFactory;
         }
