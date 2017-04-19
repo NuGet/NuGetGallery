@@ -9,7 +9,6 @@ using Crypto = NuGetGallery.CryptographyService;
 using NuGetGallery.Configuration;
 using NuGetGallery.Auditing;
 using System.Threading.Tasks;
-using NuGetGallery.Migrations;
 
 namespace NuGetGallery
 {

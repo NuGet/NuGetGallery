@@ -672,6 +672,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your account requires NuGet client version &apos;{0}&apos; or higher. Please contact support for more details..
+        /// </summary>
+        public static string PackageVerificationKeysPolicyError {
+            get {
+                return ResourceManager.GetString("PackageVerificationKeysPolicyError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; does not exist..
         /// </summary>
         public static string PackageWithIdAndVersionNotFound {

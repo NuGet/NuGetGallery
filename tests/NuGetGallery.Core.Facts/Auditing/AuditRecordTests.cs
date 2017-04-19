@@ -17,7 +17,7 @@ namespace NuGetGallery.Auditing
                 .OrderBy(typeName => typeName)
                 .ToArray();
 
-            var expectedAuditRecordTypeCount = 4;
+            var expectedAuditRecordTypeCount = 5;
 
             Assert.True(expectedAuditRecordTypeCount == actualAuditRecordTypeNames.Length,
                 $"Audit record types have been {(actualAuditRecordTypeNames.Length > expectedAuditRecordTypeCount ? "added" : "removed")}.  " +
@@ -25,7 +25,8 @@ namespace NuGetGallery.Auditing
             Assert.Equal("NuGetGallery.Auditing.FailedAuthenticatedOperationAuditRecord", actualAuditRecordTypeNames[0]);
             Assert.Equal("NuGetGallery.Auditing.PackageAuditRecord", actualAuditRecordTypeNames[1]);
             Assert.Equal("NuGetGallery.Auditing.PackageRegistrationAuditRecord", actualAuditRecordTypeNames[2]);
-            Assert.Equal("NuGetGallery.Auditing.UserAuditRecord", actualAuditRecordTypeNames[3]);
+            Assert.Equal("NuGetGallery.Auditing.PackageVerificationKeysPolicyAuditRecord", actualAuditRecordTypeNames[3]);
+            Assert.Equal("NuGetGallery.Auditing.UserAuditRecord", actualAuditRecordTypeNames[4]);
         }
     }
 }

@@ -4,16 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
-using System.Net.Mail;
 using System.Reflection;
-using System.Security.Principal;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
-using NuGet;
 
 namespace NuGetGallery
 {
@@ -29,6 +25,7 @@ namespace NuGetGallery
         // Alternatively, we could write our own service for generating URLs.
         public static Mock<HttpContextBase> SetupHttpContextMockForUrlGeneration(Mock<HttpContextBase> httpContext, Controller controller)
         {
+            httpContext.Setup(c => c.Request.Headers).Returns(new NameValueCollection());
             httpContext.Setup(c => c.Request.Url).Returns(new Uri("https://example.org/"));
             httpContext.Setup(c => c.Request.ApplicationPath).Returns("/");
             httpContext.Setup(c => c.Response.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(s => s);

@@ -18,6 +18,7 @@ namespace NuGetGallery
         public User(string username)
         {
             Credentials = new List<Credential>();
+            SecurityPolicies = new List<SecurityPolicy>();
             Roles = new List<Role>();
             Username = username;
         }
@@ -68,6 +69,8 @@ namespace NuGetGallery
             }
         }
         public virtual ICollection<Credential> Credentials { get; set; }
+
+        public virtual ICollection<SecurityPolicy> SecurityPolicies { get; set; }
 
         public void ConfirmEmailAddress()
         {

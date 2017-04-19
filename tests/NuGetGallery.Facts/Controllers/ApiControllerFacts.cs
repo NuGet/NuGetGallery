@@ -88,6 +88,9 @@ namespace NuGetGallery
                     return Task.FromResult(package);
                 });
 
+
+            SecurityPolicyService = new SecurityPolicyService(EntitiesContext, AuditingService, new Diagnostics.DiagnosticsService());
+
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
 
@@ -356,6 +359,109 @@ namespace NuGetGallery
                     ar.Action == AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner
                     && ar.AttemptedPackage.Id == package.PackageRegistration.Id
                     && ar.AttemptedPackage.Version == package.Version));
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordAndReturns400IfSecurityPolicyAndNoClientVersion()
+            {
+                // Arrange
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                user.SecurityPolicies.Add(new PackageVerificationKeysPolicy());
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "theId";
+                packageRegistration.Owners.Add(user);
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+
+                Assert.True(controller.AuditingService.WroteRecord<PackageVerificationKeysPolicyAuditRecord>(ar =>
+                    ar.Action == UserSecurityPolicyAuditAction.PackageVerificationKeysPolicy_CreatePackage
+                    && ar.PushedPackage.Id == package.PackageRegistration.Id
+                    && ar.PushedPackage.Version == package.Version));
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordAndReturns400IfSecurityPolicyAndLowerClientVersion()
+            {
+                // Arrange
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                user.SecurityPolicies.Add(new PackageVerificationKeysPolicy());
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "theId";
+                packageRegistration.Owners.Add(user);
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+
+                Assert.True(controller.AuditingService.WroteRecord<PackageVerificationKeysPolicyAuditRecord>(ar =>
+                    ar.Action == UserSecurityPolicyAuditAction.PackageVerificationKeysPolicy_CreatePackage
+                    && ar.PushedPackage.Id == package.PackageRegistration.Id
+                    && ar.PushedPackage.Version == package.Version));
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordAndReturns201IfSecurityPolicyAndClientVersionMet()
+            {
+                // Arrange
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                user.SecurityPolicies.Add(new PackageVerificationKeysPolicy());
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "theId";
+                packageRegistration.Owners.Add(user);
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                    .Returns(Task.FromResult(package));
+                controller.Request.Headers[Constants.ClientVersionHeaderName] = "4.1.0";
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Created);
+
+                Assert.True(controller.AuditingService.WroteRecord<PackageAuditRecord>(ar =>
+                    ar.Action == AuditedPackageAction.Create
+                    && ar.Id == package.PackageRegistration.Id
+                    && ar.Version == package.Version));
             }
 
             [Fact]
@@ -1237,6 +1343,35 @@ namespace NuGetGallery
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
+            public async void VerifyPackageKeyReturns403IfUserHasMinClient41SecurityPolicy_ApiKeyV2(string scope)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration() { Id = "foo" },
+                    Version = "1.0.0"
+                };
+                var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package);
+                var user = controller.OwinContext.GetCurrentUser();
+                user.SecurityPolicies.Add(new PackageVerificationKeysPolicy());
+
+                // Act
+                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
+
+                // Assert
+                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
+
+                Assert.True(controller.AuditingService.WroteRecord<PackageVerificationKeysPolicyAuditRecord>(ar =>
+                    ar.Action == UserSecurityPolicyAuditAction.PackageVerificationKeysPolicy_VerifyPackageKey
+                    && ar.PushedPackage.Id == package.PackageRegistration.Id
+                    && ar.PushedPackage.Version == package.Version));
+            }
+
+            [Theory]
+            [InlineData("")]
+            [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
+            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
             public async void VerifyPackageKeyReturns200_ApiKeyV2(string scope)
             {
                 // Arrange
@@ -1270,6 +1405,8 @@ namespace NuGetGallery
                     Version = "1.0.0"
                 };
                 var controller = SetupController(CredentialTypes.ApiKey.VerifyV1, scope, package);
+                var user = controller.OwinContext.GetCurrentUser();
+                user.SecurityPolicies.Add(new PackageVerificationKeysPolicy());
 
                 // Act
                 var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");

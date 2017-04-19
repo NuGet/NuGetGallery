@@ -14,6 +14,50 @@ namespace NuGetGallery.Auditing
     public class AuditingServiceTests
     {
         [Fact]
+        public async Task SaveAuditRecordAsync_UserSecurityPolicyAuditRecord()
+        {
+            var auditRecord = new PackageVerificationKeysPolicyAuditRecord(
+                action: UserSecurityPolicyAuditAction.PackageVerificationKeysPolicy_CreatePackage,
+                username: "a",
+                policy: new PackageVerificationKeysPolicy(),
+                errorMessage: "b",
+                pushedPackage: new AuditedPackageIdentifier("c", "d"));
+
+            var service = new TestAuditingService(async (string auditData, string resourceType, string filePath, string action, DateTime timestamp) =>
+            {
+                Assert.Equal("PackageVerificationKeysPolicy", resourceType);
+                Assert.Equal("packageverificationkeyspolicy/a", filePath);
+                Assert.Equal("packageverificationkeyspolicy_createpackage", action);
+                Assert.InRange(timestamp, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(1));
+
+                var jObject = JObject.Parse(auditData);
+
+                var record = jObject["Record"];
+
+                Assert.Equal("a", record["Username"].Value<string>());
+
+                var securityPolicy = record["SecurityPolicy"];
+                Assert.Equal("PackageVerificationKeysPolicy", securityPolicy["Type"].Value<string>());
+                Assert.Equal("{\"v\":\"4.1.0\"}", securityPolicy["Value"].Value<string>());
+
+                Assert.Equal("b", record["ErrorMessage"]);
+
+                var attemptedPackage = record["PushedPackage"];
+
+                Assert.Equal("c", attemptedPackage["Id"].Value<string>());
+                Assert.Equal("d", attemptedPackage["Version"].Value<string>());
+
+                Assert.Equal("PackageVerificationKeysPolicy_CreatePackage", record["Action"].Value<string>());
+
+                await VerifyActor(jObject);
+
+                return null;
+            });
+
+            await service.SaveAuditRecordAsync(auditRecord);
+        }
+
+        [Fact]
         public async Task SaveAuditRecordAsync_UserAuditRecord()
         {
             var user = new User()

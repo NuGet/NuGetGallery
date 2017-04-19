@@ -9,7 +9,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
@@ -48,6 +47,7 @@ namespace NuGetGallery
         public ITelemetryService TelemetryService { get; set; }
         public AuthenticationService AuthenticationService { get; set; }
         public ICredentialBuilder CredentialBuilder { get; set; }
+        public ISecurityPolicyService SecurityPolicyService { get; set; }
 
         protected ApiController()
         {
@@ -70,7 +70,8 @@ namespace NuGetGallery
             IGalleryConfigurationService configurationService,
             ITelemetryService telemetryService,
             AuthenticationService authenticationService,
-            ICredentialBuilder credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            ISecurityPolicyService securityPolicyService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -88,6 +89,7 @@ namespace NuGetGallery
             TelemetryService = telemetryService;
             AuthenticationService = authenticationService;
             CredentialBuilder = credentialBuilder;
+            SecurityPolicyService = securityPolicyService;
             StatisticsService = null;
         }
 
@@ -108,8 +110,11 @@ namespace NuGetGallery
             IGalleryConfigurationService configurationService,
             ITelemetryService telemetryService,
             AuthenticationService authenticationService,
-            ICredentialBuilder credentialBuilder)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService, authenticationService, credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            SecurityPolicyService securityPolicyService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService,
+                  searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService,
+                  authenticationService, credentialBuilder, securityPolicyService)
         {
             StatisticsService = statisticsService;
         }
@@ -198,14 +203,6 @@ namespace NuGetGallery
             return await StatusService.GetStatus();
         }
 
-        private Credential GetCurrentCredential(User user)
-        {
-            var identity = User.Identity as ClaimsIdentity;
-            var apiKey = identity.GetClaimOrDefault(NuGetClaims.ApiKey);
-
-            return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
-        }
-
         [HttpPost]
         [RequireSsl]
         [ApiAuthorize]
@@ -239,23 +236,30 @@ namespace NuGetGallery
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
             var user = GetCurrentUser();
-            var credential = GetCurrentCredential(user);
+            var credential = user.GetCurrentCredential(User.Identity);
 
-            var result = VerifyPackageKeyInternal(user, credential, id, version);
+            var result = await VerifyPackageKeyInternal(user, credential, id, version);
 
             // Expire and delete verification key after first use to avoid growing the database tables.
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
                 await AuthenticationService.RemoveCredential(user, credential);
             }
-            
+
             TelemetryService.TrackVerifyPackageKeyEvent(id, version, user, User.Identity, result?.StatusCode ?? 200);
 
             return (ActionResult)result ?? new EmptyResult();
         }
 
-        private HttpStatusCodeWithBodyResult VerifyPackageKeyInternal(User user, Credential credential, string id, string version)
+        private async Task<HttpStatusCodeWithBodyResult> VerifyPackageKeyInternal(User user, Credential credential, string id, string version)
         {
+            // Evaluate user security policy requirements.
+            var policyResult = await SecurityPolicyService.CanVerifyPackageKeyAsync(user, HttpContext, id, version);
+            if (policyResult.HasError)
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, policyResult.ErrorMessage);
+            }
+
             // Verify that the user has permission to push for the specific Id \ version combination.
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -271,7 +275,7 @@ namespace NuGetGallery
             
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
-                // Secure path: verify that verification key matches package scope.
+                // Verification key should always match verify scope.
                 if (!ApiKeyScopeAllows(id, NuGetScopes.PackageVerify))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
@@ -279,7 +283,7 @@ namespace NuGetGallery
             }
             else
             {
-                // Insecure path: verify that API key is legacy or matches package scope.
+                // Verify that API key is legacy or matches package push scope.
                 if (!ApiKeyScopeAllows(id, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
@@ -364,6 +368,16 @@ namespace NuGetGallery
                                 errorsString));
                         }
 
+                        var packageId = nuspec.GetId();
+                        var packageVersion = nuspec.GetVersion().ToNormalizedStringSafe();
+
+                        // Evaluate user security policy requirements.
+                        var policyResult = await SecurityPolicyService.CanCreatePackageAsync(user, HttpContext, packageId, packageVersion);
+                        if (policyResult.HasError)
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
+                        }
+
                         if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
                         {
                             return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
@@ -373,12 +387,12 @@ namespace NuGetGallery
                         }
 
                         // Ensure that the user can push packages for this partialId.
-                        var packageRegistration = PackageService.FindPackageRegistrationById(nuspec.GetId());
+                        var packageRegistration = PackageService.FindPackageRegistrationById(packageId);
                         if (packageRegistration == null)
                         {
                             // Check if API key allows pushing a new package id
                             if (!ApiKeyScopeAllows(
-                                subject: nuspec.GetId(), 
+                                subject: packageId,
                                 requestedActions: NuGetScopes.PackagePush))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
@@ -396,12 +410,12 @@ namespace NuGetGallery
                                         user.Username, 
                                         AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner, 
                                         attemptedPackage: new AuditedPackageIdentifier(
-                                            nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe())));
+                                            packageId, packageVersion)));
 
                                 // User cannot push a package to an ID owned by another user.
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
                                     string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
-                                        nuspec.GetId()));
+                                        packageId));
                             }
 
                             // Check if API key allows pushing the current package id
@@ -414,12 +428,11 @@ namespace NuGetGallery
                             }
 
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                            string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
                             bool packageExists =
                                 packageRegistration.Packages.Any(
                                     p => string.Equals(
                                         p.NormalizedVersion,
-                                        normalizedVersion,
+                                        packageVersion,
                                         StringComparison.OrdinalIgnoreCase));
 
                             if (packageExists)
@@ -427,7 +440,7 @@ namespace NuGetGallery
                                 return new HttpStatusCodeWithBodyResult(
                                     HttpStatusCode.Conflict,
                                     string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                        nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe()));
+                                        packageId, packageVersion));
                             }
                         }
 
@@ -469,7 +482,7 @@ namespace NuGetGallery
                         catch
                         {
                             // If saving to the DB fails for any reason, we need to delete the package we just saved.
-                            await PackageFileService.DeletePackageFileAsync(nuspec.GetId(), nuspec.GetVersion().ToNormalizedString());
+                            await PackageFileService.DeletePackageFileAsync(packageId, packageVersion);
                             throw;
                         }
 

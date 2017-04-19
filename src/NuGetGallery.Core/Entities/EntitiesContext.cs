@@ -101,6 +101,11 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageLicense>()
                 .HasKey(l => l.Key);
+            
+            modelBuilder.Entity<SecurityPolicy>()
+                .HasKey(sp => sp.Key)
+                .Map<PackageVerificationKeysPolicy>(p => p.Requires("Name")
+                    .HasValue(nameof(PackageVerificationKeysPolicy)));
 
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Key);
@@ -116,6 +121,13 @@ namespace NuGetGallery
                 .Map(c => c.ToTable("UserRoles")
                            .MapLeftKey("UserKey")
                            .MapRightKey("RoleKey"));
+
+            modelBuilder.Entity<User>()
+                .HasMany<SecurityPolicy>(pr => pr.SecurityPolicies)
+                .WithMany()
+                .Map(c => c.ToTable("UserSecurityPolicies")
+                           .MapLeftKey("SecurityPolicyKey")
+                           .MapRightKey("UserKey"));
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);

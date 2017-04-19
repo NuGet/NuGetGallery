@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Globalization;
-using System.Linq;
 using System.Web;
 
 namespace NuGetGallery
@@ -11,6 +12,28 @@ namespace NuGetGallery
     /// </summary>
     public static class HttpRequestExtensions
     {
+        public static string GetNuGetClientVersion(this HttpRequest request)
+        {
+            return GetNuGetClientVersion(new HttpRequestWrapper(request));
+        }
+
+        private static string GetNuGetClientVersion(this HttpRequestBase request)
+        {
+            return request?.Headers[Constants.ClientVersionHeaderName];
+        }
+
+        public static bool IsNuGetClientVersionOrHigher(this HttpRequestBase request, Version requiredVersion)
+        {
+            var versionString = request.GetNuGetClientVersion();
+            if (!string.IsNullOrWhiteSpace(versionString))
+            {
+                Version version;
+                return Version.TryParse(versionString, out version) &&
+                    version >= requiredVersion;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Retrieve culture of client. 
         /// </summary>
