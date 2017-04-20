@@ -830,7 +830,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageDescriptionIsNull()
+            public async Task WillThrowIfTheNuGetPackageDescriptionIsNull()
             {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage(description: null);
