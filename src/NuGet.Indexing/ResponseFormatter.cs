@@ -26,7 +26,21 @@ namespace NuGet.Indexing
             NuGetVersion semVerLevel,
             Query query)
         {
-            Uri baseAddress = searcher.Manager.RegistrationBaseAddress[scheme];
+            Uri baseAddress;
+            var useSemVer2Registration = SemVerHelpers.ShouldIncludeSemVer2Results(semVerLevel);
+            RegistrationBaseAddresses registrationAddresses = searcher.Manager.RegistrationBaseAddresses;
+
+            switch (scheme)
+            {
+                case "https":
+                    baseAddress = (useSemVer2Registration ? registrationAddresses.SemVer2Https : registrationAddresses.LegacyHttps);
+                    break;
+                case "http":
+                default:
+                    // if scheme specified is invalid, fall back to using as much information as we can
+                    baseAddress = (useSemVer2Registration ? registrationAddresses.SemVer2Http : registrationAddresses.LegacyHttp);
+                    break;
+            }
 
             jsonWriter.WriteStartObject();
             WriteInfo(jsonWriter, baseAddress, searcher, topDocs);

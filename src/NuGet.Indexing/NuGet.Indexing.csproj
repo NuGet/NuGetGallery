@@ -311,6 +311,7 @@
     <Compile Include="RankingBySegment.cs" />
     <Compile Include="RankingResult.cs" />
     <Compile Include="Handlers\RankingsHandler.cs" />
+    <Compile Include="RegistrationAddresses.cs" />
     <Compile Include="ResponseFormatter.cs" />
     <Compile Include="Retry.cs" />
     <Compile Include="IndexingConfiguration.cs" />

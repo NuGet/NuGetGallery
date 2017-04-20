@@ -40,8 +40,12 @@ namespace NuGet.Indexing
         public string LocalLuceneDirectory { get; set; }
 
         [ConfigurationKeyPrefix(SearchPrefix)]
-        [DefaultValue("http://api.nuget.org/v3/registration0/")]
+        [DefaultValue("http://api.nuget.org/v3/registration1/")]
         public string RegistrationBaseAddress { get; set; }
+
+        [ConfigurationKeyPrefix(SearchPrefix)]
+        [DefaultValue("http://api.nuget.org/v3/registration2-gz-semver2/")]
+        public string SemVer2RegistrationBaseAddress { get; set; }
 
         [ConfigurationKeyPrefix(StoragePrefix)]
         [ConfigurationKey("Primary")]
