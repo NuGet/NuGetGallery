@@ -29,6 +29,7 @@ AssemblyInfo.*.cs
 .nuget/EULA_Microsoft Visual Studio Team Services Credential Provider.docx
 .nuget/ThirdPartyNotices.txt
 nuget.exe
+build/packages/
 
 # Visual Studio 2015 cache/options directory
 .vs/

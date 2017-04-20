@@ -10,7 +10,10 @@ $7zipExe = Join-Path $NuGetClientRoot 'tools\7zip\7za.exe'
 $Artifacts = Join-Path $NuGetClientRoot artifacts
 $MSBuildRoot = Join-Path ${env:ProgramFiles(x86)} 'MSBuild\'
 $MSBuildExeRelPath = 'bin\msbuild.exe'
-$VisualStudioVersion=14.0
+$VisualStudioVersion = 14.0
+
+$NuGetBuildPackageId = 'NuGet.Services.Build'
+$NuGetBuildPackageVersion = '1.0.0'
 
 Set-Alias nuget $NuGetExe
 Set-Alias dotnet $DotNetExe
@@ -76,11 +79,37 @@ Function Clear-Artifacts {
 
 Function Get-MSBuildExe {
     param(
-        [string]$MSBuildVersion
+        [int]$MSBuildVersion
     )
 
-    $MSBuildExe = Join-Path $MSBuildRoot ($MSBuildVersion + ".0")
-    Join-Path $MSBuildExe $MSBuildExeRelPath
+    if ($MSBuildVersion -lt 15) {
+        $MSBuildExe = Join-Path $MSBuildRoot ([string]$MSBuildVersion + ".0")
+        Join-Path $MSBuildExe $MSBuildExeRelPath
+    } else {
+        # Check if VS package to use to find $NuGetBuildPackageId is installed. If not, install it.
+        if (-not ([AppDomain]::CurrentDomain.GetAssemblies() | `
+            ForEach-Object { $_.GetTypes() } | `
+            Where-Object { `
+                $_.FullName -like "NuGet.Services.Build.VisualStudioSetupConfigurationHelper" `
+            }))
+        {
+            Trace-Log "Installing and configuring $NuGetBuildPackageId"
+            $opts = "install", $NuGetBuildPackageId, "-Version", $NuGetBuildPackageVersion, "-Source", "https://dotnet.myget.org/F/nuget-build/api/v3/index.json", "-OutputDirectory", "$PSScriptRoot\packages"
+            & $NuGetExe $opts | Out-Null
+            if (-not $?) {
+                Error-Log "Failed to install package $NuGetBuildPackageId $NuGetBuildPackageVersion!"
+            } else {
+                Add-Type -Path "$PSScriptRoot\packages\$NuGetBuildPackageId.$NuGetBuildPackageVersion\lib\net452\$NuGetBuildPackageId.dll" | Out-Null
+            }
+        }
+        
+        $installations = [NuGet.Services.Build.VisualStudioSetupConfigurationHelper]::GetInstancePaths() | ForEach-Object {
+            $MSBuildExe = Join-Path "$_\MSBuild" ([string]$MSBuildVersion + ".0")
+            Join-Path $MSBuildExe $MSBuildExeRelPath
+        } | Where-Object { Test-Path $_ }
+        
+        $installations[0]
+    }
 }
 
 Function Invoke-BuildStep {
@@ -402,7 +431,6 @@ Function Restore-SolutionPackages {
     param(
         [Alias('path')]
         [string]$SolutionPath,
-        [ValidateSet(4, 12, 14, 15)]
         [int]$MSBuildVersion,
         [string]$BuildNumber,
         [string]$ConfigFile
@@ -417,7 +445,7 @@ Function Restore-SolutionPackages {
         $InstallLocation = Split-Path -Path $SolutionPath -Parent
     }
     if ($MSBuildVersion) {
-        $opts += '-MSBuildVersion', $MSBuildVersion
+        $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
     }
     
     if ($ConfigFile) {
@@ -462,7 +490,7 @@ Function New-Package {
         [switch]$NoPackageAnalysis,
         [string]$PackageId,
         [string]$Version,
-        [string]$MSBuildVersion = "14",
+        [string]$MSBuildVersion = $DefaultMSBuildVersion,
         [switch]$Symbols,
         [string]$Branch,
         [switch]$IncludeReferencedProjects
@@ -493,7 +521,7 @@ Function New-Package {
     }
     $opts += '-Properties', $Properties
     
-    $opts += '-MSBuildVersion', $MSBuildVersion
+    $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
     
     if (-not $BuildNumber) {
         $BuildNumber = Get-BuildNumber
