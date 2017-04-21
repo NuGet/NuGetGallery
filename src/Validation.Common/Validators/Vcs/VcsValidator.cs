@@ -61,15 +61,18 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                     _logger.LogInformation("Submission completed for " +
                         $"{{{TraceConstant.ValidatorName}}} {{{TraceConstant.ValidationId}}}. " +
                         $"package {{{TraceConstant.PackageId}}} " +
-                        $"v. {{{TraceConstant.PackageVersion}}}" +
-                        "Request id: {RequestId} - job id: {JobId}", 
+                        $"{{{TraceConstant.PackageVersion}}} " +
+                        "Request id: {RequestId} - job id: {JobId} - region code: {RegionCode}", 
                         Name,
                         message.ValidationId,
                         message.PackageId,
                         message.PackageVersion,
                         result.RequestId, 
-                        result.JobId);
-                    WriteAuditEntry(auditEntries, $"Submission completed. Request id: {result.RequestId} - job id: {result.JobId}");
+                        result.JobId,
+                        result.RegionCode);
+                    WriteAuditEntry(auditEntries, $"Submission completed. Request id: {result.RequestId} " +
+                        $"- job id: {result.JobId} " +
+                        $"- region code: {result.RegionCode}");
                     return ValidationResult.Asynchronous;
                 }
                 else
