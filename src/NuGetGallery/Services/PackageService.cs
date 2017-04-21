@@ -519,7 +519,7 @@ namespace NuGetGallery
 
         private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, PackageArchiveReader nugetPackage, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user)
         {
-            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == packageMetadata.Version.ToFullString());
+            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == packageMetadata.Version.OriginalVersion);
 
             if (package != null)
             {
@@ -542,9 +542,9 @@ namespace NuGetGallery
             PackageStreamMetadata packageStreamMetadata,
             User user)
         {
-            // Version must always be the non-normalized string, which ToFullString will provide us.
+            // Version must always be the exact string from the nuspec, which OriginalVersion will return to us.
             // However, we do also store a normalized copy for looking up later.
-            package.Version = packageMetadata.Version.ToFullString();
+            package.Version = packageMetadata.Version.OriginalVersion;
             package.NormalizedVersion = packageMetadata.Version.ToNormalizedString();
 
             // Identify the SemVerLevelKey using the original package version string and package dependencies
@@ -804,7 +804,7 @@ namespace NuGetGallery
             {
                 return null;
             }
-            return packages.First(pv => pv.Version.Equals(version.ToFullString(), StringComparison.OrdinalIgnoreCase));
+            return packages.First(pv => pv.Version.Equals(version.OriginalVersion, StringComparison.OrdinalIgnoreCase));
         }
 
         private PackageOwnerRequest FindExistingPackageOwnerRequest(PackageRegistration package, User pendingOwner)
