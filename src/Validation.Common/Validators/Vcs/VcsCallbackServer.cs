@@ -28,6 +28,17 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
         private readonly INotificationService _notificationService;
         private readonly ILogger<VcsCallbackServerStartup> _logger;
 
+        /// <summary>
+        /// Number of body characters to take for logging.
+        /// </summary>
+        /// <remarks>
+        /// Callback service is available to be queried from anywhere and hence the body may be of any size.
+        /// In situations when we want to log the body, we don't want to log potentially Multi-MB bodies, so, 
+        /// we'll only take a "reasonable" (that would fit most of the calls we really expect) amount from 
+        /// the beginning.
+        /// </remarks>
+        private const int ReasonableBodySize = 2048;
+
         private static class State
         {
             public const string Complete = "Complete";
@@ -230,13 +241,18 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                             validationEntity.ValidatorCompleted(VcsValidator.ValidatorName, ValidationResult.Failed);
                             await _packageValidationTable.StoreAsync(validationEntity);
 
-                            _logger.TrackValidatorResult(VcsValidator.ValidatorName, validationId, ValidationResult.Failed.ToString(), validationEntity.PackageId, validationEntity.PackageVersion);
+                            _logger.TrackValidatorResult(VcsValidator.ValidatorName, 
+                                validationId, 
+                                ValidationResult.Failed.ToString(), 
+                                validationEntity.PackageId, 
+                                validationEntity.PackageVersion, 
+                                TruncateString(body, ReasonableBodySize));
                             var auditEntries = new List<PackageValidationAuditEntry>();
                             auditEntries.Add(new PackageValidationAuditEntry
                             {
                                 Timestamp = DateTimeOffset.UtcNow,
                                 ValidatorName = VcsValidator.ValidatorName,
-                                Message = "Package scan failed."
+                                Message = $"Package scan failed. Response: {body}"
                             });
 
                             if (result.ResultReasons?.ResultReason != null)
@@ -266,15 +282,30 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 
                 if (!processedRequest)
                 {
-                    // first 1024 bytes of the body are taken in order not to send potentially multi-MB long requests.
-                    // "Normal" callback calls are less than 1024 bytes, but since this service blindly accepts any
-                    // request, we may get some potentially long garbage and don't want it all logged.
                     _logger.LogWarning(
                         "Callback was not handled for State={State}, Result={Result}. " +
                         "Request body: {RequestBody}",
-                        result?.State, result?.Result, body.Substring(0, 1024));
+                        result?.State, result?.Result, TruncateString(body, ReasonableBodySize));
                 }
             }
+        }
+
+        /// <summary>
+        /// Truncates the string leaving at most specified amount of characters and adds a "(truncated)" at the end
+        /// if it removes any portion of the string
+        /// </summary>
+        /// <param name="str">String to truncate</param>
+        /// <param name="length">Max amount of characters to keep if truncated</param>
+        /// <returns>Original string if it's length was less than specified length, otherwise, first 'length' characters of the string 
+        /// with "(truncated)" appended.</returns>
+        private static string TruncateString(string str, int length)
+        {
+            if (str.Length <= length)
+            {
+                return str;
+            }
+
+            return str.Substring(0, length) + "(truncated)";
         }
     }
 }

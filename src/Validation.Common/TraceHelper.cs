@@ -23,7 +23,7 @@ namespace NuGet.Jobs.Validation.Common
                     $"{{{TraceConstant.ValidatorName}}} " +
                     $"ValidationId: {{{TraceConstant.ValidationId}}} " +
                     $"for package {{{TraceConstant.PackageId}}} " +
-                    $"v.{{{TraceConstant.PackageVersion}}} " +
+                    $"{{{TraceConstant.PackageVersion}}} " +
                     $"resulted in {{Result}}",
                 "ValidatorResult",
                 validatorName,
@@ -31,6 +31,34 @@ namespace NuGet.Jobs.Validation.Common
                 packageId,
                 packageVersion,
                 result);
+        }
+
+        /// <summary>
+        /// Tracks the result of the validation with additional information
+        /// </summary>
+        /// <param name="logger">Logger object to use</param>
+        /// <param name="validatorName">The name of validator attempted</param>
+        /// <param name="validationId">Validation ID of the finished validator</param>
+        /// <param name="result">Validation result</param>
+        /// <param name="packageId">Package ID</param>
+        /// <param name="packageVersion">Package name</param>
+        /// <param name="additionalInformation">Additional information you'd want logged</param>
+        public static void TrackValidatorResult(this ILogger logger, string validatorName, Guid validationId, string result, string packageId, string packageVersion, string additionalInformation)
+        {
+            logger.LogInformation($"{{{TraceConstant.EventName}}}: " +
+                    $"{{{TraceConstant.ValidatorName}}} " +
+                    $"ValidationId: {{{TraceConstant.ValidationId}}} " +
+                    $"for package {{{TraceConstant.PackageId}}} " +
+                    $"{{{TraceConstant.PackageVersion}}} " +
+                    $"resulted in {{Result}}, " +
+                    $"additional info: {{AdditionalInformation}}",
+                "ValidatorResult",
+                validatorName,
+                validationId,
+                packageId,
+                packageVersion,
+                result,
+                additionalInformation);
         }
 
         /// <summary>
@@ -48,7 +76,7 @@ namespace NuGet.Jobs.Validation.Common
                     $"{{{TraceConstant.EventName}}} " +
                     $"occurred while running {{{TraceConstant.ValidatorName}}} {{{TraceConstant.ValidationId}}}" +
                     $"on package {{{TraceConstant.PackageId}}}" +
-                    $"v. {{{TraceConstant.PackageVersion}}}", 
+                    $"{{{TraceConstant.PackageVersion}}}", 
                 "ValidatorException",
                 validationId,
                 validatorName,
