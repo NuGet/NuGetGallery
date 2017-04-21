@@ -381,7 +381,7 @@ namespace NuGetGallery
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
                 // Note that there is no assertion on package identifier, because that's at the package registration level (and covered in another test).
-                Assert.Equal("1.0.42", package.Version);
+                Assert.Equal("01.0.42.0", package.Version);
                 Assert.Equal("1.0.42", package.NormalizedVersion);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
                 Assert.Equal("[1.0.0, 2.0.0)", package.Dependencies.ElementAt(0).VersionSpec);
@@ -1721,7 +1721,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(
                     new Package
                         {
-                            Version = "2.0.0",
+                            Version = "2.0",
                             PackageRegistration = package.PackageRegistration,
                             Published = DateTime.UtcNow
                         });
