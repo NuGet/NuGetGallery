@@ -546,10 +546,7 @@ namespace NuGetGallery
             // However, we do also store a normalized copy for looking up later.
             package.Version = packageMetadata.Version.OriginalVersion;
             package.NormalizedVersion = packageMetadata.Version.ToNormalizedString();
-
-            // Identify the SemVerLevelKey using the original package version string and package dependencies
-            package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
-
+            
             package.Description = packageMetadata.Description;
             package.ReleaseNotes = packageMetadata.ReleaseNotes;
             package.HashAlgorithm = packageStreamMetadata.HashAlgorithm;
@@ -609,6 +606,9 @@ namespace NuGetGallery
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             package.FlattenedPackageTypes = package.PackageTypes.Flatten();
+            
+            // Identify the SemVerLevelKey using the original package version string and package dependencies
+            package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
 
             return package;
         }
