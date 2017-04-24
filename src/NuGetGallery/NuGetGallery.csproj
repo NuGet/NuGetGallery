@@ -757,6 +757,10 @@
     <Compile Include="Security\SecurityPolicyService.cs" />
     <Compile Include="Security\UserSecurityPolicyContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
+    <Compile Include="Migrations\201704242001472_AddSemVer2LatestVersionColumns.cs" />
+    <Compile Include="Migrations\201704242001472_AddSemVer2LatestVersionColumns.Designer.cs">
+      <DependentUpon>201704242001472_AddSemVer2LatestVersionColumns.cs</DependentUpon>
+    </Compile>
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Telemetry\TelemetryResponseCodeFilter.cs" />
@@ -1705,6 +1709,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201704211454424_SecurityPolicies.resx">
       <DependentUpon>201704211454424_SecurityPolicies.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201704242001472_AddSemVer2LatestVersionColumns.resx">
+      <DependentUpon>201704242001472_AddSemVer2LatestVersionColumns.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201705031714183_AddIndexSemVerLevelKey.resx">
       <DependentUpon>201705031714183_AddIndexSemVerLevelKey.cs</DependentUpon>

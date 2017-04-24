@@ -59,6 +59,8 @@ namespace NuGetGallery.Controllers
                                 .WithoutSortOnColumn(Id, ShouldIgnoreOrderById<V2FeedPackage>(options))
                                 .InterceptWith(new NormalizeVersionInterceptor());
 
+            var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+
             // Try the search service
             try
             {
@@ -79,7 +81,7 @@ namespace NuGetGallery.Controllers
                         var totalHits = packages.LongCount();
                         var pagedQueryable = packages
                             .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                            .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+                            .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
                         return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                            SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, null, o, s));
@@ -100,7 +102,7 @@ namespace NuGetGallery.Controllers
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
 
-            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -140,8 +142,10 @@ namespace NuGetGallery.Controllers
         {
             if (string.IsNullOrEmpty(id))
             {
+                var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+
                 var emptyResult = Enumerable.Empty<Package>().AsQueryable()
-                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
                 return QueryResult(options, emptyResult, MaxPageSize);
             }
@@ -174,6 +178,8 @@ namespace NuGetGallery.Controllers
                 }
             }
 
+            var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+
             // try the search service
             try
             {
@@ -196,7 +202,7 @@ namespace NuGetGallery.Controllers
 
                     var pagedQueryable = packages
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                        .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+                        .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
                     return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                        SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
@@ -214,7 +220,7 @@ namespace NuGetGallery.Controllers
                 return NotFound();
             }
 
-            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -275,6 +281,8 @@ namespace NuGetGallery.Controllers
             // Packages provided by search service (even when not hijacked)
             var query = searchAdaptorResult.Packages;
 
+            var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+
             // If intercepted, create a paged queryresult
             if (searchAdaptorResult.ResultsAreProvidedBySearchService)
             {
@@ -282,7 +290,7 @@ namespace NuGetGallery.Controllers
                 var totalHits = query.LongCount();
                 var pagedQueryable = query
                     .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                 {
@@ -303,7 +311,7 @@ namespace NuGetGallery.Controllers
             }
 
             // If not, just let OData handle things
-            var queryable = query.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+            var queryable = query.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -397,9 +405,10 @@ namespace NuGetGallery.Controllers
                     idValues.Contains(p.PackageRegistration.Id.ToLower()))
                 .OrderBy(p => p.PackageRegistration.Id);
 
+            var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
             var queryable = GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions, semVerLevel)
                 .AsQueryable()
-                .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+                .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
             return QueryResult(options, queryable, MaxPageSize);
         }

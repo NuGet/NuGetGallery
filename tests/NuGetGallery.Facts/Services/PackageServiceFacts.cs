@@ -1026,8 +1026,7 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
 
-                var service = CreateService(packageRepository: packageRepository, setup:
-                        mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                var service = CreateService(packageRepository: packageRepository);
 
                 // Act
                 await service.UpdateIsLatestAsync(packageRegistration, commitChanges: false);
@@ -1045,8 +1044,7 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
 
-                var service = CreateService(packageRepository: packageRepository, setup:
-                        mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                var service = CreateService(packageRepository: packageRepository);
 
                 // Act
                 await service.UpdateIsLatestAsync(packageRegistration, true);
@@ -1068,8 +1066,7 @@ namespace NuGetGallery
                 var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
                 packageRepository.Setup(r => r.CommitChangesAsync())
                     .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageRepository: packageRepository, setup:
-                        mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package10A); });
+                var service = CreateService(packageRepository: packageRepository);
 
                 // Act
                 await service.UpdateIsLatestAsync(packageRegistration, true);
@@ -1097,8 +1094,7 @@ namespace NuGetGallery
                 var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
                 packageRepository.Setup(r => r.CommitChangesAsync())
                     .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageRepository: packageRepository, setup:
-                        mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package100); });
+                var service = CreateService(packageRepository: packageRepository);
 
                 // Act
                 await service.UpdateIsLatestAsync(packageRegistration, true);
@@ -1233,7 +1229,7 @@ namespace NuGetGallery
         public class TheFindAbsoluteLatestPackageByIdMethod
         {
             [Fact]
-            public void ReturnsTheLatestVersion()
+            public void ReturnsTheLatestVersionWhenSemVerLevelUnknown()
             {
                 // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
@@ -1247,7 +1243,7 @@ namespace NuGetGallery
                 var service = CreateService(packageRepository: repository);
 
                 // Act
-                var result = service.FindAbsoluteLatestPackageById("theId");
+                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.Unknown);
 
                 // Assert
                 Assert.NotNull(result);
@@ -1255,14 +1251,36 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void ReturnsTheMostRecentVersion()
+            public void ReturnsTheLatestVersionWhenSemVerLevel2()
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
+                var package2 = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.SemVer2);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("2.0.0-alpha.1", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsTheMostRecentVersionWhenSemVerLevelUnknown()
             {
                 // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
                 var packageRegistration = new PackageRegistration { Id = "theId" };
                 var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
-                var package2 = new Package { Version = "2.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
-                var package3 = new Package { Version = "2.0.0", PackageRegistration = packageRegistration, Listed = true };
+                var package2 = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
+                var package3 = new Package { Version = "2.0.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
 
                 repository
                     .Setup(repo => repo.GetAll())
@@ -1270,11 +1288,34 @@ namespace NuGetGallery
                 var service = CreateService(packageRepository: repository);
 
                 // Act
-                var result = service.FindAbsoluteLatestPackageById("theId");
+                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.Unknown);
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal("2.0.0a", result.Version);
+                Assert.Equal("2.0.0", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsTheMostRecentVersionWhenSemVerLevel2()
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
+                var package2 = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                var package3 = new Package { Version = "2.0.0+metadata", PackageRegistration = packageRegistration, Listed = true, SemVerLevelKey = SemVerLevelKey.SemVer2, IsLatestSemVer2 = true };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.SemVer2);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("2.0.0+metadata", result.Version);
             }
         }
 
@@ -1624,7 +1665,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(package);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
 
                 await service.PublishPackageAsync("theId", "1.0.42");
 
@@ -1647,7 +1688,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(package);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
 
                 await service.PublishPackageAsync(package, commitChanges: false);
 
@@ -1671,7 +1712,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(package);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
 
                 await service.PublishPackageAsync(package);
 
@@ -1694,7 +1735,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(new Package { Version = "1.0", PackageRegistration = package.PackageRegistration });
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
 
                 await service.PublishPackageAsync("theId", "1.0.42");
 
@@ -1723,7 +1764,7 @@ namespace NuGetGallery
                         });
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
 
                 await service.PublishPackageAsync(package);
 
@@ -1754,7 +1795,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(package39);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
 
                 await service.PublishPackageAsync("theId", "1.0.42-alpha");
                 Assert.True(package39.IsLatestStable);
@@ -1787,7 +1828,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(package39);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
 
                 await service.PublishPackageAsync(package);
 
@@ -1822,7 +1863,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(package39);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
 
                 await service.PublishPackageAsync("theId", "1.0.42-alpha");
                 Assert.False(package39.IsLatestStable);
@@ -1856,7 +1897,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(package39);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
 
                 await service.PublishPackageAsync(package);
                 Assert.False(package39.IsLatestStable);
@@ -1871,7 +1912,7 @@ namespace NuGetGallery
                 var service = CreateService(setup:
                         mockPackageService =>
                         {
-                            mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(
+                            mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
                                 (Package)null);
                         });
 

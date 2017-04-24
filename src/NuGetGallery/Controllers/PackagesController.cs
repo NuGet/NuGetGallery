@@ -282,7 +282,7 @@ namespace NuGetGallery
                     return View();
                 }
 
-                var package = _packageService.FindPackageByIdAndVersion(nuspec.GetId(), nuspec.GetVersion().ToStringSafe());
+                var package = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspec.GetVersion().ToStringSafe());
                 if (package != null)
                 {
                     ModelState.AddModelError(
@@ -310,11 +310,11 @@ namespace NuGetGallery
             Package package;
             if (version != null && version.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
-                package = _packageService.FindAbsoluteLatestPackageById(id);
+                package = _packageService.FindAbsoluteLatestPackageById(id, SemVerLevelKey.SemVer2);
             }
             else
             {
-                package = _packageService.FindPackageByIdAndVersion(id, version);
+                package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
             }
 
             if (package == null)
@@ -472,7 +472,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult ReportAbuse(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -521,7 +521,7 @@ namespace NuGetGallery
         {
             var user = GetCurrentUser();
 
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -560,7 +560,7 @@ namespace NuGetGallery
                 return ReportAbuse(id, version);
             }
 
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();
@@ -618,7 +618,7 @@ namespace NuGetGallery
                 return ReportMyPackage(id, version);
             }
 
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();
@@ -812,7 +812,7 @@ namespace NuGetGallery
                     var split = package.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                     if (split.Length == 2)
                     {
-                        var packageToDelete = _packageService.FindPackageByIdAndVersion(split[0], split[1], allowPrerelease: true);
+                        var packageToDelete = _packageService.FindPackageByIdAndVersionStrict(split[0], split[1]);
                         if (packageToDelete != null)
                         {
                             packagesToDelete.Add(packageToDelete);
@@ -992,7 +992,7 @@ namespace NuGetGallery
 
         internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();
@@ -1289,7 +1289,7 @@ namespace NuGetGallery
 
         internal virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, string> urlFactory)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();

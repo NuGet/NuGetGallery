@@ -523,7 +523,10 @@ namespace NuGetGallery.Infrastructure
 
             var packages = new[] { p };
             var results = IndexAndSearch(packages, "");
-            var r = results.AsQueryable().ToV2FeedPackageQuery("http://www.nuget.org/", true).First();
+            var r = results.AsQueryable().ToV2FeedPackageQuery(
+                "http://www.nuget.org/", 
+                includeLicenseReport: true,
+                semVerLevelKey: SemVerLevelKey.Unknown).First();
 
             Assert.Equal("Pride", r.Id);
             Assert.Equal("3.4 RC", r.Version);

@@ -105,6 +105,8 @@ namespace NuGetGallery
             int packageSize = Int32.Parse(doc.Get("PackageFileSize"), CultureInfo.InvariantCulture);
             bool isLatest = Boolean.Parse(doc.Get("IsLatest"));
             bool isLatestStable = Boolean.Parse(doc.Get("IsLatestStable"));
+            bool isLatestSemVer2 = Boolean.Parse(doc.Get("IsLatestSemVer2"));
+            bool isLatestStableSemVer2 = Boolean.Parse(doc.Get("IsLatestStableSemVer2"));
             bool requiresLicenseAcceptance = Boolean.Parse(doc.Get("RequiresLicenseAcceptance"));
             DateTime created = DateTime.Parse(doc.Get("Created"), CultureInfo.InvariantCulture);
             DateTime published = DateTime.Parse(doc.Get("Published"), CultureInfo.InvariantCulture);
@@ -150,6 +152,8 @@ namespace NuGetGallery
                 IconUrl = doc.Get("IconUrl"),
                 IsLatest = isLatest,
                 IsLatestStable = isLatestStable,
+                IsLatestSemVer2 = isLatestSemVer2,
+                IsLatestStableSemVer2 = isLatestStableSemVer2,
                 Key = key,
                 Language = doc.Get("Language"),
                 LastUpdated = lastUpdated,
