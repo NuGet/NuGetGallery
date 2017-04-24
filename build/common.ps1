@@ -81,10 +81,12 @@ Function Get-MSBuildExe {
     param(
         [int]$MSBuildVersion
     )
+    
+    $MSBuildPath = $null
 
     if ($MSBuildVersion -lt 15) {
         $MSBuildExe = Join-Path $MSBuildRoot ([string]$MSBuildVersion + ".0")
-        Join-Path $MSBuildExe $MSBuildExeRelPath
+        $MSBuildPath = Join-Path $MSBuildExe $MSBuildExeRelPath
     } else {
         # Check if VS package to use to find $NuGetBuildPackageId is installed. If not, install it.
         if (-not ([AppDomain]::CurrentDomain.GetAssemblies() | `
@@ -103,13 +105,20 @@ Function Get-MSBuildExe {
             }
         }
         
-        $installations = [NuGet.Services.Build.VisualStudioSetupConfigurationHelper]::GetInstancePaths() | ForEach-Object {
-            $MSBuildExe = Join-Path "$_\MSBuild" ([string]$MSBuildVersion + ".0")
-            Join-Path $MSBuildExe $MSBuildExeRelPath
-        } | Where-Object { Test-Path $_ }
+        $installations = @([NuGet.Services.Build.VisualStudioSetupConfigurationHelper]::GetInstancePaths() | ForEach-Object {
+            $MSBuildRoot = Join-Path "$_\MSBuild" ([string]$MSBuildVersion + ".0")
+            Join-Path $MSBuildRoot $MSBuildExeRelPath
+        } | Where-Object { Test-Path $_ })
         
-        $installations[0]
+        if ($installations.Count -ge 1) {
+            $MSBuildPath = $installations[0]
+        } else {
+            Error-Log "Failed to find MSBuild $MSBuildVersion!"
+        }
     }
+    
+    Trace-Log "MSBuild found at $MSBuildPath"
+    $MSBuildPath
 }
 
 Function Invoke-BuildStep {
