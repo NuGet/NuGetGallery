@@ -13,7 +13,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Id = id;
         }
 
-        public string Id { get; set; }
+        public string Id { get; }
             
         public override string ToString()
         {
@@ -34,7 +34,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 return false;
             }
 
-            return (Id == rhs.Id); 
+            return StringComparer.OrdinalIgnoreCase.Equals(Id, rhs.Id); 
         }
 
         public static RegistrationKey Promote(string resourceUri, IGraph graph)

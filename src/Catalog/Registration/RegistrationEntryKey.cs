@@ -1,18 +1,23 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.Services.Metadata.Catalog.Helpers;
+
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationEntryKey
     {
+        private readonly string _normalizedVersion;
+
         public RegistrationEntryKey(RegistrationKey registrationKey, string version)
         {
             RegistrationKey = registrationKey;
             Version = version;
+            _normalizedVersion = NuGetVersionUtility.NormalizeVersion(version).ToLowerInvariant();
         }
 
-        public RegistrationKey RegistrationKey { get; set; }
-        public string Version { get; set; }
+        public RegistrationKey RegistrationKey { get; }
+        public string Version { get; }
             
         public override string ToString()
         {
@@ -21,7 +26,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         public override int GetHashCode()
         {
-            return ToString().GetHashCode();
+            return $"{RegistrationKey}/{_normalizedVersion}".GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -33,7 +38,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 return false;
             }
 
-            return (RegistrationKey.Equals(rhs.RegistrationKey)) && (Version == rhs.Version); 
+            return RegistrationKey.Equals(rhs.RegistrationKey) &&
+                   _normalizedVersion == rhs._normalizedVersion; 
         }
     }
 }

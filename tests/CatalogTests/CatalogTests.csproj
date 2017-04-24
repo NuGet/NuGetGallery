@@ -143,6 +143,8 @@
     <Compile Include="RegistrationMakerTests.cs" />
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="GalleryCompareTests.cs" />
+    <Compile Include="Registration\RegistrationEntryKeyTests.cs" />
+    <Compile Include="Registration\RegistrationKeyTests.cs" />
     <Compile Include="Registration\RegistrationMakerCatalogItemTests.cs" />
     <Compile Include="Registration\PackagesFolderPackagePathProviderTests.cs" />
     <Compile Include="Registration\RegistrationCatalogEntryTests.cs" />
