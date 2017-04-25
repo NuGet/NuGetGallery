@@ -10,6 +10,10 @@ namespace Tests.Stats.ImportAzureCdnStatistics
     {
         [Theory]
         [InlineData("nuget.core", "1.0.1-beta1", "http://localhost/packages/nuget.core.1.0.1-beta1.nupkg")]
+        [InlineData("nuget.core", "1.0.1-beta1.1", "http://localhost/packages/nuget.core.1.0.1-beta1.1.nupkg")]
+        [InlineData("nuget.core", "1.0.1+metadata", "http://localhost/packages/nuget.core.1.0.1%2Bmetadata.nupkg")]
+        [InlineData("nuget.core", "1.0.1-beta1+metadata", "http://localhost/packages/nuget.core.1.0.1-beta1%2Bmetadata.nupkg")]
+        [InlineData("nuget.core", "1.0.1-beta1.1+metadata", "http://localhost/packages/nuget.core.1.0.1-beta1.1%2Bmetadata.nupkg")]
         [InlineData("nuget.core", "1.0.1", "http://localhost/packages/nuget.core.1.0.1.nupkg")]
         [InlineData("nuget.core", "1.0", "http://localhost/packages/nuget.core.1.0.nupkg")]
         [InlineData("1", "1.0.0", "http://localhost/packages/1.1.0.0.nupkg")]
