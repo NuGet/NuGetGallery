@@ -30,6 +30,11 @@ namespace NuGetGallery.Security
         /// </summary>
         public SecurityPolicyResult Evaluate(SecurityPolicyAction action, HttpContextBase httpContext)
         {
+            if (httpContext == null)
+            {
+                throw new ArgumentNullException(nameof(httpContext));
+            }
+
             var user = httpContext.GetCurrentUser();
             foreach (var handler in UserPolicyHandlers.Where(h => h.Action == action))
             {

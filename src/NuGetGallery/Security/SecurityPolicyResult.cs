@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace NuGetGallery.Security
 {
     /// <summary>
@@ -23,6 +25,11 @@ namespace NuGetGallery.Security
         /// <returns></returns>
         public static SecurityPolicyResult CreateErrorResult(string errorMessage)
         {
+            if (string.IsNullOrEmpty(errorMessage))
+            {
+                throw new ArgumentNullException(nameof(errorMessage));
+            }
+
             return new SecurityPolicyResult(false, errorMessage);
         }
 

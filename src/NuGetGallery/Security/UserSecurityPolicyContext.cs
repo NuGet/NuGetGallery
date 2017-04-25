@@ -12,6 +12,16 @@ namespace NuGetGallery.Security
     /// </summary>
     public class UserSecurityPolicyContext
     {
+        /// <summary>
+        /// Current http context.
+        /// </summary>
+        public HttpContextBase HttpContext { get; }
+
+        /// <summary>
+        /// Security policy entity.
+        /// </summary>
+        public IEnumerable<UserSecurityPolicy> Policies { get; }
+
         public UserSecurityPolicyContext(HttpContextBase httpContext, IEnumerable<UserSecurityPolicy> policies)
         {
             if (httpContext == null)
@@ -26,16 +36,6 @@ namespace NuGetGallery.Security
             HttpContext = httpContext;
             Policies = policies;
         }
-
-        /// <summary>
-        /// Current http context.
-        /// </summary>
-        public HttpContextBase HttpContext { get; private set; }
-
-        /// <summary>
-        /// Security policy entity.
-        /// </summary>
-        public IEnumerable<UserSecurityPolicy> Policies { get; private set; }
 
     }
 }
