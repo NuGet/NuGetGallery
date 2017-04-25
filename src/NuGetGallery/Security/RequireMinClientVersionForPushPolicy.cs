@@ -35,7 +35,9 @@ namespace NuGetGallery.Security
         /// </summary>
         private NuGetVersion GetMaxOfMinClientVersions(UserSecurityPolicyContext context)
         {
-            var policyStates = context.Policies.Select(p => JsonConvert.DeserializeObject<State>(p.Value));
+            var policyStates = context.Policies
+                .Where(p => !string.IsNullOrEmpty(p.Value))
+                .Select(p => JsonConvert.DeserializeObject<State>(p.Value));
             return policyStates.Max(s => s.MinClientVersion);
         }
 
