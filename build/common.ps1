@@ -96,7 +96,10 @@ Function Get-MSBuildExe {
             }))
         {
             Trace-Log "Installing and configuring $NuGetBuildPackageId"
-            $opts = "install", $NuGetBuildPackageId, "-Version", $NuGetBuildPackageVersion, "-Source", "https://dotnet.myget.org/F/nuget-build/api/v3/index.json", "-OutputDirectory", "$PSScriptRoot\packages"
+            $opts = "install", $NuGetBuildPackageId, `
+                "-Version", $NuGetBuildPackageVersion, `
+                "-Source", "https://api.nuget.org/v3/index.json;https://dotnet.myget.org/F/nuget-build/api/v3/index.json", `
+                "-OutputDirectory", "$PSScriptRoot\packages"
             & $NuGetExe $opts | Out-Null
             if (-not $?) {
                 Error-Log "Failed to install package $NuGetBuildPackageId $NuGetBuildPackageVersion!"
