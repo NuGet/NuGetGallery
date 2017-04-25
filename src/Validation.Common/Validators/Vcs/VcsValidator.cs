@@ -48,7 +48,8 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                 message.ValidationId,
                 message.PackageId,
                 message.PackageVersion);
-            WriteAuditEntry(auditEntries, $"Submitting virus scan job with description \"{description}\"...");
+            WriteAuditEntry(auditEntries, $"Submitting virus scan job with description \"{description}\"...",
+                ValidationEvent.BeforeVirusScanRequest);
 
             string errorMessage;
             try
@@ -72,7 +73,8 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                         result.RegionCode);
                     WriteAuditEntry(auditEntries, $"Submission completed. Request id: {result.RequestId} " +
                         $"- job id: {result.JobId} " +
-                        $"- region code: {result.RegionCode}");
+                        $"- region code: {result.RegionCode}", 
+                        ValidationEvent.VirusScanRequestSent);
                     return ValidationResult.Asynchronous;
                 }
                 else
@@ -96,7 +98,8 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                 _logger.TrackValidatorException(ValidatorName, message.ValidationId, ex, message.PackageId, message.PackageVersion);
             }
 
-            WriteAuditEntry(auditEntries, $"Submission failed. Error message: {errorMessage}");
+            WriteAuditEntry(auditEntries, $"Submission failed. Error message: {errorMessage}", 
+                ValidationEvent.VirusScanRequestFailed);
             return ValidationResult.Failed;
         }
 

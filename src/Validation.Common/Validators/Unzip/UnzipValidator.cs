@@ -47,7 +47,8 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
                             await packageStream.CopyToAsync(packageFileStream);
 
                             _logger.LogInformation($"Downloaded package from {{{TraceConstant.Url}}}", message.Package.DownloadUrl);
-                            WriteAuditEntry(auditEntries, $"Downloaded package from {message.Package.DownloadUrl}");
+                            WriteAuditEntry(auditEntries, $"Downloaded package from {message.Package.DownloadUrl}",
+                                ValidationEvent.PackageDownloaded);
 
                             packageFileStream.Position = 0;
                             
@@ -55,7 +56,8 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
                             {
                                 var parts = packageZipStream.GetParts();
                                 _logger.LogInformation("Found {PartsCount} parts in package.", parts.Count());
-                                WriteAuditEntry(auditEntries, $"Found {parts.Count()} parts in package.");
+                                WriteAuditEntry(auditEntries, $"Found {parts.Count()} parts in package.",
+                                    ValidationEvent.UnzipSucceeeded);
 
                                 return ValidationResult.Succeeded;
                             }
@@ -65,7 +67,8 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
                 catch (Exception ex)
                 {
                     _logger.TrackValidatorException(ValidatorName, message.ValidationId, ex, message.PackageId, message.PackageVersion);
-                    WriteAuditEntry(auditEntries, $"Exception thrown during validation - {ex.Message}\r\n{ex.StackTrace}");
+                    WriteAuditEntry(auditEntries, $"Exception thrown during validation - {ex.Message}\r\n{ex.StackTrace}",
+                        ValidationEvent.ValidatorException);
                     return ValidationResult.Failed;
                 }
                 finally
