@@ -117,11 +117,11 @@ namespace NuGetGallery
             {
                 // Arrange and Act.
                 var method = typeof(ApiController).GetMethod(methodName);
-                var attribute = (SecurityPolicyAttribute)method.GetCustomAttributes(typeof(SecurityPolicyAttribute), true).FirstOrDefault();
+                var attribute = (ApiAuthorizeAttribute)method.GetCustomAttributes(typeof(ApiAuthorizeAttribute), true).FirstOrDefault();
 
                 // Assert
                 Assert.NotNull(attribute);
-                Assert.Equal(SecurityPolicyAction.PackagePush, attribute.Action);
+                Assert.Equal(SecurityPolicyAction.PackagePush, attribute.SecurityPolicyAction);
             }
 
             [Fact]
@@ -1087,11 +1087,11 @@ namespace NuGetGallery
             {
                 // Arrange and Act.
                 var method = typeof(ApiController).GetMethod("VerifyPackageKeyAsync");
-                var attribute = (SecurityPolicyAttribute)method.GetCustomAttributes(typeof(SecurityPolicyAttribute), true).FirstOrDefault();
+                var attribute = (ApiAuthorizeAttribute)method.GetCustomAttributes(typeof(ApiAuthorizeAttribute), true).FirstOrDefault();
 
                 // Assert
                 Assert.NotNull(attribute);
-                Assert.Equal(SecurityPolicyAction.PackageVerify, attribute.Action);
+                Assert.Equal(SecurityPolicyAction.PackageVerify, attribute.SecurityPolicyAction);
             }
 
             [Theory]

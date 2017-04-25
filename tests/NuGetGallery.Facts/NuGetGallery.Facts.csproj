@@ -400,7 +400,6 @@
     <Compile Include="Controllers\PagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
-    <Compile Include="Filters\SecurityPolicyAttributeFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />

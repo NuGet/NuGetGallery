@@ -8,6 +8,7 @@ using Moq;
 using NuGetGallery.Filters;
 using NuGetGallery.Framework;
 using Xunit;
+using System.Reflection;
 
 namespace NuGetGallery.Security
 {
@@ -75,7 +76,10 @@ namespace NuGetGallery.Security
         public void LoadUserPolicyHandlersPopulatesAllHandlers()
         {
             // Arrange & Act
-            var handlers = new SecurityPolicyService().UserPolicyHandlers.ToList();
+            var service = new SecurityPolicyService();
+            var handlers = ((IEnumerable<UserSecurityPolicyHandler>)service.GetType()
+                .GetProperty("UserPolicyHandlers", BindingFlags.GetProperty | BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(service)).ToList();
 
             // Assert
             Assert.NotNull(handlers);
@@ -108,17 +112,20 @@ namespace NuGetGallery.Security
 
             public Mock<UserSecurityPolicyHandler> MockPushPolicy2 { get; set; }
 
-            protected override IEnumerable<UserSecurityPolicyHandler> CreateUserPolicyHandlers()
+            protected override IEnumerable<UserSecurityPolicyHandler> UserPolicyHandlers
             {
-                yield return MockPushPolicy1.Object;
-                yield return MockPushPolicy2.Object;
+                get
+                {
+                    yield return MockPushPolicy1.Object;
+                    yield return MockPushPolicy2.Object;
+                }
             }
 
             private Mock<UserSecurityPolicyHandler> MockHandler(string name, bool success)
             {
+                var result = success ? SecurityPolicyResult.SuccessResult : SecurityPolicyResult.CreateErrorResult(name);
                 var mock = new Mock<UserSecurityPolicyHandler>(name, SecurityPolicyAction.PackagePush);
-                mock.Setup(m => m.Evaluate(It.IsAny<UserSecurityPolicyContext>()))
-                    .Returns(new SecurityPolicyResult(success, name)).Verifiable();
+                mock.Setup(m => m.Evaluate(It.IsAny<UserSecurityPolicyContext>())).Returns(result).Verifiable();
                 return mock;
             }
         }

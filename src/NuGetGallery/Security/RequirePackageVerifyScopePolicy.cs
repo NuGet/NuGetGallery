@@ -10,8 +10,10 @@ namespace NuGetGallery.Security
     /// </summary>
     public class RequirePackageVerifyScopePolicy : UserSecurityPolicyHandler
     {
+        public const string PolicyName = "RequirePackageVerifyScopePolicy";
+
         public RequirePackageVerifyScopePolicy()
-            : base(nameof(RequirePackageVerifyScopePolicy), SecurityPolicyAction.PackageVerify)
+            : base(PolicyName, SecurityPolicyAction.PackageVerify)
         {
         }
 
@@ -23,7 +25,7 @@ namespace NuGetGallery.Security
                 return SecurityPolicyResult.SuccessResult;
             }
 
-            return new SecurityPolicyResult(false, Strings.SecurityPolicy_RequireApiKeyWithPackageVerifyScope);
+            return SecurityPolicyResult.CreateErrorResult(Strings.SecurityPolicy_RequireApiKeyWithPackageVerifyScope);
         }
     }
 }

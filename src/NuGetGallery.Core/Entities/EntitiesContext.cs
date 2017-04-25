@@ -119,9 +119,6 @@ namespace NuGetGallery
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
-            
-            modelBuilder.Entity<UserSecurityPolicy>()
-                .HasKey(c => c.Key);
 
             modelBuilder.Entity<UserSecurityPolicy>()
                 .HasRequired<User>(p => p.User)

@@ -449,6 +449,9 @@
       <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.29-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2507\lib\net45\NuGet.Protocol.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2507\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
@@ -733,7 +736,6 @@
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
-    <Compile Include="Filters\SecurityPolicyAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">

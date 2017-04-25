@@ -10,20 +10,30 @@ namespace NuGetGallery.Security
     {
         public static SecurityPolicyResult SuccessResult = new SecurityPolicyResult(true, null);
 
-        public SecurityPolicyResult(bool success, string errorMessage)
+        private SecurityPolicyResult(bool success, string errorMessage)
         {
             Success = success;
             ErrorMessage = errorMessage;
         }
 
         /// <summary>
+        /// Create a failed security policy result.
+        /// </summary>
+        /// <param name="errorMessage"></param>
+        /// <returns></returns>
+        public static SecurityPolicyResult CreateErrorResult(string errorMessage)
+        {
+            return new SecurityPolicyResult(false, errorMessage);
+        }
+
+        /// <summary>
         /// Whether security policy criteria was successfully met.
         /// </summary>
-        public bool Success { get; private set; }
+        public bool Success { get; }
 
         /// <summary>
         /// Error message, if the security policy criteria was not met.
         /// </summary>
-        public string ErrorMessage { get; private set; }
+        public string ErrorMessage { get; }
     }
 }

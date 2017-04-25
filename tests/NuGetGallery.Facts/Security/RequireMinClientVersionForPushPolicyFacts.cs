@@ -4,7 +4,6 @@
 using System.Collections.Specialized;
 using System.Linq;
 using System.Web;
-using System.Web.Mvc;
 using Moq;
 using Xunit;
 
@@ -16,6 +15,7 @@ namespace NuGetGallery.Security
         [InlineData("4.1.0")]
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
+        [InlineData("4.1.0-beta1")]
         public void EvaluateReturnsSuccessIfClientVersionEqualOrHigher(string minClientVersions)
         {
             // Arrange & Act
@@ -30,10 +30,11 @@ namespace NuGetGallery.Security
         [InlineData("4.1.0")]
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
+        [InlineData("2.5.0")]
         public void EvaluateReturnsFailureIfClientVersionLower(string minClientVersions)
         {
             // Arrange & Act
-            var result = Evaluate(minClientVersions, actualClientVersion: "2.5.0");
+            var result = Evaluate(minClientVersions, actualClientVersion: "2.5.0-beta1");
 
             // Assert
             Assert.False(result.Success);

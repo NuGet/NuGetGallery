@@ -14,11 +14,15 @@ namespace NuGetGallery.Security
     /// </summary>
     public class SecurityPolicyService : ISecurityPolicyService
     {
-        public IEnumerable<UserSecurityPolicyHandler> UserPolicyHandlers { get; private set; }
+        private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userPolicyHandlers =
+            new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserPolicyHandlers);
 
-        public SecurityPolicyService()
+        protected virtual IEnumerable<UserSecurityPolicyHandler> UserPolicyHandlers
         {
-            UserPolicyHandlers = CreateUserPolicyHandlers();
+            get
+            {
+                return _userPolicyHandlers.Value;
+            }
         }
 
         /// <summary>
@@ -45,11 +49,10 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Create any supported policy handlers.
         /// </summary>
-        protected virtual IEnumerable<UserSecurityPolicyHandler> CreateUserPolicyHandlers()
+        private static IEnumerable<UserSecurityPolicyHandler> CreateUserPolicyHandlers()
         {
             yield return new RequireMinClientVersionForPushPolicy();
             yield return new RequirePackageVerifyScopePolicy();
-        }
-        
+        }       
     }
 }
