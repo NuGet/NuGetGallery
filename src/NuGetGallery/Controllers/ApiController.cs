@@ -235,6 +235,7 @@ namespace NuGetGallery
         [RequireSsl]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageVerify, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [SecurityPolicy(SecurityPolicyAction.PackageVerify)]
         [ActionName("VerifyPackageKey")]
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
@@ -293,6 +294,7 @@ namespace NuGetGallery
         [RequireSsl]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [SecurityPolicy(SecurityPolicyAction.PackagePush)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePut()
         {
@@ -303,6 +305,7 @@ namespace NuGetGallery
         [RequireSsl]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [SecurityPolicy(SecurityPolicyAction.PackagePush)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost()
         {

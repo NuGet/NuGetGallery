@@ -400,6 +400,7 @@
     <Compile Include="Controllers\PagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="Filters\SecurityPolicyAttributeFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
@@ -408,6 +409,9 @@
     <Compile Include="SearchClient\CorrelatingHttpClientHandlerFacts.cs" />
     <Compile Include="SearchClient\RequestInspectingHandler.cs" />
     <Compile Include="SearchClient\WebApiCorrelationHandlerFacts.cs" />
+    <Compile Include="Security\RequirePackageVerifyScopePolicyFacts.cs" />
+    <Compile Include="Security\RequireMinClientVersionForPushPolicyFacts.cs" />
+    <Compile Include="Security\SecurityPolicyServiceFacts.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicyFacts.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicyFacts.cs" />
     <Compile Include="Services\PagerDutyClientFacts.cs" />

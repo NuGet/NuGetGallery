@@ -23,6 +23,7 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using Xunit;
 using System.Globalization;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -109,6 +110,20 @@ namespace NuGetGallery
 
         public class TheCreatePackageAction
         {
+            [Theory]
+            [InlineData("CreatePackagePost")]
+            [InlineData("CreatePackagePut")]
+            public void CreatePackageMethodHasSecurityPolicyAttribute(string methodName)
+            {
+                // Arrange and Act.
+                var method = typeof(ApiController).GetMethod(methodName);
+                var attribute = (SecurityPolicyAttribute)method.GetCustomAttributes(typeof(SecurityPolicyAttribute), true).FirstOrDefault();
+
+                // Assert
+                Assert.NotNull(attribute);
+                Assert.Equal(SecurityPolicyAction.PackagePush, attribute.Action);
+            }
+
             [Fact]
             public async Task CreatePackageWillSavePackageFileToFileStorage()
             {
@@ -1067,6 +1082,18 @@ namespace NuGetGallery
 
         public class TheVerifyPackageKeyAction : PackageVerificationKeyContainer
         {
+            [Fact]
+            public void VerifyPackageKeyHasSecurityPolicyAttribute()
+            {
+                // Arrange and Act.
+                var method = typeof(ApiController).GetMethod("VerifyPackageKeyAsync");
+                var attribute = (SecurityPolicyAttribute)method.GetCustomAttributes(typeof(SecurityPolicyAttribute), true).FirstOrDefault();
+
+                // Assert
+                Assert.NotNull(attribute);
+                Assert.Equal(SecurityPolicyAction.PackageVerify, attribute.Action);
+            }
+
             [Theory]
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]

@@ -733,11 +733,24 @@
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
+    <Compile Include="Filters\SecurityPolicyAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
       <DependentUpon>201704191802404_AddIndexPackageRegistrationKeySemVer.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201704211454424_SecurityPolicies.cs" />
+    <Compile Include="Migrations\201704211454424_SecurityPolicies.Designer.cs">
+      <DependentUpon>201704211454424_SecurityPolicies.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Security\UserSecurityPolicyHandler.cs" />
+    <Compile Include="Security\ISecurityPolicyService.cs" />
+    <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
+    <Compile Include="Security\RequireMinClientVersionForPushPolicy.cs" />
+    <Compile Include="Filters\SecurityPolicyAction.cs" />
+    <Compile Include="Security\SecurityPolicyService.cs" />
+    <Compile Include="Security\UserSecurityPolicyContext.cs" />
+    <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\TelemetryResponseCodeFilter.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
@@ -1682,6 +1695,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.resx">
       <DependentUpon>201704191802404_AddIndexPackageRegistrationKeySemVer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201704211454424_SecurityPolicies.resx">
+      <DependentUpon>201704211454424_SecurityPolicies.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

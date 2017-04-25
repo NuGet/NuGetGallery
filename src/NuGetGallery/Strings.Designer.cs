@@ -789,6 +789,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your account requires a package verification key to push symbols. Please contact support@nuget.org to get more details..
+        /// </summary>
+        public static string SecurityPolicy_RequireApiKeyWithPackageVerifyScope {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequireApiKeyWithPackageVerifyScope", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your account requires client version &apos;{0}&apos; or higher to be able to push packages. Please contact support@nuget.org to get more details..
+        /// </summary>
+        public static string SecurityPolicy_RequireMinClientVersionForPush {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequireMinClientVersionForPush", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via SSL..
         /// </summary>
         public static string SSLRequired {

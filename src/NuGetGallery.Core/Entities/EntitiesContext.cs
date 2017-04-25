@@ -119,6 +119,18 @@ namespace NuGetGallery
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
+            
+            modelBuilder.Entity<UserSecurityPolicy>()
+                .HasKey(c => c.Key);
+
+            modelBuilder.Entity<UserSecurityPolicy>()
+                .HasRequired<User>(p => p.User)
+                .WithMany(cr => cr.SecurityPolicies)
+                .HasForeignKey(p => p.UserKey)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<UserSecurityPolicy>()
+                .HasKey(p => p.Key);
 
             modelBuilder.Entity<EmailMessage>()
                 .HasKey(em => em.Key);

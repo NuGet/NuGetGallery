@@ -18,6 +18,7 @@ namespace NuGetGallery
         public User(string username)
         {
             Credentials = new List<Credential>();
+            SecurityPolicies = new List<UserSecurityPolicy>();
             Roles = new List<Role>();
             Username = username;
         }
@@ -52,6 +53,7 @@ namespace NuGetGallery
         public string PasswordResetToken { get; set; }
 
         public DateTime? PasswordResetTokenExpirationDate { get; set; }
+
         public int Key { get; set; }
 
         public DateTime? CreatedUtc { get; set; }
@@ -67,7 +69,10 @@ namespace NuGetGallery
                 return UnconfirmedEmailAddress ?? EmailAddress;
             }
         }
+
         public virtual ICollection<Credential> Credentials { get; set; }
+
+        public virtual ICollection<UserSecurityPolicy> SecurityPolicies { get; set; }
 
         public void ConfirmEmailAddress()
         {
