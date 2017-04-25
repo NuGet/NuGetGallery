@@ -117,7 +117,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
-    <Content Include="Deploy.ps1" />
+    <None Include="Deploy.ps1" />
     <Content Include="Validation.Callback.Vcs.nuspec" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
