@@ -26,7 +26,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void EvaluateReturnsFalseIfEmptyScopeClaim()
+        public void EvaluateReturnsFailureIfEmptyScopeClaim()
         {
             // Arrange and Act
             var result = Evaluate(string.Empty);
