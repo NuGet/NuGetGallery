@@ -18,6 +18,6 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
 
         public string Index { get; set; }
 
-        public IList<SearchResultEntry> Data { get; set; }
+        public IList<V3SearchResultEntry> Data { get; set; }
     }
 }

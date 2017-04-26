@@ -6,6 +6,13 @@ namespace BasicSearchTests.FunctionalTests.Core
     public static class Constants
     {
         // Predefined Texts
+        public const string TestPackageId = "BaseTestPackage";
+        public const string TestPackageVersion = "1.0.0";
+        public const string TestPackageTitle = "BaseTestPackage";
+        public const string TestPackageDescription = "Package description";
+        public const string TestPackageSummary = "";
+        public const string TestPackageAuthor = "clayco";
+        public const string TestPackageCopyright = "Copyright 2013";
         public const string NonExistentSearchString = "RandomCharacters234asdfa433";
     }
 }
