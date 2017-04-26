@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26410.1
+VisualStudioVersion = 15.0.26412.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8415FED7-1BED-4227-8B4F-BB7C24E041CD}"
 EndProject
@@ -25,6 +25,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Build", "src\NuGet.Services.Build\NuGet.Services.Build.csproj", "{7EBF325F-8671-46EF-B065-D9EB4C60B850}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Logging.Tests", "tests\NuGet.Services.Logging.Tests\NuGet.Services.Logging.Tests.csproj", "{63000EEE-3579-48E6-A71D-7378A7A1A2F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Storage", "src\NuGet.Services.Storage\NuGet.Services.Storage.csproj", "{AED43955-2676-48EC-A27E-6965008D4B3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +62,10 @@ Global
 		{63000EEE-3579-48E6-A71D-7378A7A1A2F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63000EEE-3579-48E6-A71D-7378A7A1A2F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63000EEE-3579-48E6-A71D-7378A7A1A2F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AED43955-2676-48EC-A27E-6965008D4B3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AED43955-2676-48EC-A27E-6965008D4B3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AED43955-2676-48EC-A27E-6965008D4B3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AED43955-2676-48EC-A27E-6965008D4B3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,5 +78,6 @@ Global
 		{8C24FB60-456A-4570-8400-08970F421415} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
 		{7EBF325F-8671-46EF-B065-D9EB4C60B850} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 		{63000EEE-3579-48E6-A71D-7378A7A1A2F5} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
+		{AED43955-2676-48EC-A27E-6965008D4B3B} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 	EndGlobalSection
 EndGlobal
