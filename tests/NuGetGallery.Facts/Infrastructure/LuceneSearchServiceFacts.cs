@@ -14,8 +14,10 @@ namespace NuGetGallery.Infrastructure
     public class LuceneSearchServiceFacts
     {
         // This works because we index the description
-        [Fact]
-        public void IndexAndSearchAPackageByDescription()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void IndexAndSearchAPackageByDescription(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -42,15 +44,17 @@ namespace NuGetGallery.Infrastructure
                 }
             };
 
-            var results = IndexAndSearch(packages, "awesome");
+            var results = IndexAndSearch(packages, "awesome", semVerLevel);
 
             Assert.Single(results);
             Assert.Equal(3, results[0].Key);
             Assert.Equal(1, results[0].PackageRegistrationKey);
         }
 
-        [Fact]
-        public void ResultsIncludeVersionAndNormalizedVersion()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void ResultsIncludeVersionAndNormalizedVersion(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -79,15 +83,17 @@ namespace NuGetGallery.Infrastructure
                 }
             };
 
-            var results = IndexAndSearch(packages, "awesome");
+            var results = IndexAndSearch(packages, "awesome", semVerLevel);
 
             Assert.Single(results);
             Assert.Equal("01.02.03", results[0].Version);
             Assert.Equal("1.2.3", results[0].NormalizedVersion);
         }
 
-        [Fact]
-        public void ResultsIncludeVersionAndNormalizedVersionEvenIfNormalizedVersionColumnNull()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void ResultsIncludeVersionAndNormalizedVersionEvenIfNormalizedVersionColumnNull(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -115,7 +121,7 @@ namespace NuGetGallery.Infrastructure
                 }
             };
 
-            var results = IndexAndSearch(packages, "awesome");
+            var results = IndexAndSearch(packages, "awesome", semVerLevel);
 
             Assert.Single(results);
             Assert.Equal("01.02.03", results[0].Version);
@@ -123,8 +129,10 @@ namespace NuGetGallery.Infrastructure
         }
 
         // This works because we do some wildcard magic in our searches.
-        [Fact]
-        public void IndexAndSearchDavid123For12()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void IndexAndSearchDavid123For12(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -148,14 +156,16 @@ namespace NuGetGallery.Infrastructure
                 }
             };
 
-            var results = IndexAndSearch(packages, "12");
+            var results = IndexAndSearch(packages, "12", semVerLevel);
 
             Assert.Single(results);
             Assert.Equal("DavidTest123", results[0].Title);
         }
 
-        [Fact]
-        public void IndexAndSearchWithWordStemming()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void IndexAndSearchWithWordStemming(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -179,14 +189,16 @@ namespace NuGetGallery.Infrastructure
                 }
             };
 
-            var results = IndexAndSearch(packages, "compressed");
+            var results = IndexAndSearch(packages, "compressed", semVerLevel);
 
             Assert.Empty(results); // currently stemming is not working
             //Assert.Equal("SuperzipLib", results[0].Title);
         }
 
-        [Fact]
-        public void SearchUsingCombinedIdAndGeneralTerms()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void SearchUsingCombinedIdAndGeneralTerms(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -228,14 +240,16 @@ namespace NuGetGallery.Infrastructure
                 },
             };
 
-            var results = IndexAndSearch(packages, "Id:Red Death");
+            var results = IndexAndSearch(packages, "Id:Red Death", semVerLevel);
 
             Assert.Equal(1, results.Count);
             Assert.Equal("Red Death", results[0].Title);
         }
 
-        [Fact]
-        public void SearchUsingExactPackageId()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void SearchUsingExactPackageId(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -282,7 +296,7 @@ namespace NuGetGallery.Infrastructure
             };
 
             // simple query
-            var results = IndexAndSearch(packages, "NuGet.Core");
+            var results = IndexAndSearch(packages, "NuGet.Core", semVerLevel);
             Assert.Equal(2, results.Count);
             Assert.Equal("NuGet.Core", results[0].Title);
             Assert.Equal(144, results[0].Key);
@@ -355,14 +369,21 @@ namespace NuGetGallery.Infrastructure
             };
 
             // query targeted specifically against id field should work equally well
-            var results = IndexAndSearch(packages, field + ":" + term);
+            var results = IndexAndSearch(packages, field + ":" + term, semVerLevel: null);
+            Assert.NotEmpty(results);
+            Assert.Equal("NuGet.Core", results[0].Title);
+            Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
+
+            results = IndexAndSearch(packages, field + ":" + term, semVerLevel: "2.0.0");
             Assert.NotEmpty(results);
             Assert.Equal("NuGet.Core", results[0].Title);
             Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
         }
 
-        [Fact]
-        public void SearchForJQueryUICombinedWithPartialId()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void SearchForJQueryUICombinedWithPartialId(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -386,13 +407,15 @@ namespace NuGetGallery.Infrastructure
                 },
             };
 
-            var results = IndexAndSearch(packages, "id:JQuery.ui");
+            var results = IndexAndSearch(packages, "id:JQuery.ui", semVerLevel);
             Assert.NotEmpty(results);
             Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
         }
 
-        [Fact]
-        public void SearchForDegenerateSingleQuoteQuery()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void SearchForDegenerateSingleQuoteQuery(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -416,13 +439,15 @@ namespace NuGetGallery.Infrastructure
                 },
             };
 
-            var results = IndexAndSearch(packages, "\"");
+            var results = IndexAndSearch(packages, "\"", semVerLevel);
             Assert.NotEmpty(results);
             Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
         }
 
-        [Fact]
-        public void SearchUsesPackageRegistrationDownloadCountsToPrioritize()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void SearchUsesPackageRegistrationDownloadCountsToPrioritize(string semVerLevel)
         {
             var packages = new List<Package>
                 {
@@ -466,14 +491,16 @@ namespace NuGetGallery.Infrastructure
                     },
                 };
 
-            var results = IndexAndSearch(packages, "");
+            var results = IndexAndSearch(packages, string.Empty, semVerLevel);
             Assert.NotEmpty(results);
             Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
             Assert.Equal("FooQuery", results[1].PackageRegistration.Id);
         }
 
-        [Fact]
-        public void IndexAndSearchRetrievesCanDriveV2Feed()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void IndexAndSearchRetrievesCanDriveV2Feed(string semVerLevel)
         {
             Package p = new Package
             {
@@ -522,7 +549,7 @@ namespace NuGetGallery.Infrastructure
             };
 
             var packages = new[] { p };
-            var results = IndexAndSearch(packages, "");
+            var results = IndexAndSearch(packages, string.Empty, semVerLevel);
             var r = results.AsQueryable().ToV2FeedPackageQuery(
                 "http://www.nuget.org/", 
                 includeLicenseReport: true,
@@ -559,8 +586,10 @@ namespace NuGetGallery.Infrastructure
         }
 
         // See issue https://github.com/NuGet/NuGetGallery/issues/406
-        [Fact]
-        public void SearchWorksAroundLuceneQuerySyntaxExceptions()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void SearchWorksAroundLuceneQuerySyntaxExceptions(string semVerLevel)
         {
             var packages = new List<Package>
             {
@@ -585,11 +614,11 @@ namespace NuGetGallery.Infrastructure
                 },
             };
 
-            var results = IndexAndSearch(packages, "*Core"); // Lucene parser throws for leading asterisk in searches
+            var results = IndexAndSearch(packages, "*Core", semVerLevel); // Lucene parser throws for leading asterisk in searches
             Assert.NotEmpty(results);
         }
 
-        private IList<Package> IndexAndSearch(IEnumerable<Package> packages, string searchTerm)
+        private IList<Package> IndexAndSearch(IEnumerable<Package> packages, string searchTerm, string semVerLevel)
         {
             Directory d = new RAMDirectory();
 
@@ -617,6 +646,7 @@ namespace NuGetGallery.Infrastructure
                 Skip = 0,
                 Take = 10,
                 SearchTerm = searchTerm,
+                SemVerLevel = semVerLevel
             };
 
             var results = luceneSearchService.Search(searchFilter).Result.Data.ToList();

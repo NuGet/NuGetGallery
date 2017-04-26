@@ -354,8 +354,11 @@ namespace NuGetGallery
                         .Normalize(NormalizationForm.FormC);
 
                     var searchFilter = SearchAdaptor.GetSearchFilter(
-                            "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
-                            1, null, SearchFilter.ODataSearchContext);
+                            q: "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
+                            page: 1, 
+                            sortOrder: null, 
+                            context: SearchFilter.ODataSearchContext,
+                            semVerLevel: SemVerLevelKey.SemVerLevel2);
 
                     searchFilter.IncludePrerelease = true;
                     searchFilter.IncludeAllVersions = true;
@@ -415,7 +418,7 @@ namespace NuGetGallery
                 var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
                 if (cachedResults == null)
                 {
-                    var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext);
+                    var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext, SemVerLevelKey.SemVerLevel2);
                     results = await _searchService.Search(searchFilter);
 
                     // note: this is a per instance cache
@@ -435,7 +438,7 @@ namespace NuGetGallery
             }
             else
             {
-                var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext);
+                var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext, SemVerLevelKey.SemVerLevel2);
                 results = await _searchService.Search(searchFilter);
             }
 
@@ -1058,7 +1061,8 @@ namespace NuGetGallery
             var model = new VerifyPackageRequest
             {
                 Id = packageMetadata.Id,
-                Version = packageMetadata.Version.ToNormalizedStringSafe(),
+                Version = packageMetadata.Version.ToFullStringSafe(),
+                OriginalVersion = packageMetadata.Version.OriginalVersion,
                 LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
                 Listed = true,
                 Language = packageMetadata.Language,
@@ -1117,10 +1121,10 @@ namespace NuGetGallery
 
                 // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user
                 // viewing a different package to what was actually most recently uploaded
-                if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
+                if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.OriginalVersion)))
                 {
                     if (!(String.Equals(packageMetadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
-                        && String.Equals(packageMetadata.Version.ToNormalizedString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
+                        && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
                         return new RedirectResult(Url.VerifyPackage());

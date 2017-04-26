@@ -67,7 +67,16 @@ namespace NuGetGallery
                 query = new CustomScoreQuery(query, downloadCountBooster);
             }
 
-            var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
+            string filterTerm;
+            if (SemVerLevelKey.ForSemVerLevel(searchFilter.SemVerLevel) == SemVerLevelKey.SemVer2)
+            {
+                filterTerm = searchFilter.IncludePrerelease ? "IsLatestSemVer2" : "IsLatestStableSemVer2";
+            }
+            else
+            {
+                filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
+            }
+
             Query filterQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
             if (searchFilter.CuratedFeed != null)
             {

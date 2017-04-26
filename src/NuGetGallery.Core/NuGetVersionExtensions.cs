@@ -28,7 +28,16 @@ namespace NuGetGallery
 
         public static string ToNormalizedStringSafe(this NuGetVersion self)
         {
-            return self != null ? self.ToNormalizedString() : String.Empty;
+            return self != null ? self.ToNormalizedString() : string.Empty;
+        }
+
+        public static string ToFullStringSafe(this NuGetVersion self)
+        {
+            // For SemVer2 versions, we want to show the full string including metadata in the UI.
+            // However, the rest of the version string should be normalized, 
+            // which NuGetVersion.ToFullString does not do for non-SemVer2 packages.
+            // Hence the conditional call to ToNormalizedString for non-SemVer2 packages.
+            return self != null ? (self.IsSemVer2 ? self.ToFullString() : self.ToNormalizedString()) : string.Empty;
         }
 
         public static bool IsValidVersionForLegacyClients(this NuGetVersion self)

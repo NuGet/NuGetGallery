@@ -864,12 +864,13 @@ namespace NuGetGallery
             {
                 packages = packages.Where(predicate);
             }
-            NuGetVersion version = packages.Max(p => new NuGetVersion(p.Version));
 
+            NuGetVersion version = packages.Max(p => new NuGetVersion(p.Version));
             if (version == null)
             {
                 return null;
             }
+
             return packages.First(pv => pv.Version.Equals(version.OriginalVersion, StringComparison.OrdinalIgnoreCase));
         }
 

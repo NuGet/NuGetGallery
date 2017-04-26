@@ -68,8 +68,13 @@ namespace NuGetGallery.Controllers
                 if (_searchService is ExternalSearchService && SearchHijacker.IsHijackable(options, out hijackableQueryParameters))
                 {
                     var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                        _searchService, GetTraditionalHttpContext().Request, packages,
-                        hijackableQueryParameters.Id, hijackableQueryParameters.Version, curatedFeed: null);
+                        _searchService, 
+                        GetTraditionalHttpContext().Request, 
+                        packages,
+                        hijackableQueryParameters.Id, 
+                        hijackableQueryParameters.Version, 
+                        curatedFeed: null,
+                        semVerLevel: semVerLevel);
 
                     // If intercepted, create a paged queryresult
                     if (searchAdaptorResult.ResultsAreProvidedBySearchService)
@@ -184,7 +189,13 @@ namespace NuGetGallery.Controllers
             try
             {
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                    _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
+                    _searchService, 
+                    GetTraditionalHttpContext().Request, 
+                    packages, 
+                    id, 
+                    version, 
+                    curatedFeed: null,
+                    semVerLevel: semVerLevel);
 
                 // If intercepted, create a paged queryresult
                 if (searchAdaptorResult.ResultsAreProvidedBySearchService)
@@ -276,7 +287,14 @@ namespace NuGetGallery.Controllers
 
             // todo: search hijack should take options instead of manually parsing query options
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
-                _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null);
+                _searchService, 
+                GetTraditionalHttpContext().Request, 
+                packages, 
+                searchTerm, 
+                targetFramework, 
+                includePrerelease, 
+                curatedFeed: null,
+                semVerLevel: semVerLevel);
 
             // Packages provided by search service (even when not hijacked)
             var query = searchAdaptorResult.Packages;
