@@ -33,9 +33,11 @@ namespace NuGetGallery.OData.Serializers
                 TryAnnotateV1FeedPackage(entry, entityInstanceContext);
                 TryAnnotateV2FeedPackage(entry, entityInstanceContext);
             }
-            catch(InvalidOperationException invalidOperationException)
+            catch (InvalidOperationException invalidOperationException)
             {
                 QuietLog.LogHandledException(invalidOperationException);
+
+                throw;
             }
 
             return entry;
