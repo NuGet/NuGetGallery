@@ -24,10 +24,19 @@ namespace NuGetGallery.OData.Serializers
 
         public override ODataEntry CreateEntry(SelectExpandNode selectExpandNode, EntityInstanceContext entityInstanceContext)
         {
-            var entry = base.CreateEntry(selectExpandNode, entityInstanceContext);
+            ODataEntry entry = null;
 
-            TryAnnotateV1FeedPackage(entry, entityInstanceContext);
-            TryAnnotateV2FeedPackage(entry, entityInstanceContext);
+            try
+            {
+                entry = base.CreateEntry(selectExpandNode, entityInstanceContext);
+
+                TryAnnotateV1FeedPackage(entry, entityInstanceContext);
+                TryAnnotateV2FeedPackage(entry, entityInstanceContext);
+            }
+            catch(InvalidOperationException invalidOperationException)
+            {
+                QuietLog.LogHandledException(invalidOperationException);
+            }
 
             return entry;
         }
