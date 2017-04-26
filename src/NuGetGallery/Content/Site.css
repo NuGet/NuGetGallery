@@ -633,6 +633,14 @@ ul.pager {
     font-size: 1.1em;
 }
 
+.sexy-table-full {
+    width: 100%;
+}
+
+.sexy-table-full .last {
+    text-align: right;
+    padding: 5px 15px 5px 0;
+}
 
 /* header */
 

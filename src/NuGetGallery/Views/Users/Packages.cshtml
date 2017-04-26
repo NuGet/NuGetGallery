@@ -56,7 +56,7 @@ else
 
     if (totalPackages > 0)
     {
-        <table class="sexy-table">
+        <table class="sexy-table sexy-table-full">
             <thead>
                 <tr>
                     <th class="first actions">Actions</th>
@@ -101,7 +101,7 @@ else
                             }
                         </td>
                 
-                        <td>@package.DownloadCount</td>
+                        <td class="last">@package.DownloadCount</td>
                     </tr>
                     totalDownloads += package.DownloadCount;
                 }
@@ -118,7 +118,7 @@ else
                             @("You have one package.")
                         }
                     </td>
-                    <td class="total">
+                    <td class="total last">
                         @totalDownloads
                     </td>
                 </tr>
