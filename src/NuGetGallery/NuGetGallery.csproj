@@ -754,6 +754,7 @@
     <Compile Include="Security\UserSecurityPolicyContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
+    <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Telemetry\TelemetryResponseCodeFilter.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />

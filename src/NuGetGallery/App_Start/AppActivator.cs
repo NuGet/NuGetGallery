@@ -24,6 +24,7 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using WebBackgrounder;
 using WebActivatorEx;
+using System.Web.Http.ExceptionHandling;
 
 [assembly: PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
 [assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
@@ -183,6 +184,9 @@ namespace NuGetGallery
 
             // Attach correlator
             GlobalConfiguration.Configuration.MessageHandlers.Add(new WebApiCorrelationHandler());
+
+            // Log unhandled exceptions
+            GlobalConfiguration.Configuration.Services.Add(typeof(IExceptionLogger), new QuietExceptionLogger());
 
             Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
             AreaRegistration.RegisterAllAreas();
