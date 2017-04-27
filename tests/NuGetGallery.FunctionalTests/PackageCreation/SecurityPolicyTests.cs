@@ -173,8 +173,8 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + route);
             request.Method = "POST";
             request.ContentLength = 0;
-            request.Headers.Add("X-NuGet-ApiKey", apiKey);
-            request.Headers.Add("X-NuGet-Client-Version", "NuGetGallery.FunctionalTests");
+            request.Headers.Add(Constants.NuGetHeaderApiKey, apiKey);
+            request.Headers.Add(Constants.NuGetHeaderClientVersion, "NuGetGallery.FunctionalTests");
 
             var response = await request.GetResponseAsync() as HttpWebResponse;
             Assert.NotNull(response);
@@ -202,7 +202,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                 $"verifykey/{packageId}/{packageVersion}";
 
             var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + route);
-            request.Headers.Add("X-NuGet-ApiKey", apiKey);
+            request.Headers.Add(Constants.NuGetHeaderApiKey, apiKey);
 
             try
             {
