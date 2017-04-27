@@ -5,16 +5,18 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Threading;
 using System.Threading.Tasks;
 using Gallery.CredentialExpiration.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Jobs;
 using NuGet.Services.Logging;
+using NuGet.Services.Storage;
 
 namespace Gallery.CredentialExpiration
 {
@@ -37,6 +39,8 @@ namespace Gallery.CredentialExpiration
 
         private int _allowEmailResendAfterDays = 7;
         private int _warnDaysBeforeExpiration = 10;
+
+        private Storage _storage;
 
         private ILogger _logger;
 
@@ -70,6 +74,13 @@ namespace Gallery.CredentialExpiration
 
                 _allowEmailResendAfterDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.AllowEmailResendAfterDays)
                     ?? _allowEmailResendAfterDays;
+
+                var storageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
+                var storageContainerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
+
+                var csa = CloudStorageAccount.Parse(storageConnectionString);
+                var storageFactory = new AzureStorageFactory(csa, storageContainerName, loggerFactory);
+                _storage = storageFactory.Create();
             }
             catch (Exception exception)
             {
@@ -88,11 +99,11 @@ namespace Gallery.CredentialExpiration
                 List<ExpiredCredentialData> expiredCredentials = null;
 
                 // Who did we contact before?
-                if (File.Exists(_cursorFile))
+                if (_storage.Exists(_cursorFile))
                 {
+                    string content = await _storage.LoadString(_storage.ResolveUri(_cursorFile), CancellationToken.None);
                     // Load from cursor
-                    var contactedUsers = JsonConvert.DeserializeObject<Dictionary<string, DateTimeOffset>>(
-                        File.ReadAllText(_cursorFile));
+                    var contactedUsers = JsonConvert.DeserializeObject<Dictionary<string, DateTimeOffset>>(content);
 
                     // Clean older entries (contacted in last _allowEmailResendAfterDays)
                     var referenceDate = DateTimeOffset.UtcNow.AddDays(-1 * _allowEmailResendAfterDays);
@@ -171,7 +182,9 @@ namespace Gallery.CredentialExpiration
             {
                 // Make sure we know who has been contacted today, so they do not get double
                 // e-mail notifications.
-                File.WriteAllText(_cursorFile, JsonConvert.SerializeObject(_contactedUsers));
+                string json = JsonConvert.SerializeObject(_contactedUsers);
+                var content = new StringStorageContent(json, "application/json");
+                await _storage.Save(_storage.ResolveUri(_cursorFile), content, CancellationToken.None);
             }
 
             return true;
