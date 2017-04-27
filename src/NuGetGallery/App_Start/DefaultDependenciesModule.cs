@@ -25,6 +25,7 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -199,6 +200,11 @@ namespace NuGetGallery
             builder.RegisterType<StatusService>()
                 .AsSelf()
                 .As<IStatusService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SecurityPolicyService>()
+                .AsSelf()
+                .As<ISecurityPolicyService>()
                 .InstancePerLifetimeScope();
 
             var mailSenderThunk = new Lazy<IMailSender>(

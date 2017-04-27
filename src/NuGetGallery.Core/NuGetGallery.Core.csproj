@@ -175,6 +175,7 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\Scope.cs" />
+    <Compile Include="Entities\UserSecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />

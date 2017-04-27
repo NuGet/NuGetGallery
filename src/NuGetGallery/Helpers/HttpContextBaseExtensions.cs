@@ -10,6 +10,11 @@ namespace NuGetGallery
 {
     public static class HttpContextBaseExtensions
     {
+        public static User GetCurrentUser(this HttpContextBase httpContext)
+        {
+            return httpContext.GetOwinContext().GetCurrentUser();
+        }
+
         public static void SetConfirmationReturnUrl(this HttpContextBase httpContext, string returnUrl)
         {
             var confirmationContext = new ConfirmationContext

@@ -443,4 +443,10 @@ The {1} Team</value>
   <data name="NuGetPackagePropertyMissing" xml:space="preserve">
     <value>A nuget package's {0} property is required.</value>
   </data>
+  <data name="SecurityPolicy_RequireApiKeyWithPackageVerifyScope" xml:space="preserve">
+    <value>Your account requires a package verification key to push symbols. Please contact support@nuget.org to get more details.</value>
+  </data>
+  <data name="SecurityPolicy_RequireMinClientVersionForPush" xml:space="preserve">
+    <value>Your account requires client version '{0}' or higher to be able to push packages. Please contact support@nuget.org to get more details.</value>
+  </data>
 </root>

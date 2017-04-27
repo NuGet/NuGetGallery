@@ -8,13 +8,38 @@ using System.Security.Claims;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
+using NuGetGallery.Security;
 using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 using AuthorizationContext = System.Web.Mvc.AuthorizationContext;
+using System.Net;
 
 namespace NuGetGallery.Filters
 {
     public sealed class ApiAuthorizeAttribute : AuthorizeAttribute
     {
+        /// <summary>
+        /// Security policy action, or null for no evaluation.
+        /// </summary>
+        public SecurityPolicyAction? SecurityPolicyAction { get; }
+        
+        /// <summary>
+        /// Security policy evaluation result.
+        /// </summary>
+        private SecurityPolicyResult SecurityPolicyResult { get; set; }
+
+        /// <summary>
+        /// Security policy service.
+        /// </summary>
+        private ISecurityPolicyService SecurityPolicyService { get; set; }
+        
+        public ApiAuthorizeAttribute()
+        {}
+
+        public ApiAuthorizeAttribute(SecurityPolicyAction action)
+        {
+            SecurityPolicyAction = action;
+        }
+
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
             // Add a warning header if the API key is about to expire (or has expired)
@@ -49,16 +74,47 @@ namespace NuGetGallery.Filters
                     }
                 }
             }
+            
+            // Resolve the policy service if security policy checks are required.
+            if (SecurityPolicyAction.HasValue)
+            {
+                SecurityPolicyService = ((AppController)filterContext.Controller)?.GetService<ISecurityPolicyService>();
+            }
 
             base.OnAuthorization(filterContext);
+        }
+
+        protected override bool AuthorizeCore(HttpContextBase httpContext)
+        {
+            var authorizeResult = base.AuthorizeCore(httpContext);
+            
+            // If ApiKey authorization succeeds, evaluate any security policies.
+            if (authorizeResult && SecurityPolicyAction.HasValue)
+            {
+                SecurityPolicyResult = SecurityPolicyService.Evaluate(SecurityPolicyAction.Value, httpContext);
+                return SecurityPolicyResult.Success;
+            }
+
+            return authorizeResult;
         }
 
         protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
         {
             var owinContext = filterContext.HttpContext.GetOwinContext();
-            owinContext.Authentication.Challenge(AuthenticationTypes.ApiKey);
-            owinContext.Response.StatusCode = 401;
-            filterContext.Result = new HttpUnauthorizedResult();
+
+            // ApiKey authorization succeeded, but a security policy failed.
+            if (SecurityPolicyResult != null)
+            {
+                owinContext.Response.StatusCode = 400;
+                filterContext.Result = new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, SecurityPolicyResult.ErrorMessage);
+            }
+            // ApiKey authorization failed.
+            else
+            {
+                owinContext.Authentication.Challenge(AuthenticationTypes.ApiKey);
+                owinContext.Response.StatusCode = 401;
+                filterContext.Result = new HttpUnauthorizedResult();
+            }
         }
     }
 }
