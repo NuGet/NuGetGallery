@@ -138,5 +138,28 @@ namespace NgTests.Data
 
             return catalogStorage;
         }
+
+        public static MemoryStorage CreateTestCatalogWithNonNormalizedDelete()
+        {
+            var catalogStorage = new MemoryStorage();
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithNonNormalizedDeleteIndex));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithNonNormalizedDeletePage));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/otherpackage.1.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithNonNormalizedDeleteOtherPackage100));
+
+            catalogStorage.Content.Add(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.13.06.40.07/otherpackage.1.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWitnNonNormalizedDeleteOtherPackageDelete));
+
+            return catalogStorage;
+        }
     }
 }

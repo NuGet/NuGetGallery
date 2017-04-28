@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -72,17 +72,17 @@ namespace NuGet.Services.Metadata.Catalog
 
         public virtual Task<IGraph> GetGraphAsync(Uri address)
         {
-            return GetGraphAsync(address, CancellationToken.None);
+            return GetGraphAsync(address, readOnly: false, token: CancellationToken.None);
         }
 
-        public virtual Task<IGraph> GetGraphAsync(Uri address, CancellationToken token)
+        public virtual Task<IGraph> GetGraphAsync(Uri address, bool readOnly, CancellationToken token)
         {
             var task = GetJObjectAsync(address, token);
             return task.ContinueWith((t) =>
             {
                 try
                 {
-                    return Utils.CreateGraph(t.Result);
+                    return Utils.CreateGraph(t.Result, readOnly);
                 }
                 catch (Exception e)
                 {

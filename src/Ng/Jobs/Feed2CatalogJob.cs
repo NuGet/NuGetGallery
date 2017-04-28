@@ -3,21 +3,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGet.Services.Metadata.Catalog;
-using System.Linq;
-using System.Net.Http;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Configuration;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Ng.Jobs
 {
     public class Feed2CatalogJob : LoopingNgJob
     {
+        private const string FeedUrlFormatSuffix = "&$top={2}&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
         private static readonly DateTime DateTimeMinValueUtc = new DateTime(0L, DateTimeKind.Utc);
 
         protected bool Verbose;
@@ -179,9 +180,9 @@ namespace Ng.Jobs
             return CatalogUtility.CreateHttpClient(verbose);
         }
 
-        private static Uri MakeCreatedUri(string source, DateTime since, int top = 100)
+        private static Uri MakeCreatedUri(string source, DateTime since, int top)
         {
-            var address = string.Format("{0}/Packages?$filter=Created gt DateTime'{1}'&$top={2}&$orderby=Created&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
+            var address = string.Format("{0}/Packages?$filter=Created gt DateTime'{1}'&$orderby=Created" + FeedUrlFormatSuffix,
                 source.Trim('/'),
                 since.ToString("o"),
                 top);
@@ -189,9 +190,9 @@ namespace Ng.Jobs
             return new Uri(address);
         }
 
-        private static Uri MakeLastEditedUri(string source, DateTime since, int top = 100)
+        private static Uri MakeLastEditedUri(string source, DateTime since, int top)
         {
-            var address = string.Format("{0}/Packages?$filter=LastEdited gt DateTime'{1}'&$top={2}&$orderby=LastEdited&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl",
+            var address = string.Format("{0}/Packages?$filter=LastEdited gt DateTime'{1}'&$orderby=LastEdited" + FeedUrlFormatSuffix,
                 source.Trim('/'),
                 since.ToString("o"),
                 top);
@@ -199,12 +200,12 @@ namespace Ng.Jobs
             return new Uri(address);
         }
 
-        private static Task<SortedList<DateTime, IList<CatalogUtility.PackageDetails>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        private static Task<SortedList<DateTime, IList<CatalogUtility.PackageDetails>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top)
         {
             return CatalogUtility.GetPackages(client, MakeCreatedUri(source, since, top), "Created");
         }
 
-        private static Task<SortedList<DateTime, IList<CatalogUtility.PackageDetails>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        private static Task<SortedList<DateTime, IList<CatalogUtility.PackageDetails>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top)
         {
             return CatalogUtility.GetPackages(client, MakeLastEditedUri(source, since, top), "LastEdited");
         }

@@ -347,5 +347,49 @@ namespace NgTests
             Assert.NotNull(legacyLeaf.Key);
             Assert.Equal(3, _legacyStorage.Content.Count);
         }
+
+        [Fact]
+        public async Task HandlesDeleteCatalogItemWithNonNormalizedVersion()
+        {
+            // Arrange
+            SharedInit(useLegacy: true, useSemVer2: false);
+
+            var catalogStorage = Catalogs.CreateTestCatalogWithNonNormalizedDelete();
+            await _mockServer.AddStorage(catalogStorage);
+
+            ReadWriteCursor front = new DurableCursor(_legacyStorage.ResolveUri("cursor.json"), _legacyStorage, MemoryCursor.MinValue);
+
+            // Act
+            await _target.Run(
+                front,
+                new MemoryCursor(DateTime.Parse("2015-10-12T10:08:54.1506742")),
+                CancellationToken.None);
+            var intermediateUris = _legacyStorage
+                .Content
+                .Select(pair => pair.Key.ToString())
+                .OrderBy(uri => uri)
+                .ToList();
+            await _target.Run(
+                front,
+                MemoryCursor.CreateMax(),
+                CancellationToken.None);
+
+            // Assert
+            Assert.Equal(3, intermediateUris.Count);
+            Assert.Equal("http://tempuri.org/cursor.json", intermediateUris[0]);
+            Assert.Equal("http://tempuri.org/otherpackage/1.0.0.json", intermediateUris[1]);
+            Assert.Equal("http://tempuri.org/otherpackage/index.json", intermediateUris[2]);
+
+            // This should really be 1, but see:
+            // https://github.com/NuGet/Engineering/issues/404
+            var finalUris = _legacyStorage
+                 .Content
+                 .Select(pair => pair.Key.ToString())
+                 .OrderBy(uri => uri)
+                 .ToList();
+            Assert.Equal(2, finalUris.Count);
+            Assert.Equal("http://tempuri.org/cursor.json", finalUris[0]);
+            Assert.Equal("http://tempuri.org/otherpackage/1.0.0.json", finalUris[1]);
+        }
     }
 }

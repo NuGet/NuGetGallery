@@ -26,7 +26,7 @@ namespace NuGet.Indexing
         public virtual DateTime? LastIndexReloadTime { get; private set; } = null;
         public virtual DateTime? LastAuxiliaryDataLoadTime { get; private set; } = null;
         public virtual string MachineName => Environment.MachineName;
-        public IDictionary<string, Uri> RegistrationBaseAddress { get; }
+        public RegistrationBaseAddresses RegistrationBaseAddresses { get; }
 
         private readonly FrameworkLogger _logger;
         private readonly IIndexDirectoryProvider _indexProvider;
@@ -53,7 +53,7 @@ namespace NuGet.Indexing
 
             _logger = logger;
 
-            RegistrationBaseAddress = new Dictionary<string, Uri>();
+            RegistrationBaseAddresses = new RegistrationBaseAddresses();
 
             _indexProvider = indexProvider;
             _loader = loader;
@@ -122,8 +122,12 @@ namespace NuGet.Indexing
             var searcherManager = new NuGetSearcherManager(logger, indexProvider, loader, config.AuxiliaryDataRefreshRateSec, config.IndexReloadRateSec);
 
             var registrationBaseAddress = config.RegistrationBaseAddress;
-            searcherManager.RegistrationBaseAddress["http"] = MakeRegistrationBaseAddress("http", registrationBaseAddress);
-            searcherManager.RegistrationBaseAddress["https"] = MakeRegistrationBaseAddress("https", registrationBaseAddress);
+            var semVer2RegistrationBaseAddress = config.SemVer2RegistrationBaseAddress;
+
+            searcherManager.RegistrationBaseAddresses.LegacyHttp = MakeRegistrationBaseAddress("http", registrationBaseAddress);
+            searcherManager.RegistrationBaseAddresses.LegacyHttps = MakeRegistrationBaseAddress("https", registrationBaseAddress);
+            searcherManager.RegistrationBaseAddresses.SemVer2Http = MakeRegistrationBaseAddress("http", semVer2RegistrationBaseAddress);
+            searcherManager.RegistrationBaseAddresses.SemVer2Https = MakeRegistrationBaseAddress("https", semVer2RegistrationBaseAddress);
 
             return searcherManager;
         }

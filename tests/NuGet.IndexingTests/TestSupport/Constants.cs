@@ -12,7 +12,10 @@ namespace NuGet.IndexingTests.TestSupport
 {
     public class Constants
     {
-        public static readonly string BaseUri = "http://testuri/";
+        public static readonly string BaseUriHttp = "http://testuri/";
+        public static readonly string BaseUriHttps = "https://testuri/";
+        public static readonly string BaseUriSemVer2Http = "http://testurisemver2/";
+        public static readonly string BaseUriSemVer2Https = "https://testurisemver2/";
         public static readonly string LucenePropertyIconUrl = "IconUrl";
         public static readonly string LucenePropertyId = "Id";
         public static readonly string LucenePropertyDescription = "Description";
@@ -28,7 +31,8 @@ namespace NuGet.IndexingTests.TestSupport
         public static readonly string Query = "test";
         public static readonly string RankingsIdPrefix = "testId";
         public static readonly string RankingsSegmentName = "testReader";
-        public static readonly string SchemeName = "test";
+        public static readonly string SchemeNameHttp = "http";
+        public static readonly string SchemeNameHttps = "https";
         public static readonly string SegmentReaderPrefix = "SegmentReader";
         public static readonly string SemVerLevel2Value = "2";
 

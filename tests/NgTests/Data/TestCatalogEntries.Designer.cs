@@ -477,7 +477,7 @@ namespace NgTests.Data {
         ///  &quot;licenseNames&quot;: &quot;&quot;,
         ///  &quot;licenseRep [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogWithCommitThenTwoPackageCommitAnotherPackage100 {
+        public static string TestCatalogWithCommitThenTwoPackageCommitAnotherPackage100 {
             get {
                 return ResourceManager.GetString("TestCatalogWithCommitThenTwoPackageCommitAnotherPackage100", resourceCulture);
             }
@@ -505,7 +505,7 @@ namespace NgTests.Data {
         ///  ],
         ///  &quot;nuget:las [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogWithCommitThenTwoPackageCommitIndex {
+        public static string TestCatalogWithCommitThenTwoPackageCommitIndex {
             get {
                 return ResourceManager.GetString("TestCatalogWithCommitThenTwoPackageCommitIndex", resourceCulture);
             }
@@ -527,9 +527,106 @@ namespace NgTests.Data {
         ///      &quot;nuget:id&quot;: &quot;UnlistedPackage&quot;,
         ///      &quot;nuge [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string TestCatalogWithCommitThenTwoPackageCommitPage {
+        public static string TestCatalogWithCommitThenTwoPackageCommitPage {
             get {
                 return ResourceManager.GetString("TestCatalogWithCommitThenTwoPackageCommitPage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/index.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;CatalogRoot&quot;,
+        ///    &quot;AppendOnlyCatalog&quot;,
+        ///    &quot;Permalink&quot;
+        ///  ],
+        ///  &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///  &quot;count&quot;: 1,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///      &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///      &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///      &quot;count&quot;: 2
+        ///    }
+        ///  ],
+        ///  &quot;nuget:las [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TestCatalogWithNonNormalizedDeleteIndex {
+            get {
+                return ResourceManager.GetString("TestCatalogWithNonNormalizedDeleteIndex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/data/2015.10.12.10.08.54/otherpackage.1.0.0.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDetails&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;authors&quot;: &quot;NuGet&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;9a37734f-1960-4c07-8934-c8bc797e35c1&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2015-10-12T10:08:54.1506742Z&quot;,
+        ///  &quot;created&quot;: &quot;2015-01-01T00:00:00Z&quot;,
+        ///  &quot;description&quot;: &quot;Package description.&quot;,
+        ///  &quot;id&quot;: &quot;OtherPackage&quot;,
+        ///  &quot;isPrerelease&quot;: false,
+        ///  &quot;lastEdited&quot;: &quot;2015-01-01T00:00:00Z&quot;,
+        ///  &quot;licenseNames&quot;: &quot;&quot;,
+        ///  &quot;licenseReportU [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TestCatalogWithNonNormalizedDeleteOtherPackage100 {
+            get {
+                return ResourceManager.GetString("TestCatalogWithNonNormalizedDeleteOtherPackage100", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///  &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///  &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///  &quot;count&quot;: 2,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/data/2015.10.12.10.08.54/otherpackage.1.0.0.json&quot;,
+        ///      &quot;@type&quot;: &quot;nuget:PackageDetails&quot;,
+        ///      &quot;commitId&quot;: &quot;9a37734f-1960-4c07-8934-c8bc797e35c1&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-12T10:08:54.1506742Z&quot;,
+        ///      &quot;nuget:id&quot;: &quot;OtherPackage&quot;,
+        ///      &quot;nuget:vers [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TestCatalogWithNonNormalizedDeletePage {
+            get {
+                return ResourceManager.GetString("TestCatalogWithNonNormalizedDeletePage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/data/2015.10.13.06.40.07/otherpackage.1.0.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDelete&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;catalog:commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///  &quot;id&quot;: &quot;OtherPackage&quot;,
+        ///  &quot;originalId&quot;: &quot;OtherPackage&quot;,
+        ///  &quot;published&quot;: &quot;2015-01-01T01:01:01.0748028Z&quot;,
+        ///  &quot;version&quot;: &quot;1.0&quot;,
+        ///  &quot;@context&quot;: {
+        ///    &quot;@vocab&quot;: &quot;http://schema.nuget.org/schema#&quot;,
+        ///    &quot;catalog&quot;: &quot;http://schema.nuget.org/cata [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TestCatalogWitnNonNormalizedDeleteOtherPackageDelete {
+            get {
+                return ResourceManager.GetString("TestCatalogWitnNonNormalizedDeleteOtherPackageDelete", resourceCulture);
             }
         }
     }

@@ -9,6 +9,7 @@ using Lucene.Net.Search;
 using Newtonsoft.Json;
 using NuGet.Indexing;
 using NuGet.IndexingTests.TestSupport;
+using NuGet.Versioning;
 using Xunit;
 
 namespace NuGet.IndexingTests
@@ -156,6 +157,9 @@ namespace NuGet.IndexingTests
             int take,
             bool includePrerelease,
             bool includeExplanation,
+            NuGetVersion semVerlLevel,
+            string scheme,
+            string expectedBaseUrl,
             string expected)
         {
             var searcher = new MockSearcher(indexName, numDocs, commitUserData, versions: Constants.VersionResults);
@@ -166,10 +170,10 @@ namespace NuGet.IndexingTests
 
             using (var writer = new JsonTextWriter(sw))
             {
-                ResponseFormatter.WriteSearchResult(writer, searcher, Constants.SchemeName, topDocs, skip, take, includePrerelease, includeExplanation, SemVerHelpers.SemVer2Level, NuGetQuery.MakeQuery("test"));
+                ResponseFormatter.WriteSearchResult(writer, searcher, scheme, topDocs, skip, take, includePrerelease, includeExplanation, semVerlLevel, NuGetQuery.MakeQuery("test"));
 
                 Assert.Equal(string.Format(expected,
-                    Constants.BaseUri,
+                    expectedBaseUrl,
                     searcher.LastReopen,
                     Constants.MockBase.ToLower(),
                     Constants.LucenePropertyId.ToLower(),
@@ -445,6 +449,26 @@ namespace NuGet.IndexingTests
                     0,    // take
                     false,// Include Explanation
                     false,// Include Prerelease
+                    SemVerHelpers.SemVer2Level,
+                    Constants.SchemeNameHttp,
+                    Constants.BaseUriSemVer2Http,
+                    "{{\"@context\":{{\"@vocab\":\"http://schema.nuget.org/schema#\",\"@base\":\"{0}\"}},\"totalHits\":10,\"lastReopen\":\"{1:o}\",\"index\":\"mockNoResults\",\"data\":[]}}"
+                };
+
+                yield return new object[]
+                {
+                    "mockNoResults",
+                    100,  // Num docs in index
+                    new Dictionary<string, string> { },
+                    10,   // Top Docs Total Hits
+                    1.0,  // Top Docs Max Score
+                    0,    // skip
+                    0,    // take
+                    false,// Include Explanation
+                    false,// Include Prerelease
+                    SemVerHelpers.SemVer2Level,
+                    Constants.SchemeNameHttps,
+                    Constants.BaseUriSemVer2Https,
                     "{{\"@context\":{{\"@vocab\":\"http://schema.nuget.org/schema#\",\"@base\":\"{0}\"}},\"totalHits\":10,\"lastReopen\":\"{1:o}\",\"index\":\"mockNoResults\",\"data\":[]}}"
                 };
 
@@ -460,6 +484,9 @@ namespace NuGet.IndexingTests
                     2,    // take
                     true, // Include Explanation
                     false,// Include Prerelease
+                    SemVerHelpers.SemVer1Level,
+                    Constants.SchemeNameHttp,
+                    Constants.BaseUriHttp,
                     "{{\"@context\":{{\"@vocab\":\"http://schema.nuget.org/schema#\",\"@base\":\"{0}\"}},\"totalHits\":1,\"lastReopen\":\"{1:o}\",\"index\":\"{2}IncludeExplanations\",\"data\":[{{\"@id\":\"{0}{2}{3}0/index.json\",\"@type\":\"Package\",\"registration\":\"{0}{2}{3}0/index.json\",\"id\":\"{4}{5}0\",\"version\":\"{4}{6}0\",\"description\":\"{4}{7}0\",\"summary\":\"{4}{8}0\",\"title\":\"{4}{9}0\",\"iconUrl\":\"{4}{10}0\",\"licenseUrl\":\"{4}{11}0\",\"projectUrl\":\"{4}{12}0\",\"totalDownloads\":0,\"versions\":[]}},{{\"@id\":\"{0}{2}{3}1/index.json\",\"@type\":\"Package\",\"registration\":\"{0}{2}{3}1/index.json\",\"id\":\"{4}{5}1\",\"version\":\"{4}{6}1\",\"description\":\"{4}{7}1\",\"summary\":\"{4}{8}1\",\"title\":\"{4}{9}1\",\"iconUrl\":\"{4}{10}1\",\"licenseUrl\":\"{4}{11}1\",\"projectUrl\":\"{4}{12}1\",\"totalDownloads\":0,\"versions\":[]}}]}}"
                 };
 
@@ -475,6 +502,9 @@ namespace NuGet.IndexingTests
                     0,    // take
                     false,// Include Explanation
                     false,// Include Prerelease
+                    SemVerHelpers.SemVer1Level,
+                    Constants.SchemeNameHttps,
+                    Constants.BaseUriHttps,
                     "{{\"@context\":{{\"@vocab\":\"http://schema.nuget.org/schema#\",\"@base\":\"{0}\"}},\"totalHits\":10,\"lastReopen\":\"{1:o}\",\"index\":\"mockNoExplanation\",\"data\":[]}}"
                 };
             }
