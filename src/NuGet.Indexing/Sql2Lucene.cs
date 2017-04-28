@@ -60,7 +60,7 @@ namespace NuGet.Indexing
                     SELECT
                         Packages.[Key]                          'key',
                         PackageRegistrations.Id                 'id',
-                        Packages.[Version]                      'originalVersion',
+                        Packages.[Version]                      'verbatimVersion',
                         Packages.NormalizedVersion              'version',
                         Packages.Title                          'title',
                         Packages.Tags                           'tags',
