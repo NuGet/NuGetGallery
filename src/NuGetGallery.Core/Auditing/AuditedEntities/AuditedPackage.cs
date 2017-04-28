@@ -54,8 +54,6 @@ namespace NuGetGallery.Auditing.AuditedEntities
                 Description = package.Description,
                 ReleaseNotes = package.ReleaseNotes,
                 DownloadCount = package.DownloadCount,
-#pragma warning disable 612
-#pragma warning restore 612
                 HashAlgorithm = package.HashAlgorithm,
                 Hash = package.Hash,
                 IconUrl = package.IconUrl,

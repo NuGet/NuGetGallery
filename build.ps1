@@ -9,10 +9,10 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '1c479a7381ebbc0fe1fded765de70d513b8bd68e'
+    [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
 )
 
-# For TeamCity - If any issue occurs, this script fail the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
+# This script should fail the build if any issue occurs.
 trap {
     Write-Host "BUILD FAILED: $_" -ForegroundColor Red
     Write-Host "ERROR DETAILS:" -ForegroundColor Red
@@ -81,7 +81,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
 
 Invoke-BuildStep 'Building solution' { 
         $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
-        Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
     } `
     -ev +BuildErrors
     

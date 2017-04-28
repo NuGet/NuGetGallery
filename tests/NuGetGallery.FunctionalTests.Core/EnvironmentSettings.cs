@@ -20,6 +20,7 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountApiKey_Unlist;
         private static string _testAccountApiKey_PushPackage;
         private static string _testAccountApiKey_PushVersion;
+        private static string _testSecurityPoliciesAccountApiKey;
         private static string _testEmailServerHost;
         private static List<string> _trustedHttpsCertificates;
 
@@ -212,6 +213,21 @@ namespace NuGetGallery.FunctionalTests
                     _testAccountApiKey_PushVersion = Environment.GetEnvironmentVariable("TestAccountApiKey_PushVersion");
                 }
                 return _testAccountApiKey_PushVersion;
+            }
+        }
+
+        /// <summary>
+        /// The full access API key for the security policies test account.
+        /// </summary>
+        public static string TestSecurityPoliciesAccountApiKey
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testSecurityPoliciesAccountApiKey))
+                {
+                    _testSecurityPoliciesAccountApiKey = Environment.GetEnvironmentVariable("TestSecurityPoliciesAccountApiKey");
+                }
+                return _testSecurityPoliciesAccountApiKey;
             }
         }
 

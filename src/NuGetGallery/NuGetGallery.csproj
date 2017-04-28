@@ -423,22 +423,22 @@
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Common, Version=4.3.0.2462, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Common.4.3.0-preview1-2462\lib\net45\NuGet.Common.dll</HintPath>
+    <Reference Include="NuGet.Common, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Common.4.3.0-preview1-2507\lib\net45\NuGet.Common.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Frameworks, Version=4.3.0.2462, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Frameworks.4.3.0-preview1-2462\lib\net45\NuGet.Frameworks.dll</HintPath>
+    <Reference Include="NuGet.Frameworks, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Frameworks.4.3.0-preview1-2507\lib\net45\NuGet.Frameworks.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Logging, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Logging.3.5.0-beta-1160\lib\net45\NuGet.Logging.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Packaging, Version=4.3.0.2462, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Packaging.4.3.0-preview1-2462\lib\net45\NuGet.Packaging.dll</HintPath>
+    <Reference Include="NuGet.Packaging, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Packaging.4.3.0-preview1-2507\lib\net45\NuGet.Packaging.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Packaging.Core, Version=4.3.0.2462, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Packaging.Core.4.3.0-preview1-2462\lib\net45\NuGet.Packaging.Core.dll</HintPath>
+    <Reference Include="NuGet.Packaging.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Packaging.Core.4.3.0-preview1-2507\lib\net45\NuGet.Packaging.Core.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
@@ -449,8 +449,11 @@
       <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.29-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Versioning, Version=4.3.0.2462, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2462\lib\net45\NuGet.Versioning.dll</HintPath>
+    <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2507\lib\net45\NuGet.Protocol.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2507\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor, Version=0.5.4237.2641, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -734,7 +737,24 @@
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
+    <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
+      <DependentUpon>201704191802404_AddIndexPackageRegistrationKeySemVer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201704211454424_SecurityPolicies.cs" />
+    <Compile Include="Migrations\201704211454424_SecurityPolicies.Designer.cs">
+      <DependentUpon>201704211454424_SecurityPolicies.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Security\UserSecurityPolicyHandler.cs" />
+    <Compile Include="Security\ISecurityPolicyService.cs" />
+    <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
+    <Compile Include="Security\RequireMinClientVersionForPushPolicy.cs" />
+    <Compile Include="Filters\SecurityPolicyAction.cs" />
+    <Compile Include="Security\SecurityPolicyService.cs" />
+    <Compile Include="Security\UserSecurityPolicyContext.cs" />
+    <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
+    <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Telemetry\TelemetryResponseCodeFilter.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
@@ -1420,7 +1440,10 @@
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
     <Compile Include="Authentication\ScopeEvaluator.cs" />
+    <Compile Include="Services\AllowLocalHttpRedirectPolicy.cs" />
+    <Compile Include="Services\ISourceDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ITelemetryService.cs" />
+    <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
@@ -1672,6 +1695,12 @@
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
     <EmbeddedResource Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.resx">
       <DependentUpon>201703221228170_AddSemVerLevelKeyColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.resx">
+      <DependentUpon>201704191802404_AddIndexPackageRegistrationKeySemVer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201704211454424_SecurityPolicies.resx">
+      <DependentUpon>201704211454424_SecurityPolicies.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
@@ -2062,7 +2091,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>https://nuget.localtest.me</IISUrl>
+          <IISUrl>https://localhost</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

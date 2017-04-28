@@ -25,6 +25,7 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -201,6 +202,11 @@ namespace NuGetGallery
                 .As<IStatusService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<SecurityPolicyService>()
+                .AsSelf()
+                .As<ISecurityPolicyService>()
+                .InstancePerLifetimeScope();
+
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                 {
@@ -302,6 +308,19 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IAutomaticallyCuratePackageCommand>()
                 .InstancePerLifetimeScope();
+
+            if (configuration.Current.Environment == Constants.DevelopmentEnvironment)
+            {
+                builder.RegisterType<AllowLocalHttpRedirectPolicy>()
+                    .As<ISourceDestinationRedirectPolicy>()
+                    .InstancePerLifetimeScope();
+            }
+            else
+            {
+                builder.RegisterType<NoLessSecureDestinationRedirectPolicy>()
+                    .As<ISourceDestinationRedirectPolicy>()
+                    .InstancePerLifetimeScope();
+            }
 
             ConfigureAutocomplete(builder, configuration);
         }

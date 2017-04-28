@@ -29,14 +29,21 @@ namespace NuGetGallery
         private static readonly Uri HttpsRequestUrl = new Uri(HttpsRequestUrlString);
 
         private static CloudBlobFileStorageService CreateService(
-            Mock<ICloudBlobClient> fakeBlobClient = null)
+            Mock<ICloudBlobClient> fakeBlobClient = null,
+            Mock<ISourceDestinationRedirectPolicy> redirectPolicy = null)
         {
             if (fakeBlobClient == null)
             {
                 fakeBlobClient = new Mock<ICloudBlobClient>();
             }
 
-            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IAppConfiguration>());
+            if (redirectPolicy == null)
+            {
+                redirectPolicy = new Mock<ISourceDestinationRedirectPolicy>();
+                redirectPolicy.Setup(p => p.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(true);
+            }
+
+            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IAppConfiguration>(), redirectPolicy.Object);
         }
 
         private class FolderNamesDataAttribute : DataAttribute
@@ -113,13 +120,79 @@ namespace NuGetGallery
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
                 fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
-                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                var requestUri = new Uri(requestUrl);
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri(requestUri.Scheme + "://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(requestUri, Constants.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(scheme + "theuri/", result.Url);
+            }
+
+            [Theory]
+            [InlineData(HttpsRequestUrlString, "https://theUri:20943", 20943)]
+            [InlineData(HttpRequestUrlString, "http://theUri", 80)]
+            [InlineData(HttpsRequestUrlString, "https://theUri", 443)]
+            public async Task WillUseBlobUriPort(string requestUrl, string blobUrl, int expectedPort)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                var redirectUrl = new Uri(result.Url);
+                Assert.Equal(expectedPort, redirectUrl.Port);
+            }
+
+            [Fact]
+            public async Task WillUseISourceDestinationRedirectPolicy()
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                var fakePolicy = new Mock<ISourceDestinationRedirectPolicy>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                fakePolicy.Setup(x => x.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(true).Verifiable();
+                var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy);
+
+                var result = await service.CreateDownloadFileActionResultAsync(
+                    new Uri(HttpsRequestUrlString), 
+                    Constants.PackagesFolderName, 
+                    "theFileName") as RedirectResult;
+                fakePolicy.Verify();
+            }
+
+            [Fact]
+            public async Task WillThrowIfRedirectIsNotAllowed()
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                var fakePolicy = new Mock<ISourceDestinationRedirectPolicy>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                fakePolicy.Setup(x => x.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(false);
+                var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => service.CreateDownloadFileActionResultAsync(
+                        new Uri(HttpsRequestUrlString), 
+                        Constants.PackagesFolderName, "theFileName")
+                    );
             }
         }
 

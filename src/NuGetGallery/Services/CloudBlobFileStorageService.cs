@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -21,11 +22,13 @@ namespace NuGetGallery
         private readonly ICloudBlobClient _client;
         private readonly IAppConfiguration _configuration;
         private readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
+        private readonly ISourceDestinationRedirectPolicy _redirectPolicy;
 
-        public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration)
+        public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration, ISourceDestinationRedirectPolicy redirectPolicy)
         {
             _client = client;
             _configuration = configuration;
+            _redirectPolicy = redirectPolicy;
         }
 
         public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
@@ -34,7 +37,7 @@ namespace NuGetGallery
             var blob = container.GetBlobReference(fileName);
 
             var redirectUri = GetRedirectUri(requestUrl, blob.Uri);
-            return new RedirectResult(redirectUri.OriginalString, false);
+            return new RedirectResult(redirectUri.AbsoluteUri, false);
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
@@ -251,14 +254,32 @@ namespace NuGetGallery
             var blob = container.GetBlobReference(fileName);
 
             var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri);
-            return new RedirectResult(redirectUri.OriginalString, false);
+            return new RedirectResult(redirectUri.AbsoluteUri, false);
         }
 
         internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri)
         {
-            var host = string.IsNullOrEmpty(_configuration.AzureCdnHost)
-                ? blobUri.Host 
-                : _configuration.AzureCdnHost;
+            if (!_redirectPolicy.IsAllowed(requestUrl, blobUri))
+            {
+                Trace.TraceInformation("Redirect from {0} to {1} was not allowed", requestUrl, blobUri);
+                throw new InvalidOperationException("Unsafe redirects are not allowed");
+            }
+
+            string host;
+            int port;
+            string scheme;
+            if (string.IsNullOrEmpty(_configuration.AzureCdnHost))
+            {
+                host = blobUri.Host;
+                port = blobUri.Port;
+                scheme = blobUri.Scheme;
+            }
+            else
+            {
+                host = _configuration.AzureCdnHost;
+                port = requestUrl.Port;
+                scheme = requestUrl.Scheme;
+            }
 
             // When a blob query string is passed, that one always wins.
             // This will only happen on private NuGet gallery instances,
@@ -275,7 +296,7 @@ namespace NuGetGallery
                 queryString = queryString.TrimStart('?');
             }
 
-            var urlBuilder = new UriBuilder(requestUrl.Scheme, host)
+            var urlBuilder = new UriBuilder(scheme, host, port)
             {
                 Path = blobUri.LocalPath,
                 Query = queryString

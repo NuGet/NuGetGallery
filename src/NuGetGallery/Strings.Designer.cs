@@ -582,6 +582,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A nuget package&apos;s {0} property is required..
+        /// </summary>
+        public static string NuGetPackagePropertyMissing {
+            get {
+                return ResourceManager.GetString("NuGetPackagePropertyMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
         public static string NuGetPackagePropertyTooLong {
@@ -776,6 +785,24 @@ namespace NuGetGallery {
         public static string ScopeDescription_VerifyPackage {
             get {
                 return ResourceManager.GetString("ScopeDescription_VerifyPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your account requires a package verification key to push symbols. Please contact support@nuget.org to get more details..
+        /// </summary>
+        public static string SecurityPolicy_RequireApiKeyWithPackageVerifyScope {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequireApiKeyWithPackageVerifyScope", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your account requires client version &apos;{0}&apos; or higher to be able to push packages. Please contact support@nuget.org to get more details..
+        /// </summary>
+        public static string SecurityPolicy_RequireMinClientVersionForPush {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequireMinClientVersionForPush", resourceCulture);
             }
         }
         

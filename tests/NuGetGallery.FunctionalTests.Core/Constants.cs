@@ -5,6 +5,10 @@ namespace NuGetGallery.FunctionalTests
 {
     public static class Constants
     {
+        // Headers
+        public const string NuGetHeaderApiKey = "X-NuGet-ApiKey";
+        public const string NuGetHeaderClientVersion = "X-NuGet-Client-Version";
+
         // Form Fields
         public const string ConfirmPasswordFormField = "ConfirmPassword";
         public const string EmailAddressFormField = "Register.EmailAddress";
