@@ -77,6 +77,24 @@
       "incorrectpackageversionpattern": "7.(.*)",
       "correctedpackageid": "trackableentities.ef.7",
       "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "xrmlibrary.entityhelpers",
+      "incorrectpackageversionpattern": "2015.(.*)",
+      "correctedpackageid": "xrmlibrary.entityhelpers.2015",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "xrmlibrary.entityhelpers",
+      "incorrectpackageversionpattern": "2016.(.*)",
+      "correctedpackageid": "xrmlibrary.entityhelpers.2016",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "xrmlibrary.extensionmethods",
+      "incorrectpackageversionpattern": "2016.(.*)",
+      "correctedpackageid": "xrmlibrary.extensionmethods.2016",
+      "correctedpackageversionpattern": "$1"
     }
   ]
 }
