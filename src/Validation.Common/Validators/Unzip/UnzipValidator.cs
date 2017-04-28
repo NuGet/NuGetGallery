@@ -8,6 +8,7 @@ using System.IO.Packaging;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Jobs.Validation.Common.Validators.Unzip
 {
@@ -15,6 +16,13 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
         : ValidatorBase, IValidator
     {
         public const string ValidatorName = "validator-unzip";
+
+        private readonly ILogger<UnzipValidator> _logger;
+
+        public UnzipValidator(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger<UnzipValidator>();
+        }
 
         public override string Name
         {
@@ -38,14 +46,18 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
                         {
                             await packageStream.CopyToAsync(packageFileStream);
 
-                            WriteAuditEntry(auditEntries, $"Downloaded package from {message.Package.DownloadUrl}");
+                            _logger.LogInformation($"Downloaded package from {{{TraceConstant.Url}}}", message.Package.DownloadUrl);
+                            WriteAuditEntry(auditEntries, $"Downloaded package from {message.Package.DownloadUrl}",
+                                ValidationEvent.PackageDownloaded);
 
                             packageFileStream.Position = 0;
                             
                             using (var packageZipStream = Package.Open(packageFileStream))
                             {
                                 var parts = packageZipStream.GetParts();
-                                WriteAuditEntry(auditEntries, $"Found {parts.Count()} parts in package.");
+                                _logger.LogInformation("Found {PartsCount} parts in package.", parts.Count());
+                                WriteAuditEntry(auditEntries, $"Found {parts.Count()} parts in package.",
+                                    ValidationEvent.UnzipSucceeeded);
 
                                 return ValidationResult.Succeeded;
                             }
@@ -54,7 +66,9 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
                 }
                 catch (Exception ex)
                 {
-                    WriteAuditEntry(auditEntries, $"Exception thrown during validation - {ex.Message}\r\n{ex.StackTrace}");
+                    _logger.TrackValidatorException(ValidatorName, message.ValidationId, ex, message.PackageId, message.PackageVersion);
+                    WriteAuditEntry(auditEntries, $"Exception thrown during validation - {ex.Message}\r\n{ex.StackTrace}",
+                        ValidationEvent.ValidatorException);
                     return ValidationResult.Failed;
                 }
                 finally

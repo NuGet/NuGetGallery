@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGet.Versioning;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {

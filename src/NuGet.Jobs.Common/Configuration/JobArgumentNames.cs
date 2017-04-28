@@ -98,7 +98,8 @@ namespace NuGet.Jobs
         // Arguments specific to VCS validation task
         public const string VcsValidatorServiceUrl = "VcsValidatorServiceUrl";
         public const string VcsValidatorCallbackUrl = "VcsValidatorCallbackUrl";
-        public const string VcsValidatorAlias = "VcsValidatorAlias";
+        public const string VcsContactAlias = "VcsContactAlias";
+        public const string VcsValidatorSubmitterAlias = "VcsValidatorAlias";
         public const string VcsPackageUrlTemplate = "VcsPackageUrlTemplate";
 
         // Key Vault

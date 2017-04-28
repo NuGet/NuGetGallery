@@ -22,13 +22,14 @@ namespace NuGet.Jobs.Validation.Common.Validators
 
         public abstract Task<ValidationResult> ValidateAsync(PackageValidationMessage message, List<PackageValidationAuditEntry> auditEntries);
 
-        protected void WriteAuditEntry(List<PackageValidationAuditEntry> auditEntries, string message)
+        protected void WriteAuditEntry(List<PackageValidationAuditEntry> auditEntries, string message, ValidationEvent validationEvent)
         {
             auditEntries.Add(new PackageValidationAuditEntry
             {
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorName = Name,
-                Message = message
+                Message = message,
+                EventId = validationEvent,
             });
         }
     }
