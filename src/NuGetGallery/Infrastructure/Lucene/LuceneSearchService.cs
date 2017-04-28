@@ -58,7 +58,7 @@ namespace NuGetGallery
             int numRecords = searchFilter.Skip + searchFilter.Take;
 
             var searcher = new IndexSearcher(_directory, readOnly: true);
-            var query = ParseQuery(searchFilter);
+            var query = ParseQuery(searchFilter.SearchTerm);
 
             // IF searching by relevance, boost scores by download count.
             if (searchFilter.SortOrder == SortOrder.Relevance)
@@ -205,13 +205,13 @@ namespace NuGetGallery
             };
         }
 
-        private static Query ParseQuery(SearchFilter searchFilter)
+        private static Query ParseQuery(string searchTerm)
         {
             // 1. parse the query into field clauses and general terms
             // We imagine that mostly, field clauses are meant to 'filter' results found searching for general terms.
             // The resulting clause collections may be empty.
             var queryParser = new NuGetQueryParser();
-            var clauses = queryParser.Parse(searchFilter.SearchTerm).Select(StandardizeSearchTerms).ToList();
+            var clauses = queryParser.Parse(searchTerm).Select(StandardizeSearchTerms).ToList();
             var fieldSpecificTerms = clauses.Where(a => a.Field != null);
             var generalTerms = clauses.Where(a => a.Field == null);
 
@@ -238,7 +238,7 @@ namespace NuGetGallery
             // b) Id-targeted search? [id:Foo bar]
             // c)  Other Field-targeted search? [author:Foo bar]
             bool doExactId = !fieldSpecificQueries.Any();
-            Query generalQuery = BuildGeneralQuery(doExactId, searchFilter.SearchTerm, analyzer, generalTerms, generalQueries);
+            Query generalQuery = BuildGeneralQuery(doExactId, searchTerm, analyzer, generalTerms, generalQueries);
 
             // IF  field targeting is done, we should basically want to AND their field specific queries with all other query terms
             if (fieldSpecificQueries.Any())

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
-using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
@@ -1138,13 +1137,15 @@ namespace NuGetGallery
                 Assert.Equal("id", ex.ParamName);
             }
 
-            [Fact]
-            public void ReturnsTheLatestStableVersionIfAvailable()
+            [Theory]
+            [InlineData(null)]
+            [InlineData("2.0.0")]
+            public void ReturnsTheLatestStableVersionIfAvailable(string semVerLevel)
             {
                 // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
                 var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true, IsLatestStableSemVer2 = true };
                 var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
 
                 repository
@@ -1153,11 +1154,34 @@ namespace NuGetGallery
                 var service = CreateService(packageRepository: repository);
 
                 // Act
-                var result = service.FindPackageByIdAndVersion("theId", version: null);
+                var result = service.FindPackageByIdAndVersion("theId", version: null, semVerLevelKey: SemVerLevelKey.ForSemVerLevel(semVerLevel));
 
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal("1.0", result.Version);
+            }
+            
+            [Fact]
+            public void ReturnsTheLatestStableSemVer2VersionIfAvailable()
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package0 = new Package { Version = "1.0.0+metadata", PackageRegistration = packageRegistration, Listed = true, IsLatestStableSemVer2 = true };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package0, package1, package2 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.FindPackageByIdAndVersion("theId", version: null, semVerLevelKey: SemVerLevelKey.SemVer2);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0.0+metadata", result.Version);
             }
 
             [Fact]

@@ -209,7 +209,13 @@ namespace NuGetGallery
                         package = packageVersions.FirstOrDefault(p => p.IsLatestSemVer2);
                     }
                 }
-                else
+
+                // Fallback behavior: collect the latest version.
+                // If SemVer-level is not defined, 
+                // or SemVer-level = 2.0.0 and no package was marked as SemVer2-latest,
+                // then check for packages marked as non-SemVer2 latest.
+                if (semVerLevelKey == SemVerLevelKey.Unknown 
+                    || (semVerLevelKey == SemVerLevelKey.SemVer2 && package == null))
                 {
                     package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
 
