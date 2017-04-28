@@ -64,7 +64,13 @@ namespace NuGetGallery
 
             q = (q ?? string.Empty).Trim();
 
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext, semVerLevel: SemVerLevelKey.SemVerLevel2);
+            var searchFilter = SearchAdaptor.GetSearchFilter(
+                q,
+                page,
+                sortOrder: null,
+                context: SearchFilter.UISearchContext,
+                semVerLevel: SemVerLevelKey.SemVerLevel2);
+
             searchFilter.CuratedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             if (searchFilter.CuratedFeed == null)
             {
@@ -91,7 +97,7 @@ namespace NuGetGallery
 
             ViewBag.SearchTerm = q;
 
-            return View("ListPackages",  viewModel);
+            return View("ListPackages", viewModel);
         }
     }
 }

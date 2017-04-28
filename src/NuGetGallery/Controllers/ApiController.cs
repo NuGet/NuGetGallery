@@ -125,7 +125,7 @@ namespace NuGetGallery
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
-            
+
             // if version is non-null, check if it's semantically correct and normalize it.
             if (!String.IsNullOrEmpty(version))
             {
@@ -144,7 +144,12 @@ namespace NuGetGallery
                 // This ensures that on package restore scenario where version will be non null, we don't hit the database.
                 try
                 {
-                    var package = PackageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2, allowPrerelease: false);
+                    var package = PackageService.FindPackageByIdAndVersion(
+                        id, 
+                        version, 
+                        SemVerLevelKey.SemVer2, 
+                        allowPrerelease: false);
+
                     if (package == null)
                     {
                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));

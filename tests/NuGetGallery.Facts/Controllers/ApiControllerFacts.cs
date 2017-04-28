@@ -773,7 +773,9 @@ namespace NuGetGallery
                 var actionResult = new RedirectResult("http://foo");
 
                 var controller = new TestableApiController(MockBehavior.Strict);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(packageId, packageVersion, SemVerLevelKey.SemVer2, false)).Returns((Package)null).Verifiable();
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersion(packageId, packageVersion, SemVerLevelKey.SemVer2, false))
+                    .Returns((Package)null).Verifiable();
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(It.IsAny<Uri>(), packageId, packageVersion))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
                               .Verifiable();
@@ -869,7 +871,9 @@ namespace NuGetGallery
                 var package = new Package() { Version = "1.2.0408", NormalizedVersion = "1.2.408" };
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(packageId, string.Empty, SemVerLevelKey.SemVer2, false)).Returns(package);
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersion(packageId, string.Empty, SemVerLevelKey.SemVer2, false))
+                    .Returns(package);
                 //controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
 
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
@@ -908,7 +912,9 @@ namespace NuGetGallery
                 var package = new Package();
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", string.Empty, SemVerLevelKey.SemVer2, false)).Throws(new DataException("Oh noes, database broken!"));
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersion("Baz", string.Empty, SemVerLevelKey.SemVer2, false))
+                    .Throws(new DataException("Oh noes, database broken!"));
  		        controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
                              .Returns(Task.FromResult<ActionResult>(actionResult))
                              .Verifiable();

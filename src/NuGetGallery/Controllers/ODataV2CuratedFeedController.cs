@@ -58,7 +58,10 @@ namespace NuGetGallery.Controllers
 
             var queryable = _curatedFeedService.GetPackages(curatedFeedName)
                 .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
-                .ToV2FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses, semVerLevelKey)
+                .ToV2FeedPackageQuery(
+                    _configurationService.GetSiteRoot(UseHttps()),
+                    _configurationService.Features.FriendlyLicenses, 
+                    semVerLevelKey)
                 .InterceptWith(new NormalizeVersionInterceptor());
 
             return QueryResult(options, queryable, MaxPageSize);
@@ -136,11 +139,11 @@ namespace NuGetGallery.Controllers
             try
             {
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                    _searchService, 
-                    GetTraditionalHttpContext().Request, 
-                    packages, 
-                    id, 
-                    version, 
+                    _searchService,
+                    GetTraditionalHttpContext().Request,
+                    packages,
+                    id,
+                    version,
                     curatedFeed: curatedFeed,
                     semVerLevel: semVerLevel);
 
@@ -157,7 +160,6 @@ namespace NuGetGallery.Controllers
                     {
                         return NotFound();
                     }
-                    
 
                     var pagedQueryable = packages
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
@@ -179,7 +181,11 @@ namespace NuGetGallery.Controllers
                 return NotFound();
             }
 
-            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
+            var queryable = packages.ToV2FeedPackageQuery(
+                GetSiteRoot(), 
+                _configurationService.Features.FriendlyLicenses, 
+                semVerLevelKey);
+
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -238,12 +244,12 @@ namespace NuGetGallery.Controllers
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
-                _searchService, 
-                GetTraditionalHttpContext().Request, 
-                packages, 
-                searchTerm, 
-                targetFramework, 
-                includePrerelease, 
+                _searchService,
+                GetTraditionalHttpContext().Request,
+                packages,
+                searchTerm,
+                targetFramework,
+                includePrerelease,
                 curatedFeed: curatedFeed,
                 semVerLevel: semVerLevel);
 
@@ -259,7 +265,10 @@ namespace NuGetGallery.Controllers
                 var totalHits = query.LongCount();
                 var pagedQueryable = query
                     .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
+                    .ToV2FeedPackageQuery(
+                        GetSiteRoot(), 
+                        _configurationService.Features.FriendlyLicenses, 
+                        semVerLevelKey);
 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                 {
@@ -267,14 +276,23 @@ namespace NuGetGallery.Controllers
                     // Strip it of for backward compatibility.
                     if (o.Top == null || (resultCount.HasValue && o.Top.Value >= resultCount.Value))
                     {
-                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s);
+                        return SearchAdaptor.GetNextLink(
+                            Request.RequestUri, 
+                            resultCount, 
+                            new { searchTerm, targetFramework, includePrerelease }, 
+                            o, 
+                            s);
                     }
                     return null;
                 });
             }
 
             // If not, just let OData handle things
-            var queryable = query.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
+            var queryable = query.ToV2FeedPackageQuery(
+                GetSiteRoot(), 
+                _configurationService.Features.FriendlyLicenses, 
+                semVerLevelKey);
+
             return QueryResult(options, queryable, MaxPageSize);
         }
 

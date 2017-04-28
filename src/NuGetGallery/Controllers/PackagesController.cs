@@ -418,7 +418,13 @@ namespace NuGetGallery
                 var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
                 if (cachedResults == null)
                 {
-                    var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext, SemVerLevelKey.SemVerLevel2);
+                    var searchFilter = SearchAdaptor.GetSearchFilter(
+                        q, 
+                        page, 
+                        null, 
+                        SearchFilter.UISearchContext, 
+                        SemVerLevelKey.SemVerLevel2);
+
                     results = await _searchService.Search(searchFilter);
 
                     // note: this is a per instance cache
@@ -438,7 +444,13 @@ namespace NuGetGallery
             }
             else
             {
-                var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext, SemVerLevelKey.SemVerLevel2);
+                var searchFilter = SearchAdaptor.GetSearchFilter(
+                    q, 
+                    page, 
+                    null, 
+                    SearchFilter.UISearchContext, 
+                    SemVerLevelKey.SemVerLevel2);
+
                 results = await _searchService.Search(searchFilter);
             }
 
