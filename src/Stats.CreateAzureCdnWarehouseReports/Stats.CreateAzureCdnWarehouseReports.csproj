@@ -84,7 +84,7 @@
       <HintPath>..\..\packages\NuGet.Services.Logging.2.1.1\lib\net452\NuGet.Services.Logging.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2507\lib\net45\NuGet.Versioning.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Serilog.2.2.1\lib\net45\Serilog.dll</HintPath>
