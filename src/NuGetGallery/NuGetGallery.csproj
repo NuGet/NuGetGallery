@@ -643,6 +643,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
       <DependentUpon>Url_Edit.ascx</DependentUpon>
@@ -678,6 +679,8 @@
     <Compile Include="Areas\Admin\Services\PagerDutyClient.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SecurityPolicySearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SecurityPolicyViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestsViewModel.cs" />
@@ -749,6 +752,8 @@
     <Compile Include="Migrations\201705032101231_SecurityPoliciesFix.Designer.cs">
       <DependentUpon>201705032101231_SecurityPoliciesFix.cs</DependentUpon>
     </Compile>
+    <Compile Include="Security\UserSecurityPolicyExtensions.cs" />
+    <Compile Include="Security\UserSecurityPolicyGroup.cs" />
     <Compile Include="Security\UserSecurityPolicyHandler.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
@@ -1714,6 +1719,7 @@
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
+    <Content Include="Areas\Admin\Views\SecurityPolicy\Index.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />

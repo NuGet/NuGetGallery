@@ -1,0 +1,168 @@
+﻿@model SecurityPolicyViewModel
+
+@{
+    ViewBag.Title = "Security Policies";
+}
+
+<section>
+    <article id="stage">
+        <h2>User Security Policies</h2>
+
+        <form>
+            <textarea placeholder="Search for usernames (comma-separated)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
+            <input type="button" value="Search" data-bind="click: search" />
+        </form><br />
+
+        @using (Html.BeginForm("Enroll", "SecurityPolicy", new { area = "Admin" }, FormMethod.Post, new { id = "delete-form" }))
+        {
+            <div data-bind="visible: searchResults().length > 0">
+                <input type="hidden" name="Query" data-bind="value: searchQuery" />
+
+                <div class="message warning" style="display: none;" data-bind="visible: searchNotFoundResults().length > 0">
+                    <strong>The following users were not found:</strong><br />
+                    <span data-bind="text: searchNotFoundResults().join(',')"></span>
+                </div>
+
+                <div>
+                    <table id="searchResults" class="sexy-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                @foreach (var policyGroup in Model.PolicyGroups)
+                                {
+                                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState.@policyGroup" />@policyGroup</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: searchResults">
+                            <tr>
+                                <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateUserUrl($data) }"></a></td>
+                                @foreach (var policyGroup in Model.PolicyGroups)
+                                {
+                                    <td><input type="checkbox" name="Enrollments[]" data-bind="checked: $data.Selected.@policyGroup, value: $parent.generateValue($data, '@policyGroup')" /></td>
+                                }
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="danger-zone" style="display: none;" data-bind="visible: changeTracker">
+                    
+                <fieldset id="unlist-form" class="form">
+                    @Html.AntiForgeryToken()
+
+                    <p>
+                        User enrollment in security policies could result in changes which <strong>CANNOT</strong> be undone.
+                    </p>
+
+                    <input type="submit" value="I understand, update policy enrollments." title="I understand, update policy enrollments." />
+                    <a class="cancel" href="@Url.Action("Index", "Home")" title="Cancel changes">Cancel</a>
+                    </fieldset>
+                </div>
+
+            </div>
+        }
+</article>
+</section>
+
+@section BottomScripts {
+    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
+    <script>
+        $(document).ready(function() {
+            var viewModel = function () {
+                var $self = this;
+
+                this.policyGroups = @Html.Raw(Json.Encode(@Model.PolicyGroups));
+                this.searchQuery = ko.observable('');
+
+                this.search = function () {
+                    $.ajax({
+                        url: '@Url.Action("Search", "SecurityPolicy", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
+                            cache: false,
+                            dataType: 'json',
+                            success: function (data) {
+                                $self.changeTracker(false);
+                                $self.resetSelectAllState();
+                                $self.searchResults.removeAll();
+                                $self.searchNotFoundResults.removeAll();
+
+                                for (var i = 0; i < data.Users.length; i++) {
+                                    var user = data.Users[i];
+                                    user.Selected = {};
+                                    for (var key in user.Enrollments) {
+                                        user.Selected[key] = ko.observable(user.Enrollments[key]);
+                                        user.Selected[key].subscribe($self.markDirty);
+                                    }
+                                }
+
+                                $self.searchResults(data.Users);
+                                $self.searchNotFoundResults(data.UsersNotFound);
+                            },
+                            error: function (data) {
+                                alert("Error: " + errorThrown);
+                            }
+                        })
+                        .error(function(jqXhr, textStatus, errorThrown) {
+                            alert("Error: " + errorThrown);
+                        });
+                };
+                
+                this.selectAllState = {};
+                for (var i = 0; i < this.policyGroups.length; i++)
+                {
+                    var policyGroup = this.policyGroups[i];
+                    this.selectAllState[policyGroup] = ko.observable(false);
+                }
+
+                this.resetSelectAllState = function () {
+                    for (var i = 0; i < $self.policyGroups.length; i++)
+                    {
+                        $self.selectAllState[$self.policyGroups[i]](false);
+                    }
+                }
+                
+                this.toggleSelectAll = function (data, e) {
+                    var policyGroup = e.currentTarget.nextSibling.data;
+                    $self.selectAllState[policyGroup](!$self.selectAllState[policyGroup]());
+                    return true;
+                };
+
+                this.generateValue = function (user, policyGroup) {
+                    return user.Username + '|' + policyGroup;
+                };
+
+                this.generateUserUrl = function (user) {
+                    return '/profiles/' + user.Username;
+                };
+
+                this.searchResults = ko.observableArray([]);
+
+                this.searchNotFoundResults = ko.observableArray([]);
+
+                this.changeTracker = ko.observable(false);
+
+                this.markDirty = function () {
+                    $self.changeTracker(true);
+                };
+
+                for (var i = 0; i < this.policyGroups.length; i++) {
+                    this.selectAllState[policyGroup].subscribe(function () {
+                        var state = $self.selectAllState[policyGroup]();
+
+                        ko.utils.arrayForEach($self.searchResults(), function (result) {
+                            result.Selected[policyGroup](state);
+                        });
+                    });
+                }
+            };
+
+            ko.applyBindings(new viewModel(), $('#stage').get(0));
+
+            $('#delete-form').submit(function (e) {
+                if (!confirm('Are you sure you want to continue with enrollment?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}
