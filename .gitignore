@@ -203,3 +203,5 @@ FakesAssemblies/
 .vs/
 project.lock.json
 Results.*.xml
+
+AssemblyInfo.*.cs
