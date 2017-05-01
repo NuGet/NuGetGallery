@@ -103,6 +103,10 @@ namespace NuGet.Indexing
             {
                 AddField(document, LuceneConstants.VersionPropertyName, verbatimVersion, Field.Index.NOT_ANALYZED);
             }
+            else
+            {
+                errors.Add($"Required property '{MetadataConstants.VersionPropertyName}' not found.");
+            }
 
             string version;
             if (!package.TryGetValue(MetadataConstants.NormalizedVersionPropertyName, out version))
@@ -127,7 +131,9 @@ namespace NuGet.Indexing
             }
             else
             {
-                errors.Add($"Required property '{MetadataConstants.NormalizedVersionPropertyName}' or '{MetadataConstants.VersionPropertyName}' not found.");
+                errors.Add($"Could not add field {LuceneConstants.NormalizedVersionPropertyName} as both " +
+                           $"properties '{MetadataConstants.NormalizedVersionPropertyName}' and " +
+                           $"'{MetadataConstants.VersionPropertyName}' were not found.");
             }
         }
 

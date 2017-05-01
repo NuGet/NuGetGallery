@@ -47,7 +47,10 @@ namespace NuGet.IndexingTests
 
             // Act, Assert
             var exception = Assert.Throws<Exception>(() => DocumentCreator.CreateDocument(package));
-            Assert.Equal($"Required property '{MetadataConstants.NormalizedVersionPropertyName}' or '{MetadataConstants.VersionPropertyName}' not found.\r\n", exception.Message);
+            Assert.Equal($"Required property '{MetadataConstants.VersionPropertyName}' not found.\r\n" +
+                         $"Could not add field {LuceneConstants.NormalizedVersionPropertyName} as both " +
+                         $"properties '{MetadataConstants.NormalizedVersionPropertyName}' and " +
+                         $"'{MetadataConstants.VersionPropertyName}' were not found.\r\n", exception.Message);
         }
 
         [Fact]
@@ -60,7 +63,10 @@ namespace NuGet.IndexingTests
 
             // Act, Assert
             var exception = Assert.Throws<Exception>(() => DocumentCreator.CreateDocument(package));
-            Assert.Equal($"Unable to parse '{MetadataConstants.VersionPropertyName}' as NuGetVersion.\r\nRequired property '{MetadataConstants.NormalizedVersionPropertyName}' or '{MetadataConstants.VersionPropertyName}' not found.\r\n", exception.Message);
+            Assert.Equal($"Unable to parse '{MetadataConstants.VersionPropertyName}' as NuGetVersion.\r\n" +
+                         $"Could not add field {LuceneConstants.NormalizedVersionPropertyName} as both " +
+                         $"properties '{MetadataConstants.NormalizedVersionPropertyName}' and " +
+                         $"'{MetadataConstants.VersionPropertyName}' were not found.\r\n", exception.Message);
         }
 
         [Fact]
