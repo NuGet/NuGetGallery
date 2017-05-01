@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Ng.Jobs
@@ -82,14 +83,14 @@ namespace Ng.Jobs
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
         {
-            using (var client = CreateHttpClient(Verbose))
+            using (var client = CreateHttpClient())
             {
                 client.Timeout = Timeout;
 
                 // baseline timestamps
-                var lastCreated = await CatalogUtility.GetCatalogProperty(CatalogStorage, "nuget:lastCreated", cancellationToken) ?? (StartDate ?? DateTimeMinValueUtc);
-                var lastEdited = await CatalogUtility.GetCatalogProperty(CatalogStorage, "nuget:lastEdited", cancellationToken) ?? lastCreated;
-                var lastDeleted = await CatalogUtility.GetCatalogProperty(CatalogStorage, "nuget:lastDeleted", cancellationToken) ?? lastCreated;
+                var lastCreated = await FeedHelpers.GetCatalogProperty(CatalogStorage, "nuget:lastCreated", cancellationToken) ?? (StartDate ?? DateTimeMinValueUtc);
+                var lastEdited = await FeedHelpers.GetCatalogProperty(CatalogStorage, "nuget:lastEdited", cancellationToken) ?? lastCreated;
+                var lastDeleted = await FeedHelpers.GetCatalogProperty(CatalogStorage, "nuget:lastDeleted", cancellationToken) ?? lastCreated;
                 if (lastDeleted == DateTime.MinValue.ToUniversalTime())
                 {
                     lastDeleted = lastCreated;
@@ -98,7 +99,7 @@ namespace Ng.Jobs
                 // fetch and add all DELETED packages
                 if (lastDeleted > DateTime.MinValue.ToUniversalTime())
                 {
-                    SortedList<DateTime, IList<CatalogUtility.PackageIdentity>> deletedPackages;
+                    SortedList<DateTime, IList<FeedPackageIdentity>> deletedPackages;
                     var previousLastDeleted = DateTime.MinValue;
                     do
                     {
@@ -131,7 +132,7 @@ namespace Ng.Jobs
                 }
 
                 //  THEN fetch and add all newly CREATED packages - in order
-                SortedList<DateTime, IList<CatalogUtility.PackageDetails>> createdPackages;
+                SortedList<DateTime, IList<FeedPackageDetails>> createdPackages;
                 var previousLastCreated = DateTime.MinValue;
                 do
                 {
@@ -140,7 +141,7 @@ namespace Ng.Jobs
                     createdPackages = await GetCreatedPackages(client, Gallery, lastCreated, Top);
                     Logger.LogInformation("FEED CreatedPackages: {CreatedPackagesCount}", createdPackages.Count);
 
-                    lastCreated = await CatalogUtility.DownloadMetadata2Catalog(
+                    lastCreated = await FeedHelpers.DownloadMetadata2Catalog(
                         client, createdPackages, CatalogStorage, lastCreated, lastEdited, lastDeleted, true, cancellationToken, Logger);
                     if (previousLastCreated == lastCreated)
                     {
@@ -151,7 +152,7 @@ namespace Ng.Jobs
                 while (createdPackages.Count > 0);
 
                 //  THEN fetch and add all EDITED packages - in order
-                SortedList<DateTime, IList<CatalogUtility.PackageDetails>> editedPackages;
+                SortedList<DateTime, IList<FeedPackageDetails>> editedPackages;
                 var previousLastEdited = DateTime.MinValue;
                 do
                 {
@@ -161,7 +162,7 @@ namespace Ng.Jobs
 
                     Logger.LogInformation("FEED EditedPackages: {EditedPackagesCount}", editedPackages.Count);
 
-                    lastEdited = await CatalogUtility.DownloadMetadata2Catalog(
+                    lastEdited = await FeedHelpers.DownloadMetadata2Catalog(
                         client, editedPackages, CatalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken, Logger);
                     if (previousLastEdited == lastEdited)
                     {
@@ -175,9 +176,9 @@ namespace Ng.Jobs
 
         // Wrapper function for CatalogUtility.CreateHttpClient
         // Overriden by NgTests.TestableFeed2CatalogJob
-        protected virtual HttpClient CreateHttpClient(bool verbose)
+        protected virtual HttpClient CreateHttpClient()
         {
-            return CatalogUtility.CreateHttpClient(verbose);
+            return FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(Verbose));
         }
 
         private static Uri MakeCreatedUri(string source, DateTime since, int top)
@@ -200,117 +201,54 @@ namespace Ng.Jobs
             return new Uri(address);
         }
 
-        private static Task<SortedList<DateTime, IList<CatalogUtility.PackageDetails>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top)
+        private static Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top)
         {
-            return CatalogUtility.GetPackages(client, MakeCreatedUri(source, since, top), "Created");
+            return FeedHelpers.GetPackagesInOrder(client, MakeCreatedUri(source, since, top), "Created");
         }
 
-        private static Task<SortedList<DateTime, IList<CatalogUtility.PackageDetails>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top)
+        private static Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top)
         {
-            return CatalogUtility.GetPackages(client, MakeLastEditedUri(source, since, top), "LastEdited");
+            return FeedHelpers.GetPackagesInOrder(client, MakeLastEditedUri(source, since, top), "LastEdited");
         }
 
-        private async Task<SortedList<DateTime, IList<CatalogUtility.PackageIdentity>>> GetDeletedPackages(Storage auditingStorage, DateTime since)
+        private async Task<SortedList<DateTime, IList<FeedPackageIdentity>>> GetDeletedPackages(Storage auditingStorage, DateTime since)
         {
-            var result = new SortedList<DateTime, IList<CatalogUtility.PackageIdentity>>();
+            var result = new SortedList<DateTime, IList<FeedPackageIdentity>>();
 
             // Get all audit blobs (based on their filename which starts with a date that can be parsed)
             // NOTE we're getting more files than needed (to account for a time difference between servers)
             var minimumFileTime = since.AddMinutes(-15);
-            var auditRecordUris = (await auditingStorage.List(CancellationToken.None))
-                 .Where(record => FilterDeletedPackage(minimumFileTime, record)).Select(record => record.Uri);
+            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None,
+                minTime: minimumFileTime, logger: Logger);
 
-            foreach (var auditRecordUri in auditRecordUris)
+            foreach (var auditEntry in auditEntries)
             {
-                var contents = await auditingStorage.LoadString(auditRecordUri, CancellationToken.None);
-                if (!string.IsNullOrEmpty(contents))
+                if (!string.IsNullOrEmpty(auditEntry.PackageId) && !string.IsNullOrEmpty(auditEntry.PackageVersion) && auditEntry.TimestampUtc > since)
                 {
-                    string packageId;
-                    string packageVersion;
-                    DateTime? deletedOn;
-                    try
+                    // Mark the package "deleted"
+                    IList<FeedPackageIdentity> packages;
+                    if (!result.TryGetValue(auditEntry.TimestampUtc.Value, out packages))
                     {
-                        var auditRecord = JObject.Parse(contents);
-
-                        var recordPart = (JObject)auditRecord.GetValue("Record", StringComparison.OrdinalIgnoreCase);
-                        packageId = recordPart.GetValue("Id", StringComparison.OrdinalIgnoreCase).ToString();
-                        packageVersion = recordPart.GetValue("Version", StringComparison.OrdinalIgnoreCase).ToString();
-
-                        var actorPart = (JObject)auditRecord.GetValue("Actor", StringComparison.OrdinalIgnoreCase);
-                        deletedOn = actorPart.GetValue("TimestampUtc", StringComparison.OrdinalIgnoreCase).Value<DateTime>();
-                    }
-                    catch (JsonReaderException)
-                    {
-                        Logger.LogWarning("Audit record at {AuditRecordUri} contains invalid JSON.", auditRecordUri);
-                        continue;
-                    }
-                    catch (NullReferenceException)
-                    {
-                        Logger.LogWarning("Audit record at {AuditRecordUri} does not contain required JSON properties to perform a package delete.", auditRecordUri);
-                        continue;
+                        packages = new List<FeedPackageIdentity>();
+                        result.Add(auditEntry.TimestampUtc.Value, packages);
                     }
 
-                    if (!string.IsNullOrEmpty(packageId) && !string.IsNullOrEmpty(packageVersion) && deletedOn > since)
-                    {
-                        // Mark the package "deleted"
-                        IList<CatalogUtility.PackageIdentity> packages;
-                        if (!result.TryGetValue(deletedOn.Value, out packages))
-                        {
-                            packages = new List<CatalogUtility.PackageIdentity>();
-                            result.Add(deletedOn.Value, packages);
-                        }
-
-                        packages.Add(new CatalogUtility.PackageIdentity(packageId, packageVersion));
-                    }
+                    packages.Add(new FeedPackageIdentity(auditEntry.PackageId, auditEntry.PackageVersion));
                 }
             }
 
             return result;
         }
 
-        private bool FilterDeletedPackage(DateTime minimumFileTime, StorageListItem auditRecord)
-        {
-            // Nothing we can do if the last modified time in not available
-            if (auditRecord.LastModifiedUtc == null)
-            {
-                Logger.LogWarning("Could not get date for filename in FilterDeletedPackage. Uri: {AuditRecordUri}", auditRecord.Uri);
-            }
-            else
-            {
-                var fileName = GetFileName(auditRecord.Uri);
-
-                // over time, we have had three "deleted" file names. Try working with them all.
-                if (fileName.EndsWith("-Deleted.audit.v1.json") || fileName.EndsWith("-deleted.audit.v1.json") || fileName.EndsWith("-softdeleted.audit.v1.json")
-                    || fileName.EndsWith("-softdelete.audit.v1.json") || fileName.EndsWith("-delete.audit.v1.json"))
-                {
-                    return auditRecord.LastModifiedUtc.Value >= minimumFileTime;
-                }
-            }
-
-            return false;
-        }
-
-        private static string GetFileName(Uri uri)
-        {
-            var parts = uri.PathAndQuery.Split('/');
-
-            if (parts.Length > 0)
-            {
-                return parts[parts.Length - 1];
-            }
-
-            return null;
-        }
-
-        private static IEnumerable<SortedList<DateTime, IList<CatalogUtility.PackageIdentity>>> SegmentPackageDeletes(SortedList<DateTime, IList<CatalogUtility.PackageIdentity>> packageDeletes)
+        private static IEnumerable<SortedList<DateTime, IList<FeedPackageIdentity>>> SegmentPackageDeletes(SortedList<DateTime, IList<FeedPackageIdentity>> packageDeletes)
         {
             var packageIdentityTracker = new HashSet<string>();
-            var currentSegment = new SortedList<DateTime, IList<CatalogUtility.PackageIdentity>>();
+            var currentSegment = new SortedList<DateTime, IList<FeedPackageIdentity>>();
             foreach (var entry in packageDeletes)
             {
                 if (!currentSegment.ContainsKey(entry.Key))
                 {
-                    currentSegment.Add(entry.Key, new List<CatalogUtility.PackageIdentity>());
+                    currentSegment.Add(entry.Key, new List<FeedPackageIdentity>());
                 }
 
                 var curentSegmentPackages = currentSegment[entry.Key];
@@ -324,7 +262,7 @@ namespace Ng.Jobs
 
                         // Clear current segment
                         currentSegment.Clear();
-                        currentSegment.Add(entry.Key, new List<CatalogUtility.PackageIdentity>());
+                        currentSegment.Add(entry.Key, new List<FeedPackageIdentity>());
                         curentSegmentPackages = currentSegment[entry.Key];
                         packageIdentityTracker.Clear();
                     }
@@ -341,7 +279,7 @@ namespace Ng.Jobs
             }
         }
 
-        private async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<CatalogUtility.PackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, CancellationToken cancellationToken)
+        private async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<FeedPackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, CancellationToken cancellationToken)
         {
             var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 

@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net.Http;
 using System.Runtime.Serialization;
 
-namespace Ng
+namespace NuGet.Services.Metadata.Catalog
 {
     /// <summary>
-    /// A TransientException for cases when the job's execution loop can continue without the process to be shutdown. 
+    /// Thrown for intermittent issues where the service can continue without the process being shutdown. 
     /// </summary>
     [Serializable] 
     public class TransientException : System.Exception
@@ -26,7 +27,7 @@ namespace Ng
     }
 
     /// <summary>
-    /// Transient exception for http client timeout. 
+    /// Thrown when an <see cref="HttpClient"/> times out.
     /// </summary>
     [Serializable]
     public class HttpClientTimeoutException : TransientException

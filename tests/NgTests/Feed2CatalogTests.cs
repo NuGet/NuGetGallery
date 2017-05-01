@@ -27,7 +27,7 @@ namespace NgTests
             var catalogStorage = new MemoryStorage();
             var auditingStorage = new MemoryStorage();
             auditingStorage.Content.Add(
-                new Uri(auditingStorage.BaseAddress, "2015-01-01T00:01:01-deleted.audit.v1.json"),
+                new Uri(auditingStorage.BaseAddress, "package/OtherPackage/1.0.0/2015-01-01T00:01:01-deleted.audit.v1.json"),
                 new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
             
             var mockServer = new MockServerHttpClientHandler();
@@ -116,8 +116,8 @@ namespace NgTests
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
             var auditingStorage = new MemoryStorage();
 
-            var firstAuditingRecord = new Uri(auditingStorage.BaseAddress, $"{Guid.NewGuid()}-deleted.audit.v1.json");
-            var secondAuditingRecord = new Uri(auditingStorage.BaseAddress, $"{Guid.NewGuid()}-deleted.audit.v1.json");
+            var firstAuditingRecord = new Uri(auditingStorage.BaseAddress, $"package/OtherPackage/1.0.0/{Guid.NewGuid()}-deleted.audit.v1.json");
+            var secondAuditingRecord = new Uri(auditingStorage.BaseAddress, $"package/AnotherPackage/1.0.0/{Guid.NewGuid()}-deleted.audit.v1.json");
 
             auditingStorage.Content.Add(firstAuditingRecord, new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
             auditingStorage.Content.Add(secondAuditingRecord, new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100.Replace("OtherPackage", "AnotherPackage")));
@@ -205,7 +205,7 @@ namespace NgTests
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
             var auditingStorage = new MemoryStorage();
             auditingStorage.Content.Add(
-                new Uri(auditingStorage.BaseAddress, "2015-01-01T00:01:01-deleted.audit.v1.json"),
+                new Uri(auditingStorage.BaseAddress, "package/OtherPackage/1.0.0/2015-01-01T00:01:01-deleted.audit.v1.json"),
                 new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
 
             var mockServer = new MockServerHttpClientHandler();

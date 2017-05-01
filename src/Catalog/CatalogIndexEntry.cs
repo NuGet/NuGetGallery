@@ -1,13 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -19,6 +17,17 @@ namespace NuGet.Services.Metadata.Catalog
         private readonly DateTime _commitTimeStamp;
         private readonly string _id;
         private readonly NuGetVersion _version;
+
+        public CatalogIndexEntry(JToken item)
+            : this(
+                new Uri(item["@id"].ToString()),
+                item["@type"].ToString(),
+                item["commitId"].ToString(),
+                DateTime.Parse(item["commitTimeStamp"].ToString()),
+                item["nuget:id"].ToString(),
+                NuGetVersion.Parse(item["nuget:version"].ToString()))
+        {
+        }
 
         public CatalogIndexEntry(Uri uri, string type, string commitId, DateTime commitTs, string id, NuGetVersion version)
         {
@@ -82,6 +91,11 @@ namespace NuGet.Services.Metadata.Catalog
         public int CompareTo(CatalogIndexEntry other)
         {
             return CommitTSComparer.Compare(this, other);
+        }
+
+        public bool IsDelete()
+        {
+            return _type == "nuget:PackageDelete";
         }
 
         // common comparers for sorting and creating sets from these entries

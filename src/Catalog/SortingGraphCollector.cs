@@ -12,7 +12,7 @@ using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-    public abstract class SortingGraphCollector : SortingCollector
+    public abstract class SortingGraphCollector : SortingIdCollector
     {
         Uri[] _types;
 

@@ -1,55 +1,41 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
-namespace Ng.Jobs
+namespace NuGet.Services.Metadata.Catalog.Helpers
 {
     /// <summary>
-    /// Utility class to share functionality between Package2Catalog and Feed2Catalog.
+    /// Helper methods for accessing and parsing the gallery's V2 feed.
     /// </summary>
-    public static class CatalogUtility
+    public static class FeedHelpers
     {
-        public class PackageIdentity
+        /// <summary>
+        /// Creates an HttpClient for reading the feed.
+        /// </summary>
+        public static HttpClient CreateHttpClient(Func<HttpMessageHandler> handlerFunc)
         {
-            public PackageIdentity(string id, string version)
-            {
-                Id = id;
-                Version = version;
-            }
-
-            public string Id { get; set; }
-            public string Version { get; set; }
-        }
-
-        public class PackageDetails
-        {
-            public Uri ContentUri { get; set; }
-            public DateTime CreatedDate { get; set; }
-            public DateTime LastEditedDate { get; set; }
-            public DateTime PublishedDate { get; set; }
-            public string LicenseNames { get; set; }
-            public string LicenseReportUrl { get; set; }
-        }
-
-        public static HttpClient CreateHttpClient(bool verbose)
-        {
-            var handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
-
             var handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
-
             return new HttpClient(handler);
         }
 
+        /// <summary>
+        /// Reads and returns <see cref="DateTime"/> metadata from the top level of the catalog index.json.
+        /// </summary>
+        /// <param name="propertyName">
+        /// Metadata field to return.
+        /// Possible values include "nuget:lastCreated", "nuget:lastDeleted", and "nuget:lastEdited", which are the timestamps of the cursor of the catalog.
+        /// </param>
         public static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName, CancellationToken cancellationToken)
         {
             var json = await storage.LoadString(storage.ResolveUri("index.json"), cancellationToken);
@@ -68,7 +54,61 @@ namespace Ng.Jobs
             return null;
         }
 
-        public static async Task<SortedList<DateTime, IList<PackageDetails>>> GetPackages(HttpClient client, Uri uri, string keyDateProperty)
+        /// <summary>
+        /// Builds a <see cref="Uri"/> for accessing the metadata of a specific package on the feed.
+        /// </summary>
+        public static Uri MakeUriForPackage(string source, string id, string version)
+        {
+            var uri = new Uri($"{source.Trim('/')}/Packages(Id='{HttpUtility.UrlEncode(id)}',Version='{HttpUtility.UrlEncode(version)}')");
+            return UriUtils.GetNonhijackableUri(uri);
+        }
+
+        /// <summary>
+        /// Returns a <see cref="SortedList{DateTime, IList{FeedPackageDetails}}"/> from the feed.
+        /// </summary>
+        /// <param name="keyDateProperty">The <see cref="DateTime"/> field to sort the <see cref="FeedPackageDetails"/> on.</param>
+        public static async Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetPackagesInOrder(HttpClient client, Uri uri, string keyDateProperty)
+        {
+            var result = new SortedList<DateTime, IList<FeedPackageDetails>>();
+
+            var allPackages = await GetPackages(client, uri);
+
+            var keyDatePropertyInfo = typeof(FeedPackageDetails).GetProperty(keyDateProperty + "Date");
+
+            if (keyDatePropertyInfo == null)
+            {
+                throw new ArgumentException($"\"{keyDateProperty}Date\" must be the name of a property of {nameof(FeedPackageDetails)}!", nameof(keyDateProperty));
+            }
+
+            foreach (var package in allPackages)
+            {
+                IList<FeedPackageDetails> packagesWithSameKeyDate;
+
+                var packageKeyDate = (DateTime)keyDatePropertyInfo.GetMethod.Invoke(package, null);
+                if (!result.TryGetValue(packageKeyDate, out packagesWithSameKeyDate))
+                {
+                    packagesWithSameKeyDate = new List<FeedPackageDetails>();
+                    result.Add(packageKeyDate, packagesWithSameKeyDate);
+                }
+
+                packagesWithSameKeyDate.Add(package);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="FeedPackageDetails"/> for a single package from the feed.
+        /// </summary>
+        public static async Task<FeedPackageDetails> GetPackage(HttpClient client, string source, string id, string version)
+        {
+            return (await GetPackages(client, MakeUriForPackage(source, id, version))).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Returns a <see cref="IList{FeedPackageDetails}"/> from the feed.
+        /// </summary>
+        public static async Task<IList<FeedPackageDetails>> GetPackages(HttpClient client, Uri uri)
         {
             const string createdDateProperty = "Created";
             const string lastEditedDateProperty = "LastEdited";
@@ -76,7 +116,7 @@ namespace Ng.Jobs
             const string licenseNamesProperty = "LicenseNames";
             const string licenseReportUrlProperty = "LicenseReportUrl";
 
-            var result = new SortedList<DateTime, IList<PackageDetails>>();
+            var packages = new List<FeedPackageDetails>();
 
             XElement feed;
             try
@@ -89,7 +129,7 @@ namespace Ng.Jobs
             catch (TaskCanceledException tce)
             {
                 // If the HTTP request timed out, a TaskCanceledException will be thrown.
-                throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(CatalogUtility.GetPackages)}.", tce);
+                throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(FeedHelpers.GetPackages)}.", tce);
             }
 
             XNamespace atom = "http://www.w3.org/2005/Atom";
@@ -112,9 +152,6 @@ namespace Ng.Jobs
                 var publishedValue = propertiesElement.Element(dataservices + publishedDateProperty).Value;
                 var publishedDate = string.IsNullOrEmpty(publishedValue) ? createdDate : DateTime.Parse(publishedValue);
 
-                var keyEntryValue = propertiesElement.Element(dataservices + keyDateProperty).Value;
-                var keyDate = string.IsNullOrEmpty(keyEntryValue) ? createdDate : DateTime.Parse(keyEntryValue);
-
                 // License details
                 var licenseNamesElement = propertiesElement.Element(dataservices + licenseNamesProperty);
                 var licenseNames = licenseNamesElement?.Value;
@@ -127,16 +164,8 @@ namespace Ng.Jobs
                 createdDate = ForceUtc(createdDate);
                 lastEditedDate = ForceUtc(lastEditedDate);
                 publishedDate = ForceUtc(publishedDate);
-                keyDate = ForceUtc(keyDate);
 
-                IList<PackageDetails> packages;
-                if (!result.TryGetValue(keyDate, out packages))
-                {
-                    packages = new List<PackageDetails>();
-                    result.Add(keyDate, packages);
-                }
-
-                packages.Add(new PackageDetails
+                packages.Add(new FeedPackageDetails
                 {
                     ContentUri = content,
                     CreatedDate = createdDate,
@@ -147,7 +176,7 @@ namespace Ng.Jobs
                 });
             }
 
-            return result;
+            return packages;
         }
 
         private static DateTime ForceUtc(DateTime date)
@@ -159,7 +188,11 @@ namespace Ng.Jobs
             return date;
         }
 
-        public static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<PackageDetails>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken, ILogger logger)
+        /// <summary>
+        /// Writes package metadata to the catalog.
+        /// </summary>
+        /// <returns>The latest <see cref="DateTime"/> that was processed.</returns>
+        public static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<FeedPackageDetails>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken, ILogger logger)
         {
             var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 
@@ -187,7 +220,7 @@ namespace Ng.Jobs
                     catch (TaskCanceledException tce)
                     {
                         // If the HTTP request timed out, a TaskCanceledException will be thrown.
-                        throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(CatalogUtility.DownloadMetadata2Catalog)}.", tce);
+                        throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(FeedHelpers.DownloadMetadata2Catalog)}.", tce);
                     }
 
                     if (response.IsSuccessStatusCode)

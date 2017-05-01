@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '1c479a7381ebbc0fe1fded765de70d513b8bd68e'
+    [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -71,15 +71,20 @@ Invoke-BuildStep 'Restoring solution packages' { `
 
 Invoke-BuildStep 'Building solution' { 
         $SolutionPath = Join-Path $PSScriptRoot "NuGet.Services.Metadata.sln"
-        Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore `
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore `
     } `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' {
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.Indexing\NuGet.Indexing.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
-        New-Package (Join-Path $PSScriptRoot "src\Catalog\NuGet.Services.Metadata.Catalog.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion  -Branch $Branch
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
-        New-Package (Join-Path $PSScriptRoot "src\Ng\Ng.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
+        $projects = `
+            "src\NuGet.Indexing\NuGet.Indexing.csproj", `
+            "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", `
+            "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", `
+            "src\Ng\Ng.csproj"
+            
+        $projects | ForEach-Object {
+            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
+        }
     } `
     -ev +BuildErrors
 

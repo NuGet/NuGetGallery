@@ -27,7 +27,7 @@ namespace NgTests
             Verbose = verbose;
         }
 
-        protected override HttpClient CreateHttpClient(bool verbose)
+        protected override HttpClient CreateHttpClient()
         {
             return new HttpClient(_handler);
         }

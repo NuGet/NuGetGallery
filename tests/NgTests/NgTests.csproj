@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props" Condition="Exists('..\..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props')" />
+  <Import Project="..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props" Condition="Exists('..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Castle.Core.4.0.0\lib\net45\Castle.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Hyak.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Hyak.Common.1.0.2\lib\net45\Hyak.Common.dll</HintPath>
       <Private>True</Private>
@@ -137,17 +140,27 @@
       <HintPath>..\..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.Extensions.Desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Moq, Version=4.7.8.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Moq.4.7.8\lib\net45\Moq.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Frameworks, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Frameworks.4.0.0\lib\net45\NuGet.Frameworks.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Packaging.Core.Types, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Packaging.Core.Types.4.0.0\lib\net45\NuGet.Packaging.Core.Types.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Protocol.Core.Types, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="NuGet.Services.Configuration, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Configuration.2.1.0\lib\net452\NuGet.Services.Configuration.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.2.1.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Versioning, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Versioning.3.6.0-rc-2004\lib\net45\NuGet.Versioning.dll</HintPath>
+    <Reference Include="NuGet.Versioning, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Versioning.4.0.0\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -188,7 +201,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AggregateCursorTests.cs" />
     <Compile Include="AggregateStorageTests.cs" />
+    <Compile Include="AuditRecordHelpersTests.cs" />
     <Compile Include="Data\Registrations.cs" />
     <Compile Include="Data\TestRegistrationEntries.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -197,6 +212,7 @@
     </Compile>
     <Compile Include="DnxCatalogCollectorTests.cs" />
     <Compile Include="Feed2CatalogTests.cs" />
+    <Compile Include="FeedHelpersTests.cs" />
     <Compile Include="Infrastructure\MemoryStorage.cs" />
     <Compile Include="Infrastructure\MockServerHttpClientHandlerExtensions.cs" />
     <Compile Include="Infrastructure\StorageContentExtensions.cs" />
@@ -205,9 +221,12 @@
     <Compile Include="Infrastructure\MockServerHttpClientHandler.cs" />
     <Compile Include="Infrastructure\ODataFeedHelper.cs" />
     <Compile Include="Infrastructure\ODataPackage.cs" />
+    <Compile Include="UriUtilsTests.cs" />
+    <Compile Include="PackageTimestampMetadataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegistrationCollectorTests.cs" />
     <Compile Include="SearchIndexFromCatalogCollectorTests.cs" />
+    <Compile Include="SortingIdVersionCollectorTests.cs" />
     <Compile Include="StorageFactoryTests.cs" />
     <Compile Include="TestableFeed2CatalogJob.cs" />
     <Compile Include="Data\TestCatalogEntries.Designer.cs">
@@ -216,6 +235,7 @@
       <DependentUpon>TestCatalogEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="Data\Catalogs.cs" />
+    <Compile Include="ValidatorTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CatalogTests\TestData\TestPackage.SemVer2.1.0.0-alpha.1.nupkg">
@@ -264,6 +284,10 @@
       <Project>{5234d86f-2c0e-4181-aab7-bbda3253b4e1}</Project>
       <Name>Ng</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj">
+      <Project>{1745a383-d0be-484b-81eb-27b20f6ac6c5}</Project>
+      <Name>NuGet.Services.Metadata.Catalog.Monitoring</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.IndexingTests\NuGet.IndexingTests.csproj">
       <Project>{43665489-01F0-4F35-8A33-258F2231B2D8}</Project>
       <Name>NuGet.IndexingTests</Name>
@@ -274,8 +298,8 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props'))" />
     <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
+    <Error Condition="!Exists('..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props'))" />
   </Target>
   <Import Project="..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

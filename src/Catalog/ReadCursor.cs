@@ -8,7 +8,7 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class ReadCursor
     {
-        public DateTime Value { get; set; }
+        public virtual DateTime Value { get; set; }
 
         public abstract Task Load(CancellationToken cancellationToken);
 
