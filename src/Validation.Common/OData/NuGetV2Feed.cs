@@ -8,21 +8,24 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Jobs.Validation.Common.OData
 {
     public class NuGetV2Feed
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<NuGetV2Feed> _logger;
 
-        public NuGetV2Feed(HttpClient httpClient)
+        public NuGetV2Feed(HttpClient httpClient, ILogger<NuGetV2Feed> logger)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<List<NuGetPackage>> GetPackagesAsync(Uri uri, int continuationsToFollow = 0)
         {
-            Trace.TraceInformation("Start retrieving packages from URL {0}...", uri);
+            _logger.LogInformation($"Start retrieving packages from URL {{{TraceConstant.Url}}}...", uri);
 
             var result = new List<NuGetPackage>();
 
@@ -79,7 +82,7 @@ namespace NuGet.Jobs.Validation.Common.OData
                 result.Add(package);
             }
 
-            Trace.TraceInformation("Finished retrieving packages from URL {0}.", uri);
+            _logger.LogInformation($"Finished retrieving packages from URL {{{TraceConstant.Url}}}.", uri);
             
             if (continuationsToFollow > 0)
             {
@@ -91,9 +94,9 @@ namespace NuGet.Jobs.Validation.Common.OData
                 {
                     var href = continuationLink.Attribute("href").Value;
 
-                    Trace.TraceInformation("Start following continuation token {0}...", href);
+                    _logger.LogInformation($"Start following continuation token {{{TraceConstant.Url}}}...", href);
                     result.AddRange(await GetPackagesAsync(new Uri(href), continuationsToFollow - 1));
-                    Trace.TraceInformation("Finished following continuation token {0}.", href);
+                    _logger.LogInformation($"Finished following continuation token {{{TraceConstant.Url}}}.", href);
                 }
             }
 

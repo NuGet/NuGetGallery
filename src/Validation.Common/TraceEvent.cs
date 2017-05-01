@@ -10,6 +10,8 @@ namespace NuGet.Jobs.Validation.Common
         public static readonly EventId ValidatorException = CreateEventId(0, "Validator exception");
         public static readonly EventId CommandLineProcessingFailed = CreateEventId(1, "Failed to process Job's command line arguments");
         public static readonly EventId StartValidationAuditFailed = CreateEventId(2, "Failed to save audit info regarding validation queueing");
+        public static readonly EventId FailedToProcessArguments = CreateEventId(3, "Failed to process arguments");
+        public static readonly EventId HelperFailed = CreateEventId(4, "Failed to run helper action");
 
         /// <summary>
         /// Random number used as a base for EventIds and to make sure they don't clash with 

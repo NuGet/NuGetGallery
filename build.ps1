@@ -78,6 +78,16 @@ Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
 Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
     
+Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
+        $versionMetadata =
+            "$PSScriptRoot\src\Validation.Helper\Properties\AssemblyInfo.g.cs"
+            
+        $versionMetadata | ForEach-Object {
+            Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+        }
+    } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Restoring solution packages' { `
     Install-SolutionPackages -path (Join-Path $PSScriptRoot ".nuget\packages.config") -output (Join-Path $PSScriptRoot "packages") -ExcludeVersion } `
     -skip:$SkipRestore `
@@ -108,7 +118,8 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Stats.RollUpDownloadFacts/Stats.RollUpDownloadFacts.csproj", `
             "src/Validation.Callback.Vcs/Validation.Callback.Vcs.csproj", `
             "src/Validation.Runner/Validation.Runner.csproj",
-            "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj"
+            "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj",
+            "src/Validation.Helper/Validation.Helper.csproj"
         
         Foreach ($Project in $Projects) {
             New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
