@@ -171,7 +171,6 @@
     <Compile Include="INotificationService.cs" />
     <Compile Include="Configuration\ISecretReaderFactory.cs" />
     <Compile Include="NotificationService.cs" />
-    <Compile Include="NugetPackageExtensions.cs" />
     <Compile Include="NuGetPackageQueueExtensions.cs" />
     <Compile Include="OData\NuGetV2Feed.cs" />
     <Compile Include="NuGetPackage.cs" />

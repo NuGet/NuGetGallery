@@ -288,7 +288,7 @@ namespace NuGet.Jobs.Validation.Runner
             {
                 var packages = new HashSet<NuGetPackage>(new NuGetV2PackageEqualityComparer());
 
-                var feed = new NuGetV2Feed(client, _loggerFactory.CreateLogger<NuGetV2Feed>());
+                var feed = new NuGetV2Feed(client);
 
                 var createdPackagesUrl = MakePackageQueryUrl(_galleryBaseAddress, "Created", referenceLastCreated);
                 _logger.LogInformation("Querying packages created since {StartTime}, URL: {QueryUrl}", referenceLastCreated, createdPackagesUrl);

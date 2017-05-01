@@ -31,7 +31,7 @@ namespace NuGet.Jobs.Validation.Common
         {
             var validationId = Guid.NewGuid();
             var packageId = package.Id;
-            var packageVersion = package.GetVersion();
+            var packageVersion = package.NormalizedVersion ?? package.Version;
             var created = DateTimeOffset.UtcNow;
 
             _logger.LogInformation(

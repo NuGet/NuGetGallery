@@ -25,8 +25,5 @@ namespace NuGet.Jobs.Validation.Common
         public const string CursorValue = "CursorValue";
         public const string MessageCount = "MessageCount";
         public const string ResultCount = "ResultCount";
-
-        public const string Comment = "Comment";
-        public const string Alias = "Alias";
     }
 }
