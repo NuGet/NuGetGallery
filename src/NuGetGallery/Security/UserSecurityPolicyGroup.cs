@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Versioning;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Security
@@ -14,6 +15,7 @@ namespace NuGetGallery.Security
     public class UserSecurityPolicyGroup
     {
         public const string SecurePush = "SecurePush";
+        public const string SecurePushVersion = "4.1.0";
 
         /// <summary>
         /// Policy group name.
@@ -51,10 +53,10 @@ namespace NuGetGallery.Security
             yield return new UserSecurityPolicyGroup()
             {
                 Name = UserSecurityPolicyGroup.SecurePush,
-                Policies = new []
+                Policies = new[]
                 {
                     new UserSecurityPolicy(RequirePackageVerifyScopePolicy.PolicyName),
-                    new UserSecurityPolicy(RequireMinClientVersionForPushPolicy.PolicyName) { Value = "{\"v\":\"4.1.0\"}" }
+                    RequireMinClientVersionForPushPolicy.CreatePolicy(new NuGetVersion(SecurePushVersion))
                 },
                 OnEnroll = OnEnroll_SecurePush
             };
@@ -63,7 +65,7 @@ namespace NuGetGallery.Security
         private static void OnEnroll_SecurePush(User user)
         {
             var pushKeys = user.Credentials.Where(c =>
-                c.Type.StartsWith(CredentialTypes.ApiKey.Prefix) && !c.HasExpired &&
+                c.Type.StartsWith(CredentialTypes.ApiKey.Prefix) &&
                 (
                     c.Scopes.Count == 0 ||
                     c.Scopes.Any(s =>
@@ -71,10 +73,14 @@ namespace NuGetGallery.Security
                         s.AllowedAction.Equals(NuGetScopes.PackagePushVersion, StringComparison.OrdinalIgnoreCase)
                         ))
                 );
-
+            
             foreach (var key in pushKeys)
             {
-                key.Expires = DateTime.Now.AddDays(7);
+                var maxExpiration = DateTime.UtcNow.AddDays(7);
+                if (!key.Expires.HasValue || key.Expires > maxExpiration)
+                {
+                    key.Expires = maxExpiration;
+                }
             }
         }
     }

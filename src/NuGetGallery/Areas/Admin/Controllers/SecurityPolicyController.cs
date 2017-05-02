@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Security;
 
@@ -62,16 +64,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Enroll(SecurityPolicyViewModel viewModel)
         {
-            // Parse 'username|policyGroup' into enrollment requests by user.
+            // Group enrollment requests by user.
             var enrollments = viewModel.Enrollments?
-                .Select(e => e.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
-                .GroupBy(e => /*username*/e[0])
+                .Select(json => JsonConvert.DeserializeObject<JObject>(json))
+                .GroupBy(obj => obj["u"].ToString())
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Select(e => /*policyGroup*/e[1])
+                    g => g.Select(obj => obj["g"].ToString())
                 );
 
-            // Iterate all users and groups for enrollment or unenrollment.
+            // Iterate all users and groups to handle both enrollment and unenrollment.
             var usernames = GetUsernamesFromQuery(viewModel.Query);
             var users = FindUsers(usernames);
             foreach (var user in users)

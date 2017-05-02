@@ -128,7 +128,7 @@
                 };
 
                 this.generateValue = function (user, policyGroup) {
-                    return user.Username + '|' + policyGroup;
+                    return JSON.stringify({ "u": user.Username, "g": policyGroup })
                 };
 
                 this.generateUserUrl = function (user) {

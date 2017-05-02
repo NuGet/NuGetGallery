@@ -31,6 +31,18 @@ namespace NuGetGallery.Security
         }
 
         /// <summary>
+        /// Create a user security policy that requires a minimum client version.
+        /// </summary>
+        public static UserSecurityPolicy CreatePolicy(NuGetVersion minClientVersion)
+        {
+            var value = JsonConvert.SerializeObject(new State() {
+                MinClientVersion = minClientVersion
+            });
+
+            return new UserSecurityPolicy(PolicyName, value);
+        }
+
+        /// <summary>
         /// In case of multiple, select the max of the minimum required client versions.
         /// </summary>
         private NuGetVersion GetMaxOfMinClientVersions(UserSecurityPolicyContext context)
