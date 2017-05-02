@@ -71,7 +71,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     g => g.Select(e => /*policyGroup*/e[1])
                 );
 
-            // Iterate all users and policies to identity groups for both enrollment and unenrollment.
+            // Iterate all users and groups for enrollment or unenrollment.
             var usernames = GetUsernamesFromQuery(viewModel.Query);
             var users = FindUsers(usernames);
             foreach (var user in users)

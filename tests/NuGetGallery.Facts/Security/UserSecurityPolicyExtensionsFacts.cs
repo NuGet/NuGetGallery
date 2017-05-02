@@ -84,7 +84,7 @@ namespace NuGetGallery.Security
         [Theory]
         [InlineData("[[\"A\",\"\"]]")]
         [InlineData("[[\"A\",\"B\"],[\"E\",\"\"]]")]
-        public void EnsureEnrolledAddsPolicies(string groupPolicies)
+        public void AddPoliciesAddsPolicies(string groupPolicies)
         {
             // Arrange.
             var group = new UserSecurityPolicyGroup()
@@ -103,7 +103,7 @@ namespace NuGetGallery.Security
         [Theory]
         [InlineData("[[\"A\",\"\"]]", "[[\"A\",null]]", 0)]
         [InlineData("[[\"A\",\"B\"],[\"E\",\"\"]]", "[[\"E\",\"\"],[\"A\",\"B\"],[\"C\",\"D\"]]", 1)]
-        public void EnsureUnEnrolledAddsPolicies(string groupPolicies, string userPolicies, int expectedCount)
+        public void RemovePoliciesRemovesPolicies(string groupPolicies, string userPolicies, int expectedCount)
         {
             // Arrange.
             var group = new UserSecurityPolicyGroup()
