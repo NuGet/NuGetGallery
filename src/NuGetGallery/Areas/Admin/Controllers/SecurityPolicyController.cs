@@ -100,8 +100,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         private static string[] GetUsernamesFromQuery(string query)
         {
-            return query.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(username => username.Trim()).ToArray();
+            return query.Split(',', '\r', '\n')
+                .Select(username => username.Trim())
+                .Where(username => !string.IsNullOrEmpty(username)).ToArray();
         }
 
         private IEnumerable<User> FindUsers(string[] usernames)
