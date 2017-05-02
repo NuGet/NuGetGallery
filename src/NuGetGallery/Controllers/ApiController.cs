@@ -9,7 +9,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
@@ -198,14 +197,6 @@ namespace NuGetGallery
             return await StatusService.GetStatus();
         }
 
-        private Credential GetCurrentCredential(User user)
-        {
-            var identity = User.Identity as ClaimsIdentity;
-            var apiKey = identity.GetClaimOrDefault(NuGetClaims.ApiKey);
-
-            return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
-        }
-
         [HttpPost]
         [RequireSsl]
         [ApiAuthorize]
@@ -239,7 +230,7 @@ namespace NuGetGallery
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
             var user = GetCurrentUser();
-            var credential = GetCurrentCredential(user);
+            var credential = user.GetCurrentApiKeyCredential(User.Identity);
 
             var result = VerifyPackageKeyInternal(user, credential, id, version);
 
