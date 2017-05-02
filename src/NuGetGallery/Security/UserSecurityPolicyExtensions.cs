@@ -56,15 +56,15 @@ namespace NuGetGallery.Security
         public static IEnumerable<UserSecurityPolicy> RemovePolicies(this User user, UserSecurityPolicyGroup policyGroup)
         {
             // Remove policies, only if enrolled in all group policies.
-            var matches = user.FindPolicies(policyGroup);
+            var matches = user.FindPolicies(policyGroup).ToList();
             if (!matches.Any(p => p == null))
             {
                 foreach (var policy in matches)
                 {
                     user.SecurityPolicies.Remove(policy);
-                    yield return policy;
                 }
             }
+            return matches;
         }
 
         /// <summary>
