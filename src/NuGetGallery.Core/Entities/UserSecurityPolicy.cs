@@ -19,6 +19,12 @@ namespace NuGetGallery
             Name = name;
         }
 
+        public UserSecurityPolicy(string name, string value)
+        {
+            Name = name;
+            Value = value;
+        }
+
         /// <summary>
         /// Policy key.
         /// </summary>

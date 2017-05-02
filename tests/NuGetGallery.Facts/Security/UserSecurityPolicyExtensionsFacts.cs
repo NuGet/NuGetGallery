@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Newtonsoft.Json;
+using System.Web.Mvc;
 
 namespace NuGetGallery.Security
 {
@@ -93,7 +94,7 @@ namespace NuGetGallery.Security
             var user = new User();
 
             // Act.
-            user.EnsureEnrolled(group);
+            user.AddPolicies(group);
 
             // Assert.
             Assert.Equal(group.Policies.Count(), user.SecurityPolicies.Count());
@@ -113,7 +114,7 @@ namespace NuGetGallery.Security
             LoadPolicies(userPolicies).ToList().ForEach(p => user.SecurityPolicies.Add(p));
 
             // Act.
-            user.EnsureUnenrolled(group);
+            user.RemovePolicies(group);
 
             // Assert.
             Assert.Equal(expectedCount, user.SecurityPolicies.Count());

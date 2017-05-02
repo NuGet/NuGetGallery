@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Security;
@@ -59,10 +60,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Enroll(SecurityPolicyViewModel viewModel)
+        public async Task<ActionResult> Enroll(SecurityPolicyViewModel viewModel)
         {
             // Parse 'username|policyGroup' into enrollment requests by user.
-            var enrollments = viewModel.Enrollments
+            var enrollments = viewModel.Enrollments?
                 .Select(e => e.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
                 .GroupBy(e => /*username*/e[0])
                 .ToDictionary(
@@ -77,20 +78,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 foreach (var policyGroup in UserSecurityPolicyGroup.Instances)
                 {
-                    if (enrollments[user.Username].Contains(policyGroup.Name))
+                    if (enrollments != null && enrollments[user.Username].Contains(policyGroup.Name))
                     {
-                        user.EnsureEnrolled(policyGroup);
+                        user.AddPolicies(policyGroup);
                     }
                     else
                     {
-                        user.EnsureUnenrolled(policyGroup);
+                        var removedPolicies = user.RemovePolicies(policyGroup);
+                        foreach (var p in removedPolicies)
+                        {
+                            EntitiesContext.UserSecurityPolicies.Remove(p);
+                        }
                     }
                 }
             }
 
-            EntitiesContext.SaveChangesAsync();
+            await EntitiesContext.SaveChangesAsync();
 
-            return RedirectToRoute("Admin");
+            return RedirectToAction("Index");
         }
 
         private static string[] GetUsernamesFromQuery(string query)

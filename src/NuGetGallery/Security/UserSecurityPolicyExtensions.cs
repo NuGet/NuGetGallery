@@ -35,14 +35,14 @@ namespace NuGetGallery.Security
         /// </summary>
         /// <param name="user">User to enroll.</param>
         /// <param name="policyGroup">User security policy group to enroll in.</param>
-        public static void EnsureEnrolled(this User user, UserSecurityPolicyGroup policyGroup)
+        public static void AddPolicies(this User user, UserSecurityPolicyGroup policyGroup)
         {
             // Add policies, if not already enrolled in all group policies.
             if (!user.IsEnrolled(policyGroup))
             {
                 foreach (var policy in policyGroup.Policies)
                 {
-                    user.SecurityPolicies.Add(policy);
+                    user.SecurityPolicies.Add(new UserSecurityPolicy(policy.Name, policy.Value));
                 }
                 policyGroup.OnEnroll?.Invoke(user);
             }
@@ -53,7 +53,7 @@ namespace NuGetGallery.Security
         /// </summary>
         /// <param name="user">User to unenroll.</param>
         /// <param name="policyGroup">User security policy group to unenroll from.</param>
-        public static void EnsureUnenrolled(this User user, UserSecurityPolicyGroup policyGroup)
+        public static IEnumerable<UserSecurityPolicy> RemovePolicies(this User user, UserSecurityPolicyGroup policyGroup)
         {
             // Remove policies, only if enrolled in all group policies.
             var matches = user.FindPolicies(policyGroup);
@@ -62,6 +62,7 @@ namespace NuGetGallery.Security
                 foreach (var policy in matches)
                 {
                     user.SecurityPolicies.Remove(policy);
+                    yield return policy;
                 }
             }
         }

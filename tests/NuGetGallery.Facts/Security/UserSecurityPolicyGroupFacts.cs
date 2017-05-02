@@ -7,6 +7,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using NuGet.Packaging;
 using Xunit;
+using System.Web.Mvc;
 
 namespace NuGetGallery.Security
 {
@@ -32,7 +33,7 @@ namespace NuGetGallery.Security
             user.Credentials.Add(credential);
 
             // Act.
-            user.EnsureEnrolled(group);
+            user.AddPolicies(group);
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
@@ -58,7 +59,7 @@ namespace NuGetGallery.Security
             user.Credentials.Add(credential);
 
             // Act.
-            user.EnsureEnrolled(group);
+            user.AddPolicies(group);
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
