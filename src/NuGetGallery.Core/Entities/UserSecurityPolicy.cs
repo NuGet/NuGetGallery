@@ -38,6 +38,7 @@ namespace NuGetGallery
         /// Type name for the policy handler that provides policy behavior.
         /// </summary>
         [Required]
+        [StringLength(256)]
         public string Name { get; set; }
 
         /// <summary>
