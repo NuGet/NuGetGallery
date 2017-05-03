@@ -421,9 +421,9 @@ namespace NuGetGallery
                     var searchFilter = SearchAdaptor.GetSearchFilter(
                         q, 
                         page, 
-                        null, 
-                        SearchFilter.UISearchContext, 
-                        SemVerLevelKey.SemVerLevel2);
+                        sortOrder: null, 
+                        context: SearchFilter.UISearchContext, 
+                        semVerLevel: SemVerLevelKey.SemVerLevel2);
 
                     results = await _searchService.Search(searchFilter);
 
