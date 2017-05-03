@@ -912,12 +912,6 @@ namespace NuGetGallery
 
         public async Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true)
         {
-            if (string.IsNullOrEmpty(version))
-            {
-                // No-op: no need to query the db, if we don't know what version to increment.
-                return;
-            }
-
             var package = FindPackageByIdAndVersionStrict(id, version);
             if (package != null)
             {
