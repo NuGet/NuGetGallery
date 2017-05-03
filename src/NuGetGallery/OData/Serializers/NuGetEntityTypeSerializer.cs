@@ -100,7 +100,7 @@ namespace NuGetGallery.OData.Serializers
 
         private static void NormalizeNavigationLinks(ODataEntry entry, HttpRequestMessage request, V2FeedPackage instance, string normalizedVersion)
         {
-            var idLink = BuildIdLink("v2", instance.Id, normalizedVersion, request);
+            var idLink = BuildIdLink(instance.Id, normalizedVersion, request);
 
             if (entry.ReadLink != null)
             {
@@ -135,9 +135,9 @@ namespace NuGetGallery.OData.Serializers
             return builder.Uri;
         }
 
-        private static Uri BuildIdLink(string routePrefix, string id, string version, HttpRequestMessage request)
+        private static Uri BuildIdLink(string id, string version, HttpRequestMessage request)
         {
-            return new Uri($"{request.RequestUri.Scheme}://{request.RequestUri.Host}/api/{routePrefix}/Packages(Id='{id}',Version='{version}')");
+            return new Uri($"{request.RequestUri.Scheme}://{request.RequestUri.Host}{request.RequestUri.LocalPath}(Id='{id}',Version='{version}')");
         }
 
         private static string EnsureTrailingSlash(string url)
