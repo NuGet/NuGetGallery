@@ -299,7 +299,7 @@ namespace NuGetGallery
             packageService.CallBase = true;
 
             packageService
-                .Setup(s => s.FindPackageByIdAndVersion("test", "1.0.0", true))
+                .Setup(s => s.FindPackageByIdAndVersionStrict("test", "1.0.0"))
                 .Returns(package)
                 .Verifiable();
 

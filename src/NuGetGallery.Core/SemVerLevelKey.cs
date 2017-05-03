@@ -16,7 +16,8 @@ namespace NuGetGallery
     /// </summary>
     public static class SemVerLevelKey
     {
-        private static readonly NuGetVersion _semVer2Version = NuGetVersion.Parse("2.0.0");
+        public static readonly string SemVerLevel2 = "2.0.0";
+        private static readonly NuGetVersion _semVer2Version = NuGetVersion.Parse(SemVerLevel2);
 
         /// <summary>
         /// This could either indicate being SemVer1-compliant, or non-SemVer-compliant at all (e.g. System.Versioning pattern).

@@ -24,14 +24,15 @@ namespace NuGetGallery.OData
         /// </summary>
         internal const int MaxPageSize = 100;
 
-        public static SearchFilter GetSearchFilter(string q, int page, string sortOrder, string context)
+        public static SearchFilter GetSearchFilter(string q, int page, string sortOrder, string context, string semVerLevel)
         {
             var searchFilter = new SearchFilter(context)
             {
                 SearchTerm = q,
                 Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
                 Take = Constants.DefaultPackageListPageSize,
-                IncludePrerelease = true
+                IncludePrerelease = true,
+                SemVerLevel = semVerLevel
             };
 
             switch (sortOrder)
@@ -93,7 +94,8 @@ namespace NuGetGallery.OData
                    IQueryable<Package> packages,
                    string id,
                    string version,
-                   CuratedFeed curatedFeed)
+                   CuratedFeed curatedFeed,
+                   string semVerLevel)
         {
             SearchFilter searchFilter;
             // We can only use Lucene if:
@@ -112,6 +114,7 @@ namespace NuGetGallery.OData
                 }
 
                 searchFilter.SearchTerm = searchTerm;
+                searchFilter.SemVerLevel = semVerLevel;
                 searchFilter.IncludePrerelease = true;
                 searchFilter.CuratedFeed = curatedFeed;
                 searchFilter.SupportedFramework = null;
@@ -132,7 +135,8 @@ namespace NuGetGallery.OData
             string searchTerm, 
             string targetFramework, 
             bool includePrerelease,
-            CuratedFeed curatedFeed)
+            CuratedFeed curatedFeed,
+            string semVerLevel)
         {
             SearchFilter searchFilter;
             // We can only use Lucene if:
@@ -144,6 +148,7 @@ namespace NuGetGallery.OData
                 searchFilter.IncludePrerelease = includePrerelease;
                 searchFilter.CuratedFeed = curatedFeed;
                 searchFilter.SupportedFramework = targetFramework;
+                searchFilter.SemVerLevel = semVerLevel;
 
                 var results = await GetResultsFromSearchService(searchService, searchFilter);
 
@@ -154,6 +159,8 @@ namespace NuGetGallery.OData
             {
                 packages = packages.Where(p => !p.IsPrerelease);
             }
+
+            packages = packages.Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel));
     
             return new SearchAdaptorResult(false, packages.Search(searchTerm));
         }
