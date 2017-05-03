@@ -256,7 +256,7 @@ namespace NuGetGallery
 
         public virtual Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey)
         {
-            var packageVersions = GetPackagesByIdQueryable(id).ToList();
+            var packageVersions = GetPackagesByIdQueryable(id);
 
             Package package;
             if (semVerLevelKey == SemVerLevelKey.SemVer2)
