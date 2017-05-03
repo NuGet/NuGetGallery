@@ -28,7 +28,12 @@ namespace NuGetGallery
 
         public static string ToNormalizedStringSafe(this NuGetVersion self)
         {
-            return self != null ? self.ToNormalizedString() : String.Empty;
+            return self != null ? self.ToNormalizedString() : string.Empty;
+        }
+
+        public static string ToFullStringSafe(this NuGetVersion self)
+        {
+            return self != null ? self.ToFullString() : string.Empty;
         }
 
         public static bool IsValidVersionForLegacyClients(this NuGetVersion self)

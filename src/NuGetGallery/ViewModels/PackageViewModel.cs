@@ -24,7 +24,9 @@ namespace NuGetGallery
             LicenseUrl = package.LicenseUrl;
             HideLicenseReport = package.HideLicenseReport;
             LatestVersion = package.IsLatest;
+            LatestVersionSemVer2 = package.IsLatestSemVer2;
             LatestStableVersion = package.IsLatestStable;
+            LatestStableVersionSemVer2 = package.IsLatestStableSemVer2;
             LastUpdated = package.Published;
             Listed = package.Listed;
             Deleted = package.Deleted;
@@ -49,6 +51,8 @@ namespace NuGetGallery
         public DateTime LastUpdated { get; set; }
         public bool LatestVersion { get; set; }
         public bool LatestStableVersion { get; set; }
+        public bool LatestVersionSemVer2 { get; set; }
+        public bool LatestStableVersionSemVer2 { get; set; }
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
