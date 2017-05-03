@@ -142,16 +142,16 @@ namespace NuGetGallery
 
             if (lastIndexTime.HasValue)
             {
-                // Retrieve the Latest and LatestStable version of packages if any package for that registration changed since we last updated the index.
+                // Retrieve the Latest, LatestStable, LatestSemVer2 and LatestStableSemVer2 version of packages if any package for that registration changed since we last updated the index.
                 // We need to do this because some attributes that we index such as DownloadCount are values in the PackageRegistration table that may
                 // update independent of the package.
                 set = set.Where(
-                    p => (p.IsLatest || p.IsLatestStable) && 
+                    p => (p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2) && 
                         p.PackageRegistration.Packages.Any(p2 => p2.LastUpdated > lastIndexTime));
             }
             else
             {
-                set = set.Where(p => p.IsLatest || p.IsLatestStable);  // which implies that p.IsListed by the way!
+                set = set.Where(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2);  // which implies that p.IsListed by the way!
             }
 
             var list = set
