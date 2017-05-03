@@ -101,7 +101,13 @@ namespace NuGetGallery.Controllers
             try
             {
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                    _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
+                    _searchService, 
+                    GetTraditionalHttpContext().Request, 
+                    packages, 
+                    id, 
+                    version, 
+                    curatedFeed: null,
+                    semVerLevel: null);
 
                 // If intercepted, create a paged queryresult
                 if (searchAdaptorResult.ResultsAreProvidedBySearchService)
@@ -190,7 +196,14 @@ namespace NuGetGallery.Controllers
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
-                _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, false, curatedFeed: null);
+                _searchService, 
+                GetTraditionalHttpContext().Request, 
+                packages, 
+                searchTerm, 
+                targetFramework, 
+                false, 
+                curatedFeed: null,
+                semVerLevel: null);
 
             // Packages provided by search service (even when not hijacked)
             var query = searchAdaptorResult.Packages;
