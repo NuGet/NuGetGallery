@@ -161,6 +161,8 @@ namespace NuGetGallery
             // Fields meant for filtering, also storing data to avoid hitting SQL while doing searches
             document.Add(new Field("IsLatest", Package.IsLatest.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
             document.Add(new Field("IsLatestStable", Package.IsLatestStable.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("IsLatestSemVer2", Package.IsLatestSemVer2.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("IsLatestStableSemVer2", Package.IsLatestStableSemVer2.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
 
             // Fields meant for filtering, sorting
             document.Add(new Field("PublishedDate", Package.Published.Ticks.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
