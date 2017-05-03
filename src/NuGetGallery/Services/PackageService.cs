@@ -133,7 +133,7 @@ namespace NuGetGallery
                 // Wrap the exception for consistency of this API.
                 throw new InvalidPackageException(exception.Message, exception);
             }
-            
+
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
             packageRegistration.Packages.Add(package);
             await UpdateIsLatestAsync(packageRegistration, false);
@@ -159,38 +159,66 @@ namespace NuGetGallery
                 .SingleOrDefault(pr => pr.Id == id);
         }
 
-        public virtual Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true)
+        public virtual Package FindPackageByIdAndVersion(
+            string id, 
+            string version, 
+            int? semVerLevelKey = null, 
+            bool allowPrerelease = true)
         {
-            if (String.IsNullOrWhiteSpace(id))
+            if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
 
-            // Optimization: Every time we look at a package we almost always want to see
-            // all the other packages with the same ID via the PackageRegistration property.
-            // This resulted in a gnarly query.
-            // Instead, we can always query for all packages with the ID.
-            IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
-                .Include(p => p.LicenseReports)
-                .Include(p => p.PackageRegistration)
-                .Where(p => (p.PackageRegistration.Id == id));
-
-            if (String.IsNullOrEmpty(version) && !allowPrerelease)
+            Package package = null;
+            if (!string.IsNullOrEmpty(version))
             {
-                // If there's a specific version given, don't bother filtering by prerelease. You could be asking for a prerelease package.
-                packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
+                package = FindPackageByIdAndVersionStrict(id, version);
             }
 
-            var packageVersions = packagesQuery.ToList();
-
-            Package package;
-            if (String.IsNullOrEmpty(version))
+            // Package version not found: fallback to latest version.
+            if (package == null)
             {
-                package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
+                // Optimization: Every time we look at a package we almost always want to see
+                // all the other packages with the same ID via the PackageRegistration property.
+                // This resulted in a gnarly query.
+                // Instead, we can always query for all packages with the ID.
+                IEnumerable<Package> packagesQuery = GetPackagesByIdQueryable(id);
 
-                if (package == null && allowPrerelease)
+                if (string.IsNullOrEmpty(version) && !allowPrerelease)
                 {
-                    package = packageVersions.FirstOrDefault(p => p.IsLatest);
+                    // If there's a specific version given, don't bother filtering by prerelease. 
+                    // You could be asking for a prerelease package.
+                    packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
+                }
+
+                var packageVersions = packagesQuery.ToList();
+
+                // Fallback behavior: collect the latest version.
+                // Check SemVer-level and allow-prerelease constraints.
+                if (semVerLevelKey == SemVerLevelKey.SemVer2)
+                {
+                    package = packageVersions.FirstOrDefault(p => p.IsLatestStableSemVer2);
+
+                    if (package == null && allowPrerelease)
+                    {
+                        package = packageVersions.FirstOrDefault(p => p.IsLatestSemVer2);
+                    }
+                }
+
+                // Fallback behavior: collect the latest version.
+                // If SemVer-level is not defined, 
+                // or SemVer-level = 2.0.0 and no package was marked as SemVer2-latest,
+                // then check for packages marked as non-SemVer2 latest.
+                if (semVerLevelKey == SemVerLevelKey.Unknown 
+                    || (semVerLevelKey == SemVerLevelKey.SemVer2 && package == null))
+                {
+                    package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
+
+                    if (package == null && allowPrerelease)
+                    {
+                        package = packageVersions.FirstOrDefault(p => p.IsLatest);
+                    }
                 }
 
                 // If we couldn't find a package marked as latest, then
@@ -200,26 +228,45 @@ namespace NuGetGallery
                     package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
                 }
             }
-            else
-            {
-                package = packageVersions.SingleOrDefault(
-                    p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
-                         (
-                            String.Equals(p.NormalizedVersion, NuGetVersionNormalizer.Normalize(version), StringComparison.OrdinalIgnoreCase)
-                         ));
-            }
+            
             return package;
         }
 
-        public virtual Package FindAbsoluteLatestPackageById(string id)
+        public virtual Package FindPackageByIdAndVersionStrict(string id, string version)
         {
-            var packageVersions = _packageRepository.GetAll()
-                .Include(p => p.LicenseReports)
-                .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id == id)
-                .ToList();
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
 
-            Package package = packageVersions.FirstOrDefault(p => p.IsLatest);
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new ArgumentException(nameof(version));
+            }
+
+            var normalizedVersion = NuGetVersionNormalizer.Normalize(version);
+
+            // These string comparisons are case-(in)sensitive depending on SQLServer collation.
+            // Case-insensitive collation is recommended, e.g. SQL_Latin1_General_CP1_CI_AS.
+            var package = GetPackagesByIdQueryable(id)
+                .SingleOrDefault(p => p.NormalizedVersion == normalizedVersion);
+
+            return package;
+        }
+
+        public virtual Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey)
+        {
+            var packageVersions = GetPackagesByIdQueryable(id);
+
+            Package package;
+            if (semVerLevelKey == SemVerLevelKey.SemVer2)
+            {
+                package = packageVersions.FirstOrDefault(p => p.IsLatestSemVer2);
+            }
+            else
+            {
+                package = packageVersions.FirstOrDefault(p => p.IsLatest);
+            }
 
             // If we couldn't find a package marked as latest, then return the most recent one 
             if (package == null)
@@ -303,7 +350,7 @@ namespace NuGetGallery
 
         public async Task PublishPackageAsync(string id, string version, bool commitChanges = true)
         {
-            var package = FindPackageByIdAndVersion(id, version);
+            var package = FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -342,7 +389,7 @@ namespace NuGetGallery
                 _packageOwnerRequestRepository.DeleteOnCommit(request);
                 await _packageOwnerRequestRepository.CommitChangesAsync();
             }
-            
+
             await _auditingService.SaveAuditRecordAsync(
                 new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.AddOwner, user.Username));
         }
@@ -396,7 +443,7 @@ namespace NuGetGallery
             package.LastEdited = DateTime.UtcNow;
 
             await UpdateIsLatestAsync(package.PackageRegistration, false);
-            
+
             await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.List));
 
             if (commitChanges)
@@ -488,6 +535,14 @@ namespace NuGetGallery
             return ConfirmOwnershipResult.Failure;
         }
 
+        private IQueryable<Package> GetPackagesByIdQueryable(string id)
+        {
+            return _packageRepository.GetAll()
+                            .Include(p => p.LicenseReports)
+                            .Include(p => p.PackageRegistration)
+                            .Where(p => p.PackageRegistration.Id == id);
+        }
+
         private PackageRegistration CreateOrGetPackageRegistration(User currentUser, PackageMetadata packageMetadata)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
@@ -536,8 +591,8 @@ namespace NuGetGallery
         }
 
         public virtual Package EnrichPackageFromNuGetPackage(
-            Package package, 
-            PackageArchiveReader packageArchive, 
+            Package package,
+            PackageArchiveReader packageArchive,
             PackageMetadata packageMetadata,
             PackageStreamMetadata packageStreamMetadata,
             User user)
@@ -546,7 +601,7 @@ namespace NuGetGallery
             // However, we do also store a normalized copy for looking up later.
             package.Version = packageMetadata.Version.OriginalVersion;
             package.NormalizedVersion = packageMetadata.Version.ToNormalizedString();
-            
+
             package.Description = packageMetadata.Description;
             package.ReleaseNotes = packageMetadata.ReleaseNotes;
             package.HashAlgorithm = packageStreamMetadata.HashAlgorithm;
@@ -592,7 +647,7 @@ namespace NuGetGallery
                     package.SupportedFrameworks.Add(new PackageFramework { TargetFramework = supportedFramework });
                 }
             }
-            
+
             package.Dependencies = packageMetadata
                 .GetDependencyGroups()
                 .AsPackageDependencyEnumerable()
@@ -606,7 +661,7 @@ namespace NuGetGallery
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             package.FlattenedPackageTypes = package.PackageTypes.Flatten();
-            
+
             // Identify the SemVerLevelKey using the original package version string and package dependencies
             package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
 
@@ -737,37 +792,74 @@ namespace NuGetGallery
             }
 
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
+            var currentUtcTime = DateTime.UtcNow;
             foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
             {
                 pv.IsLatest = false;
                 pv.IsLatestStable = false;
-                pv.LastUpdated = DateTime.UtcNow;
+                pv.IsLatestSemVer2 = false;
+                pv.IsLatestStableSemVer2 = false;
+                pv.LastUpdated = currentUtcTime;
             }
 
             // If the last listed package was just unlisted, then we won't find another one
-            var latestPackage = FindPackage(packageRegistration.Packages, p => !p.Deleted && p.Listed);
+            var latestPackage = FindPackage(
+                packageRegistration.Packages, 
+                p => !p.Deleted && p.Listed && p.SemVerLevelKey == SemVerLevelKey.Unknown);
+
+            var latestSemVer2Package = FindPackage(
+                packageRegistration.Packages, 
+                p => !p.Deleted && p.Listed && (p.SemVerLevelKey == SemVerLevelKey.SemVer2 || p.SemVerLevelKey == SemVerLevelKey.Unknown));
 
             if (latestPackage != null)
             {
                 latestPackage.IsLatest = true;
-                latestPackage.LastUpdated = DateTime.UtcNow;
+                latestPackage.LastUpdated = currentUtcTime;
 
                 if (latestPackage.IsPrerelease)
                 {
                     // If the newest uploaded package is a prerelease package, we need to find an older package that is
                     // a release version and set it to IsLatest.
-                    var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed));
+                    var latestReleasePackage = FindPackage(
+                        packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed && p.SemVerLevelKey == SemVerLevelKey.Unknown));
+
                     if (latestReleasePackage != null)
                     {
                         // We could have no release packages
                         latestReleasePackage.IsLatestStable = true;
-                        latestReleasePackage.LastUpdated = DateTime.UtcNow;
+                        latestReleasePackage.LastUpdated = currentUtcTime;
                     }
                 }
                 else
                 {
                     // Only release versions are marked as IsLatestStable.
                     latestPackage.IsLatestStable = true;
+                }
+            }
+
+            if (latestSemVer2Package != null)
+            {
+                latestSemVer2Package.IsLatestSemVer2 = true;
+                latestSemVer2Package.LastUpdated = currentUtcTime;
+
+                if (latestSemVer2Package.IsPrerelease)
+                {
+                    // If the newest uploaded package is a prerelease package, we need to find an older package that is
+                    // a release version and set it to IsLatest.
+                    var latestSemVer2ReleasePackage = FindPackage(
+                        packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed && p.SemVerLevelKey == SemVerLevelKey.SemVer2));
+
+                    if (latestSemVer2ReleasePackage != null)
+                    {
+                        // We could have no release packages
+                        latestSemVer2ReleasePackage.IsLatestStableSemVer2 = true;
+                        latestSemVer2ReleasePackage.LastUpdated = currentUtcTime;
+                    }
+                }
+                else
+                {
+                    // Only release versions are marked as IsLatestStable.
+                    latestSemVer2Package.IsLatestStableSemVer2 = true;
                 }
             }
 
@@ -783,12 +875,13 @@ namespace NuGetGallery
             {
                 packages = packages.Where(predicate);
             }
-            NuGetVersion version = packages.Max(p => new NuGetVersion(p.Version));
 
+            NuGetVersion version = packages.Max(p => new NuGetVersion(p.Version));
             if (version == null)
             {
                 return null;
             }
+
             return packages.First(pv => pv.Version.Equals(version.OriginalVersion, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -819,7 +912,7 @@ namespace NuGetGallery
 
         public async Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true)
         {
-            var package = FindPackageByIdAndVersion(id, version);
+            var package = FindPackageByIdAndVersionStrict(id, version);
             if (package != null)
             {
                 package.DownloadCount++;
