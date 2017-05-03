@@ -80,6 +80,9 @@ namespace NuGetGallery
         public bool IsLatest { get; set; }
         public bool IsLatestStable { get; set; }
 
+        public bool IsLatestSemVer2 { get; set; }
+        public bool IsLatestStableSemVer2 { get; set; }
+
         /// <summary>
         /// This is when the Package Entity was last touched (so caches can notice changes). In UTC.
         /// </summary>
