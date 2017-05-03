@@ -146,11 +146,16 @@ namespace NuGetGallery
             }
             else
             {
-                // if version is null, get the latest version from the database.
+                // If version is null, get the latest version from the database.
                 // This ensures that on package restore scenario where version will be non null, we don't hit the database.
                 try
                 {
-                    var package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+                    var package = PackageService.FindPackageByIdAndVersion(
+                        id, 
+                        version, 
+                        SemVerLevelKey.SemVer2, 
+                        allowPrerelease: false);
+
                     if (package == null)
                     {
                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
@@ -261,7 +266,7 @@ namespace NuGetGallery
         private async Task<HttpStatusCodeWithBodyResult> VerifyPackageKeyInternalAsync(User user, Credential credential, string id, string version)
         {
             // Verify that the user has permission to push for the specific Id \ version combination.
-            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -544,7 +549,7 @@ namespace NuGetGallery
         [ActionName("DeletePackageApi")]
         public virtual async Task<ActionResult> DeletePackage(string id, string version)
         {
-            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -577,7 +582,7 @@ namespace NuGetGallery
         [ActionName("PublishPackageApi")]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
         {
-            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
