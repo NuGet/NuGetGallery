@@ -27,6 +27,7 @@ namespace NuGetGallery
         public const string AccountCreationDate = "AccountCreationDate";
         public const string ClientVersion = "ClientVersion";
         public const string IsScoped = "IsScoped";
+        public const string KeyCreationDate = "KeyCreationDate";
         public const string PackageId = "PackageId";
         public const string PackageVersion = "PackageVersion";
 
@@ -69,6 +70,7 @@ namespace NuGetGallery
                 properties.Add(PackageVersion, package.Version);
                 properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
                 properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
             });
         }
@@ -90,6 +92,7 @@ namespace NuGetGallery
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
                 properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
             });
         }
@@ -110,6 +113,7 @@ namespace NuGetGallery
             {
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
+                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
                 properties.Add(IsVerificationKeyUsed, identity.HasPackageVerifyScopeClaim().ToString());
                 properties.Add(VerifyPackageKeyStatusCode, statusCode.ToString());
             });
@@ -123,6 +127,12 @@ namespace NuGetGallery
         private static string GetAccountCreationDate(User user)
         {
             return user.CreatedUtc != null ? user.CreatedUtc.Value.ToString("o") : "N/A";
+        }
+
+        private static string GetApiKeyCreationDate(User user, IIdentity identity)
+        {
+            var apiKey = user.GetCurrentApiKeyCredential(identity);
+            return apiKey?.Created.ToString("o") ?? "N/A";
         }
 
         private static void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)
