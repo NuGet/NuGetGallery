@@ -248,22 +248,15 @@ namespace NuGetGallery
                 throw new ArgumentException(nameof(version));
             }
 
-            // Optimization: Every time we look at a package we almost always want to see
-            // all the other packages with the same ID via the PackageRegistration property.
-            // This resulted in a gnarly query.
-            // Instead, we can always query for all packages with the ID.
-            IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
-            .Include(p => p.LicenseReports)
-            .Include(p => p.PackageRegistration)
-            .Where(p => (p.PackageRegistration.Id == id));
+            var normalizedVersion = NuGetVersionNormalizer.Normalize(version);
 
-            var packageVersions = packagesQuery.ToList();
-
-            var package = packageVersions.SingleOrDefault(
-                    p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
-                         (
-                            string.Equals(p.NormalizedVersion, NuGetVersionNormalizer.Normalize(version), StringComparison.OrdinalIgnoreCase)
-                         ));
+            // These string comparisons are case-(in)sensitive depending on SQLServer collation.
+            // Case-insensitive collation is recommended, e.g. SQL_Latin1_General_CP1_CI_AS.
+            var package = _packageRepository.GetAll()
+                .Include(p => p.LicenseReports)
+                .Include(p => p.PackageRegistration)
+                .Where(p => p.PackageRegistration.Id == id)
+                .SingleOrDefault(p => p.NormalizedVersion == normalizedVersion);
 
             return package;
         }
