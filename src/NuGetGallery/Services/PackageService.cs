@@ -183,11 +183,7 @@ namespace NuGetGallery
                 // all the other packages with the same ID via the PackageRegistration property.
                 // This resulted in a gnarly query.
                 // Instead, we can always query for all packages with the ID.
-                IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
-                    .Include(p => p.LicenseReports)
-                    .Include(p => p.PackageRegistration)
-                    .Where(p => (p.PackageRegistration.Id == id));
-
+                IEnumerable<Package> packagesQuery = GetPackagesByIdQueryable(id);
 
                 if (string.IsNullOrEmpty(version) && !allowPrerelease)
                 {
@@ -252,10 +248,7 @@ namespace NuGetGallery
 
             // These string comparisons are case-(in)sensitive depending on SQLServer collation.
             // Case-insensitive collation is recommended, e.g. SQL_Latin1_General_CP1_CI_AS.
-            var package = _packageRepository.GetAll()
-                .Include(p => p.LicenseReports)
-                .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id == id)
+            var package = GetPackagesByIdQueryable(id)
                 .SingleOrDefault(p => p.NormalizedVersion == normalizedVersion);
 
             return package;
@@ -263,11 +256,7 @@ namespace NuGetGallery
 
         public virtual Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey)
         {
-            var packageVersions = _packageRepository.GetAll()
-                .Include(p => p.LicenseReports)
-                .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id == id)
-                .ToList();
+            var packageVersions = GetPackagesByIdQueryable(id).ToList();
 
             Package package;
             if (semVerLevelKey == SemVerLevelKey.SemVer2)
@@ -544,6 +533,14 @@ namespace NuGetGallery
             }
 
             return ConfirmOwnershipResult.Failure;
+        }
+
+        private IQueryable<Package> GetPackagesByIdQueryable(string id)
+        {
+            return _packageRepository.GetAll()
+                            .Include(p => p.LicenseReports)
+                            .Include(p => p.PackageRegistration)
+                            .Where(p => p.PackageRegistration.Id == id);
         }
 
         private PackageRegistration CreateOrGetPackageRegistration(User currentUser, PackageMetadata packageMetadata)
