@@ -63,7 +63,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
                 else if (splitQueryPart.Length == 2)
                 {
-                    var resultingPackage = _packageService.FindPackageByIdAndVersion(splitQueryPart[0].Trim(), splitQueryPart[1].Trim(), true);
+                    var resultingPackage = _packageService.FindPackageByIdAndVersionStrict(splitQueryPart[0].Trim(), splitQueryPart[1].Trim());
                     if (resultingPackage != null)
                     {
                         results.Add(CreateDeleteSearchResult(resultingPackage));

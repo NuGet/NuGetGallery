@@ -128,7 +128,8 @@ namespace NuGetGallery.Infrastructure.Lucene
                 countOnly: filter.CountOnly,
                 explain: false,
                 getAllVersions: filter.IncludeAllVersions,
-                supportedFramework: filter.SupportedFramework);
+                supportedFramework: filter.SupportedFramework,
+                semVerLevel: filter.SemVerLevel);
             sw.Stop();
 
             SearchResults results = null;

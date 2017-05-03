@@ -32,6 +32,8 @@ namespace NuGetGallery.OData
                             ExternalPackageUrl = null,
                             GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.Version,
                             IconUrl = p.IconUrl,
+                            // We do not project SemVer2 equivalent of IsLatestStable on v1 feeds
+                            // as SemVer2 is not supported on this endpoint.
                             IsLatestVersion = p.IsLatestStable,
                             Language = p.Language,
                             LastUpdated = p.LastUpdated,
@@ -53,17 +55,26 @@ namespace NuGetGallery.OData
                         });
         }
 
-        public static IQueryable<V2FeedPackage> ToV2FeedPackageQuery(this IQueryable<Package> packages, string siteRoot, bool includeLicenseReport)
+        public static IQueryable<V2FeedPackage> ToV2FeedPackageQuery(
+            this IQueryable<Package> packages,
+            string siteRoot,
+            bool includeLicenseReport,
+            int? semVerLevelKey)
         {
             return ProjectV2FeedPackage(
-                packages
-                    .Include(p => p.PackageRegistration),
-                siteRoot, includeLicenseReport);
+                packages.Include(p => p.PackageRegistration),
+                siteRoot,
+                includeLicenseReport,
+                semVerLevelKey);
         }
 
         // Does the actual projection of a Package object to a V2FeedPackage.
         // This is in a separate method for testability
-        internal static IQueryable<V2FeedPackage> ProjectV2FeedPackage(this IQueryable<Package> packages, string siteRoot, bool includeLicenseReport)
+        internal static IQueryable<V2FeedPackage> ProjectV2FeedPackage(
+            this IQueryable<Package> packages,
+            string siteRoot,
+            bool includeLicenseReport,
+            int? semVerLevelKey)
         {
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages.Select(p => new V2FeedPackage
@@ -79,9 +90,12 @@ namespace NuGetGallery.OData
                     DownloadCount = p.PackageRegistration.DownloadCount,
                     GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.NormalizedVersion,
                     IconUrl = p.IconUrl,
-                    IsLatestVersion = p.IsLatestStable,
+                    // We do not expose the internal IsLatestSemVer2 and IsLatestStableSemVer2 properties; 
+                    // instead the existing IsAbsoluteLatestVersion and IsLatestVersion properties will be updated based on the 
+                    // semver-level supported by the caller.
+                    IsLatestVersion = semVerLevelKey == SemVerLevelKey.SemVer2 ? p.IsLatestStableSemVer2 : p.IsLatestStable,
                     // To maintain parity with v1 behavior of the feed, IsLatestVersion would only be used for stable versions.
-                    IsAbsoluteLatestVersion = p.IsLatest,
+                    IsAbsoluteLatestVersion = semVerLevelKey == SemVerLevelKey.SemVer2 ? p.IsLatestSemVer2 : p.IsLatest,
                     IsPrerelease = p.IsPrerelease,
                     LastUpdated = p.LastUpdated,
                     Language = p.Language,
@@ -107,7 +121,10 @@ namespace NuGetGallery.OData
                 });
         }
 
-        internal static IQueryable<TVal> WithoutSortOnColumn<TVal>(this IQueryable<TVal> feedQuery, string columnName, bool confirmToIgnoreSort=true)
+        internal static IQueryable<TVal> WithoutSortOnColumn<TVal>(
+            this IQueryable<TVal> feedQuery, 
+            string columnName, 
+            bool confirmToIgnoreSort = true)
         {
             return confirmToIgnoreSort ? feedQuery.InterceptWith(new ODataRemoveSorter(columnName)) : feedQuery;
         }
