@@ -9,6 +9,47 @@ namespace NuGetGallery
 {
     public class ExtensionMethodsFacts
     {
+        public class TheGetCurrentApiKeyCredentialMethod
+        {
+            [Theory]
+            [InlineData("apikey.v2")]
+            [InlineData("apikey.verify.v1")]
+            public void ReturnsApiKeyMatchingClaim(string credentialType)
+            {
+                // Arrange
+                var user = new User("testuser");
+                user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "A"));
+                user.Credentials.Add(new Credential(credentialType, "B"));
+
+                var identity = AuthenticationService.CreateIdentity(
+                    new User("testuser"),
+                    AuthenticationTypes.ApiKey,
+                    new Claim(NuGetClaims.ApiKey, "B"));
+
+                // Act
+                var credential = user.GetCurrentApiKeyCredential(identity);
+
+                // Assert
+                Assert.Equal("B", credential.Value);
+            }
+
+            [Fact]
+            public void ReturnsNullIfNoApiKeyClaim()
+            {
+                // Arrange
+                var user = new User("testuser");
+                user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "A"));
+                user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "B"));
+
+                var identity = AuthenticationService.CreateIdentity(
+                    new User("testuser"),
+                    AuthenticationTypes.LocalUser);
+                
+                // Act & Assert
+                Assert.Null(user.GetCurrentApiKeyCredential(identity));
+            }
+        }
+
         public class TheHasPackageVerifyScopeClaimMethod
         {
             [Fact]
