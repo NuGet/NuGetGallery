@@ -792,13 +792,14 @@ namespace NuGetGallery
             }
 
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
+            var currentUtcTime = DateTime.UtcNow;
             foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
             {
                 pv.IsLatest = false;
                 pv.IsLatestStable = false;
                 pv.IsLatestSemVer2 = false;
                 pv.IsLatestStableSemVer2 = false;
-                pv.LastUpdated = DateTime.UtcNow;
+                pv.LastUpdated = currentUtcTime;
             }
 
             // If the last listed package was just unlisted, then we won't find another one
@@ -808,12 +809,12 @@ namespace NuGetGallery
 
             var latestSemVer2Package = FindPackage(
                 packageRegistration.Packages, 
-                p => !p.Deleted && p.Listed && p.SemVerLevelKey == SemVerLevelKey.SemVer2);
+                p => !p.Deleted && p.Listed && (p.SemVerLevelKey == SemVerLevelKey.SemVer2 || p.SemVerLevelKey == SemVerLevelKey.Unknown));
 
             if (latestPackage != null)
             {
                 latestPackage.IsLatest = true;
-                latestPackage.LastUpdated = DateTime.UtcNow;
+                latestPackage.LastUpdated = currentUtcTime;
 
                 if (latestPackage.IsPrerelease)
                 {
@@ -826,7 +827,7 @@ namespace NuGetGallery
                     {
                         // We could have no release packages
                         latestReleasePackage.IsLatestStable = true;
-                        latestReleasePackage.LastUpdated = DateTime.UtcNow;
+                        latestReleasePackage.LastUpdated = currentUtcTime;
                     }
                 }
                 else
@@ -839,7 +840,7 @@ namespace NuGetGallery
             if (latestSemVer2Package != null)
             {
                 latestSemVer2Package.IsLatestSemVer2 = true;
-                latestSemVer2Package.LastUpdated = DateTime.UtcNow;
+                latestSemVer2Package.LastUpdated = currentUtcTime;
 
                 if (latestSemVer2Package.IsPrerelease)
                 {
@@ -852,7 +853,7 @@ namespace NuGetGallery
                     {
                         // We could have no release packages
                         latestSemVer2ReleasePackage.IsLatestStableSemVer2 = true;
-                        latestSemVer2ReleasePackage.LastUpdated = DateTime.UtcNow;
+                        latestSemVer2ReleasePackage.LastUpdated = currentUtcTime;
                     }
                 }
                 else
