@@ -1,6 +1,6 @@
 # NuGet Website Terms of Use
 
-Updated: May 1, 2017
+Updated: May 3, 2017
 
 ## Legal Notices. 
 The NuGet Website [https://nuget.org](https://nuget.org) (the "Website") is provided by the .NET Foundation (".NET Foundation") as a public service to our users. Please carefully review the following basic rules that govern your use of the Website. Please note that your use of the Website constitutes your unconditional agreement to follow and be bound by these Terms of Use. If you do not agree to these Terms of Use, do not use the Website, provide any materials to the site or download any materials from it. .NET Foundation reserves the right to update or modify these Terms of Use at any time without prior notice. Your use of the Website following any such change constitutes your unconditional agreement to follow and be bound by these Terms of Use as changed. For this reason, we encourage you to review these Terms of Use whenever you use the Website. These Terms of Use apply to the use of Website and do not extend to any linked third-party websites. These Terms of Use and our Privacy Statement, which is hereby incorporated by reference, contain the entire agreement between .NET Foundation and you with respect to this site. Any rights not expressly granted herein are reserved.
