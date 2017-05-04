@@ -753,6 +753,10 @@
     <Compile Include="Migrations\201705031714183_AddIndexSemVerLevelKey.Designer.cs">
       <DependentUpon>201705031714183_AddIndexSemVerLevelKey.cs</DependentUpon>
     </Compile>
+    <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\IFeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\V1FeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategy.cs" />
     <Compile Include="Security\UserSecurityPolicyHandler.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
