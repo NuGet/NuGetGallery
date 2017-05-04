@@ -762,6 +762,10 @@
     </Compile>
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
+    <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\IFeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\V1FeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategy.cs" />
     <Compile Include="Security\UserSecurityPolicyHandler.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
