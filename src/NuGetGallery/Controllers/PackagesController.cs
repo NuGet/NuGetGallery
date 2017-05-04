@@ -1136,7 +1136,7 @@ namespace NuGetGallery
                 if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.OriginalVersion)))
                 {
                     if (!(String.Equals(packageMetadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
-                        && String.Equals(packageMetadata.Version.ToNormalizedString(), formData.Version, StringComparison.OrdinalIgnoreCase)
+                        && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
