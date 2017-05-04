@@ -404,6 +404,8 @@
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
     <Compile Include="OData\SearchService\SearchHijackerFacts.cs" />
+    <Compile Include="OData\Serializers\V1FeedPackageAnnotationStrategyFacts.cs" />
+    <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategyFacts.cs" />
     <Compile Include="PasswordValidationRegexTests.cs" />
     <Compile Include="SearchClient\CorrelatingHttpClientHandlerFacts.cs" />
     <Compile Include="SearchClient\RequestInspectingHandler.cs" />
