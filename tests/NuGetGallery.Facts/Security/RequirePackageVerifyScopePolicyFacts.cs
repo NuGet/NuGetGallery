@@ -68,7 +68,7 @@ namespace NuGetGallery.Security
             httpContext.Setup(c => c.User).Returns(principal.Object);
             
             var context = new UserSecurityPolicyContext(httpContext.Object,
-                new UserSecurityPolicy[] { new UserSecurityPolicy("RequireApiKeyWithPackageVerifyScopePolicy") });
+                new UserSecurityPolicy[] { new UserSecurityPolicy("RequireApiKeyWithPackageVerifyScopePolicy", "Enrollment") });
 
             return new RequirePackageVerifyScopePolicy().Evaluate(context);
         }

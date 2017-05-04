@@ -13,10 +13,10 @@
             <input type="button" value="Search" data-bind="click: search" />
         </form><br />
 
-        @using (Html.BeginForm("Enroll", "SecurityPolicy", new { area = "Admin" }, FormMethod.Post, new { id = "delete-form" }))
+        @using (Html.BeginForm("Update", "SecurityPolicy", new { area = "Admin" }, FormMethod.Post, new { id = "delete-form" }))
         {
             <div data-bind="visible: searchResults().length > 0">
-                <input type="hidden" name="Query" data-bind="value: searchQuery" />
+                <input type="hidden" name="UsersQuery" data-bind="value: searchQuery" />
 
                 <div class="message warning" style="display: none;" data-bind="visible: searchNotFoundResults().length > 0">
                     <strong>The following users were not found:</strong><br />
@@ -28,18 +28,18 @@
                         <thead>
                             <tr>
                                 <th>Username</th>
-                                @foreach (var policyGroup in Model.PolicyGroups)
+                                @foreach (var subscription in Model.SubscriptionNames)
                                 {
-                                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState.@policyGroup" />@policyGroup</th>
+                                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState.@subscription" />@subscription</th>
                                 }
                             </tr>
                         </thead>
                         <tbody data-bind="foreach: searchResults">
                             <tr>
                                 <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateUserUrl($data) }"></a></td>
-                                @foreach (var policyGroup in Model.PolicyGroups)
+                                @foreach (var subscription in Model.SubscriptionNames)
                                 {
-                                    <td><input type="checkbox" name="Enrollments[]" data-bind="checked: $data.Selected.@policyGroup, value: $parent.generateValue($data, '@policyGroup')" /></td>
+                                    <td><input type="checkbox" name="UserSubscriptions[]" data-bind="checked: $data.Selected.@subscription, value: $parent.generateValue($data, '@subscription')" /></td>
                                 }
                             </tr>
                         </tbody>
@@ -52,10 +52,10 @@
                     @Html.AntiForgeryToken()
 
                     <p>
-                        User enrollment in security policies could result in changes which <strong>CANNOT</strong> be undone.
+                        Onboarding users to security policy subscriptions could result in changes which <strong>CANNOT</strong> be undone.
                     </p>
 
-                    <input type="submit" value="I understand, update policy enrollments." title="I understand, update policy enrollments." />
+                    <input type="submit" value="I understand, update security policies." title="I understand, update security policies." />
                     <a class="cancel" href="@Url.Action("Index", "Home")" title="Cancel changes">Cancel</a>
                     </fieldset>
                 </div>
@@ -72,7 +72,7 @@
             var viewModel = function () {
                 var $self = this;
 
-                this.policyGroups = @Html.Raw(Json.Encode(@Model.PolicyGroups));
+                this.subscriptions = @Html.Raw(Json.Encode(@Model.SubscriptionNames));
                 this.searchQuery = ko.observable('');
 
                 this.search = function () {
@@ -89,8 +89,8 @@
                                 for (var i = 0; i < data.Users.length; i++) {
                                     var user = data.Users[i];
                                     user.Selected = {};
-                                    for (var key in user.Enrollments) {
-                                        user.Selected[key] = ko.observable(user.Enrollments[key]);
+                                    for (var key in user.Subscriptions) {
+                                        user.Selected[key] = ko.observable(user.Subscriptions[key]);
                                         user.Selected[key].subscribe($self.markDirty);
                                     }
                                 }
@@ -108,27 +108,27 @@
                 };
                 
                 this.selectAllState = {};
-                for (var i = 0; i < this.policyGroups.length; i++)
+                for (var i = 0; i < this.subscriptions.length; i++)
                 {
-                    var policyGroup = this.policyGroups[i];
-                    this.selectAllState[policyGroup] = ko.observable(false);
+                    var subscription = this.subscriptions[i];
+                    this.selectAllState[subscription] = ko.observable(false);
                 }
 
                 this.resetSelectAllState = function () {
-                    for (var i = 0; i < $self.policyGroups.length; i++)
+                    for (var i = 0; i < $self.subscriptions.length; i++)
                     {
-                        $self.selectAllState[$self.policyGroups[i]](false);
+                        $self.selectAllState[$self.subscriptions[i]](false);
                     }
                 }
                 
                 this.toggleSelectAll = function (data, e) {
-                    var policyGroup = e.currentTarget.nextSibling.data;
-                    $self.selectAllState[policyGroup](!$self.selectAllState[policyGroup]());
+                    var subscription = e.currentTarget.nextSibling.data;
+                    $self.selectAllState[subscription](!$self.selectAllState[subscription]());
                     return true;
                 };
 
-                this.generateValue = function (user, policyGroup) {
-                    return JSON.stringify({ "u": user.Username, "g": policyGroup })
+                this.generateValue = function (user, subscription) {
+                    return JSON.stringify({ "u": user.Username, "g": subscription })
                 };
 
                 this.generateUserUrl = function (user) {
@@ -145,12 +145,12 @@
                     $self.changeTracker(true);
                 };
 
-                for (var i = 0; i < this.policyGroups.length; i++) {
-                    this.selectAllState[policyGroup].subscribe(function () {
-                        var state = $self.selectAllState[policyGroup]();
+                for (var i = 0; i < this.subscriptions.length; i++) {
+                    this.selectAllState[subscription].subscribe(function () {
+                        var state = $self.selectAllState[subscription]();
 
                         ko.utils.arrayForEach($self.searchResults(), function (result) {
-                            result.Selected[policyGroup](state);
+                            result.Selected[subscription](state);
                         });
                     });
                 }
@@ -159,7 +159,7 @@
             ko.applyBindings(new viewModel(), $('#stage').get(0));
 
             $('#delete-form').submit(function (e) {
-                if (!confirm('Are you sure you want to continue with enrollment?')) {
+                if (!confirm('Are you sure you want to continue?')) {
                     e.preventDefault();
                 }
             });

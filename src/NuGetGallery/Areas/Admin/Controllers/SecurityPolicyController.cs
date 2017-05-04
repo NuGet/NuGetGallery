@@ -13,13 +13,28 @@ using NuGetGallery.Security;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// Controller for the security policy management Admin view.
+    /// </summary>
     public class SecurityPolicyController : AdminControllerBase
     {
         public IEntitiesContext EntitiesContext { get; }
 
-        public SecurityPolicyController(IEntitiesContext entitiesContext)
+        public ISecurityPolicyService PolicyService { get; }
+
+        public SecurityPolicyController(IEntitiesContext entitiesContext, ISecurityPolicyService policyService)
         {
+            if (entitiesContext == null)
+            {
+                throw new ArgumentNullException(nameof(entitiesContext));
+            }
+            if (policyService == null)
+            {
+                throw new ArgumentNullException(nameof(policyService));
+            }
+
             EntitiesContext = entitiesContext;
+            PolicyService = policyService;
         }
 
         [HttpGet]
@@ -27,7 +42,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var model = new SecurityPolicyViewModel()
             {
-                PolicyGroups = UserSecurityPolicyGroup.Instances.Select(pg => pg.Name)
+                SubscriptionNames = PolicyService.UserSubscriptions.Select(s => s.Name)
             };
 
             return View(model);
@@ -43,15 +58,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 .Where(name => !users.Any(u => u.Username.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
-            var results = new SecurityPolicySearchResult()
+            var results = new UserSecurityPolicySearchResult()
             {
-                // Found users and enrollment status for each policy group.
-                Users = users.Select(u => new SecurityPolicyEnrollments()
+                // Found users and subscribed status for each policy subscription.
+                Users = users.Select(u => new UserSecurityPolicySubscriptions()
                 {
                     Username = u.Username,
-                    Enrollments = UserSecurityPolicyGroup.Instances.ToDictionary(
-                        pg => pg.Name,
-                        pg => u.IsEnrolled(pg))
+                    Subscriptions = PolicyService.UserSubscriptions.ToDictionary(
+                        s => s.Name,
+                        s => PolicyService.IsSubscribed(u, s))
                 }),
                 // Usernames that weren't found in the DB.
                 UsersNotFound = usersNotFound
@@ -62,10 +77,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Enroll(SecurityPolicyViewModel viewModel)
+        public async Task<ActionResult> Update(SecurityPolicyViewModel viewModel)
         {
-            // Group enrollment requests by user.
-            var enrollments = viewModel.Enrollments?
+            // Policy subscription requests by user.
+            var subscriptions = viewModel.UserSubscriptions?
                 .Select(json => JsonConvert.DeserializeObject<JObject>(json))
                 .GroupBy(obj => obj["u"].ToString())
                 .ToDictionary(
@@ -73,29 +88,25 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     g => g.Select(obj => obj["g"].ToString())
                 );
 
-            // Iterate all users and groups to handle both enrollment and unenrollment.
-            var usernames = GetUsernamesFromQuery(viewModel.Query);
+            // Iterate all users and groups to handle both subscribe and unsubscribe.
+            var usernames = GetUsernamesFromQuery(viewModel.UsersQuery);
             var users = FindUsers(usernames);
             foreach (var user in users)
             {
-                foreach (var policyGroup in UserSecurityPolicyGroup.Instances)
+                foreach (var subscription in PolicyService.UserSubscriptions)
                 {
-                    if (enrollments != null && enrollments[user.Username].Contains(policyGroup.Name))
+                    if (subscriptions != null && subscriptions[user.Username].Contains(subscription.Name))
                     {
-                        user.AddPolicies(policyGroup);
+                        await PolicyService.SubscribeAsync(user, subscription);
                     }
                     else
                     {
-                        var removedPolicies = user.RemovePolicies(policyGroup);
-                        foreach (var p in removedPolicies)
-                        {
-                            EntitiesContext.UserSecurityPolicies.Remove(p);
-                        }
+                        await PolicyService.UnsubscribeAsync(user, subscription);
                     }
                 }
             }
 
-            await EntitiesContext.SaveChangesAsync();
+            TempData["Message"] = $"Updated policies for {users.Count()} users.";
 
             return RedirectToAction("Index");
         }

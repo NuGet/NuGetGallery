@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using NuGetGallery.Filters;
 
@@ -14,14 +15,47 @@ namespace NuGetGallery.Security
     /// </summary>
     public class SecurityPolicyService : ISecurityPolicyService
     {
-        private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userPolicyHandlers =
-            new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserPolicyHandlers);
+        private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers =
+            new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
 
-        protected virtual IEnumerable<UserSecurityPolicyHandler> UserPolicyHandlers
+        private static Lazy<IEnumerable<IUserSecurityPolicySubscription>> _userSubscriptions =
+            new Lazy<IEnumerable<IUserSecurityPolicySubscription>>(CreateUserSubscriptions);
+        
+        protected IEntitiesContext EntitiesContext { get; set; }
+
+        protected SecurityPolicyService()
+        {
+        }
+
+        public SecurityPolicyService(IEntitiesContext entitiesContext)
+        {
+            if (entitiesContext == null)
+            {
+                throw new ArgumentNullException(nameof(entitiesContext));
+            }
+
+            EntitiesContext = entitiesContext;
+        }
+
+        /// <summary>
+        /// Available user security policy handlers.
+        /// </summary>
+        protected virtual IEnumerable<UserSecurityPolicyHandler> UserHandlers
         {
             get
             {
-                return _userPolicyHandlers.Value;
+                return _userHandlers.Value;
+            }
+        }
+
+        /// <summary>
+        /// Available user security policy subscriptions.
+        /// </summary>
+        public virtual IEnumerable<IUserSecurityPolicySubscription> UserSubscriptions
+        {
+            get
+            {
+                return _userSubscriptions.Value;
             }
         }
 
@@ -36,7 +70,7 @@ namespace NuGetGallery.Security
             }
 
             var user = httpContext.GetCurrentUser();
-            foreach (var handler in UserPolicyHandlers.Where(h => h.Action == action))
+            foreach (var handler in UserHandlers.Where(h => h.Action == action))
             {
                 var foundPolicies = user.SecurityPolicies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase));
                 if (foundPolicies.Any())
@@ -52,12 +86,108 @@ namespace NuGetGallery.Security
         }
 
         /// <summary>
-        /// Create any supported policy handlers.
+        /// Check if a user is subscribed to one or more security policies.
         /// </summary>
-        private static IEnumerable<UserSecurityPolicyHandler> CreateUserPolicyHandlers()
+        public bool IsSubscribed(User user, IUserSecurityPolicySubscription subscription)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+            if (subscription == null)
+            {
+                throw new ArgumentNullException(nameof(subscription));
+            }
+
+            var subscribed = FindPolicies(user, subscription);
+            var required = subscription.Policies;
+
+            return required.All(rp => subscribed.Any(sp => sp.Equals(rp)));
+        }
+
+        /// <summary>
+        /// Subscribe a user to one or more security policies.
+        /// </summary>
+        public Task SubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+            if (subscription == null)
+            {
+                throw new ArgumentNullException(nameof(subscription));
+            }
+            
+            if (!IsSubscribed(user, subscription))
+            {
+                foreach (var policy in subscription.Policies)
+                {
+                    user.SecurityPolicies.Add(new UserSecurityPolicy(policy));
+                }
+
+                subscription.OnSubscribe(user);
+
+                return EntitiesContext.SaveChangesAsync();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Unsubscribe a user from one or more security policies.
+        /// </summary>
+        public Task UnsubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+            if (subscription == null)
+            {
+                throw new ArgumentNullException(nameof(subscription));
+            }
+
+            var matches = FindPolicies(user, subscription).ToList();
+            if (matches.Any())
+            {
+                foreach (var policy in matches)
+                {
+                    user.SecurityPolicies.Remove(policy);
+                    EntitiesContext.UserSecurityPolicies.Remove(policy);
+                }
+
+                subscription.OnUnsubscribe(user);
+
+                return EntitiesContext.SaveChangesAsync();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Find user security policies which belong to a subscription.
+        /// </summary>
+        private static IEnumerable<UserSecurityPolicy> FindPolicies(User user, IUserSecurityPolicySubscription subscription)
+        {
+            return user.SecurityPolicies.Where(s => s.Subscription.Equals(subscription.Name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Registration of available user security policy handlers.
+        /// </summary>
+        private static IEnumerable<UserSecurityPolicyHandler> CreateUserHandlers()
         {
             yield return new RequireMinClientVersionForPushPolicy();
             yield return new RequirePackageVerifyScopePolicy();
-        }       
+        }
+
+        /// <summary>
+        /// Registration of available user security policy subscriptions.
+        /// </summary>
+        private static IEnumerable<IUserSecurityPolicySubscription> CreateUserSubscriptions()
+        {
+            yield return new SecurePushSubscription();
+        }
     }
 }

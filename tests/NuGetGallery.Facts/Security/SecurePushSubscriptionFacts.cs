@@ -4,22 +4,46 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Moq;
 using Newtonsoft.Json;
 using NuGet.Packaging;
 using Xunit;
 
 namespace NuGetGallery.Security
 {
-    public class UserSecurityPolicyGroupFacts
+    public class SecurePushSubscriptionFacts
     {
+        [Fact]
+        public void SubscriptionName()
+        {
+            // Act & Assert.
+            Assert.Equal("SecurePush", new SecurePushSubscription().Name);
+        }
+
+        [Fact]
+        public void SubscriptionPolicies()
+        {
+            // Arrange.
+            var subscription = new SecurePushSubscription();
+            var policy1 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequireMinClientVersionForPushPolicy.PolicyName));
+            var policy2 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequirePackageVerifyScopePolicy.PolicyName));
+
+            // Act & Assert.
+            Assert.Equal(2, subscription.Policies.Count());
+            Assert.NotNull(policy1);
+            Assert.NotNull(policy2);
+            Assert.Equal("{\"v\":\"4.1.0\"}", policy1.Value);
+        }
+
         [Theory]
         [InlineData("")]
         [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]")]
         [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]")]
-        public void SecurePush_OnEnrollExpiresPushApiKeys(string scopes)
+        public void OnSubscribeExpiresPushApiKeysIn1Week(string scopes)
         {
             // Arrange & Act.
-            var user = EnrollUserInSecurePush(CredentialTypes.ApiKey.V2, scopes);
+            var user = SubscribeUserToSecurePush(CredentialTypes.ApiKey.V2, scopes);
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
@@ -30,10 +54,10 @@ namespace NuGetGallery.Security
         [InlineData("password.v3", "")]
         [InlineData("apikey.v2", "[{\"a\":\"package:unlist\", \"s\":\"theId\"}]")]
         [InlineData("apikey.verify.v1", "[{\"a\":\"package:verify\", \"s\":\"theId\"}]")]
-        public void SecurePush_OnEnrollDoesNotExpireNonPushCredentials(string type, string scopes)
+        public void OnSubscribeDoesNotExpireNonPushCredentials(string type, string scopes)
         {
             // Arrange & Act.
-            var user = EnrollUserInSecurePush(type, scopes);
+            var user = SubscribeUserToSecurePush(type, scopes);
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
@@ -44,21 +68,24 @@ namespace NuGetGallery.Security
         [InlineData("")]
         [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]")]
         [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]")]
-        public void SecurePush_OnEnrollDoesNotChangeExpiringPushCredentials(string scopes)
+        public void OnSubscribeDoesNotChangeExpiringPushCredentials(string scopes)
         {
             // Arrange & Act.
-            var user = EnrollUserInSecurePush(CredentialTypes.ApiKey.V2, scopes, expiresInDays: 2);
+            var user = SubscribeUserToSecurePush(CredentialTypes.ApiKey.V2, scopes, expiresInDays: 2);
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
             Assert.True(DateTime.UtcNow.AddDays(2) >= user.Credentials.First().Expires);
         }
 
-        private User EnrollUserInSecurePush(string type, string scopes, int expiresInDays = 10)
+        private User SubscribeUserToSecurePush(string type, string scopes, int expiresInDays = 10)
         {
             // Arrange.
-            var group = UserSecurityPolicyGroup.Instances.First(
-                g => g.Name.Equals(UserSecurityPolicyGroup.SecurePush, StringComparison.OrdinalIgnoreCase));
+            var entitiesContext = new Mock<IEntitiesContext>();
+            entitiesContext.Setup(c => c.SaveChangesAsync()).Returns(Task.FromResult(2)).Verifiable();
+
+            var service = new SecurityPolicyService(entitiesContext.Object);
+            var subscription = service.UserSubscriptions.First(s => s.Name.Equals(SecurePushSubscription.SubscriptionName));
 
             var credential = new Credential(type, string.Empty, TimeSpan.FromDays(expiresInDays));
             if (!string.IsNullOrWhiteSpace(scopes))
@@ -69,7 +96,8 @@ namespace NuGetGallery.Security
             user.Credentials.Add(credential);
 
             // Act.
-            user.AddPolicies(group);
+            service.SubscribeAsync(user, subscription);
+            entitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 
             return user;
         }

@@ -411,8 +411,7 @@
     <Compile Include="Security\RequirePackageVerifyScopePolicyFacts.cs" />
     <Compile Include="Security\RequireMinClientVersionForPushPolicyFacts.cs" />
     <Compile Include="Security\SecurityPolicyServiceFacts.cs" />
-    <Compile Include="Security\UserSecurityPolicyExtensionsFacts.cs" />
-    <Compile Include="Security\UserSecurityPolicyGroupFacts.cs" />
+    <Compile Include="Security\SecurePushSubscriptionFacts.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicyFacts.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicyFacts.cs" />
     <Compile Include="Services\PagerDutyClientFacts.cs" />

@@ -461,8 +461,7 @@ namespace NuGetGallery
             var claimsIdentity = identity as ClaimsIdentity;
             var apiKey = claimsIdentity.GetClaimOrDefault(NuGetClaims.ApiKey);
 
-            return string.IsNullOrEmpty(apiKey) ? null
-                : user.Credentials.FirstOrDefault(c => c.Value == apiKey);
+            return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
         }
 
         private static User LoadUser(IOwinContext context)

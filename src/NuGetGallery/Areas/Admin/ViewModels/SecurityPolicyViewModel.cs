@@ -13,16 +13,16 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         /// <summary>
         /// Users search query.
         /// </summary>
-        public string Query { get; set; }
+        public string UsersQuery { get; set; }
 
         /// <summary>
         /// Available security policy groups.
         /// </summary>
-        public IEnumerable<string> PolicyGroups { get; set; }
+        public IEnumerable<string> SubscriptionNames { get; set; }
 
         /// <summary>
-        /// Requested user enrollments to make. String format is 'username|policygroup'.
+        /// User subscription requests, in JSON format.
         /// </summary>
-        public IEnumerable<string> Enrollments { get; set; }
+        public IEnumerable<string> UserSubscriptions { get; set; }
     }
 }
