@@ -83,7 +83,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string id, string version)
         {
-            var result = await GetCore(options, curatedFeedName, id, version, return404NotFoundWhenNoResults: true, semVerLevel: null);
+            var result = await GetCore(options, curatedFeedName, id, version, return404NotFoundWhenNoResults: true, semVerLevel: SemVerLevelKey.SemVerLevel2);
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
@@ -107,14 +107,14 @@ namespace NuGetGallery.Controllers
                 return QueryResult(options, emptyResult, MaxPageSize);
             }
 
-            return await GetCore(options, curatedFeedName, id, version: null, return404NotFoundWhenNoResults: false, semVerLevel: semVerLevel);
+            return await GetCore(options, curatedFeedName, id, normalizedVersion: null, return404NotFoundWhenNoResults: false, semVerLevel: semVerLevel);
         }
 
         private async Task<IHttpActionResult> GetCore(
             ODataQueryOptions<V2FeedPackage> options,
             string curatedFeedName,
             string id,
-            string version,
+            string normalizedVersion,
             bool return404NotFoundWhenNoResults,
             string semVerLevel)
         {
@@ -128,9 +128,9 @@ namespace NuGetGallery.Controllers
                 .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
-            if (!string.IsNullOrEmpty(version))
+            if (!string.IsNullOrEmpty(normalizedVersion))
             {
-                packages = packages.Where(p => p.Version == version);
+                packages = packages.Where(p => p.NormalizedVersion == normalizedVersion);
             }
 
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
@@ -143,7 +143,7 @@ namespace NuGetGallery.Controllers
                     GetTraditionalHttpContext().Request,
                     packages,
                     id,
-                    version,
+                    normalizedVersion,
                     curatedFeed: curatedFeed,
                     semVerLevel: semVerLevel);
 
