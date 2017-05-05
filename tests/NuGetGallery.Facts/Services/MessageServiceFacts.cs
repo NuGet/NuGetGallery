@@ -14,6 +14,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -576,10 +577,17 @@ namespace NuGetGallery
 
         public class TheSendPackageAddedNoticeMethod
         {
-            [Fact]
-            public void WillSendEmailToAllOwners()
+            [Theory]
+            [InlineData("1.2.3")]
+            [InlineData("1.2.3-alpha")]
+            [InlineData("1.2.3-alpha.1")]
+            [InlineData("1.2.3+metadata")]
+            [InlineData("1.2.3-alpha+metadata")]
+            [InlineData("1.2.3-alpha.1+metadata")]
+            public void WillSendEmailToAllOwners(string version)
             {
                 // Arrange
+                var nugetVersion = new NuGetVersion(version);
                 var packageRegistration = new PackageRegistration
                 {
                     Id = "smangit",
@@ -591,14 +599,17 @@ namespace NuGetGallery
                 };
                 var package = new Package
                 {
-                    Version = "1.2.3",
+                    Version = version,
                     PackageRegistration = packageRegistration
                 };
                 packageRegistration.Packages.Add(package);
 
                 // Act
                 var messageService = new TestableMessageService();
-                messageService.SendPackageAddedNotice(package, "http://dummy1", "http://dummy2", "http://dummy3");
+                var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
+                var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
+                var emailSettingsUrl = "https://localhost/account";
+                messageService.SendPackageAddedNotice(package, packageUrl, supportUrl, emailSettingsUrl);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -606,9 +617,9 @@ namespace NuGetGallery
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains("[Joe Shmoe] Package published - smangit 1.2.3", message.Subject);
+                Assert.Contains($"[Joe Shmoe] Package published - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
-                    "The package [smangit 1.2.3](http://dummy1) was just published on Joe Shmoe. If this was not intended, please [contact support](http://dummy2).", message.Body);
+                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just published on Joe Shmoe. If this was not intended, please [contact support]({supportUrl}).", message.Body);
             }
 
             [Fact]
