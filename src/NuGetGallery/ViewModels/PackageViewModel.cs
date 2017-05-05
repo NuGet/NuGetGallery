@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -10,13 +11,26 @@ namespace NuGetGallery
     {
         private readonly Package _package;
         private string _pendingTitle;
+        private string _fullVersion;
 
         public PackageViewModel(Package package)
         {
             _package = package;
+
+            NuGetVersion nugetVersion;
+            if(NuGetVersion.TryParse(package.Version, out nugetVersion))
+            {
+                _fullVersion = nugetVersion.ToFullString();
+            }
+            else
+            {
+                _fullVersion = string.Empty;
+            }
+
             Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
                 NuGetVersionNormalizer.Normalize(package.Version) :
                 package.NormalizedVersion;
+            
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
@@ -69,6 +83,7 @@ namespace NuGetGallery
         }
 
         public string Version { get; set; }
+        public string FullVersion => _fullVersion;
 
         public string Title
         {
