@@ -29,12 +29,7 @@ namespace NuGetGallery.Security
 
         public SecurityPolicyService(IEntitiesContext entitiesContext)
         {
-            if (entitiesContext == null)
-            {
-                throw new ArgumentNullException(nameof(entitiesContext));
-            }
-
-            EntitiesContext = entitiesContext;
+            EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
         /// <summary>
@@ -118,7 +113,7 @@ namespace NuGetGallery.Security
             {
                 throw new ArgumentNullException(nameof(subscription));
             }
-            
+
             if (!IsSubscribed(user, subscription))
             {
                 foreach (var policy in subscription.Policies)
@@ -170,7 +165,7 @@ namespace NuGetGallery.Security
         /// </summary>
         private static IEnumerable<UserSecurityPolicy> FindPolicies(User user, IUserSecurityPolicySubscription subscription)
         {
-            return user.SecurityPolicies.Where(s => s.Subscription.Equals(subscription.Name, StringComparison.OrdinalIgnoreCase));
+            return user.SecurityPolicies.Where(s => s.Subscription.Equals(subscription.SubscriptionName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>

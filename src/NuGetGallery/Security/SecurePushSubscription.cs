@@ -14,17 +14,18 @@ namespace NuGetGallery.Security
     /// </summary>
     public class SecurePushSubscription : IUserSecurityPolicySubscription
     {
-        public const string SubscriptionName = "SecurePush";
-        public const string MinClientVersion = "4.1.0";
+        public const string Name = "SecurePush";
+        private const string MinClientVersion = "4.1.0";
+        private const int PushKeysExpirationInDays = 30;
 
         /// <summary>
         /// Subscription name.
         /// </summary>
-        public string Name
+        public string SubscriptionName
         {
             get
             {
-                return SubscriptionName;
+                return Name;
             }
         }
 
@@ -35,8 +36,8 @@ namespace NuGetGallery.Security
         {
             get
             {
-                yield return new UserSecurityPolicy(RequirePackageVerifyScopePolicy.PolicyName, Name);
-                yield return RequireMinClientVersionForPushPolicy.CreatePolicy(Name, new NuGetVersion(MinClientVersion));
+                yield return new UserSecurityPolicy(RequirePackageVerifyScopePolicy.PolicyName, SubscriptionName);
+                yield return RequireMinClientVersionForPushPolicy.CreatePolicy(SubscriptionName, new NuGetVersion(MinClientVersion));
             }
         }
 
@@ -52,7 +53,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Expire API keys with push capability on secure push enrollment.
         /// </summary>
-        private static void SetPushApiKeysToExpire(User user, int expirationInDays = 7)
+        private static void SetPushApiKeysToExpire(User user)
         {
             var pushKeys = user.Credentials.Where(c =>
                 CredentialTypes.IsApiKey(c.Type) &&
@@ -66,7 +67,7 @@ namespace NuGetGallery.Security
 
             foreach (var key in pushKeys)
             {
-                var expires = DateTime.UtcNow.AddDays(expirationInDays);
+                var expires = DateTime.UtcNow.AddDays(PushKeysExpirationInDays);
                 if (!key.Expires.HasValue || key.Expires > expires)
                 {
                     key.Expires = expires;

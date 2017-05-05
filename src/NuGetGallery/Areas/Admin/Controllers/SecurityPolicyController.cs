@@ -18,23 +18,18 @@ namespace NuGetGallery.Areas.Admin.Controllers
     /// </summary>
     public class SecurityPolicyController : AdminControllerBase
     {
-        public IEntitiesContext EntitiesContext { get; }
+        protected IEntitiesContext EntitiesContext { get; set; }
 
-        public ISecurityPolicyService PolicyService { get; }
+        protected ISecurityPolicyService PolicyService { get; set; }
+
+        protected SecurityPolicyController()
+        {
+        }
 
         public SecurityPolicyController(IEntitiesContext entitiesContext, ISecurityPolicyService policyService)
         {
-            if (entitiesContext == null)
-            {
-                throw new ArgumentNullException(nameof(entitiesContext));
-            }
-            if (policyService == null)
-            {
-                throw new ArgumentNullException(nameof(policyService));
-            }
-
-            EntitiesContext = entitiesContext;
-            PolicyService = policyService;
+            EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            PolicyService = policyService ?? throw new ArgumentNullException(nameof(policyService));
         }
 
         [HttpGet]
@@ -42,21 +37,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var model = new SecurityPolicyViewModel()
             {
-                SubscriptionNames = PolicyService.UserSubscriptions.Select(s => s.Name)
+                SubscriptionNames = PolicyService.UserSubscriptions.Select(s => s.SubscriptionName)
             };
 
             return View(model);
         }
 
         [HttpGet]
-        public virtual ActionResult Search(string query)
+        public virtual JsonResult Search(string query)
         {
             // Parse query and look for users in the DB.
-            var usernames = GetUsernamesFromQuery(query);
+            var usernames = GetUsernamesFromQuery(query ?? "");
             var users = FindUsers(usernames);
-            var usersNotFound = usernames
-                .Where(name => !users.Any(u => u.Username.Equals(name, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
+            var usersNotFound = usernames.Except(users.Select(u => u.Username));
 
             var results = new UserSecurityPolicySearchResult()
             {
@@ -65,7 +58,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 {
                     Username = u.Username,
                     Subscriptions = PolicyService.UserSubscriptions.ToDictionary(
-                        s => s.Name,
+                        s => s.SubscriptionName,
                         s => PolicyService.IsSubscribed(u, s))
                 }),
                 // Usernames that weren't found in the DB.
@@ -95,7 +88,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 foreach (var subscription in PolicyService.UserSubscriptions)
                 {
-                    if (subscriptions != null && subscriptions[user.Username].Contains(subscription.Name))
+                    var userKeyExists = subscriptions?.ContainsKey(user.Username) ?? false;
+                    if (userKeyExists && subscriptions[user.Username].Contains(subscription.SubscriptionName))
                     {
                         await PolicyService.SubscribeAsync(user, subscription);
                     }

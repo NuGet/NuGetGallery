@@ -22,17 +22,20 @@ namespace NuGetGallery
             Assert.Equal(policy.Subscription, copy.Subscription);
             Assert.Equal(policy.Value, copy.Value);
         }
-        
-        public static IEnumerable<UserSecurityPolicy[]> EqualsReturnsTrue_Data()
+
+        public static IEnumerable<UserSecurityPolicy[]> EqualsReturnsTrue_Data
         {
-            yield return new[]
+            get
             {
-                new UserSecurityPolicy("A", "B", ""), new UserSecurityPolicy("A", "B", null)
-            };
-            yield return new[]
-            {
-                new UserSecurityPolicy("A", "B", "C"), new UserSecurityPolicy("a", "b", "c")
-            };
+                yield return new[]
+                {
+                    new UserSecurityPolicy("A", "B", ""), new UserSecurityPolicy("A", "B", null)
+                };
+                yield return new[]
+                {
+                    new UserSecurityPolicy("A", "B", "C"), new UserSecurityPolicy("a", "b", "c")
+                };
+            }
         }
 
         [Theory]
@@ -43,20 +46,23 @@ namespace NuGetGallery
             Assert.True(first.Equals(second));
         }
 
-        public static IEnumerable<UserSecurityPolicy[]> EqualsReturnsFalse_Data()
+        public static IEnumerable<UserSecurityPolicy[]> EqualsReturnsFalse_Data
         {
-            yield return new[]
+            get
             {
-                new UserSecurityPolicy("A", "B", ""), new UserSecurityPolicy("B", "B", "")
-            };
-            yield return new[]
-            {
-                new UserSecurityPolicy("A", "B", ""), new UserSecurityPolicy("A", "A", "")
-            };
-            yield return new[]
-            {
-                new UserSecurityPolicy("A", "B", "C"), new UserSecurityPolicy("A", "B", "Z")
-            };
+                yield return new[]
+                {
+                    new UserSecurityPolicy("A", "B", ""), new UserSecurityPolicy("B", "B", "")
+                };
+                yield return new[]
+                {
+                    new UserSecurityPolicy("A", "B", ""), new UserSecurityPolicy("A", "A", "")
+                };
+                yield return new[]
+                {
+                    new UserSecurityPolicy("A", "B", "C"), new UserSecurityPolicy("A", "B", "Z")
+                };
+            }
         }
 
         [Theory]

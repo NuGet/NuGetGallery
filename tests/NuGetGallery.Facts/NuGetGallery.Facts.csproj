@@ -375,6 +375,7 @@
   <ItemGroup>
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="App_Start\RuntimeServiceProviderTests.cs" />
+    <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
@@ -412,6 +413,7 @@
     <Compile Include="Security\RequireMinClientVersionForPushPolicyFacts.cs" />
     <Compile Include="Security\SecurityPolicyServiceFacts.cs" />
     <Compile Include="Security\SecurePushSubscriptionFacts.cs" />
+    <Compile Include="Security\TestSecurityPolicyService.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicyFacts.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicyFacts.cs" />
     <Compile Include="Services\PagerDutyClientFacts.cs" />

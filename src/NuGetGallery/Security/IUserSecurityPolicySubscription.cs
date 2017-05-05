@@ -14,7 +14,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Subscription name.
         /// </summary>
-        string Name { get; }
+        string SubscriptionName { get; }
 
         /// <summary>
         /// Required policies.

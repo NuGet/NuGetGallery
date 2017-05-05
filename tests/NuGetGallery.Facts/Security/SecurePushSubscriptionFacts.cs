@@ -18,7 +18,7 @@ namespace NuGetGallery.Security
         public void SubscriptionName()
         {
             // Act & Assert.
-            Assert.Equal("SecurePush", new SecurePushSubscription().Name);
+            Assert.Equal("SecurePush", new SecurePushSubscription().SubscriptionName);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace NuGetGallery.Security
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
-            Assert.True(DateTime.UtcNow.AddDays(7) >= user.Credentials.First().Expires);
+            Assert.True(DateTime.UtcNow.AddDays(30) >= user.Credentials.First().Expires);
         }
 
         [Theory]
@@ -61,7 +61,7 @@ namespace NuGetGallery.Security
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
-            Assert.False(DateTime.UtcNow.AddDays(7) >= user.Credentials.First().Expires);
+            Assert.False(DateTime.UtcNow.AddDays(30) >= user.Credentials.First().Expires);
         }
 
         [Theory]
@@ -78,14 +78,14 @@ namespace NuGetGallery.Security
             Assert.True(DateTime.UtcNow.AddDays(2) >= user.Credentials.First().Expires);
         }
 
-        private User SubscribeUserToSecurePush(string type, string scopes, int expiresInDays = 10)
+        private User SubscribeUserToSecurePush(string type, string scopes, int expiresInDays = 100)
         {
             // Arrange.
             var entitiesContext = new Mock<IEntitiesContext>();
             entitiesContext.Setup(c => c.SaveChangesAsync()).Returns(Task.FromResult(2)).Verifiable();
 
             var service = new SecurityPolicyService(entitiesContext.Object);
-            var subscription = service.UserSubscriptions.First(s => s.Name.Equals(SecurePushSubscription.SubscriptionName));
+            var subscription = service.UserSubscriptions.First(s => s.SubscriptionName.Equals(SecurePushSubscription.Name));
 
             var credential = new Credential(type, string.Empty, TimeSpan.FromDays(expiresInDays));
             if (!string.IsNullOrWhiteSpace(scopes))
