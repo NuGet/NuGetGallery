@@ -13,14 +13,14 @@ namespace NuGet.Services.Storage
         string _containerName;
         string _path;
         private Uri _differentBaseAddress = null;
-        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<AzureStorage> _azureStorageLogger;
 
-        public AzureStorageFactory(CloudStorageAccount account, string containerName, ILoggerFactory loggerFactory, string path = null, Uri baseAddress = null)
+        public AzureStorageFactory(CloudStorageAccount account, string containerName, ILogger<AzureStorage> azureStorageLogger, string path = null, Uri baseAddress = null)
         {
             _account = account;
             _containerName = containerName;
             _path = null;
-            _loggerFactory = loggerFactory;
+            _azureStorageLogger = azureStorageLogger;
 
             if (path != null)
             {
@@ -71,7 +71,7 @@ namespace NuGet.Services.Storage
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            return new AzureStorage(_account, _containerName, path, newBase, _loggerFactory) { Verbose = Verbose, CompressContent = CompressContent };
+            return new AzureStorage(_account, _containerName, path, newBase, _azureStorageLogger) { Verbose = Verbose, CompressContent = CompressContent };
         }
     }
 }

@@ -12,11 +12,11 @@ namespace NuGet.Services.Storage
 {
     public class FileStorage : Storage
     {
-        public FileStorage(string baseAddress, string path, ILoggerFactory loggerFactory) 
-            : this(new Uri(baseAddress), path, loggerFactory) { }
+        public FileStorage(string baseAddress, string path, ILogger<FileStorage> logger) 
+            : this(new Uri(baseAddress), path, logger) { }
 
-        public FileStorage(Uri baseAddress, string path, ILoggerFactory loggerFactory)
-            : base(baseAddress, loggerFactory)
+        public FileStorage(Uri baseAddress, string path, ILogger<FileStorage> logger)
+            : base(baseAddress, logger)
         {
             Path = path;
 

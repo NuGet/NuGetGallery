@@ -9,13 +9,13 @@ namespace NuGet.Services.Storage
     public class FileStorageFactory : StorageFactory
     {
         private readonly string _path;
-        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<FileStorage> _fileStorageLogger;
 
-        public FileStorageFactory(Uri baseAddress, string path, ILoggerFactory loggerFactory)
+        public FileStorageFactory(Uri baseAddress, string path, ILogger<FileStorage> fileStorageLogger)
         {
             BaseAddress = new Uri(baseAddress.ToString().TrimEnd('/') + '/');
             _path = path.TrimEnd('\\') + '\\';
-            _loggerFactory = loggerFactory;
+            _fileStorageLogger = fileStorageLogger;
         }
 
         public override Storage Create(string name = null)
@@ -23,7 +23,7 @@ namespace NuGet.Services.Storage
             string fileSystemPath = (name == null) ? _path.Trim('\\') : _path + name;
             string uriPath = name ?? string.Empty;
 
-            return new FileStorage(BaseAddress + uriPath, fileSystemPath, _loggerFactory) { Verbose = Verbose };
+            return new FileStorage(BaseAddress + uriPath, fileSystemPath, _fileStorageLogger) { Verbose = Verbose };
         }
     }
 }

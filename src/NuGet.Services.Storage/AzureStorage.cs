@@ -18,15 +18,15 @@ namespace NuGet.Services.Storage
         private readonly ILogger<AzureStorage> _logger;
         private readonly CloudBlobDirectory _directory;
 
-        public AzureStorage(CloudStorageAccount account, string containerName, string path, Uri baseAddress, ILoggerFactory loggerFactory)
-            : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path), baseAddress, loggerFactory)
+        public AzureStorage(CloudStorageAccount account, string containerName, string path, Uri baseAddress, ILogger<AzureStorage> logger)
+            : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path), baseAddress, logger)
         {
         }
 
-        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress, ILoggerFactory loggerFactory)
-            : base(baseAddress ?? GetDirectoryUri(directory), loggerFactory)
+        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress, ILogger<AzureStorage> logger)
+            : base(baseAddress ?? GetDirectoryUri(directory), logger)
         {
-            _logger = loggerFactory.CreateLogger<AzureStorage>();
+            _logger = logger;
             _directory = directory;
 
             if (_directory.Container.CreateIfNotExists())

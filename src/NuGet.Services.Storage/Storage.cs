@@ -15,11 +15,11 @@ namespace NuGet.Services.Storage
     {
         private readonly ILogger<Storage> _logger;
 
-        public Storage(Uri baseAddress, ILoggerFactory loggerFactory)
+        public Storage(Uri baseAddress, ILogger<Storage> logger)
         {
             string s = baseAddress.OriginalString.TrimEnd('/') + '/';
             BaseAddress = new Uri(s);
-            _logger = loggerFactory.CreateLogger<Storage>();
+            _logger = logger;
         }
 
         public override string ToString()

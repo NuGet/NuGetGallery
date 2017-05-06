@@ -24,8 +24,8 @@ namespace NuGet.Services.Storage
         
         public AggregateStorage(Uri baseAddress, Storage primaryStorage, Storage[] secondaryStorage,
             WriteSecondaryStorageContentInterceptor writeSecondaryStorageContentInterceptor,
-            ILoggerFactory loggerFactory)
-            : base(baseAddress, loggerFactory)
+            ILogger<AggregateStorage> logger)
+            : base(baseAddress, logger)
         {
             _primaryStorage = primaryStorage;
             _secondaryStorage = secondaryStorage;
