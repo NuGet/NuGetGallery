@@ -486,8 +486,8 @@ namespace NuGetGallery
 
                         // Notify user of push
                         MessageService.SendPackageAddedNotice(package,
-                            Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
-                            Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
+                            Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
+                            Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
                             Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
 
                         TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
