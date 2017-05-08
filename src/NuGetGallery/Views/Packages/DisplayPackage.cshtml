@@ -219,7 +219,7 @@
 
     <div class="package-page-heading">
         <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
-        <h2>@Model.Version</h2>
+        <h2>@Model.FullVersion</h2>
     </div>
     @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
     {
@@ -354,7 +354,7 @@
                         <td class="version" title="@cellTitle">
                             @if (!packageVersion.IsCurrent(Model))
                             {
-                                <a title="@packageVersion.Title @packageVersion.Version" href="@Url.Package(packageVersion) ">
+                                <a title="@packageVersion.Title @packageVersion.FullVersion" href="@Url.Package(packageVersion) ">
                                     @packageVersion.Title.Abbreviate(20)
                                     @packageVersion.Version
                                     @if (packageVersion.LatestStableVersion)
@@ -365,7 +365,7 @@
                             }
                             else
                             {
-                                <a href="@Url.Package(packageVersion)" title="@packageVersion.Title @packageVersion.Version (this version)">
+                                <a href="@Url.Package(packageVersion)" title="@packageVersion.Title @packageVersion.FullVersion (this version)">
                                     @packageVersion.Title.Abbreviate(20) @packageVersion.Version (this version)
                                 </a>
                             }

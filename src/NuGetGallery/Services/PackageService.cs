@@ -244,7 +244,7 @@ namespace NuGetGallery
                 throw new ArgumentException(nameof(version));
             }
 
-            var normalizedVersion = NuGetVersionNormalizer.Normalize(version);
+            var normalizedVersion = NuGetVersionFormatter.Normalize(version);
 
             // These string comparisons are case-(in)sensitive depending on SQLServer collation.
             // Case-insensitive collation is recommended, e.g. SQL_Latin1_General_CP1_CI_AS.
