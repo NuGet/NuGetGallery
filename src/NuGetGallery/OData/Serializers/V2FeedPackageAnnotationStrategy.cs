@@ -25,7 +25,7 @@ namespace NuGetGallery.OData.Serializers
             }
 
             // Patch links to use normalized versions
-            var normalizedVersion = NuGetVersionNormalizer.Normalize(feedPackage.Version);
+            var normalizedVersion = NuGetVersionFormatter.Normalize(feedPackage.Version);
             NormalizeNavigationLinks(entry, request, feedPackage, normalizedVersion);
 
             // Set Atom entry metadata
