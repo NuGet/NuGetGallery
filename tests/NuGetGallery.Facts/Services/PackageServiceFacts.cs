@@ -1053,7 +1053,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateIsLatest1()
+            public async Task UpdateIsLatestScenarioForPrereleaseAsAbsoluteLatest()
             {
                 // Arrange
                 var packages = new HashSet<Package>();
@@ -1085,7 +1085,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateIsLatest2()
+            public async Task UpdateIsLatestScenarioForStableAsAbsoluteLatest()
             {
                 // Arrange
                 var packages = new HashSet<Package>();
@@ -1124,7 +1124,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateIsLatest3()
+            public async Task UpdateIsLatestScenarioForSemVer2PrereleaseAsAbsoluteLatest()
             {
                 // Arrange
                 var packages = new HashSet<Package>();
@@ -1170,7 +1170,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateIsLatest4()
+            public async Task UpdateIsLatestScenarioForSemVer2StableAsAbsoluteLatest()
             {
                 // Arrange
                 var packages = new HashSet<Package>();
