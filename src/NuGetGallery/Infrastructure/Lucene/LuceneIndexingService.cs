@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Lucene.Net.Index;
-using Lucene.Net.Store;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using WebBackgrounder;
