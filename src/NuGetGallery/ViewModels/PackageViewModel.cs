@@ -10,6 +10,7 @@ namespace NuGetGallery
     public class PackageViewModel : IPackageVersionModel
     {
         private readonly Package _package;
+        private readonly bool _isSemVer2;
         private string _pendingTitle;
         private string _fullVersion;
 
@@ -18,6 +19,7 @@ namespace NuGetGallery
             _package = package;
 
             _fullVersion = NuGetVersionFormatter.ToFullStringOrFallback(package.Version, fallback: package.Version);
+            _isSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
 
             Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
                 NuGetVersionFormatter.Normalize(package.Version) :
@@ -77,6 +79,7 @@ namespace NuGetGallery
 
         public string Version { get; set; }
         public string FullVersion => _fullVersion;
+        public bool IsSemVer2 => _isSemVer2;
 
         public string Title
         {
