@@ -7,7 +7,7 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public static class NuGetVersionNormalizer
+    public static class NuGetVersionFormatter
     {
         public static string Normalize(string version)
         {
@@ -18,6 +18,19 @@ namespace NuGetGallery
             }
 
             return parsed.ToNormalizedString();
+        }
+
+        public static string ToFullStringOrFallback(string version, string fallback = "")
+        {
+            NuGetVersion nugetVersion;
+            if (NuGetVersion.TryParse(version, out nugetVersion))
+            {
+                return nugetVersion.ToFullString();
+            }
+            else
+            {
+                return fallback;
+            }
         }
     }
 
