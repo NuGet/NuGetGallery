@@ -173,7 +173,7 @@ namespace NuGetGallery
 
                 repository.VerifyAll();
             }
-            
+
             [Fact]
             public async Task WritesAnAuditRecord()
             {
@@ -496,7 +496,7 @@ namespace NuGetGallery
                 var currentUser = new User();
 
                 // Act
-                var package =  await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, commitChanges: true);
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, commitChanges: true);
 
                 // Assert
                 indexingService.Verify();
@@ -627,10 +627,10 @@ namespace NuGetGallery
             {
                 var currentUser = new User();
                 var packageRegistration = new PackageRegistration
-                    {
-                        Id = "theId",
-                        Owners = new HashSet<User> { currentUser },
-                    };
+                {
+                    Id = "theId",
+                    Owners = new HashSet<User> { currentUser },
+                };
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
@@ -647,10 +647,10 @@ namespace NuGetGallery
             {
                 var currentUser = new User();
                 var packageRegistration = new PackageRegistration
-                    {
-                        Id = "theId",
-                        Owners = new HashSet<User>()
-                    };
+                {
+                    Id = "theId",
+                    Owners = new HashSet<User>()
+                };
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
@@ -733,7 +733,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageCopyrightIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(copyright:  "theCopyright".PadRight(4001, '_'));
+                var nugetPackage = CreateNuGetPackage(copyright: "theCopyright".PadRight(4001, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
@@ -837,7 +837,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageDescriptionIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(description:  "theDescription".PadRight(4001, '_'));
+                var nugetPackage = CreateNuGetPackage(description: "theDescription".PadRight(4001, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
@@ -892,7 +892,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageTagsIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(tags:  "theTags".PadRight(4001, '_'));
+                var nugetPackage = CreateNuGetPackage(tags: "theTags".PadRight(4001, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), null));
 
@@ -946,7 +946,7 @@ namespace NuGetGallery
                 Assert.Equal("net40", package.SupportedFrameworks.First().TargetFramework);
                 Assert.Equal("net35", package.SupportedFrameworks.ElementAt(1).TargetFramework);
             }
-            
+
             [Fact]
             private async Task WillNotSaveAnySupportedFrameworksWhenThereIsAnAnyTargetFramework()
             {
@@ -1072,9 +1072,15 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.True(package10A.IsLatest);
+                Assert.True(package10A.IsLatestSemVer2);
                 Assert.False(package10A.IsLatestStable);
+                Assert.False(package10A.IsLatestStableSemVer2);
+
                 Assert.False(package09.IsLatest);
+                Assert.False(package09.IsLatestSemVer2);
                 Assert.True(package09.IsLatestStable);
+                Assert.True(package09.IsLatestStableSemVer2);
+
                 packageRepository.Verify();
             }
 
@@ -1100,11 +1106,112 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.True(package100.IsLatest);
+                Assert.True(package100.IsLatestSemVer2);
                 Assert.True(package100.IsLatestStable);
+                Assert.True(package100.IsLatestStableSemVer2);
+
                 Assert.False(package10A.IsLatest);
+                Assert.False(package10A.IsLatestSemVer2);
                 Assert.False(package10A.IsLatestStable);
+                Assert.False(package10A.IsLatestStableSemVer2);
+
                 Assert.False(package09.IsLatest);
+                Assert.False(package09.IsLatestSemVer2);
                 Assert.False(package09.IsLatestStable);
+                Assert.False(package09.IsLatestStableSemVer2);
+
+                packageRepository.Verify();
+            }
+
+            [Fact]
+            public async Task WillUpdateIsLatest3()
+            {
+                // Arrange
+                var packages = new HashSet<Package>();
+                var packageRegistration = new PackageRegistration { Packages = packages };
+                var semVer2Package = new Package { PackageRegistration = packageRegistration, Version = "1.0.1-alpha.1", IsPrerelease = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                packages.Add(semVer2Package);
+                var package100 = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
+                packages.Add(package100);
+                var package10A = new Package { PackageRegistration = packageRegistration, Version = "1.0.0-a", IsPrerelease = true };
+                packages.Add(package10A);
+                var package09 = new Package { PackageRegistration = packageRegistration, Version = "0.9.0" };
+                packages.Add(package09);
+                var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                packageRepository.Setup(r => r.CommitChangesAsync())
+                    .Returns(Task.CompletedTask).Verifiable();
+                var service = CreateService(packageRepository: packageRepository);
+
+                // Act
+                await service.UpdateIsLatestAsync(packageRegistration, true);
+
+                // Assert
+                Assert.True(semVer2Package.IsLatestSemVer2);
+                Assert.False(semVer2Package.IsLatestStableSemVer2);
+                Assert.False(semVer2Package.IsLatest);
+                Assert.False(semVer2Package.IsLatestStable);
+
+                Assert.True(package100.IsLatest);
+                Assert.False(package100.IsLatestSemVer2);
+                Assert.True(package100.IsLatestStable);
+                Assert.True(package100.IsLatestStableSemVer2);
+
+                Assert.False(package10A.IsLatest);
+                Assert.False(package10A.IsLatestSemVer2);
+                Assert.False(package10A.IsLatestStable);
+                Assert.False(package10A.IsLatestStableSemVer2);
+
+                Assert.False(package09.IsLatest);
+                Assert.False(package09.IsLatestSemVer2);
+                Assert.False(package09.IsLatestStable);
+                Assert.False(package09.IsLatestStableSemVer2);
+
+                packageRepository.Verify();
+            }
+
+            [Fact]
+            public async Task WillUpdateIsLatest4()
+            {
+                // Arrange
+                var packages = new HashSet<Package>();
+                var packageRegistration = new PackageRegistration { Packages = packages };
+                var semVer2Package = new Package { PackageRegistration = packageRegistration, Version = "1.0.1+metadata", SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                packages.Add(semVer2Package);
+                var package100 = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
+                packages.Add(package100);
+                var package10A = new Package { PackageRegistration = packageRegistration, Version = "1.0.0-a", IsPrerelease = true };
+                packages.Add(package10A);
+                var package09 = new Package { PackageRegistration = packageRegistration, Version = "0.9.0" };
+                packages.Add(package09);
+                var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                packageRepository.Setup(r => r.CommitChangesAsync())
+                    .Returns(Task.CompletedTask).Verifiable();
+                var service = CreateService(packageRepository: packageRepository);
+
+                // Act
+                await service.UpdateIsLatestAsync(packageRegistration, true);
+
+                // Assert
+                Assert.True(semVer2Package.IsLatestSemVer2);
+                Assert.True(semVer2Package.IsLatestStableSemVer2);
+                Assert.False(semVer2Package.IsLatest);
+                Assert.False(semVer2Package.IsLatestStable);
+
+                Assert.True(package100.IsLatest);
+                Assert.False(package100.IsLatestSemVer2);
+                Assert.True(package100.IsLatestStable);
+                Assert.False(package100.IsLatestStableSemVer2);
+
+                Assert.False(package10A.IsLatest);
+                Assert.False(package10A.IsLatestSemVer2);
+                Assert.False(package10A.IsLatestStable);
+                Assert.False(package10A.IsLatestStableSemVer2);
+
+                Assert.False(package09.IsLatest);
+                Assert.False(package09.IsLatestSemVer2);
+                Assert.False(package09.IsLatestStable);
+                Assert.False(package09.IsLatestStableSemVer2);
+
                 packageRepository.Verify();
             }
         }
@@ -1160,7 +1267,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal("1.0", result.Version);
             }
-            
+
             [Fact]
             public void ReturnsTheLatestStableSemVer2VersionIfAvailable()
             {
@@ -1550,12 +1657,12 @@ namespace NuGetGallery
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var auditingService = new TestAuditingService();
                 var service = CreateService(
-                    packageRepository: packageRepository, 
+                    packageRepository: packageRepository,
                     auditingService: auditingService);
 
                 // Act
                 await service.MarkPackageListedAsync(package);
-                
+
                 // Assert
                 Assert.True(auditingService.WroteRecord<PackageAuditRecord>(ar =>
                     ar.Action == AuditedPackageAction.List
@@ -1678,14 +1785,14 @@ namespace NuGetGallery
             public async Task WillSetThePublishedDateOnThePackageBeingPublished()
             {
                 var package = new Package
+                {
+                    Version = "1.0.42",
+                    PackageRegistration = new PackageRegistration
                     {
-                        Version = "1.0.42",
-                        PackageRegistration = new PackageRegistration
-                            {
-                                Id = "theId",
-                                Packages = new HashSet<Package>()
-                            }
-                    };
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
                 package.PackageRegistration.Packages.Add(package);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
@@ -1724,14 +1831,14 @@ namespace NuGetGallery
             public async Task WillSetUpdateIsLatestStableOnThePackageWhenItIsTheLatestVersionWithOverload()
             {
                 var package = new Package
+                {
+                    Version = "1.0.42",
+                    PackageRegistration = new PackageRegistration
                     {
-                        Version = "1.0.42",
-                        PackageRegistration = new PackageRegistration
-                            {
-                                Id = "theId",
-                                Packages = new HashSet<Package>()
-                            }
-                    };
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
 
                 package.PackageRegistration.Packages.Add(package);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
@@ -1770,22 +1877,22 @@ namespace NuGetGallery
             public async Task WillNotSetUpdateIsLatestStableOnThePackageWhenItIsNotTheLatestVersionWithOverload()
             {
                 var package = new Package
+                {
+                    Version = "1.0.42",
+                    PackageRegistration = new PackageRegistration
                     {
-                        Version = "1.0.42",
-                        PackageRegistration = new PackageRegistration
-                            {
-                                Id = "theId",
-                                Packages = new HashSet<Package>()
-                            }
-                    };
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
                 package.PackageRegistration.Packages.Add(package);
                 package.PackageRegistration.Packages.Add(
                     new Package
-                        {
-                            Version = "2.0",
-                            PackageRegistration = package.PackageRegistration,
-                            Published = DateTime.UtcNow
-                        });
+                    {
+                        Version = "2.0",
+                        PackageRegistration = package.PackageRegistration,
+                        Published = DateTime.UtcNow
+                    });
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package); });
@@ -1799,23 +1906,23 @@ namespace NuGetGallery
             public async Task PublishPackageUpdatesIsAbsoluteLatestForPrereleasePackage()
             {
                 var package = new Package
+                {
+                    Version = "1.0.42-alpha",
+                    Published = DateTime.UtcNow,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Version = "1.0.42-alpha",
-                        Published = DateTime.UtcNow,
-                        PackageRegistration = new PackageRegistration
-                            {
-                                Id = "theId",
-                                Packages = new HashSet<Package>()
-                            },
-                        IsPrerelease = true,
-                    };
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    },
+                    IsPrerelease = true,
+                };
                 package.PackageRegistration.Packages.Add(package);
                 var package39 = new Package
-                    {
-                        Version = "1.0.39",
-                        PackageRegistration = package.PackageRegistration,
-                        Published = DateTime.UtcNow.AddDays(-1)
-                    };
+                {
+                    Version = "1.0.39",
+                    PackageRegistration = package.PackageRegistration,
+                    Published = DateTime.UtcNow.AddDays(-1)
+                };
                 package.PackageRegistration.Packages.Add(package39);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
@@ -1866,24 +1973,24 @@ namespace NuGetGallery
             public async Task SetUpdateDoesNotSetIsLatestStableForAnyIfAllPackagesArePrerelease()
             {
                 var package = new Package
+                {
+                    Version = "1.0.42-alpha",
+                    Published = DateTime.UtcNow,
+                    IsPrerelease = true,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Version = "1.0.42-alpha",
-                        Published = DateTime.UtcNow,
-                        IsPrerelease = true,
-                        PackageRegistration = new PackageRegistration
-                            {
-                                Id = "theId",
-                                Packages = new HashSet<Package>()
-                            }
-                    };
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
                 package.PackageRegistration.Packages.Add(package);
                 var package39 = new Package
-                    {
-                        Version = "1.0.39-beta",
-                        PackageRegistration = package.PackageRegistration,
-                        Published = DateTime.UtcNow.AddDays(-1),
-                        IsPrerelease = true
-                    };
+                {
+                    Version = "1.0.39-beta",
+                    PackageRegistration = package.PackageRegistration,
+                    Published = DateTime.UtcNow.AddDays(-1),
+                    IsPrerelease = true
+                };
                 package.PackageRegistration.Packages.Add(package39);
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository, setup:
@@ -1984,11 +2091,11 @@ namespace NuGetGallery
             public async Task RemovesPendingPackageOwner()
             {
                 var packageOwnerRequest = new PackageOwnerRequest
-                    {
-                        PackageRegistrationKey = 1,
-                        RequestingOwnerKey = 99,
-                        NewOwnerKey = 200
-                    };
+                {
+                    PackageRegistrationKey = 1,
+                    RequestingOwnerKey = 99,
+                    NewOwnerKey = 200
+                };
                 var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
                 packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(new[] { packageOwnerRequest }.AsQueryable());
                 packageOwnerRequestRepository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
