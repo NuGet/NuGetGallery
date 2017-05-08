@@ -93,6 +93,7 @@ namespace NuGetGallery
             [InlineData("1.0.0-alpha")]
             [InlineData("[1.0-alpha, 2.0.0)")]
             [InlineData("[1.0, 2.0.0-alpha)")]
+            [InlineData(null)]
             public void ReturnsUnknownForNonSemVer2CompliantDependenciesThatAreNotSemVer1Compliant(string versionSpec)
             {
                 // Arrange
