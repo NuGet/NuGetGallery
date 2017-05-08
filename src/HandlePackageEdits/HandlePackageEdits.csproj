@@ -160,7 +160,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DapperExtensions.cs" />
     <Compile Include="HandlePackageEdits.Job.cs" />
     <Compile Include="HandlePackageEdits.Program.cs" />
     <Compile Include="PackageEdit.cs" />
