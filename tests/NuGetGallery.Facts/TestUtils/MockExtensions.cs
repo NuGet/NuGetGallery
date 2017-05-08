@@ -2,9 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
+using System.Data.Entity;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using Moq.Language;
 using Moq.Language.Flow;
@@ -15,6 +16,20 @@ namespace NuGetGallery
 {
     public static class MockExtensions
     {
+        public static Mock<DbSet<T>> MockDbSet<T>(this IEnumerable<T> data)
+           where T : class, IEntity
+        {
+            var query = data.AsQueryable();
+
+            var dbSet = new Mock<DbSet<T>>();
+            dbSet.As<IQueryable<T>>().Setup(s => s.Provider).Returns(query.Provider);
+            dbSet.As<IQueryable<T>>().Setup(s => s.Expression).Returns(query.Expression);
+            dbSet.As<IQueryable<T>>().Setup(s => s.ElementType).Returns(query.ElementType);
+            dbSet.As<IQueryable<T>>().Setup(s => s.GetEnumerator()).Returns(() => data.GetEnumerator());
+
+            return dbSet;
+        }
+
         // Helper to get around Mock Returns((Type)null) weirdness.
         public static IReturnsResult<TMock> ReturnsNull<TMock, TRet>(this IReturns<TMock, TRet> self)
             where TMock : class

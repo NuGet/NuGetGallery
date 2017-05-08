@@ -134,6 +134,7 @@
     <Compile Include="Auditing\UserAuditRecordTests.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Entities\UserFacts.cs" />
+    <Compile Include="Entities\UserSecurityPolicyFacts.cs" />
     <Compile Include="Packaging\ManifestValidatorFacts.cs" />
     <Compile Include="Packaging\PackageIdValidatorTest.cs" />
     <Compile Include="Packaging\PackageMetadataFacts.cs" />
