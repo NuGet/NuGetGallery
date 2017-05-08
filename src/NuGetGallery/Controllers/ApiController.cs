@@ -136,7 +136,7 @@ namespace NuGetGallery
                 }
 
                 // Normalize the version
-                version = NuGetVersionNormalizer.Normalize(version);
+                version = NuGetVersionFormatter.Normalize(version);
             }
             else
             {
