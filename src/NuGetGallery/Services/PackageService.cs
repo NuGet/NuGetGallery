@@ -847,7 +847,7 @@ namespace NuGetGallery
                     // If the newest uploaded package is a prerelease package, we need to find an older package that is
                     // a release version and set it to IsLatest.
                     var latestSemVer2ReleasePackage = FindPackage(
-                        packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed && p.SemVerLevelKey == SemVerLevelKey.SemVer2));
+                        packageRegistration.Packages.Where(p => !p.IsPrerelease && !p.Deleted && p.Listed && (p.SemVerLevelKey == SemVerLevelKey.SemVer2 || p.SemVerLevelKey == SemVerLevelKey.Unknown)));
 
                     if (latestSemVer2ReleasePackage != null)
                     {
