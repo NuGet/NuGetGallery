@@ -17,18 +17,10 @@ namespace NuGetGallery
         {
             _package = package;
 
-            NuGetVersion nugetVersion;
-            if(NuGetVersion.TryParse(package.Version, out nugetVersion))
-            {
-                _fullVersion = nugetVersion.ToFullString();
-            }
-            else
-            {
-                _fullVersion = string.Empty;
-            }
+            _fullVersion = NuGetVersionFormatter.ToFullStringOrFallback(package.Version, fallback: package.Version);
 
             Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
-                NuGetVersionNormalizer.Normalize(package.Version) :
+                NuGetVersionFormatter.Normalize(package.Version) :
                 package.NormalizedVersion;
             
             Description = package.Description;
@@ -54,6 +46,7 @@ namespace NuGetGallery
                 LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
             }
         }
+
         public string Description { get; set; }
         public string ReleaseNotes { get; set; }
         public string IconUrl { get; set; }

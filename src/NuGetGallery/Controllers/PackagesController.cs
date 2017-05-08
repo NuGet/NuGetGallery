@@ -300,7 +300,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
-            string normalized = NuGetVersionNormalizer.Normalize(version);
+            string normalized = NuGetVersionFormatter.Normalize(version);
             if (!string.Equals(version, normalized))
             {
                 // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)

@@ -216,7 +216,7 @@ namespace NuGetGallery.OData
             }
             else if (memberSide.Member == VersionMember)
             {
-                return Tuple.Create(Target.Version, NuGetVersionNormalizer.Normalize((string)constSide.Value));
+                return Tuple.Create(Target.Version, NuGetVersionFormatter.Normalize((string)constSide.Value));
             }
             else if (memberSide.Member == IdMember)
             {
