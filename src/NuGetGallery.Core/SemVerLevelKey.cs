@@ -57,12 +57,14 @@ namespace NuGetGallery
                     // Check the package dependencies for SemVer-compliance.
                     // As soon as a SemVer2-compliant dependency version is found that is not SemVer1-compliant,
                     // this package in itself is to be identified as to have SemVerLevelKey.SemVer2.
-                    var dependencyVersionRange = VersionRange.Parse(dependency.VersionSpec);
-
-                    if ((dependencyVersionRange.MinVersion != null && dependencyVersionRange.MinVersion.IsSemVer2)
-                        || (dependencyVersionRange.MaxVersion != null && dependencyVersionRange.MaxVersion.IsSemVer2))
+                    VersionRange dependencyVersionRange;
+                    if (dependency.VersionSpec != null && VersionRange.TryParse(dependency.VersionSpec, out dependencyVersionRange))
                     {
-                        return SemVer2;
+                        if ((dependencyVersionRange.MinVersion != null && dependencyVersionRange.MinVersion.IsSemVer2)
+                            || (dependencyVersionRange.MaxVersion != null && dependencyVersionRange.MaxVersion.IsSemVer2))
+                        {
+                            return SemVer2;
+                        }
                     }
                 }
             }
@@ -98,7 +100,7 @@ namespace NuGetGallery
                 return Unknown;
             }
         }
-        
+
         /// <summary>
         /// Indicates whether the provided SemVer-level key is compliant with the provided SemVer-level version string.
         /// </summary>
