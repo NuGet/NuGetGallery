@@ -98,6 +98,18 @@ namespace NuGetGallery
             }
         }
 
+        public IDbSet<UserSecurityPolicy> UserSecurityPolicies
+        {
+            get
+            {
+                return Set<UserSecurityPolicy>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;
