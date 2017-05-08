@@ -26,7 +26,7 @@ namespace NuGetGallery.OData.QueryInterceptors
                         // We have a "Package.Version == <constant>" expression!
                         
                         // Transform the constant version into a normalized version
-                        string newVersion = NuGetVersionNormalizer.Normalize((string)constSide.Value);
+                        string newVersion = NuGetVersionFormatter.Normalize((string)constSide.Value);
 
                         // Create a new expression that checks the new constant against NormalizedVersion instead
                         return Expression.MakeBinary(
