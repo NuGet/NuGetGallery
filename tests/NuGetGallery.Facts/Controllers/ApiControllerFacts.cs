@@ -1052,7 +1052,9 @@ namespace NuGetGallery
 
                 var id = package?.PackageRegistration?.Id ?? "foo";
                 var version = package?.Version ?? "1.0.0";
-                controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersionStrict(id, version)).Returns(package);
+                controller.MockPackageService
+                    .Setup(s => s.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
 
                 controller.SetCurrentUser(user, scopes);
 
