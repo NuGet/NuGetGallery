@@ -262,7 +262,7 @@ namespace NuGetGallery
         private HttpStatusCodeWithBodyResult VerifyPackageKeyInternal(User user, Credential credential, string id, string version)
         {
             // Verify that the user has permission to push for the specific Id \ version combination.
-            var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
+            var package = PackageService.FindPackageByIdAndVersion(id, version, semVerLevelKey: SemVerLevelKey.SemVer2);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
