@@ -793,7 +793,7 @@ namespace NuGetGallery
 
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
             var currentUtcTime = DateTime.UtcNow;
-            foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
+            foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
             {
                 pv.IsLatest = false;
                 pv.IsLatestStable = false;

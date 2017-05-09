@@ -1053,6 +1053,50 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task ResetsCurrentLatestPackageVersionsBeforeUpdate()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration();
+
+                var previousLatestStable = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsLatestStable = true };
+                packageRegistration.Packages.Add(previousLatestStable);
+                var previousLatest = new Package { PackageRegistration = packageRegistration, Version = "1.0.0-alpha", IsLatest = true, IsPrerelease = true };
+                packageRegistration.Packages.Add(previousLatest);
+                var previousLatestStableSemVer2 = new Package { PackageRegistration = packageRegistration, Version = "1.0.1+metadata", IsLatestStableSemVer2 = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                packageRegistration.Packages.Add(previousLatestStableSemVer2);
+                var previousLatestSemVer2 = new Package { PackageRegistration = packageRegistration, Version = "1.0.1-alpha.1", IsLatestSemVer2 = true, IsPrerelease = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                packageRegistration.Packages.Add(previousLatestSemVer2);
+
+                // Simulates adding newer versions, to ensure the previous latest are no longer latest at end of test.
+                var newLatestStable = new Package { PackageRegistration = packageRegistration, Version = "1.0.1", IsLatestStable = true };
+                packageRegistration.Packages.Add(newLatestStable);
+                var newLatest = new Package { PackageRegistration = packageRegistration, Version = "1.0.2-alpha", IsLatest = true, IsPrerelease = true };
+                packageRegistration.Packages.Add(newLatest);
+                var newLatestStableSemVer2 = new Package { PackageRegistration = packageRegistration, Version = "1.0.2+metadata", IsLatestStableSemVer2 = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                packageRegistration.Packages.Add(newLatestStableSemVer2);
+                var newLatestSemVer2 = new Package { PackageRegistration = packageRegistration, Version = "1.0.3-alpha.1", IsLatestSemVer2 = true, IsPrerelease = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
+                packageRegistration.Packages.Add(newLatestSemVer2);
+
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+
+                var service = CreateService(packageRepository: packageRepository);
+
+                // Act
+                await service.UpdateIsLatestAsync(packageRegistration, commitChanges: true);
+
+                // Assert
+                Assert.False(previousLatestStable.IsLatestStable);
+                Assert.False(previousLatest.IsLatest);
+                Assert.False(previousLatestSemVer2.IsLatestSemVer2);
+                Assert.False(previousLatestStableSemVer2.IsLatestStableSemVer2);
+                
+                Assert.True(newLatestStable.IsLatestStable);
+                Assert.True(newLatest.IsLatest);
+                Assert.True(newLatestSemVer2.IsLatestSemVer2);
+                Assert.True(newLatestStableSemVer2.IsLatestStableSemVer2);
+            }
+
+            [Fact]
             public async Task UpdateIsLatestScenarioForPrereleaseAsAbsoluteLatest()
             {
                 // Arrange
