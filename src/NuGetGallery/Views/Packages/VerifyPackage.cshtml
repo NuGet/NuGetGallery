@@ -44,7 +44,7 @@
     <div class="form-field">
         <div style="display: block" >
             @Html.Label(formid, name, new { style = "display: inline-block" })
-            <button type="button" class="edit-button" id="@(formid + "Button")"><span class="icon-edit" title="Edit"></span></button>
+            <button type="button" class="edit-button" id="@(formid + "Button")"><span class="icon-edit" title="Edit @(name)"></span></button>
             <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
         </div>
         <div id="@(formid + "Text")">
@@ -147,7 +147,7 @@
                 <h4>Requires License Acceptance
                     @{
                                             var formid2 = "Edit_RequiresLicenseAcceptance";
-                        <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit"></span></button>
+                        <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit" title="Edit Requires License Acceptance"></span></button>
                         <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
                     }
                 </h4>
@@ -162,6 +162,10 @@
                                 {
                                     new SelectListItem { Text = Strings.Yes, Value = "true" },
                                     new SelectListItem { Text = Strings.No, Value = "false" },
+                                },
+                                new Dictionary<string, object>
+                                {
+                                    { "aria-label", "Requires License Acceptance" }
                                 })
                             @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
                         </div>
@@ -178,6 +182,10 @@
                         {
                             new SelectListItem { Text = Strings.Yes, Value = "true", Selected = true },
                             new SelectListItem { Text = Strings.No, Value = "false" },
+                        },
+                        new Dictionary<string, object>
+                        {
+                            { "aria-label", "Listed in Search Results" }
                         })
                     @Html.ValidationMessageFor(model => model.Listed)
                     @*<label for="Listed" class="checkbox">
