@@ -1242,7 +1242,11 @@ namespace NuGetGallery
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
 
-            return RedirectToRoute(RouteName.DisplayPackage, new { package.PackageRegistration.Id, package.NormalizedVersion });
+            return RedirectToRoute(RouteName.DisplayPackage, new
+            {
+                id = package.PackageRegistration.Id,
+                version = package.NormalizedVersion
+            });
         }
 
         private async Task<PackageArchiveReader> SafeCreatePackage(NuGetGallery.User currentUser, Stream uploadFile)
