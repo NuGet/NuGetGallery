@@ -1755,6 +1755,7 @@
     <Content Include="Views\Users\ApiKeys.cshtml" />
     <Content Include="Views\Shared\New\Layout.cshtml" />
     <Content Include="Views\Shared\New\Footer.cshtml" />
+    <Content Include="Views\Shared\New\Header.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
