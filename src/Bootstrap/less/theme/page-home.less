@@ -1,0 +1,73 @@
+.jumbotron {
+  padding-top: 110px;
+
+  h1 {
+    margin: 32px;
+  }
+}
+
+.what-is-nuget {
+  font-size: 1.15em;
+}
+
+.triangle:after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  border-width: 7px 7px 0;
+  border-style: solid;
+  border-color: #fff transparent;
+  display:block;
+  width: 0;
+}
+
+.triangle-left:after {
+  left: 15px;
+}
+
+.triangle-right:after {
+  right: 15px
+}
+
+.circuit-board {
+  width: 804px;
+  height: 484px;
+  position: relative;
+  margin: 0 auto;
+  background-image: url('../img/circuit-board.png');
+  background-repeat: no-repeat;
+  background-position: center bottom; 
+
+  .circuit-board-label {
+    position: absolute;
+    height: 75px;
+    background-color: #fff;
+    color: #000;
+    box-shadow: 0 0 3px black;
+
+    h3, h5 {
+      margin: 9px 0 0 0;
+    }
+  }
+
+  .circuit-board-pd {
+    left: 168px;
+    top: 0;
+    float: left;
+    width: 200px;
+  }
+
+  .circuit-board-pv {
+    left: 4px;
+    top: 137px;
+    float: left;
+    width: 144px;
+  }
+
+  .circuit-board-up {
+    right: 0;
+    top: 160px;
+    float: right;
+    width: 146px;
+  }
+}
