@@ -149,7 +149,7 @@ namespace NuGetGallery
         }
 
         //
-        // GET: /stats/package/{id}
+        // GET: /stats/packages/{id}
 
         public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string[] groupby)
         {
@@ -158,6 +158,63 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
+            var report = await GetPackageDownloadsByVersionReport(id, groupby);
+
+            StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
+
+            model.SetPackageDownloadsByVersion(id, report);
+
+            model.UseD3 = UseD3();
+
+            return View(model);
+        }
+
+        //
+        // GET: /stats/reports/packages/{id}
+
+        public virtual async Task<JsonResult> PackageDownloadsByVersionReport(string id, string[] groupby)
+        {
+            return Json(await GetPackageDownloadsByVersionReport(id, groupby));
+        }
+
+        //
+        // GET: /stats/packages/{id}/{version}
+
+        public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version, string[] groupby)
+        {
+            if (_statisticsService == NullStatisticsService.Instance)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            var report = await GetPackageDownloadsDetailReport(id, version, groupby);
+
+            var model = new StatisticsPackagesViewModel();
+
+            model.SetPackageVersionDownloadsByClient(id, version, report);
+
+            model.UseD3 = UseD3();
+
+            return View(model);
+        }
+
+        //
+        // GET: /stats/reports/packages/{id}/{version}
+
+        public virtual async Task<JsonResult> PackageDownloadsDetailReport(string id, string version, string[] groupby)
+        {
+            var report = await GetPackageDownloadsDetailReport(id, version, groupby);
+
+            if (report != null)
+            {
+                report.Id = MakeReportId(groupby);
+            }
+
+            return Json(report);
+        }
+
+        private async Task<StatisticsPackagesReport> GetPackageDownloadsByVersionReport(string id, string[] groupby)
+        {
             StatisticsPackagesReport report = null;
             try
             {
@@ -175,25 +232,11 @@ namespace NuGetGallery
                 report.Id = MakeReportId(groupby);
             }
 
-            StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
-
-            model.SetPackageDownloadsByVersion(id, report);
-
-            model.UseD3 = UseD3();
-
-            return View(model);
+            return report;
         }
 
-        //
-        // GET: /stats/package/{id}/{version}
-
-        public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version, string[] groupby)
+        private async Task<StatisticsPackagesReport> GetPackageDownloadsDetailReport(string id, string version, string[] groupby)
         {
-            if (_statisticsService == NullStatisticsService.Instance)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
             StatisticsPackagesReport report = null;
             try
             {
@@ -211,13 +254,7 @@ namespace NuGetGallery
                 report.Id = MakeReportId(groupby);
             }
 
-            var model = new StatisticsPackagesViewModel();
-
-            model.SetPackageVersionDownloadsByClient(id, version, report);
-
-            model.UseD3 = UseD3();
-
-            return View(model);
+            return report;
         }
 
         private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id)
