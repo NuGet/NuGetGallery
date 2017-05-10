@@ -174,7 +174,7 @@ namespace NuGetGallery
 
         public virtual async Task<JsonResult> PackageDownloadsByVersionReport(string id, string[] groupby)
         {
-            return Json(await GetPackageDownloadsByVersionReport(id, groupby));
+            return Json(await GetPackageDownloadsByVersionReport(id, groupby), JsonRequestBehavior.AllowGet);
         }
 
         //
@@ -210,7 +210,7 @@ namespace NuGetGallery
                 report.Id = MakeReportId(groupby);
             }
 
-            return Json(report);
+            return Json(report, JsonRequestBehavior.AllowGet);
         }
 
         private async Task<StatisticsPackagesReport> GetPackageDownloadsByVersionReport(string id, string[] groupby)
