@@ -264,7 +264,7 @@
             <p>
                 <code>
                     Install-Package @Model.Id
-                    @if (!Model.LatestVersion || !Model.Listed)
+                    @if (!Model.LatestVersionSemVer2 || !Model.Listed)
                     {
                         <text> -Version @Model.Version</text>
                     }
@@ -354,8 +354,8 @@
         <tbody>
             @foreach (var packageVersion in Model.PackageVersions)
             {
-                var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
-                var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
+                var rowClass = packageVersion.LatestStableVersionSemVer2 ? "recommended" : null;
+                var cellTitle = packageVersion.LatestStableVersionSemVer2 ? "Latest Stable Version" : null;
                 if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                 {
                     <tr class="versionTableRow @rowClass">
@@ -365,7 +365,7 @@
                                 <a title="@packageVersion.Title @packageVersion.FullVersion" href="@Url.Package(packageVersion) ">
                                     @packageVersion.Title.Abbreviate(20)
                                     @packageVersion.Version
-                                    @if (packageVersion.LatestStableVersion)
+                                    @if (packageVersion.LatestStableVersionSemVer2)
                                     {
                                         @:(latest stable)
                                     }
