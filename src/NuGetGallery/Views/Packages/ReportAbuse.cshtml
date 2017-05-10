@@ -69,7 +69,7 @@
             @Html.CheckBoxFor(m => m.CopySender)
             @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
         </div>
-        <div class="form-field">
+        <div id="infringement-claim-requirements" class="form-field">
             <br /><span style="color: red">*</span> Required Statements for infringement claims<br /><br />
             <strong>Good Faith Belief:</strong><br />
             <p>
@@ -108,6 +108,12 @@
                 $form.find("input, textarea, select").not('#form-field-reason *').attr('disabled', 'disabled');
             } else {
                 $form.find("input, textarea, select").not('#form-field-reason').removeAttr('disabled');
+            }
+
+            if (val == 'ViolatesALicenseIOwn') {
+                $form.find('#infringement-claim-requirements').show();
+            } else {
+                $form.find('#infringement-claim-requirements').hide();
             }
         }
 
