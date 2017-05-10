@@ -2556,7 +2556,7 @@ output {
   color: #555;
   background-color: #fff;
   background-image: none;
-  border: 1px solid #ccc;
+  border: 1px solid #fff;
   border-radius: 0;
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
           box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
@@ -2565,10 +2565,10 @@ output {
           transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }
 .form-control:focus {
-  border-color: #66afe9;
+  border-color: #fff;
   outline: 0;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
-          box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(255, 255, 255, .6);
+          box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(255, 255, 255, .6);
 }
 .form-control::-moz-placeholder {
   color: #999;
@@ -3903,7 +3903,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   color: #555;
   text-align: center;
   background-color: #eee;
-  border: 1px solid #ccc;
+  border: 1px solid #fff;
   border-radius: 0;
 }
 .input-group-addon.input-sm {
@@ -4165,7 +4165,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .navbar {
   position: relative;
-  min-height: 50px;
+  min-height: 44px;
   margin-bottom: 22px;
 }
 @media (min-width: 768px) {
@@ -4272,8 +4272,8 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .navbar-brand {
   float: left;
-  height: 50px;
-  padding: 14px 15px;
+  height: 44px;
+  padding: 11px 15px;
   font-size: 20px;
   line-height: 22px;
 }
@@ -4294,9 +4294,9 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   position: relative;
   float: right;
   padding: 9px 10px;
-  margin-top: 8px;
+  margin-top: 5px;
   margin-right: 15px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   background-color: transparent;
   background-image: none;
   border: 1px solid transparent;
@@ -4320,7 +4320,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   }
 }
 .navbar-nav {
-  margin: 7px -15px;
+  margin: 5.5px -15px;
 }
 .navbar-nav > li > a {
   padding-top: 10px;
@@ -4359,15 +4359,15 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
     float: left;
   }
   .navbar-nav > li > a {
-    padding-top: 14px;
-    padding-bottom: 14px;
+    padding-top: 11px;
+    padding-bottom: 11px;
   }
 }
 .navbar-form {
   padding: 10px 15px;
-  margin-top: 7px;
+  margin-top: 4px;
   margin-right: -15px;
-  margin-bottom: 7px;
+  margin-bottom: 4px;
   margin-left: -15px;
   border-top: 1px solid transparent;
   border-bottom: 1px solid transparent;
@@ -4457,20 +4457,20 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   border-bottom-left-radius: 0;
 }
 .navbar-btn {
-  margin-top: 7px;
-  margin-bottom: 7px;
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 .navbar-btn.btn-sm {
-  margin-top: 8.5px;
-  margin-bottom: 8.5px;
+  margin-top: 5.5px;
+  margin-bottom: 5.5px;
 }
 .navbar-btn.btn-xs {
-  margin-top: 14px;
-  margin-bottom: 14px;
+  margin-top: 11px;
+  margin-bottom: 11px;
 }
 .navbar-text {
-  margin-top: 14px;
-  margin-bottom: 14px;
+  margin-top: 11px;
+  margin-bottom: 11px;
 }
 @media (min-width: 768px) {
   .navbar-text {
@@ -4955,9 +4955,9 @@ a.badge:focus {
   margin-left: 3px;
 }
 .jumbotron {
-  padding-top: 50px;
-  padding-bottom: 50px;
-  margin-bottom: 50px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  margin-bottom: 30px;
   color: #fff;
   background-color: #004880;
 }
@@ -4966,7 +4966,7 @@ a.badge:focus {
   color: inherit;
 }
 .jumbotron p {
-  margin-bottom: 25px;
+  margin-bottom: 15px;
   font-size: 24px;
   font-weight: 200;
 }
@@ -4984,13 +4984,13 @@ a.badge:focus {
 }
 @media screen and (min-width: 768px) {
   .jumbotron {
-    padding-top: 80px;
-    padding-bottom: 80px;
+    padding-top: 48px;
+    padding-bottom: 48px;
   }
   .container .jumbotron,
   .container-fluid .jumbotron {
-    padding-right: 100px;
-    padding-left: 100px;
+    padding-right: 60px;
+    padding-left: 60px;
   }
   .jumbotron h1,
   .jumbotron .h1 {

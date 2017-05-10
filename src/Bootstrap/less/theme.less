@@ -25,20 +25,22 @@ body {
   margin-bottom: @panel-footer-height;
 }
 
-.m50 {
-  margin-top: 50px;
+.mt-loop(@i) when (@i > 0) {
+  .mt-@{i} {
+    margin-top: (1px * @i);
+    
+  }
+  .mt-loop((@i - 10));
 }
+
+.mt-loop(150);
 
 .main-container {
   padding-bottom: 75px;
 }
 
 .navbar-logo {
-  margin: 10px 0;
-}
-
-.navbar {
-  font-size: 0.9em;
+  margin: 8px 20px 0 8px;
 }
 
 .footer {
@@ -46,6 +48,7 @@ body {
   bottom: 0;
   width: 100%;
   background-color: @panel-footer-bg;
+  height: @panel-footer-height;
   color: @panel-footer-color;
   font-size: 0.70em;
   padding-top: 75px;
@@ -62,5 +65,66 @@ body {
 
   h1 {
     margin: 32px;
+  }
+}
+
+.triangle:after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  border-width: 7px 7px 0;
+  border-style: solid;
+  border-color: #fff transparent;
+  display:block;
+  width: 0;
+}
+
+.triangle-left:after {
+  left: 15px;
+}
+
+.triangle-right:after {
+  right: 15px
+}
+
+.circuit-board {
+  width: 752px;
+  height: 434px;
+  position: relative;
+  margin: 0 auto;
+  background-image: url('../Images/new/circuit-board-colors.png');
+  background-repeat: no-repeat;
+  background-position: center bottom; 
+
+  .circuit-board-label {
+    position: absolute;
+    height: 70px;
+    background-color: #fff;
+    color: #000;
+
+    h3, h5 {
+      margin: 7px 0 0 0;
+    }
+  }
+
+  .circuit-board-pd {
+    left: 159px;
+    top: 0px;
+    float: left;
+    width: 200px;
+  }
+
+  .circuit-board-pv {
+    left: 0px;
+    top: 159px;
+    float: left;
+    width: 144px;
+  }
+
+  .circuit-board-up {
+    right: 0;
+    top: 146px;
+    float: right;
+    width: 146px;
   }
 }
