@@ -344,7 +344,7 @@
                                  <div class="popupbox" id="addapikeypopup">
                                      <a class="boxclose"><i class="icon-remove"></i></a>
                                      <div class="innertext">
-                                         A glob pattern allows you to replace any sequence of charecters with '*'.
+                                         A glob pattern allows you to replace any sequence of characters with '*'.
                                          <h5>Example glob patterns</h5>
                                          <table>
                                              <tr>
@@ -1136,6 +1136,7 @@
         selectPackagesDiv.appendChild(document
             .createTextNode("To select which packages to associate with a key use a glob pattern, select individual packages, or both. "));
         var helpLink = document.createElement("a");
+        helpLink.href = "#";
         helpLink.className = "globHelpLink";
         helpLink.appendChild(document.createTextNode("Example glob patterns"));
         selectPackagesDiv.appendChild(helpLink);
@@ -1153,7 +1154,7 @@
         var innerTextDiv = document.createElement("div");
         innerTextDiv.className = "innertext";
         innerTextDiv.appendChild(document
-            .createTextNode("A glob pattern allows you to replace any sequence of charecters with '*'."));
+            .createTextNode("A glob pattern allows you to replace any sequence of characters with '*'."));
         var popupheader = document.createElement("h5");
         popupheader.appendChild(document.createTextNode("Example glob patterns"));
         innerTextDiv.appendChild(popupheader);
