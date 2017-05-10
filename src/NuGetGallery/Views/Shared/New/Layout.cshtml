@@ -72,13 +72,13 @@
     </nav>
 
     @if (TempData.ContainsKey("Message"))
-            {
+    {
         <p class="message">@TempData["Message"]</p>
     }
     @RenderBody()
 
     @Html.Partial("New/Footer")
-
+    @Scripts.Render("~/Scripts/new/site.js")
     @RenderSection("BottomScripts", required: false)
 </body>
 </html>

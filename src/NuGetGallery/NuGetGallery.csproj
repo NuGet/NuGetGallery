@@ -1866,6 +1866,7 @@
     <Content Include="Scripts\statsdimensions.js" />
     <Content Include="Scripts\async-file-upload.js" />
     <Content Include="Scripts\stats.js" />
+    <Content Include="Scripts\new\*" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

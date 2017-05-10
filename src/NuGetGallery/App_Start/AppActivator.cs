@@ -177,12 +177,17 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(supportRequestsBundle);
 
             // Add bundles for the site redesign
-            var newStylesBundle = new StyleBundle("~/Content/new/css/site.css");
-            newStylesBundle
+            var newStyleBundle = new StyleBundle("~/Content/new/css/site.css");
+            newStyleBundle
                 .Include("~/Content/new/css/bootstrap.css")
                 .Include("~/Content/new/css/bootstrap-theme.css")
                 .Include("~/Content/new/css/font-awesome.css");
-            BundleTable.Bundles.Add(newStylesBundle);
+            BundleTable.Bundles.Add(newStyleBundle);
+
+            var newScriptBundle = new ScriptBundle("~/Scripts/new/site.js")
+                .Include("~/Scripts/new/jquery-1.12.4.js")
+                .Include("~/Scripts/new/bootstrap.js");
+            BundleTable.Bundles.Add(newScriptBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)
