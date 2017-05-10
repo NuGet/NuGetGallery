@@ -177,10 +177,11 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(supportRequestsBundle);
 
             // Add bundles for the site redesign
-            var newStylesBundle = new StyleBundle("~/Content/new-css");
+            var newStylesBundle = new StyleBundle("~/Content/new/css/site.css");
             newStylesBundle
-                .Include("~/Content/new/bootstrap.css")
-                .Include("~/Content/new/bootstrap-theme.css");
+                .Include("~/Content/new/css/bootstrap.css")
+                .Include("~/Content/new/css/bootstrap-theme.css")
+                .Include("~/Content/new/css/font-awesome.css");
             BundleTable.Bundles.Add(newStylesBundle);
         }
 

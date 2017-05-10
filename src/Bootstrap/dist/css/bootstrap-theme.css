@@ -76,10 +76,13 @@ body {
   color: #e3ebf1;
 }
 .jumbotron {
-  padding-top: 80px;
+  padding-top: 110px;
 }
 .jumbotron h1 {
   margin: 32px;
+}
+.what-is-nuget {
+  font-size: 1.15em;
 }
 .triangle:after {
   position: absolute;
@@ -99,37 +102,39 @@ body {
 }
 .circuit-board {
   position: relative;
-  width: 752px;
-  height: 434px;
+  width: 804px;
+  height: 484px;
   margin: 0 auto;
-  background-image: url('../Images/new/circuit-board-colors.png');
+  background-image: url('../img/circuit-board.png');
   background-repeat: no-repeat;
   background-position: center bottom;
 }
 .circuit-board .circuit-board-label {
   position: absolute;
-  height: 70px;
+  height: 75px;
   color: #000;
   background-color: #fff;
+  -webkit-box-shadow: 0 0 3px black;
+          box-shadow: 0 0 3px black;
 }
 .circuit-board .circuit-board-label h3,
 .circuit-board .circuit-board-label h5 {
-  margin: 7px 0 0 0;
+  margin: 9px 0 0 0;
 }
 .circuit-board .circuit-board-pd {
   top: 0;
-  left: 159px;
+  left: 168px;
   float: left;
   width: 200px;
 }
 .circuit-board .circuit-board-pv {
-  top: 159px;
-  left: 0;
+  top: 137px;
+  left: 4px;
   float: left;
   width: 144px;
 }
 .circuit-board .circuit-board-up {
-  top: 146px;
+  top: 160px;
   right: 0;
   float: right;
   width: 146px;
