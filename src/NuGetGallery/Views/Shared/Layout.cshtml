@@ -14,7 +14,10 @@
         <link title="NuGet.org" type="application/opensearchdescription+xml" href="@Url.Content("~/opensearch.xml")" rel="search">
 
         @Styles.Render("~/Content/css")
-        @Styles.Render("~/Content/new/font-awesome/css")
+        @Styles.Render("~/Content/font-awesome/css")
+        <!--[if IE 7]>
+        @Styles.Render("~/Content/font-awesome-ie7.min.css")
+        <![endif]-->
 
         @RenderSection("TopStyles", required: false)
 

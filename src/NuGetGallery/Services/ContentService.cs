@@ -95,8 +95,6 @@ namespace NuGetGallery
         // This NNNCore pattern allows arg checking to happen synchronously, before starting the async operation.
         private async Task<IHtmlString> GetContentItemCore(string name, string[] extensions, TimeSpan expiresIn)
         {
-            expiresIn = TimeSpan.Zero;
-
             using (Trace.Activity("GetContentItem " + name))
             {
                 ContentItem cachedItem = null;

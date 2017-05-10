@@ -155,14 +155,14 @@
     }
 }
 
-@helper ReleaseTag(bool useNew)
+@helper ReleaseTag()
 {
     // Get Version info and gallery brand name
     var ver = ApplicationVersionHelper.GetVersion();
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
     string brand = config == null ? "" : config.Current.Brand;
 
-    <p @(useNew ? string.Empty : "id=\"releaseTag\"")>
+    <p id="releaseTag">
         This is the @brand
         @if (ver.Present)
         {
