@@ -110,7 +110,7 @@ namespace NuGetGallery
 
         public static string Package(this UrlHelper url, Package package)
         {
-            return url.Package(package.PackageRegistration.Id, package.Version);
+            return url.Package(package.PackageRegistration.Id, package.NormalizedVersion);
         }
 
         public static string Package(this UrlHelper url, IPackageVersionModel package)
