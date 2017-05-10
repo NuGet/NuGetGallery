@@ -26,30 +26,27 @@
                 </p>
             </div>
         </div>
-        <div class="row">
+        <div class="row m50">
             <div class="col-md-3">
                 <img src="~/Content/Images/new/logo-184x53.png" alt="Larger NuGet logo in the page footer" />
             </div>
             <div class="col-md-9">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-1">
-                            <a title=".NET Foundation" href="https://www.dotnetfoundation.org"><img src="@Href("~/Content/Logos/dnf.png")" alt=".NET Foundation" /></a>
-
-                        </div>
-                        <div class="col-md-11">
-                            <p>
-                                &copy; @DateTime.UtcNow.Year .NET Foundation -
-                                <a href="@Url.Action("Terms", "Pages")">Terms of Use</a> -
-                                <a href="@Url.Action("Privacy", "Pages")">Privacy Policy</a> -
-                                <a href="@Url.Action("About", "Pages")">About the Gallery</a> -
-                                <a href="https://status.nuget.org">Service status</a>
-                            </p>
-                            <p>
-                                Deployed using <a href="https://octopus.com/" target="referral">Octopus Deploy</a> | Uses <a href="http://fontawesome.io" target="referral">Font Awesome</a> by Dave Gandy
-                            </p>
-                            @ViewHelpers.ReleaseTag(useNew: true)
-                        </div>
+                <div class="row">
+                    <div class="col-md-1">
+                        <a title=".NET Foundation" href="https://www.dotnetfoundation.org"><img src="@Href("~/Content/Logos/dnf.png")" alt=".NET Foundation" /></a>
+                    </div>
+                    <div class="col-md-11">
+                        <p>
+                            &copy; @DateTime.UtcNow.Year .NET Foundation -
+                            <a href="@Url.Action("Terms", "Pages")">Terms of Use</a> -
+                            <a href="@Url.Action("Privacy", "Pages")">Privacy Policy</a> -
+                            <a href="@Url.Action("About", "Pages")">About the Gallery</a> -
+                            <a href="https://status.nuget.org">Service status</a>
+                        </p>
+                        <p>
+                            Deployed using <a href="https://octopus.com/" target="referral">Octopus Deploy</a> | Uses <a href="http://fontawesome.io" target="referral">Font Awesome</a> by Dave Gandy
+                        </p>
+                        @ViewHelpers.ReleaseTag(useNew: true)
                     </div>
                 </div>
             </div>

@@ -10,11 +10,17 @@ html {
 body {
   margin-bottom: 350px;
 }
+.m50 {
+  margin-top: 50px;
+}
 .main-container {
   padding-bottom: 75px;
 }
 .navbar-logo {
   margin: 10px 0;
+}
+.navbar {
+  font-size: .9em;
 }
 .footer {
   position: absolute;
@@ -22,7 +28,7 @@ body {
   width: 100%;
   padding-top: 75px;
   padding-bottom: 75px;
-  font-size: .85em;
+  font-size: .70em;
   color: #e3ebf1;
   background-color: #002440;
 }
@@ -30,7 +36,7 @@ body {
   color: #e3ebf1;
 }
 .jumbotron {
-  padding-top: 110px;
+  padding-top: 80px;
 }
 .jumbotron h1 {
   margin: 32px;
