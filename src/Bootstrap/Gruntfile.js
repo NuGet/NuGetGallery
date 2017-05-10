@@ -282,6 +282,15 @@ module.exports = function (grunt) {
           '**/*'
         ],
         dest: 'docs/dist/'
+      },
+      gallerycss: {
+        expand: true,
+        cwd: 'dist/css/',
+        src: [
+          'bootstrap.css',
+          'bootstrap-theme.css'
+        ],
+        dest: '../NuGetGallery/Content/new/'
       }
     },
 
@@ -473,7 +482,7 @@ module.exports = function (grunt) {
   grunt.registerTask('dist-css', ['less-compile', 'autoprefixer:core', 'autoprefixer:theme', 'csscomb:dist', 'cssmin:minifyCore', 'cssmin:minifyTheme']);
 
   // Full distribution task.
-  grunt.registerTask('dist', ['clean:dist', 'dist-css', 'dist-js']);
+  grunt.registerTask('dist', ['clean:dist', 'dist-css', 'dist-js', 'copy:gallerycss']);
 
   // Default task.
   grunt.registerTask('default', ['clean:dist', 'test']);

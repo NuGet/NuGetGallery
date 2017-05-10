@@ -1,0 +1,58 @@
+﻿<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h4><a href="@Href("~/policies/Contact")">Contact</a></h4>
+                <p>
+                    Got questions about NuGet or the NuGet Gallery?
+                </p>
+            </div>
+            <div class="col-md-3">
+                <h4><a href="https://docs.nuget.org/docs/start-here/overview">Overview</a></h4>
+                <p>
+                    NuGet is a Visual Studio extension that makes it easy to add, remove, and update libraries.
+                </p>
+            </div>
+            <div class="col-md-3">
+                <h4><a href="https://docs.nuget.org/docs/start-here/installing-nuget">Install</a></h4>
+                <p>
+                    NuGet can be installed and updated using the Visual Studio Extension Manager.
+                </p>
+            </div>
+            <div class="col-md-3">
+                <h4><a href="https://docs.nuget.org/docs/start-here/videos">Learn</a></h4>
+                <p>
+                    Watch screencasts and presentations about anything and everything NuGet.
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <img src="~/Content/Images/new/logo-184x53.png" alt="Larger NuGet logo in the page footer" />
+            </div>
+            <div class="col-md-9">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-1">
+                            <a title=".NET Foundation" href="https://www.dotnetfoundation.org"><img src="@Href("~/Content/Logos/dnf.png")" alt=".NET Foundation" /></a>
+
+                        </div>
+                        <div class="col-md-11">
+                            <p>
+                                &copy; @DateTime.UtcNow.Year .NET Foundation -
+                                <a href="@Url.Action("Terms", "Pages")">Terms of Use</a> -
+                                <a href="@Url.Action("Privacy", "Pages")">Privacy Policy</a> -
+                                <a href="@Url.Action("About", "Pages")">About the Gallery</a> -
+                                <a href="https://status.nuget.org">Service status</a>
+                            </p>
+                            <p>
+                                Deployed using <a href="https://octopus.com/" target="referral">Octopus Deploy</a> | Uses <a href="http://fontawesome.io" target="referral">Font Awesome</a> by Dave Gandy
+                            </p>
+                            @ViewHelpers.ReleaseTag(useNew: true)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

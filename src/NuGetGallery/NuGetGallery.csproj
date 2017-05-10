@@ -1472,6 +1472,7 @@
     <Content Include="Content\Images\icons\edit.png" />
     <Content Include="Content\Images\icons\expire.png" />
     <Content Include="Content\Images\icons\regenerate.png" />
+    <Content Include="Content\Images\new\*" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -1714,6 +1715,8 @@
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
+    <Content Include="Content\fonts\*" />
+    <Content Include="Content\new\*" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
@@ -1747,6 +1750,8 @@
     <Content Include="Views\Pages\Terms.cshtml" />
     <Content Include="Views\Pages\About.cshtml" />
     <Content Include="Views\Users\ApiKeys.cshtml" />
+    <Content Include="Views\Shared\New\Layout.cshtml" />
+    <Content Include="Views\Shared\New\Footer.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -2115,4 +2120,9 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
+  <PropertyGroup>
+    <PreBuildEvent>copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.css" "$(ProjectDir)Content\new"
+copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap-theme.css" "$(ProjectDir)Content\new"
+copy "$(ProjectDir)..\Bootstrap\dist\fonts\*" "$(ProjectDir)Content\fonts"</PreBuildEvent>
+  </PropertyGroup>
 </Project>

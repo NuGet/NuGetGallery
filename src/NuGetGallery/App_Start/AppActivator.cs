@@ -175,6 +175,13 @@ namespace NuGetGallery
                 .Include("~/Scripts/knockout-projections.js")
                 .Include("~/Scripts/supportrequests.js");
             BundleTable.Bundles.Add(supportRequestsBundle);
+
+            // Add bundles for the site redesign
+            var newStylesBundle = new StyleBundle("~/Content/new-css");
+            newStylesBundle
+                .Include("~/Content/new/bootstrap.css")
+                .Include("~/Content/new/bootstrap-theme.css");
+            BundleTable.Bundles.Add(newStylesBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)
