@@ -9,6 +9,7 @@ using Moq;
 using Newtonsoft.Json;
 using NuGet.Packaging;
 using Xunit;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Security
 {
@@ -40,10 +41,10 @@ namespace NuGetGallery.Security
         [InlineData("")]
         [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]")]
         [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]")]
-        public void OnSubscribeExpiresPushApiKeysIn1Week(string scopes)
+        public async void OnSubscribeExpiresPushApiKeysIn1Week(string scopes)
         {
             // Arrange & Act.
-            var user = SubscribeUserToSecurePush(CredentialTypes.ApiKey.V2, scopes);
+            var user = (await SubscribeUserToSecurePushAsync(CredentialTypes.ApiKey.V2, scopes)).Item1;
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
@@ -54,10 +55,10 @@ namespace NuGetGallery.Security
         [InlineData("password.v3", "")]
         [InlineData("apikey.v2", "[{\"a\":\"package:unlist\", \"s\":\"theId\"}]")]
         [InlineData("apikey.verify.v1", "[{\"a\":\"package:verify\", \"s\":\"theId\"}]")]
-        public void OnSubscribeDoesNotExpireNonPushCredentials(string type, string scopes)
+        public async void OnSubscribeDoesNotExpireNonPushCredentials(string type, string scopes)
         {
             // Arrange & Act.
-            var user = SubscribeUserToSecurePush(type, scopes);
+            var user = (await SubscribeUserToSecurePushAsync(type, scopes)).Item1;
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
@@ -68,25 +69,50 @@ namespace NuGetGallery.Security
         [InlineData("")]
         [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]")]
         [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]")]
-        public void OnSubscribeDoesNotChangeExpiringPushCredentials(string scopes)
+        public async void OnSubscribeDoesNotChangeExpiringPushCredentials(string scopes)
         {
             // Arrange & Act.
-            var user = SubscribeUserToSecurePush(CredentialTypes.ApiKey.V2, scopes, expiresInDays: 2);
+            var user = (await SubscribeUserToSecurePushAsync(CredentialTypes.ApiKey.V2, scopes, expiresInDays: 2)).Item1;
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
             Assert.True(DateTime.UtcNow.AddDays(2) >= user.Credentials.First().Expires);
         }
 
-        private User SubscribeUserToSecurePush(string type, string scopes, int expiresInDays = 100)
+        [Fact]
+        public async void OnSubscribeSavesAuditRecordIfKeysExpired()
+        {
+            // Arrange & Act.
+            var service = (await SubscribeUserToSecurePushAsync(CredentialTypes.ApiKey.V2, "")).Item2;
+
+            // Assert.
+            service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()),
+                /* subscription and key expiration */Times.Exactly(2));
+        }
+
+        [Fact]
+        public async void OnSubscribeDoesNotSaveAuditRecordIfKeysNotExpired()
+        {
+            // Arrange & Act.
+            var service = (await SubscribeUserToSecurePushAsync(CredentialTypes.ApiKey.V2, "", expiresInDays: 2)).Item2;
+
+            // Assert.
+            service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()),
+                /* subscription only */ Times.Once);
+        }
+
+        private async Task<Tuple<User, TestSecurityPolicyService>> SubscribeUserToSecurePushAsync(string type, string scopes, int expiresInDays = 100)
         {
             // Arrange.
-            var entitiesContext = new Mock<IEntitiesContext>();
-            entitiesContext.Setup(c => c.SaveChangesAsync()).Returns(Task.FromResult(2)).Verifiable();
-
-            var service = new SecurityPolicyService(entitiesContext.Object);
-            var subscription = service.UserSubscriptions.First(s => s.SubscriptionName.Equals(SecurePushSubscription.Name));
-
+            var subscription = new SecurePushSubscription();
+            var service = new TestSecurityPolicyService(
+                userHandlers: new UserSecurityPolicyHandler[]
+                {
+                    new RequireMinClientVersionForPushPolicy(),
+                    new RequirePackageVerifyScopePolicy()
+                },
+                userSubscriptions: new[] { subscription });
+            
             var credential = new Credential(type, string.Empty, TimeSpan.FromDays(expiresInDays));
             if (!string.IsNullOrWhiteSpace(scopes))
             {
@@ -96,10 +122,11 @@ namespace NuGetGallery.Security
             user.Credentials.Add(credential);
 
             // Act.
-            service.SubscribeAsync(user, subscription);
-            entitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+            await service.SubscribeAsync(user, subscription);
 
-            return user;
+            service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+
+            return Tuple.Create(user, service);
         }
     }
 }

@@ -67,7 +67,7 @@ namespace NuGetGallery.Security
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(c => c.User).Returns(principal.Object);
             
-            var context = new UserSecurityPolicyContext(httpContext.Object,
+            var context = new UserSecurityPolicyEvaluationContext(httpContext.Object,
                 new UserSecurityPolicy[] { new UserSecurityPolicy("RequireApiKeyWithPackageVerifyScopePolicy", "Subscription") });
 
             return new RequirePackageVerifyScopePolicy().Evaluate(context);

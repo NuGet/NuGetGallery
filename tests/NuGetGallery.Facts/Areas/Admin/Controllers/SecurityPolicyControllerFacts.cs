@@ -94,7 +94,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Arrange.
             var policyService = new TestSecurityPolicyService();
             var dbUsers = TestUsers.ToArray();
-            await policyService.SubscribeAsync(dbUsers[1], policyService.MockSubscription.Object);
+            var subscription = policyService.Mocks.Subscription.Object;
+            var subscriptionName = subscription.SubscriptionName;
+            await policyService.SubscribeAsync(dbUsers[1], subscription);
 
             var entitiesMock = policyService.MockEntitiesContext;
             entitiesMock.Setup(c => c.Users).Returns(dbUsers.MockDbSet().Object);
@@ -106,7 +108,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Assert.
             dynamic data = result.Data;
             var users = (data.Users as IEnumerable<UserSecurityPolicySubscriptions>)?.ToList();
-            var subscriptionName = policyService.MockSubscription.Object.SubscriptionName;
 
             Assert.NotNull(users);
             Assert.Equal(3, users.Count());
@@ -133,7 +134,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var entitiesMock = policyService.MockEntitiesContext;
             entitiesMock.Setup(c => c.Users).Returns(users.MockDbSet().Object);
             var controller = new SecurityPolicyController(entitiesMock.Object, policyService);
-            var subscription = policyService.MockSubscription.Object;
+            var subscription = policyService.Mocks.Subscription.Object;
 
             Assert.False(users.Any(u => policyService.IsSubscribed(u, subscription)));
 
@@ -166,7 +167,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var entitiesMock = policyService.MockEntitiesContext;
             entitiesMock.Setup(c => c.Users).Returns(users.MockDbSet().Object);
             var controller = new SecurityPolicyController(entitiesMock.Object, policyService);
-            var subscription = policyService.MockSubscription.Object;
+            var subscription = policyService.Mocks.Subscription.Object;
 
             users.ForEach(async u => await policyService.SubscribeAsync(u, subscription));
             policyService.MockEntitiesContext.ResetCalls();

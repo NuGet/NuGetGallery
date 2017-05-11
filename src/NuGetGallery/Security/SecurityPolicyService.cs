@@ -6,7 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Mvc;
 using NuGetGallery.Filters;
+using NuGetGallery.Auditing;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Security
 {
@@ -23,13 +26,20 @@ namespace NuGetGallery.Security
         
         protected IEntitiesContext EntitiesContext { get; set; }
 
+        public IAuditingService Auditing { get; protected set; }
+
+        public IDiagnosticsSource Diagnostics { get; protected set; }
+
         protected SecurityPolicyService()
         {
         }
 
-        public SecurityPolicyService(IEntitiesContext entitiesContext)
+        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
+            Diagnostics = diagnostics?.SafeGetSource("SecurityPoliceService")
+                ?? throw new ArgumentNullException(nameof(diagnostics));
         }
 
         /// <summary>
@@ -70,14 +80,32 @@ namespace NuGetGallery.Security
                 var foundPolicies = user.SecurityPolicies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase));
                 if (foundPolicies.Any())
                 {
-                    var result = handler.Evaluate(new UserSecurityPolicyContext(httpContext, foundPolicies));
+                    var result = handler.Evaluate(new UserSecurityPolicyEvaluationContext(httpContext, foundPolicies));
                     if (!result.Success)
                     {
+                        Auditing.SaveAuditRecordAsync(new FailedUserSecurityPolicyAuditRecord(
+                            user.Username, GetAuditAction(action), foundPolicies)).Wait();
+
+                        Diagnostics.Information(
+                            $"Security policy '{handler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
                         return result;
                     }
                 }
             }
             return SecurityPolicyResult.SuccessResult;
+        }
+
+        private AuditedPackageAction GetAuditAction(SecurityPolicyAction policyAction)
+        {
+            switch (policyAction)
+            {
+                case SecurityPolicyAction.PackagePush:
+                    return AuditedPackageAction.Create;
+                case SecurityPolicyAction.PackageVerify:
+                    return AuditedPackageAction.Verify;
+                default:
+                    throw new NotSupportedException($"Policy action '{nameof(policyAction)}' is not supported");
+            }
         }
 
         /// <summary>
@@ -103,7 +131,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Subscribe a user to one or more security policies.
         /// </summary>
-        public Task SubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
+        public async Task SubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
         {
             if (user == null)
             {
@@ -114,25 +142,32 @@ namespace NuGetGallery.Security
                 throw new ArgumentNullException(nameof(subscription));
             }
 
-            if (!IsSubscribed(user, subscription))
+            if (IsSubscribed(user, subscription))
+            {
+                Diagnostics.Information($"User '{user.Username}' is already subscribed to '{subscription.SubscriptionName}'.");
+            }
+            else
             {
                 foreach (var policy in subscription.Policies)
                 {
                     user.SecurityPolicies.Add(new UserSecurityPolicy(policy));
                 }
 
-                subscription.OnSubscribe(user);
+                await subscription.OnSubscribeAsync(new UserSecurityPolicySubscriptionContext(this, user));
 
-                return EntitiesContext.SaveChangesAsync();
+                await EntitiesContext.SaveChangesAsync();
+
+                await Auditing.SaveAuditRecordAsync(
+                    new UserAuditRecord(user, AuditedUserAction.SubscribedToPolicies, subscription.Policies));
+
+                Diagnostics.Information($"User '{user.Username}' is now subscribed to '{subscription.SubscriptionName}'.");
             }
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Unsubscribe a user from one or more security policies.
         /// </summary>
-        public Task UnsubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
+        public async Task UnsubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
         {
             if (user == null)
             {
@@ -149,15 +184,23 @@ namespace NuGetGallery.Security
                 foreach (var policy in matches)
                 {
                     user.SecurityPolicies.Remove(policy);
+
                     EntitiesContext.UserSecurityPolicies.Remove(policy);
                 }
 
-                subscription.OnUnsubscribe(user);
+                await subscription.OnUnsubscribeAsync(new UserSecurityPolicySubscriptionContext(this, user));
 
-                return EntitiesContext.SaveChangesAsync();
+                await EntitiesContext.SaveChangesAsync();
+
+                await Auditing.SaveAuditRecordAsync(
+                    new UserAuditRecord(user, AuditedUserAction.UnsubscribedFromPolicies, subscription.Policies));
+
+                Diagnostics.Information($"User '{user.Username}' is now unsubscribed from '{subscription.SubscriptionName}'.");
             }
-
-            return Task.CompletedTask;
+            else
+            {
+                Diagnostics.Information($"User '{user.Username}' is already unsubscribed from '{subscription.SubscriptionName}'.");
+            }
         }
 
         /// <summary>

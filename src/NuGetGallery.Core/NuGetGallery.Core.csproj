@@ -122,11 +122,13 @@
     <Compile Include="Auditing\AuditedEntities\AuditedPackage.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackageIdentifier.cs" />
     <Compile Include="Auditing\AuditedAuthenticatedOperationAction.cs" />
+    <Compile Include="Auditing\AuditedEntities\AuditedUserSecurityPolicy.cs" />
     <Compile Include="Auditing\AuditEntry.cs" />
     <Compile Include="Auditing\AuditActor.cs" />
     <Compile Include="Auditing\AuditingService.cs" />
     <Compile Include="Auditing\AuditRecord.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecord.cs" />
+    <Compile Include="Auditing\FailedUserSecurityPolicyAuditRecord.cs" />
     <Compile Include="Auditing\FileSystemAuditingService.cs" />
     <Compile Include="Auditing\CloudAuditingService.cs" />
     <Compile Include="Auditing\CredentialAuditRecord.cs" />
@@ -139,7 +141,6 @@
     <Compile Include="Auditing\AuditedUserAction.cs" />
     <Compile Include="Auditing\PackageAuditRecord.cs" />
     <Compile Include="Auditing\ScopeAuditRecord.cs" />
-    <Compile Include="Auditing\UserAuditAction.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
     <Compile Include="CoreConstants.cs" />
     <Compile Include="CredentialTypes.cs" />

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGetGallery.Auditing.AuditedEntities;
 
 namespace NuGetGallery.Auditing
 {
@@ -16,6 +17,7 @@ namespace NuGetGallery.Auditing
         public CredentialAuditRecord[] Credentials { get; }
         public CredentialAuditRecord[] AffectedCredential { get; }
         public string AffectedEmailAddress { get; }
+        public AuditedUserSecurityPolicy[] Policies { get; }
 
         public UserAuditRecord(User user, AuditedUserAction action)
             : this(user, action, Enumerable.Empty<Credential>())
@@ -55,7 +57,13 @@ namespace NuGetGallery.Auditing
         {
             AffectedEmailAddress = affectedEmailAddress;
         }
-        
+
+        public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<UserSecurityPolicy> policies)
+            : this(user, action, Enumerable.Empty<Credential>())
+        {
+            Policies = policies.Select(p => new AuditedUserSecurityPolicy(p)).ToArray();
+        }
+
         public override string GetPath()
         {
             return Username.ToLowerInvariant();

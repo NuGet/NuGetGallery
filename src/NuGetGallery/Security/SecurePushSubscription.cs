@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
+using NuGetGallery.Auditing;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Security
 {
@@ -41,21 +44,13 @@ namespace NuGetGallery.Security
             }
         }
 
-        public void OnSubscribe(User user)
-        {
-            SetPushApiKeysToExpire(user);
-        }
-        
-        public void OnUnsubscribe(User user)
-        {
-        }
-
         /// <summary>
-        /// Expire API keys with push capability on secure push enrollment.
+        /// On subscribe, set API keys with push capability to expire in 30 days.
         /// </summary>
-        private static void SetPushApiKeysToExpire(User user)
+        /// <param name="context"></param>
+        public async Task OnSubscribeAsync(UserSecurityPolicySubscriptionContext context)
         {
-            var pushKeys = user.Credentials.Where(c =>
+            var pushKeys = context.User.Credentials.Where(c =>
                 CredentialTypes.IsApiKey(c.Type) &&
                 (
                     c.Scopes.Count == 0 ||
@@ -63,16 +58,28 @@ namespace NuGetGallery.Security
                         s.AllowedAction.Equals(NuGetScopes.PackagePush, StringComparison.OrdinalIgnoreCase) ||
                         s.AllowedAction.Equals(NuGetScopes.PackagePushVersion, StringComparison.OrdinalIgnoreCase)
                         ))
-                );
+                ).ToList();
 
+            var expires = DateTime.UtcNow.AddDays(PushKeysExpirationInDays);
             foreach (var key in pushKeys)
             {
-                var expires = DateTime.UtcNow.AddDays(PushKeysExpirationInDays);
                 if (!key.Expires.HasValue || key.Expires > expires)
                 {
+                    var auditingService = context.PolicyService.Auditing;
+                    await auditingService.SaveAuditRecordAsync(
+                        new UserAuditRecord(context.User, AuditedUserAction.ExpireCredential, key));
+
                     key.Expires = expires;
                 }
             }
+            
+            context.PolicyService.Diagnostics.Information(
+                $"Expiring {pushKeys.Count} keys with push capability for user '{context.User.Username}'.");
+        }
+        
+        public Task OnUnsubscribeAsync(UserSecurityPolicySubscriptionContext context)
+        {
+            return Task.CompletedTask;
         }
     }
 }
