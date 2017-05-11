@@ -40,8 +40,6 @@ namespace NuGetGallery
 
         public int NuGetClientVersionTotalDownloads { get; private set; }
 
-        public bool IsReportAvailable { get { return (Report != null); } }
-
         public string PackageId { get; private set; }
 
         public string PackageVersion { get; private set; }
@@ -50,7 +48,7 @@ namespace NuGetGallery
 
         public DateTime? LastUpdatedUtc
         {
-            get { return Report == null ? _lastUpdatedUtc : Report.LastUpdatedUtc; }
+            get { return _lastUpdatedUtc; }
             set { _lastUpdatedUtc = value; }
         }
 
