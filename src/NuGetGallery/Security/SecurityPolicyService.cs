@@ -95,14 +95,14 @@ namespace NuGetGallery.Security
             return SecurityPolicyResult.SuccessResult;
         }
 
-        private AuditedPackageAction GetAuditAction(SecurityPolicyAction policyAction)
+        private AuditedSecurityPolicyAction GetAuditAction(SecurityPolicyAction policyAction)
         {
             switch (policyAction)
             {
                 case SecurityPolicyAction.PackagePush:
-                    return AuditedPackageAction.Create;
+                    return AuditedSecurityPolicyAction.Create;
                 case SecurityPolicyAction.PackageVerify:
-                    return AuditedPackageAction.Verify;
+                    return AuditedSecurityPolicyAction.Verify;
                 default:
                     throw new NotSupportedException($"Policy action '{nameof(policyAction)}' is not supported");
             }

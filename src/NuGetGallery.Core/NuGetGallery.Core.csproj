@@ -123,6 +123,7 @@
     <Compile Include="Auditing\AuditedEntities\AuditedPackageIdentifier.cs" />
     <Compile Include="Auditing\AuditedAuthenticatedOperationAction.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedUserSecurityPolicy.cs" />
+    <Compile Include="Auditing\AuditedSecurityPolicyAction.cs" />
     <Compile Include="Auditing\AuditEntry.cs" />
     <Compile Include="Auditing\AuditActor.cs" />
     <Compile Include="Auditing\AuditingService.cs" />

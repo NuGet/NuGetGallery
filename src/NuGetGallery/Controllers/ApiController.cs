@@ -232,7 +232,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var credential = user.GetCurrentApiKeyCredential(User.Identity);
 
-            var result = await VerifyPackageKeyInternal(user, credential, id, version);
+            var result = await VerifyPackageKeyInternalAsync(user, credential, id, version);
 
             // Expire and delete verification key after first use to avoid growing the database tables.
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
@@ -245,7 +245,7 @@ namespace NuGetGallery
             return (ActionResult)result ?? new EmptyResult();
         }
 
-        private async Task<HttpStatusCodeWithBodyResult> VerifyPackageKeyInternal(User user, Credential credential, string id, string version)
+        private async Task<HttpStatusCodeWithBodyResult> VerifyPackageKeyInternalAsync(User user, Credential credential, string id, string version)
         {
             // Verify that the user has permission to push for the specific Id \ version combination.
             var package = PackageService.FindPackageByIdAndVersion(id, version);

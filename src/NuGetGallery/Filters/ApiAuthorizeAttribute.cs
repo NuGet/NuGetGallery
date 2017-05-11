@@ -92,7 +92,6 @@ namespace NuGetGallery.Filters
             if (authorizeResult && SecurityPolicyAction.HasValue)
             {
                 var evaluateTask = SecurityPolicyService.EvaluateAsync(SecurityPolicyAction.Value, httpContext);
-                evaluateTask.Wait();
 
                 SecurityPolicyResult = evaluateTask.Result;
                 return SecurityPolicyResult.Success;

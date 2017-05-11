@@ -67,7 +67,7 @@ namespace NuGetGallery.Security
                         s.AllowedAction.Equals(NuGetScopes.PackagePush, StringComparison.OrdinalIgnoreCase) ||
                         s.AllowedAction.Equals(NuGetScopes.PackagePushVersion, StringComparison.OrdinalIgnoreCase)
                         ))
-                ).ToList();
+                );
 
             var expires = DateTime.UtcNow.AddDays(PushKeysExpirationInDays);
             foreach (var key in pushKeys)
@@ -81,7 +81,7 @@ namespace NuGetGallery.Security
                 }
             }
             
-            Diagnostics.Information($"Expiring {pushKeys.Count} keys with push capability for user '{context.User.Username}'.");
+            Diagnostics.Information($"Expiring {pushKeys.Count()} keys with push capability for user '{context.User.Username}'.");
         }
         
         public Task OnUnsubscribeAsync(UserSecurityPolicySubscriptionContext context)

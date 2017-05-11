@@ -21,28 +21,28 @@ namespace NuGetGallery.Auditing
         public void CtorThrowsIfUsernameIsNull()
         {
             // Act & Assert.
-            Assert.Throws<ArgumentNullException>(() => new FailedUserSecurityPolicyAuditRecord(null, AuditedPackageAction.Create, Policies));
+            Assert.Throws<ArgumentNullException>(() => new FailedUserSecurityPolicyAuditRecord(null, AuditedSecurityPolicyAction.Create, Policies));
         }
 
         [Fact]
         public void CtorThrowsIfUsernameIsEmpty()
         {
             // Act & Assert.
-            Assert.Throws<ArgumentNullException>(() => new FailedUserSecurityPolicyAuditRecord("", AuditedPackageAction.Create, Policies));
+            Assert.Throws<ArgumentNullException>(() => new FailedUserSecurityPolicyAuditRecord("", AuditedSecurityPolicyAction.Create, Policies));
         }
 
         [Fact]
         public void CtorThrowsIfPoliciesIsNull()
         {
             // Act & Assert.
-            Assert.Throws<ArgumentException>(() => new FailedUserSecurityPolicyAuditRecord("user", AuditedPackageAction.Create, null));
+            Assert.Throws<ArgumentException>(() => new FailedUserSecurityPolicyAuditRecord("user", AuditedSecurityPolicyAction.Create, null));
         }
 
         [Fact]
         public void CtorThrowsIfPoliciesIsEmpty()
         {
             // Act & Assert.
-            Assert.Throws<ArgumentException>(() => new FailedUserSecurityPolicyAuditRecord("user", AuditedPackageAction.Create, new UserSecurityPolicy[0]));
+            Assert.Throws<ArgumentException>(() => new FailedUserSecurityPolicyAuditRecord("user", AuditedSecurityPolicyAction.Create, new UserSecurityPolicy[0]));
         }
     }
 }

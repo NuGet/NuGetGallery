@@ -11,7 +11,7 @@ namespace NuGetGallery.Auditing
     /// <summary>
     /// Audit record for failed user security policy evaluations.
     /// </summary>
-    public class FailedUserSecurityPolicyAuditRecord : AuditRecord<AuditedPackageAction>
+    public class FailedUserSecurityPolicyAuditRecord : AuditRecord<AuditedSecurityPolicyAction>
     {
         private const string Path = "all";
 
@@ -20,7 +20,7 @@ namespace NuGetGallery.Auditing
         public AuditedUserSecurityPolicy[] Policies { get; }
 
         public FailedUserSecurityPolicyAuditRecord(string username,
-            AuditedPackageAction action,
+            AuditedSecurityPolicyAction action,
             IEnumerable<UserSecurityPolicy> policies)
             :base(action)
         {
