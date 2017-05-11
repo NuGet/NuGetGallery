@@ -83,6 +83,7 @@ namespace NuGetGallery.OData.Serializers
 
         [Theory]
         [InlineData("https://localhost/api/v2/Packages")]
+        [InlineData("https://localhost/api/v2/Packages()")]
         [InlineData("https://localhost/api/v2/Packages(Id='SomePackageId',Version='1.0.0')")]
         public void NormalizesNavigationLinksWhenSet(string requestUri)
         {
