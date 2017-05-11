@@ -19,6 +19,9 @@ $(function () {
                 easing: 'swing',
                 step: function () {
                     $(element).text(Math.floor(this.value));
+                },
+                done: function () {
+                    $(element).text(newValue);
                 }
             });
         }
@@ -26,12 +29,19 @@ $(function () {
 
     ko.applyBindings(stats);
 
+    function updateStat(observable, unparsedValue) {
+        var parsedValue = parseInt(unparsedValue);
+        if (!isNaN(parsedValue)) {
+            observable(parsedValue);
+        }
+    }
+
     function updateStats() {
         $.get('/stats/totals')
             .done(function (data) {
-                stats.packageDownloads(parseInt(data['Downloads']));
-                stats.packageVersions(parseInt(data['TotalPackages']));
-                stats.uniquePackages(parseInt(data['UniquePackages']));
+                updateStat(stats.packageDownloads, data['Downloads']);
+                updateStat(stats.packageVersions, data['TotalPackages']);
+                updateStat(stats.uniquePackages, data['UniquePackages']);
             })
             .error(function () {
                 // Fail silently.
