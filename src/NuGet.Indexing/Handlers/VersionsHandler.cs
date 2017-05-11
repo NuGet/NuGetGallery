@@ -88,17 +88,19 @@ namespace NuGet.Indexing
 
             foreach (var registrationEntry in registrationEntries.OrderBy(r => r.Version))
             {
-                string versionStr = String.Intern(registrationEntry.Version.ToNormalizedString());
+                string fullVersion = String.Intern(registrationEntry.Version.ToFullString());
+                string normalizedVersion = String.Intern(registrationEntry.Version.ToNormalizedString());
 
                 int downloads = 0;
                 if (downloadsByVersion != null)
                 {
-                    downloads = downloadsByVersion[versionStr];
+                    downloads = downloadsByVersion[normalizedVersion];
                 }
 
                 result.AllVersionDetails.Add(new VersionDetail
                 {
-                    Version = versionStr,
+                    NormalizedVersion = normalizedVersion,
+                    FullVersion = fullVersion,
                     Downloads = downloads,
                     IsStable = !registrationEntry.Version.IsPrerelease,
                     IsListed = registrationEntry.IsListed,

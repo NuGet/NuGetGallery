@@ -99,41 +99,24 @@ namespace NuGet.Indexing
         private static void AddVersion(Document document, IDictionary<string, string> package, List<string> errors)
         {
             string verbatimVersion;
-            if (package.TryGetValue(MetadataConstants.VersionPropertyName, out verbatimVersion))
+            if (package.TryGetValue(MetadataConstants.VerbatimVersionPropertyName, out verbatimVersion))
             {
-                AddField(document, LuceneConstants.VersionPropertyName, verbatimVersion, Field.Index.NOT_ANALYZED);
-            }
-            else
-            {
-                errors.Add($"Required property '{MetadataConstants.VersionPropertyName}' not found.");
-            }
+                AddField(document, LuceneConstants.VerbatimVersionPropertyName, verbatimVersion, Field.Index.NOT_ANALYZED);
 
-            string version;
-            if (!package.TryGetValue(MetadataConstants.NormalizedVersionPropertyName, out version))
-            {
-                if (verbatimVersion != null)
+                NuGetVersion parsedVerbatimVersion;
+                if (NuGetVersion.TryParse(verbatimVersion, out parsedVerbatimVersion))
                 {
-                    NuGetVersion nuGetVersion;
-                    if (NuGetVersion.TryParse(verbatimVersion, out nuGetVersion))
-                    {
-                        version = nuGetVersion.ToNormalizedString();
-                    }
-                    else
-                    {
-                        errors.Add($"Unable to parse '{MetadataConstants.VersionPropertyName}' as NuGetVersion.");
-                    }
+                    AddField(document, LuceneConstants.NormalizedVersionPropertyName, parsedVerbatimVersion.ToNormalizedString(), Field.Index.ANALYZED);
+                    AddField(document, LuceneConstants.FullVersionPropertyName, parsedVerbatimVersion.ToFullString(), Field.Index.NOT_ANALYZED);
+                }
+                else
+                {
+                    errors.Add($"Unable to parse '{MetadataConstants.VerbatimVersionPropertyName}' as NuGetVersion.");
                 }
             }
-
-            if (version != null)
-            {
-                AddField(document, LuceneConstants.NormalizedVersionPropertyName, version, Field.Index.ANALYZED);
-            }
             else
             {
-                errors.Add($"Could not add field {LuceneConstants.NormalizedVersionPropertyName} as both " +
-                           $"properties '{MetadataConstants.NormalizedVersionPropertyName}' and " +
-                           $"'{MetadataConstants.VersionPropertyName}' were not found.");
+                errors.Add($"Required property '{MetadataConstants.VerbatimVersionPropertyName}' not found.");
             }
         }
 

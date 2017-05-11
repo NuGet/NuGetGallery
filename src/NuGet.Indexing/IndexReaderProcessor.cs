@@ -93,7 +93,7 @@ namespace NuGet.Indexing
 
         private static NuGetVersion GetVersion(Document document)
         {
-            string version = document.Get("Version");
+            string version = document.Get(MetadataConstants.LuceneMetadata.VerbatimVersionPropertyName);
             return (version == null) ? null : new NuGetVersion(version);
         }
 

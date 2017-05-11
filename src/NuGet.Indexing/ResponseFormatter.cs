@@ -8,6 +8,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Newtonsoft.Json;
 using NuGet.Versioning;
+using LuceneMetadataConstants = NuGet.Indexing.MetadataConstants.LuceneMetadata;
 
 namespace NuGet.Indexing
 {
@@ -106,7 +107,7 @@ namespace NuGet.Indexing
 
                 WriteProperty(jsonWriter, "id", id);
 
-                WriteDocumentValue(jsonWriter, "version", document, "Version");
+                WriteDocumentValue(jsonWriter, "version", document, LuceneMetadataConstants.FullVersionPropertyName);
                 WriteDocumentValue(jsonWriter, "description", document, "Description");
                 WriteDocumentValue(jsonWriter, "summary", document, "Summary");
                 WriteDocumentValue(jsonWriter, "title", document, "Title");
@@ -150,11 +151,11 @@ namespace NuGet.Indexing
 
             foreach (var item in results.Where(r => r.IsListed))
             {
-                var relativeAddress = UriFormatter.MakePackageRelativeAddress(id, item.Version);
+                var relativeAddress = UriFormatter.MakePackageRelativeAddress(id, item.NormalizedVersion);
                 var absoluteAddress = new Uri(baseAddress, relativeAddress).AbsoluteUri;
 
                 jsonWriter.WriteStartObject();
-                WriteProperty(jsonWriter, "version", item.Version);
+                WriteProperty(jsonWriter, "version", item.FullVersion);
                 WriteProperty(jsonWriter, "downloads", item.Downloads);
                 WriteProperty(jsonWriter, "@id", absoluteAddress);
 
@@ -317,17 +318,18 @@ namespace NuGet.Indexing
                 Document document = searcher.Doc(scoreDoc.Doc);
 
                 string id = document.Get("Id");
-                string version = document.Get("Version");
+                string normalizedVersion = document.Get(LuceneMetadataConstants.NormalizedVersionPropertyName);
+                string fullVersion = document.Get(LuceneMetadataConstants.FullVersionPropertyName);
 
-                Tuple<int, int> downloadCounts = NuGetIndexSearcher.DownloadCounts(searcher.Versions[scoreDoc.Doc], version);
+                Tuple<int, int> downloadCounts = NuGetIndexSearcher.DownloadCounts(searcher.Versions[scoreDoc.Doc], normalizedVersion);
 
                 bool isLatest = isLatestBitSet.Get(scoreDoc.Doc);
                 bool isLatestStable = isLatestStableBitSet.Get(scoreDoc.Doc);
 
                 jsonWriter.WriteStartObject();
                 WriteRegistrationV2(jsonWriter, id, downloadCounts.Item1, NuGetIndexSearcher.GetOwners(searcher, id));
-                WriteDocumentValue(jsonWriter, "Version", document, "OriginalVersion");
-                WriteProperty(jsonWriter, "NormalizedVersion", version);
+                WriteDocumentValue(jsonWriter, "Version", document, LuceneMetadataConstants.VerbatimVersionPropertyName);
+                WriteProperty(jsonWriter, "NormalizedVersion", normalizedVersion);
                 WriteDocumentValue(jsonWriter, "Title", document, "Title");
                 WriteDocumentValue(jsonWriter, "Description", document, "Description");
                 WriteDocumentValue(jsonWriter, "Summary", document, "Summary");

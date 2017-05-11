@@ -66,7 +66,7 @@ namespace NuGet.Indexing
             }
 
             ExtractProperty(package, document, MetadataConstants.IdPropertyName);
-            ExtractProperty(package, document, MetadataConstants.NuPkgMetadata.VersionPropertyName, MetadataConstants.VersionPropertyName);
+            ExtractProperty(package, document, MetadataConstants.NuPkgMetadata.VersionPropertyName, MetadataConstants.VerbatimVersionPropertyName);
             ExtractProperty(package, document, MetadataConstants.TitlePropertyName);
             ExtractProperty(package, document, MetadataConstants.SummaryPropertyName);
             ExtractProperty(package, document, MetadataConstants.TagsPropertyName);

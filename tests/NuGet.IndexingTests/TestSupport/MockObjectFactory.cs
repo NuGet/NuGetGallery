@@ -24,7 +24,9 @@ namespace NuGet.IndexingTests.TestSupport
         {
             var mockDocument = new Document();
             mockDocument.Add(new Field(Constants.LucenePropertyId, MockPrefix + Constants.LucenePropertyId + MockId, Field.Store.YES, Field.Index.NO));
-            mockDocument.Add(new Field(Constants.LucenePropertyVersion, MockPrefix + Constants.LucenePropertyVersion + MockId, Field.Store.YES, Field.Index.NO));
+            mockDocument.Add(new Field(Constants.LucenePropertyFullVersion, MockPrefix + Constants.LucenePropertyFullVersion + MockId, Field.Store.YES, Field.Index.NO));
+            mockDocument.Add(new Field(Constants.LucenePropertyNormalizedVersion, MockPrefix + Constants.LucenePropertyNormalizedVersion + MockId, Field.Store.YES, Field.Index.NO));
+            mockDocument.Add(new Field(Constants.LucenePropertyOriginalVersion, MockPrefix + Constants.LucenePropertyOriginalVersion + MockId, Field.Store.YES, Field.Index.NO));
             mockDocument.Add(new Field(Constants.LucenePropertyDescription, MockPrefix + Constants.LucenePropertyDescription + MockId, Field.Store.YES, Field.Index.NO));
             mockDocument.Add(new Field(Constants.LucenePropertySummary, MockPrefix + Constants.LucenePropertySummary + MockId, Field.Store.YES, Field.Index.NO));
             mockDocument.Add(new Field(Constants.LucenePropertyTitle, MockPrefix + Constants.LucenePropertyTitle + MockId, Field.Store.YES, Field.Index.NO));

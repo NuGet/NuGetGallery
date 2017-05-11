@@ -23,20 +23,20 @@ namespace NuGet.Indexing
         {
             if (includeSemVer2)
             {
-                return SemVer2VersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.Version);
+                return SemVer2VersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.FullVersion);
             }
 
-            return LegacyVersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.Version);
+            return LegacyVersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.FullVersion);
         }
 
         public IEnumerable<string> GetStableVersions(bool onlyListed, bool includeSemVer2)
         {
             if (includeSemVer2)
             {
-                return StableSemVer2VersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.Version);
+                return StableSemVer2VersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.FullVersion);
             }
 
-            return StableLegacyVersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.Version);
+            return StableLegacyVersionDetails.Where(v => !onlyListed || v.IsListed).Select(v => v.FullVersion);
         }
 
         public IEnumerable<VersionDetail> StableLegacyVersionDetails { get { return AllVersionDetails.Where(v => v.IsStable && !v.IsSemVer2); } }

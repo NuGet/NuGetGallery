@@ -43,14 +43,11 @@ namespace NuGet.IndexingTests
             // Arrange
             var package = GetPackage();
             package.Remove(MetadataConstants.NormalizedVersionPropertyName);
-            package.Remove(MetadataConstants.VersionPropertyName);
+            package.Remove(MetadataConstants.VerbatimVersionPropertyName);
 
             // Act, Assert
             var exception = Assert.Throws<Exception>(() => DocumentCreator.CreateDocument(package));
-            Assert.Equal($"Required property '{MetadataConstants.VersionPropertyName}' not found.\r\n" +
-                         $"Could not add field {LuceneConstants.NormalizedVersionPropertyName} as both " +
-                         $"properties '{MetadataConstants.NormalizedVersionPropertyName}' and " +
-                         $"'{MetadataConstants.VersionPropertyName}' were not found.\r\n", exception.Message);
+            Assert.Equal($"Required property '{MetadataConstants.VerbatimVersionPropertyName}' not found.\r\n", exception.Message);
         }
 
         [Fact]
@@ -59,14 +56,11 @@ namespace NuGet.IndexingTests
             // Arrange
             var package = GetPackage();
             package.Remove(MetadataConstants.NormalizedVersionPropertyName);
-            package[MetadataConstants.VersionPropertyName] = "bad";
+            package[MetadataConstants.VerbatimVersionPropertyName] = "bad";
 
             // Act, Assert
             var exception = Assert.Throws<Exception>(() => DocumentCreator.CreateDocument(package));
-            Assert.Equal($"Unable to parse '{MetadataConstants.VersionPropertyName}' as NuGetVersion.\r\n" +
-                         $"Could not add field {LuceneConstants.NormalizedVersionPropertyName} as both " +
-                         $"properties '{MetadataConstants.NormalizedVersionPropertyName}' and " +
-                         $"'{MetadataConstants.VersionPropertyName}' were not found.\r\n", exception.Message);
+            Assert.Equal($"Unable to parse '{MetadataConstants.VerbatimVersionPropertyName}' as NuGetVersion.\r\n", exception.Message);
         }
 
         [Fact]
@@ -157,13 +151,13 @@ namespace NuGet.IndexingTests
             // Arrange
             var package = GetPackage();
             package.Remove(MetadataConstants.NormalizedVersionPropertyName);
-            package[MetadataConstants.VersionPropertyName] = "1.02.003";
+            package[MetadataConstants.VerbatimVersionPropertyName] = "1.02.003";
 
             // Act
             var document = DocumentCreator.CreateDocument(package);
 
             // Assert
-            Assert.Equal("1.02.003", document.GetFieldable(LuceneConstants.VersionPropertyName).StringValue);
+            Assert.Equal("1.02.003", document.GetFieldable(LuceneConstants.VerbatimVersionPropertyName).StringValue);
             Assert.Equal("1.2.3", document.GetFieldable(LuceneConstants.NormalizedVersionPropertyName).StringValue);
         }
 
@@ -178,8 +172,9 @@ namespace NuGet.IndexingTests
                 new KeyValuePair<string, string>(LuceneConstants.IdAutocompletePropertyName, "DotNetZip"),
                 new KeyValuePair<string, string>(LuceneConstants.TokenizedIdPropertyName, "DotNetZip"),
                 new KeyValuePair<string, string>(LuceneConstants.ShingledIdPropertyName, "DotNetZip"),
-                new KeyValuePair<string, string>(LuceneConstants.VersionPropertyName, "1.00.000"),
+                new KeyValuePair<string, string>(LuceneConstants.VerbatimVersionPropertyName, "1.00.000"),
                 new KeyValuePair<string, string>(LuceneConstants.NormalizedVersionPropertyName, "1.0.0"),
+                new KeyValuePair<string, string>(LuceneConstants.FullVersionPropertyName, "1.0.0"),
                 new KeyValuePair<string, string>(LuceneConstants.TitlePropertyName, "The Famous DotNetZip"),
                 new KeyValuePair<string, string>(LuceneConstants.DescriptionPropertyName, "The description."),
                 new KeyValuePair<string, string>(LuceneConstants.SummaryPropertyName, "The summary."),
@@ -260,7 +255,7 @@ namespace NuGet.IndexingTests
 
                 // not required
                 { MetadataConstants.SemVerLevelKeyPropertyName, "" },
-                { MetadataConstants.VersionPropertyName, "1.00.000" },
+                { MetadataConstants.VerbatimVersionPropertyName, "1.00.000" },
                 { MetadataConstants.TitlePropertyName, "The Famous DotNetZip" },
                 { MetadataConstants.DescriptionPropertyName, "The description." },
                 { MetadataConstants.SummaryPropertyName, "The summary." },
