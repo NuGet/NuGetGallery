@@ -1,6 +1,5 @@
 ﻿var renderGraph = function (baseUrl, query, clickedId) {
     var renderGraphHandler = function (data) {
-        console.log(data);
         // Populate the data table
         ko.applyBindings({ report: data });
         // Render the graph using the data table
