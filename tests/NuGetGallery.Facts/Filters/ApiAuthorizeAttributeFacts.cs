@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Authentication;
-using Xunit;
 using NuGetGallery.Security;
+using Xunit;
 
 namespace NuGetGallery.Filters
 {
@@ -35,8 +36,8 @@ namespace NuGetGallery.Filters
         {
             // Arrange
             var mockService = new Mock<ISecurityPolicyService>();
-            mockService.Setup(s => s.Evaluate(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
-                .Returns(SecurityPolicyResult.SuccessResult).Verifiable();
+            mockService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult)).Verifiable();
 
             var mockContext = BuildAuthorizationContext(policyService: mockService);
             var context = mockContext.Object;
@@ -56,8 +57,8 @@ namespace NuGetGallery.Filters
         {
             // Arrange
             var mockService = new Mock<ISecurityPolicyService>();
-            mockService.Setup(s => s.Evaluate(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
-                .Returns(SecurityPolicyResult.CreateErrorResult("A")).Verifiable();
+            mockService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A"))).Verifiable();
 
             var mockContext = BuildAuthorizationContext(policyService: mockService);
             var context = mockContext.Object;

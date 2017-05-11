@@ -21,6 +21,9 @@ namespace NuGetGallery.Security
         private const string MinClientVersion = "4.1.0";
         private const int PushKeysExpirationInDays = 30;
 
+        private IAuditingService Auditing { get; }
+        private IDiagnosticsSource Diagnostics { get; }
+
         /// <summary>
         /// Subscription name.
         /// </summary>
@@ -44,6 +47,12 @@ namespace NuGetGallery.Security
             }
         }
 
+        public SecurePushSubscription(IAuditingService auditing, IDiagnosticsService diagnostics)
+        {
+            Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
+            Diagnostics = diagnostics?.SafeGetSource(nameof(SecurePushSubscription)) ?? throw new ArgumentNullException(nameof(diagnostics));
+        }
+
         /// <summary>
         /// On subscribe, set API keys with push capability to expire in 30 days.
         /// </summary>
@@ -65,16 +74,14 @@ namespace NuGetGallery.Security
             {
                 if (!key.Expires.HasValue || key.Expires > expires)
                 {
-                    var auditingService = context.PolicyService.Auditing;
-                    await auditingService.SaveAuditRecordAsync(
+                    await Auditing.SaveAuditRecordAsync(
                         new UserAuditRecord(context.User, AuditedUserAction.ExpireCredential, key));
 
                     key.Expires = expires;
                 }
             }
             
-            context.PolicyService.Diagnostics.Information(
-                $"Expiring {pushKeys.Count} keys with push capability for user '{context.User.Username}'.");
+            Diagnostics.Information($"Expiring {pushKeys.Count} keys with push capability for user '{context.User.Username}'.");
         }
         
         public Task OnUnsubscribeAsync(UserSecurityPolicySubscriptionContext context)

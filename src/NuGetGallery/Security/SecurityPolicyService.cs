@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Mvc;
 using NuGetGallery.Filters;
 using NuGetGallery.Auditing;
 using NuGetGallery.Diagnostics;
@@ -25,9 +26,9 @@ namespace NuGetGallery.Security
         
         protected IEntitiesContext EntitiesContext { get; set; }
 
-        public IAuditingService Auditing { get; protected set; }
+        protected IAuditingService Auditing { get; set; }
 
-        public IDiagnosticsSource Diagnostics { get; protected set; }
+        protected IDiagnosticsSource Diagnostics { get; set; }
 
         protected SecurityPolicyService()
         {
@@ -66,7 +67,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Look up and evaluation of security policies for the specified action.
         /// </summary>
-        public SecurityPolicyResult Evaluate(SecurityPolicyAction action, HttpContextBase httpContext)
+        public async Task<SecurityPolicyResult> EvaluateAsync(SecurityPolicyAction action, HttpContextBase httpContext)
         {
             if (httpContext == null)
             {
@@ -82,8 +83,8 @@ namespace NuGetGallery.Security
                     var result = handler.Evaluate(new UserSecurityPolicyEvaluationContext(httpContext, foundPolicies));
                     if (!result.Success)
                     {
-                        Auditing.SaveAuditRecordAsync(new FailedUserSecurityPolicyAuditRecord(
-                            user.Username, GetAuditAction(action), foundPolicies)).Wait();
+                        await Auditing.SaveAuditRecordAsync(new FailedUserSecurityPolicyAuditRecord(
+                            user.Username, GetAuditAction(action), foundPolicies));
 
                         Diagnostics.Information(
                             $"Security policy '{handler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
@@ -154,10 +155,10 @@ namespace NuGetGallery.Security
 
                 await subscription.OnSubscribeAsync(new UserSecurityPolicySubscriptionContext(this, user));
 
-                await EntitiesContext.SaveChangesAsync();
-
                 await Auditing.SaveAuditRecordAsync(
                     new UserAuditRecord(user, AuditedUserAction.SubscribedToPolicies, subscription.Policies));
+
+                await EntitiesContext.SaveChangesAsync();
 
                 Diagnostics.Information($"User '{user.Username}' is now subscribed to '{subscription.SubscriptionName}'.");
             }
@@ -189,10 +190,10 @@ namespace NuGetGallery.Security
 
                 await subscription.OnUnsubscribeAsync(new UserSecurityPolicySubscriptionContext(this, user));
 
-                await EntitiesContext.SaveChangesAsync();
-
                 await Auditing.SaveAuditRecordAsync(
                     new UserAuditRecord(user, AuditedUserAction.UnsubscribedFromPolicies, subscription.Policies));
+
+                await EntitiesContext.SaveChangesAsync();
 
                 Diagnostics.Information($"User '{user.Username}' is now unsubscribed from '{subscription.SubscriptionName}'.");
             }
@@ -224,7 +225,7 @@ namespace NuGetGallery.Security
         /// </summary>
         private static IEnumerable<IUserSecurityPolicySubscription> CreateUserSubscriptions()
         {
-            yield return new SecurePushSubscription();
+            yield return DependencyResolver.Current.GetService<SecurePushSubscription>();
         }
     }
 }

@@ -9,6 +9,7 @@ using Moq;
 using Newtonsoft.Json;
 using NuGet.Packaging;
 using NuGetGallery.Auditing;
+using NuGetGallery.Diagnostics;
 using Xunit;
 
 namespace NuGetGallery.Security
@@ -18,15 +19,18 @@ namespace NuGetGallery.Security
         [Fact]
         public void SubscriptionName()
         {
+            // Arrange.
+            var subscription = CreateSecurityPolicyService().UserSubscriptions.First();
+
             // Act & Assert.
-            Assert.Equal("SecurePush", new SecurePushSubscription().SubscriptionName);
+            Assert.Equal("SecurePush", subscription.SubscriptionName);
         }
 
         [Fact]
         public void SubscriptionPolicies()
         {
             // Arrange.
-            var subscription = new SecurePushSubscription();
+            var subscription = CreateSecurityPolicyService().UserSubscriptions.First();
             var policy1 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequireMinClientVersionForPushPolicy.PolicyName));
             var policy2 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequirePackageVerifyScopePolicy.PolicyName));
 
@@ -101,17 +105,34 @@ namespace NuGetGallery.Security
                 /* subscription only */ Times.Once);
         }
 
-        private async Task<Tuple<User, TestSecurityPolicyService>> SubscribeUserToSecurePushAsync(string type, string scopes, int expiresInDays = 100)
+        private TestSecurityPolicyService CreateSecurityPolicyService()
         {
-            // Arrange.
-            var subscription = new SecurePushSubscription();
+            var auditing = new Mock<IAuditingService>();
+            auditing.Setup(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>())).Returns(Task.CompletedTask).Verifiable();
+
+            var diagnostics = new DiagnosticsService().GetSource(nameof(SecurePushSubscriptionFacts));
+            var diagnosticsService = new Mock<IDiagnosticsService>();
+            diagnosticsService.Setup(s => s.GetSource(It.IsAny<string>())).Returns(diagnostics);
+
+            var subscription = new SecurePushSubscription(auditing.Object, diagnosticsService.Object);
+
             var service = new TestSecurityPolicyService(
+                mockAuditing: auditing,
                 userHandlers: new UserSecurityPolicyHandler[]
                 {
                     new RequireMinClientVersionForPushPolicy(),
                     new RequirePackageVerifyScopePolicy()
                 },
                 userSubscriptions: new[] { subscription });
+
+            return service;
+        }
+
+        private async Task<Tuple<User, TestSecurityPolicyService>> SubscribeUserToSecurePushAsync(
+            string type, string scopes, int expiresInDays = 100)
+        {
+            // Arrange.
+            var service = CreateSecurityPolicyService();
             
             var credential = new Credential(type, string.Empty, TimeSpan.FromDays(expiresInDays));
             if (!string.IsNullOrWhiteSpace(scopes))
@@ -122,7 +143,7 @@ namespace NuGetGallery.Security
             user.Credentials.Add(credential);
 
             // Act.
-            await service.SubscribeAsync(user, subscription);
+            await service.SubscribeAsync(user, service.UserSubscriptions.First());
 
             service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 

@@ -4,8 +4,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
-using NuGetGallery.Auditing;
-using NuGetGallery.Diagnostics;
 using NuGetGallery.Filters;
 
 namespace NuGetGallery.Security
@@ -15,16 +13,6 @@ namespace NuGetGallery.Security
     /// </summary>
     public interface ISecurityPolicyService
     {
-        /// <summary>
-        /// Auditing for the security policy service.
-        /// </summary>
-        IAuditingService Auditing { get; }
-
-        /// <summary>
-        /// Diagnostics for the security policy service.
-        /// </summary>
-        IDiagnosticsSource Diagnostics { get; }
-
         /// <summary>
         /// Available user security policy subscriptions.
         /// </summary>
@@ -51,6 +39,6 @@ namespace NuGetGallery.Security
         /// <param name="action">Security policy action.</param>
         /// <param name="context">Authorization context.</param>
         /// <returns>Policy result indicating success or failure.</returns>
-        SecurityPolicyResult Evaluate(SecurityPolicyAction action, HttpContextBase httpContext);
+        Task<SecurityPolicyResult> EvaluateAsync(SecurityPolicyAction action, HttpContextBase httpContext);
     }
 }

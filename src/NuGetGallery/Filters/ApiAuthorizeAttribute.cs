@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Web;
 using System.Web.Mvc;
@@ -11,7 +12,6 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Security;
 using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 using AuthorizationContext = System.Web.Mvc.AuthorizationContext;
-using System.Net;
 
 namespace NuGetGallery.Filters
 {
@@ -91,7 +91,10 @@ namespace NuGetGallery.Filters
             // If ApiKey authorization succeeds, evaluate any security policies.
             if (authorizeResult && SecurityPolicyAction.HasValue)
             {
-                SecurityPolicyResult = SecurityPolicyService.Evaluate(SecurityPolicyAction.Value, httpContext);
+                var evaluateTask = SecurityPolicyService.EvaluateAsync(SecurityPolicyAction.Value, httpContext);
+                evaluateTask.Wait();
+
+                SecurityPolicyResult = evaluateTask.Result;
                 return SecurityPolicyResult.Success;
             }
 

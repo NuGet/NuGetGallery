@@ -1309,6 +1309,27 @@ namespace NuGetGallery
                 controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 200), Times.Once);
             }
+
+            [Fact]
+            public async void VerifyPackageKeyWritesAuditRecord()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration() { Id = "foo" },
+                    Version = "1.0.0"
+                };
+                var controller = SetupController(CredentialTypes.ApiKey.V2, "", package);
+
+                // Act
+                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
+
+                // Assert
+                Assert.True(controller.AuditingService.WroteRecord<PackageAuditRecord>(ar =>
+                    ar.Action == AuditedPackageAction.Verify
+                    && ar.Id == package.PackageRegistration.Id
+                    && ar.Version == package.Version));
+            }
         }
 
         public class TheGetStatsDownloadsAction

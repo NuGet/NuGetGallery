@@ -40,20 +40,6 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void UserSubscriptions()
-        {
-            // Arrange.
-            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics);
-
-            // Act.
-            var subscriptions = service.UserSubscriptions;
-
-            // Assert.
-            Assert.Equal(1, subscriptions.Count());
-            Assert.Equal("SecurePush", subscriptions.First().SubscriptionName);
-        }
-
-        [Fact]
         public void UserHandlers()
         {
             // Arrange.
@@ -72,21 +58,21 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void EvaluateThrowsIfHttpContextNull()
+        public async void EvaluateThrowsIfHttpContextNull()
         {
-            Assert.Throws<ArgumentNullException>(() => new TestSecurityPolicyService()
-                .Evaluate(SecurityPolicyAction.PackagePush, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => new TestSecurityPolicyService()
+                .EvaluateAsync(SecurityPolicyAction.PackagePush, null));
         }
 
         [Fact]
-        public void EvaluateReturnsSuccessWithoutEvaluationIfNoPoliciesFound()
+        public async void EvaluateReturnsSuccessWithoutEvaluationIfNoPoliciesFound()
         {
             // Arrange
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
 
             // Act
-            var result = service.Evaluate(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             Assert.True(result.Success);
@@ -97,7 +83,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void EvaluateReturnsSuccessWithEvaluationIfPoliciesFoundAndMet()
+        public async void EvaluateReturnsSuccessWithEvaluationIfPoliciesFoundAndMet()
         {
             // Arrange
             var service = new TestSecurityPolicyService();
@@ -106,7 +92,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
-            var result = service.Evaluate(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             Assert.True(result.Success);
@@ -117,7 +103,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void EvaluateReturnsAfterFirstFailure()
+        public async void EvaluateReturnsAfterFirstFailure()
         {
             // Arrange
             var policyData = new TestUserSecurityPolicyData(policy1Result: false, policy2Result: true);
@@ -127,7 +113,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
-            var result = service.Evaluate(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             service.Mocks.VerifyPolicyEvaluation(expectedPolicy1: false, expectedPolicy2: null, actual: result);
@@ -137,7 +123,7 @@ namespace NuGetGallery.Security
         public void IsSubscribedThrowsIfUserNull()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new TestSecurityPolicyService().IsSubscribed(null, new SecurePushSubscription()));
+                new TestSecurityPolicyService().IsSubscribed(null, new Mock<IUserSecurityPolicySubscription>().Object));
         }
 
         [Fact]
@@ -194,7 +180,7 @@ namespace NuGetGallery.Security
         public void SubscribeThrowsIfUserNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
-                new TestSecurityPolicyService().SubscribeAsync(null, new SecurePushSubscription()));
+                new TestSecurityPolicyService().SubscribeAsync(null, new Mock<IUserSecurityPolicySubscription>().Object));
         }
 
         [Fact]
@@ -309,7 +295,7 @@ namespace NuGetGallery.Security
         public void UnsubscribeThrowsIfUserNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
-                new TestSecurityPolicyService().UnsubscribeAsync(null, new SecurePushSubscription()));
+                new TestSecurityPolicyService().UnsubscribeAsync(null, new Mock<IUserSecurityPolicySubscription>().Object));
         }
 
         [Fact]
