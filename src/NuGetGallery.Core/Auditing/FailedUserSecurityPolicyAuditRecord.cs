@@ -13,8 +13,6 @@ namespace NuGetGallery.Auditing
     /// </summary>
     public class FailedUserSecurityPolicyAuditRecord : AuditRecord<AuditedSecurityPolicyAction>
     {
-        private const string Path = "all";
-
         public string Username { get; }
 
         public AuditedUserSecurityPolicy[] Policies { get; }
@@ -39,7 +37,7 @@ namespace NuGetGallery.Auditing
 
         public override string GetPath()
         {
-            return Path; // store in <auditpath>/failedusersecuritypolicy/all
+            return Username.ToLowerInvariant();
         }
     }
 }

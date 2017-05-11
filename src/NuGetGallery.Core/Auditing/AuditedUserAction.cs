@@ -15,7 +15,7 @@ namespace NuGetGallery.Auditing
         CancelChangeEmail,
         ConfirmEmail,
         Login,
-        SubscribedToPolicies,
-        UnsubscribedFromPolicies
+        SubscribeToPolicies,
+        UnsubscribeFromPolicies
     }
 }

@@ -17,7 +17,11 @@ namespace NuGetGallery.Auditing
         public CredentialAuditRecord[] Credentials { get; }
         public CredentialAuditRecord[] AffectedCredential { get; }
         public string AffectedEmailAddress { get; }
-        public AuditedUserSecurityPolicy[] Policies { get; }
+
+        /// <summary>
+        /// Subset of user policies affected by the action (subscription / unsubscription).
+        /// </summary>
+        public AuditedUserSecurityPolicy[] AffectedPolicies { get; }
 
         public UserAuditRecord(User user, AuditedUserAction action)
             : this(user, action, Enumerable.Empty<Credential>())
@@ -58,10 +62,10 @@ namespace NuGetGallery.Auditing
             AffectedEmailAddress = affectedEmailAddress;
         }
 
-        public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<UserSecurityPolicy> policies)
+        public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<UserSecurityPolicy> affectedPolicies)
             : this(user, action, Enumerable.Empty<Credential>())
         {
-            Policies = policies.Select(p => new AuditedUserSecurityPolicy(p)).ToArray();
+            AffectedPolicies = affectedPolicies.Select(p => new AuditedUserSecurityPolicy(p)).ToArray();
         }
 
         public override string GetPath()

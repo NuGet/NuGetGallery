@@ -22,8 +22,8 @@ namespace NuGetGallery.Auditing
                 "Register",
                 "RemoveCredential",
                 "RequestPasswordReset",
-                "SubscribedToPolicies",
-                "UnsubscribedFromPolicies"
+                "SubscribeToPolicies",
+                "UnsubscribeFromPolicies"
             };
 
             Verify(typeof(AuditedUserAction), expectedNames);

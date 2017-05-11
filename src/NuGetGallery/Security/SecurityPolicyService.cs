@@ -156,7 +156,7 @@ namespace NuGetGallery.Security
                 await subscription.OnSubscribeAsync(new UserSecurityPolicySubscriptionContext(this, user));
 
                 await Auditing.SaveAuditRecordAsync(
-                    new UserAuditRecord(user, AuditedUserAction.SubscribedToPolicies, subscription.Policies));
+                    new UserAuditRecord(user, AuditedUserAction.SubscribeToPolicies, subscription.Policies));
 
                 await EntitiesContext.SaveChangesAsync();
 
@@ -191,7 +191,7 @@ namespace NuGetGallery.Security
                 await subscription.OnUnsubscribeAsync(new UserSecurityPolicySubscriptionContext(this, user));
 
                 await Auditing.SaveAuditRecordAsync(
-                    new UserAuditRecord(user, AuditedUserAction.UnsubscribedFromPolicies, subscription.Policies));
+                    new UserAuditRecord(user, AuditedUserAction.UnsubscribeFromPolicies, subscription.Policies));
 
                 await EntitiesContext.SaveChangesAsync();
 
