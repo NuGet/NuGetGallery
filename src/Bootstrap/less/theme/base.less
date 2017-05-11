@@ -1,0 +1,47 @@
+//== Theme Variables
+@panel-footer-height: 350px;
+@panel-footer-color:  @navbar-inverse-color;
+
+//== Theme Definition
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: @panel-footer-height;
+}
+
+.mt-loop(@i) when (@i > 0) {
+  .mt-@{i} {
+    margin-top: (1px * @i);
+    
+  }
+  .mt-loop((@i - 10));
+}
+
+.mt-loop(150);
+
+.main-container {
+  padding-bottom: 75px;
+}
+
+.navbar-logo {
+  margin: 8px 20px 0 8px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background-color: @panel-footer-bg;
+  height: @panel-footer-height;
+  color: @panel-footer-color;
+  font-size: 0.70em;
+  padding-top: 75px;
+  padding-bottom: 75px;
+
+  a {
+    color: @panel-footer-color;
+  }
+}
