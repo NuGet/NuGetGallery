@@ -16,7 +16,7 @@
     <link title="NuGet.org" type="application/opensearchdescription+xml" href="@Url.Content("~/opensearch.xml")" rel="search">
 
     <link href="https://fonts.googleapis.com/css?family=PT+Sans" rel="stylesheet">
-    @Styles.Render("~/Content/new/css/site.css")
+    @Styles.Render("~/Content/new/css/site.min.css")
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -36,7 +36,7 @@
     @Html.Partial("New/Header")
     @RenderBody()
     @Html.Partial("New/Footer")
-    @Scripts.Render("~/Scripts/new/site.js")
+    @Scripts.Render("~/Scripts/new/site.min.js")
     @RenderSection("BottomScripts", required: false)
 </body>
 </html>

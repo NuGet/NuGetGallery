@@ -3,4 +3,9 @@
     ViewBag.Tab = "Home";
     Layout = "~/Views/Shared/New/Layout.cshtml";
 }
+
 @ViewBag.Content
+
+@section BottomScripts {
+    @Scripts.Render("~/Scripts/new/home.min.js")
+}

@@ -1715,11 +1715,6 @@
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
-    <Content Include="Content\new\fonts\fontawesome-webfont.eot" />
-    <Content Include="Content\new\fonts\fontawesome-webfont.ttf" />
-    <Content Include="Content\new\fonts\fontawesome-webfont.woff" />
-    <Content Include="Content\new\fonts\fontawesome-webfont.woff2" />
-    <Content Include="Content\new\fonts\FontAwesome.otf" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
@@ -2126,7 +2121,7 @@
     <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
   <PropertyGroup>
-    <PreBuildEvent>copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.css" "$(ProjectDir)Content\new\css"
-copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap-theme.css" "$(ProjectDir)Content\new\css"</PreBuildEvent>
+    <PreBuildEvent>copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.css" "$(ProjectDir)Content\new\css" &gt;NUL
+copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap-theme.css" "$(ProjectDir)Content\new\css" &gt;NUL</PreBuildEvent>
   </PropertyGroup>
 </Project>
