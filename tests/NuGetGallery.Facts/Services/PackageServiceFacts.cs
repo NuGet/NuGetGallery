@@ -1501,7 +1501,7 @@ namespace NuGetGallery
             {
                 var owner = new User { Username = "someone" };
                 var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
-                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
                 packageRegistration.Packages.Add(package);
 
                 var context = GetFakeContext();
@@ -1556,8 +1556,8 @@ namespace NuGetGallery
                 var owner = new User { Username = "someone" };
                 var packageRegistrationA = new PackageRegistration { Id = "idA", Owners = { owner } };
                 var packageRegistrationB = new PackageRegistration { Id = "idB", Owners = { owner } };
-                var packageA = new Package { Version = "1.0", PackageRegistration = packageRegistrationA, Listed = true, IsLatest = true, IsLatestStable = true };
-                var packageB = new Package { Version = "1.0", PackageRegistration = packageRegistrationB, Listed = true, IsLatest = true, IsLatestStable = true };
+                var packageA = new Package { Version = "1.0", PackageRegistration = packageRegistrationA, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
+                var packageB = new Package { Version = "1.0", PackageRegistration = packageRegistrationB, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
                 packageRegistrationA.Packages.Add(packageA);
                 packageRegistrationB.Packages.Add(packageB);
 
@@ -1576,7 +1576,30 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void ReturnsOnlyLatestStablePackageIfBothExist()
+            public void ReturnsOnlyLatestStableSemVer2PackageIfBothExist()
+            {
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
+                var latestPackage = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
+                var latestSemVer2Package = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, Listed = true, IsLatestSemVer2 = true };
+                var latestStablePackage = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStableSemVer2 = true };
+                packageRegistration.Packages.Add(latestPackage);
+                packageRegistration.Packages.Add(latestStablePackage);
+
+                var context = GetFakeContext();
+                context.Users.Add(owner);
+                context.PackageRegistrations.Add(packageRegistration);
+                context.Packages.Add(latestPackage);
+                context.Packages.Add(latestStablePackage);
+                var service = Get<PackageService>();
+
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false).ToList();
+                Assert.Equal(1, packages.Count);
+                Assert.Contains(latestStablePackage, packages);
+            }
+
+            [Fact]
+            public void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist()
             {
                 var owner = new User { Username = "someone" };
                 var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
