@@ -162,7 +162,7 @@ namespace NuGetGallery
 
             StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
 
-            model.SetPackageDownloadsByVersion(id, report);
+            model.SetPackageDownloadsByVersion(id);
 
             model.UseD3 = UseD3();
 
@@ -191,7 +191,7 @@ namespace NuGetGallery
 
             var model = new StatisticsPackagesViewModel();
 
-            model.SetPackageVersionDownloadsByClient(id, version, report);
+            model.SetPackageVersionDownloadsByClient(id, version);
 
             model.UseD3 = UseD3();
 
