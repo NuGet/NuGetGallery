@@ -228,6 +228,7 @@
                     $("#" + name + "Field").show();
                     $("#" + name + "Button").hide();
                     $("#Undo" + name).show();
+                    $("#Undo" + name).focus();
                 });
 
                 SetDataEditedFlag = function (event) {
@@ -251,6 +252,7 @@
                     $("#" + name + "Field").hide();
                     $("#" + name + "Button").show();
                     $("#Undo" + name).hide();
+                    $("#" + name + "Button").focus();
                 });
             }
 
