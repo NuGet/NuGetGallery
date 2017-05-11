@@ -74,13 +74,13 @@ else
                         <td class="actions">
                             @if (canEdit)
                             {
-                                <a href="@Url.EditPackage(package.Id, package.Version)" title="Edit" class="table-action-link">
+                                <a href="@Url.EditPackage(package.Id, package.Version)" title="Edit" class="table-action-link" aria-label="Edit package details">
                                     <i class="icon-edit"></i>
                                 </a>
                             }
                             @if (canDelete)
                             {
-                                <a href="@Url.DeletePackage(package)" title="Delete" class="table-action-link">
+                                <a href="@Url.DeletePackage(package)" title="Delete" class="table-action-link" aria-label="Delete package">
                                     <i class="icon-trash"></i>
                                 </a>
                             }

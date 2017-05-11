@@ -39,29 +39,31 @@ namespace NuGetGallery.Helpers
         public HtmlString ExpandButton(string closedTitle, string expandedTitle)
         {
             return new HtmlString(
-                "<a href=\"#\" class=\"accordion-expand-button btn btn-inline s-expand\" data-target=\"#" +
+                "<button class=\"accordion-expand-button btn btn-inline s-expand\" data-target=\"#" +
                 ContentDropDownId +
                 "\" data-toggletext=\"" +
                 (Expanded ? closedTitle : expandedTitle) +
                 "\" id=\"" +
                 CollapseButtonId +
-                "\">" +
+                "\" aria-expanded=\"" +
+                (Expanded ? "true" : "false") +"\">" +
                 (Expanded ? expandedTitle : closedTitle) +
-                "</a>");
+                "</button>");
         }
 
         public HtmlString ExpandLink(string closedTitle, string expandedTitle)
         {
             return new HtmlString(
-                "<a href=\"#\" class=\"accordion-expand-link s-expand\" data-target=\"#" +
+                "<button class=\"accordion-expand-link s-expand\" data-target=\"#" +
                 ContentDropDownId +
                 "\" data-toggletext=\"" +
                 (Expanded ? closedTitle : expandedTitle) +
                 "\" id=\"" +
                 CollapseButtonId +
-                "\">" +
+                "\" aria-expanded=\"" +
+                (Expanded ? "true" : "false") + "\">" +
                 (Expanded ? expandedTitle : closedTitle) +
-                "</a>");
+                "</button>");
         }
     }
 }

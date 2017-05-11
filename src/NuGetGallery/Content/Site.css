@@ -1365,9 +1365,19 @@ ul.accordion {
         }
 
         ul.accordion li.accordion-item .accordion-expand-link {
-            display: inline-block;
+            background: none!important;
+            border: none;
+            padding: 0!important;
+            cursor: pointer;
             margin-top: 0.25em;
             margin-left: 3px;
+            color: #0071bc;
+            box-shadow: none;
+            font-size:0.85em;
+        }
+
+        ul.accordion li.accordion-item .accordion-expand-link:hover {
+            text-decoration: underline;
         }
 
         ul.accordion li.accordion-item.accordion-item-disabled {
