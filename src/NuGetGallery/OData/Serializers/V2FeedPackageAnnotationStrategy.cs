@@ -87,9 +87,19 @@ namespace NuGetGallery.OData.Serializers
             var packageIdentityQuery = $"(Id='{id}',Version='{version}')";
             var localPath = request.RequestUri.LocalPath
                 // Remove closing brackets from Packages collection
+                .Replace("/GetUpdates", "/Packages")
+                .Replace("/FindPackagesById", "/Packages")
+                .Replace("/Search", "/Packages")
                 .Replace("/Packages()", "/Packages")
                 // Remove package identity query
                 .Replace(packageIdentityQuery, string.Empty);
+
+            // Ensure any OData queries remaining are stripped off
+            var queryStartIndex = localPath.IndexOf('(');
+            if (queryStartIndex != -1)
+            {
+                localPath = localPath.Substring(0, queryStartIndex);
+            }
 
             return new Uri($"{request.RequestUri.Scheme}://{request.RequestUri.Host}{localPath}{packageIdentityQuery}");
         }
