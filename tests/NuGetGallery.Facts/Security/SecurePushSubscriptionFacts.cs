@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Moq;
 using Newtonsoft.Json;
 using NuGet.Packaging;
-using Xunit;
 using NuGetGallery.Auditing;
+using Xunit;
 
 namespace NuGetGallery.Security
 {
