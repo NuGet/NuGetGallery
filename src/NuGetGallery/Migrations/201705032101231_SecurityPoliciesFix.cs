@@ -7,7 +7,7 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            DropUserSecurityPoliciesIfExists();
+            Sql("IF OBJECT_ID('dbo.UserSecurityPolicies', 'U') IS NOT NULL DROP TABLE [dbo].[UserSecurityPolicies]");
 
             CreateTable(
                 "dbo.UserSecurityPolicies",
@@ -29,16 +29,17 @@ namespace NuGetGallery.Migrations
             DropForeignKey("dbo.UserSecurityPolicies", "UserKey", "dbo.Users");
             DropIndex("dbo.UserSecurityPolicies", new[] { "UserKey" });
             DropTable("dbo.UserSecurityPolicies");
-        }
 
-        private void DropUserSecurityPoliciesIfExists()
-        {
-            try
+            // revert to previous migration.
+            CreateTable("UserSecurityPolicies", c => new
             {
-                DropForeignKey("dbo.UserSecurityPolicies", "UserKey", "dbo.Users");
-                DropTable("dbo.UserSecurityPolicies");
-            }
-            catch (Exception) { }
+                Key = c.Int(nullable: false, identity: true),
+                Name = c.String(nullable: false, maxLength: 256),
+                UserKey = c.Int(nullable: false),
+                Value = c.String(nullable: true, maxLength: 256)
+            })
+            .PrimaryKey(t => t.Key)
+            .ForeignKey("Users", t => t.UserKey);
         }
     }
 }
