@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using NuGet.Services.BasicSearch;
 using NuGet.Services.Configuration;
 using Formatting = Newtonsoft.Json.Formatting;
+using NuGet.Indexing;
 
 namespace NuGet.Services.BasicSearchTests.TestSupport
 {
@@ -67,7 +68,8 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
                 { "downloads.v1.json", BuildDownloadsFile(enumeratedPackages) },
                 { "curatedfeeds.json", "[]" },
                 { "owners.json", "[]" },
-                { "rankings.v1.json", BuildRankingsFile(enumeratedPackages) }
+                { "rankings.v1.json", BuildRankingsFile(enumeratedPackages) },
+                { "searchSettings.v1.json", JsonConvert.SerializeObject(QueryBoostingContext.Default) },
             };
 
             // Start the app.

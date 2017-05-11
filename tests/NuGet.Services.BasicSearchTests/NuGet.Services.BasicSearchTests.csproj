@@ -227,6 +227,7 @@
   <ItemGroup>
     <Compile Include="AutocompleteFunctionalTests.cs" />
     <Compile Include="DictionaryConfigurationProvider.cs" />
+    <Compile Include="QueryBoostingTests.cs" />
     <Compile Include="TestSupport\AutocompleteBuilder.cs" />
     <Compile Include="TestSupport\Serialization.cs" />
     <Compile Include="TestSupport\InMemoryLoader.cs" />
