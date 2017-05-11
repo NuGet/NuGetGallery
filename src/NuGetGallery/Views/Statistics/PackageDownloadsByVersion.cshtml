@@ -19,7 +19,7 @@
     <script>
         $(document)
             .ready(function () {
-                renderGraph('@Url.Action("PackageDownloadsByVersionReport", "Statistics")', location.search.toLowerCase());
+                renderGraph('@Url.Action("PackageDownloadsByVersionReport", "Statistics")', location.search);
             });
     </script>
 }
