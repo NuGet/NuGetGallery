@@ -887,6 +887,7 @@
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
     <Compile Include="Configuration\StorageType.cs" />
+    <Content Include="App_Data\Files\Content\NewHome.html" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
     </Content>

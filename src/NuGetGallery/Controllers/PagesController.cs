@@ -102,7 +102,7 @@ namespace NuGetGallery
             if (_contentService != null)
             {
                 var homeContent = await _contentService.GetContentItemAsync(
-                     Constants.ContentNames.Home,
+                     Constants.ContentNames.NewHome,
                      TimeSpan.FromMinutes(1));
 
                 homeContent = new HtmlString(homeContent.ToString().Replace("~/", Url.Content("~/")));
