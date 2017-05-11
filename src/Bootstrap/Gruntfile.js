@@ -290,7 +290,7 @@ module.exports = function (grunt) {
           'bootstrap.css',
           'bootstrap-theme.css'
         ],
-        dest: '../NuGetGallery/Content/new/css/'
+        dest: '../NuGetGallery/Content/gallery/css/'
       }
     },
 

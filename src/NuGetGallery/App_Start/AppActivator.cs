@@ -177,21 +177,21 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(supportRequestsBundle);
 
             // Add bundles for the site redesign
-            var newStyleBundle = new StyleBundle("~/Content/new/css/site.min.css");
+            var newStyleBundle = new StyleBundle("~/Content/gallery/css/site.min.css");
             newStyleBundle
-                .Include("~/Content/new/css/bootstrap.css")
-                .Include("~/Content/new/css/bootstrap-theme.css")
-                .Include("~/Content/new/css/font-awesome.css");
+                .Include("~/Content/gallery/css/bootstrap.css")
+                .Include("~/Content/gallery/css/bootstrap-theme.css")
+                .Include("~/Content/gallery/css/font-awesome.css");
             BundleTable.Bundles.Add(newStyleBundle);
 
-            var newScriptBundle = new ScriptBundle("~/Scripts/new/site.min.js")
-                .Include("~/Scripts/new/jquery-1.12.4.js")
-                .Include("~/Scripts/new/knockout-3.4.2.js")
-                .Include("~/Scripts/new/bootstrap.js");
+            var newScriptBundle = new ScriptBundle("~/Scripts/gallery/site.min.js")
+                .Include("~/Scripts/gallery/jquery-1.12.4.js")
+                .Include("~/Scripts/gallery/knockout-3.4.2.js")
+                .Include("~/Scripts/gallery/bootstrap.js");
             BundleTable.Bundles.Add(newScriptBundle);
 
-            var homeScriptBundle = new ScriptBundle("~/Scripts/new/home.min.js")
-                .Include("~/Scripts/new/home.js");
+            var homeScriptBundle = new ScriptBundle("~/Scripts/gallery/home.min.js")
+                .Include("~/Scripts/gallery/home.js");
             BundleTable.Bundles.Add(homeScriptBundle);
         }
 
