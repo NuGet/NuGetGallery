@@ -85,7 +85,11 @@ namespace NuGetGallery.OData.Serializers
         private static Uri BuildIdLink(string id, string version, HttpRequestMessage request)
         {
             var packageIdentityQuery = $"(Id='{id}',Version='{version}')";
-            var localPath = request.RequestUri.LocalPath.Replace(packageIdentityQuery, string.Empty);
+            var localPath = request.RequestUri.LocalPath
+                // Remove closing brackets from Packages collection
+                .Replace("/Packages()", "/Packages")
+                // Remove package identity query
+                .Replace(packageIdentityQuery, string.Empty);
 
             return new Uri($"{request.RequestUri.Scheme}://{request.RequestUri.Host}{localPath}{packageIdentityQuery}");
         }
