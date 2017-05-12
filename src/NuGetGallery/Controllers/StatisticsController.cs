@@ -160,7 +160,7 @@ namespace NuGetGallery
 
             var report = await GetPackageDownloadsByVersionReport(id, groupby);
 
-            StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
+            var model = new StatisticsPackagesViewModel();
 
             model.SetPackageDownloadsByVersion(id);
 
@@ -172,8 +172,13 @@ namespace NuGetGallery
         //
         // GET: /stats/reports/packages/{id}
 
-        public virtual async Task<JsonResult> PackageDownloadsByVersionReport(string id, string[] groupby)
+        public virtual async Task<ActionResult> PackageDownloadsByVersionReport(string id, string[] groupby)
         {
+            if (_statisticsService == NullStatisticsService.Instance)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
             return Json(await GetPackageDownloadsByVersionReport(id, groupby), JsonRequestBehavior.AllowGet);
         }
 
@@ -201,8 +206,13 @@ namespace NuGetGallery
         //
         // GET: /stats/reports/packages/{id}/{version}
 
-        public virtual async Task<JsonResult> PackageDownloadsDetailReport(string id, string version, string[] groupby)
+        public virtual async Task<ActionResult> PackageDownloadsDetailReport(string id, string version, string[] groupby)
         {
+            if (_statisticsService == NullStatisticsService.Instance)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
             var report = await GetPackageDownloadsDetailReport(id, version, groupby);
 
             if (report != null)

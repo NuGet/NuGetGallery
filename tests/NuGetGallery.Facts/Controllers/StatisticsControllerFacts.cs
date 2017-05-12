@@ -342,6 +342,22 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async void StatisticsHomePage_Per_Package_ValidateModel()
+        {
+            string PackageId = "A";
+
+            var fakeReportService = new Mock<IReportService>();
+
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+
+            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsByVersion(PackageId, new[] { Constants.StatisticsDimensions.Version })).Model;
+
+            Assert.Equal(PackageId, model.PackageId);
+        }
+
+        [Fact]
         public async void StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailability()
         {
             string PackageId = "A";
@@ -408,7 +424,7 @@ namespace NuGetGallery
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
-            var actualReport = (StatisticsPackagesReport)(await controller.PackageDownloadsByVersionReport(PackageId, new[] { Constants.StatisticsDimensions.Version })).Data;
+            var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsByVersionReport(PackageId, new[] { Constants.StatisticsDimensions.Version })).Data;
 
             int sum = 0;
 
@@ -492,7 +508,7 @@ namespace NuGetGallery
 
             var invalidDimension = "this_dimension_does_not_exist";
             
-            var actualReport = (StatisticsPackagesReport)(await controller.PackageDownloadsByVersionReport(PackageId, new[] { Constants.StatisticsDimensions.Version, invalidDimension })).Data;
+            var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsByVersionReport(PackageId, new[] { Constants.StatisticsDimensions.Version, invalidDimension })).Data;
 
             int sum = 0;
 
@@ -506,6 +522,24 @@ namespace NuGetGallery
             Assert.True(actualReport.LastUpdatedUtc.HasValue);
             Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
             Assert.DoesNotContain(invalidDimension, actualReport.Columns);
+        }
+
+        [Fact]
+        public async void Statistics_By_Client_Operation_ValidateModel()
+        {
+            string PackageId = "A";
+            string PackageVersion = "2.0";
+
+            var fakeReportService = new Mock<IReportService>();
+
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+
+            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+            
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion, new string[] { "ClientName" })).Model;
+
+            Assert.Equal(PackageId, model.PackageId);
+            Assert.Equal(PackageVersion, model.PackageVersion);
         }
 
         [Fact]
@@ -576,7 +610,7 @@ namespace NuGetGallery
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
             
-            var actualReport = (StatisticsPackagesReport)(await controller.PackageDownloadsDetailReport(PackageId, PackageVersion, new string[] { "ClientName" })).Data;
+            var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsDetailReport(PackageId, PackageVersion, new string[] { "ClientName" })).Data;
 
             int sum = 0;
 
