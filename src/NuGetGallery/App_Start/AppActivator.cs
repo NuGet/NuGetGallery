@@ -187,11 +187,12 @@ namespace NuGetGallery
             var newScriptBundle = new ScriptBundle("~/Scripts/gallery/site.min.js")
                 .Include("~/Scripts/gallery/jquery-1.12.4.js")
                 .Include("~/Scripts/gallery/knockout-3.4.2.js")
-                .Include("~/Scripts/gallery/bootstrap.js");
+                .Include("~/Scripts/gallery/bootstrap.js")
+                .Include("~/Scripts/gallery/common.js");
             BundleTable.Bundles.Add(newScriptBundle);
 
-            var homeScriptBundle = new ScriptBundle("~/Scripts/gallery/home.min.js")
-                .Include("~/Scripts/gallery/home.js");
+            var homeScriptBundle = new ScriptBundle("~/Scripts/gallery/page-home.min.js")
+                .Include("~/Scripts/gallery/page-home.js");
             BundleTable.Bundles.Add(homeScriptBundle);
         }
 

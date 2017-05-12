@@ -50,7 +50,15 @@ body {
 .mt-10 {
   margin-top: 10px;
 }
+.mt-0 {
+  margin-top: 0;
+}
+.search-container {
+  padding: 16px;
+  background-color: #004880;
+}
 .main-container {
+  padding-top: 160px;
   padding-bottom: 75px;
 }
 .navbar-logo {
@@ -69,6 +77,12 @@ body {
 }
 .footer a {
   color: #e3ebf1;
+}
+.borderless > tbody > tr > td {
+  border: none;
+}
+h1 {
+  margin-top: 0;
 }
 .jumbotron {
   padding-top: 110px;
@@ -133,5 +147,33 @@ body {
   right: 3px;
   float: right;
   width: 144px;
+}
+.package-details ul {
+  margin-left: 25px;
+}
+.package-details li {
+  padding: 5px 0;
+}
+.package-details .fa-li {
+  top: 10px;
+}
+.package-details .tag {
+  padding: 2px 5px;
+  line-height: 1.9em;
+  background-color: #eff9ff;
+}
+.package-details .no-clickonce {
+  display: none;
+}
+.package-details ul.owner-list {
+  margin-left: 42px;
+}
+.package-details ul.owner-list li {
+  position: relative;
+  padding: 10px 0;
+}
+.package-details ul.owner-list img {
+  position: absolute;
+  left: -40px;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */

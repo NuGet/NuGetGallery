@@ -1,4 +1,4 @@
-//
+﻿//
 // Navbars
 // --------------------------------------------------
 
@@ -50,7 +50,7 @@
   overflow-x: visible;
   padding-right: @navbar-padding-horizontal;
   padding-left:  @navbar-padding-horizontal;
-  border-top: 1px solid transparent;
+  border: 0;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
   &:extend(.clearfix all);
   -webkit-overflow-scrolling: touch;
@@ -545,6 +545,7 @@
   .navbar-nav {
     > li > a {
       color: @navbar-inverse-link-color;
+      font-weight: 100;
 
       &:hover,
       &:focus {
@@ -556,8 +557,12 @@
       &,
       &:hover,
       &:focus {
-        color: @navbar-inverse-link-active-color;
-        background-color: @navbar-inverse-link-active-bg;
+        font-weight: 600;
+
+        span {
+          padding: 5px 0;
+          border-bottom: 1px solid #fff;
+        }
       }
     }
     > .disabled > a {

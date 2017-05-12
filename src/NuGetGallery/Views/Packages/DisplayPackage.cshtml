@@ -3,7 +3,7 @@
 @{
     ViewBag.Title = Model.Title + " " + Model.Version;
     ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 }
 @section SocialMeta {
@@ -19,8 +19,8 @@
     <meta property="og:type" content="nugetgallery:package" />
     <meta property="og:url" content="@absolutePackageUrl" />
     <meta property="og:description" content="@Model.Description" />
-    <meta property="og:determiner" content="a"/>
-    <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))"/>
+    <meta property="og:determiner" content="a" />
+    <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
 }
 @section Meta {
     @if (!Model.Listed || Model.Deleted)
@@ -28,378 +28,374 @@
         <meta name="robots" content="noindex">
     }
 }
-@section SideColumn {
-    <img class="logo" src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon.png")';" />
-    <div id="stats">
-        <div class="stat">
-            <p class="stat-number">@Model.TotalDownloadCount.ToNuGetNumberString()</p>
-            <p class="stat-label">@(Model.TotalDownloadCount == 1 ? "Download" : "Downloads")</p>
+
+<div class="container main-container package-details">
+    <div class="row">
+        <div class="col-md-1">
+            <img class="logo" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon.png")';"
+                 height="84" width="84"
+                 src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
         </div>
-        <div class="stat">
-            <p class="stat-number">@Model.DownloadCount.ToNuGetNumberString()</p>
-            <p class="stat-label">@(Model.DownloadCount == 1 ? "Download" : "Downloads") of v @Model.Version</p>
-        </div>
-        <div class="stat">
-            <p class="stat-number" title="@Model.TotalDownloadCount.ToNuGetNumberString() @(Model.TotalDownloadCount == 1 ? "download" : "downloads") in @Model.TotalDaysSinceCreated @(Model.TotalDaysSinceCreated == 1 ? "day" : "days")">@(Model.DownloadsPerDay <= 1 ? "<1" : Model.DownloadsPerDay.ToNuGetNumberString())</p>
-            <p class="stat-label">Average downloads per day</p>
-        </div>
-        <div class="stat">
-            <p class="stat-number">@Model.LastUpdated.ToNuGetShortDateString()</p>
-            <p class="stat-label">Last published</p>
-        </div>
-    </div>
-    <nav>
-        <ul>
-            @if (PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
+        <div class="col-md-8">
+            <h1 title="@Model.Title">
+                @Model.Title.Abbreviate(40)
+                <small>@Model.Version</small>
+            </h1>
+
+            @if (Model.HasPendingMetadata)
             {
-                <li>
-                    <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package" rel="nofollow">
-                        Project Site
-                    </a>
-                </li>
+                using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
+                {
+                    @Html.AntiForgeryToken()
+                    <fieldset class="form">
+                        <p class="pending-edit-message">
+                            An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
+                            These changes will be applied to the package file and become visible to everybody soon unless you
+                            <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
+                            first.
+                        </p>
+                    </fieldset>
+                }
             }
-            @if (PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
+            @if (Model.IsLastEditFailed)
             {
-                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">License</a></li>
+                <p class="alert alert-danger">
+                    Your last edit to this package was not successfully applied.
+                    You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
+                    the package and submit the edit again to retry the edit.
+                </p>
             }
-            <li><a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact Owners</a></li>
-            @if ((Model.IsOwner(User) || User.IsAdministrator()))
+            @if (Model.Prerelease)
             {
-                <li>
-                    <a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
-                        Contact Support
-                    </a>
-                </li>
+                <p class="alert alert-info">
+                    This is a prerelease version of @Model.Title.Abbreviate(65).
+                </p>
             }
-            else if (!Model.Deleted)
+            @if (Model.LatestStableVersion && Model.HasNewerPrerelease)
             {
-                <li>
-                    <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
-                        Report Abuse
-                    </a>
-                </li>
+                <p class="alert alert-info">
+                    There is a newer prerelease version of this package available.<br /> See the version list below for details.
+                </p>
             }
 
-            @if (!Model.Deleted)
+            @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
             {
-                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
-                <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a></li>
+                <p class="alert alert-warning">
+                    <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.
+                </p>
             }
 
-            @if (!Model.Deleted && (Model.IsOwner(User) || User.IsAdministrator()))
+            @if (Model.Deleted)
             {
-                <li><a href="@Url.EditPackage(Model.Id, Model.Version)">Edit Package</a></li>
-                <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
-                <li><a href="@Url.DeletePackage(Model)" class="delete">Delete Package</a></li>
+                <p class="alert alert-danger">
+                    <strong>This package has been deleted from the gallery.</strong> It is no longer available for install/restore.
+                </p>
             }
-            @if (!Model.Deleted && User.IsAdministrator())
+
+            @if (!Model.Listed && !Model.Deleted)
             {
-                <li><a href="@Url.ReflowPackage(Model)">Reflow Package</a></li>
+                if ((Model.IsOwner(User) || User.IsAdministrator()))
+                {
+                    <p class="alert alert-warning">
+                        This package is unlisted and hidden from package listings.
+                        You can see the package because you are one of its owners. To list the package again,
+                        <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+                    </p>
+                }
+                else
+                {
+                    <p class="alert alert-warning">
+                        The owner has unlisted this package.
+                        This could mean that the package is deprecated or shouldn't be used anymore.
+                    </p>
+                }
             }
+
+            @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
+            {
+                <p>@line</p>
+            }
+
+            @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
+            {
+                <h3>Release Notes</h3>
+
+                // Not actually using <pre/> because its better to have wrapping text
+                <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
+            }
+
+            @if (!String.IsNullOrEmpty(Model.Copyright))
+            {
+                <h3>Copyright</h3>
+                <p>@Model.Copyright</p>
+            }
+
+            @if (Model.Dependencies.DependencySets == null)
+            {
+                if ((Model.IsOwner(User) || User.IsAdministrator()))
+                {
+                    <h3>Dependencies</h3>
+                    <p>
+                        An error occurred processing dependencies.
+                        Your package can still be downloaded and installed, but dependencies cannot be shown.
+                        Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have questions.
+                    </p>
+                    <p>
+                        <strong>Note: This message is only visible to you and any other package owners.</strong>
+                    </p>
+                }
+            }
+            else
+            {
+                <h3>Dependencies</h3>
+                if (Model.Dependencies.DependencySets.Any())
+                {
+                    <ul>
+                        @foreach (var dependencySet in Model.Dependencies.DependencySets)
+                        {
+                            var dependencySetTitle = dependencySet.Key;
+                            <li>
+                                @if (!Model.Dependencies.OnlyHasAllFrameworks)
+                                {
+                                    <h4>@dependencySetTitle</h4>
+                                }
+                                <ul>
+                                @foreach (var dependency in dependencySet.Value)
+                                {
+                                    <li>
+                                    @if (dependency == null)
+                                    {
+                                        @:No dependencies.
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                                        <span>@dependency.VersionSpec</span>
+                                    }
+                                    </li>
+                                }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>This package has no dependencies.</p>
+                }
+            }
+
+            <h2>Version History</h2>
+            <table class="table borderless">
+                <thead>
+                    <tr>
+                        <th>Version</th>
+                        <th>Downloads</th>
+                        <th>Last updated</th>
+                        @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                        {
+                            <th>Listed</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var packageVersion in Model.PackageVersions)
+                    {
+                        if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
+                        {
+                            <tr>
+                                <td>
+                                    @if (packageVersion.IsCurrent(Model))
+                                    {
+                                        <a href="@Url.Package(packageVersion)">
+                                            @packageVersion.Version
+                                            @if (packageVersion.IsCurrent(Model))
+                                            {
+                                                @:(current version)
+                                    }
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Package(packageVersion)">
+                                            @packageVersion.Version
+                                        </a>
+                                    }
+                                </td>
+                                <td>
+                                    @packageVersion.DownloadCount.ToNuGetNumberString()
+                                </td>
+                                <td>
+                                    <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                </td>
+                                @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                                {
+                                    <td>
+                                        <a href="@Url.DeletePackage(packageVersion)">@(packageVersion.Listed ? "yes" : "no")</a>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                        else if (packageVersion.Deleted)
+                        {
+                            <tr class="versionTableRow deleted">
+                                <td class="version">
+                                    <s>@packageVersion.Version</s> (deleted)
+                                </td>
+                                <td>
+                                    @packageVersion.DownloadCount
+                                </td>
+                                <td>
+                                    <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                </td>
+                                <td></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-3">
+            <h3>Info</h3>
+            <ul class="fa-ul">
+                @if (PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
+                {
+                    <li>
+                        <i class="fa-li fa fa-globe"></i>
+                        <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package" rel="nofollow">
+                            Project Site
+                        </a>
+                    </li>
+                }
+                @if (PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
+                {
+                    <li>
+                        <i class="fa-li fa fa-file-o"></i>
+                        <a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">License</a>
+                    </li>
+                }
+                <li>
+                    <i class="fa-li fa fa-envelope-o"></i>
+                    <a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact owners</a>
+                </li>
+                @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                {
+                    <li>
+                        <i class="fa-li fa fa-question"></i>
+                        <a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
+                            Contact Support
+                        </a>
+                    </li>
+                }
+                else if (!Model.Deleted)
+                {
+                    <li>
+                        <i class="fa-li fa fa-flag"></i>
+                        <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
+                            Report
+                        </a>
+                    </li>
+                }
+
+                @if (!Model.Deleted)
+                {
+                    <li>
+                        <i class="fa-li fa fa-download"></i>
+                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Manual download</a>
+                    </li>
+                    <li class="no-clickonce">
+                        <i class="fa-li fa fa-external-link"></i>
+                        <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
+                    </li>
+                }
+
+                @if (!Model.Deleted && (Model.IsOwner(User) || User.IsAdministrator()))
+                {
+                    <li><a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a></li>
+                    <li><a href="@Url.ManagePackageOwners(Model)">Manage owners</a></li>
+                    <li><a href="@Url.DeletePackage(Model)" class="delete">Delete package</a></li>
+                }
+                @if (!Model.Deleted && User.IsAdministrator())
+                {
+                    <li><a href="@Url.ReflowPackage(Model)">Reflow package</a></li>
+                }
+            </ul>
+
+            <h3>Owners</h3>
+            <ul class="list-unstyled owner-list">
+                @foreach (var owner in Model.Owners)
+                {
+                    <li>
+                        @if (!String.IsNullOrEmpty(owner.EmailAddress))
+                        {
+                            var size = 32;
+                            var gravatarHtml = Gravatar.GetHtml(
+                                owner.EmailAddress,
+                                size,
+                                "retro",
+                                GravatarRating.G,
+                                attributes: new { width = size, height = size, title = owner.Username });
+                            if (gravatarHtml != null && Request.IsSecureConnection)
+                            {
+                                gravatarHtml = new HtmlString(gravatarHtml.ToHtmlString().Replace("http://www.gravatar.com/", "https://secure.gravatar.com/"));
+                            }
+                            <a href="@Url.User(owner)" title="@owner.Username">@gravatarHtml</a>
+                        }
+                        <a href="@Url.User(owner)" title="@owner.Username">
+                            @owner.Username
+                        </a>
+                    </li>
+                }
+            </ul>
+
+            <h3>Authors</h3>
+            <p>@Model.Authors</p>
+
+            <h3>Statistics</h3>
+            <ul class="fa-ul">
+                <li>
+                    <i class="fa-li fa fa-signal"></i>
+                    @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                </li>
+                <li>
+                    <i class="fa-li fa fa-gift"></i>
+                    @Model.PackageVersions.First().DownloadCount.ToNuGetNumberString() @(Model.PackageVersions.First().DownloadCount == 1 ? "download" : "downloads")
+                    of latest version
+                </li>
+                <li>
+                    <i class="fa-li fa fa-download"></i>
+                    @Model.DownloadsPerDay.ToNuGetNumberString() @(Model.DownloadsPerDay == 1 ? "download" : "downloads")
+                    per day
+                </li>
+                <li>
+                    <i class="fa-li fa fa-clock-o"></i>
+                    last updated <span title="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
+                </li>
+            </ul>
             @if (StatisticsHelper.IsStatisticsPageAvailable)
             {
-                <li><a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">Package Statistics</a></li>
+                <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">View full stats</a>
             }
-        </ul>
-    </nav>
 
-    <div class="stat">
-        <ul class="share-buttons">
+            @if (Model.Tags.AnySafe())
+            {
+                <h3>Tags</h3>
+                <p>
+                    @foreach (var tag in Model.Tags)
+                    {
+                        <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
+                    }
+                </p>
+            }
+
+            <h3>Share</h3>
             @{
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
             }
-            <li><a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank" title="Share on Facebook"><i class="icon-facebook"></i></a></li>
-            <li><a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank" title="Tweet this package"><i class="icon-twitter"></i></a></li>
-        </ul>
-        <p class="stat-label">Share on Social Networks</p>
-    </div>
-
-
-    @* ** FEATURE: License Reports ** *@
-    @if (Config.Features.FriendlyLicenses || User.IsAdministrator())
-    {
-        @* Package with license report enabled and at least one license field  OR  Owned by user *@
-        if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || (Model.IsOwner(User) || User.IsAdministrator()))
-        {
-            <div class="block">
-                <h3 class="block-title">License details</h3>
-                <p id="sonatypeHeader">provided by <a href="http://sonatype.com/">Sonatype</a></p>
-                @if (Model.HideLicenseReport)
-                {
-                    <p class="block-notice">Visible only to owners</p>
-                }
-                @if (!Config.Features.FriendlyLicenses && User.IsAdministrator())
-                {
-                    <p class="block-notice">Visible only to admins</p>
-                }
-                @if (Model.LicenseNames.AnySafe())
-                {
-                    foreach (var licenseName in Model.LicenseNames)
-                    {
-                        if (!String.IsNullOrEmpty(licenseName))
-                        {
-                            <p class="@(Model.HideLicenseReport ? "fadedLicenseName" : "licenseName")">@licenseName</p>
-                        }
-                    }
-                }
-                @if (!String.IsNullOrEmpty(Model.LicenseReportUrl))
-                {
-                    <p><a class="@(Model.HideLicenseReport ? "block-fadedLink": "block-link")" href="@Model.LicenseReportUrl" title="Find out more details about the licenses in this package">View report</a></p>
-                }
-                @if ((Model.IsOwner(User) || User.IsAdministrator()))
-                {
-                    if (!Model.LicenseNames.AnySafe() && String.IsNullOrEmpty(Model.LicenseReportUrl))
-                    {
-                        <p class="block-text">License information is not yet available.</p>
-                    }
-                    else
-                    {
-                        using (Html.BeginForm(actionName: "SetLicenseReportVisibility", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version, visible = Model.HideLicenseReport }, method: FormMethod.Post, htmlAttributes: new { @class = "form" }))
-                        {
-                            @Html.AntiForgeryToken()
-                            <input id="enableDisableLicenseReportButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable" : "Disable")" />
-                        }
-                    }
-                }
-            </div>
-        }
-    }
-
-}
-<div class="package-page">
-    @if (Model.HasPendingMetadata)
-    {
-        using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
-        {
-            @Html.AntiForgeryToken()
-            <fieldset class="form">
-                <p class="pending-edit-message">
-                    An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
-                    These changes will be applied to the package file and become visible to everybody soon unless you
-                    <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
-                    first.
-                </p>
-            </fieldset>
-        }
-    }
-    @if (Model.IsLastEditFailed)
-    {
-        <p class="failed-edit-message">
-            Your last edit to this package was not successfully applied.
-            You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
-            the package and submit the edit again to retry the edit.
-        </p>
-    }
-    @if (Model.Prerelease)
-    {
-        <p class="prerelease-message">
-            This is a prerelease version of @Model.Title.Abbreviate(65).
-        </p>
-    }
-    @if (Model.LatestStableVersion && Model.HasNewerPrerelease)
-    {
-        <p class="not-latest-message">
-            There is a newer prerelease version of this package available.<br /> See the version list below for details.
-        </p>
-    }
-
-    @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
-    {
-        <p class="message warning">
-            <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.
-        </p>
-    }
-
-    @if (Model.Deleted)
-    {
-        <p class="message error">
-            <strong>This package has been deleted from the gallery.</strong> It is no longer available for install/restore.
-        </p>
-    }
-
-    <div class="package-page-heading">
-        <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
-        <h2>@Model.Version</h2>
-    </div>
-    @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
-    {
-        <p>@line</p>
-    }
-
-    @if (!Model.Listed && !Model.Deleted)
-    {
-        if ((Model.IsOwner(User) || User.IsAdministrator()))
-        {
-            <p class="message warning">
-                This package is unlisted and hidden from package listings.
-                You can see the package because you are one of its owners. To list the package again,
-                <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-            </p>
-        }
-        else
-        {
-            <p class="message warning">
-                The owner has unlisted this package.
-                This could mean that the package is deprecated or shouldn't be used anymore.
-            </p>
-        }
-    }
-
-    @if (!Model.Deleted)
-    {
-        <p>
-            To install @Model.Title, run the following command in the <a href="https://docs.nuget.org/docs/start-here/using-the-package-manager-console">
-                Package Manager Console
-            </a>
-        </p>
-        <div class="nuget-badge">
             <p>
-                <code>
-                    Install-Package @Model.Id
-                    @if (!Model.LatestVersion || !Model.Listed)
-                    {
-                        <text> -Version @Model.Version</text>
-                    }
-                    @if (Model.Prerelease)
-                    {
-                        <text> -Pre </text>
-                    }
-                </code>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank" title="Share on Facebook"><img width="24" height="24" src="~/Content/gallery/img/facebook.png" alt="Small icon of Facebook's logo" /></a>
+                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank" title="Tweet this package"><img width="24" height="24" src="~/Content/gallery/img/twitter.png" alt="Small icon of Twitter's logo" /></a>
             </p>
         </div>
-        if (!String.IsNullOrEmpty(Model.MinClientVersion))
-        {
-            <p>Requires NuGet @Model.MinClientVersion or higher.</p>
-        }
-    }
-
-    @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
-    {
-        <h3>Release Notes</h3>
-
-        // Not actually using <pre/> because its better to have wrapping text
-        <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
-    }
-
-    <h3>Owners</h3>
-    @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)
-    <div title="These authors' works form part of the package or its contents">
-        <h3>Authors</h3>
-        <p class="authors">
-            @Model.Authors
-        </p>
     </div>
-    @if (!String.IsNullOrEmpty(Model.Copyright))
-    {
-        <h3>Copyright</h3>
-        <p>@Model.Copyright</p>
-    }
-    @if (@Model.Tags.AnySafe())
-    {
-        <h3>Tags</h3>
-        <ul class="tags">
-            @foreach (var tag in Model.Tags)
-            {
-                <li><a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a></li>
-            }
-        </ul>
-    }
-    @if (Model.Dependencies.DependencySets == null)
-    {
-        if ((Model.IsOwner(User) || User.IsAdministrator()))
-        {
-            <h3>Dependencies</h3>
-            <p>
-                An error occurred processing dependencies.
-                Your package can still be downloaded and installed, but dependencies cannot be shown.
-                Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have questions.
-            </p>
-            <p>
-                <strong>Note: This message is only visible to you and any other package owners.</strong>
-            </p>
-        }
-    }
-    else
-    {
-        <h3>Dependencies</h3>
-        @Html.Partial("_PackageDependencies", Model.Dependencies)
-    }
-    <h3>Version History</h3>
-    <table class="sexy-table">
-        <thead>
-            <tr>
-                <th class="first">
-                    Version
-                </th>
-                <th>
-                    Downloads
-                </th>
-                <th class="@((Model.IsOwner(User) || User.IsAdministrator()) ? "" : "last")">
-                    Last updated
-                </th>
-                @if ((Model.IsOwner(User) || User.IsAdministrator()))
-                {
-                    <th class="last">Listed</th>
-                }
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var packageVersion in Model.PackageVersions)
-            {
-                var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
-                var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
-                if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
-                {
-                    <tr class="versionTableRow @rowClass">
-                        <td class="version" title="@cellTitle">
-                            @if (!packageVersion.IsCurrent(Model))
-                            {
-                                <a title="@packageVersion.Title @packageVersion.Version" href="@Url.Package(packageVersion) ">
-                                    @packageVersion.Title.Abbreviate(20)
-                                    @packageVersion.Version
-                                    @if (packageVersion.LatestStableVersion)
-                                    {
-                                        @:(latest stable)
-                                    }
-                                </a>
-                            }
-                            else
-                            {
-                                <a href="@Url.Package(packageVersion)" title="@packageVersion.Title @packageVersion.Version (this version)">
-                                    @packageVersion.Title.Abbreviate(20) @packageVersion.Version (this version)
-                                </a>
-                            }
-                        </td>
-                        <td class="package-version-downloads">
-                            @packageVersion.DownloadCount.ToNuGetNumberString()
-                        </td>
-                        <td>
-                            <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
-                        </td>
-                        @if ((Model.IsOwner(User) || User.IsAdministrator()))
-                        {
-                            <td>
-                                <a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
-                            </td>
-                        }
-                    </tr>
-                }
-                else if (packageVersion.Deleted)
-                {
-                    <tr class="versionTableRow deleted">
-                        <td class="version">
-                            @packageVersion.Title.Abbreviate(20) @packageVersion.Version (deleted)
-                        </td>
-                        <td>
-                            @packageVersion.DownloadCount
-                        </td>
-                        <td>
-                            @packageVersion.LastUpdated.ToNuGetLongDateString()
-                        </td>
-                        <td></td>
-                    </tr>
-    }
-}
-        </tbody>
-    </table>
 </div>

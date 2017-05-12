@@ -1,4 +1,4 @@
-//== Theme Variables
+﻿//== Theme Variables
 @panel-footer-height: 350px;
 @panel-footer-color:  @navbar-inverse-color;
 
@@ -12,7 +12,7 @@ body {
   margin-bottom: @panel-footer-height;
 }
 
-.mt-loop(@i) when (@i > 0) {
+.mt-loop(@i) when (@i >= 0) {
   .mt-@{i} {
     margin-top: (1px * @i);
     
@@ -22,7 +22,13 @@ body {
 
 .mt-loop(150);
 
+.search-container {
+  background-color: @jumbotron-bg;
+  padding: 16px;
+}
+
 .main-container {
+  padding-top: 160px;
   padding-bottom: 75px;
 }
 
@@ -44,4 +50,18 @@ body {
   a {
     color: @panel-footer-color;
   }
+}
+
+.borderless {
+  > tbody {
+    > tr {
+      > td {
+        border: none;
+      }
+    }
+  }
+}
+
+h1 {
+  margin-top: 0;
 }
