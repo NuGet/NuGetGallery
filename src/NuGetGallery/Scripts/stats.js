@@ -13,7 +13,7 @@
         // section.show();
     });
 
-    setTimeout(function () { getStats(currData); }, 30000);
+    setTimeout(function () { getStats(currData); }, 120000);
 }
 
 function update(data, currData, key) {
