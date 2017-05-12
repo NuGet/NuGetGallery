@@ -21,8 +21,8 @@ namespace NuGetGallery.Security
         private const string MinClientVersion = "4.1.0";
         private const int PushKeysExpirationInDays = 30;
 
-        private IAuditingService Auditing { get; }
-        private IDiagnosticsSource Diagnostics { get; }
+        private IAuditingService _auditing;
+        private IDiagnosticsSource _diagnostics;
 
         /// <summary>
         /// Subscription name.
@@ -49,8 +49,8 @@ namespace NuGetGallery.Security
 
         public SecurePushSubscription(IAuditingService auditing, IDiagnosticsService diagnostics)
         {
-            Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
-            Diagnostics = diagnostics?.SafeGetSource(nameof(SecurePushSubscription)) ?? throw new ArgumentNullException(nameof(diagnostics));
+            _auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
+            _diagnostics = diagnostics?.SafeGetSource(nameof(SecurePushSubscription)) ?? throw new ArgumentNullException(nameof(diagnostics));
         }
 
         /// <summary>
@@ -74,14 +74,14 @@ namespace NuGetGallery.Security
             {
                 if (!key.Expires.HasValue || key.Expires > expires)
                 {
-                    await Auditing.SaveAuditRecordAsync(
+                    await _auditing.SaveAuditRecordAsync(
                         new UserAuditRecord(context.User, AuditedUserAction.ExpireCredential, key));
 
                     key.Expires = expires;
                 }
             }
             
-            Diagnostics.Information($"Expiring {pushKeys.Count()} keys with push capability for user '{context.User.Username}'.");
+            _diagnostics.Information($"Expiring {pushKeys.Count()} keys with push capability for user '{context.User.Username}'.");
         }
         
         public Task OnUnsubscribeAsync(UserSecurityPolicySubscriptionContext context)
