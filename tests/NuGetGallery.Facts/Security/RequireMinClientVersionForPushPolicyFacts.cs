@@ -17,7 +17,7 @@ namespace NuGetGallery.Security
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("4.1.0-beta1")]
-        public void EvaluateReturnsSuccessIfClientVersionEqualOrHigher(string minClientVersions)
+        public void Evaluate_ReturnsSuccessIfClientVersionEqualOrHigherThanRequired(string minClientVersions)
         {
             // Arrange & Act
             var result = Evaluate(minClientVersions, actualClientVersion: "4.1.0");
@@ -32,7 +32,7 @@ namespace NuGetGallery.Security
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("2.5.0")]
-        public void EvaluateReturnsFailureIfClientVersionLower(string minClientVersions)
+        public void Evaluate_ReturnsFailureIfClientVersionLowerThanRequired(string minClientVersions)
         {
             // Arrange & Act
             var result = Evaluate(minClientVersions, actualClientVersion: "2.5.0-beta1");
@@ -43,7 +43,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void EvaluateReturnsFailureIfNoClientHeader()
+        public void Evaluate_ReturnsFailureIfClientVersionHeaderIsMissing()
         {
             // Arrange & Act
             var result = Evaluate(minClientVersions: "4.1.0", actualClientVersion: "");

@@ -1049,13 +1049,13 @@ namespace NuGetGallery
             }
         }
 
-        public class TheCreatePackageVerificationKeyAction : PackageVerificationKeyContainer
+        public class TheCreatePackageVerificationKeyAsyncAction : PackageVerificationKeyContainer
         {
             [Theory]
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async void CreatePackageKeyReturnsPackageVerificationKey(string scope)
+            public async Task CreatePackageVerificationKeyAsync_ReturnsPackageVerificationKey(string scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package: null);
@@ -1080,10 +1080,10 @@ namespace NuGetGallery
             }
         }
 
-        public class TheVerifyPackageKeyAction : PackageVerificationKeyContainer
+        public class TheVerifyPackageKeyAsyncAction : PackageVerificationKeyContainer
         {
             [Fact]
-            public void VerifyPackageKeyHasSecurityPolicyAttribute()
+            public void VerifyPackageKeyAsync_HasApiAuthorizeSecurityPolicyAction()
             {
                 // Arrange and Act.
                 var method = typeof(ApiController).GetMethod("VerifyPackageKeyAsync");
@@ -1098,7 +1098,7 @@ namespace NuGetGallery
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns404IfPackageDoesNotExist_ApiKeyV2(string scope)
+            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKeyV2(string scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package: null);
@@ -1120,7 +1120,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns404IfPackageDoesNotExist_ApiKeyVerifyV1(string scope)
+            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.VerifyV1, scope, package: null);
@@ -1144,7 +1144,7 @@ namespace NuGetGallery
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns403IfUserIsNotAnOwner_ApiKeyV2(string scope)
+            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKeyV2(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1171,7 +1171,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns403IfUserIsNotAnOwner_ApiKeyVerifyV1(string scope)
+            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1203,7 +1203,7 @@ namespace NuGetGallery
             // subject mismatch
             [InlineData("[{\"a\":\"package:push\", \"s\":\"notfoo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"notfoo\"}]")]
-            public async void VerifyPackageKeyReturns403IfScopeDoesNotMatch_ApiKeyV2(string scope)
+            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKeyV2(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1235,7 +1235,7 @@ namespace NuGetGallery
             [InlineData("[{\"a\":\"package:unlist\", \"s\":\"foo\"}]")]
             // subject mismatch
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"notfoo\"}]")]
-            public async void VerifyPackageKeyReturns403IfScopeDoesNotMatch_ApiKeyVerifyV1(string scope)
+            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1264,7 +1264,7 @@ namespace NuGetGallery
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns200_ApiKeyV2(string scope)
+            public async Task VerifyPackageKeyAsync_Returns200IfApiKeyWithPushCapability_ApiKeyV2(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1288,7 +1288,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns200_ApiKeyVerifyV1(string scope)
+            public async Task VerifyPackageKeyAsync_Returns200IfPackageVerifyKey_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1311,7 +1311,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async void VerifyPackageKeyWritesAuditRecord()
+            public async Task VerifyPackageKeyAsync_WritesAuditRecord()
             {
                 // Arrange
                 var package = new Package

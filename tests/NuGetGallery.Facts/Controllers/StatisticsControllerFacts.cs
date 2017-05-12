@@ -20,7 +20,7 @@ namespace NuGetGallery
     public class StatisticsControllerFacts
     {
         [Fact]
-        public async void StatisticsHomePage_ValidateReportStructureAndAvailability()
+        public async Task StatisticsHomePage_ValidateReportStructureAndAvailability()
         {
             JArray report1 = new JArray
             {
@@ -132,7 +132,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_ValidateFullReportStructureAndAvailability()
+        public async Task StatisticsHomePage_ValidateFullReportStructureAndAvailability()
         {
             JArray report1 = new JArray
             {
@@ -256,7 +256,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_Packages_ValidateReportStructureAndAvailability()
+        public async Task StatisticsHomePage_Packages_ValidateReportStructureAndAvailability()
         {
             JArray report = new JArray
             {
@@ -293,7 +293,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_PackageVersions_ValidateReportStructureAndAvailability()
+        public async Task StatisticsHomePage_PackageVersions_ValidateReportStructureAndAvailability()
         {
             JArray report = new JArray
             {
@@ -341,7 +341,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailability()
+        public async Task StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailability()
         {
             string PackageId = "A";
 
@@ -423,7 +423,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailabilityInvalidGroupBy()
+        public async Task StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailabilityInvalidGroupBy()
         {
             string PackageId = "A";
 
@@ -508,7 +508,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void Statistics_By_Client_Operation_ValidateReportStructureAndAvailability()
+        public async Task Statistics_By_Client_Operation_ValidateReportStructureAndAvailability()
         {
             string PackageId = "A";
             string PackageVersion = "2.0";
@@ -593,7 +593,7 @@ namespace NuGetGallery
         public class TheTotalsAllAction
         {
             [Fact]
-            public async void UseServerCultureIfLanguageHeadersIsMissing()
+            public async Task UseServerCultureIfLanguageHeadersIsMissing()
             {
                 // Arrange
                 var currentCulture = CultureInfo.CurrentCulture;
@@ -631,7 +631,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async void UseClientCultureIfLanguageHeadersIsPresent()
+            public async Task UseClientCultureIfLanguageHeadersIsPresent()
             {
                 // Arrange
                 var aggregateStatsService = new Mock<IAggregateStatsService>(MockBehavior.Strict);

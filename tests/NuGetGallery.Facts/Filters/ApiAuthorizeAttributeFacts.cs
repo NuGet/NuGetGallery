@@ -15,7 +15,7 @@ namespace NuGetGallery.Filters
     public class ApiAuthorizeAttributeFacts
     {
         [Fact]
-        public void ApiAuthorizeAttributeReturns401_UnauthenticatedUser()
+        public void OnAuthorization_Returns401ForUnauthenticatedUser()
         {
             var context = BuildAuthorizationContext(authenticated: false).Object;
             var attribute = new ApiAuthorizeAttribute();
@@ -32,7 +32,7 @@ namespace NuGetGallery.Filters
         }
 
         [Fact]
-        public void ApiAuthorizeAttributeReturns200_SecurityPolicyResultSuccess()
+        public void OnAuthorization_Returns200IfSecurityPolicyEvaluationReturnsSuccess()
         {
             // Arrange
             var mockService = new Mock<ISecurityPolicyService>();
@@ -53,7 +53,7 @@ namespace NuGetGallery.Filters
         }
 
         [Fact]
-        public void ApiAuthorizeAttributeReturns400_SecurityPolicyResultFailure()
+        public void OnAuthorization_Returns400IfSecurityPolicyEvaluationReturnsFailure()
         {
             // Arrange
             var mockService = new Mock<ISecurityPolicyService>();

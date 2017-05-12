@@ -38,8 +38,13 @@ namespace NuGetGallery.Security
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
-            Diagnostics = diagnostics?.SafeGetSource("SecurityPoliceService")
-                ?? throw new ArgumentNullException(nameof(diagnostics));
+
+            if (diagnostics == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostics));
+            }
+
+            Diagnostics = diagnostics.SafeGetSource(nameof(SecurityPolicyService));
         }
 
         /// <summary>

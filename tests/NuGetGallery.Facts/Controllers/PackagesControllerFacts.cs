@@ -865,7 +865,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async void HtmlEncodesMessageContent()
+            public async Task HtmlEncodesMessageContent()
             {
                 var user = new User { Username = "Sauron", Key = 1, EmailAddress = "sauron@mordor.example.com" };
                 var package = new Package

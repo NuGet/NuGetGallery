@@ -50,11 +50,17 @@ namespace NuGetGallery.Security
         public SecurePushSubscription(IAuditingService auditing, IDiagnosticsService diagnostics)
         {
             _auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
-            _diagnostics = diagnostics?.SafeGetSource(nameof(SecurePushSubscription)) ?? throw new ArgumentNullException(nameof(diagnostics));
+
+            if (diagnostics == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostics));
+            }
+
+            _diagnostics = diagnostics.SafeGetSource(nameof(SecurePushSubscription));
         }
 
         /// <summary>
-        /// On subscribe, set API keys with push capability to expire in 30 days.
+        /// On subscribe, set API keys with push capability to expire in <see cref="PushKeysExpirationInDays" /> days.
         /// </summary>
         /// <param name="context"></param>
         public async Task OnSubscribeAsync(UserSecurityPolicySubscriptionContext context)
@@ -70,16 +76,18 @@ namespace NuGetGallery.Security
                 );
 
             var expires = DateTime.UtcNow.AddDays(PushKeysExpirationInDays);
+            var expireTasks = new List<Task>();
             foreach (var key in pushKeys)
             {
                 if (!key.Expires.HasValue || key.Expires > expires)
                 {
-                    await _auditing.SaveAuditRecordAsync(
-                        new UserAuditRecord(context.User, AuditedUserAction.ExpireCredential, key));
+                    expireTasks.Add(_auditing.SaveAuditRecordAsync(
+                        new UserAuditRecord(context.User, AuditedUserAction.ExpireCredential, key)));
 
                     key.Expires = expires;
                 }
             }
+            await Task.WhenAll(expireTasks);
             
             _diagnostics.Information($"Expiring {pushKeys.Count()} keys with push capability for user '{context.User.Username}'.");
         }

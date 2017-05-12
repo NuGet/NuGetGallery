@@ -16,21 +16,24 @@ namespace NuGetGallery.Security
 {
     public class SecurePushSubscriptionFacts
     {
+        private int _expectedPushKeyExpiration = 30;
+
         [Fact]
-        public void SubscriptionName()
+        public void SecurePushSubscription_IsRegisteredWithSecurityPolicyService()
         {
             // Arrange.
-            var subscription = CreateSecurityPolicyService().UserSubscriptions.First();
+            var subscriptions = CreateSecurityPolicyService().UserSubscriptions;
 
             // Act & Assert.
-            Assert.Equal("SecurePush", subscription.SubscriptionName);
+            Assert.Equal(1, subscriptions.Count());
+            Assert.Equal("SecurePush", subscriptions.Single().SubscriptionName);
         }
 
         [Fact]
-        public void SubscriptionPolicies()
+        public void Policies_ReturnsMinClientAndPackageVerifyScopePolicies()
         {
             // Arrange.
-            var subscription = CreateSecurityPolicyService().UserSubscriptions.First();
+            var subscription = CreateSecurityPolicyService().UserSubscriptions.Single();
             var policy1 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequireMinClientVersionForPushPolicy.PolicyName));
             var policy2 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequirePackageVerifyScopePolicy.PolicyName));
 
@@ -45,46 +48,46 @@ namespace NuGetGallery.Security
         [InlineData("")]
         [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]")]
         [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]")]
-        public async void OnSubscribeExpiresPushApiKeysIn1Week(string scopes)
+        public async Task OnSubscribeAsync_ExpiresPushApiKeys(string scopes)
         {
             // Arrange & Act.
             var user = (await SubscribeUserToSecurePushAsync(CredentialTypes.ApiKey.V2, scopes)).Item1;
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
-            Assert.True(DateTime.UtcNow.AddDays(30) >= user.Credentials.First().Expires);
+            Assert.True(DateTime.UtcNow.AddDays(_expectedPushKeyExpiration) >= user.Credentials.Single().Expires);
         }
 
         [Theory]
         [InlineData("password.v3", "")]
         [InlineData("apikey.v2", "[{\"a\":\"package:unlist\", \"s\":\"theId\"}]")]
         [InlineData("apikey.verify.v1", "[{\"a\":\"package:verify\", \"s\":\"theId\"}]")]
-        public async void OnSubscribeDoesNotExpireNonPushCredentials(string type, string scopes)
+        public async Task OnSubscribeAsync_DoesNotExpireNonPushCredentials(string type, string scopes)
         {
             // Arrange & Act.
             var user = (await SubscribeUserToSecurePushAsync(type, scopes)).Item1;
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
-            Assert.False(DateTime.UtcNow.AddDays(30) >= user.Credentials.First().Expires);
+            Assert.False(DateTime.UtcNow.AddDays(_expectedPushKeyExpiration) >= user.Credentials.Single().Expires);
         }
 
         [Theory]
         [InlineData("")]
         [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]")]
         [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]")]
-        public async void OnSubscribeDoesNotChangeExpiringPushCredentials(string scopes)
+        public async Task OnSubscribeAsync_DoesNotChangeExpiringPushCredentials(string scopes)
         {
             // Arrange & Act.
-            var user = (await SubscribeUserToSecurePushAsync(CredentialTypes.ApiKey.V2, scopes, expiresInDays: 2)).Item1;
+            var user = (await SubscribeUserToSecurePushAsync(CredentialTypes.ApiKey.V2,scopes, expiresInDays: 2)).Item1;
 
             // Assert.
             Assert.Equal(2, user.SecurityPolicies.Count());
-            Assert.True(DateTime.UtcNow.AddDays(2) >= user.Credentials.First().Expires);
+            Assert.True(DateTime.UtcNow.AddDays(2) >= user.Credentials.Single().Expires);
         }
 
         [Fact]
-        public async void OnSubscribeSavesAuditRecordIfKeysExpired()
+        public async Task OnSubscribeAsync_SavesAuditRecordIfKeysSetToExpire()
         {
             // Arrange & Act.
             var service = (await SubscribeUserToSecurePushAsync(CredentialTypes.ApiKey.V2, "")).Item2;
@@ -95,7 +98,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void OnSubscribeDoesNotSaveAuditRecordIfKeysNotExpired()
+        public async Task OnSubscribeAsync_DoesNotSaveAuditRecordIfKeysNotSetToExpire()
         {
             // Arrange & Act.
             var service = (await SubscribeUserToSecurePushAsync(CredentialTypes.ApiKey.V2, "", expiresInDays: 2)).Item2;
@@ -143,7 +146,7 @@ namespace NuGetGallery.Security
             user.Credentials.Add(credential);
 
             // Act.
-            await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            await service.SubscribeAsync(user, service.UserSubscriptions.Single());
 
             service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 

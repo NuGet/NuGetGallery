@@ -65,6 +65,11 @@ namespace NuGetGallery.Auditing
         public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<UserSecurityPolicy> affectedPolicies)
             : this(user, action, Enumerable.Empty<Credential>())
         {
+            if (affectedPolicies == null || affectedPolicies.Count() == 0)
+            {
+                throw new ArgumentException(nameof(affectedPolicies));
+            }
+
             AffectedPolicies = affectedPolicies.Select(p => new AuditedUserSecurityPolicy(p)).ToArray();
         }
 

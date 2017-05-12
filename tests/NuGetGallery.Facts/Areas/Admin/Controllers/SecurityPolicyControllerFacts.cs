@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Security;
@@ -89,7 +90,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [Fact]
-        public async void SearchReturnsUserSubscriptions()
+        public async Task SearchReturnsUserSubscriptions()
         {
             // Arrange.
             var policyService = new TestSecurityPolicyService();
@@ -126,7 +127,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [Fact]
-        public async void UpdateSubscribesUsers()
+        public async Task UpdateSubscribesUsers()
         {
             // Arrange.
             var users = TestUsers.ToList();
@@ -159,7 +160,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [Fact]
-        public async void UpdateUnsubscribesUsers()
+        public async Task UpdateUnsubscribesUsers()
         {
             // Arrange.
             var users = TestUsers.ToList();

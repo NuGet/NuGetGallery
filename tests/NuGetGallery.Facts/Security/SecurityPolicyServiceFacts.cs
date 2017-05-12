@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Web;
 using Moq;
 using NuGetGallery.Auditing;
@@ -33,14 +34,14 @@ namespace NuGetGallery.Security
         
         [Theory]
         [MemberData(nameof(CtorThrowNullReference_Data))]
-        public void CtorThrowsNullReferenceIfArgumentIsMissing(
+        public void Constructor_ThrowsArgumentNullIfArgumentMissing(
             IEntitiesContext entities, IAuditingService auditing, IDiagnosticsService diagnostics)
         {
             Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics));
         }
 
         [Fact]
-        public void UserHandlers()
+        public void UserHandlers_ReturnsRegisteredUserSecurityPolicyHandlers()
         {
             // Arrange.
             var service = new SecurityPolicyService(_entities, _auditing, _diagnostics);
@@ -58,14 +59,14 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void EvaluateThrowsIfHttpContextNull()
+        public async Task EvaluateAsync_ThrowsArgumentNullIfHttpContextIsNull()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => new TestSecurityPolicyService()
                 .EvaluateAsync(SecurityPolicyAction.PackagePush, null));
         }
 
         [Fact]
-        public async void EvaluateReturnsSuccessWithoutEvaluationIfNoPoliciesFound()
+        public async Task EvaluateAsync_ReturnsSuccessWithoutEvaluationIfNoPoliciesWereFound()
         {
             // Arrange
             var service = new TestSecurityPolicyService();
@@ -83,7 +84,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void EvaluateReturnsSuccessWithEvaluationIfPoliciesFoundAndMet()
+        public async Task EvaluateAsync_ReturnsSuccessWithEvaluationIfPoliciesFoundAndMet()
         {
             // Arrange
             var service = new TestSecurityPolicyService();
@@ -103,7 +104,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void EvaluateReturnsAfterFirstFailure()
+        public async Task EvaluateAsync_ReturnsNonSuccessAfterFirstFailure()
         {
             // Arrange
             var policyData = new TestUserSecurityPolicyData(policy1Result: false, policy2Result: true);
@@ -122,7 +123,7 @@ namespace NuGetGallery.Security
         [Theory]
         [InlineData(true, 2)]
         [InlineData(false, 1)]
-        public async void EvaluateSavesAuditRecordIfWasSuccessOrFailure(bool success, int times)
+        public async Task EvaluateAsync_SavesAuditRecordsForSuccessAndFailureCases(bool success, int times)
         {
             // Arrange
             var policyData = new TestUserSecurityPolicyData(policy1Result: success, policy2Result: success);
@@ -140,21 +141,21 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void IsSubscribedThrowsIfUserNull()
+        public void IsSubscribed_ThrowsArgumentNullIfUserIsNull()
         {
             Assert.Throws<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().IsSubscribed(null, new Mock<IUserSecurityPolicySubscription>().Object));
         }
 
         [Fact]
-        public void IsSubscribedThrowsIfSubscriptionNull()
+        public void IsSubscribed_ThrowsArgumentNullIfSubscriptionIsNull()
         {
             Assert.Throws<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().IsSubscribed(new User(), null));
         }
 
         [Fact]
-        public void IsSubscribedReturnsTrueWhenUserHasSamePolicies()
+        public void IsSubscribed_ReturnsTrueIfUserHasSubscriptionPolicies()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -163,11 +164,11 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act & Assert.
-            Assert.True(service.IsSubscribed(user, service.UserSubscriptions.First()));
+            Assert.True(service.IsSubscribed(user, service.UserSubscriptions.Single()));
         }
 
         [Fact]
-        public void IsSubscribedReturnsTrueWhenUserHasMorePolicies()
+        public void IsSubscribed_ReturnsTrueIfUserHasSubscriptionAndOtherPolicies()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -184,7 +185,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void IsSubscribedReturnsTrueWhenUserDoesNotHaveAllPolicies()
+        public void IsSubscribed_ReturnsFalseIfUserDoesNotHaveAllSubscriptionPolicies()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -197,21 +198,21 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void SubscribeThrowsIfUserNull()
+        public void SubscribeAsync_ThrowsArgumentNullIfUserIsNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().SubscribeAsync(null, new Mock<IUserSecurityPolicySubscription>().Object));
         }
 
         [Fact]
-        public void SubscribeThrowsIfSubscriptionNull()
+        public void SubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().SubscribeAsync(new User(), null));
         }
 
         [Fact]
-        public async void SubscribeAddsUserPoliciesWhenNone()
+        public async Task SubscribeAsync_AddsAllSubscriptionPoliciesWhenHasNoneToStart()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -229,7 +230,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void SubscribeAddsUserPoliciesWhenSameFromDifferentSubscription()
+        public async Task SubscribeAsync_AddsAllSubscriptionPoliciesWhenHasSameAsDifferentSubscription()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -256,7 +257,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void SubscribeSkipsUserPoliciesWhenAlreadySubscribed()
+        public async Task SubscribeAsync_DoesNotAddSubscriptionPoliciesIfAlreadySubscribed()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -280,7 +281,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void SubscribeSavesAuditRecordIfWasNotSubscribed()
+        public async Task SubscribeAsync_SavesAuditRecordIfWasNotSubscribed()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -295,7 +296,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void SubscribeDoesNotSaveAuditRecordIfWasSubscribed()
+        public async Task SubscribeAsync_DoesNotSaveAuditRecordIfWasAlreadySubscribed()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -312,21 +313,21 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void UnsubscribeThrowsIfUserNull()
+        public void UnsubscribeAsync_ThrowsArgumentNullIfUserIsNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().UnsubscribeAsync(null, new Mock<IUserSecurityPolicySubscription>().Object));
         }
 
         [Fact]
-        public void UnsubscribeThrowsIfSubscriptionNull()
+        public void UnsubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().UnsubscribeAsync(new User(), null));
         }
 
         [Fact]
-        public async void UnsubscribeRemovesAllSubscriptionPolicies()
+        public async Task UnsubscribeAsync_RemovesAllSubscriptionPolicies()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -350,7 +351,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void UnsubscribeDoesNotRemoveOtherSubscriptionPolicies()
+        public async Task UnsubscribeAsync_DoesNotRemoveOtherSubscriptionPolicies()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -379,7 +380,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void UnsubscribeRemovesNoneIfNotSubscribed()
+        public async Task UnsubscribeAsync_RemovesNoPoliciesIfNotSubscribed()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -404,7 +405,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void UnsubscribeSavesAuditRecordIfWasSubscribed()
+        public async Task UnsubscribeAsync_SavesAuditRecordIfWasSubscribed()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
@@ -421,7 +422,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async void UnsubscribeDoesNotSaveAuditRecordIfWasNotSubscribed()
+        public async Task UnsubscribeAsync_DoesNotSaveAuditRecordIfWasNotSubscribed()
         {
             // Arrange.
             var service = new TestSecurityPolicyService();
