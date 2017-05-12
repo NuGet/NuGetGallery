@@ -29,8 +29,11 @@
                 <li><a href="http://blog.nuget.org/">Blog</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="#log-in">Log in</a></li>
-                <li><a href="#sign-up">Sign up</a></li>
+                @{
+                    var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+                }
+                <li><a href="@Url.LogOn(returnUrl)" title="Log in to an existing NuGet.org account">Log in</a></li>
+                <li><a href="@Url.LogOn(returnUrl)" title="Sign up for a new NuGet.org account">Sign up</a></li>
             </ul>
         </div>
     </div>

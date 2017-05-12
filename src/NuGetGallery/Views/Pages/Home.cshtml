@@ -7,9 +7,12 @@
     <div class="container">
         <h1>Power your projects with NuGet</h1>
         <div class="row">
-            <form class="col-md-8 col-md-offset-2">
+            <form class="col-md-8 col-md-offset-2" action="@Url.PackageList()" method="get">
                 <div class="input-group">
-                    <input type="text" class="form-control" id="search" placeholder="Search over 619,852 packages...">
+                    <input name="q" type="text" class="form-control" id="search"
+                           placeholder="Search over 619,852 packages..." autocomplete="off"
+                           value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
+                           @(Request.Url != null && (Request.Url.PathAndQuery == "/" || Request.Url.PathAndQuery == "/packages") ? "autofocus" : string.Empty) />
                     <span class="input-group-btn">
                         <button class="btn btn-default btn-warning" type="button"><span class="fa fa-search"></span></button>
                     </span>
