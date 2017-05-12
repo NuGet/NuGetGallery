@@ -1,10 +1,79 @@
 ﻿@{
     ViewBag.Title = "Home";
-    ViewBag.Tab = "Home";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@ViewBag.Content
+<div class="jumbotron text-center">
+    <div class="container">
+        <h1>Power your projects with NuGet</h1>
+        <div class="row">
+            <form class="col-md-8 col-md-offset-2" action="@Url.PackageList()" method="get">
+                <div class="input-group">
+                    <input name="q" type="text" class="form-control" id="search"
+                           placeholder="Search over 619,852 packages..." autocomplete="off"
+                           value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
+                           @(Request.Url != null && (Request.Url.PathAndQuery == "/" || Request.Url.PathAndQuery == "/packages") ? "autofocus" : string.Empty) />
+                    <span class="input-group-btn">
+                        <button class="btn btn-default btn-warning" type="button"><span class="fa fa-search"></span></button>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div class="row mt-50">
+            <div class="circuit-board">
+                <div class="circuit-board-label circuit-board-pd triangle triangle-left">
+                    <h3 data-bind="animateNumber: packageDownloads">0</h3>
+                    <h5>package downloads</h5>
+                </div>
+                <div class="circuit-board-label circuit-board-pv triangle triangle-right">
+                    <h3 data-bind="animateNumber: packageVersions">0</h3>
+                    <h5>package versions</h5>
+                </div>
+                <div class="circuit-board-label circuit-board-up triangle triangle-left">
+                    <h3 data-bind="animateNumber: uniquePackages">0</h3>
+                    <h5>unique packages</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container text-center main-container what-is-nuget">
+    <div class="row">
+        <h1>What is NuGet?</h1>
+        <p>
+            NuGet is the package manager for the Microsoft development platform including .NET. The NuGet client tools
+            provide the ability to produce and consume packages. The NuGet Gallery is the central package repository used
+            by all package authors and consumers.
+        </p>
+    </div>
+    <div class="row mt-50">
+        <div class="col-md-4">
+            <img src="~/Content/gallery/img/upload-hero.png" alt="Cartoon image of a person lifting a package into the clouds" />
+            <h3>Upload</h3>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porttitor, neque id consectetur fringilla, odio
+                justo consectetur leo, nec interdum odio odio non lacus. Donec commodo enim et suscipit ultrices.
+            </p>
+        </div>
+        <div class="col-md-4">
+            <img src="~/Content/gallery/img/download-hero.png" alt="Cartoon image a toolbox" />
+            <h3>Download</h3>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porttitor, neque id consectetur fringilla, odio
+                justo consectetur leo, nec interdum odio odio non lacus. Donec commodo enim et suscipit ultrices.
+            </p>
+        </div>
+        <div class="col-md-4">
+            <img src="~/Content/gallery/img/contribute-hero.png" alt="Cartoon image of a person looking into the clouds with a telescope" />
+            <h3>Contribute</h3>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porttitor, neque id consectetur fringilla, odio
+                justo consectetur leo, nec interdum odio odio non lacus. Donec commodo enim et suscipit ultrices.
+            </p>
+        </div>
+    </div>
+</div>
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/gallery/home.min.js")

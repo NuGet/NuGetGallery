@@ -97,18 +97,8 @@ namespace NuGetGallery
             return View();
         }
 
-        public virtual async Task<ActionResult> Home()
+        public virtual ActionResult Home()
         {
-            if (_contentService != null)
-            {
-                var homeContent = await _contentService.GetContentItemAsync(
-                     Constants.ContentNames.Home,
-                     TimeSpan.FromMinutes(1));
-
-                homeContent = new HtmlString(homeContent.ToString().Replace("~/", Url.Content("~/")));
-
-                ViewBag.Content = homeContent;
-            }
             return View();
         }
 

@@ -1082,7 +1082,7 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 body {
-  font-family: 'PT Sans', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.42857143;
   color: #333;
@@ -5989,7 +5989,7 @@ button.close {
   position: absolute;
   z-index: 1070;
   display: block;
-  font-family: 'PT Sans', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
   font-style: normal;
   font-weight: normal;
@@ -6108,7 +6108,7 @@ button.close {
   display: none;
   max-width: 276px;
   padding: 1px;
-  font-family: 'PT Sans', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   font-style: normal;
   font-weight: normal;

@@ -1761,7 +1761,6 @@
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
-    <Content Include="App_Data\Files\Content\Home.html" />
     <Content Include="App_Offline-Planned.htm" />
     <Content Include="App_Offline-Unplanned.htm" />
     <Content Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx" />
