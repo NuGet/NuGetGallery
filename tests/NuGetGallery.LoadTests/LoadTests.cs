@@ -78,7 +78,7 @@ namespace NuGetGallery.LoadTests
         public async Task FindPackagesBySpecificIdAndVersion()
         {
             string packageId = "Microsoft.Web.Infrastructure";
-            string version = "1.0.0.0";
+            string version = "1.0.0";
             string url = UrlHelper.V2FeedRootUrl + @"Packages(Id='" + packageId + "',Version='" + version + "')";
             string expectedText = @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='" + version + "')</id>";
             var odataHelper = new ODataHelper();
