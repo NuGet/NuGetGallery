@@ -119,6 +119,26 @@ namespace NuGetGallery.Security
             service.Mocks.VerifyPolicyEvaluation(expectedPolicy1: false, expectedPolicy2: null, actual: result);
         }
 
+        [Theory]
+        [InlineData(true, 2)]
+        [InlineData(false, 1)]
+        public async void EvaluateSavesAuditRecordIfWasSuccessOrFailure(bool success, int times)
+        {
+            // Arrange
+            var policyData = new TestUserSecurityPolicyData(policy1Result: success, policy2Result: success);
+            var service = new TestSecurityPolicyService(policyData);
+            var user = new User("testUser");
+            var subscription = service.Mocks.Subscription.Object;
+            user.SecurityPolicies = subscription.Policies.ToList();
+
+            // Act
+            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+
+            // Assert
+            Assert.Equal(success, result.Success);
+            service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Exactly(times));
+        }
+
         [Fact]
         public void IsSubscribedThrowsIfUserNull()
         {

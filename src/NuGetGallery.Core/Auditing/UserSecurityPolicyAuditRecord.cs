@@ -11,28 +11,35 @@ namespace NuGetGallery.Auditing
     /// <summary>
     /// Audit record for failed user security policy evaluations.
     /// </summary>
-    public class FailedUserSecurityPolicyAuditRecord : AuditRecord<AuditedSecurityPolicyAction>
+    public class UserSecurityPolicyAuditRecord : AuditRecord<AuditedSecurityPolicyAction>
     {
         public string Username { get; }
 
-        public AuditedUserSecurityPolicy[] Policies { get; }
+        public AuditedUserSecurityPolicy[] AffectedPolicies { get; }
 
-        public FailedUserSecurityPolicyAuditRecord(string username,
+        public bool Success { get; set; }
+
+        public string ErrorMessage { get; }
+
+        public UserSecurityPolicyAuditRecord(string username,
             AuditedSecurityPolicyAction action,
-            IEnumerable<UserSecurityPolicy> policies)
+            IEnumerable<UserSecurityPolicy> affectedPolicies,
+            bool success, string errorMessage = null)
             :base(action)
         {
             if (string.IsNullOrEmpty(username))
             {
                 throw new ArgumentNullException(nameof(username));
             }
-            if (policies == null || policies.Count() == 0)
+            if (affectedPolicies == null || affectedPolicies.Count() == 0)
             {
-                throw new ArgumentException(nameof(policies));
+                throw new ArgumentException(nameof(affectedPolicies));
             }
 
             Username = username;
-            Policies = policies.Select(p => new AuditedUserSecurityPolicy(p)).ToArray();
+            AffectedPolicies = affectedPolicies.Select(p => new AuditedUserSecurityPolicy(p)).ToArray();
+            Success = success;
+            ErrorMessage = errorMessage;
         }
 
         public override string GetPath()

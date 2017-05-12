@@ -81,17 +81,20 @@ namespace NuGetGallery.Security
                 if (foundPolicies.Any())
                 {
                     var result = handler.Evaluate(new UserSecurityPolicyEvaluationContext(httpContext, foundPolicies));
+
+                    await Auditing.SaveAuditRecordAsync(new UserSecurityPolicyAuditRecord(
+                        user.Username, GetAuditAction(action), foundPolicies, result.Success, result.ErrorMessage));
+
                     if (!result.Success)
                     {
-                        await Auditing.SaveAuditRecordAsync(new FailedUserSecurityPolicyAuditRecord(
-                            user.Username, GetAuditAction(action), foundPolicies));
-
                         Diagnostics.Information(
                             $"Security policy '{handler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
+
                         return result;
                     }
                 }
             }
+
             return SecurityPolicyResult.SuccessResult;
         }
 

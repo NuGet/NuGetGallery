@@ -129,7 +129,7 @@
     <Compile Include="Auditing\AuditingService.cs" />
     <Compile Include="Auditing\AuditRecord.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecord.cs" />
-    <Compile Include="Auditing\FailedUserSecurityPolicyAuditRecord.cs" />
+    <Compile Include="Auditing\UserSecurityPolicyAuditRecord.cs" />
     <Compile Include="Auditing\FileSystemAuditingService.cs" />
     <Compile Include="Auditing\CloudAuditingService.cs" />
     <Compile Include="Auditing\CredentialAuditRecord.cs" />

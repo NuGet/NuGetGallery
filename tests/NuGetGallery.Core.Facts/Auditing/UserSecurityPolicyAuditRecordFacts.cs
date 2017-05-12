@@ -7,7 +7,7 @@ using Xunit;
 
 namespace NuGetGallery.Auditing
 {
-    public class FailedUserSecurityPolicyAuditRecordFacts
+    public class UserSecurityPolicyAuditRecordFacts
     {
         private IEnumerable<UserSecurityPolicy> Policies
         {
@@ -21,28 +21,28 @@ namespace NuGetGallery.Auditing
         public void CtorThrowsIfUsernameIsNull()
         {
             // Act & Assert.
-            Assert.Throws<ArgumentNullException>(() => new FailedUserSecurityPolicyAuditRecord(null, AuditedSecurityPolicyAction.Create, Policies));
+            Assert.Throws<ArgumentNullException>(() => new UserSecurityPolicyAuditRecord(null, AuditedSecurityPolicyAction.Create, Policies, true));
         }
 
         [Fact]
         public void CtorThrowsIfUsernameIsEmpty()
         {
             // Act & Assert.
-            Assert.Throws<ArgumentNullException>(() => new FailedUserSecurityPolicyAuditRecord("", AuditedSecurityPolicyAction.Create, Policies));
+            Assert.Throws<ArgumentNullException>(() => new UserSecurityPolicyAuditRecord("", AuditedSecurityPolicyAction.Create, Policies, true));
         }
 
         [Fact]
         public void CtorThrowsIfPoliciesIsNull()
         {
             // Act & Assert.
-            Assert.Throws<ArgumentException>(() => new FailedUserSecurityPolicyAuditRecord("user", AuditedSecurityPolicyAction.Create, null));
+            Assert.Throws<ArgumentException>(() => new UserSecurityPolicyAuditRecord("user", AuditedSecurityPolicyAction.Create, null, true));
         }
 
         [Fact]
         public void CtorThrowsIfPoliciesIsEmpty()
         {
             // Act & Assert.
-            Assert.Throws<ArgumentException>(() => new FailedUserSecurityPolicyAuditRecord("user", AuditedSecurityPolicyAction.Create, new UserSecurityPolicy[0]));
+            Assert.Throws<ArgumentException>(() => new UserSecurityPolicyAuditRecord("user", AuditedSecurityPolicyAction.Create, new UserSecurityPolicy[0], true));
         }
     }
 }
