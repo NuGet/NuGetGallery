@@ -98,7 +98,7 @@ body {
 .circuit-board {
   position: relative;
   width: 804px;
-  height: 484px;
+  height: 471px;
   margin: 0 auto;
   background-image: url('../img/circuit-board.png');
   background-repeat: no-repeat;
@@ -118,20 +118,20 @@ body {
 }
 .circuit-board .circuit-board-pd {
   top: 0;
-  left: 168px;
+  left: 167px;
   float: left;
   width: 200px;
 }
 .circuit-board .circuit-board-pv {
-  top: 137px;
-  left: 4px;
+  top: 173px;
+  left: 3px;
   float: left;
   width: 144px;
 }
 .circuit-board .circuit-board-up {
-  top: 160px;
-  right: 0;
+  top: 159px;
+  right: 3px;
   float: right;
-  width: 146px;
+  width: 144px;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */
