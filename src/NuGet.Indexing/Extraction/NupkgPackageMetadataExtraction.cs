@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Xml;
 using System.Xml.Linq;
+using NuGet.Versioning;
 
 namespace NuGet.Indexing
 {
@@ -80,6 +81,13 @@ namespace NuGet.Indexing
             ExtractProperty(package, document, MetadataConstants.LanguagePropertyName);
             ExtractProperty(package, document, MetadataConstants.LicenseUrlPropertyName);
             ExtractProperty(package, document, MetadataConstants.RequiresLicenseAcceptancePropertyName);
+
+            // This check is currently in place to allow us to test filtering. Correct way to do it is to extract dependencies and iterate, in addition to the check that is currently here.
+            NuGetVersion version;
+            if (NuGetVersion.TryParse(package[MetadataConstants.VerbatimVersionPropertyName], out version))
+            {
+                package[MetadataConstants.SemVerLevelKeyPropertyName] = version.IsSemVer2 ? SemVerHelpers.SemVerLevelKeySemVer2 : String.Empty;
+            }
 
             // TODO: extract from the XML - refer to the XSLT for an accurate definition of the generic structure
 

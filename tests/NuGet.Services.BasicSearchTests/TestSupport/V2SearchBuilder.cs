@@ -10,6 +10,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
         public string Query { get; set; }
         public bool Prerelease { get; set; }
         public bool IgnoreFilter { get; set; }
+        public string SemVerLevel { get; set; }
 
         public Uri RequestUri
         {
@@ -19,6 +20,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
                 queryString["q"] = Query;
                 queryString["prerelease"] = Prerelease.ToString();
                 queryString["ignoreFilter"] = IgnoreFilter.ToString();
+                queryString["semVerLevel"] = SemVerLevel;
 
                 return new Uri("/search/query?" + queryString, UriKind.Relative);
             }
