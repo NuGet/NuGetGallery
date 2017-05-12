@@ -325,9 +325,9 @@ namespace NuGetGallery
                 latestPackageVersions = _packageRegistrationRepository.GetAll()
                     .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
                     .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
+                    .Where(p => p != null)
                     .Include(p => p.PackageRegistration)
-                    .Include(p => p.PackageRegistration.Owners)
-                    .Where(p => p != null);
+                    .Include(p => p.PackageRegistration.Owners);
             }
             else
             {
