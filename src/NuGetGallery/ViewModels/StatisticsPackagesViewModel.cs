@@ -28,8 +28,6 @@ namespace NuGetGallery
 
         public IEnumerable<StatisticsWeeklyUsageItem> Last6Weeks { get; set; }
 
-        public StatisticsPackagesReport Report { get; private set; }
-
         public bool IsDownloadPackageAvailable { get; set; }
 
         public bool IsDownloadPackageDetailAvailable { get; set; }
@@ -40,8 +38,6 @@ namespace NuGetGallery
 
         public int NuGetClientVersionTotalDownloads { get; private set; }
 
-        public bool IsReportAvailable { get { return (Report != null); } }
-
         public string PackageId { get; private set; }
 
         public string PackageVersion { get; private set; }
@@ -50,21 +46,19 @@ namespace NuGetGallery
 
         public DateTime? LastUpdatedUtc
         {
-            get { return Report == null ? _lastUpdatedUtc : Report.LastUpdatedUtc; }
+            get { return _lastUpdatedUtc; }
             set { _lastUpdatedUtc = value; }
         }
 
-        public void SetPackageDownloadsByVersion(string packageId, StatisticsPackagesReport report)
+        public void SetPackageDownloadsByVersion(string packageId)
         {
             PackageId = packageId;
-            Report = report;
         }
 
-        public void SetPackageVersionDownloadsByClient(string packageId, string packageVersion, StatisticsPackagesReport report)
+        public void SetPackageVersionDownloadsByClient(string packageId, string packageVersion)
         {
             PackageId = packageId;
             PackageVersion = packageVersion;
-            Report = report;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]

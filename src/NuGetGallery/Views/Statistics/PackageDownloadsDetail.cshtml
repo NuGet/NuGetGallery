@@ -4,22 +4,12 @@
     ViewBag.Tab = "Statistics";
 }
 
-@if (Model.IsReportAvailable)
-{
-    <h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a> (@Model.Report.Total over the Last 6 Weeks)</h1>
-    @Html.Partial("_LastUpdated", Model)
-    @Html.Partial("_PivotTable", Model.Report)
-}
-else
-{
-    <h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a></h1>
-    <p>
-        Download statistics are not currently available for this package, please check back later.
-    </p>
-}
+@Html.Partial("_PivotTable")
 
 @section BottomScripts
 {
+    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
+    <script src="@Url.Content("~/Scripts/moment.js")"></script>
     @if (Model.UseD3)
     {
         @Scripts.Render("~/Scripts/d3.v3.min.js")
@@ -28,24 +18,8 @@ else
     @Scripts.Render("~/Scripts/perpackagestatsgraphs.js")
     <script>
         $(document)
-            .ready(function() {
-                groupbyNavigation();
-                packageDisplayGraphs();
-
-                @if (Model.IsReportAvailable)
-                {
-                    <text>
-                        if ($('.dimension-checkbox:checked').length == 0) {
-                            var search = location.search.toLowerCase();
-                            if (search.indexOf('groupby=@Constants.StatisticsDimensions.Version.ToLowerInvariant()') >= 0 ||
-                                search.indexOf('groupby=@Constants.StatisticsDimensions.ClientName.ToLowerInvariant()') >= 0 ||
-                                search.indexOf('groupby=@Constants.StatisticsDimensions.ClientVersion.ToLowerInvariant()') >= 0 ||
-                                search.indexOf('groupby=@Constants.StatisticsDimensions.Operation.ToLowerInvariant()') >= 0) {
-                                location.reload();
-                            }
-                        }
-                    </text>
-                }
+            .ready(function () {
+                renderGraph('@Url.Action("PackageDownloadsDetailReport", "Statistics")', location.search);
             });
     </script>
 }
