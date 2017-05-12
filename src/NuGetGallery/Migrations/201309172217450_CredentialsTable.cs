@@ -28,7 +28,7 @@ namespace NuGetGallery.Migrations
                  unique: true,
                  name: "IX_Credentials_Type_Value");
 
-            Sql(@"CREATE VIEW UsersAndCredentials AS
+            Sql(@"CREATE VIEW dbo.UsersAndCredentials AS
                 SELECT u.Username, u.ApiKey, u.HashedPassword, c.[Type], c.Value
                 FROM Users u
                     LEFT OUTER JOIN [Credentials] c ON c.UserKey = u.[Key]");
@@ -42,7 +42,7 @@ namespace NuGetGallery.Migrations
             DropTable("dbo.Credentials");
 
             Sql(@"IF EXISTS(SELECT * FROM sys.views WHERE name = 'UsersAndCredentials')
-                DROP VIEW UsersAndCredentials");
+                DROP VIEW dbo.UsersAndCredentials");
         }
     }
 }
