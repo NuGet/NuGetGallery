@@ -17,7 +17,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
     2. PowerShell 4.0
 2. Clone it!
     
-    ```PS C:\Code> git clone git@github.com:NuGet/NuGetGallery.git```
+    ```PS C:\Code> git clone https://github.com/NuGet/NuGetGallery.git```
 3. Build it!
     
     ```

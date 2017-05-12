@@ -19,8 +19,8 @@
         @Html.ValidationSummary(true)
 
         <div class="form-field">
-            <label for="PackageFile">Choose a package...</label>
-            <input type="file" name="UploadFile" accept=".nupkg" />
+            <label for="PackageFile" id="PackageFileLabel">Choose a package...</label>
+            <input type="file" name="UploadFile" accept=".nupkg" aria-labelledby="PackageFileLabel" />
         </div>
 
         <input type="submit" value="Upload" title="Upload the package." />

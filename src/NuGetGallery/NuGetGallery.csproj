@@ -749,6 +749,10 @@
     <Compile Include="Migrations\201705032101231_SecurityPoliciesFix.Designer.cs">
       <DependentUpon>201705032101231_SecurityPoliciesFix.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201705031714183_AddIndexSemVerLevelKey.cs" />
+    <Compile Include="Migrations\201705031714183_AddIndexSemVerLevelKey.Designer.cs">
+      <DependentUpon>201705031714183_AddIndexSemVerLevelKey.cs</DependentUpon>
+    </Compile>
     <Compile Include="Security\UserSecurityPolicyHandler.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
@@ -1709,6 +1713,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201705032101231_SecurityPoliciesFix.resx">
       <DependentUpon>201705032101231_SecurityPoliciesFix.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201705031714183_AddIndexSemVerLevelKey.resx">
+      <DependentUpon>201705031714183_AddIndexSemVerLevelKey.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
