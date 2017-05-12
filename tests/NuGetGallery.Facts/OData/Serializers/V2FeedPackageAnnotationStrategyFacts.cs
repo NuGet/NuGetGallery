@@ -85,6 +85,10 @@ namespace NuGetGallery.OData.Serializers
         [InlineData("https://localhost/api/v2/Packages")]
         [InlineData("https://localhost/api/v2/Packages()")]
         [InlineData("https://localhost/api/v2/Packages(Id='SomePackageId',Version='1.0.0')")]
+        [InlineData("https://localhost/api/v2/FindPackagesById()?id='SomePackageId'")]
+        [InlineData("https://localhost/api/v2/FindPackagesById(Id='SomePackageId')")]
+        [InlineData("https://localhost/api/v2/Search()?searchTerm='SomePackageId'")]
+        [InlineData("https://localhost/api/v2/GetUpdates()?packageIds=='SomePackageId'")]
         public void NormalizesNavigationLinksWhenSet(string requestUri)
         {
             // Arrange
