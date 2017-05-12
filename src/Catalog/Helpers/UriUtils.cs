@@ -8,9 +8,15 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 {
     public static class UriUtils
     {
+        private const char QueryStartCharacter = '?';
+        private const char BridgingCharacter = '&';
+
         private const string Filter = "$filter=";
-        private const string NonhijackableExpression = "true";
-        private const string And = " and ";
+        private const string NonhijackableFilter = "true";
+        private const string And = "%20and%20";
+
+        private const string OrderBy = "$orderby=";
+        private const string NonhijackableOrderBy = "Version";
 
         private const string GetSpecificPackageFormatRegExp = 
             @"Packages\(Id='(?<Id>[^']*)',Version='(?<Version>[^']*)'\)";
@@ -21,7 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// This is because a hijacked request does a comparison on the normalized version, but the nonhijacked request does not.
         /// </summary>
         private static string GetSpecificPackageNonhijackable = 
-            $"Packages?{Filter}{NonhijackableExpression}{And}" + 
+            $"Packages?{Filter}{NonhijackableFilter}{And}" + 
             "Id eq '{0}'" + $"{And}" + "NormalizedVersion eq '{1}'";
 
         private static IEnumerable<string> HijackableEndpoints = new List<string>
@@ -39,11 +45,25 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             string nonhijackableUriString = null;
 
             // Modify the request uri so that it will not be hijacked by the search service.
-            // The main goal here is that we add an expression to the filter of every request.
-            if (originalUriString.Contains(Filter))
+
+            // This can be done in two ways:
+            /// 1 - convert the query into a "Packages" query with filter that cannot be hijacked (<see cref="NonhijackableFilter"/>).
+            /// 2 - specify an orderby that cannot be hijacked (<see cref="NonhijackableOrderBy"/>).
+            if (originalUriString.Contains(OrderBy))
             {
-                // If there is a filter on the request, simply add the expression to the front of the filter.
-                nonhijackableUriString = originalUriString.Replace(Filter, Filter + NonhijackableExpression + And);
+                // If there is an orderby on the request, simply replace the orderby with a nonhijackable orderby.
+                var orderByStartIndex = originalUriString.IndexOf(OrderBy);
+
+                /// Find the start of the next parameter (<see cref="BridgingCharacter"/>) or the end of the query.
+                var orderByEndIndex = originalUriString.IndexOf(BridgingCharacter, orderByStartIndex);
+                if (orderByEndIndex == -1)
+                {
+                    orderByEndIndex = originalUriString.Length;
+                }
+
+                // Replace the entire orderby with a nonhijackable orderby.
+                var orderByExpression = originalUriString.Substring(orderByStartIndex, orderByEndIndex - orderByStartIndex);
+                nonhijackableUriString = originalUriString.Replace(orderByExpression, OrderBy + NonhijackableOrderBy);
             }
             else
             {
@@ -61,17 +81,17 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 }
                 else
                 {
-                    // If this is a request to a hijackable endpoint without a filter, add the filter expression to the end of the request.
+                    // If this is a request to a hijackable endpoint without an orderby, add the orderby to the request.
                     if (HijackableEndpoints.Any(endpoint => originalUriString.Contains(endpoint)))
                     {
-                        var bridgingCharacter = "&";
+                        var bridgingCharacter = BridgingCharacter;
 
-                        if (!originalUriString.Contains("?"))
+                        if (!originalUriString.Contains(QueryStartCharacter))
                         {
-                            bridgingCharacter = "?";
+                            bridgingCharacter = QueryStartCharacter;
                         }
 
-                        nonhijackableUriString = $"{originalUri}{bridgingCharacter}{Filter}{NonhijackableExpression}";
+                        nonhijackableUriString = $"{originalUri}{bridgingCharacter}{OrderBy}{NonhijackableOrderBy}";
                     }
                 }
             }

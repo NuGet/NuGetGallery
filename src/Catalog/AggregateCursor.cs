@@ -16,7 +16,7 @@ namespace NuGet.Services.Metadata.Catalog
     {
         public AggregateCursor(IEnumerable<ReadCursor> innerCursors)
         {
-            if (innerCursors.Count() < 1)
+            if (innerCursors == null || innerCursors.Count() < 1)
             {
                 throw new ArgumentException("Must supply at least one cursor!", nameof(innerCursors));
             }

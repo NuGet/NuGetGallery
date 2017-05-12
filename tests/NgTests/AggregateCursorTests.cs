@@ -17,7 +17,7 @@ namespace NgTests
         [Fact]
         public void ThrowsIfNoCursors()
         {
-            Assert.Throws<ArgumentNullException>(() => new AggregateCursor(null));
+            Assert.Throws<ArgumentException>(() => new AggregateCursor(null));
             Assert.Throws<ArgumentException>(() => new AggregateCursor(new List<ReadCursor>()));
         }
 
