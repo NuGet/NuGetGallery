@@ -66,25 +66,18 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// <summary>
         /// Returns a <see cref="SortedList{DateTime, IList{FeedPackageDetails}}"/> from the feed.
         /// </summary>
-        /// <param name="keyDateProperty">The <see cref="DateTime"/> field to sort the <see cref="FeedPackageDetails"/> on.</param>
-        public static async Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetPackagesInOrder(HttpClient client, Uri uri, string keyDateProperty)
+        /// <param name="keyDateFunc">The <see cref="DateTime"/> field to sort the <see cref="FeedPackageDetails"/> on.</param>
+        public static async Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetPackagesInOrder(HttpClient client, Uri uri, Func<FeedPackageDetails, DateTime> keyDateFunc)
         {
             var result = new SortedList<DateTime, IList<FeedPackageDetails>>();
 
             var allPackages = await GetPackages(client, uri);
 
-            var keyDatePropertyInfo = typeof(FeedPackageDetails).GetProperty(keyDateProperty + "Date");
-
-            if (keyDatePropertyInfo == null)
-            {
-                throw new ArgumentException($"\"{keyDateProperty}Date\" must be the name of a property of {nameof(FeedPackageDetails)}!", nameof(keyDateProperty));
-            }
-
             foreach (var package in allPackages)
             {
                 IList<FeedPackageDetails> packagesWithSameKeyDate;
 
-                var packageKeyDate = (DateTime)keyDatePropertyInfo.GetMethod.Invoke(package, null);
+                var packageKeyDate = keyDateFunc(package);
                 if (!result.TryGetValue(packageKeyDate, out packagesWithSameKeyDate))
                 {
                     packagesWithSameKeyDate = new List<FeedPackageDetails>();

@@ -51,26 +51,23 @@ namespace NgTests
             {
                 var oDataPackages = ODataPackages;
 
-                var keyDateProperties = new string[]
+                var keyDateFuncs = new Func<FeedPackageDetails, DateTime>[]
                 {
-                    "Created",
-                    "LastEdited",
-                    "Published"
+                    package => package.CreatedDate,
+                    package => package.LastEditedDate,
+                    package => package.PublishedDate,
                 };
 
-                return keyDateProperties.Select(p => new object[] { oDataPackages, p });
+                return keyDateFuncs.Select(p => new object[] { oDataPackages, p });
             }
         }
 
         [Theory]
         [MemberData(nameof(GetPackagesInOrder_GetsAllPackagesInOrder_data))]
-        public async Task GetPackagesInOrder_GetsAllPackagesInOrder(IEnumerable<ODataPackage> oDataPackages, string keyDateProperty)
+        public async Task GetPackagesInOrder_GetsAllPackagesInOrder(IEnumerable<ODataPackage> oDataPackages, Func<FeedPackageDetails, DateTime> keyDateFunc)
         {
-            //// Arrange
-            var keyDatePropertyInfo = typeof(FeedPackageDetails).GetProperty(keyDateProperty + "Date");
-
             //// Act
-            var feedPackagesInOrder = await TestGetPackagesInOrder(oDataPackages, keyDateProperty);
+            var feedPackagesInOrder = await TestGetPackagesInOrder(oDataPackages, keyDateFunc);
 
             //// Assert
             // All OData packages must exist in the result.
@@ -92,7 +89,7 @@ namespace NgTests
                 currentTimestamp = feedPackages.Key;
                 foreach (var feedPackage in feedPackages.Value)
                 {
-                    var packageKeyDate = (DateTime)keyDatePropertyInfo.GetMethod.Invoke(feedPackage, null);
+                    var packageKeyDate = keyDateFunc(feedPackage);
                     Assert.Equal(packageKeyDate.Ticks, currentTimestamp.Ticks);
                 }
             }
@@ -107,12 +104,12 @@ namespace NgTests
                 new Uri(_baseUri + "/test"));
         }
 
-        private Task<SortedList<DateTime, IList<FeedPackageDetails>>> TestGetPackagesInOrder(IEnumerable<ODataPackage> oDataPackages, string keyDateProperty)
+        private Task<SortedList<DateTime, IList<FeedPackageDetails>>> TestGetPackagesInOrder(IEnumerable<ODataPackage> oDataPackages, Func<FeedPackageDetails, DateTime> keyDateFunc)
         {
             return FeedHelpers.GetPackagesInOrder(
                 new HttpClient(GetMessageHandlerForPackages(oDataPackages)),
                 new Uri(_baseUri + "/test"),
-                keyDateProperty);
+                keyDateFunc);
         }
 
         private HttpMessageHandler GetMessageHandlerForPackages(IEnumerable<ODataPackage> oDataPackages)

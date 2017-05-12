@@ -203,12 +203,12 @@ namespace Ng.Jobs
 
         private static Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top)
         {
-            return FeedHelpers.GetPackagesInOrder(client, MakeCreatedUri(source, since, top), "Created");
+            return FeedHelpers.GetPackagesInOrder(client, MakeCreatedUri(source, since, top), package => package.CreatedDate);
         }
 
         private static Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top)
         {
-            return FeedHelpers.GetPackagesInOrder(client, MakeLastEditedUri(source, since, top), "LastEdited");
+            return FeedHelpers.GetPackagesInOrder(client, MakeLastEditedUri(source, since, top), package => package.LastEditedDate);
         }
 
         private async Task<SortedList<DateTime, IList<FeedPackageIdentity>>> GetDeletedPackages(Storage auditingStorage, DateTime since)

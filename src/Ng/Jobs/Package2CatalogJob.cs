@@ -64,7 +64,7 @@ namespace Ng.Jobs
 
                 var uri = (_version == null) ? MakePackageUri(_gallery, _id) : MakePackageUri(_gallery, _id, _version);
 
-                var packages = await FeedHelpers.GetPackagesInOrder(client, uri, "Created");
+                var packages = await FeedHelpers.GetPackagesInOrder(client, uri, package => package.CreatedDate);
 
                 Logger.LogInformation($"Downloading {packages.Select(t => t.Value.Count).Sum()} packages");
 
