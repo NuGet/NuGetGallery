@@ -235,7 +235,18 @@
       <DependentUpon>TestCatalogEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="Data\Catalogs.cs" />
-    <Compile Include="ValidatorTests.cs" />
+    <Compile Include="Validators\RegistrationIndexValidatorTestData.cs" />
+    <Compile Include="Validators\RegistrationIndexValidatorTests.cs" />
+    <Compile Include="Validators\RegistrationListedValidatorTestData.cs" />
+    <Compile Include="Validators\RegistrationRequireLicenseAcceptanceValidatorTestData.cs" />
+    <Compile Include="Validators\RegistrationLeafValidatorTestData.cs" />
+    <Compile Include="Validators\RegistrationExistsValidatorTestData.cs" />
+    <Compile Include="Validators\RegistrationLeafValidatorTests.cs" />
+    <Compile Include="Validators\RegistrationIdValidatorTestData.cs" />
+    <Compile Include="Validators\RegistrationPackageContentValidatorTestData.cs" />
+    <Compile Include="Validators\RegistrationVersionValidatorTestData.cs" />
+    <Compile Include="Validators\ValidatorTests.cs" />
+    <Compile Include="Validators\ValidatorTestUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CatalogTests\TestData\TestPackage.SemVer2.1.0.0-alpha.1.nupkg">

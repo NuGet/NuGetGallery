@@ -20,5 +20,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             : base(message)
         {
         }
+
+        public ValidationException(string message, Exception e)
+            : base(message, e)
+        {
+        }
     }
 }

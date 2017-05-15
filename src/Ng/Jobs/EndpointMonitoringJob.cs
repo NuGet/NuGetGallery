@@ -58,11 +58,13 @@ namespace Ng.Jobs
         private IList<Lazy<INuGetResourceProvider>> ResourceProvidersToInjectV2 => new List<Lazy<INuGetResourceProvider>>
         {
             new Lazy<INuGetResourceProvider>(() => new NonhijackableV2HttpHandlerResourceProvider()),
-            new Lazy<INuGetResourceProvider>(() => new PackageTimestampMetadataResourceV2Provider(LoggerFactory))
+            new Lazy<INuGetResourceProvider>(() => new PackageTimestampMetadataResourceV2Provider(LoggerFactory)),
+            new Lazy<INuGetResourceProvider>(() => new PackageRegistrationMetadataResourceV2FeedProvider())
         };
 
         private IList<Lazy<INuGetResourceProvider>> ResourceProvidersToInjectV3 => new List<Lazy<INuGetResourceProvider>>
         {
+            new Lazy<INuGetResourceProvider>(() => new PackageRegistrationMetadataResourceV3Provider())
         };
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
@@ -88,11 +90,15 @@ namespace Ng.Jobs
 
             var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
 
-            var validationFactory = new ValidatorFactory(new Dictionary<FeedType, SourceRepository>()
+            var feedToSource = new Dictionary<FeedType, SourceRepository>()
             {
                 {FeedType.HttpV2, new SourceRepository(new PackageSource(gallery), GetResourceProviders(ResourceProvidersToInjectV2), FeedType.HttpV2)},
                 {FeedType.HttpV3, new SourceRepository(new PackageSource(index), GetResourceProviders(ResourceProvidersToInjectV3), FeedType.HttpV3)}
-            }, LoggerFactory);
+            };
+
+            var validationFactory = new ValidatorFactory(
+                feedToSource,
+                LoggerFactory);
 
             var endpointFactory = new EndpointFactory(
                 validationFactory, 

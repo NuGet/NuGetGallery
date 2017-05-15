@@ -5,6 +5,8 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 using System;
 using Xunit;
 using NuGet.Versioning;
+using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace NgTests
 {
@@ -121,6 +123,19 @@ namespace NgTests
             Assert.NotSame(originalUri, newUri);
 
             Assert.Equal($"https://www.nuget.org/api/v2/Packages?$filter=true and Id eq '{id}' and NormalizedVersion eq '{normalizedVersion}'", newUri.ToString());
+        }
+
+        [Theory]
+        // The V2 downloadUrl for a package is redirected to the packages blob container.
+        [InlineData("https://www.nuget.org/api/v2/package/newtonsoft.json/3.5.8", "https://api.nuget.org/packages/newtonsoft.json.3.5.8.nupkg")]
+        [InlineData("https://www.nuget.org/api/v2/package/newtonsoft.json/4.0.1", "https://api.nuget.org/packages/newtonsoft.json.4.0.1.nupkg")]
+        [InlineData("https://www.nuget.org/api/v2/package/newtonsoft.json/6.0.8", "https://api.nuget.org/packages/newtonsoft.json.6.0.8.nupkg")]
+        [InlineData("https://www.nuget.org/api/v2/package/newtonsoft.json/9.0.1", "https://api.nuget.org/packages/newtonsoft.json.9.0.1.nupkg")]
+        public async Task GetRedirectedRequestMessageUri_ReturnsRedirectedUri(string inputUriString, string expectedRedirectedUriString)
+        {
+            var redirectedUri = await UriUtils.GetRedirectedRequestMessageUri(new HttpClient(), new Uri(inputUriString));
+
+            Assert.Equal(new Uri(expectedRedirectedUriString), redirectedUri);
         }
     }
 }

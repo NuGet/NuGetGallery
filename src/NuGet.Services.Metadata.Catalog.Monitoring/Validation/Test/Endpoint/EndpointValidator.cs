@@ -35,7 +35,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                                     .Where(p => 
                                         typeof(IValidator<>)
                                         .MakeGenericType(GetType())
-                                        .IsAssignableFrom(p));
+                                        .IsAssignableFrom(p)
+                                        && !p.IsAbstract);
 
             var validators = new List<IValidator>();
 

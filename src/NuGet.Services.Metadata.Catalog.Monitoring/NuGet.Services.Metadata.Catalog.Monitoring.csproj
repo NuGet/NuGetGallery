@@ -84,8 +84,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\IPackageRegistrationMetadataResource.cs" />
+    <Compile Include="Model\PackageRegistrationIndexMetadata.cs" />
+    <Compile Include="Model\PackageRegistrationLeafMetadata.cs" />
+    <Compile Include="Model\PackageRegistrationMetadataResourceV2Feed.cs" />
+    <Compile Include="Model\PackageRegistrationMetadataResourceV3.cs" />
+    <Compile Include="Providers\PackageRegistrationMetadataResourceV2FeedProvider.cs" />
+    <Compile Include="Providers\PackageRegistrationMetadataResourceV3Provider.cs" />
     <Compile Include="Utility\CommonLogger.cs" />
     <Compile Include="Utility\ILoggerExtensions.cs" />
+    <Compile Include="Utility\NullableNuGetVersionConverter.cs" />
     <Compile Include="Utility\LogEvents.cs" />
     <Compile Include="Utility\ILoggerFactoryExtensions.cs" />
     <Compile Include="Model\NonhijackedV2HttpMessageHandler.cs" />
@@ -104,10 +112,20 @@
     <Compile Include="Validation\Test\Endpoint\EndpointFactory.cs" />
     <Compile Include="Validation\Test\AggregateValidator.cs" />
     <Compile Include="Validation\Test\Endpoint\FlatContainerEndpoint.cs" />
+    <Compile Include="Validation\Test\Exceptions\MetadataInconsistencyException.cs" />
     <Compile Include="Validation\Test\Exceptions\ValidationException.cs" />
     <Compile Include="Validation\Test\IValidator.cs" />
     <Compile Include="Validation\Test\PackageValidator.cs" />
     <Compile Include="Validation\Test\Endpoint\RegistrationEndpoint.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationExistsValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationIndexValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationVersionValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationListedValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationIdValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationPackageContentValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationRequireLicenseAcceptanceValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationLeafValidator.cs" />
     <Compile Include="Validation\Test\ValidationContext.cs" />
     <Compile Include="Validation\Test\Validator.cs" />
     <Compile Include="Validation\Test\ValidatorFactory.cs" />
@@ -122,6 +140,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <NuGetBuildPath Condition="'$(NuGetBuildPath)' == ''">..\..\build</NuGetBuildPath>
