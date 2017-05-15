@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Data.OData;
+using Microsoft.Data.OData.Query;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -8,12 +10,11 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
-using Microsoft.Data.OData;
-using Microsoft.Data.OData.Query;
 
 namespace NuGetGallery.WebApi
 {
@@ -37,6 +38,7 @@ namespace NuGetGallery.WebApi
         private readonly long? _totalResults;
         private readonly Func<ODataQueryOptions<TModel>, ODataQuerySettings, long?, Uri> _generateNextLink;
         private readonly bool _isPagedResult;
+        private readonly int? _semVerLevelKey;
 
         private readonly ODataValidationSettings _validationSettings;
         private readonly ODataQuerySettings _querySettings;
@@ -58,6 +60,9 @@ namespace NuGetGallery.WebApi
             _controller = controller;
             _totalResults = totalResults;
             _generateNextLink = generateNextLink;
+
+            var queryDictionary = HttpUtility.ParseQueryString(queryOptions.Request.RequestUri.Query);
+            _semVerLevelKey = SemVerLevelKey.ForSemVerLevel(queryDictionary["semVerLevel"]);
 
             if (_totalResults.HasValue && generateNextLink != null)
             {
@@ -92,7 +97,7 @@ namespace NuGetGallery.WebApi
 
                 return response;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
                 throw;
@@ -121,7 +126,22 @@ namespace NuGetGallery.WebApi
 
                 if (queryOptions.Filter != null)
                 {
-                    queryResults = queryOptions.Filter.ApplyTo(queryResults, _querySettings);
+                    if (_semVerLevelKey != SemVerLevelKey.Unknown
+                        && (string.Equals(queryOptions.Filter.RawValue, "IsLatestVersion", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(queryOptions.Filter.RawValue, "IsAbsoluteLatestVersion", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        // The client uses IsLatestVersion and IsAbsoluteLatestVersion by default,
+                        // and just appends semVerLevel=2.0.0 to the query string.
+                        // When semVerLevel=2.0.0, we should not restrict the filter to only return IsLatest(Stable)=true,
+                        // but also include IsLatest(Stable)SemVer2=true. These additional properties are not exposed on the OData entities however.
+                        // As the proper filtering already should 've happened earlier in the pipeline (SQL or search service),
+                        // the OData filter is redundant, so all we need to do here is to avoid 
+                        // the OData filter to be applied on an already correctly filtered result set.
+                    }
+                    else
+                    {
+                        queryResults = queryOptions.Filter.ApplyTo(queryResults, _querySettings);
+                    }
                 }
 
                 if (queryOptions.OrderBy != null
@@ -302,10 +322,10 @@ namespace NuGetGallery.WebApi
             {
                 return projection;
             }
-            
+
             return queryResult;
         }
-        
+
         private BadRequestErrorMessageResult BadRequest(string message)
         {
             return new BadRequestErrorMessageResult(message, _controller);

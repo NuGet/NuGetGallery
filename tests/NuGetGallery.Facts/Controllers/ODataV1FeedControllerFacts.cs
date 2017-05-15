@@ -23,7 +23,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
-            Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
         }
 
         [Fact]
@@ -35,7 +35,7 @@ namespace NuGetGallery.Controllers
                 "/api/v1/Packages/$count");
 
             // Assert
-            Assert.Equal(NonSemVer2Packages.Count, count);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), count);
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
-            Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
         }
 
         [Fact]
@@ -61,7 +61,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
-            Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v1/Search/$count?searchTerm='{TestPackageId}'");
 
             // Assert
-            Assert.Equal(NonSemVer2Packages.Count, searchCount);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), searchCount);
         }
 
         protected override ODataV1FeedController CreateController(IEntityRepository<Package> packagesRepository,
