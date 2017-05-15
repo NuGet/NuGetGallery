@@ -23,17 +23,17 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             _clientSdkHelper = new ClientSdkHelper(TestOutputHelper);
         }
         
-        [Theory(Skip = "Depends on TestSecurityPoliciesAccountApiKey account setup")]
+        [Theory]
         [InlineData("")]
         [InlineData("3.5.0")]
         [InlineData("4.1.0-beta")]
         [Description("Package push fails if min client version policy not met")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task PackagePushReturns400_RequireMinClientVersionPolicyNotMet(string clientVersion)
+        public async Task PackagePush_Returns400IfRequireMinClientVersionPolicyNotMet(string clientVersion)
         {
             // Arrange
-            var id = $"{nameof(PackagePushReturns400_RequireMinClientVersionPolicyNotMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"{nameof(PackagePush_Returns400IfRequireMinClientVersionPolicyNotMet)}.{DateTime.UtcNow.Ticks}";
 
             // Act
             var response = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, clientVersion);
@@ -42,16 +42,16 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
-        [Theory(Skip = "Depends on TestSecurityPoliciesAccountApiKey account setup")]
+        [Theory]
         [InlineData("4.1.0")]
         [InlineData("4.3.0-beta")]
         [Description("Package push succeeds if min client version policy met")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task PackagePushReturns200_RequireMinClientVersionPolicyMet(string clientVersion)
+        public async Task PackagePush_Returns200IfRequireMinClientVersionPolicyMet(string clientVersion)
         {
             // Arrange
-            var id = $"{nameof(PackagePushReturns200_RequireMinClientVersionPolicyMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"{nameof(PackagePush_Returns200IfRequireMinClientVersionPolicyMet)}.{DateTime.UtcNow.Ticks}";
 
             // Act
             var response = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, clientVersion);
@@ -60,14 +60,14 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        [Fact(Skip = "Depends on TestSecurityPoliciesAccountApiKey account setup")]
+        [Fact]
         [Description("VerifyPackageKey fails if package verify policy not met")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task VerifyPackageKeyReturns400_RequirePackageVerifyScopePolicyNotMet()
+        public async Task VerifyPackageKey_Returns400IfRequirePackageVerifyScopePolicyNotMet()
         {
             // Arrange
-            var id = $"{nameof(VerifyPackageKeyReturns400_RequirePackageVerifyScopePolicyNotMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"{nameof(VerifyPackageKey_Returns400IfRequirePackageVerifyScopePolicyNotMet)}.{DateTime.UtcNow.Ticks}";
 
             var pushResponse = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, "4.1.0");
             Assert.Equal(HttpStatusCode.Created, pushResponse.StatusCode);
@@ -79,14 +79,14 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             Assert.Equal(HttpStatusCode.BadRequest, verifyResponse);
         }
 
-        [Fact(Skip = "Depends on TestSecurityPoliciesAccountApiKey account setup")]
+        [Fact]
         [Description("VerifyPackageKey succeeds if package verify policy met")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task VerifyPackageKeyReturns200_RequirePackageVerifyScopePolicyMet()
+        public async Task VerifyPackageKey_Returns200IfRequirePackageVerifyScopePolicyMet()
         {
             // Arrange
-            var id = $"{nameof(VerifyPackageKeyReturns200_RequirePackageVerifyScopePolicyMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"{nameof(VerifyPackageKey_Returns200IfRequirePackageVerifyScopePolicyMet)}.{DateTime.UtcNow.Ticks}";
 
             var pushResponse = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, "4.1.0");
             Assert.Equal(HttpStatusCode.Created, pushResponse.StatusCode);
@@ -104,7 +104,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("VerifyPackageKey fails if package isn't found.")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task VerifyPackageKeyReturns404ForMissingPackage()
+        public async Task VerifyPackageKey_Returns404ForMissingPackage()
         {
             Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, "VerifyPackageKeyReturns404ForMissingPackage", "1.0.0"));
         }
@@ -113,7 +113,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("VerifyPackageKey succeeds for full API key without deletion.")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task VerifyPackageKeyReturns200ForFullApiKey()
+        public async Task VerifyPackageKey_Returns200ForFullApiKey()
         {
             // Arrange
             var packageId = $"VerifyPackageKeyReturns200ForFullApiKey.{DateTimeOffset.UtcNow.Ticks}";
@@ -130,7 +130,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("VerifyPackageKey succeeds for temp API key with deletion.")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task VerifyPackageKeyReturns200ForTempApiKey()
+        public async Task VerifyPackageKey_Returns200ForTempApiKey()
         {
             // Arrange
             var packageId = $"VerifyPackageKeySupportsFullAndTempApiKeys.{DateTimeOffset.UtcNow.Ticks}";
