@@ -14,27 +14,36 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public class EndpointFactory
     {
+        private ValidatorFactory _validationFactory;
+        private Func<HttpMessageHandler> _messageHandlerFactory;
+        private ILoggerFactory _loggerFactory;
+
+        public class Input
+        {
+            public Input(string name, Uri cursorUri)
+            {
+                Name = name;
+                CursorUri = cursorUri;
+            }
+
+            public string Name { get; }
+            public Uri CursorUri { get; }
+        }
+
         public EndpointFactory(
-            ValidatorFactory validationFactory, 
-            Func<string, Uri> endpointCursorUriFactory, 
+            ValidatorFactory validationFactory,
             Func<HttpMessageHandler> messageHandlerFactory, 
             ILoggerFactory loggerFactory)
         {
             _validationFactory = validationFactory;
-            _endpointCursorUriFactory = endpointCursorUriFactory;
             _messageHandlerFactory = messageHandlerFactory;
             _loggerFactory = loggerFactory;
         }
 
-        private ValidatorFactory _validationFactory;
-        private Func<string, Uri> _endpointCursorUriFactory;
-        private Func<HttpMessageHandler> _messageHandlerFactory;
-        private ILoggerFactory _loggerFactory;
-
         /// <summary>
         /// Creates the <see cref="EndpointValidator"/> for which <see cref="Type.Name"/> is equal to <paramref name="endpointName"/>.
         /// </summary>
-        public EndpointValidator Create(string endpointName)
+        public EndpointValidator Create(Input input)
         {
             try
             {
@@ -42,11 +51,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 var endpointType = Assembly
                     .GetExecutingAssembly()
                     .GetTypes()
-                    .FirstOrDefault(t => t.Name == endpointName);
+                    .FirstOrDefault(t => t.Name == input.Name);
 
                 /// Create a <see cref="HttpReadCursor"/> from the <see cref="Uri"/> for this <see cref="EndpointValidator"/>.
-                var endpointCursorUri = _endpointCursorUriFactory(endpointName);
-                var endpointCursor = new HttpReadCursor(endpointCursorUri, _messageHandlerFactory);
+                var endpointCursor = new HttpReadCursor(input.CursorUri, _messageHandlerFactory);
 
                 /// Construct the <see cref="EndpointValidator"/>.
                 var loggerType = typeof(ILogger<>).MakeGenericType(endpointType);
@@ -64,7 +72,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                     throw new ArgumentException($"Endpoint must have a constructor with a " +
                         $"{nameof(ReadCursor)}, " +
                         $"{nameof(ValidatorFactory)}, and " +
-                        $"{loggerType.Name}!", nameof(endpointName));
+                        $"{loggerType.Name}!", nameof(input.Name));
                 }
 
                 var endpoint = endpointConstructor.Invoke(new object[] 
@@ -78,7 +86,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to create endpoint named {endpointName}!", e);
+                throw new Exception($"Failed to create endpoint named {input.Name}!", e);
             }
         }
     }

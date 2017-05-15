@@ -7,9 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Configuration;
-using NuGet.Protocol.Core.Types;
-using NuGet.Protocol;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
@@ -18,12 +15,14 @@ namespace Ng.Jobs
 {
     public class EndpointMonitoringJob : LoopingNgJob
     {
+        private ValidationCollectorFactory _collectorFactory;
         private ValidationCollector _collector;
         private ReadWriteCursor _front;
         private ReadCursor _back;
 
         public EndpointMonitoringJob(ILoggerFactory loggerFactory) : base(loggerFactory)
         {
+            _collectorFactory = new ValidationCollectorFactory(loggerFactory);
         }
 
         public override string GetUsage()
@@ -54,19 +53,7 @@ namespace Ng.Jobs
                    + $"[-{Arguments.Verbose} true|false] "
                    + $"[-{Arguments.Interval} <seconds>]";
         }
-
-        private IList<Lazy<INuGetResourceProvider>> ResourceProvidersToInjectV2 => new List<Lazy<INuGetResourceProvider>>
-        {
-            new Lazy<INuGetResourceProvider>(() => new NonhijackableV2HttpHandlerResourceProvider()),
-            new Lazy<INuGetResourceProvider>(() => new PackageTimestampMetadataResourceV2Provider(LoggerFactory)),
-            new Lazy<INuGetResourceProvider>(() => new PackageRegistrationMetadataResourceV2FeedProvider())
-        };
-
-        private IList<Lazy<INuGetResourceProvider>> ResourceProvidersToInjectV3 => new List<Lazy<INuGetResourceProvider>>
-        {
-            new Lazy<INuGetResourceProvider>(() => new PackageRegistrationMetadataResourceV3Provider())
-        };
-
+        
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             var gallery = arguments.GetOrThrow<string>(Arguments.Gallery);
@@ -83,40 +70,18 @@ namespace Ng.Jobs
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
 
             var endpointNames = arguments.GetOrThrow<string>(Arguments.EndpointsToTest).Split(';');
-
-            Logger.LogInformation(
-                "CONFIG gallery: {Gallery}  source: {ConfigSource} storage: {Storage} auditingStorage: {AuditingStorage} endpoints: {Endpoints}",
-                gallery, source, storageFactory, auditingStorageFactory, string.Join(", ", endpointNames));
+            var endpoints = endpointNames.Select(name => 
+                new EndpointFactory.Input(name, new Uri(arguments.GetOrThrow<string>(Arguments.EndpointCursorPrefix + name))));
 
             var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
+            
+            var notificationService = new LoggerMonitoringNotificationService(LoggerFactory.CreateLogger<LoggerMonitoringNotificationService>());
 
-            var feedToSource = new Dictionary<FeedType, SourceRepository>()
-            {
-                {FeedType.HttpV2, new SourceRepository(new PackageSource(gallery), GetResourceProviders(ResourceProvidersToInjectV2), FeedType.HttpV2)},
-                {FeedType.HttpV3, new SourceRepository(new PackageSource(index), GetResourceProviders(ResourceProvidersToInjectV3), FeedType.HttpV3)}
-            };
+            var context = _collectorFactory.Create(gallery, index, source, storageFactory, auditingStorageFactory, endpoints, messageHandlerFactory, notificationService, verbose);
 
-            var validationFactory = new ValidatorFactory(
-                feedToSource,
-                LoggerFactory);
-
-            var endpointFactory = new EndpointFactory(
-                validationFactory, 
-                endpointName => new Uri(arguments.GetOrThrow<string>(Arguments.EndpointCursorPrefix + endpointName)),
-                messageHandlerFactory,
-                LoggerFactory);
-
-            var endpoints = endpointNames.Select(endpointName => endpointFactory.Create(endpointName));
-
-            _collector = new ValidationCollector(auditingStorageFactory.Create(),
-                new PackageValidator(endpoints, LoggerFactory.CreateLogger<PackageValidator>()), 
-                new Uri(source),
-                LoggerFactory.CreateLogger<ValidationCollector>(),
-                messageHandlerFactory);
-
-            var storage = storageFactory.Create();
-            _front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
-            _back = new AggregateCursor(endpoints.Select(e => e.Cursor));
+            _collector = context.Collector;
+            _front = context.Front;
+            _back = context.Back;
         }
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
@@ -127,13 +92,6 @@ namespace Ng.Jobs
                 run = await _collector.Run(_front, _back, cancellationToken);
             }
             while (run);
-        }
-
-        private IEnumerable<Lazy<INuGetResourceProvider>> GetResourceProviders(IList<Lazy<INuGetResourceProvider>> providersToInject)
-        {
-            var resourceProviders = Repository.Provider.GetCoreV3().ToList();
-            resourceProviders.AddRange(providersToInject);
-            return resourceProviders;
         }
     }
 }

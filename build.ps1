@@ -80,7 +80,8 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\NuGet.Indexing\NuGet.Indexing.csproj", `
             "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", `
             "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", `
-            "src\Ng\Ng.csproj"
+            "src\Ng\Ng.csproj", `
+            "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj"
             
         $projects | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
