@@ -342,7 +342,7 @@
                              <a href="#" class="globHelpLink">Example glob patterns</a>.
                              <div class="popup">
                                  <div class="popupbox" id="addapikeypopup">
-                                     <a class="boxclose"><i class="icon-remove"></i></a>
+                                     <a href="#" class="boxclose"><i class="icon-remove"></i></a>
                                      <div class="innertext">
                                          A glob pattern allows you to replace any sequence of characters with '*'.
                                          <h5>Example glob patterns</h5>
@@ -599,11 +599,13 @@
         $('.boxclose')
                .click(function () {
                    $(this).parent().hide();
+                   return false;
                });
 
         $('.globHelpLink')
             .click(function () {
                 $(this).next().find('.popupbox').show();
+                return false;
             });
     }
 </script>
@@ -1163,6 +1165,7 @@
         popupboxDiv.className = "popupbox editapikeypopup";
         var boxclose = document.createElement("a");
         boxclose.className = "boxclose";
+        boxclose.href = "#";
         var iconRemove = document.createElement("i");
         iconRemove.className = "icon-remove";
         boxclose.appendChild(iconRemove);
