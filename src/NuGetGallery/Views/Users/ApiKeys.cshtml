@@ -274,7 +274,7 @@
         expanded: expanded,
         actions:  @<text> @item.ExpandButton("New API key", "Cancel") </text>,
         content:  @<text>
-                    @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%", @id = "generateKeyForm", @onkeypress= "return event.keyCode != 13;" }))
+                    @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%", @id = "generateKeyForm"}))
                     {
                      <fieldset class="form" >
                         @Html.AntiForgeryToken()
@@ -335,7 +335,7 @@
                                  <label for="scopeUnlist" class="checkoboxsmall inline">@NuGetScopes.Describe(NuGetScopes.PackageUnlist)</label>
                              </div>
                          </div>
-                         <div id="addkeyselectpackages" class="disabled-div">
+                         <div id="addkeyselectpackages">
                              <h5>Select packages</h5><hr />
                              To select which packages to associate with a key use a glob pattern, select individual packages, or both. 
                              
@@ -405,7 +405,7 @@
                             </div>
                          </div>
 
-                        <button class="btn" type="button" id="generateKey" aria-disabled="true">Add key</button>
+                        <button class="btn" type="button" id="generateKey">Add key</button>
                     </fieldset>
                     <br />
                     }
@@ -428,28 +428,23 @@
             $('.scopecheckbox')
                 .on('click',
                     function() {
-                        var anyChecked = document.getElementById("scopeUnlist").checked ||
-                            document.getElementById("scopePush").checked;
+                        var anyChecked = scopesSelected();
 
                         if (anyChecked) {
-                            $('#addkeyselectpackages').removeClass('disabled-div');
+                            enableElementAndDescendants('#addkeyselectpackages');
                         } else {
-                            $('#addkeyselectpackages').addClass('disabled-div');
+                            disableElementAndDescendants('#addkeyselectpackages');
                         }
+
+                        enableAddKeyButton();
                     });
 
             $('#scopePush').change(function() {
-                        if (document.getElementById("scopePush").checked) {
-                            $('#scopePushOptions').removeClass('disabled-div');
-                            $('#scopeFullPush').attr("disabled", false);
-                            $('#scopePushVersion').attr("disabled", false);
-
-                        } else {
-                            $('#scopePushOptions').addClass('disabled-div');
-                            $('#scopeFullPush').attr("disabled", true);
-                            $('#scopePushVersion').attr("disabled", true);
-                        }
-                    });
+                if (document.getElementById("scopePush").checked) {
+                    enableElementAndDescendants('#scopePushOptions');
+                } else {
+                    disableElementAndDescendants('#scopePushOptions');
+                        }});
 
             $('#addkeyglobPattern')
                 .on('input', function () {
@@ -463,6 +458,13 @@
                 enableAddKeyButton();
             });
         });
+
+    function scopesSelected() {
+        var anyChecked = document.getElementById("scopeUnlist").checked ||
+            document.getElementById("scopePush").checked;
+
+        return anyChecked;
+    }
 
     function selectPackageFromGlob(globPatternElem, packageCheckboxes) {
         var globVal = globPatternElem.val();
@@ -483,10 +485,14 @@
                     $(this)[0].checked = true;
                     $(this)[0].name = ""; // hide the name so this won't be submitted in the form
                     $(this).parent().addClass('disabled-div');
+                    $(this).attr('disabled', true);
+
+
                 } else {
                     $(this)[0].checked = false;
                     $(this)[0].name = "subjects";
                     $(this).parent().removeClass('disabled-div');
+                    $(this).removeAttr('disabled');
                 }
             });
     }
@@ -535,23 +541,36 @@
         var globValid = $('#addkeyglobPattern').valid();
         var globEmpty = $('#addkeyglobPattern').val() == null || $.trim($('#addkeyglobPattern').val()) == '';
 
-        if (globValid && (packagesWereSelected || !globEmpty)) {
-            $('#generateKey').removeClass('disabled-div');
-            $('#generateKey').removeAttr('aria-disabled');
+        if (scopesSelected() && globValid && (packagesWereSelected || !globEmpty)) {
+            enableElementAndDescendants('#generateKey');
         }
         else {
-            $('#generateKey').addClass('disabled-div');
-            $('#generateKey').attr('aria-disabled', 'true');
+            disableElementAndDescendants('#generateKey');
         }
     }
 
     function setGenerateApiKeyFormInitialState() {
-        $('#addkeyselectpackages').addClass('disabled-div');
-        $('#generateKey').addClass('disabled-div');
-        $('#scopePushOptions').addClass('disabled-div');
+        disableElementAndDescendants('#addkeyselectpackages');
+        disableElementAndDescendants('#scopePushOptions');
+        disableElementAndDescendants('#generateKey');
+
         $('#scopeFullPush').prop("checked", true);
         $('#scopeFullPush').attr("disabled", true);
         $('#scopePushVersion').attr("disabled", true);
+    }
+
+    function disableElementAndDescendants(selector) {
+        $(selector).addClass('disabled-div');
+        $(selector).attr('disabled', true);
+        $(selector).find(':input').attr('disabled', true);
+        $(selector).find('a').attr('tabindex', -1);
+    }
+
+    function enableElementAndDescendants(selector) {
+        $(selector).removeClass('disabled-div');
+        $(selector).removeAttr('disabled');
+        $(selector).find(':input').removeAttr('disabled');
+        $(selector).find('a').removeAttr('tabindex');
     }
 
     $(document)
@@ -721,7 +740,7 @@
                 $('#generateKeyForm').find("input[type=text], textarea").val("");
                 $('#generateKeyForm').find("input:checkbox").removeAttr('checked');
                 setGenerateApiKeyFormInitialState();
-                selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'));
+                //selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'));
                 updateSelectedPackagesCounter($('#generateKeyForm .packagecheckbox input'), $('#selectablePackagesList').next());
                 $('#newapikey-1-collapse').trigger('click');
 
