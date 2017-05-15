@@ -599,12 +599,14 @@
         $('.boxclose')
                .click(function () {
                    $(this).parent().hide();
+                   // Prevent page jump
                    return false;
                });
 
         $('.globHelpLink')
             .click(function () {
                 $(this).next().find('.popupbox').show();
+                // Prevent page jump
                 return false;
             });
     }
