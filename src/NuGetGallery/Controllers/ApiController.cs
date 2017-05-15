@@ -23,6 +23,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
+using NuGetGallery.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
 
 namespace NuGetGallery
@@ -47,6 +48,7 @@ namespace NuGetGallery
         public ITelemetryService TelemetryService { get; set; }
         public AuthenticationService AuthenticationService { get; set; }
         public ICredentialBuilder CredentialBuilder { get; set; }
+        protected ISecurityPolicyService SecurityPolicyService { get; set; }
 
         protected ApiController()
         {
@@ -69,7 +71,8 @@ namespace NuGetGallery
             IGalleryConfigurationService configurationService,
             ITelemetryService telemetryService,
             AuthenticationService authenticationService,
-            ICredentialBuilder credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            ISecurityPolicyService securityPolicies)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -87,6 +90,7 @@ namespace NuGetGallery
             TelemetryService = telemetryService;
             AuthenticationService = authenticationService;
             CredentialBuilder = credentialBuilder;
+            SecurityPolicyService = securityPolicies;
             StatisticsService = null;
         }
 
@@ -107,8 +111,11 @@ namespace NuGetGallery
             IGalleryConfigurationService configurationService,
             ITelemetryService telemetryService,
             AuthenticationService authenticationService,
-            ICredentialBuilder credentialBuilder)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService, configurationService, telemetryService, authenticationService, credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            ISecurityPolicyService securityPolicies)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService,
+                  indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
+                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies)
         {
             StatisticsService = statisticsService;
         }
@@ -224,11 +231,17 @@ namespace NuGetGallery
 
         [HttpGet]
         [RequireSsl]
-        [ApiAuthorize(SecurityPolicyAction.PackageVerify)]
+        [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageVerify, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("VerifyPackageKey")]
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
+            var policyResult = await SecurityPolicyService.EvaluateAsync(SecurityPolicyAction.PackageVerify, HttpContext);
+            if (!policyResult.Success)
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
+            }
+
             var user = GetCurrentUser();
             var credential = user.GetCurrentApiKeyCredential(User.Identity);
 
@@ -286,7 +299,7 @@ namespace NuGetGallery
 
         [HttpPut]
         [RequireSsl]
-        [ApiAuthorize(SecurityPolicyAction.PackagePush)]
+        [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePut()
@@ -296,7 +309,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [RequireSsl]
-        [ApiAuthorize(SecurityPolicyAction.PackagePush)]
+        [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost()
@@ -306,6 +319,12 @@ namespace NuGetGallery
 
         private async Task<ActionResult> CreatePackageInternal()
         {
+            var policyResult = await SecurityPolicyService.EvaluateAsync(SecurityPolicyAction.PackagePush, HttpContext);
+            if (!policyResult.Success)
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
+            }
+
             // Get the user
             var user = GetCurrentUser();
 

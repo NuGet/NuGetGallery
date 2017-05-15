@@ -763,7 +763,7 @@
     <Compile Include="Security\ISecurityPolicyService.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
     <Compile Include="Security\RequireMinClientVersionForPushPolicy.cs" />
-    <Compile Include="Filters\SecurityPolicyAction.cs" />
+    <Compile Include="Security\SecurityPolicyAction.cs" />
     <Compile Include="Security\SecurityPolicyService.cs" />
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />

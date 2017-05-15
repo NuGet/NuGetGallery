@@ -31,48 +31,6 @@ namespace NuGetGallery.Filters
             Assert.Equal(AuthenticationTypes.ApiKey, owinContext.Authentication.AuthenticationResponseChallenge.AuthenticationTypes[0]);
         }
 
-        [Fact]
-        public void OnAuthorization_Returns200IfSecurityPolicyEvaluationReturnsSuccess()
-        {
-            // Arrange
-            var mockService = new Mock<ISecurityPolicyService>();
-            mockService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
-                .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult)).Verifiable();
-
-            var mockContext = BuildAuthorizationContext(policyService: mockService);
-            var context = mockContext.Object;
-
-            // Act
-            new ApiAuthorizeAttribute(SecurityPolicyAction.PackagePush).OnAuthorization(context);
-            var owinContext = context.HttpContext.GetOwinContext();
-
-            // Assert
-            mockService.Verify();
-            Assert.Null(context.Result);
-            Assert.Equal(200, owinContext.Response.StatusCode);
-        }
-
-        [Fact]
-        public void OnAuthorization_Returns400IfSecurityPolicyEvaluationReturnsFailure()
-        {
-            // Arrange
-            var mockService = new Mock<ISecurityPolicyService>();
-            mockService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
-                .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A"))).Verifiable();
-
-            var mockContext = BuildAuthorizationContext(policyService: mockService);
-            var context = mockContext.Object;
-
-            // Act
-            new ApiAuthorizeAttribute(SecurityPolicyAction.PackagePush).OnAuthorization(context);
-            var owinContext = context.HttpContext.GetOwinContext();
-
-            // Assert
-            mockService.Verify();
-            Assert.IsType<HttpStatusCodeWithBodyResult>(context.Result);
-            Assert.Equal(400, owinContext.Response.StatusCode);
-        }
-
         private Mock<AuthorizationContext> BuildAuthorizationContext(bool authenticated = true, Mock<ISecurityPolicyService> policyService = null)
         {
             var mockController = new Mock<AppController>();
