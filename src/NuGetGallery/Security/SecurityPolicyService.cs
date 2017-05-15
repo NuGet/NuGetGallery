@@ -88,8 +88,7 @@ namespace NuGetGallery.Security
                     var result = handler.Evaluate(new UserSecurityPolicyEvaluationContext(httpContext, foundPolicies));
 
                     await Auditing.SaveAuditRecordAsync(new UserSecurityPolicyAuditRecord(
-                        user.Username, GetAuditAction(action), foundPolicies, result.Success, result.ErrorMessage))
-                        .ConfigureAwait(false);
+                        user.Username, GetAuditAction(action), foundPolicies, result.Success, result.ErrorMessage));
 
                     if (!result.Success)
                     {
