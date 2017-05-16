@@ -38,7 +38,7 @@
                      src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
             </h3>
         </div>
-        <div class="col-md-8 col-md-main">
+        <div class="col-md-8 col-md-main packages-details-main">
             <h1 title="@Model.Title">
                 @Model.Title.Abbreviate(40)
                 <small>@Model.Version</small>
@@ -181,11 +181,19 @@
                 </div>
             </div>
 
+            @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
+            {
+                <h2>Release Notes</h2>
+
+                // Not actually using <pre/> because its better to have wrapping text
+                <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
+            }
+
             @if (Model.Dependencies.DependencySets == null)
             {
                 if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
-                    <h3>Dependencies</h3>
+                    <h2>Dependencies</h2>
                     <p>
                         An error occurred processing dependencies.
                         Your package can still be downloaded and installed, but dependencies cannot be shown.
@@ -198,19 +206,19 @@
             }
             else
             {
-                <h3>Dependencies</h3>
+                <h2>Dependencies</h2>
                 if (Model.Dependencies.DependencySets.Any())
                 {
-                    <ul>
+                    <ul class="list-unstyled">
                         @foreach (var dependencySet in Model.Dependencies.DependencySets)
                         {
                             var dependencySetTitle = dependencySet.Key;
                             <li>
                                 @if (!Model.Dependencies.OnlyHasAllFrameworks)
                                 {
-                                    <h4>@dependencySetTitle</h4>
+                                    <h4><span>@dependencySetTitle</span></h4>
                                 }
-                                <ul>
+                                <ul class="list-unstyled dependency-group">
                                 @foreach (var dependency in dependencySet.Value)
                                 {
                                     <li>
@@ -306,8 +314,8 @@
                 </tbody>
             </table>
         </div>
-        <div class="col-md-3 col-md-info">
-            <h3>Info</h3>
+        <div class="col-md-3 col-md-info packages-details-info">
+            <h2>Info</h2>
             <ul class="fa-ul">
                 <li>
                     <i class="fa-li fa fa-clock-o"></i>
@@ -384,7 +392,29 @@
                 }
             </ul>
 
-            <h3>Owners</h3>
+            <h2>Statistics</h2>
+            <ul class="fa-ul">
+                <li>
+                    <i class="fa-li fa fa-signal"></i>
+                    @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                </li>
+                <li>
+                    <i class="fa-li fa fa-gift"></i>
+                    @Model.PackageVersions.First().DownloadCount.ToNuGetNumberString() @(Model.PackageVersions.First().DownloadCount == 1 ? "download" : "downloads")
+                    of latest version
+                </li>
+                <li>
+                    <i class="fa-li fa fa-download"></i>
+                    @Model.DownloadsPerDay.ToNuGetNumberString() @(Model.DownloadsPerDay == 1 ? "download" : "downloads")
+                    per day (avg)
+                </li>
+            </ul>
+            @if (StatisticsHelper.IsStatisticsPageAvailable)
+            {
+                <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">View full stats</a>
+            }
+
+            <h2>Owners</h2>
             <ul class="list-unstyled owner-list">
                 @foreach (var owner in Model.Owners)
                 {
@@ -411,29 +441,13 @@
                 }
             </ul>
 
-            <h3>Authors</h3>
+            <h2>Authors</h2>
             <p>@Model.Authors</p>
 
-            <h3>Statistics</h3>
-            <ul class="fa-ul">
-                <li>
-                    <i class="fa-li fa fa-signal"></i>
-                    @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
-                </li>
-                <li>
-                    <i class="fa-li fa fa-gift"></i>
-                    @Model.PackageVersions.First().DownloadCount.ToNuGetNumberString() @(Model.PackageVersions.First().DownloadCount == 1 ? "download" : "downloads")
-                    of latest version
-                </li>
-                <li>
-                    <i class="fa-li fa fa-download"></i>
-                    @Model.DownloadsPerDay.ToNuGetNumberString() @(Model.DownloadsPerDay == 1 ? "download" : "downloads")
-                    per day
-                </li>
-            </ul>
-            @if (StatisticsHelper.IsStatisticsPageAvailable)
+            @if (!String.IsNullOrEmpty(Model.Copyright))
             {
-                <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">View full stats</a>
+                <h2>Copyright</h2>
+                <p>@Model.Copyright</p>
             }
 
             @if (Model.Tags.AnySafe())

@@ -1,12 +1,4 @@
 ﻿.package-details {
-  ul {
-    margin-left: 25px;
-  }
-
-  li {
-    padding: 5px 0;
-  }
-
   @media (min-width: @screen-md-min) {
     .col-md-icon {
       width: (96px + @grid-gutter-width);
@@ -19,6 +11,15 @@
     .col-md-info {
       width: (314px + @grid-gutter-width);
     }
+  }
+
+  h4 > span {
+    border-bottom: 1px solid #d8d8d8;
+    margin-bottom: 3px;
+  }
+
+  .dependency-group li span {
+    color: #666;
   }
 
   .install-tabs {
@@ -68,31 +69,31 @@
     }
   }
 
-  .fa-li {
-    top: 10px;
-  }
-
-  .tag {
-    background-color: #eff9ff;
-    padding: 2px 5px;
-    line-height: 1.9em;
-  }
-
-  .no-clickonce {
-    display: none;
-  }
-
-  ul.owner-list {
-    margin-left: 42px;
-
-    li {
-      position: relative;
-      padding: 10px 0;
+  .packages-details-info {    
+    ul {
+      margin-left: 25px;
     }
 
-    img {
-      position: absolute;
-      left: -40px;
+    li {
+      padding: 5px 0;
+    }
+
+    .fa-li {
+      top: 10px;
+    }
+
+    ul.owner-list {
+      margin-left: 42px;
+
+      li {
+        position: relative;
+        padding: 10px 0;
+      }
+
+      img {
+        position: absolute;
+        left: -40px;
+      }
     }
   }
 }

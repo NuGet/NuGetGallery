@@ -81,6 +81,14 @@ body {
 .borderless > tbody > tr > td {
   border: none;
 }
+.no-clickonce {
+  display: none;
+}
+.tag {
+  padding: 2px 5px;
+  line-height: 1.9em;
+  background-color: #eff9ff;
+}
 .jumbotron {
   padding-top: 110px;
 }
@@ -146,12 +154,6 @@ body {
   float: right;
   width: 144px;
 }
-.package-details ul {
-  margin-left: 25px;
-}
-.package-details li {
-  padding: 5px 0;
-}
 @media (min-width: 992px) {
   .package-details .col-md-icon {
     width: 126px;
@@ -162,6 +164,13 @@ body {
   .package-details .col-md-info {
     width: 344px;
   }
+}
+.package-details h4 > span {
+  margin-bottom: 3px;
+  border-bottom: 1px solid #d8d8d8;
+}
+.package-details .dependency-group li span {
+  color: #666;
 }
 .package-details .install-tabs {
   font-size: .8em;
@@ -202,25 +211,23 @@ body {
 .package-details .install-tabs .tab-pane .copy-button {
   display: table-cell;
 }
-.package-details .fa-li {
+.package-details .packages-details-info ul {
+  margin-left: 25px;
+}
+.package-details .packages-details-info li {
+  padding: 5px 0;
+}
+.package-details .packages-details-info .fa-li {
   top: 10px;
 }
-.package-details .tag {
-  padding: 2px 5px;
-  line-height: 1.9em;
-  background-color: #eff9ff;
-}
-.package-details .no-clickonce {
-  display: none;
-}
-.package-details ul.owner-list {
+.package-details .packages-details-info ul.owner-list {
   margin-left: 42px;
 }
-.package-details ul.owner-list li {
+.package-details .packages-details-info ul.owner-list li {
   position: relative;
   padding: 10px 0;
 }
-.package-details ul.owner-list img {
+.package-details .packages-details-info ul.owner-list img {
   position: absolute;
   left: -40px;
 }
