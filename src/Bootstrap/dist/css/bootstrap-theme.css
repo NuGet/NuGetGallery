@@ -89,6 +89,13 @@ body {
   line-height: 1.9em;
   background-color: #eff9ff;
 }
+.alert .fa-ul {
+  margin-left: 24px;
+}
+.alert .fa-li {
+  top: 4px;
+  left: -32px;
+}
 .jumbotron {
   padding-top: 110px;
 }
@@ -174,9 +181,6 @@ body {
 }
 .package-details .no-border {
   border: 0;
-}
-.package-details #show-hidden-versions {
-  padding: 0;
 }
 .package-details #show-hidden-versions:hover,
 .package-details #show-hidden-versions:focus {

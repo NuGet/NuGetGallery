@@ -99,6 +99,12 @@
 })();
 
 $(function () {
+    // Use moment.js to format attributes with the "datetime" attribute to "ago".
+    $.each($('*[data-datetime]'), function () {
+        var datetime = moment($(this).attr('data-datetime'));
+        $(this).text(datetime.fromNow());
+    });
+
     // Show elements that require ClickOnce
     (function () {
         var userAgent = window.navigator.userAgent.toUpperCase();

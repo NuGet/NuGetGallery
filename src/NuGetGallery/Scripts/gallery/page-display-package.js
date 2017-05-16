@@ -1,6 +1,7 @@
 $(function () {
     'use strict';
 
+    // Hidden versions.
     var hiddenVersions = $('#hidden-versions');
     var showHiddenVersion = $('#show-hidden-versions');
     var showHiddenVersionText = $('#show-hidden-versions span');
@@ -19,6 +20,7 @@ $(function () {
         e.preventDefault();
     });
 
+    // Copy button.
     var copyButton = $('#install-script-button');
     copyButton.popover({ trigger: 'manual' });
 

@@ -292,7 +292,7 @@
                                 @packageVersion.DownloadCount.ToNuGetNumberString()
                             </td>
                             <td>
-                                <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
                             </td>
                             @if ((Model.IsOwner(User) || User.IsAdministrator()))
                             {
@@ -318,7 +318,7 @@
                                 @packageVersion.DownloadCount
                             </td>
                             <td>
-                                <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
                             </td>
                             <td></td>
                         </tr>
@@ -339,7 +339,7 @@
             <ul class="fa-ul">
                 <li>
                     <i class="fa-li fa fa-clock-o"></i>
-                    last updated <span title="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
+                    last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
                 </li>
                 @if (PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
                 {
