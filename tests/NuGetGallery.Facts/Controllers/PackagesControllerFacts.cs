@@ -1094,7 +1094,7 @@ namespace NuGetGallery
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0" });
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
                 var controller = CreateController(
                     packageService: fakePackageService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
@@ -1104,30 +1104,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(
-                    String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.0"),
-                    controller.ModelState[String.Empty].Errors[0].ErrorMessage);
-            }
-
-            [Fact]
-            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExistsAndOnlyDiffersByMetadata()
-            {
-                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
-                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0+metadata2");
-                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
-                var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0+metadata" });
-                var controller = CreateController(
-                    packageService: fakePackageService);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
-
-                Assert.NotNull(result);
-                Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(
-                    String.Format(Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified, "theId", "1.0.0+metadata"),
+                    String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "theVersion"),
                     controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
