@@ -47,6 +47,58 @@ namespace NuGetGallery.Auditing
         }
 
         [Fact]
+        public void Constructor_WithAffectedPolicies_ThrowsIfPoliciesNull()
+        {
+            Assert.Throws<ArgumentException>(() => new UserAuditRecord(user: new User(),
+                action: AuditedUserAction.SubscribeToPolicies, affectedPolicies: null));
+        }
+
+        [Fact]
+        public void Constructor_WithAffectedPolicies_ThrowsIfPoliciesEmpty()
+        {
+            Assert.Throws<ArgumentException>(() => new UserAuditRecord(user: new User(),
+                action: AuditedUserAction.SubscribeToPolicies, affectedPolicies: new UserSecurityPolicy[0]));
+        }
+
+        [Fact]
+        public void Constructor_WithAffectedPolicies_SetsProperties()
+        {
+            // Arrange.
+            var user = new User()
+            {
+                Username = "a",
+                EmailAddress = "b",
+                UnconfirmedEmailAddress = "c",
+                Roles = new List<Role>() { new Role() { Name = "d" } },
+                Credentials = new List<Credential>()
+                {
+                    new Credential(type: CredentialTypes.Password.V3, value: "e"),
+                    new Credential(type: "f", value: "g")
+                }
+            };
+
+            // Act.
+            var record = new UserAuditRecord(user, AuditedUserAction.SubscribeToPolicies,
+                new UserSecurityPolicy[] { new UserSecurityPolicy("A", "B", "C") } );
+
+            // Assert.
+
+            Assert.Equal("a", record.Username);
+            Assert.Equal("b", record.EmailAddress);
+            Assert.Equal("c", record.UnconfirmedEmailAddress);
+            Assert.Equal(1, record.Roles.Length);
+            Assert.Equal("d", record.Roles[0]);
+            Assert.Equal(1, record.Credentials.Length);
+            Assert.Equal(CredentialTypes.Password.V3, record.Credentials[0].Type);
+            Assert.Null(record.Credentials[0].Value);
+            Assert.Equal(0, record.AffectedCredential.Length);
+            Assert.Equal(1, record.AffectedPolicies.Length);
+            Assert.Equal("A", record.AffectedPolicies[0].Name);
+            Assert.Equal("B", record.AffectedPolicies[0].Subscription);
+            Assert.Equal("C", record.AffectedPolicies[0].Value);
+        }
+
+        [Fact]
         public void GetPath_ReturnsLowerCasedUserName()
         {
             var user = new User()

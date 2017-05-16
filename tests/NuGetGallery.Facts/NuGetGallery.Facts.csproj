@@ -414,6 +414,7 @@
     <Compile Include="Security\SecurityPolicyServiceFacts.cs" />
     <Compile Include="Security\SecurePushSubscriptionFacts.cs" />
     <Compile Include="Security\TestSecurityPolicyService.cs" />
+    <Compile Include="Security\TestUserSecurityPolicyData.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicyFacts.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicyFacts.cs" />
     <Compile Include="Services\PagerDutyClientFacts.cs" />

@@ -37,8 +37,10 @@ namespace NuGetGallery.Security
         /// Evaluate any security policies that may apply to the current context.
         /// </summary>
         /// <param name="action">Security policy action.</param>
-        /// <param name="context">Authorization context.</param>
-        /// <returns>Policy result indicating success or failure.</returns>
-        SecurityPolicyResult Evaluate(SecurityPolicyAction action, HttpContextBase httpContext);
+        /// <param name="httpContext">Http context.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="SecurityPolicyResult" />
+        /// instance.</returns>
+        Task<SecurityPolicyResult> EvaluateAsync(SecurityPolicyAction action, HttpContextBase httpContext);
     }
 }

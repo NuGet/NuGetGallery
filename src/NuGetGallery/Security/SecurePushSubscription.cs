@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
+using NuGetGallery.Auditing;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Security
 {
@@ -17,6 +20,9 @@ namespace NuGetGallery.Security
         public const string Name = "SecurePush";
         private const string MinClientVersion = "4.1.0";
         private const int PushKeysExpirationInDays = 30;
+
+        private IAuditingService _auditing;
+        private IDiagnosticsSource _diagnostics;
 
         /// <summary>
         /// Subscription name.
@@ -41,21 +47,25 @@ namespace NuGetGallery.Security
             }
         }
 
-        public void OnSubscribe(User user)
+        public SecurePushSubscription(IAuditingService auditing, IDiagnosticsService diagnostics)
         {
-            SetPushApiKeysToExpire(user);
-        }
-        
-        public void OnUnsubscribe(User user)
-        {
+            _auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
+
+            if (diagnostics == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostics));
+            }
+
+            _diagnostics = diagnostics.SafeGetSource(nameof(SecurePushSubscription));
         }
 
         /// <summary>
-        /// Expire API keys with push capability on secure push enrollment.
+        /// On subscribe, set API keys with push capability to expire in <see cref="PushKeysExpirationInDays" /> days.
         /// </summary>
-        private static void SetPushApiKeysToExpire(User user)
+        /// <param name="context"></param>
+        public async Task OnSubscribeAsync(UserSecurityPolicySubscriptionContext context)
         {
-            var pushKeys = user.Credentials.Where(c =>
+            var pushKeys = context.User.Credentials.Where(c =>
                 CredentialTypes.IsApiKey(c.Type) &&
                 (
                     c.Scopes.Count == 0 ||
@@ -65,14 +75,26 @@ namespace NuGetGallery.Security
                         ))
                 );
 
+            var expires = DateTime.UtcNow.AddDays(PushKeysExpirationInDays);
+            var expireTasks = new List<Task>();
             foreach (var key in pushKeys)
             {
-                var expires = DateTime.UtcNow.AddDays(PushKeysExpirationInDays);
                 if (!key.Expires.HasValue || key.Expires > expires)
                 {
+                    expireTasks.Add(_auditing.SaveAuditRecordAsync(
+                        new UserAuditRecord(context.User, AuditedUserAction.ExpireCredential, key)));
+
                     key.Expires = expires;
                 }
             }
+            await Task.WhenAll(expireTasks);
+            
+            _diagnostics.Information($"Expiring {pushKeys.Count()} keys with push capability for user '{context.User.Username}'.");
+        }
+        
+        public Task OnUnsubscribeAsync(UserSecurityPolicySubscriptionContext context)
+        {
+            return Task.CompletedTask;
         }
     }
 }
