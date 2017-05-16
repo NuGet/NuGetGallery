@@ -326,7 +326,14 @@
                     <li>
                         <i class="fa-li fa fa-globe"></i>
                         <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package" rel="nofollow">
-                            Project Site
+                            @if(Model.ProjectUrl.Length <= 36)
+                            {
+                                @Model.ProjectUrl
+                            }
+                            else
+                            {
+                                @:Project Site
+                            }
                         </a>
                     </li>
                 }
@@ -334,7 +341,16 @@
                 {
                     <li>
                         <i class="fa-li fa fa-file-o"></i>
-                        <a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">License</a>
+                        <a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">
+                            @if(Model.LicenseNames.AnySafe())
+                            {
+                                @(string.Join(", ", Model.LicenseNames))
+                            }
+                            else
+                            {
+                                @:License Info
+                            }
+                        </a>
                     </li>
                 }
                 <li>
@@ -391,6 +407,10 @@
                     </li>
                 }
             </ul>
+            @if (Model.LicenseNames.AnySafe())
+            {
+                <p>License info provided by <a href="http://sonatype.com/">Sonatype</a>.</p>
+            }
 
             <h2>Statistics</h2>
             <ul class="fa-ul">
