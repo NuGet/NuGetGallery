@@ -31,14 +31,13 @@
 
 <div class="container main-container package-details">
     <div class="row">
-        <div class="col-md-1 col-md-icon">
+        <div class="col-md-1">
             <h3>
-                <img class="logo" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon.png")';"
-                     height="96" width="96"
+                <img class="img-responsive" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon.png")';"
                      src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
             </h3>
         </div>
-        <div class="col-md-8 col-md-main packages-details-main">
+        <div class="col-md-8 packages-details-main">
             <h1 title="@Model.Title">
                 @Model.Title.Abbreviate(40)
                 <small>@Model.Version</small>
@@ -334,7 +333,7 @@
                 </button>
             }
         </div>
-        <div class="col-md-3 col-md-info packages-details-info">
+        <div class="col-md-3 packages-details-info">
             <h2>Info</h2>
             <ul class="fa-ul">
                 <li>
@@ -346,7 +345,7 @@
                     <li>
                         <i class="fa-li fa fa-globe"></i>
                         <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package" rel="nofollow">
-                            @if(Model.ProjectUrl.Length <= 36)
+                            @if(Model.ProjectUrl.Length <= 28)
                             {
                                 @Model.ProjectUrl
                             }
