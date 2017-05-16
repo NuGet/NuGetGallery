@@ -22,6 +22,16 @@
     color: #666;
   }
 
+  .no-border {
+    border: 0;
+  }
+
+  #show-hidden-versions {
+    &:hover, &:focus {
+      text-decoration: none;
+    }
+  }
+
   .install-tabs {
     font-size: 0.8em;
 
@@ -63,13 +73,14 @@
           content: "PM> ";
         }
       }
+
       .copy-button {
         display: table-cell;
       }
     }
   }
 
-  .packages-details-info {    
+  .packages-details-info {
     ul {
       margin-left: 25px;
     }

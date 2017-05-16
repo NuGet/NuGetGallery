@@ -1,4 +1,6 @@
 $(function () {
+    'use strict';
+
     function parseNumber(unparsedValue) {
         unparsedValue = ('' + unparsedValue).replace(/,/g, '');
         var parsedValue = parseInt(unparsedValue);

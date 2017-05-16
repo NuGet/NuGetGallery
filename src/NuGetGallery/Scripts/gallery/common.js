@@ -1,5 +1,7 @@
 // Initialize window.nuget (common logic usable across all pages).
 (function () {
+    'use strict';
+
     var nuget = {};
 
     function detectIE() {

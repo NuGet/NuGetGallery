@@ -2145,6 +2145,7 @@
     <PreBuildEvent>
       copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
       copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap-theme.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
-    </PreBuildEvent>
+      copy "$(ProjectDir)..\Bootstrap\dist\js\bootstrap.js" "$(ProjectDir)Scripts\gallery" &gt;NUL
+</PreBuildEvent>
   </PropertyGroup>
 </Project>

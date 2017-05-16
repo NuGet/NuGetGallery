@@ -172,6 +172,16 @@ body {
 .package-details .dependency-group li span {
   color: #666;
 }
+.package-details .no-border {
+  border: 0;
+}
+.package-details #show-hidden-versions {
+  padding: 0;
+}
+.package-details #show-hidden-versions:hover,
+.package-details #show-hidden-versions:focus {
+  text-decoration: none;
+}
 .package-details .install-tabs {
   font-size: .8em;
 }

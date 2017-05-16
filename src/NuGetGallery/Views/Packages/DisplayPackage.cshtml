@@ -258,61 +258,81 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var packageVersion in Model.PackageVersions)
+                @{var rowCount = 0;}
+                @foreach (var packageVersion in Model.PackageVersions)
+                {
+                    if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                     {
-                        if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
+                        rowCount++;
+                        if (rowCount == 6)
                         {
-                            <tr>
-                                <td>
-                                    @if (packageVersion.IsCurrent(Model))
-                                    {
-                                        <a href="@Url.Package(packageVersion)">
-                                            @packageVersion.Version
-                                            @if (packageVersion.IsCurrent(Model))
-                                            {
-                                                @:(current version)
-                                    }
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <a href="@Url.Package(packageVersion)">
-                                            @packageVersion.Version
-                                        </a>
-                                    }
-                                </td>
-                                <td>
-                                    @packageVersion.DownloadCount.ToNuGetNumberString()
-                                </td>
-                                <td>
-                                    <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
-                                </td>
-                                @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                            @:</tbody><tbody class="collapse no-border" id="hidden-versions">
+                        }
+
+                        <tr>
+                            <td>
+                                @if (packageVersion.IsCurrent(Model))
                                 {
-                                    <td>
-                                        <a href="@Url.DeletePackage(packageVersion)">@(packageVersion.Listed ? "yes" : "no")</a>
-                                    </td>
+                                    <a href="@Url.Package(packageVersion)">
+                                        @packageVersion.Version
+                                        @if (packageVersion.IsCurrent(Model))
+                                        {
+                                            @:(current version)
                                 }
-                            </tr>
-                        }
-                        else if (packageVersion.Deleted)
-                        {
-                            <tr class="versionTableRow deleted">
-                                <td class="version">
-                                    <s>@packageVersion.Version</s> (deleted)
-                                </td>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Package(packageVersion)">
+                                        @packageVersion.Version
+                                    </a>
+                                }
+                            </td>
+                            <td>
+                                @packageVersion.DownloadCount.ToNuGetNumberString()
+                            </td>
+                            <td>
+                                <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                            </td>
+                            @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                            {
                                 <td>
-                                    @packageVersion.DownloadCount
+                                    <a href="@Url.DeletePackage(packageVersion)">@(packageVersion.Listed ? "yes" : "no")</a>
                                 </td>
-                                <td>
-                                    <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
-                                </td>
-                                <td></td>
-                            </tr>
-                        }
+                            }
+                        </tr>
                     }
+                    else if (packageVersion.Deleted)
+                    {
+                        rowCount++;
+                        if (rowCount == 6)
+                        {
+                            @:</tbody><tbody class="panel-collapse collapse no-border" id="hidden-versions">
+                        }
+
+                        <tr class="versionTableRow deleted">
+                            <td class="version">
+                                <s>@packageVersion.Version</s> (deleted)
+                            </td>
+                            <td>
+                                @packageVersion.DownloadCount
+                            </td>
+                            <td>
+                                <span title="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                            </td>
+                            <td></td>
+                        </tr>
+                    }
+                }
                 </tbody>
             </table>
+            @if (rowCount > 5)            {
+                <button type="button" data-toggle="collapse" class="btn btn-link" data-target="#hidden-versions"
+                        aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
+                    <i class="fa fa-chevron-down"></i>
+                    <span>Show more</span>
+                </button>
+            }
         </div>
         <div class="col-md-3 col-md-info packages-details-info">
             <h2>Info</h2>
