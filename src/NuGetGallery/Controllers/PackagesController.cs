@@ -282,35 +282,13 @@ namespace NuGetGallery
                     return View();
                 }
 
-                var nuspecVersion = nuspec.GetVersion();
-                var existingPackage = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
-                if (existingPackage != null)
+                var package = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspec.GetVersion().ToStringSafe());
+                if (package != null)
                 {
-                    // Determine if the package versions only differ by metadata, 
-                    // and provide the most optimal the user-facing error message.
-                    var existingPackageVersion = new NuGetVersion(existingPackage.Version);
-                    if ((existingPackageVersion.HasMetadata || nuspecVersion.HasMetadata) 
-                        && !string.Equals(existingPackageVersion.Metadata, nuspecVersion.Metadata))
-                    {
-                        ModelState.AddModelError(
-                            string.Empty,
-                            string.Format(
-                                CultureInfo.CurrentCulture, 
-                                Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified, 
-                                existingPackage.PackageRegistration.Id, 
-                                existingPackage.Version));
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(
-                            string.Empty,
-                            string.Format(
-                                CultureInfo.CurrentCulture, 
-                                Strings.PackageExistsAndCannotBeModified, 
-                                existingPackage.PackageRegistration.Id, 
-                                existingPackage.Version));
-                    }
-
+                    ModelState.AddModelError(
+                        string.Empty,
+                        string.Format(
+                            CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
                     return View();
                 }
 
