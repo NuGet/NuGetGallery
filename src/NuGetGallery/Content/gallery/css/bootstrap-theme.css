@@ -3,7 +3,7 @@ html {
   min-height: 100%;
 }
 body {
-  margin-bottom: 350px;
+  margin-bottom: 330px;
 }
 .mt-150 {
   margin-top: 150px;
@@ -67,9 +67,8 @@ body {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 350px;
-  padding-top: 75px;
-  padding-bottom: 75px;
+  height: 330px;
+  padding-top: 60px;
   font-size: .70em;
   color: #e3ebf1;
   background-color: #002440;
