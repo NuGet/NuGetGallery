@@ -206,6 +206,40 @@ namespace NuGetGallery.Controllers
             Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), searchCount);
         }
 
+        [Fact]
+        public async Task SearchCount_FiltersSemVerV2PackageVersionsWhenSemVerLevelLowerThan200_IncludePrerelease()
+        {
+            // Act
+            var searchCount = await GetInt<V2FeedPackage>(
+                async (controller, options) => await controller.SearchCount(
+                    options,
+                    _curatedFeedName,
+                    searchTerm: TestPackageId,
+                    includePrerelease: true,
+                    semVerLevel: "1.0.0"),
+                $"/api/v2/curated-feed/{_curatedFeedName}/Search/$count?searchTerm='{TestPackageId}'&includePrerelease=true&semVerLevel=1.0.0");
+
+            // Assert
+            Assert.Equal(NonSemVer2Packages.Count, searchCount);
+        }
+
+        [Fact]
+        public async Task SearchCount_FiltersSemVerV2PackageVersionsWhenSemVerLevelLowerThan200_ExcludePrerelease()
+        {
+            // Act
+            var searchCount = await GetInt<V2FeedPackage>(
+                async (controller, options) => await controller.SearchCount(
+                    options,
+                    _curatedFeedName,
+                    searchTerm: TestPackageId,
+                    includePrerelease: false,
+                    semVerLevel: "1.0.0"),
+                $"/api/v2/curated-feed/{_curatedFeedName}/Search/$count?searchTerm='{TestPackageId}'&semVerLevel=1.0.0");
+
+            // Assert
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), searchCount);
+        }
+
         [Theory]
         [InlineData("2.0.0")]
         [InlineData("2.0.1")]

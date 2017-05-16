@@ -31,6 +31,9 @@ namespace NuGetGallery.OData.QueryFilter
             Top = 1 << 8
         }
 
+        internal const string IsLatestVersion = "IsLatestVersion";
+        internal const string IsAbsoluteLatestVersion = "IsAbsoluteLatestVersion";
+
         private static readonly string ResourcesNamespace = "NuGetGallery.OData.QueryAllowed.Data";
         private HashSet<ODataOperators> _allowedOperatorPatterns = null;
 

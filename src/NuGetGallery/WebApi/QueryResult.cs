@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Data.OData;
-using Microsoft.Data.OData.Query;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -15,19 +13,12 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
+using Microsoft.Data.OData;
+using Microsoft.Data.OData.Query;
+using NuGetGallery.OData.QueryFilter;
 
 namespace NuGetGallery.WebApi
 {
-    public static class QueryResultDefaults
-    {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2211:NonConstantFieldsShouldNotBeVisible")]
-        public static ODataQuerySettings DefaultQuerySettings = new ODataQuerySettings()
-        {
-            HandleNullPropagation = HandleNullPropagationOption.False,
-            EnsureStableOrdering = true,
-            EnableConstantParameterization = false
-        };
-    }
 
     public class QueryResult<TModel>
         : IHttpActionResult
@@ -127,8 +118,8 @@ namespace NuGetGallery.WebApi
                 if (queryOptions.Filter != null)
                 {
                     if (_semVerLevelKey != SemVerLevelKey.Unknown
-                        && (string.Equals(queryOptions.Filter.RawValue, "IsLatestVersion", StringComparison.OrdinalIgnoreCase)
-                            || string.Equals(queryOptions.Filter.RawValue, "IsAbsoluteLatestVersion", StringComparison.OrdinalIgnoreCase)))
+                        && (string.Equals(queryOptions.Filter.RawValue, ODataQueryFilter.IsLatestVersion, StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(queryOptions.Filter.RawValue, ODataQueryFilter.IsAbsoluteLatestVersion, StringComparison.OrdinalIgnoreCase)))
                     {
                         // The client uses IsLatestVersion and IsAbsoluteLatestVersion by default,
                         // and just appends semVerLevel=2.0.0 to the query string.
