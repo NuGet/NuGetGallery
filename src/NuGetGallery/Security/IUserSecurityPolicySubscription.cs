@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.Security
 {
@@ -24,11 +25,11 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Callback for user subscription.
         /// </summary>
-        void OnSubscribe(User user);
+        Task OnSubscribeAsync(UserSecurityPolicySubscriptionContext context);
 
         /// <summary>
         /// Callback for user unsubscription.
         /// </summary>
-        void OnUnsubscribe(User user);
+        Task OnUnsubscribeAsync(UserSecurityPolicySubscriptionContext context);
     }
 }

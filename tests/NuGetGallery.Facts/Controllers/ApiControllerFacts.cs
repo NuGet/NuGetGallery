@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
+using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
@@ -21,9 +21,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
+using NuGetGallery.Security;
 using Xunit;
-using System.Globalization;
-using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -42,6 +41,7 @@ namespace NuGetGallery
         public Mock<IGalleryConfigurationService> MockConfigurationService { get; private set; }
         public Mock<ITelemetryService> MockTelemetryService { get; private set; }
         public Mock<AuthenticationService> MockAuthenticationService { get; private set; }
+        public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; private set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -57,6 +57,7 @@ namespace NuGetGallery
             IndexingService = (MockIndexingService = new Mock<IIndexingService>()).Object;
             AutoCuratePackage = (MockAutoCuratePackage = new Mock<IAutomaticallyCuratePackageCommand>()).Object;
             AuthenticationService = (MockAuthenticationService = new Mock<AuthenticationService>()).Object;
+            SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
 
             CredentialBuilder = new CredentialBuilder();
 
@@ -89,6 +90,9 @@ namespace NuGetGallery
                     return Task.FromResult(package);
                 });
 
+            MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
+
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
 
@@ -110,18 +114,19 @@ namespace NuGetGallery
 
         public class TheCreatePackageAction
         {
-            [Theory]
-            [InlineData("CreatePackagePost")]
-            [InlineData("CreatePackagePut")]
-            public void CreatePackageMethodHasSecurityPolicyAttribute(string methodName)
+            [Fact]
+            public async Task CreatePackage_Returns400IfSecurityPolicyFails()
             {
-                // Arrange and Act.
-                var method = typeof(ApiController).GetMethod(methodName);
-                var attribute = (ApiAuthorizeAttribute)method.GetCustomAttributes(typeof(ApiAuthorizeAttribute), true).FirstOrDefault();
+                // Arrange
+                var controller = new TestableApiController();
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A")));
+
+                // Act
+                var result = await controller.CreatePackagePut();
 
                 // Assert
-                Assert.NotNull(attribute);
-                Assert.Equal(SecurityPolicyAction.PackagePush, attribute.SecurityPolicyAction);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "A");
             }
 
             [Fact]
@@ -1049,13 +1054,13 @@ namespace NuGetGallery
             }
         }
 
-        public class TheCreatePackageVerificationKeyAction : PackageVerificationKeyContainer
+        public class TheCreatePackageVerificationKeyAsyncAction : PackageVerificationKeyContainer
         {
             [Theory]
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async void CreatePackageKeyReturnsPackageVerificationKey(string scope)
+            public async Task CreatePackageVerificationKeyAsync_ReturnsPackageVerificationKey(string scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package: null);
@@ -1080,25 +1085,28 @@ namespace NuGetGallery
             }
         }
 
-        public class TheVerifyPackageKeyAction : PackageVerificationKeyContainer
+        public class TheVerifyPackageKeyAsyncAction : PackageVerificationKeyContainer
         {
             [Fact]
-            public void VerifyPackageKeyHasSecurityPolicyAttribute()
+            public async Task VerifyPackageKeyAsync_Returns400IfSecurityPolicyFails()
             {
-                // Arrange and Act.
-                var method = typeof(ApiController).GetMethod("VerifyPackageKeyAsync");
-                var attribute = (ApiAuthorizeAttribute)method.GetCustomAttributes(typeof(ApiAuthorizeAttribute), true).FirstOrDefault();
+                // Arrange
+                var controller = SetupController(CredentialTypes.ApiKey.V2, "", package: null);
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A")));
+
+                // Act
+                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
 
                 // Assert
-                Assert.NotNull(attribute);
-                Assert.Equal(SecurityPolicyAction.PackageVerify, attribute.SecurityPolicyAction);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "A");
             }
 
             [Theory]
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns404IfPackageDoesNotExist_ApiKeyV2(string scope)
+            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKeyV2(string scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package: null);
@@ -1120,7 +1128,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns404IfPackageDoesNotExist_ApiKeyVerifyV1(string scope)
+            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.VerifyV1, scope, package: null);
@@ -1144,7 +1152,7 @@ namespace NuGetGallery
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns403IfUserIsNotAnOwner_ApiKeyV2(string scope)
+            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKeyV2(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1171,7 +1179,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns403IfUserIsNotAnOwner_ApiKeyVerifyV1(string scope)
+            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1203,7 +1211,7 @@ namespace NuGetGallery
             // subject mismatch
             [InlineData("[{\"a\":\"package:push\", \"s\":\"notfoo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"notfoo\"}]")]
-            public async void VerifyPackageKeyReturns403IfScopeDoesNotMatch_ApiKeyV2(string scope)
+            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKeyV2(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1235,7 +1243,7 @@ namespace NuGetGallery
             [InlineData("[{\"a\":\"package:unlist\", \"s\":\"foo\"}]")]
             // subject mismatch
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"notfoo\"}]")]
-            public async void VerifyPackageKeyReturns403IfScopeDoesNotMatch_ApiKeyVerifyV1(string scope)
+            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1264,7 +1272,7 @@ namespace NuGetGallery
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns200_ApiKeyV2(string scope)
+            public async Task VerifyPackageKeyAsync_Returns200IfApiKeyWithPushCapability_ApiKeyV2(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1288,7 +1296,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async void VerifyPackageKeyReturns200_ApiKeyVerifyV1(string scope)
+            public async Task VerifyPackageKeyAsync_Returns200IfPackageVerifyKey_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1308,6 +1316,27 @@ namespace NuGetGallery
 
                 controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 200), Times.Once);
+            }
+
+            [Fact]
+            public async Task VerifyPackageKeyAsync_WritesAuditRecord()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration() { Id = "foo" },
+                    Version = "1.0.0"
+                };
+                var controller = SetupController(CredentialTypes.ApiKey.V2, "", package);
+
+                // Act
+                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
+
+                // Assert
+                Assert.True(controller.AuditingService.WroteRecord<PackageAuditRecord>(ar =>
+                    ar.Action == AuditedPackageAction.Verify
+                    && ar.Id == package.PackageRegistration.Id
+                    && ar.Version == package.Version));
             }
         }
 

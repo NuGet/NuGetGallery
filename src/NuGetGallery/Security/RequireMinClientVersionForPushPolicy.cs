@@ -45,7 +45,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// In case of multiple, select the max of the minimum required client versions.
         /// </summary>
-        private NuGetVersion GetMaxOfMinClientVersions(UserSecurityPolicyContext context)
+        private NuGetVersion GetMaxOfMinClientVersions(UserSecurityPolicyEvaluationContext context)
         {
             var policyStates = context.Policies
                 .Where(p => !string.IsNullOrEmpty(p.Value))
@@ -56,7 +56,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Get the current client version from the request.
         /// </summary>
-        private NuGetVersion GetClientVersion(UserSecurityPolicyContext context)
+        private NuGetVersion GetClientVersion(UserSecurityPolicyEvaluationContext context)
         {
             var clientVersionString = context.HttpContext.Request?.Headers[Constants.ClientVersionHeaderName];
 
@@ -67,7 +67,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Evaluate if this security policy is met.
         /// </summary>
-        public override SecurityPolicyResult Evaluate(UserSecurityPolicyContext context)
+        public override SecurityPolicyResult Evaluate(UserSecurityPolicyEvaluationContext context)
         {
             if (context == null)
             {
