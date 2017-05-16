@@ -85,8 +85,9 @@ body {
   display: none;
 }
 .tag {
-  padding: 2px 5px;
-  line-height: 1.9em;
+  padding: 2px 10px;
+  margin: 0 2px;
+  line-height: 2em;
   background-color: #eff9ff;
 }
 .alert .fa-ul {
