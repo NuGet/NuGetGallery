@@ -58,7 +58,7 @@ body {
   background-color: #004880;
 }
 .main-container {
-  padding-top: 140px;
+  padding-top: 120px;
   padding-bottom: 75px;
 }
 .navbar-logo {
@@ -93,7 +93,7 @@ body {
   margin-left: 24px;
 }
 .alert .fa-li {
-  top: 4px;
+  top: 3px;
   left: -32px;
 }
 .jumbotron {

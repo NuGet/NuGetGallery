@@ -411,18 +411,23 @@
                 @if (!Model.Deleted && (Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     <li>
+                        <i class="fa-li fa fa-pencil-square-o"></i>
                         <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
                     </li>
                     <li>
+                        <i class="fa-li fa fa-users"></i>
                         <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
                     </li>
                     <li>
+                        <i class="fa-li fa fa-trash"></i>
                         <a href="@Url.DeletePackage(Model)" class="delete">Delete package</a>
                     </li>
                 }
+
                 @if (!Model.Deleted && User.IsAdministrator())
                 {
                     <li>
+                        <i class="fa-li fa fa-refresh"></i>
                         <a href="@Url.ReflowPackage(Model)">Reflow package</a>
                     </li>
                 }

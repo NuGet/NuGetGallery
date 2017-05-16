@@ -5030,7 +5030,7 @@ a.thumbnail.active {
   color: #333;
 }
 .alert {
-  padding: 2px 8px;
+  padding: 8px 8px;
   margin: 15px 0;
   border: 1px solid transparent;
   border-radius: 0;
@@ -5051,7 +5051,7 @@ a.thumbnail.active {
 }
 .alert-dismissable,
 .alert-dismissible {
-  padding-right: 2px 8px;
+  padding-right: 8px 8px;
 }
 .alert-dismissable .close,
 .alert-dismissible .close {
