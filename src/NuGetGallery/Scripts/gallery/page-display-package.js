@@ -29,7 +29,7 @@ $(function () {
         window.nuget.copyTextToClipboard(text);
         copyButton.popover('show');
         setTimeout(function () {
-            copyButton.popover('hide');
+            copyButton.popover('destroy');
         }, 1000);
     });
 });

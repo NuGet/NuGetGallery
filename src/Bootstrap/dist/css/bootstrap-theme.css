@@ -54,15 +54,14 @@ body {
   margin-top: 0;
 }
 .search-container {
-  padding: 16px;
-  background-color: #004880;
+  padding: 16px 0;
 }
 .main-container {
   padding-top: 120px;
   padding-bottom: 75px;
 }
 .navbar-logo {
-  margin: 8px 20px 0 8px;
+  margin: 8px 20px 0 0;
 }
 .footer {
   position: absolute;
@@ -161,17 +160,6 @@ body {
   right: 3px;
   float: right;
   width: 144px;
-}
-@media (min-width: 992px) {
-  .package-details .col-md-icon {
-    width: 126px;
-  }
-  .package-details .col-md-main {
-    width: 700px;
-  }
-  .package-details .col-md-info {
-    width: 344px;
-  }
 }
 .package-details h4 > span {
   margin-bottom: 3px;
