@@ -7,6 +7,67 @@
     padding: 5px 0;
   }
 
+  @media (min-width: @screen-md-min) {
+    .col-md-icon {
+      width: (96px + @grid-gutter-width);
+    }
+
+    .col-md-main {
+      width: (670px + @grid-gutter-width);
+    }
+
+    .col-md-info {
+      width: (314px + @grid-gutter-width);
+    }
+  }
+
+  .install-tabs {
+    font-size: 0.8em;
+
+    ul {
+      margin-left: 0;
+    }
+
+    .nav-tabs > li {
+      margin-left: 5px;
+      padding: 0;
+
+      > a {
+        color: #000;
+        background-color: #eaeaea;
+        border: 0;
+        padding: 5px 10px;
+        margin: 0;
+      }
+    }
+
+    .nav-tabs > li.active > a {
+      background-color: #002440;
+      border: 0;
+      color: #fff;
+    }
+
+    .tab-pane {
+      display: table;
+
+      .install-script {
+        padding: 8px 10px;
+        display: table-cell;
+        width: 100%;
+        background-color: #002440;
+        font-family: @font-family-monospace;
+        color: #fff;
+
+        span::before {
+          content: "PM> ";
+        }
+      }
+      .copy-button {
+        display: table-cell;
+      }
+    }
+  }
+
   .fa-li {
     top: 10px;
   }

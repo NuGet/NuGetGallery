@@ -194,6 +194,10 @@ namespace NuGetGallery
             var homeScriptBundle = new ScriptBundle("~/Scripts/gallery/page-home.min.js")
                 .Include("~/Scripts/gallery/page-home.js");
             BundleTable.Bundles.Add(homeScriptBundle);
+
+            var displayPackageScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package.min.js")
+                .Include("~/Scripts/gallery/page-display-package.js");
+            BundleTable.Bundles.Add(displayPackageScriptBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)

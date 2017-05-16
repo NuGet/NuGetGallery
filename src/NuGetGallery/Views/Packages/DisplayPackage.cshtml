@@ -31,104 +31,155 @@
 
 <div class="container main-container package-details">
     <div class="row">
-        <div class="col-md-1">
-            <img class="logo" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon.png")';"
-                 height="84" width="84"
-                 src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
+        <div class="col-md-1 col-md-icon">
+            <h3>
+                <img class="logo" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon.png")';"
+                     height="96" width="96"
+                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
+            </h3>
         </div>
-        <div class="col-md-8">
+        <div class="col-md-8 col-md-main">
             <h1 title="@Model.Title">
                 @Model.Title.Abbreviate(40)
                 <small>@Model.Version</small>
             </h1>
-
-            @if (Model.HasPendingMetadata)
-            {
-                using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
-                {
-                    @Html.AntiForgeryToken()
-                    <fieldset class="form">
-                        <p class="pending-edit-message">
-                            An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
-                            These changes will be applied to the package file and become visible to everybody soon unless you
-                            <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
-                            first.
-                        </p>
-                    </fieldset>
-                }
-            }
-            @if (Model.IsLastEditFailed)
-            {
-                <p class="alert alert-danger">
-                    Your last edit to this package was not successfully applied.
-                    You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
-                    the package and submit the edit again to retry the edit.
-                </p>
-            }
-            @if (Model.Prerelease)
-            {
-                <p class="alert alert-info">
-                    This is a prerelease version of @Model.Title.Abbreviate(65).
-                </p>
-            }
-            @if (Model.LatestStableVersion && Model.HasNewerPrerelease)
-            {
-                <p class="alert alert-info">
-                    There is a newer prerelease version of this package available.<br /> See the version list below for details.
-                </p>
-            }
-
-            @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
-            {
-                <p class="alert alert-warning">
-                    <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.
-                </p>
-            }
-
-            @if (Model.Deleted)
-            {
-                <p class="alert alert-danger">
-                    <strong>This package has been deleted from the gallery.</strong> It is no longer available for install/restore.
-                </p>
-            }
-
-            @if (!Model.Listed && !Model.Deleted)
-            {
-                if ((Model.IsOwner(User) || User.IsAdministrator()))
-                {
-                    <p class="alert alert-warning">
-                        This package is unlisted and hidden from package listings.
-                        You can see the package because you are one of its owners. To list the package again,
-                        <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-                    </p>
-                }
-                else
-                {
-                    <p class="alert alert-warning">
-                        The owner has unlisted this package.
-                        This could mean that the package is deprecated or shouldn't be used anymore.
-                    </p>
-                }
-            }
 
             @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
             {
                 <p>@line</p>
             }
 
-            @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
+            @if (Model.HasPendingMetadata)
             {
-                <h3>Release Notes</h3>
-
-                // Not actually using <pre/> because its better to have wrapping text
-                <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
+                using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="alert alert-info">
+                        <ul class="fa-ul">
+                            <li>
+                                <i class="fa-li fa fa-exclamation-circle"></i>
+                                An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
+                                These changes will be applied to the package file and become visible to everybody soon unless you
+                                <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
+                                first.
+                            </li>
+                        </ul>
+                    </div>
+                }
             }
 
-            @if (!String.IsNullOrEmpty(Model.Copyright))
+            @if (Model.IsLastEditFailed)
             {
-                <h3>Copyright</h3>
-                <p>@Model.Copyright</p>
+                <div class="alert alert-danger">
+                    <ul class="fa-ul">
+                        <li>
+                            <i class="fa-li fa fa-times-circle-o"></i>
+                            Your last edit to this package was not successfully applied.
+                            You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
+                            the package and submit the edit again to retry the edit.
+                        </li>
+                    </ul>
+                </div>
             }
+
+            @if (Model.Prerelease)
+            {
+                <div class="alert alert-info">
+                    <ul class="fa-ul">
+                        <li>
+                            <i class="fa-li fa fa-exclamation-circle"></i>
+                            This is a prerelease version of @Model.Title.Abbreviate(65).
+                        </li>
+                    </ul>
+                </div>
+            }
+
+            @if (Model.LatestStableVersion && Model.HasNewerPrerelease)
+            {
+                <div class="alert alert-info">
+                    <ul class="fa-ul">
+                        <li>
+                            <i class="fa-li fa fa-exclamation-circle"></i>
+                            There is a newer prerelease version of this package available.
+                            <br /> See the version list below for details.
+                        </li>
+                    </ul>
+                </div>
+            }
+
+            @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
+            {
+                <div class="alert alert-warning">
+                    <ul class="fa-ul">
+                        <li>
+                            <i class="fa-li fa fa-exclamation-triangle"></i>
+                            <strong>This package has not been indexed yet.</strong> It will appear in search results
+                            and will be available for install/restore after indexing is completed.
+                        </li>
+                    </ul>
+                </div>
+            }
+
+            @if (Model.Deleted)
+            {
+                <div class="alert alert-danger">
+                    <ul class="fa-ul">
+                        <li>
+                            <i class="fa-li fa fa-times-circle-o"></i>
+                            <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                            for install/restore.
+                        </li>
+                    </ul>
+                </div>
+            }
+
+            @if (!Model.Listed && !Model.Deleted)
+            {
+                if ((Model.IsOwner(User) || User.IsAdministrator()))
+                {
+                    <div class="alert alert-warning">
+                        <ul class="fa-ul">
+                            <li>
+                                <i class="fa-li fa fa-exclamation-triangle"></i>
+                                This package is unlisted and hidden from package listings.
+                                You can see the package because you are one of its owners. To list the package again,
+                                <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <ul class="fa-ul">
+                            <li>
+                                <i class="fa-li fa fa-exclamation-triangle"></i>
+                                The owner has unlisted this package.
+                                This could mean that the package is deprecated or shouldn't be used anymore.
+                            </li>
+                        </ul>
+                    </div>
+                }
+            }
+
+            <div class="install-tabs">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active">
+                        <a href="#package-manager" aria-controls="package-manager" role="tab" data-toggle="tab">Package Manager</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="tab-package-manager">
+                        <span class="install-script">
+                            <span id="install-script-text">Install-Package @Model.Id -Version @Model.Version</span>
+                        </span>
+                        <span class="copy-button">
+                            <button id="install-script-button" class="btn btn-default btn-warning" type="button"
+                                    data-toggle="popover" data-placement="bottom" data-content="Copied."><span class="fa fa-files-o"></span></button>
+                        </span>
+                    </div>
+                </div>
+            </div>
 
             @if (Model.Dependencies.DependencySets == null)
             {
@@ -255,9 +306,13 @@
                 </tbody>
             </table>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 col-md-info">
             <h3>Info</h3>
             <ul class="fa-ul">
+                <li>
+                    <i class="fa-li fa fa-clock-o"></i>
+                    last updated <span title="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
+                </li>
                 @if (PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
                 {
                     <li>
@@ -283,7 +338,7 @@
                     <li>
                         <i class="fa-li fa fa-question"></i>
                         <a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
-                            Contact Support
+                            Contact support
                         </a>
                     </li>
                 }
@@ -311,13 +366,21 @@
 
                 @if (!Model.Deleted && (Model.IsOwner(User) || User.IsAdministrator()))
                 {
-                    <li><a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a></li>
-                    <li><a href="@Url.ManagePackageOwners(Model)">Manage owners</a></li>
-                    <li><a href="@Url.DeletePackage(Model)" class="delete">Delete package</a></li>
+                    <li>
+                        <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
+                    </li>
+                    <li>
+                        <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
+                    </li>
+                    <li>
+                        <a href="@Url.DeletePackage(Model)" class="delete">Delete package</a>
+                    </li>
                 }
                 @if (!Model.Deleted && User.IsAdministrator())
                 {
-                    <li><a href="@Url.ReflowPackage(Model)">Reflow package</a></li>
+                    <li>
+                        <a href="@Url.ReflowPackage(Model)">Reflow package</a>
+                    </li>
                 }
             </ul>
 
@@ -367,10 +430,6 @@
                     @Model.DownloadsPerDay.ToNuGetNumberString() @(Model.DownloadsPerDay == 1 ? "download" : "downloads")
                     per day
                 </li>
-                <li>
-                    <i class="fa-li fa fa-clock-o"></i>
-                    last updated <span title="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
-                </li>
             </ul>
             @if (StatisticsHelper.IsStatisticsPageAvailable)
             {
@@ -399,3 +458,7 @@
         </div>
     </div>
 </div>
+
+@section BottomScripts {
+    @Scripts.Render("~/Scripts/gallery/page-display-package.min.js")
+}

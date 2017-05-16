@@ -57,7 +57,7 @@
                             <form class="col-md-12" action="@Url.PackageList()" method="get">
                                 <div class="input-group">
                                     <input name="q" type="text" class="form-control" id="search"
-                                           placeholder="Search over 619,852 packages..." autocomplete="off"
+                                           placeholder="Search for packages..." autocomplete="off"
                                            value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
                                            @(Request.Url != null && (Request.Url.PathAndQuery == "/" || Request.Url.PathAndQuery == "/packages") ? "autofocus" : string.Empty) />
                                     <span class="input-group-btn">

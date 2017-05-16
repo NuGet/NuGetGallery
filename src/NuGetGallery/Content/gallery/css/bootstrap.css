@@ -1237,7 +1237,7 @@ h2 .small,
 .h2 .small,
 h3 .small,
 .h3 .small {
-  font-size: 65%;
+  font-size: 45%;
 }
 h4,
 .h4,
@@ -1531,7 +1531,7 @@ code,
 kbd,
 pre,
 samp {
-  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
 }
 code {
   padding: 2px 4px;
@@ -5030,7 +5030,8 @@ a.thumbnail.active {
   color: #333;
 }
 .alert {
-  padding: 15px;
+  padding: 2px 8px;
+  margin: 15px 0;
   border: 1px solid transparent;
   border-radius: 0;
 }
@@ -5050,7 +5051,7 @@ a.thumbnail.active {
 }
 .alert-dismissable,
 .alert-dismissible {
-  padding-right: 35px;
+  padding-right: 2px 8px;
 }
 .alert-dismissable .close,
 .alert-dismissible .close {
@@ -5071,37 +5072,37 @@ a.thumbnail.active {
   color: #2b542c;
 }
 .alert-info {
-  color: #31708f;
-  background-color: #d9edf7;
-  border-color: #bce8f1;
+  color: #000;
+  background-color: #f4f4f4;
+  border-color: #f4f4f4;
 }
 .alert-info hr {
-  border-top-color: #a6e1ec;
+  border-top-color: #e7e7e7;
 }
 .alert-info .alert-link {
-  color: #245269;
+  color: #000;
 }
 .alert-warning {
-  color: #8a6d3b;
-  background-color: #fcf8e3;
-  border-color: #faebcc;
+  color: #000;
+  background-color: #fff4ce;
+  border-color: #fff4ce;
 }
 .alert-warning hr {
-  border-top-color: #f7e1b5;
+  border-top-color: #ffeeb4;
 }
 .alert-warning .alert-link {
-  color: #66512c;
+  color: #000;
 }
 .alert-danger {
-  color: #a94442;
-  background-color: #f2dede;
-  border-color: #ebccd1;
+  color: #000;
+  background-color: #fde7e9;
+  border-color: #fde7e9;
 }
 .alert-danger hr {
-  border-top-color: #e4b9c0;
+  border-top-color: #fbcfd3;
 }
 .alert-danger .alert-link {
-  color: #843534;
+  color: #000;
 }
 @-webkit-keyframes progress-bar-stripes {
   from {
@@ -6114,7 +6115,7 @@ button.close {
   max-width: 276px;
   padding: 1px;
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 16px;
+  font-size: 12.8px;
   font-style: normal;
   font-weight: normal;
   line-height: 1.42857143;
@@ -6134,8 +6135,6 @@ button.close {
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, .2);
   border-radius: 0;
-  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
-          box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
 
   line-break: auto;
 }
@@ -6160,7 +6159,7 @@ button.close {
   border-radius: -1px -1px 0 0;
 }
 .popover-content {
-  padding: 9px 14px;
+  padding: 5px 7px;
 }
 .popover > .arrow,
 .popover > .arrow:after {

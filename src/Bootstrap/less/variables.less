@@ -45,7 +45,7 @@
 @font-family-sans-serif:  'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
 @font-family-serif:       Georgia, "Times New Roman", Times, serif;
 //** Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`.
-@font-family-monospace:   Menlo, Monaco, Consolas, "Courier New", monospace;
+@font-family-monospace:   Consolas, Menlo, Monaco, "Courier New", monospace;
 @font-family-base:        @font-family-sans-serif;
 
 @font-size-base:          16px;
@@ -620,7 +620,8 @@
 //
 //## Define alert colors, border radius, and padding.
 
-@alert-padding:               15px;
+@alert-padding:               2px 8px;
+@alert-margin:                15px 0;
 @alert-border-radius:         @border-radius-base;
 @alert-link-font-weight:      bold;
 
@@ -628,17 +629,17 @@
 @alert-success-text:          @state-success-text;
 @alert-success-border:        @state-success-border;
 
-@alert-info-bg:               @state-info-bg;
-@alert-info-text:             @state-info-text;
-@alert-info-border:           @state-info-border;
+@alert-info-bg:               #f4f4f4;
+@alert-info-text:             #000;
+@alert-info-border:           #f4f4f4;
 
-@alert-warning-bg:            @state-warning-bg;
-@alert-warning-text:          @state-warning-text;
-@alert-warning-border:        @state-warning-border;
+@alert-warning-bg:            #fff4ce;
+@alert-warning-text:          #000;
+@alert-warning-border:        #fff4ce;
 
-@alert-danger-bg:             @state-danger-bg;
-@alert-danger-text:           @state-danger-text;
-@alert-danger-border:         @state-danger-border;
+@alert-danger-bg:             #fde7e9;
+@alert-danger-text:           #000;
+@alert-danger-border:         #fde7e9;
 
 
 //== Progress bars

@@ -58,7 +58,7 @@ body {
   background-color: #004880;
 }
 .main-container {
-  padding-top: 160px;
+  padding-top: 140px;
   padding-bottom: 75px;
 }
 .navbar-logo {
@@ -81,9 +81,6 @@ body {
 .borderless > tbody > tr > td {
   border: none;
 }
-h1 {
-  margin-top: 0;
-}
 .jumbotron {
   padding-top: 110px;
 }
@@ -91,6 +88,7 @@ h1 {
   margin: 32px;
 }
 .what-is-nuget {
+  padding-bottom: 75px;
   font-size: 1.15em;
 }
 .triangle:after {
@@ -153,6 +151,56 @@ h1 {
 }
 .package-details li {
   padding: 5px 0;
+}
+@media (min-width: 992px) {
+  .package-details .col-md-icon {
+    width: 126px;
+  }
+  .package-details .col-md-main {
+    width: 700px;
+  }
+  .package-details .col-md-info {
+    width: 344px;
+  }
+}
+.package-details .install-tabs {
+  font-size: .8em;
+}
+.package-details .install-tabs ul {
+  margin-left: 0;
+}
+.package-details .install-tabs .nav-tabs > li {
+  padding: 0;
+  margin-left: 5px;
+}
+.package-details .install-tabs .nav-tabs > li > a {
+  padding: 5px 10px;
+  margin: 0;
+  color: #000;
+  background-color: #eaeaea;
+  border: 0;
+}
+.package-details .install-tabs .nav-tabs > li.active > a {
+  color: #fff;
+  background-color: #002440;
+  border: 0;
+}
+.package-details .install-tabs .tab-pane {
+  display: table;
+}
+.package-details .install-tabs .tab-pane .install-script {
+  display: table-cell;
+  width: 100%;
+  padding: 8px 10px;
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  color: #fff;
+  background-color: #002440;
+}
+.package-details .install-tabs .tab-pane .install-script span::before {
+  content: "PM> ";
+}
+.package-details .install-tabs .tab-pane .copy-button {
+  display: table-cell;
 }
 .package-details .fa-li {
   top: 10px;
