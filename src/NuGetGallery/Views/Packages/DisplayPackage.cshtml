@@ -363,7 +363,7 @@
                         <a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">
                             @if(Model.LicenseNames.AnySafe())
                             {
-                                @(string.Join(", ", Model.LicenseNames))
+                                @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
                             }
                             else
                             {
