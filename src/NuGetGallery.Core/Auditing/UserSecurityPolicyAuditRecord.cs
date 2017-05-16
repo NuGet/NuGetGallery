@@ -9,7 +9,7 @@ using NuGetGallery.Auditing.AuditedEntities;
 namespace NuGetGallery.Auditing
 {
     /// <summary>
-    /// Audit record for failed user security policy evaluations.
+    /// Audit record for user security policy evaluations.
     /// </summary>
     public class UserSecurityPolicyAuditRecord : AuditRecord<AuditedSecurityPolicyAction>
     {

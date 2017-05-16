@@ -203,13 +203,11 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<SecurityPolicyService>()
-                .AsSelf()
                 .As<ISecurityPolicyService>()
-                .InstancePerLifetimeScope();
+                .SingleInstance();
 
             builder.RegisterType<SecurePushSubscription>()
-                .AsSelf()
-                .InstancePerLifetimeScope();
+                .SingleInstance();
 
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>

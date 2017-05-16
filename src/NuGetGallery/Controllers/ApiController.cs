@@ -270,7 +270,7 @@ namespace NuGetGallery
 
             // Write an audit record
             await AuditingService.SaveAuditRecordAsync(
-                new PackageAuditRecord(package, AuditedPackageAction.Verify, "Verified via API."));
+                new PackageAuditRecord(package, AuditedPackageAction.Verify));
 
             if (!package.IsOwner(user))
             {

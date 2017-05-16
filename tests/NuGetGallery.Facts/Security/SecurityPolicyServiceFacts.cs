@@ -10,7 +10,6 @@ using System.Web;
 using Moq;
 using NuGetGallery.Auditing;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Filters;
 using NuGetGallery.Framework;
 using Xunit;
 

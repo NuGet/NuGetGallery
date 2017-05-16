@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Mvc;
-using NuGetGallery.Filters;
 using NuGetGallery.Auditing;
 using NuGetGallery.Diagnostics;
 
@@ -20,9 +18,6 @@ namespace NuGetGallery.Security
     {
         private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers =
             new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
-
-        private static Lazy<IEnumerable<IUserSecurityPolicySubscription>> _userSubscriptions =
-            new Lazy<IEnumerable<IUserSecurityPolicySubscription>>(CreateUserSubscriptions);
         
         protected IEntitiesContext EntitiesContext { get; set; }
 
@@ -30,14 +25,18 @@ namespace NuGetGallery.Security
 
         protected IDiagnosticsSource Diagnostics { get; set; }
 
+        protected SecurePushSubscription SecurePush { get; set; }
+
         protected SecurityPolicyService()
         {
         }
 
-        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics)
+        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics,
+            SecurePushSubscription securePush = null)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
+            SecurePush = securePush;
 
             if (diagnostics == null)
             {
@@ -65,7 +64,7 @@ namespace NuGetGallery.Security
         {
             get
             {
-                return _userSubscriptions.Value;
+                yield return SecurePush;
             }
         }
 
@@ -226,14 +225,6 @@ namespace NuGetGallery.Security
         {
             yield return new RequireMinClientVersionForPushPolicy();
             yield return new RequirePackageVerifyScopePolicy();
-        }
-
-        /// <summary>
-        /// Registration of available user security policy subscriptions.
-        /// </summary>
-        private static IEnumerable<IUserSecurityPolicySubscription> CreateUserSubscriptions()
-        {
-            yield return DependencyResolver.Current.GetService<SecurePushSubscription>();
         }
     }
 }
