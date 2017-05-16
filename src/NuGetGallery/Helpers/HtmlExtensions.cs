@@ -16,37 +16,6 @@ namespace NuGetGallery.Helpers
 {
     public static class HtmlExtensions
     {
-        public static MvcHtmlString AlertInfo<TModel>(this HtmlHelper<TModel> self, Func<MvcHtmlString, HelperResult> htmlContent)
-        {
-            return self.Alert("alert-info", "fa-exclamation-circle", htmlContent);
-        }
-
-        public static MvcHtmlString AlertWarning<TModel>(this HtmlHelper<TModel> self, Func<MvcHtmlString, HelperResult> htmlContent)
-        {
-            return self.Alert("alert-warning", "fa-exclamation-triangle", htmlContent);
-        }
-
-        public static MvcHtmlString AlertDanger<TModel>(this HtmlHelper<TModel> self, Func<MvcHtmlString, HelperResult> htmlContent)
-        {
-            return self.Alert("alert-danger", "fa-times-circle-o", htmlContent);
-        }
-
-        public static MvcHtmlString Alert<TModel>(this HtmlHelper<TModel> self, string alertClass, string icon, Func<MvcHtmlString, HelperResult> htmlContent)
-        {
-            var prefix = new HtmlString($@"
-<div class=""alert {alertClass}"">
-    <ul class=""fa-ul"">
-        <li>
-            <i class=""fa-li fa {icon}""></i>");
-            var content = htmlContent(new MvcHtmlString(string.Empty)).ToHtmlString();
-            var suffix = new HtmlString(@"
-        </li>
-    </ul>
-</div>");
-
-            return new MvcHtmlString(prefix + content + suffix);
-        }
-
         public static MvcHtmlString EnumDropDownListFor<TModel, TEnum>(this HtmlHelper<TModel> self, Expression<Func<TModel, TEnum?>> expression, IEnumerable<TEnum> values, string emptyItemText)
             where TEnum: struct // Can't do ": enum" but this is close
         {
