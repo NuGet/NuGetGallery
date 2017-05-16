@@ -1726,6 +1726,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201705031714183_AddIndexSemVerLevelKey.resx">
       <DependentUpon>201705031714183_AddIndexSemVerLevelKey.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201705041614287_UserSecurityPolicies_SubscriptionColumn.resx">
       <DependentUpon>201705041614287_UserSecurityPolicies_SubscriptionColumn.cs</DependentUpon>
     </EmbeddedResource>
