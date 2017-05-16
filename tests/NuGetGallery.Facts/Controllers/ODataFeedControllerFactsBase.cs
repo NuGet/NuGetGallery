@@ -122,14 +122,15 @@ namespace NuGetGallery.Controllers
                 {
                     PackageRegistration = packageRegistration,
                     Version = "1.0.0.0",
-                    NormalizedVersion = "1.0.0.0",
+                    NormalizedVersion = "1.0.0",
                     SemVerLevelKey = SemVerLevelKey.Unknown
                 },
                 new Package
                 {
                     PackageRegistration = packageRegistration,
                     Version = "1.0.0.0-alpha",
-                    NormalizedVersion = "1.0.0.0-alpha",
+                    NormalizedVersion = "1.0.0-alpha",
+                    IsPrerelease = true,
                     SemVerLevelKey = SemVerLevelKey.Unknown
                 },
                 new Package
@@ -137,20 +138,24 @@ namespace NuGetGallery.Controllers
                     PackageRegistration = packageRegistration,
                     Version = "2.0.0",
                     NormalizedVersion = "2.0.0",
-                    SemVerLevelKey = SemVerLevelKey.Unknown
+                    SemVerLevelKey = SemVerLevelKey.Unknown,
+                    IsLatestStable = true
                 },
                 new Package
                 {
                     PackageRegistration = packageRegistration,
                     Version = "2.0.0-alpha",
                     NormalizedVersion = "2.0.0-alpha",
-                    SemVerLevelKey = SemVerLevelKey.SemVer2
+                    IsPrerelease = true,
+                    SemVerLevelKey = SemVerLevelKey.Unknown,
+                    IsLatest = true
                 },
                 new Package
                 {
                     PackageRegistration = packageRegistration,
                     Version = "2.0.0-alpha.1",
                     NormalizedVersion = "2.0.0-alpha.1",
+                    IsPrerelease = true,
                     SemVerLevelKey = SemVerLevelKey.SemVer2
                 },
                 new Package
@@ -158,7 +163,17 @@ namespace NuGetGallery.Controllers
                     PackageRegistration = packageRegistration,
                     Version = "2.0.0+metadata",
                     NormalizedVersion = "2.0.0",
-                    SemVerLevelKey = SemVerLevelKey.SemVer2
+                    SemVerLevelKey = SemVerLevelKey.SemVer2,
+                    IsLatestStableSemVer2 = true
+                },
+                new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "2.0.1-alpha.1",
+                    NormalizedVersion = "2.0.1-alpha.1",
+                    IsPrerelease = true,
+                    SemVerLevelKey = SemVerLevelKey.SemVer2,
+                    IsLatestSemVer2 = true
                 }
             };
 
