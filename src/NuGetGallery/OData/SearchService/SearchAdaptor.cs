@@ -12,6 +12,7 @@ using System.Web.Http.OData.Query;
 using System.Web.Routing;
 using NuGet.Services.Search.Models;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.OData.QueryInterceptors;
 using QueryInterceptor;
 
@@ -209,7 +210,9 @@ namespace NuGetGallery.OData
             string filter;
             if (queryTerms.TryGetValue("$filter", out filter))
             {
-                if (!ignoreLatestVersionFilter && !(filter.Equals("IsLatestVersion", StringComparison.Ordinal) || filter.Equals("IsAbsoluteLatestVersion", StringComparison.Ordinal)))
+                if (!ignoreLatestVersionFilter 
+                    && !(filter.Equals(ODataQueryFilter.IsLatestVersion, StringComparison.Ordinal) 
+                        || filter.Equals(ODataQueryFilter.IsAbsoluteLatestVersion, StringComparison.Ordinal)))
                 {
                     searchFilter = null;
                     return false;

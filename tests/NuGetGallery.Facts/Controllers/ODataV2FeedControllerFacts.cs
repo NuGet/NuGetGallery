@@ -48,14 +48,14 @@ namespace NuGetGallery.Controllers
         public async Task GetCount_FiltersSemVerV2PackageVersionsByDefault()
         {
             // Act
-            var count =  await GetInt<V2FeedPackage>(
+            var count = await GetInt<V2FeedPackage>(
                 (controller, options) => controller.GetCount(options),
                 "/api/v2/Packages/$count");
 
             // Assert
             Assert.Equal(NonSemVer2Packages.Count, count);
         }
-        
+
         [Theory]
         [InlineData("2.0.0")]
         [InlineData("2.0.1")]
@@ -103,18 +103,117 @@ namespace NuGetGallery.Controllers
         }
 
         [Fact]
-        public async Task Search_FiltersSemVerV2PackageVersionsByDefault()
+        public async Task Search_FiltersSemVerV2PackageVersionsByDefault_IncludePrerelease()
         {
             // Act
             var resultSet = await GetCollection<V2FeedPackage>(
-                async (controller, options) => await controller.Search(options, searchTerm: TestPackageId),
-                $"/api/v2/Search?searchTerm='{TestPackageId}'");
+                async (controller, options) => await controller.Search(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: true),
+                $"/api/v2/Search?searchTerm='{TestPackageId}'&includePrerelease=true");
 
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
             Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
         }
-        
+
+        [Fact]
+        public async Task Search_FiltersSemVerV2PackageVersionsByDefault_ExcludePrerelease()
+        {
+            // Act
+            var resultSet = await GetCollection<V2FeedPackage>(
+                async (controller, options) => await controller.Search(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: false),
+                $"/api/v2/Search?searchTerm='{TestPackageId}'&includePrerelease=false");
+
+            // Assert
+            AssertSemVer2PackagesFilteredFromResult(resultSet);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
+        }
+
+        [Fact]
+        public async Task SearchIsAbsoluteLatestVersion_ReturnsLatestSemVer2_WhenSemVerLevel200()
+        {
+            // Act
+            var resultSet = await GetCollection<V2FeedPackage>(
+                async (controller, options) => await controller.Search(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: true,
+                    semVerLevel: SemVerLevelKey.SemVerLevel2),
+                $"/api/v2/Search?$filter=IsAbsoluteLatestVersion&searchTerm='{TestPackageId}'&includePrerelease=true&semVerLevel=2.0.0");
+
+            // Assert
+            Assert.Equal(SemVer2Packages.Single(p => p.IsLatestSemVer2).Version, resultSet.Single().Version);
+        }
+
+        [Fact]
+        public async Task SearchIsAbsoluteLatestVersion_ReturnsLatest_WhenHigherPrereleaseAvailableAndIncludePrereleaseTrueAndSemVerLevelUndefined()
+        {
+            // Act
+            var resultSet = await GetCollection<V2FeedPackage>(
+                async (controller, options) => await controller.Search(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: true,
+                    semVerLevel: null),
+                $"/api/v2/Search?$filter=IsAbsoluteLatestVersion&searchTerm='{TestPackageId}'&includePrerelease=true");
+
+            // Assert
+            Assert.Equal(NonSemVer2Packages.Single(p => p.IsLatest).Version, resultSet.Single().Version);
+        }
+
+        [Fact]
+        public async Task SearchIsLatestVersion_ReturnsLatestStableSemVer2_WhenSemVerLevel200()
+        {
+            // Act
+            var resultSet = await GetCollection<V2FeedPackage>(
+                async (controller, options) => await controller.Search(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: true,
+                    semVerLevel: SemVerLevelKey.SemVerLevel2),
+                $"/api/v2/Search?$filter=IsLatestVersion&searchTerm='{TestPackageId}'&includePrerelease=true&semVerLevel=2.0.0");
+
+            // Assert
+            Assert.Equal(SemVer2Packages.Single(p => p.IsLatestStableSemVer2).Version, resultSet.Single().Version);
+        }
+
+        [Fact]
+        public async Task SearchIsLatestVersion_ReturnsLatestStable_WhenIncludePrereleaseFalseAndSemVerLevelUndefined()
+        {
+            // Act
+            var resultSet = await GetCollection<V2FeedPackage>(
+                async (controller, options) => await controller.Search(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: false,
+                    semVerLevel: null),
+                $"/api/v2/Search?$filter=IsLatestVersion&searchTerm='{TestPackageId}'");
+
+            // Assert
+            Assert.Equal(NonSemVer2Packages.Single(p => p.IsLatestStable).Version, resultSet.Single().Version);
+        }
+
+        [Fact]
+        public async Task SearchIsLatestVersion_ReturnsLatestStable_WhenIncludePrereleaseFalseAndSemVerLevel100()
+        {
+            // Act
+            var resultSet = await GetCollection<V2FeedPackage>(
+                async (controller, options) => await controller.Search(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: false,
+                    semVerLevel: "1.0.0"),
+                $"/api/v2/Search?$filter=IsLatestVersion&searchTerm='{TestPackageId}'&semVerLevel=1.0.0");
+
+            // Assert
+            Assert.Equal(NonSemVer2Packages.Single(p => p.IsLatestStable).Version, resultSet.Single().Version);
+        }
+
         [Theory]
         [InlineData("2.0.0")]
         [InlineData("2.0.1")]
@@ -124,8 +223,12 @@ namespace NuGetGallery.Controllers
         {
             // Act
             var resultSet = await GetCollection<V2FeedPackage>(
-                (controller, options) => controller.Search(options, searchTerm: TestPackageId, semVerLevel: semVerLevel),
-                $"/api/v2/Search?searchTerm='{TestPackageId}'?semVerLevel={semVerLevel}");
+                (controller, options) => controller.Search(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: true,
+                    semVerLevel: semVerLevel),
+                $"/api/v2/Search?searchTerm='{TestPackageId}'?includePrerelease=true&semVerLevel={semVerLevel}");
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet);
@@ -137,8 +240,11 @@ namespace NuGetGallery.Controllers
         {
             // Act
             var searchCount = await GetInt<V2FeedPackage>(
-                async (controller, options) => await controller.SearchCount(options, searchTerm: TestPackageId),
-                $"/api/v2/Search/$count?searchTerm='{TestPackageId}'");
+                async (controller, options) => await controller.SearchCount(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: true),
+                $"/api/v2/Search/$count?searchTerm='{TestPackageId}'&includePrerelease=true");
 
             // Assert
             Assert.Equal(NonSemVer2Packages.Count, searchCount);
@@ -153,8 +259,12 @@ namespace NuGetGallery.Controllers
         {
             // Act
             var searchCount = await GetInt<V2FeedPackage>(
-                async (controller, options) => await controller.SearchCount(options, searchTerm: TestPackageId, semVerLevel: semVerLevel),
-                $"/api/v2/Search/$count?searchTerm='{TestPackageId}'&semVerLevel={semVerLevel}");
+                async (controller, options) => await controller.SearchCount(
+                    options,
+                    searchTerm: TestPackageId,
+                    includePrerelease: true,
+                    semVerLevel: semVerLevel),
+                $"/api/v2/Search/$count?searchTerm='{TestPackageId}'&includePrerelease=true&semVerLevel={semVerLevel}");
 
             // Assert
             Assert.Equal(AllPackages.Count(), searchCount);
