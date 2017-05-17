@@ -48,7 +48,7 @@ namespace NuGetGallery
 
             if (repositoryBase != null)
             {
-                BranchUri = CombineUri(repositoryBase, "branches/" + branch);
+                BranchUri = CombineUri(repositoryBase, "tree/" + branch);
                 CommitUri = CombineUri(repositoryBase, "commit/" + ShortCommit);
             }
         }
