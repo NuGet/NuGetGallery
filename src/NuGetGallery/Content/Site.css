@@ -156,6 +156,10 @@ a {
         border: none;
     }
 
+    a:focus {
+        outline: auto;
+    }
+
 blockquote {
     color: #666;
     font-style: italic;
@@ -238,10 +242,6 @@ th {
         font-weight: 500;
         padding: 5px;
     }
-
-:focus {
-    outline: #ff9600 solid 2px;
-}
 
 /* Logo */
 
@@ -987,6 +987,12 @@ fieldset.form {
         border-left: none;
     }
 
+        .form-field input[type="checkbox"]:focus,
+        .form-field input[type="radio"]:focus,
+        .form-field input[type="file"]:focus {
+            outline: auto !important;
+        }
+
     .form-field input[type="url"] {
         width: 100%;
     }
@@ -1142,8 +1148,8 @@ a.btn {
         text-decoration: underline;
     }
 
-    .btn.btn-veryflat:not(:focus) {
-        outline: none;
+    .btn.btn-veryflat:focus {
+        outline: auto;
     }
 
 a:hover.btn {
@@ -1191,6 +1197,10 @@ button, input[type="submit"], .btn {
 .form img {
     display: block;
     margin: 15px 0;
+}
+
+.form input[type="submit"]:focus {
+    outline: auto;
 }
 
 .validation-summary-errors,
@@ -1277,7 +1287,7 @@ button, input[type="submit"], .btn {
 }
 
     .btn.btn-big:focus {
-        outline: #ff9600 solid 2px;
+        outline: auto;
     }
 
 .verticalSeparator {
