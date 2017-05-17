@@ -89,7 +89,7 @@ namespace NuGetGallery
             {
                 // Put a middleware at the top of the stack to force the user over to SSL
                 // if authenticated.
-                app.UseForceSslWhenAuthenticated(config.Current.SSLPort);
+                app.UseForceSsl(config.Current.SSLPort);
             }
 
             // Get the local user auth provider, if present and attach it first

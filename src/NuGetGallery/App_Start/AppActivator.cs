@@ -194,9 +194,6 @@ namespace NuGetGallery
             GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
-            var requireSslFilter = new Filters.RequireSslAttribute();
-            requireSslFilter.Configuration = configuration;
-            GlobalFilters.Filters.Add(requireSslFilter);
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
