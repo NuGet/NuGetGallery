@@ -18,7 +18,8 @@ namespace NuGetGallery.Auditing
                 "List",
                 "SoftDelete",
                 "UndoEdit",
-                "Unlist"
+                "Unlist",
+                "Verify"
             };
 
             Verify(typeof(AuditedPackageAction), expectedNames);

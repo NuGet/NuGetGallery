@@ -453,6 +453,17 @@ namespace NuGetGallery
             return user;
         }
 
+        /// <summary>
+        /// Get the current API key credential, if available.
+        /// </summary>
+        public static Credential GetCurrentApiKeyCredential(this User user, IIdentity identity)
+        {
+            var claimsIdentity = identity as ClaimsIdentity;
+            var apiKey = claimsIdentity.GetClaimOrDefault(NuGetClaims.ApiKey);
+
+            return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
+        }
+
         private static User LoadUser(IOwinContext context)
         {
             var principal = context.Authentication.User;

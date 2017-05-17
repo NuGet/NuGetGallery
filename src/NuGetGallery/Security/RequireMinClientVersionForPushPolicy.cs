@@ -31,9 +31,21 @@ namespace NuGetGallery.Security
         }
 
         /// <summary>
+        /// Create a user security policy that requires a minimum client version.
+        /// </summary>
+        public static UserSecurityPolicy CreatePolicy(string subscription, NuGetVersion minClientVersion)
+        {
+            var value = JsonConvert.SerializeObject(new State() {
+                MinClientVersion = minClientVersion
+            });
+
+            return new UserSecurityPolicy(PolicyName, subscription, value);
+        }
+
+        /// <summary>
         /// In case of multiple, select the max of the minimum required client versions.
         /// </summary>
-        private NuGetVersion GetMaxOfMinClientVersions(UserSecurityPolicyContext context)
+        private NuGetVersion GetMaxOfMinClientVersions(UserSecurityPolicyEvaluationContext context)
         {
             var policyStates = context.Policies
                 .Where(p => !string.IsNullOrEmpty(p.Value))
@@ -44,7 +56,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Get the current client version from the request.
         /// </summary>
-        private NuGetVersion GetClientVersion(UserSecurityPolicyContext context)
+        private NuGetVersion GetClientVersion(UserSecurityPolicyEvaluationContext context)
         {
             var clientVersionString = context.HttpContext.Request?.Headers[Constants.ClientVersionHeaderName];
 
@@ -52,7 +64,10 @@ namespace NuGetGallery.Security
             return NuGetVersion.TryParse(clientVersionString, out clientVersion) ? clientVersion : null;
         }
         
-        public override SecurityPolicyResult Evaluate(UserSecurityPolicyContext context)
+        /// <summary>
+        /// Evaluate if this security policy is met.
+        /// </summary>
+        public override SecurityPolicyResult Evaluate(UserSecurityPolicyEvaluationContext context)
         {
             if (context == null)
             {

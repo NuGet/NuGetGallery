@@ -26,6 +26,6 @@ namespace NuGetGallery.Security
             Action = action;
         }
 
-        public abstract SecurityPolicyResult Evaluate(UserSecurityPolicyContext context);
+        public abstract SecurityPolicyResult Evaluate(UserSecurityPolicyEvaluationContext context);
     }
 }
