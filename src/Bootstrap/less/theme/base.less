@@ -70,18 +70,32 @@ body {
   margin: 0 2px;
 }
 
-.alert {
-  .fa-ul {
-    margin-left: 24px;
+.banner {
+  padding: 120px 0 10px 0;
+  font-size: 1.25em;
+
+  &.no-search-bar {
+    padding: 52px 0 10px 0;
   }
 
-  .fa-li {
-    left: -32px;
-    top: 3px;
+  &.banner-warning {
+    background: yellow;
   }
 }
 
-.banner-warning {
-  background: yellow;
-  padding: 10px 0;
+.no-banner {
+  margin-top: 110px;
+}
+
+.ms-Icon-ul {
+  margin-left: 24px;
+
+  li {
+    position: relative;
+    
+    i.ms-Icon {
+      position: absolute;
+      left: -24px;
+    }
+  }
 }

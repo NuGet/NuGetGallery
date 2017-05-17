@@ -87,16 +87,28 @@ body {
   line-height: 2em;
   background-color: #eff9ff;
 }
-.alert .fa-ul {
+.banner {
+  padding: 120px 0 10px 0;
+  font-size: 1.25em;
+}
+.banner.no-search-bar {
+  padding: 52px 0 10px 0;
+}
+.banner.banner-warning {
+  background: yellow;
+}
+.no-banner {
+  margin-top: 110px;
+}
+.ms-Icon-ul {
   margin-left: 24px;
 }
-.alert .fa-li {
-  top: 3px;
-  left: -32px;
+.ms-Icon-ul li {
+  position: relative;
 }
-.banner-warning {
-  padding: 10px 0;
-  background: yellow;
+.ms-Icon-ul li i.ms-Icon {
+  position: absolute;
+  left: -24px;
 }
 .jumbotron {
   padding-top: 110px;
@@ -177,6 +189,9 @@ body {
 .package-details #show-hidden-versions:focus {
   text-decoration: none;
 }
+.package-details .package-details-info .ms-Icon-ul li {
+  margin-bottom: 15px;
+}
 .package-details .install-tabs {
   font-size: .8em;
 }
@@ -215,25 +230,5 @@ body {
 }
 .package-details .install-tabs .tab-pane .copy-button {
   display: table-cell;
-}
-.package-details .packages-details-info ul {
-  margin-left: 25px;
-}
-.package-details .packages-details-info li {
-  padding: 5px 0;
-}
-.package-details .packages-details-info .fa-li {
-  top: 10px;
-}
-.package-details .packages-details-info ul.owner-list {
-  margin-left: 42px;
-}
-.package-details .packages-details-info ul.owner-list li {
-  position: relative;
-  padding: 10px 0;
-}
-.package-details .packages-details-info ul.owner-list img {
-  position: absolute;
-  left: -40px;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */
