@@ -186,7 +186,6 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("GetNuGetExeApi")]
-        [RequireHttps]
         [OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
         public virtual Task<ActionResult> GetNuGetExe()
         {
@@ -205,7 +204,6 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [RequireSsl]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("CreatePackageVerificationKey")]
@@ -230,7 +228,6 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [RequireSsl]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageVerify, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("VerifyPackageKey")]
@@ -298,7 +295,6 @@ namespace NuGetGallery
         }
 
         [HttpPut]
-        [RequireSsl]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
@@ -308,7 +304,6 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [RequireSsl]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
@@ -538,7 +533,6 @@ namespace NuGetGallery
         }
 
         [HttpDelete]
-        [RequireSsl]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("DeletePackageApi")]
@@ -571,7 +565,6 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [RequireSsl]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("PublishPackageApi")]
