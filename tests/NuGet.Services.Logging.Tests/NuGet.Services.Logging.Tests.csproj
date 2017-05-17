@@ -39,6 +39,7 @@
   <ItemGroup>
     <Compile Include="LoggingSetupTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TelemetryResponseCodeProcessorFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Logging\NuGet.Services.Logging.csproj">

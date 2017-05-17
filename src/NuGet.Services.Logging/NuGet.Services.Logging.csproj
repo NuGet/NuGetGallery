@@ -44,6 +44,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="TelemetryContextInitializer.cs" />
+    <Compile Include="TelemetryResponseCodeProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
