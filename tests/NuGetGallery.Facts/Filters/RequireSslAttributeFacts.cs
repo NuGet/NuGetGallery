@@ -53,15 +53,17 @@ namespace NuGetGallery.Filters
         }
 
         [Theory]
-        [InlineData(443, "{0}")]            // Authenticated, always force SSL for this action
-        [InlineData(44300, "{0}:44300")]    // Non-standard Port, Authenticated, always force SSL for this action
-        public void RequireHttpsAttributeRedirectsGetRequest(int port, string hostFormatter)
+        [InlineData("GET", 443, "{0}")]            // Authenticated, always force SSL for this action
+        [InlineData("GET", 44300, "{0}:44300")]    // Non-standard Port, Authenticated, always force SSL for this action
+        [InlineData("HEAD", 443, "{0}")]
+        [InlineData("HEAD", 44300, "{0}:44300")]
+        public void RequireHttpsAttributeRedirectsGetHeadRequest(string method, int port, string hostFormatter)
         {
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
             var mockConfig = new Mock<IAppConfiguration>();
 
-            mockAuthContext.SetupGet(c => c.HttpContext.Request.HttpMethod).Returns("get");
+            mockAuthContext.SetupGet(c => c.HttpContext.Request.HttpMethod).Returns(method);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.Url).Returns(new Uri("http://test.nuget.org/login"));
             mockAuthContext.SetupGet(c => c.HttpContext.Request.RawUrl).Returns("/login");
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsSecureConnection).Returns(false);
@@ -89,7 +91,6 @@ namespace NuGetGallery.Filters
         [InlineData("POST")]
         [InlineData("DELETE")]
         [InlineData("PUT")]
-        [InlineData("HEAD")]
         [InlineData("TRACE")]
         public void RequireHttpsAttributeReturns403IfNonGetRequest(string method)
         {

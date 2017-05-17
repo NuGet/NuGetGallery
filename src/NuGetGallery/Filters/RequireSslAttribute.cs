@@ -31,9 +31,17 @@ namespace NuGetGallery.Filters
 
         private void HandleNonHttpsRequest(AuthorizationContext filterContext)
         {
-            // only redirect for GET requests, otherwise the browser might not propagate the verb and request
+            // only redirect for GET & HEAD requests, otherwise the browser might not propagate the verb and request
             // body correctly.
-            if (!String.Equals(filterContext.HttpContext.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
+            bool redirectableRequest = String.Equals(
+                    filterContext.HttpContext.Request.HttpMethod,
+                    System.Net.Http.HttpMethod.Get.Method,
+                    StringComparison.OrdinalIgnoreCase)
+                || String.Equals(
+                    filterContext.HttpContext.Request.HttpMethod,
+                    System.Net.Http.HttpMethod.Head.Method,
+                    StringComparison.OrdinalIgnoreCase);
+            if (!redirectableRequest)
             {
                 filterContext.Result = new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.SSLRequired);
             }
@@ -46,7 +54,7 @@ namespace NuGetGallery.Filters
                     portString = String.Format(CultureInfo.InvariantCulture, ":{0}", Configuration.SSLPort);
                 }
 
-                string url = "https://" + filterContext.HttpContext.Request.Url.Host + portString + filterContext.HttpContext.Request.RawUrl;
+                string url = $"https://{filterContext.HttpContext.Request.Url.Host}{portString}{filterContext.HttpContext.Request.RawUrl}";
                 filterContext.Result = new RedirectResult(url);
             }
         }
