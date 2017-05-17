@@ -161,6 +161,11 @@
                 }
             }
 
+            @if (!String.IsNullOrEmpty(Model.MinClientVersion))
+            {
+                <p>Requires NuGet @Model.MinClientVersion or higher.</p>
+            }
+
             <div class="install-tabs">
                 <ul class="nav nav-tabs" role="tablist">
                     <li role="presentation" class="active">
