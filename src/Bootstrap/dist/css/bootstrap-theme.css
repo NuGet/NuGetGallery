@@ -57,7 +57,6 @@ body {
   padding: 16px 0;
 }
 .main-container {
-  padding-top: 120px;
   padding-bottom: 75px;
 }
 .navbar-logo {
@@ -94,6 +93,10 @@ body {
 .alert .fa-li {
   top: 3px;
   left: -32px;
+}
+.banner-warning {
+  padding: 10px 0;
+  background: yellow;
 }
 .jumbotron {
   padding-top: 110px;

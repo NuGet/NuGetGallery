@@ -1,11 +1,4 @@
-﻿@if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
-{
-    <div id="service-alert">
-        <div class="banner-warning">@Config.Current.WarningBanner</div>
-    </div>
-}
-
-<nav class="navbar navbar-inverse navbar-fixed-top">
+﻿<nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
@@ -72,6 +65,21 @@
         </div>
     }
 </nav>
+
+@if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
+{
+    <div class="container-fluid banner-warning">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="container">
+                    <div class="row text-center">
+                        @Config.Current.WarningBanner
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @if (TempData.ContainsKey("Message"))
 {
