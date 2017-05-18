@@ -20,7 +20,15 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public class PackageValidator
     {
-        public PackageValidator(IEnumerable<AggregateValidator> endpointValidators, ILogger<PackageValidator> logger)
+        private readonly IEnumerable<AggregateValidator> _endpointValidators;
+        private readonly ILogger<PackageValidator> _logger;
+
+        private readonly StorageFactory _auditingStorageFactory;
+
+        public PackageValidator(
+            IEnumerable<AggregateValidator> endpointValidators,
+            StorageFactory auditingStorageFactory,
+            ILogger<PackageValidator> logger)
         {
             if (endpointValidators.Count() < 1)
             {
@@ -28,22 +36,20 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
 
             _endpointValidators = endpointValidators.ToList();
+            _auditingStorageFactory = auditingStorageFactory ?? throw new ArgumentNullException(nameof(auditingStorageFactory));
             _logger = logger;
         }
-
-        private readonly IEnumerable<AggregateValidator> _endpointValidators;
-        private readonly ILogger<PackageValidator> _logger;
 
         /// <summary>
         /// Runs <see cref="IValidator"/>s from the <see cref="AggregateValidator"/>s against a package.
         /// </summary>
         /// <returns>A <see cref="PackageValidationResult"/> generated from the results of the <see cref="IValidator"/>s.</returns>
-        public async Task<PackageValidationResult> Validate(string packageId, string packageVersion, IList<JObject> catalogEntriesJson, Storage auditingStorage, CollectorHttpClient client, CancellationToken cancellationToken)
+        public async Task<PackageValidationResult> Validate(string packageId, string packageVersion, IList<JObject> catalogEntriesJson, CollectorHttpClient client, CancellationToken cancellationToken)
         {
             var package = new PackageIdentity(packageId, NuGetVersion.Parse(packageVersion));
             var catalogEntries = catalogEntriesJson.Select(c => new CatalogIndexEntry(c));
-            var deletionAuditEntries = await DeletionAuditEntry.Get(
-                auditingStorage, 
+            var deletionAuditEntries = await DeletionAuditEntry.GetAsync(
+                _auditingStorageFactory, 
                 cancellationToken, 
                 package, 
                 logger: _logger);

@@ -14,8 +14,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public interface IPackageRegistrationMetadataResource : INuGetResource
     {
-        Task<PackageRegistrationIndexMetadata> GetIndex(PackageIdentity package, ILogger log, CancellationToken token);
+        Task<PackageRegistrationIndexMetadata> GetIndexAsync(PackageIdentity package, ILogger log, CancellationToken token);
 
-        Task<PackageRegistrationLeafMetadata> GetLeaf(PackageIdentity package, ILogger log, CancellationToken token);
+        Task<PackageRegistrationLeafMetadata> GetLeafAsync(PackageIdentity package, ILogger log, CancellationToken token);
     }
 }

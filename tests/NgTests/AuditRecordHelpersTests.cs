@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Moq;
 using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Packaging.Core;
@@ -25,7 +26,7 @@ namespace NgTests
         public async Task GetDeletionAuditRecords_HandlesEmptyStorage()
         {
             var auditingStorage = new MemoryStorage();
-            var records = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, logger: _logger);
+            var records = await DeletionAuditEntry.GetAsync(auditingStorage, CancellationToken.None, logger: _logger);
             Assert.Empty(records);
         }
 
@@ -38,7 +39,7 @@ namespace NgTests
             var addedAuditEntries = AddDummyAuditRecords(auditingStorage);
 
             // Act
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, logger: _logger);
+            var auditEntries = await DeletionAuditEntry.GetAsync(auditingStorage, CancellationToken.None, logger: _logger);
 
             // Assert
             Assert.Equal(addedAuditEntries.Item1, auditEntries.Count());
@@ -63,10 +64,9 @@ namespace NgTests
             var targetPackageIdentity = new PackageIdentity("targetPackage", NuGetVersion.Parse("3.2.1"));
 
             AddAuditRecordToMemoryStorage(auditingStorage, targetPackageIdentity);
-            AddDummyAuditRecords(auditingStorage);
 
             // Act
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, targetPackageIdentity, logger: _logger);
+            var auditEntries = await DeletionAuditEntry.GetAsync(CreateStorageFactory(auditingStorage, targetPackageIdentity), CancellationToken.None, targetPackageIdentity, logger: _logger);
 
             // Assert
             Assert.Equal(1, auditEntries.Count());
@@ -85,10 +85,8 @@ namespace NgTests
 
             var targetPackageIdentity = new PackageIdentity("targetPackage", NuGetVersion.Parse("3.2.1"));
 
-            AddDummyAuditRecords(auditingStorage);
-
             // Act
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, targetPackageIdentity, logger: _logger);
+            var auditEntries = await DeletionAuditEntry.GetAsync(CreateStorageFactory(auditingStorage, targetPackageIdentity), CancellationToken.None, targetPackageIdentity, logger: _logger);
 
             // Assert
             Assert.Empty(auditEntries);
@@ -106,7 +104,7 @@ namespace NgTests
             AddDummyAuditRecords(auditingStorage);
 
             // Act
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, minTime: minTimestamp, logger: _logger);
+            var auditEntries = await DeletionAuditEntry.GetAsync(auditingStorage, CancellationToken.None, minTime: minTimestamp, logger: _logger);
 
             // Assert
             Assert.Equal(1, auditEntries.Count());
@@ -128,7 +126,7 @@ namespace NgTests
             AddDummyAuditRecords(auditingStorage);
 
             // Act
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, minTime: minTimestamp, logger: _logger);
+            var auditEntries = await DeletionAuditEntry.GetAsync(auditingStorage, CancellationToken.None, minTime: minTimestamp, logger: _logger);
 
             // Assert
             Assert.Empty(auditEntries);
@@ -146,7 +144,7 @@ namespace NgTests
             AddDummyAuditRecords(auditingStorage);
 
             // Act
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, maxTime: maxTimestamp, logger: _logger);
+            var auditEntries = await DeletionAuditEntry.GetAsync(auditingStorage, CancellationToken.None, maxTime: maxTimestamp, logger: _logger);
 
             // Assert
             Assert.Equal(1, auditEntries.Count());
@@ -168,7 +166,7 @@ namespace NgTests
             AddDummyAuditRecords(auditingStorage);
 
             // Act
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, maxTime: maxTimestamp, logger: _logger);
+            var auditEntries = await DeletionAuditEntry.GetAsync(auditingStorage, CancellationToken.None, maxTime: maxTimestamp, logger: _logger);
 
             // Assert
             Assert.Empty(auditEntries);
@@ -185,10 +183,10 @@ namespace NgTests
             var maxTimestamp = DefaultAuditRecordTimeStamp.Subtract(new TimeSpan(1, 0, 0));
 
             AddAuditRecordToMemoryStorage(auditingStorage, targetPackageIdentity, timestamp: minTimestamp.Add(new TimeSpan((maxTimestamp.Ticks - minTimestamp.Ticks) / 2)));
-            AddDummyAuditRecords(auditingStorage);
+            AddDummyAuditRecords(auditingStorage, (count) => targetPackageIdentity.Id, (count) => targetPackageIdentity.Version.ToNormalizedString());
 
             // Act
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, targetPackageIdentity, minTimestamp, maxTimestamp, logger: _logger);
+            var auditEntries = await DeletionAuditEntry.GetAsync(CreateStorageFactory(auditingStorage, targetPackageIdentity), CancellationToken.None, targetPackageIdentity, minTimestamp, maxTimestamp, logger: _logger);
 
             // Assert
             Assert.Equal(1, auditEntries.Count());
@@ -212,10 +210,10 @@ namespace NgTests
             var minTimestamp = DefaultAuditRecordTimeStamp.Subtract(new TimeSpan(2, 0, 0));
             var maxTimestamp = DefaultAuditRecordTimeStamp.Subtract(new TimeSpan(1, 0, 0));
 
-            AddDummyAuditRecords(auditingStorage);
+            AddDummyAuditRecords(auditingStorage, (count) => targetPackageIdentity.Id, (count) => targetPackageIdentity.Version.ToNormalizedString());
 
             // Act
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None, targetPackageIdentity, minTimestamp, maxTimestamp, logger: _logger);
+            var auditEntries = await DeletionAuditEntry.GetAsync(CreateStorageFactory(auditingStorage, targetPackageIdentity), CancellationToken.None, targetPackageIdentity, minTimestamp, maxTimestamp, logger: _logger);
 
             // Assert
             Assert.Empty(auditEntries);
@@ -223,7 +221,29 @@ namespace NgTests
 
         private DateTime DefaultAuditRecordTimeStamp = DateTime.Parse("2017-03-31T11:57:35Z");
 
+        private StorageFactory CreateStorageFactory(Storage storage, PackageIdentity targetPackage)
+        {
+            var auditingStorageFactoryMock = new Mock<StorageFactory>();
+
+            auditingStorageFactoryMock
+                .Setup(a => a.Create(It.Is<string>(n => n == $"{targetPackage.Id.ToLower()}/{targetPackage.Version.ToNormalizedString().ToLower()}")))
+                .Returns(storage);
+
+            return auditingStorageFactoryMock.Object;
+        }
+
         private Tuple<int, List<string>, List<string>, List<DateTime>> AddDummyAuditRecords(MemoryStorage storage)
+        {
+            return AddDummyAuditRecords(
+                storage, 
+                (count) => $"packageId{count}", 
+                (count) => $"packageVersion{count}");
+        }
+
+        private Tuple<int, List<string>, List<string>, List<DateTime>> AddDummyAuditRecords(
+            MemoryStorage storage,
+            Func<int, string> getPackageId,
+            Func<int, string> getPackageVersion)
         {
             var packageIds = new List<string>();
             var packageVersions = new List<string>();
@@ -232,8 +252,8 @@ namespace NgTests
 
             foreach (var fileSuffix in DeletionAuditEntry.FileNameSuffixes)
             {
-                var packageId = $"packageId{count}";
-                var packageVersion = $"1.0.{count}";
+                var packageId = getPackageId(count);
+                var packageVersion = getPackageVersion(count);
                 var timestamp = DefaultAuditRecordTimeStamp.Add(new TimeSpan(0, 0, count));
 
                 AddAuditRecordToMemoryStorage(storage, packageId, packageVersion, timestamp, fileSuffix);

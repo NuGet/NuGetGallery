@@ -26,14 +26,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             IPackageRegistrationMetadataResource resource,
             ValidationContext data)
         {
-            return await resource.GetIndex(data.Package, Logger.AsCommon(), data.CancellationToken);
+            return await resource.GetIndexAsync(data.Package, Logger.AsCommon(), data.CancellationToken);
         }
 
         protected async Task<PackageRegistrationLeafMetadata> GetLeaf(
             IPackageRegistrationMetadataResource resource,
             ValidationContext data)
         {
-            return await resource.GetLeaf(data.Package, Logger.AsCommon(), data.CancellationToken);
+            return await resource.GetLeafAsync(data.Package, Logger.AsCommon(), data.CancellationToken);
         }
     }
 }

@@ -218,7 +218,7 @@ namespace Ng.Jobs
             // Get all audit blobs (based on their filename which starts with a date that can be parsed)
             // NOTE we're getting more files than needed (to account for a time difference between servers)
             var minimumFileTime = since.AddMinutes(-15);
-            var auditEntries = await DeletionAuditEntry.Get(auditingStorage, CancellationToken.None,
+            var auditEntries = await DeletionAuditEntry.GetAsync(auditingStorage, CancellationToken.None,
                 minTime: minimumFileTime, logger: Logger);
 
             foreach (var auditEntry in auditEntries)

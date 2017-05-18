@@ -67,10 +67,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 messageHandlerFactory,
                 _loggerFactory);
 
-            var endpoints = endpointContexts.Select(e => endpointFactory.Create(e));
+            var endpoints = endpointContexts.Select(e => endpointFactory.Create(e)).ToList();
 
-            var collector = new ValidationCollector(auditingStorageFactory.Create(),
-                new PackageValidator(endpoints, _loggerFactory.CreateLogger<PackageValidator>()),
+            var collector = new ValidationCollector(
+                new PackageValidator(endpoints, auditingStorageFactory, _loggerFactory.CreateLogger<PackageValidator>()),
                 new Uri(catalogIndexUrl),
                 notificationService,
                 messageHandlerFactory);

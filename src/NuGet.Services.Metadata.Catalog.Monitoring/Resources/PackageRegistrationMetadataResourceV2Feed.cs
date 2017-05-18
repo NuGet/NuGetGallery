@@ -21,27 +21,49 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             _feedParser = feedParser;
         }
 
-        public async Task<PackageRegistrationIndexMetadata> GetIndex(PackageIdentity package, ILogger log, CancellationToken token)
+        /// <summary>
+        /// Returns a <see cref="PackageRegistrationIndexMetadata"/> that represents how a package appears in V2's FindPackagesById.
+        /// </summary>
+        public async Task<PackageRegistrationIndexMetadata> GetIndexAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
-            var feedPackage = await GetPackageFromIndex(package, log, token);
-            return feedPackage != null ? new PackageRegistrationIndexMetadata(feedPackage) : null;
+            try
+            {
+                var feedPackage = await GetPackageFromIndexAsync(package, log, token);
+                return feedPackage != null ? new PackageRegistrationIndexMetadata(feedPackage) : null;
+            }
+            catch (Exception e)
+            {
+                throw new ValidationException($"Could not fetch {nameof(PackageRegistrationIndexMetadata)} from V2 feed!", e);
+            }
         }
 
-        public async Task<PackageRegistrationLeafMetadata> GetLeaf(PackageIdentity package, ILogger log, CancellationToken token)
+        /// <summary>
+        /// Returns a <see cref="PackageRegistrationIndexMetadata"/> that represents how a package appears in V2's specific package endpoint (e.g. Packages(Id='...',Version='...')).
+        /// </summary>
+        public async Task<PackageRegistrationLeafMetadata> GetLeafAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
-            var feedPackage = await GetPackageFromLeaf(package, log, token);
-            return feedPackage != null ? new PackageRegistrationLeafMetadata(feedPackage) : null;
+            try
+            {
+                var feedPackage = await GetPackageFromLeafAsync(package, log, token);
+                return feedPackage != null ? new PackageRegistrationLeafMetadata(feedPackage) : null;
+            }
+            catch (Exception e)
+            {
+                throw new ValidationException($"Could not fetch {nameof(PackageRegistrationLeafMetadata)} from V2 feed!", e);
+            }
         }
 
-        private async Task<V2FeedPackageInfo> GetPackageFromIndex(PackageIdentity package, ILogger log, CancellationToken token)
+        private async Task<V2FeedPackageInfo> GetPackageFromIndexAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
+            // If the package is missing from FindPackagesById, this will return null.
             var feedPackages = await _feedParser.FindPackagesByIdAsync(package.Id, log, token);
             return feedPackages.FirstOrDefault(p => p.Version == package.Version);
         }
 
-        private async Task<V2FeedPackageInfo> GetPackageFromLeaf(PackageIdentity package, ILogger log, CancellationToken token)
+        private Task<V2FeedPackageInfo> GetPackageFromLeafAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
-            return await _feedParser.GetPackage(package, log, token);
+            // If the package is missing from Packages(Id='...',Version='...'), this will return null.
+            return _feedParser.GetPackage(package, log, token);
         }
     }
 }

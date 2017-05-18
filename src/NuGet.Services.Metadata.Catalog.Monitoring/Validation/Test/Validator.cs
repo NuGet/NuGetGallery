@@ -46,7 +46,16 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             
             try
             {
-                var shouldRun = await ShouldRun(data);
+                bool shouldRun = false;
+                try
+                {
+                    shouldRun = await ShouldRun(data);
+                }
+                catch (Exception e)
+                {
+                    throw new ValidationException("Threw an exception while trying to determine whether or not validation should run!", e);
+                }
+
                 if (shouldRun)
                 {
                     await RunInternal(data);

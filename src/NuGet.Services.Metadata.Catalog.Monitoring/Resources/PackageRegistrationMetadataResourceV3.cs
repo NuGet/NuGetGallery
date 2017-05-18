@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -24,32 +25,49 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             _client = client;
         }
 
-        public async Task<PackageRegistrationIndexMetadata> GetIndex(PackageIdentity package, ILogger log, CancellationToken token)
+        public async Task<PackageRegistrationIndexMetadata> GetIndexAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
-            var feedPackage = await GetPackageFromIndex(package, log, token);
-            return feedPackage != null ? 
-                JsonConvert.DeserializeObject<PackageRegistrationIndexMetadata>(feedPackage.ToString()) : 
-                null;
+            try
+            {
+                var feedPackage = await GetPackageFromIndexAsync(package, log, token);
+                return feedPackage != null ?
+                    JsonConvert.DeserializeObject<PackageRegistrationIndexMetadata>(feedPackage.ToString()) :
+                    null;
+            }
+            catch (Exception e)
+            {
+                throw new ValidationException($"Could not fetch {nameof(PackageRegistrationIndexMetadata)} from V3!", e);
+            }
         }
 
-        public async Task<PackageRegistrationLeafMetadata> GetLeaf(PackageIdentity package, ILogger log, CancellationToken token)
+        public async Task<PackageRegistrationLeafMetadata> GetLeafAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
-            var feedPackage = await GetPackageFromLeaf(package, log, token);
-            return feedPackage != null ?
-                JsonConvert.DeserializeObject<PackageRegistrationLeafMetadata>(feedPackage.ToString()) :
-                null;
+            try
+            {
+                var feedPackage = await GetPackageFromLeafAsync(package, log, token);
+                return feedPackage != null ?
+                    JsonConvert.DeserializeObject<PackageRegistrationLeafMetadata>(feedPackage.ToString()) :
+                    null;
+            }
+            catch (Exception e)
+            {
+                throw new ValidationException($"Could not fetch {nameof(PackageRegistrationLeafMetadata)} from V3!", e);
+            }
         }
 
-        private async Task<JObject> GetPackageFromIndex(PackageIdentity package, ILogger log, CancellationToken token)
+        private Task<JObject> GetPackageFromIndexAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
-            return await _registration.GetPackageMetadata(package, log, token);
+            // If the registration index is missing, this will return null.
+            return _registration.GetPackageMetadata(package, log, token);
         }
 
-        private Task<JObject> GetPackageFromLeaf(PackageIdentity package, ILogger log, CancellationToken token)
+        private async Task<JObject> GetPackageFromLeafAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
-            return _client.GetJObjectAsync(
+            /// If the registration leaf is missing, <see cref="HttpSourceRequest.IgnoreNotFounds"/> will cause this to return null.
+            return await _client.GetJObjectAsync(
                 new HttpSourceRequest(
-                    _registration.GetUri(package), log), 
+                    _registration.GetUri(package), log)
+                { IgnoreNotFounds = true },
                 log, token);
         }
     }

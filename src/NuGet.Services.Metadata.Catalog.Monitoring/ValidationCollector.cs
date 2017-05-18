@@ -18,14 +18,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class ValidationCollector : SortingIdVersionCollector
     {
         public ValidationCollector(
-            Storage auditingStorage, 
             PackageValidator packageValidator, 
             Uri index,
             IMonitoringNotificationService notificationService,
             Func<HttpMessageHandler> handlerFunc = null) 
             : base(index, handlerFunc)
         {
-            _auditingStorage = auditingStorage ?? throw new ArgumentNullException(nameof(auditingStorage));
             _packageValidator = packageValidator ?? throw new ArgumentNullException(nameof(packageValidator));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
@@ -42,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             try
             {
-                var result = await _packageValidator.Validate(packageId, packageVersion, catalogEntriesJson, _auditingStorage, client, cancellationToken);
+                var result = await _packageValidator.Validate(packageId, packageVersion, catalogEntriesJson, client, cancellationToken);
                 _notificationService.OnPackageValidationFinished(result);
             }
             catch (Exception e)

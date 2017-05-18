@@ -27,15 +27,30 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         public override async Task CompareLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
         {
-            var isEqual = 
-                await UriUtils.GetRedirectedRequestMessageUri(data.Client, new Uri(v2.PackageContent)) == 
-                await UriUtils.GetRedirectedRequestMessageUri(data.Client, new Uri(v3.PackageContent));
+            var v2PackageContentRedirect = await UriUtils.GetRedirectedRequestMessageUri(data.Client, new Uri(v2.PackageContent));
+            var v3PackageContentRedirect = await UriUtils.GetRedirectedRequestMessageUri(data.Client, new Uri(v3.PackageContent));
+            
+            var isEqual = NormalizeUri(v2PackageContentRedirect) == NormalizeUri(v3PackageContentRedirect);
 
             if (!isEqual)
             {
                 throw new MetadataInconsistencyException<PackageRegistrationLeafMetadata>(v2, v3, 
                     $"{nameof(PackageRegistrationLeafMetadata.PackageContent)} does not match!");
             }
+        }
+
+        /// <summary>
+        /// Returns a <see cref="Uri"/> that is identical to <paramref name="packageContent"/> but with a <see cref="Uri.Scheme"/> of <see cref="Uri.UriSchemeHttps"/> and a <see cref="Uri.Port"/> of 80.
+        /// 
+        /// This is done because the <see cref="Uri.Scheme"/> and the <see cref="Uri.Port"/> are irrelevant for our validation purposes.
+        /// </summary>
+        private Uri NormalizeUri(Uri packageContent)
+        {
+            return new UriBuilder(packageContent)
+            {
+                Scheme = Uri.UriSchemeHttps,
+                Port = 80
+            }.Uri;
         }
     }
 }

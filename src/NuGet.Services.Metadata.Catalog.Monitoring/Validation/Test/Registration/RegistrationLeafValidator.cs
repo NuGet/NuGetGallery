@@ -21,7 +21,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         protected override async Task<bool> ShouldRun(ValidationContext data)
         {
-            return 
+            return
+                await base.ShouldRun(data) &&
+
                 await ShouldRunLeaf(
                     data,
                     await GetIndex(V2Resource, data),
