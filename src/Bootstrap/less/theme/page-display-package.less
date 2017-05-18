@@ -1,0 +1,96 @@
+﻿.package-details {
+  h4 > span {
+    border-bottom: 1px solid #d8d8d8;
+    margin-bottom: 3px;
+  }
+
+  .dependency-group li span {
+    color: #666;
+  }
+
+  .no-border {
+    border: 0;
+  }
+
+  #show-hidden-versions {
+    &:hover, &:focus {
+      text-decoration: none;
+    }
+  }
+
+  .install-tabs {
+    font-size: 0.8em;
+
+    ul {
+      margin-left: 0;
+    }
+
+    .nav-tabs > li {
+      margin-left: 5px;
+      padding: 0;
+
+      > a {
+        color: #000;
+        background-color: #eaeaea;
+        border: 0;
+        padding: 5px 10px;
+        margin: 0;
+      }
+    }
+
+    .nav-tabs > li.active > a {
+      background-color: #002440;
+      border: 0;
+      color: #fff;
+    }
+
+    .tab-pane {
+      display: table;
+
+      .install-script {
+        padding: 8px 10px;
+        display: table-cell;
+        width: 100%;
+        background-color: #002440;
+        font-family: @font-family-monospace;
+        color: #fff;
+
+        span::before {
+          content: "PM> ";
+        }
+      }
+
+      .copy-button {
+        display: table-cell;
+      }
+    }
+  }
+
+  .packages-details-info {
+    ul {
+      margin-left: 25px;
+    }
+
+    li {
+      padding: 5px 0;
+    }
+
+    .fa-li {
+      top: 10px;
+    }
+
+    ul.owner-list {
+      margin-left: 42px;
+
+      li {
+        position: relative;
+        padding: 10px 0;
+      }
+
+      img {
+        position: absolute;
+        left: -40px;
+      }
+    }
+  }
+}

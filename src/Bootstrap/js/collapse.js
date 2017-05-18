@@ -1,4 +1,4 @@
-/* ========================================================================
+﻿/* ========================================================================
  * Bootstrap: collapse.js v3.3.7
  * http://getbootstrap.com/javascript/#collapse
  * ========================================================================
@@ -32,7 +32,7 @@
 
   Collapse.VERSION  = '3.3.7'
 
-  Collapse.TRANSITION_DURATION = 350
+  Collapse.TRANSITION_DURATION = 0
 
   Collapse.DEFAULTS = {
     toggle: true

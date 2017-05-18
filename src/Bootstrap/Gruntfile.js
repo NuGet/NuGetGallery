@@ -291,6 +291,14 @@ module.exports = function (grunt) {
           'bootstrap-theme.css'
         ],
         dest: '../NuGetGallery/Content/gallery/css/'
+      },
+      galleryjs: {
+        expand: true,
+        cwd: 'dist/js/',
+        src: [
+          'bootstrap.js'
+        ],
+        dest: '../NuGetGallery/Scripts/gallery/'
       }
     },
 
@@ -482,10 +490,10 @@ module.exports = function (grunt) {
   grunt.registerTask('dist-css', ['less-compile', 'autoprefixer:core', 'autoprefixer:theme', 'csscomb:dist', 'cssmin:minifyCore', 'cssmin:minifyTheme']);
 
   // Full distribution task.
-  grunt.registerTask('dist', ['clean:dist', 'dist-css', 'dist-js', 'copy:gallerycss']);
+  grunt.registerTask('dist', ['clean:dist', 'dist-css', 'dist-js', 'copy:gallerycss', 'copy:galleryjs']);
 
   // Default task.
-  grunt.registerTask('default', ['clean:dist', 'test']);
+  grunt.registerTask('default', ['dist']);
 
   grunt.registerTask('build-glyphicons-data', function () { generateGlyphiconsData.call(this, grunt); });
 

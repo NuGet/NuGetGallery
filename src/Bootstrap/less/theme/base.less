@@ -1,5 +1,5 @@
-//== Theme Variables
-@panel-footer-height: 350px;
+﻿//== Theme Variables
+@panel-footer-height: 330px;
 @panel-footer-color:  @navbar-inverse-color;
 
 //== Theme Definition
@@ -12,7 +12,7 @@ body {
   margin-bottom: @panel-footer-height;
 }
 
-.mt-loop(@i) when (@i > 0) {
+.mt-loop(@i) when (@i >= 0) {
   .mt-@{i} {
     margin-top: (1px * @i);
     
@@ -22,12 +22,17 @@ body {
 
 .mt-loop(150);
 
+.search-container {
+  padding: 16px 0;
+}
+
 .main-container {
+  padding-top: 120px;
   padding-bottom: 75px;
 }
 
 .navbar-logo {
-  margin: 8px 20px 0 8px;
+  margin: 8px 20px 0 0;
 }
 
 .footer {
@@ -38,10 +43,41 @@ body {
   height: @panel-footer-height;
   color: @panel-footer-color;
   font-size: 0.70em;
-  padding-top: 75px;
-  padding-bottom: 75px;
+  padding-top: 60px;
 
   a {
     color: @panel-footer-color;
+  }
+}
+
+.borderless {
+  > tbody {
+    > tr {
+      > td {
+        border: none;
+      }
+    }
+  }
+}
+
+.no-clickonce {
+  display: none;
+}
+
+.tag {
+  background-color: #eff9ff;
+  padding: 2px 10px;
+  line-height: 2em;
+  margin: 0 2px;
+}
+
+.alert {
+  .fa-ul {
+    margin-left: 24px;
+  }
+
+  .fa-li {
+    left: -32px;
+    top: 3px;
   }
 }
