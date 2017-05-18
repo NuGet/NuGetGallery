@@ -112,8 +112,16 @@
 
             if (val == 'ViolatesALicenseIOwn') {
                 $form.find('#infringement-claim-requirements').show();
+                $('#Signature').rules("add", {
+                    required: true,
+                    maxlength: 1000,
+                    messages: {
+                        required: "Please sign using your name."
+                    }
+                });
             } else {
                 $form.find('#infringement-claim-requirements').hide();
+                $('#Signature').rules("remove", "required");
             }
         }
 
