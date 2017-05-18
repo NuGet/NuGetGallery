@@ -74,7 +74,7 @@ namespace NuGetGallery
                 return SafeRedirect(returnUrl);
             }
 
-            return LogInView(new LogOnViewModel());
+            return LogOnView(new LogOnViewModel());
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace NuGetGallery
                 return SafeRedirect(returnUrl);
             }
 
-            return LogInView(new LogOnViewModel(), viewName: "SignUp");
+            return SignUpView(new LogOnViewModel());
         }
 
         [HttpPost]
@@ -112,7 +112,7 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return LogInView(model);
+                return LogOnView(model);
             }
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
@@ -138,7 +138,7 @@ namespace NuGetGallery
                 }
 
                 ModelState.AddModelError("SignIn", modelErrorMessage);
-                return LogInView(model);
+                return LogOnView(model);
             }
 
             var user = authenticationResult.AuthenticatedUser;
@@ -196,7 +196,7 @@ namespace NuGetGallery
         [RequireSsl]
         public virtual ActionResult RegisterLegacy(string returnUrl)
         {
-            return RedirectToAction(nameof(LogOn), new { returnUrl });
+            return RedirectToAction("LogOn", new { returnUrl });
         }
         
         [HttpPost]
@@ -220,7 +220,7 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return LogInView(model);
+                return SignUpView(model);
             }
 
             AuthenticatedUser user;
@@ -250,7 +250,7 @@ namespace NuGetGallery
             catch (EntityException ex)
             {
                 ModelState.AddModelError("Register", ex.Message);
-                return LogInView(model);
+                return SignUpView(model);
             }
 
             // Send a new account email
@@ -378,7 +378,7 @@ namespace NuGetGallery
                     }
                 };
 
-                return LogInView(model);
+                return SignUpView(model);
             }
         }
 
@@ -431,19 +431,24 @@ namespace NuGetGallery
             // User got here without an external login cookie (or an expired one)
             // Send them to the logon action with a message
             TempData["Message"] = Strings.ExternalAccountLinkExpired;
-            return RedirectToAction(nameof(LogOn));
+            return RedirectToAction("LogOn");
         }
 
-        private ActionResult LogInView(LogOnViewModel existingModel, string viewName = "LogIn")
+        private ActionResult LogOnView(LogOnViewModel existingModel)
         {
-            // Fill the providers list
             existingModel.Providers = GetProviders();
+            existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
 
-            // Reinitialize any nulled-out sub models
+            return View("LogOn", existingModel);
+        }
+
+        private ActionResult SignUpView(LogOnViewModel existingModel)
+        {
+            existingModel.Providers = GetProviders();
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
-            return View(viewName, existingModel);
+            return View("SignUp", existingModel);
         }
     }
 }

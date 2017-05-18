@@ -1773,7 +1773,7 @@
     <Content Include="Views\Shared\Gallery\Layout.cshtml" />
     <Content Include="Views\Shared\Gallery\Footer.cshtml" />
     <Content Include="Views\Shared\Gallery\Header.cshtml" />
-    <Content Include="Views\Authentication\LogIn.cshtml" />
+    <Content Include="Views\Authentication\LogOn.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
