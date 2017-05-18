@@ -105,6 +105,12 @@ $(function () {
         $(this).text(datetime.fromNow());
     });
 
+    // Select the first input that has an error.
+    $('.has-error')
+        .find('input,textarea,select')
+        .filter(':visible:first')
+        .focus();
+
     // Show elements that require ClickOnce
     (function () {
         var userAgent = window.navigator.userAgent.toUpperCase();
