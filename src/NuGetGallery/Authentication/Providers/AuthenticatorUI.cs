@@ -8,7 +8,7 @@ namespace NuGetGallery.Authentication.Providers
         public string SignInMessage { get; private set; }
         public string AccountNoun { get; private set; }
         public string Caption { get; private set; }
-        public string IconCssClass { get; set; }
+        public string IconImagePath { get; set; }
         public bool ShowOnLoginPage { get; set; }
         public string SignInInfo { get; set; }
 

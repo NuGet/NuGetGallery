@@ -39,7 +39,7 @@
                             var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
                         }
                         <li class="@(ViewBag.Tab == "Log in" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Log in to an existing NuGet.org account"><span>Log in</span></a></li>
-                        <li class="@(ViewBag.Tab == "Sign up" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Sign up for a new NuGet.org account"><span>Sign up</span></a></li>
+                        <li class="@(ViewBag.Tab == "Sign up" ? "active" : string.Empty)"><a href="@Url.SignUp(returnUrl)" title="Sign up for a new NuGet.org account"><span>Sign up</span></a></li>
                     </ul>
                 </div>
             </div>

@@ -74,7 +74,7 @@ namespace NuGetGallery
                 return SafeRedirect(returnUrl);
             }
 
-            return LogOnView();
+            return LogOnView(new LogOnViewModel());
         }
 
         [HttpPost]
@@ -177,7 +177,7 @@ namespace NuGetGallery
         [RequireSsl]
         public virtual ActionResult RegisterLegacy(string returnUrl)
         {
-            return RedirectToAction("LogOn", new { returnUrl });
+            return RedirectToAction(nameof(LogOn), new { returnUrl });
         }
         
         [HttpPost]
@@ -407,17 +407,12 @@ namespace NuGetGallery
                     }).ToList();
         }
 
-        private ActionResult LogOnView()
-        {
-            return LogOnView(new LogOnViewModel());
-        }
-
         private ActionResult ExternalLinkExpired()
         {
             // User got here without an external login cookie (or an expired one)
             // Send them to the logon action with a message
             TempData["Message"] = Strings.ExternalAccountLinkExpired;
-            return RedirectToAction("LogOn");
+            return RedirectToAction(nameof(LogOn));
         }
 
         private ActionResult LogOnView(LogOnViewModel existingModel)
@@ -429,7 +424,7 @@ namespace NuGetGallery
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
-            return View("LogOn", existingModel);
+            return View("LogIn", existingModel);
         }
     }
 }

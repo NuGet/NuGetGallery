@@ -1,4 +1,6 @@
 ﻿//== Theme Variables
+@panel-footer-height-sm: 520px;
+@panel-footer-height-md: 330px;
 @panel-footer-height: 330px;
 @panel-footer-color:  @navbar-inverse-color;
 
@@ -8,19 +10,9 @@ html {
   min-height: 100%;
 }
 
-body {
-  margin-bottom: @panel-footer-height;
+.row-gap {
+  margin-top: 50px;
 }
-
-.mt-loop(@i) when (@i >= 0) {
-  .mt-@{i} {
-    margin-top: (1px * @i);
-    
-  }
-  .mt-loop((@i - 10));
-}
-
-.mt-loop(150);
 
 .search-container {
   padding-top: 16px;
@@ -40,7 +32,6 @@ body {
   bottom: 0;
   width: 100%;
   background-color: @panel-footer-bg;
-  height: @panel-footer-height;
   color: @panel-footer-color;
   font-size: 0.70em;
   padding-top: 60px;
@@ -49,6 +40,23 @@ body {
     color: @panel-footer-color;
   }
 }
+
+body {
+  margin-bottom: @panel-footer-height-sm;
+
+  @media (min-width: @screen-md-min) {
+    margin-bottom: @panel-footer-height-md;
+  }
+}
+
+.footer {
+  height: @panel-footer-height-sm;
+
+  @media (min-width: @screen-md-min) {
+    height: @panel-footer-height-md;
+  }
+}
+
 
 .borderless {
   > tbody {

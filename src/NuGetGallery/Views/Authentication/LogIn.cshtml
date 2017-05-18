@@ -1,0 +1,169 @@
+﻿@model LogOnViewModel
+@{
+    ViewBag.Title = "Log In";
+    ViewBag.Tab = "Log in";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+@helper HasError(string key)
+{
+    if (!ViewData.ModelState.IsValid &&
+        ViewData.ModelState.ContainsKey(key) &&
+        ViewData.ModelState[key].Errors.Any())
+    {
+        @:has-error
+    }
+}
+
+@helper ShowErrors(string key)
+{
+    if (!ViewData.ModelState.IsValid && ViewData.ModelState.ContainsKey(key))
+    {
+        foreach (var error in ViewData.ModelState[key].Errors)
+        {
+            <span class="help-block">@error.ErrorMessage</span>
+        }
+    }
+}
+
+<div class="container main-container page-log-in">
+    <div class="row">
+        <h1>Log in</h1>
+    </div>
+
+    @if (Model.External != null)
+    {
+        // This entire block of code needs to be re-styled.
+        if (Model.External.FoundExistingUser)
+        {
+            <div id="signIn" class="signIn-solo">
+                <h1>We found an existing account</h1>
+                <p>
+                    We found an account with this email address. Sign in with your password to link with this account.
+                    Don't have a password? Sorry, you'll have to log in using an existing credential and
+                    set a password to associate a @Model.External.ProviderAccountNoun. If you're still having trouble, you can
+                    <a href="mailto:@Config.Current.GalleryOwner.Address">contact support.</a>
+                </p>
+                <div id="signIn-solo-form">
+                    @Html.Partial("_SignIn", Model)
+                </div>
+            </div>
+        }
+        else
+        {
+            <h1>Do we know you?</h1>
+                <p>
+                    It looks like we haven't seen
+                    @if (String.IsNullOrEmpty(Model.External.AccountName))
+                    {
+                        @: this @Model.External.ProviderAccountNoun
+                }
+                    else
+                    {
+                        @: the @Model.External.ProviderAccountNoun '@Model.External.AccountName'
+                }
+                    before.
+                </p>
+
+                <div id="register">
+                    <h1>I don't have a NuGet.org account</h1>
+                    <p>
+                        Don't have a NuGet.org account yet? That's OK! We love meeting new people! Please fill in the information
+                        below and we'll start a new account for you. You'll be pushing packages in no time!
+                    </p>
+                    @Html.Partial("_Register", Model)
+                </div>
+
+                <div class="verticalSeparator"></div>
+
+                <div id="signIn">
+                    <h1>I already have a NuGet.org account</h1>
+                    <p>
+                        Already have a NuGet.org account? Sorry, we didn't recognize you! Sign in with your user name and password
+                        below and we'll remember you next time.
+                    </p>
+                    @Html.Partial("_SignIn", Model)
+                </div>
+        }
+    }
+    else
+    {
+        foreach (var provider in Model.Providers)
+        {
+            <div class="row">
+                <p>
+                    @if (!string.IsNullOrEmpty(provider.UI.SignInInfo))
+                    {
+                        @provider.UI.SignInInfo
+                    }
+                    else
+                    {
+                        <text>
+                            We recommend using a @(provider.UI.AccountNoun ?? "external account") to log in to NuGet.org.
+                            If you already have a NuGet.org account, click the button to the right to associate it with your @(provider.UI.AccountNoun ?? "external account").
+                            If not, click the button anyway and we'll create a new NuGet.org account for you!
+                        </text>
+                    }
+                </p>
+            </div>
+            <div class="row text-center">
+                <a role="button" class="btn btn-default provider-button" href="@Url.Action("Authenticate", new {provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey]})">
+                    @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
+                    {
+                        <img height="24" width="24" src="@Href(provider.UI.IconImagePath)" alt="Icon for @provider.ProviderName authentication provider" />
+                    }                    
+                    @provider.UI.SignInMessage
+                </a>
+            </div>
+            <div class="row text-center or-row">
+                <b>OR</b>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-md-offset-3 col-md-6">
+                @{
+                    var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+                }
+                @using (Html.BeginForm("SignIn", "Authentication"))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("ReturnUrl", returnUrl)
+                    @Html.Hidden("LinkingAccount", Model.External != null)
+
+                    if (Model.External != null)
+                    {
+                        @Html.HiddenFor(m => m.External.ProviderAccountNoun)
+                        @Html.HiddenFor(m => m.External.AccountName)
+                        @Html.HiddenFor(m => m.External.FoundExistingUser)
+                    }
+
+                    <div class="form-group @HasError("SignIn")">
+                        @ShowErrors("SignIn")
+                    </div>
+
+                    <div class="form-group @HasError("SignIn.UserNameOrEmail")">
+                        <label for="SignIn.UserNameOrEmail">NuGet.org Username or Email</label>
+                        <input type="text" class="form-control" id="SignIn.UserNameOrEmail" name="SignIn.UserNameOrEmail"
+                               placeholder="Username or email" value="@Model.SignIn.UserNameOrEmail" />
+                        @ShowErrors("SignIn.UserNameOrEmail")
+                    </div>
+                    <div class="form-group @HasError("SignIn.Password")">
+                        <label for="SignIn.Password">Password</label>
+                        <input type="password" class="form-control" id="SignIn.Password" name="SignIn.Password" />
+                        @ShowErrors("SignIn.Password")
+                    </div>
+                    <p>
+                        @Html.ActionLink("Forgot your Password?", "ForgotPassword", "Users")
+                    </p>
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary form-control" value="Log in" />
+                    </div>
+                }
+                <p class="text-center">
+                    Don't have an account? <a href="@Url.SignUp(returnUrl)">Create Account</a>
+                </p>
+            </div>
+        </div>
+    }
+</div>
