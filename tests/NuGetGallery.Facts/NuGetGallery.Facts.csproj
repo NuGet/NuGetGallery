@@ -379,7 +379,6 @@
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
-    <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddlewareFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
     <Compile Include="Authentication\V3HasherTests.cs" />
     <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
@@ -434,7 +433,6 @@
     <Compile Include="ExtensionMethodsFacts.cs" />
     <Compile Include="Filters\ApiAuthorizeAttributeFacts.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttributeFacts.cs" />
-    <Compile Include="Filters\RequireSslAttributeFacts.cs" />
     <Compile Include="Services\PackageNamingConflictValidatorFacts.cs" />
     <Compile Include="TestPackage.cs" />
     <Compile Include="Framework\AssertEx.cs" />

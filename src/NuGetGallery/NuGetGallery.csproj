@@ -444,6 +444,9 @@
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NuGet.Services.Owin, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Owin.2.2.0-develop-6981\lib\net452\NuGet.Services.Owin.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Services.Platform.Client, Version=3.0.29.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.29-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
@@ -688,7 +691,6 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
     <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
-    <Compile Include="Authentication\ForceSslMiddleware.cs" />
     <Compile Include="Authentication\NuGetPackagePattern.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
@@ -723,7 +725,6 @@
     <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\AuthDependenciesModule.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
-    <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddleware.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\Authenticator.cs" />
@@ -1615,7 +1616,6 @@
     <Compile Include="Services\NullStatisticsService.cs" />
     <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
-    <Compile Include="Filters\RequireSslAttribute.cs" />
     <Compile Include="Services\IPackageNamingConflictValidator.cs" />
     <Compile Include="Services\PackageNamingConflictValidator.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
@@ -1874,7 +1874,9 @@
     <Content Include="Content\font\fontawesome-webfont.woff" />
     <Content Include="Content\font\FontAwesome.otf" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
-    <Content Include="packages.config" />
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Scripts\perpackagestatsgraphs.js" />
     <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\nugetgallery.js" />

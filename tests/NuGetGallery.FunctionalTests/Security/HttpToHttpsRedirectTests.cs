@@ -63,11 +63,7 @@ namespace NuGetGallery.FunctionalTests.Security
         {
             Uri uri = ForceHttp(url);
             await VerifyHttpResponseStatus(r => 
-                Assert.Contains(r.StatusCode, new[] {
-                    HttpStatusCode.Forbidden,
-                    HttpStatusCode.NotFound,
-                    HttpStatusCode.MethodNotAllowed
-                }), 
+                Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode),
                 method, uri);
         }
 
