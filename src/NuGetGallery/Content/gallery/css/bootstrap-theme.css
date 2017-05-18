@@ -54,7 +54,8 @@ body {
   margin-top: 0;
 }
 .search-container {
-  padding: 16px 0;
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
 .main-container {
   padding-bottom: 75px;
@@ -88,17 +89,14 @@ body {
   background-color: #eff9ff;
 }
 .banner {
-  padding: 120px 0 10px 0;
+  padding: 10px;
+}
+.banner.banner-bright {
   font-size: 1.25em;
-}
-.banner.no-search-bar {
-  padding: 52px 0 10px 0;
-}
-.banner.banner-warning {
   background: yellow;
 }
-.no-banner {
-  margin-top: 110px;
+.banner.banner-info {
+  background: #f4f4f4;
 }
 .ms-Icon-ul {
   margin-left: 24px;
@@ -109,9 +107,6 @@ body {
 .ms-Icon-ul li i.ms-Icon {
   position: absolute;
   left: -24px;
-}
-.jumbotron {
-  padding-top: 110px;
 }
 .jumbotron h1 {
   margin: 32px;

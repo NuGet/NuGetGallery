@@ -1,98 +1,77 @@
-﻿<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container-fluid">
+﻿@if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
+{
+    <div class="container-fluid banner banner-bright text-center">
         <div class="row">
             <div class="col-md-12">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="navbar-header">
-                                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                                    <span class="sr-only">Toggle navigation</span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                </button>
-                                <a href="@Url.Home()"><img class="navbar-logo" src="~/Content/gallery/img/logo-94x27.png" alt="Smaller NuGet logo in header" /></a>
-                            </div>
-                            <div id="navbar" class="navbar-collapse collapse">
-                                <ul class="nav navbar-nav">
-                                    <li class="@(ViewBag.Tab == "Packages" ? "active" : string.Empty)"><a href="@Url.PackageList()"><span>Packages</span></a></li>
-                                    <li class="@(ViewBag.Tab == "Upload" ? "active" : string.Empty)"><a href="@Url.UploadPackage()"><span>Upload</span></a></li>
-                                    @if (StatisticsHelper.IsStatisticsPageAvailable)
-                                    {
-                                        <li class="@(ViewBag.Tab == "Statistics" ? "active" : string.Empty)"><a href="@Url.Statistics()"><span>Statistics</span></a></li>
-                                    }
-                                    <li class="@(ViewBag.Tab == "Documentation" ? "active" : string.Empty)"><a href="https://docs.microsoft.com/en-us/nuget/"><span>Documentation</span></a></li>
-                                    <li class="@(ViewBag.Tab == "Downloads" ? "active" : string.Empty)"><a href="@Url.RouteUrl(RouteName.Downloads)"><span>Downloads</span></a></li>
-                                    <li class="@(ViewBag.Tab == "Blog" ? "active" : string.Empty)"><a href="http://blog.nuget.org/"><span>Blog</span></a></li>
-                                </ul>
-                                <ul class="nav navbar-nav navbar-right">
-                                    @{
-                                        var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
-                                    }
-                                    <li class="@(ViewBag.Tab == "Log in" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Log in to an existing NuGet.org account"><span>Log in</span></a></li>
-                                    <li class="@(ViewBag.Tab == "Sign up" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Sign up for a new NuGet.org account"><span>Sign up</span></a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                @Config.Current.WarningBanner
+            </div>
+        </div>
+    </div>
+}
+
+<nav class="navbar navbar-inverse">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a href="@Url.Home()"><img class="navbar-logo" src="~/Content/gallery/img/logo-94x27.png" alt="Smaller NuGet logo in header" /></a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="@(ViewBag.Tab == "Packages" ? "active" : string.Empty)"><a href="@Url.PackageList()"><span>Packages</span></a></li>
+                        <li class="@(ViewBag.Tab == "Upload" ? "active" : string.Empty)"><a href="@Url.UploadPackage()"><span>Upload</span></a></li>
+                        @if (StatisticsHelper.IsStatisticsPageAvailable)
+                        {
+                            <li class="@(ViewBag.Tab == "Statistics" ? "active" : string.Empty)"><a href="@Url.Statistics()"><span>Statistics</span></a></li>
+                        }
+                        <li class="@(ViewBag.Tab == "Documentation" ? "active" : string.Empty)"><a href="https://docs.microsoft.com/en-us/nuget/"><span>Documentation</span></a></li>
+                        <li class="@(ViewBag.Tab == "Downloads" ? "active" : string.Empty)"><a href="@Url.RouteUrl(RouteName.Downloads)"><span>Downloads</span></a></li>
+                        <li class="@(ViewBag.Tab == "Blog" ? "active" : string.Empty)"><a href="http://blog.nuget.org/"><span>Blog</span></a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        @{
+                            var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+                        }
+                        <li class="@(ViewBag.Tab == "Log in" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Log in to an existing NuGet.org account"><span>Log in</span></a></li>
+                        <li class="@(ViewBag.Tab == "Sign up" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Sign up for a new NuGet.org account"><span>Sign up</span></a></li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
+
     @if (ViewBag.ShowSearchInNavbar != false)
     {
-        <div class="container-fluid search-container">
+        <div class="container search-container">
             <div class="row">
-                <div class="col-md-12">
-                    <div class="container">
-                        <div class="row">
-                            <form class="col-md-12" action="@Url.PackageList()" method="get">
-                                <div class="input-group">
-                                    <input name="q" type="text" class="form-control" id="search"
-                                           placeholder="Search for packages..." autocomplete="off"
-                                           value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
-                                           @(Request.Url != null && (Request.Url.PathAndQuery == "/" || Request.Url.PathAndQuery == "/packages") ? "autofocus" : string.Empty) />
-                                    <span class="input-group-btn">
-                                        <button class="btn btn-default btn-warning" type="submit"><span class="ms-Icon ms-Icon--Search"></span></button>
-                                    </span>
-                                </div>
-                            </form>
-                        </div>
+                <form class="col-md-12" action="@Url.PackageList()" method="get">
+                    <div class="input-group">
+                        <input name="q" type="text" class="form-control" id="search"
+                               placeholder="Search for packages..." autocomplete="off"
+                               value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
+                               @(Request.Url != null && (Request.Url.PathAndQuery == "/" || Request.Url.PathAndQuery == "/packages") ? "autofocus" : string.Empty) />
+                        <span class="input-group-btn">
+                            <button class="btn btn-default btn-warning" type="submit"><span class="ms-Icon ms-Icon--Search"></span></button>
+                        </span>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     }
 </nav>
 
-@if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
-{
-    <div class="container-fluid banner banner-warning @(ViewBag.ShowSearchInNavbar == false ? "no-search-bar" : string.Empty)">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="container">
-                    <div class="row text-center">
-                        @Config.Current.WarningBanner
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-else if (ViewBag.ShowSearchInNavbar != false)
-{
-    <div class="no-banner"></div>
-}
-
 @if (TempData.ContainsKey("Message"))
 {
-    <div class="container text-center">
+    <div class="container-fluid banner banner-info text-center">
         <div class="row">
-            <div class="col-md-offset-3 col-md-6">
-                <div class="alert alert-info">
-                    <p>@TempData["Message"]</p>
-                </div>
+            <div class="col-md-12">
+                @TempData["Message"]
             </div>
         </div>
     </div>
