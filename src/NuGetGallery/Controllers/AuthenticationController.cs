@@ -74,7 +74,26 @@ namespace NuGetGallery
                 return SafeRedirect(returnUrl);
             }
 
-            return LogOnView(new LogOnViewModel());
+            return LogInView(new LogOnViewModel());
+        }
+
+        /// <summary>
+        /// Sign In\Register view
+        /// </summary>
+        [HttpGet]
+        [RequireSsl]
+        public virtual ActionResult SignUp(string returnUrl)
+        {
+            // I think it should be obvious why we don't want the current URL to be the return URL here ;)
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
+            if (Request.IsAuthenticated)
+            {
+                TempData["Message"] = Strings.AlreadyLoggedIn;
+                return SafeRedirect(returnUrl);
+            }
+
+            return LogInView(new LogOnViewModel(), viewName: "SignUp");
         }
 
         [HttpPost]
@@ -93,7 +112,7 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return LogOnView(model);
+                return LogInView(model);
             }
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
@@ -119,7 +138,7 @@ namespace NuGetGallery
                 }
 
                 ModelState.AddModelError("SignIn", modelErrorMessage);
-                return LogOnView(model);
+                return LogInView(model);
             }
 
             var user = authenticationResult.AuthenticatedUser;
@@ -201,7 +220,7 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return LogOnView(model);
+                return LogInView(model);
             }
 
             AuthenticatedUser user;
@@ -231,7 +250,7 @@ namespace NuGetGallery
             catch (EntityException ex)
             {
                 ModelState.AddModelError("Register", ex.Message);
-                return LogOnView(model);
+                return LogInView(model);
             }
 
             // Send a new account email
@@ -359,7 +378,7 @@ namespace NuGetGallery
                     }
                 };
 
-                return LogOnView(model);
+                return LogInView(model);
             }
         }
 
@@ -415,7 +434,7 @@ namespace NuGetGallery
             return RedirectToAction(nameof(LogOn));
         }
 
-        private ActionResult LogOnView(LogOnViewModel existingModel)
+        private ActionResult LogInView(LogOnViewModel existingModel, string viewName = "LogIn")
         {
             // Fill the providers list
             existingModel.Providers = GetProviders();
@@ -424,7 +443,7 @@ namespace NuGetGallery
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
-            return View("LogIn", existingModel);
+            return View(viewName, existingModel);
         }
     }
 }
