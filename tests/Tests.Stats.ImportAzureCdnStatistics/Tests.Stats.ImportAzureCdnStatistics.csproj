@@ -124,6 +124,7 @@
     <Compile Include="LogFileProcessorFacts.cs" />
     <Compile Include="PackageDefinitionFacts.cs" />
     <Compile Include="PackageDimensionFacts.cs" />
+    <Compile Include="PackageStatisticsParserFacts.cs" />
     <Compile Include="PackageTranslatorFacts.cs" />
     <Compile Include="StatisticsParserFacts.cs" />
     <Compile Include="ToolDimensionFacts.cs" />

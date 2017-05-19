@@ -26,7 +26,10 @@ namespace Stats.ImportAzureCdnStatistics
                 return null;
             }
 
-            packageDefinition = _packageTranslator.TranslatePackageDefinition(packageDefinition);
+            if (_packageTranslator != null)
+            {
+                packageDefinition = _packageTranslator.TranslatePackageDefinition(packageDefinition);
+            }
 
             var statistic = new PackageStatistics();
             statistic.EdgeServerTimeDelivered = cdnLogEntry.EdgeServerTimeDelivered;
@@ -51,9 +54,9 @@ namespace Stats.ImportAzureCdnStatistics
         private static string NormalizeSemanticVersion(string packageVersion)
         {
             // Normalize package version
-            SemanticVersion semanticVersion;
+            NuGetVersion semanticVersion;
             if (!string.IsNullOrEmpty(packageVersion)
-                && SemanticVersion.TryParse(packageVersion, out semanticVersion))
+                && NuGetVersion.TryParse(packageVersion, out semanticVersion))
             {
                 packageVersion = semanticVersion.ToNormalizedString();
             }

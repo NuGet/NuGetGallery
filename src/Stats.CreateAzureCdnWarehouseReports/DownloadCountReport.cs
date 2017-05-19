@@ -53,9 +53,9 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     foreach (var gv in group)
                     {
                         // downloads.v1.json should only contain normalized versions - ignore others
-                        SemanticVersion semanticVersion;
+                        NuGetVersion semanticVersion;
                         if (!string.IsNullOrEmpty(gv.PackageVersion)
-                            && SemanticVersion.TryParse(gv.PackageVersion, out semanticVersion)
+                            && NuGetVersion.TryParse(gv.PackageVersion, out semanticVersion)
                             && gv.PackageVersion == semanticVersion.ToNormalizedString())
                         {
                             var version = new JArray(gv.PackageVersion, gv.TotalDownloadCount);
