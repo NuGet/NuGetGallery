@@ -30,10 +30,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("Package push fails if min client version policy not met")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task PackagePush_Returns400IfRequireMinClientVersionPolicyNotMet(string clientVersion)
+        public async Task PackagePush_Returns400IfMinClientVersionPolicyNotMet(string clientVersion)
         {
             // Arrange
-            var id = $"{nameof(PackagePush_Returns400IfRequireMinClientVersionPolicyNotMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"{nameof(PackagePush_Returns400IfMinClientVersionPolicyNotMet)}.{DateTime.UtcNow.Ticks}";
 
             // Act
             var response = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, clientVersion);
@@ -48,10 +48,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("Package push succeeds if min client version policy met")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task PackagePush_Returns200IfRequireMinClientVersionPolicyMet(string clientVersion)
+        public async Task PackagePush_Returns200IfMinClientVersionPolicyMet(string clientVersion)
         {
             // Arrange
-            var id = $"{nameof(PackagePush_Returns200IfRequireMinClientVersionPolicyMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"{nameof(PackagePush_Returns200IfMinClientVersionPolicyMet)}.{DateTime.UtcNow.Ticks}";
 
             // Act
             var response = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, clientVersion);
@@ -64,10 +64,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("VerifyPackageKey fails if package verify policy not met")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task VerifyPackageKey_Returns400IfRequirePackageVerifyScopePolicyNotMet()
+        public async Task VerifyPackageKey_Returns400IfPackageVerifyScopePolicyNotMet()
         {
             // Arrange
-            var id = $"{nameof(VerifyPackageKey_Returns400IfRequirePackageVerifyScopePolicyNotMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"{nameof(VerifyPackageKey_Returns400IfPackageVerifyScopePolicyNotMet)}.{DateTime.UtcNow.Ticks}";
 
             var pushResponse = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, "4.1.0");
             Assert.Equal(HttpStatusCode.Created, pushResponse.StatusCode);
@@ -83,10 +83,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("VerifyPackageKey succeeds if package verify policy met")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task VerifyPackageKey_Returns200IfRequirePackageVerifyScopePolicyMet()
+        public async Task VerifyPackageKey_Returns200IfPackageVerifyScopePolicyMet()
         {
             // Arrange
-            var id = $"{nameof(VerifyPackageKey_Returns200IfRequirePackageVerifyScopePolicyMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"{nameof(VerifyPackageKey_Returns200IfPackageVerifyScopePolicyMet)}.{DateTime.UtcNow.Ticks}";
 
             var pushResponse = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, "4.1.0");
             Assert.Equal(HttpStatusCode.Created, pushResponse.StatusCode);
