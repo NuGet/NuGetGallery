@@ -69,7 +69,7 @@
             @Html.CheckBoxFor(m => m.CopySender)
             @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
         </div>
-        <div class="form-field">
+        <div class="form-field infringement-claim-requirements">
             <br /><span style="color: red">*</span> Required Statements for infringement claims<br /><br />
             <strong>Good Faith Belief:</strong><br />
             <p>
@@ -88,6 +88,7 @@
             <span class="field-hint-message">Sign with your real name.</span>
             @Html.ValidationMessageFor(m => m.Signature)
         </div>
+        <div class="infringement-claim-requirements">You can also send us an email at <a href="mailto:admin@nuget.org">admin@nuget.org</a></div>
         <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
         @Html.SpamPreventionFields()
         <input id="form-submit" type="submit" value="Report" title="Report '@Model.PackageId' for abuse" />
@@ -108,6 +109,21 @@
                 $form.find("input, textarea, select").not('#form-field-reason *').attr('disabled', 'disabled');
             } else {
                 $form.find("input, textarea, select").not('#form-field-reason').removeAttr('disabled');
+            }
+
+            if (val == 'ViolatesALicenseIOwn') {
+                $form.find('.infringement-claim-requirements').show();
+                $('#Signature').rules("add", {
+                    required: true,
+                    maxlength: 1000,
+                    messages: {
+                        required: "Please sign using your name."
+                    }
+                });
+                $('#Signature').attr('data-val-required', 'Please sign using your name.');
+            } else {
+                $form.find('.infringement-claim-requirements').hide();
+                $('#Signature').rules('remove', 'required');
             }
         }
 
