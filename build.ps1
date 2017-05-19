@@ -68,6 +68,20 @@ Invoke-BuildStep 'Restoring solution packages' { `
     } `
     -skip:$SkipRestore `
     -ev +BuildErrors
+    
+Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
+        $assemblyInfos = `
+            "src\NuGet.Indexing\Properties\AssemblyInfo.g.cs", `
+            "src\Catalog\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.ApplicationInsights.Owin\Properties\AssemblyInfo.g.cs", `
+            "src\Ng\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.Services.Metadata.Catalog.Monitoring\Properties\AssemblyInfo.g.cs"
+
+        Foreach ($assemblyInfo in $assemblyInfos) {
+            Set-VersionInfo -Path (Join-Path $PSScriptRoot $assemblyInfo) -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+        }
+    } `
+    -ev +BuildErrors
 
 Invoke-BuildStep 'Building solution' { 
         $SolutionPath = Join-Path $PSScriptRoot "NuGet.Services.Metadata.sln"
@@ -84,7 +98,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj"
             
         $projects | ForEach-Object {
-            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
+            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -IncludeReferencedProjects -MSBuildVersion "15"
         }
     } `
     -ev +BuildErrors

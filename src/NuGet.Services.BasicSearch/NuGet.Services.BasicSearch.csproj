@@ -350,6 +350,7 @@
     <Compile Include="Configuration\SecretReaderFactory.cs" />
     <Compile Include="ServiceEndpoints.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="SafeRoleEnvironment.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="WebRole.cs" />
