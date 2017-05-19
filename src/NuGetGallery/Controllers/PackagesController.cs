@@ -555,7 +555,13 @@ namespace NuGetGallery
             // Html Encode the message
             reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
 
-            if (!ModelState.IsValid)
+            var modelIsValid = ModelState.IsValid;
+            if (reportForm.Reason == ReportPackageReason.ViolatesALicenseIOwn)
+            {
+                modelIsValid = modelIsValid && !string.IsNullOrEmpty(reportForm.Signature);
+            }
+
+            if (!modelIsValid)
             {
                 return ReportAbuse(id, version);
             }
