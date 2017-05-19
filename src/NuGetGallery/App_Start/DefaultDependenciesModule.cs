@@ -203,8 +203,9 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<SecurityPolicyService>()
+                .AsSelf()
                 .As<ISecurityPolicyService>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             builder.RegisterType<SecurePushSubscription>()
                 .SingleInstance();

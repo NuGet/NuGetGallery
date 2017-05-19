@@ -555,7 +555,13 @@ namespace NuGetGallery
             // Html Encode the message
             reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
 
-            if (!ModelState.IsValid)
+            var modelIsValid = ModelState.IsValid;
+            if (reportForm.Reason == ReportPackageReason.ViolatesALicenseIOwn)
+            {
+                modelIsValid = modelIsValid && !string.IsNullOrEmpty(reportForm.Signature);
+            }
+
+            if (!modelIsValid)
             {
                 return ReportAbuse(id, version);
             }
@@ -1140,7 +1146,7 @@ namespace NuGetGallery
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Description, packageMetadata.Description);
                     pendEdit = pendEdit || IsDifferent(formData.Edit.ReleaseNotes, packageMetadata.ReleaseNotes);
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Summary, packageMetadata.Summary);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Tags, packageMetadata.Tags);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Tags, PackageHelper.ParseTags(packageMetadata.Tags));
                     pendEdit = pendEdit || IsDifferent(formData.Edit.VersionTitle, packageMetadata.Title);
                 }
 
