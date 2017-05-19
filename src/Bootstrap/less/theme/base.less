@@ -23,11 +23,11 @@ body {
 .mt-loop(150);
 
 .search-container {
-  padding: 16px 0;
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
 
 .main-container {
-  padding-top: 120px;
   padding-bottom: 75px;
 }
 
@@ -71,13 +71,28 @@ body {
   margin: 0 2px;
 }
 
-.alert {
-  .fa-ul {
-    margin-left: 24px;
+.banner {
+  padding: 10px;
+
+  &.banner-bright {
+    background: yellow;
+    font-size: 1.25em;
   }
 
-  .fa-li {
-    left: -32px;
-    top: 3px;
+  &.banner-info {
+    background: #f4f4f4;
+  }
+}
+
+.ms-Icon-ul {
+  margin-left: 24px;
+
+  li {
+    position: relative;
+    
+    i.ms-Icon {
+      position: absolute;
+      left: -24px;
+    }
   }
 }

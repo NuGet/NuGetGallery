@@ -8,13 +8,13 @@ $(function () {
     var showHiddenVersionIcon = $('#show-hidden-versions i');
     hiddenVersions.on('hide.bs.collapse', function () {
         showHiddenVersionText.text('Show more');
-        showHiddenVersionIcon.removeClass('fa-chevron-up');
-        showHiddenVersionIcon.addClass('fa-chevron-down');
+        showHiddenVersionIcon.removeClass('ms-Icon--ChevronUp');
+        showHiddenVersionIcon.addClass('ms-Icon--ChevronDown');
     });
     hiddenVersions.on('show.bs.collapse', function () {
         showHiddenVersionText.text('Show less');
-        showHiddenVersionIcon.removeClass('fa-chevron-down');
-        showHiddenVersionIcon.addClass('fa-chevron-up');
+        showHiddenVersionIcon.removeClass('ms-Icon--ChevronDown');
+        showHiddenVersionIcon.addClass('ms-Icon--ChevronUp');
     });
     showHiddenVersion.on('click', function (e) {
         e.preventDefault();

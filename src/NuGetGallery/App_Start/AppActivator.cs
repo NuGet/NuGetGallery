@@ -181,7 +181,7 @@ namespace NuGetGallery
             newStyleBundle
                 .Include("~/Content/gallery/css/bootstrap.css")
                 .Include("~/Content/gallery/css/bootstrap-theme.css")
-                .Include("~/Content/gallery/css/font-awesome.css");
+                .Include("~/Content/gallery/css/fabric.css");
             BundleTable.Bundles.Add(newStyleBundle);
 
             var newScriptBundle = new ScriptBundle("~/Scripts/gallery/site.min.js")

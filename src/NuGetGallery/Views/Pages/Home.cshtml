@@ -15,7 +15,7 @@
                            value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
                            @(Request.Url != null && (Request.Url.PathAndQuery == "/" || Request.Url.PathAndQuery == "/packages") ? "autofocus" : string.Empty) />
                     <span class="input-group-btn">
-                        <button class="btn btn-default btn-warning" type="button"><span class="fa fa-search"></span></button>
+                        <button class="btn btn-default btn-warning" type="submit"><span class="ms-Icon ms-Icon--Search"></span></button>
                     </span>
                 </div>
             </form>
