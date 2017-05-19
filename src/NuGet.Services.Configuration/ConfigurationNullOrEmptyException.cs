@@ -8,6 +8,7 @@ namespace NuGet.Services.Configuration
     /// <summary>
     /// Thrown when the configuration value associated with a key is null or empty.
     /// </summary>
+    [Serializable]
     public class ConfigurationNullOrEmptyException : Exception
     {
         public string Key { get; }

@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "WindowsAzure.Storage": "7.1.2",
+    "Microsoft.Extensions.Logging.Abstractions": "1.0.0"
+  },
+  "frameworks": {
+    "net452": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}
