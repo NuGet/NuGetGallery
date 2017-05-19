@@ -30,6 +30,10 @@
                         {
                             <li class="@(ViewBag.Tab == "Statistics" ? "active" : string.Empty)"><a href="@Url.Statistics()"><span>Statistics</span></a></li>
                         }
+                        @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
+                        {
+                            <li class="@(ViewBag.Tab == "Admin" ? "active" : string.Empty)"><a href="@Url.Action("Index", "Home", new { area="Admin" })"><span>Admin</span></a></li>
+                        }
                         <li class="@(ViewBag.Tab == "Documentation" ? "active" : string.Empty)"><a href="https://docs.microsoft.com/en-us/nuget/"><span>Documentation</span></a></li>
                         <li class="@(ViewBag.Tab == "Downloads" ? "active" : string.Empty)"><a href="@Url.RouteUrl(RouteName.Downloads)"><span>Downloads</span></a></li>
                         <li class="@(ViewBag.Tab == "Blog" ? "active" : string.Empty)"><a href="http://blog.nuget.org/"><span>Blog</span></a></li>
