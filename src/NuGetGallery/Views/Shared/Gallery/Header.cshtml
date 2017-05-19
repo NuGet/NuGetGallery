@@ -35,11 +35,17 @@
                         <li class="@(ViewBag.Tab == "Blog" ? "active" : string.Empty)"><a href="http://blog.nuget.org/"><span>Blog</span></a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                        @{
+                        @if (!User.Identity.IsAuthenticated)
+                        {
                             var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+                            <li class="@(ViewBag.Tab == "Log in" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Log in to an existing NuGet.org account"><span>Log in</span></a></li>
+                            <li class="@(ViewBag.Tab == "Sign up" ? "active" : string.Empty)"><a href="@Url.SignUp(returnUrl)" title="Sign up for a new NuGet.org account"><span>Sign up</span></a></li>
                         }
-                        <li class="@(ViewBag.Tab == "Log in" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Log in to an existing NuGet.org account"><span>Log in</span></a></li>
-                        <li class="@(ViewBag.Tab == "Sign up" ? "active" : string.Empty)"><a href="@Url.SignUp(returnUrl)" title="Sign up for a new NuGet.org account"><span>Sign up</span></a></li>
+                        else
+                        {
+                            <li><a href="@Url.Action("Account", "Users", new { area = string.Empty })"><b>@(User.Identity.Name)</b></a></li>
+                            <li><a href="@Url.LogOff()">Log off</a></li>
+                        }
                     </ul>
                 </div>
             </div>
