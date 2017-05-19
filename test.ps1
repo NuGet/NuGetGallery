@@ -28,7 +28,7 @@ Function Run-Tests {
         "tests\NgTests\bin\$Configuration\NgTests.dll", `
         "tests\NuGet.IndexingTests\bin\$Configuration\NuGet.IndexingTests.dll", `
         "tests\NuGet.Services.BasicSearchTests\bin\$Configuration\NuGet.Services.BasicSearchTests.dll", `
-        "tests\CatalogTests\bin\$Configuration\CatalogTests.exe"
+        "tests\CatalogTests\bin\$Configuration\CatalogTests.dll"
     
     $TestCount = 0
     
