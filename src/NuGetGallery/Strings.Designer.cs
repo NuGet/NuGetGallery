@@ -61,7 +61,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You are already logged in!.
+        ///   Looks up a localized string similar to You are already signed in!.
         /// </summary>
         public static string AlreadyLoggedIn {
             get {
@@ -179,7 +179,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Oops! You can&apos;t remove the only credential that can be used to log in to the website!.
+        ///   Looks up a localized string similar to Oops! You can&apos;t remove the only credential that can be used to sign in to the website!.
         /// </summary>
         public static string CannotRemoveOnlyLoginCredential {
             get {
@@ -323,7 +323,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A {0} was added to your account and can now be used to log in. If you did not request this change, please reply to this email to contact support..
+        ///   Looks up a localized string similar to A {0} was added to your account and can now be used to sign in. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_CredentialAdded_Body {
             get {
@@ -341,7 +341,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A {0} was removed from your account and can no longer be used to log in. If you did not request this change, please reply to this email to contact support..
+        ///   Looks up a localized string similar to A {0} was removed from your account and can no longer be used to sign in. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_CredentialRemoved_Body {
             get {

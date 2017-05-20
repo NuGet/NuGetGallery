@@ -197,14 +197,14 @@ body {
 .page-package-details .install-tabs .tab-pane .copy-button {
   display: table-cell;
 }
-.page-log-in .provider-button {
+.page-sign-in .provider-button {
   margin-top: 70px;
   line-height: 2em;
 }
-.page-log-in .provider-button img {
+.page-sign-in .provider-button img {
   margin-bottom: 1px;
 }
-.page-log-in .or-row {
+.page-sign-in .or-row {
   margin: 30px;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */

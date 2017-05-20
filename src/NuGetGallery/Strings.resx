@@ -226,7 +226,7 @@
     <value>The credential has been expired.</value>
   </data>
   <data name="CannotRemoveOnlyLoginCredential" xml:space="preserve">
-    <value>Oops! You can't remove the only credential that can be used to log in to the website!</value>
+    <value>Oops! You can't remove the only credential that can be used to sign in to the website!</value>
   </data>
   <data name="CredentialRemoved" xml:space="preserve">
     <value>The credential has been removed.</value>
@@ -269,13 +269,13 @@ The {1} Team</value>
     <value>[{0}] Please set your password.</value>
   </data>
   <data name="Emails_CredentialAdded_Body" xml:space="preserve">
-    <value>A {0} was added to your account and can now be used to log in. If you did not request this change, please reply to this email to contact support.</value>
+    <value>A {0} was added to your account and can now be used to sign in. If you did not request this change, please reply to this email to contact support.</value>
   </data>
   <data name="Emails_CredentialAdded_Subject" xml:space="preserve">
     <value>[{0}] {1} added to your account</value>
   </data>
   <data name="Emails_CredentialRemoved_Body" xml:space="preserve">
-    <value>A {0} was removed from your account and can no longer be used to log in. If you did not request this change, please reply to this email to contact support.</value>
+    <value>A {0} was removed from your account and can no longer be used to sign in. If you did not request this change, please reply to this email to contact support.</value>
   </data>
   <data name="Emails_CredentialRemoved_Subject" xml:space="preserve">
     <value>[{0}] {1} removed from your account</value>
@@ -284,7 +284,7 @@ The {1} Team</value>
     <value>Cannot send added/removed email for credentials of type '{0}'</value>
   </data>
   <data name="AlreadyLoggedIn" xml:space="preserve">
-    <value>You are already logged in!</value>
+    <value>You are already signed in!</value>
   </data>
   <data name="AuthenticationProviderDisabled" xml:space="preserve">
     <value>The '{0}' authentication provider is disabled and cannot be used to authenticate

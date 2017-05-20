@@ -12,7 +12,7 @@
                 <h1>We found an existing account</h1>
                 <p>
                     We found an account with this email address. Sign in with your password to link with this account. 
-                    Don't have a password? Sorry, you'll have to log in using an existing credential and 
+                    Don't have a password? Sorry, you'll have to sign in using an existing credential and 
                     set a password to associate a @Model.External.ProviderAccountNoun. If you're still having trouble, you can 
                     <a href="mailto:@Config.Current.GalleryOwner.Address">contact support.</a>
                 </p>
@@ -67,7 +67,7 @@
                     else
                     {
                         <text>
-                            We recommend using a @(provider.UI.AccountNoun ?? "external account") to log in to NuGet.org.
+                            We recommend using a @(provider.UI.AccountNoun ?? "external account") to sign in to NuGet.org.
                             If you already have a NuGet.org account, click the button to the right to associate it with your @(provider.UI.AccountNoun ?? "external account").
                             If not, click the button anyway and we'll create a new NuGet.org account for you!
                         </text>

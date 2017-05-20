@@ -1,7 +1,7 @@
 ﻿@model LogOnViewModel
 @{
-    ViewBag.Title = "Log In";
-    ViewBag.Tab = "Log in";
+    ViewBag.Title = "Sign In";
+    ViewBag.Tab = "Sign in";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
@@ -26,9 +26,9 @@
     }
 }
 
-<div class="container main-container page-log-in">
+<div class="container main-container page-sign-in">
     <div class="row">
-        <h1>Log in</h1>
+        <h1>Sign in</h1>
     </div>
 
     @foreach (var provider in Model.Providers)
@@ -42,7 +42,7 @@
                 else
                 {
                     <text>
-                        We recommend using a @(provider.UI.AccountNoun ?? "external account") to log in to NuGet.org.
+                        We recommend using a @(provider.UI.AccountNoun ?? "external account") to sign in to NuGet.org.
                         If you already have a NuGet.org account, click the button to the right to associate it with your @(provider.UI.AccountNoun ?? "external account").
                         If not, click the button anyway and we'll create a new NuGet.org account for you!
                     </text>
@@ -100,11 +100,11 @@
                     @Html.ActionLink("Forgot your Password?", "ForgotPassword", "Users")
                 </p>
                 <div class="form-group">
-                    <input type="submit" class="btn btn-primary form-control" value="Log in" />
+                    <input type="submit" class="btn btn-primary form-control" value="Sign in" />
                 </div>
             }
             <p class="text-center">
-                Don't have an account? <a href="@Url.SignUp(returnUrl)">Create Account</a>
+                Don't have an account? <a href="@Url.SignUp(returnUrl)">Register</a>
             </p>
         </div>
     </div>
