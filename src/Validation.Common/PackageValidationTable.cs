@@ -37,33 +37,5 @@ namespace NuGet.Jobs.Validation.Common
 
             return result.FirstOrDefault();
         }
-
-        public async Task<IReadOnlyCollection<PackageValidationEntity>> GetIncompleteValidationsAsync()
-        {
-            // Note: this method only checks the latest 5000 items in storage
-            // Older validations that are incomplete are not returned (to avoid query timeout)
-
-            var result = new List<PackageValidationEntity>();
-
-            TableContinuationToken continuationToken = null;
-            for (int i = 0; i < 5; i++)
-            {
-                var page = await _validationTable.ExecuteQuerySegmentedAsync(
-                    new TableQuery<PackageValidationEntity>(), continuationToken);
-                continuationToken = page.ContinuationToken;
-
-                if (page.Results.Any())
-                {
-                    result.AddRange(page.Results);
-                }
-
-                if (continuationToken == null)
-                {
-                    break;
-                }
-            }
-
-            return result;
-        }
     }
 }

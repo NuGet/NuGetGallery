@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.0
+VisualStudioVersion = 15.0.26424.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Common", "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj", "{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}"
 EndProject
@@ -76,6 +76,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.SupportRequests.Notifications", "src\NuGet.SupportRequests.Notifications\NuGet.SupportRequests.Notifications.csproj", "{12719498-B87E-4E92-8C2B-30046393CF85}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gallery.Maintenance", "src\Gallery.Maintenance\Gallery.Maintenance.csproj", "{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Helper", "src\Validation.Helper\Validation.Helper.csproj", "{305FB2C1-01FD-413D-B788-7B85BAD85A41}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -181,6 +183,10 @@ Global
 		{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{305FB2C1-01FD-413D-B788-7B85BAD85A41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{305FB2C1-01FD-413D-B788-7B85BAD85A41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{305FB2C1-01FD-413D-B788-7B85BAD85A41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{305FB2C1-01FD-413D-B788-7B85BAD85A41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -210,5 +216,6 @@ Global
 		{FA8C7905-985F-4919-AAA9-4B9A252F4977} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
 		{12719498-B87E-4E92-8C2B-30046393CF85} = {BEC3DF4D-9A04-42C8-8B4F-D42750202B4D}
 		{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
+		{305FB2C1-01FD-413D-B788-7B85BAD85A41} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 	EndGlobalSection
 EndGlobal
