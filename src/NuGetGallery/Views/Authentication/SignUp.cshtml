@@ -1,0 +1,101 @@
+﻿@model LogOnViewModel
+@{
+    ViewBag.Title = "Sign In";
+}
+
+<div id="logon">
+    @if (Model.External != null)
+    {
+        if (Model.External.FoundExistingUser)
+        {
+            <div id="signIn" class="signIn-solo">
+                <h1>We found an existing account</h1>
+                <p>
+                    We found an account with this email address. Sign in with your password to link with this account. 
+                    Don't have a password? Sorry, you'll have to sign in using an existing credential and 
+                    set a password to associate a @Model.External.ProviderAccountNoun. If you're still having trouble, you can 
+                    <a href="mailto:@Config.Current.GalleryOwner.Address">contact support.</a>
+                </p>
+                <div id="signIn-solo-form">
+                    @Html.Partial("_SignIn", Model)
+                </div>
+            </div>
+        } else {
+            <h1>Do we know you?</h1>
+            <p>
+                It looks like we haven't seen 
+                @if(String.IsNullOrEmpty(Model.External.AccountName)) {
+                    @: this @Model.External.ProviderAccountNoun
+                } else {
+                    @: the @Model.External.ProviderAccountNoun '@Model.External.AccountName'
+                }
+                before.
+            </p>
+
+            <div id="register">
+                <h1>I don't have a NuGet.org account</h1>
+                <p>
+                    Don't have a NuGet.org account yet? That's OK! We love meeting new people! Please fill in the information
+                    below and we'll start a new account for you. You'll be pushing packages in no time!
+                </p>
+                @Html.Partial("_Register", Model)
+            </div>
+
+            <div class="verticalSeparator"></div>
+
+            <div id="signIn">
+                <h1>I already have a NuGet.org account</h1>
+                <p>
+                    Already have a NuGet.org account? Sorry, we didn't recognize you! Sign in with your user name and password
+                    below and we'll remember you next time.
+                </p>
+                @Html.Partial("_SignIn", Model)
+            </div>
+        }
+    }
+    else
+    {
+        foreach (var provider in Model.Providers)
+        {
+            <div id="logon-external">
+                <h1>@provider.UI.SignInMessage</h1>
+                <p id="logon-external-info">
+                    @if (!string.IsNullOrEmpty(provider.UI.SignInInfo))
+                    {
+                        @provider.UI.SignInInfo
+                    }
+                    else
+                    {
+                        <text>
+                            We recommend using a @(provider.UI.AccountNoun ?? "external account") to sign in to NuGet.org.
+                            If you already have a NuGet.org account, click the button to the right to associate it with your @(provider.UI.AccountNoun ?? "external account").
+                            If not, click the button anyway and we'll create a new NuGet.org account for you!
+                        </text>
+                    }
+                </p>
+                <ul id="signin-providerlist">
+                    <li class="signin-authprovider">
+                        <a class="btn btn-big signin-external-link" href="@Url.Action("Authenticate", new {provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey]})">
+                            <i class="@provider.UI.IconCssClass signin-authprovider-icon"></i>
+                            @provider.UI.SignInMessage
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <p id="logon-separator">&mdash; or &mdash;</p>
+        }
+
+        <h2>Sign in or register with a username and password</h2>
+        <div id="register">
+            <h3>Register</h3>
+            @Html.Partial("_Register", Model)
+        </div>
+
+        <div class="verticalSeparator"></div>
+
+        <div id="signIn">
+            <h3>Sign in</h3>
+            @Html.Partial("_SignIn", Model)
+        </div>
+    }
+</div>

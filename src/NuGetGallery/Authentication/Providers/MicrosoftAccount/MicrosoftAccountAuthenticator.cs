@@ -32,9 +32,10 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
                 Strings.MicrosoftAccount_SignInMessage,
                 Strings.MicrosoftAccount_AccountNoun,
                 Strings.MicrosoftAccount_Caption)
-                {
+            {
+                    IconImagePath = "~/Content/gallery/img/microsoft-account.png",
                     IconCssClass = "icon-windows"
-                };
+            };
         }
 
         public override ActionResult Challenge(string redirectUrl)

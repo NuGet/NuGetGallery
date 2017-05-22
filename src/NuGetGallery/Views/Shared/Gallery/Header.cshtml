@@ -30,16 +30,26 @@
                         {
                             <li class="@(ViewBag.Tab == "Statistics" ? "active" : string.Empty)"><a href="@Url.Statistics()"><span>Statistics</span></a></li>
                         }
+                        @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
+                        {
+                            <li class="@(ViewBag.Tab == "Admin" ? "active" : string.Empty)"><a href="@Url.Action("Index", "Home", new { area="Admin" })"><span>Admin</span></a></li>
+                        }
                         <li class="@(ViewBag.Tab == "Documentation" ? "active" : string.Empty)"><a href="https://docs.microsoft.com/en-us/nuget/"><span>Documentation</span></a></li>
                         <li class="@(ViewBag.Tab == "Downloads" ? "active" : string.Empty)"><a href="@Url.RouteUrl(RouteName.Downloads)"><span>Downloads</span></a></li>
                         <li class="@(ViewBag.Tab == "Blog" ? "active" : string.Empty)"><a href="http://blog.nuget.org/"><span>Blog</span></a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                        @{
+                        @if (!User.Identity.IsAuthenticated)
+                        {
                             var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+                            <li class="@(ViewBag.Tab == "Sign in" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Sign in to an existing NuGet.org account"><span>Sign in</span></a></li>
+                            <li class="@(ViewBag.Tab == "Register" ? "active" : string.Empty)"><a href="@Url.SignUp(returnUrl)" title="Register for a new NuGet.org account"><span>Register</span></a></li>
                         }
-                        <li class="@(ViewBag.Tab == "Log in" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Log in to an existing NuGet.org account"><span>Log in</span></a></li>
-                        <li class="@(ViewBag.Tab == "Sign up" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Sign up for a new NuGet.org account"><span>Sign up</span></a></li>
+                        else
+                        {
+                            <li><a href="@Url.Action("Account", "Users", new { area = string.Empty })"><b>@(User.Identity.Name)</b></a></li>
+                            <li><a href="@Url.LogOff()">Sign out</a></li>
+                        }
                     </ul>
                 </div>
             </div>

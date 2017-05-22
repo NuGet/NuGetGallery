@@ -1773,6 +1773,7 @@
     <Content Include="Views\Shared\Gallery\Layout.cshtml" />
     <Content Include="Views\Shared\Gallery\Footer.cshtml" />
     <Content Include="Views\Shared\Gallery\Header.cshtml" />
+    <Content Include="Views\Authentication\LogOn.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -1899,7 +1900,7 @@
     <Content Include="Views\Users\Confirm.cshtml" />
     <Content Include="Views\Users\Thanks.cshtml" />
     <Content Include="Views\Users\Profiles.cshtml" />
-    <Content Include="Views\Authentication\LogOn.cshtml" />
+    <Content Include="Views\Authentication\SignUp.cshtml" />
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />

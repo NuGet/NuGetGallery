@@ -74,7 +74,26 @@ namespace NuGetGallery
                 return SafeRedirect(returnUrl);
             }
 
-            return LogOnView();
+            return LogOnView(new LogOnViewModel());
+        }
+
+        /// <summary>
+        /// Sign In\Register view
+        /// </summary>
+        [HttpGet]
+        [RequireSsl]
+        public virtual ActionResult SignUp(string returnUrl)
+        {
+            // I think it should be obvious why we don't want the current URL to be the return URL here ;)
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
+            if (Request.IsAuthenticated)
+            {
+                TempData["Message"] = Strings.AlreadyLoggedIn;
+                return SafeRedirect(returnUrl);
+            }
+
+            return SignUpView(new LogOnViewModel());
         }
 
         [HttpPost]
@@ -201,7 +220,7 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return LogOnView(model);
+                return SignUpView(model);
             }
 
             AuthenticatedUser user;
@@ -231,7 +250,7 @@ namespace NuGetGallery
             catch (EntityException ex)
             {
                 ModelState.AddModelError("Register", ex.Message);
-                return LogOnView(model);
+                return SignUpView(model);
             }
 
             // Send a new account email
@@ -359,7 +378,7 @@ namespace NuGetGallery
                     }
                 };
 
-                return LogOnView(model);
+                return SignUpView(model);
             }
         }
 
@@ -407,11 +426,6 @@ namespace NuGetGallery
                     }).ToList();
         }
 
-        private ActionResult LogOnView()
-        {
-            return LogOnView(new LogOnViewModel());
-        }
-
         private ActionResult ExternalLinkExpired()
         {
             // User got here without an external login cookie (or an expired one)
@@ -422,14 +436,19 @@ namespace NuGetGallery
 
         private ActionResult LogOnView(LogOnViewModel existingModel)
         {
-            // Fill the providers list
             existingModel.Providers = GetProviders();
+            existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
 
-            // Reinitialize any nulled-out sub models
+            return View("LogOn", existingModel);
+        }
+
+        private ActionResult SignUpView(LogOnViewModel existingModel)
+        {
+            existingModel.Providers = GetProviders();
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
-            return View("LogOn", existingModel);
+            return View("SignUp", existingModel);
         }
     }
 }

@@ -171,6 +171,16 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.Authentication, new { action = "LogOn", returnUrl = returnUrl });
         }
 
+        public static string SignUp(this UrlHelper url)
+        {
+            return url.RouteUrl(RouteName.Authentication, new { action = "SignUp" });
+        }
+
+        public static string SignUp(this UrlHelper url, string returnUrl)
+        {
+            return url.RouteUrl(RouteName.Authentication, new { action = "SignUp", returnUrl = returnUrl });
+        }
+
         public static string ConfirmationRequired(this UrlHelper url)
         {
             return url.Action("ConfirmationRequired", controllerName: "Users");
