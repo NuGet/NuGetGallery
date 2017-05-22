@@ -274,7 +274,7 @@
         expanded: expanded,
         actions:  @<text> @item.ExpandButton("New API key", "Cancel") </text>,
         content:  @<text>
-                    @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%", @id = "generateKeyForm", @onkeypress= "return event.keyCode != 13;" }))
+                    @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%", @id = "generateKeyForm"}))
                     {
                      <fieldset class="form" >
                         @Html.AntiForgeryToken()
@@ -335,16 +335,16 @@
                                  <label for="scopeUnlist" class="checkoboxsmall inline">@NuGetScopes.Describe(NuGetScopes.PackageUnlist)</label>
                              </div>
                          </div>
-                         <div id="addkeyselectpackages" class="disabled-div">
+                         <div id="addkeyselectpackages">
                              <h5>Select packages</h5><hr />
                              To select which packages to associate with a key use a glob pattern, select individual packages, or both. 
                              
-                             <a class="globHelpLink">Example glob patterns</a>.
+                             <a href="#" class="globHelpLink">Example glob patterns</a>.
                              <div class="popup">
                                  <div class="popupbox" id="addapikeypopup">
-                                     <a class="boxclose"><i class="icon-remove"></i></a>
+                                     <a href="#" class="boxclose"><i class="icon-remove"></i></a>
                                      <div class="innertext">
-                                         A glob pattern allows you to replace any sequence of charecters with '*'.
+                                         A glob pattern allows you to replace any sequence of characters with '*'.
                                          <h5>Example glob patterns</h5>
                                          <table>
                                              <tr>
@@ -428,28 +428,23 @@
             $('.scopecheckbox')
                 .on('click',
                     function() {
-                        var anyChecked = document.getElementById("scopeUnlist").checked ||
-                            document.getElementById("scopePush").checked;
+                        var anyChecked = scopesSelected();
 
                         if (anyChecked) {
-                            $('#addkeyselectpackages').removeClass('disabled-div');
+                            enableElementAndDescendants('#addkeyselectpackages');
                         } else {
-                            $('#addkeyselectpackages').addClass('disabled-div');
+                            disableElementAndDescendants('#addkeyselectpackages');
                         }
+
+                        enableAddKeyButton();
                     });
 
             $('#scopePush').change(function() {
-                        if (document.getElementById("scopePush").checked) {
-                            $('#scopePushOptions').removeClass('disabled-div');
-                            $('#scopeFullPush').attr("disabled", false);
-                            $('#scopePushVersion').attr("disabled", false);
-
-                        } else {
-                            $('#scopePushOptions').addClass('disabled-div');
-                            $('#scopeFullPush').attr("disabled", true);
-                            $('#scopePushVersion').attr("disabled", true);
-                        }
-                    });
+                if (document.getElementById("scopePush").checked) {
+                    enableElementAndDescendants('#scopePushOptions');
+                } else {
+                    disableElementAndDescendants('#scopePushOptions');
+                        }});
 
             $('#addkeyglobPattern')
                 .on('input', function () {
@@ -463,6 +458,13 @@
                 enableAddKeyButton();
             });
         });
+
+    function scopesSelected() {
+        var anyChecked = document.getElementById("scopeUnlist").checked ||
+            document.getElementById("scopePush").checked;
+
+        return anyChecked;
+    }
 
     function selectPackageFromGlob(globPatternElem, packageCheckboxes) {
         var globVal = globPatternElem.val();
@@ -483,10 +485,12 @@
                     $(this)[0].checked = true;
                     $(this)[0].name = ""; // hide the name so this won't be submitted in the form
                     $(this).parent().addClass('disabled-div');
+                    $(this).attr('disabled', true);
                 } else {
                     $(this)[0].checked = false;
                     $(this)[0].name = "subjects";
                     $(this).parent().removeClass('disabled-div');
+                    $(this).removeAttr('disabled');
                 }
             });
     }
@@ -535,24 +539,36 @@
         var globValid = $('#addkeyglobPattern').valid();
         var globEmpty = $('#addkeyglobPattern').val() == null || $.trim($('#addkeyglobPattern').val()) == '';
 
-        if (!globValid) {
-            $('#generateKey').addClass('disabled-div');
-        }
-        else if (packagesWereSelected || !globEmpty) {
-            $('#generateKey').removeClass('disabled-div');
+        if (scopesSelected() && globValid && (packagesWereSelected || !globEmpty)) {
+            enableElementAndDescendants('#generateKey');
         }
         else {
-            $('#generateKey').addClass('disabled-div');
+            disableElementAndDescendants('#generateKey');
         }
     }
 
     function setGenerateApiKeyFormInitialState() {
-        $('#addkeyselectpackages').addClass('disabled-div');
-        $('#generateKey').addClass('disabled-div');
-        $('#scopePushOptions').addClass('disabled-div');
+        disableElementAndDescendants('#addkeyselectpackages');
+        disableElementAndDescendants('#scopePushOptions');
+        disableElementAndDescendants('#generateKey');
+
         $('#scopeFullPush').prop("checked", true);
         $('#scopeFullPush').attr("disabled", true);
         $('#scopePushVersion').attr("disabled", true);
+    }
+
+    function disableElementAndDescendants(selector) {
+        $(selector).addClass('disabled-div');
+        $(selector).attr('disabled', true);
+        $(selector).find(':input').attr('disabled', true);
+        $(selector).find('a').attr('tabindex', -1);
+    }
+
+    function enableElementAndDescendants(selector) {
+        $(selector).removeClass('disabled-div');
+        $(selector).removeAttr('disabled');
+        $(selector).find(':input').removeAttr('disabled');
+        $(selector).find('a').removeAttr('tabindex');
     }
 
     $(document)
@@ -583,11 +599,15 @@
         $('.boxclose')
                .click(function () {
                    $(this).parent().hide();
+                   // Prevent page jump
+                   return false;
                });
 
         $('.globHelpLink')
             .click(function () {
                 $(this).next().find('.popupbox').show();
+                // Prevent page jump
+                return false;
             });
     }
 </script>
@@ -722,7 +742,6 @@
                 $('#generateKeyForm').find("input[type=text], textarea").val("");
                 $('#generateKeyForm').find("input:checkbox").removeAttr('checked');
                 setGenerateApiKeyFormInitialState();
-                selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'));
                 updateSelectedPackagesCounter($('#generateKeyForm .packagecheckbox input'), $('#selectablePackagesList').next());
                 $('#newapikey-1-collapse').trigger('click');
 
@@ -1137,6 +1156,7 @@
         selectPackagesDiv.appendChild(document
             .createTextNode("To select which packages to associate with a key use a glob pattern, select individual packages, or both. "));
         var helpLink = document.createElement("a");
+        helpLink.href = "#";
         helpLink.className = "globHelpLink";
         helpLink.appendChild(document.createTextNode("Example glob patterns"));
         selectPackagesDiv.appendChild(helpLink);
@@ -1147,6 +1167,7 @@
         popupboxDiv.className = "popupbox editapikeypopup";
         var boxclose = document.createElement("a");
         boxclose.className = "boxclose";
+        boxclose.href = "#";
         var iconRemove = document.createElement("i");
         iconRemove.className = "icon-remove";
         boxclose.appendChild(iconRemove);
@@ -1154,7 +1175,7 @@
         var innerTextDiv = document.createElement("div");
         innerTextDiv.className = "innertext";
         innerTextDiv.appendChild(document
-            .createTextNode("A glob pattern allows you to replace any sequence of charecters with '*'."));
+            .createTextNode("A glob pattern allows you to replace any sequence of characters with '*'."));
         var popupheader = document.createElement("h5");
         popupheader.appendChild(document.createTextNode("Example glob patterns"));
         innerTextDiv.appendChild(popupheader);

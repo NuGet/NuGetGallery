@@ -61,12 +61,14 @@
             var data = $self.data();
             var $target = $(data.target);
             var toggletext = data.toggletext || $self.text();
+            var expanded = $self.attr('aria-expanded') == 'true';
+            var oldText = $self.text();
 
-            $target.slideToggle('fast', function () {
-                var oldText = $self.text();
-                $self.text(toggletext);
-                data.toggletext = oldText;
-            });
+            $self.attr('aria-expanded', expanded ? 'false' : 'true');
+            $self.text(toggletext);
+            data.toggletext = oldText;
+
+            $target.slideToggle('fast');
         });
         $('.s-confirm[data-confirm]').delegate('', 'click', function (evt) {
             if (!confirm($(this).data().confirm)) {

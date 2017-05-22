@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace NuGetGallery
     public class StatisticsControllerFacts
     {
         [Fact]
-        public async void StatisticsHomePage_ValidateReportStructureAndAvailability()
+        public async Task StatisticsHomePage_ValidateReportStructureAndAvailability()
         {
             JArray report1 = new JArray
             {
@@ -132,7 +133,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_ValidateFullReportStructureAndAvailability()
+        public async Task StatisticsHomePage_ValidateFullReportStructureAndAvailability()
         {
             JArray report1 = new JArray
             {
@@ -256,7 +257,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_Packages_ValidateReportStructureAndAvailability()
+        public async Task StatisticsHomePage_Packages_ValidateReportStructureAndAvailability()
         {
             JArray report = new JArray
             {
@@ -293,7 +294,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_PackageVersions_ValidateReportStructureAndAvailability()
+        public async Task StatisticsHomePage_PackageVersions_ValidateReportStructureAndAvailability()
         {
             JArray report = new JArray
             {
@@ -341,7 +342,23 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailability()
+        public async void StatisticsHomePage_Per_Package_ValidateModel()
+        {
+            string PackageId = "A";
+
+            var fakeReportService = new Mock<IReportService>();
+
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+
+            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsByVersion(PackageId, new[] { Constants.StatisticsDimensions.Version })).Model;
+
+            Assert.Equal(PackageId, model.PackageId);
+        }
+
+        [Fact]
+        public async Task StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailability()
         {
             string PackageId = "A";
 
@@ -407,23 +424,23 @@ namespace NuGetGallery
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsByVersion(PackageId, new[] { Constants.StatisticsDimensions.Version })).Model;
+            var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsByVersionReport(PackageId, new[] { Constants.StatisticsDimensions.Version })).Data;
 
             int sum = 0;
 
-            foreach (var row in model.Report.Table)
+            foreach (var row in actualReport.Table)
             {
                 sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
             Assert.Equal(603, sum);
-            Assert.Equal("603", model.Report.Total);
-            Assert.True(model.LastUpdatedUtc.HasValue);
-            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
+            Assert.Equal("603", actualReport.Total);
+            Assert.True(actualReport.LastUpdatedUtc.HasValue);
+            Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
         }
 
         [Fact]
-        public async void StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailabilityInvalidGroupBy()
+        public async Task StatisticsHomePage_Per_Package_ValidateReportStructureAndAvailabilityInvalidGroupBy()
         {
             string PackageId = "A";
 
@@ -490,25 +507,43 @@ namespace NuGetGallery
             TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
             var invalidDimension = "this_dimension_does_not_exist";
-
-            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsByVersion(PackageId, new[] { Constants.StatisticsDimensions.Version, invalidDimension })).Model;
+            
+            var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsByVersionReport(PackageId, new[] { Constants.StatisticsDimensions.Version, invalidDimension })).Data;
 
             int sum = 0;
 
-            foreach (var row in model.Report.Table)
+            foreach (var row in actualReport.Table)
             {
                 sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
             Assert.Equal(603, sum);
-            Assert.Equal("603", model.Report.Total);
-            Assert.True(model.LastUpdatedUtc.HasValue);
-            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
-            Assert.DoesNotContain(invalidDimension, model.Report.Columns);
+            Assert.Equal("603", actualReport.Total);
+            Assert.True(actualReport.LastUpdatedUtc.HasValue);
+            Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
+            Assert.DoesNotContain(invalidDimension, actualReport.Columns);
         }
 
         [Fact]
-        public async void Statistics_By_Client_Operation_ValidateReportStructureAndAvailability()
+        public async void Statistics_By_Client_Operation_ValidateModel()
+        {
+            string PackageId = "A";
+            string PackageVersion = "2.0";
+
+            var fakeReportService = new Mock<IReportService>();
+
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+
+            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+            
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion, new string[] { "ClientName" })).Model;
+
+            Assert.Equal(PackageId, model.PackageId);
+            Assert.Equal(PackageVersion, model.PackageVersion);
+        }
+
+        [Fact]
+        public async Task Statistics_By_Client_Operation_ValidateReportStructureAndAvailability()
         {
             string PackageId = "A";
             string PackageVersion = "2.0";
@@ -574,26 +609,26 @@ namespace NuGetGallery
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
-
-            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion, new string[] { "ClientName" })).Model;
+            
+            var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsDetailReport(PackageId, PackageVersion, new string[] { "ClientName" })).Data;
 
             int sum = 0;
 
-            foreach (var row in model.Report.Table)
+            foreach (var row in actualReport.Table)
             {
                 sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
             Assert.Equal(502, sum);
-            Assert.Equal("502", model.Report.Total);
-            Assert.True(model.LastUpdatedUtc.HasValue);
-            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
+            Assert.Equal("502", actualReport.Total);
+            Assert.True(actualReport.LastUpdatedUtc.HasValue);
+            Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
         }
 
         public class TheTotalsAllAction
         {
             [Fact]
-            public async void UseServerCultureIfLanguageHeadersIsMissing()
+            public async Task UseServerCultureIfLanguageHeadersIsMissing()
             {
                 // Arrange
                 var currentCulture = CultureInfo.CurrentCulture;
@@ -631,7 +666,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async void UseClientCultureIfLanguageHeadersIsPresent()
+            public async Task UseClientCultureIfLanguageHeadersIsPresent()
             {
                 // Arrange
                 var aggregateStatsService = new Mock<IAggregateStatsService>(MockBehavior.Strict);

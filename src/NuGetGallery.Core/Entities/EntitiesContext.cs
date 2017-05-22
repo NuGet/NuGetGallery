@@ -42,6 +42,7 @@ namespace NuGetGallery
         public IDbSet<Credential> Credentials { get; set; }
         public IDbSet<Scope> Scopes { get; set; }
         public IDbSet<User> Users { get; set; }
+        public IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {

@@ -5,7 +5,9 @@ function Get-SiteHttpHost() {return "$(Get-SiteFQDN):80"}
 function Get-SiteHttpsHost() {return "$(Get-SiteFQDN):443"}
 
 function Get-SiteCertificate() {
-    return @(dir -l "Cert:\LocalMachine\Root" | where {$_.Subject -eq "CN=$(Get-SiteFQDN)"})
+    return @(dir -l "Cert:\LocalMachine\Root" `
+        | where {$_.Subject -eq "CN=$(Get-SiteFQDN)"}) `
+        | Select-Object -First 1
 }
 
 function Initialize-SiteCertificate() {
@@ -41,6 +43,8 @@ function Invoke-Netsh() {
         if($err -ne "183") {
             throw $result
         }
+    } elseif ($result -eq "The parameter is incorrect.") {
+        throw "Parameters for netsh are incorrect:`r`n  $argStr"
     } else {
         Write-Host $result
     }

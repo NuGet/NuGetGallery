@@ -1,93 +1,81 @@
-﻿<div class="statistics-pivot" id="@Model.Id">
+﻿@model StatisticsPackagesViewModel
 
-    <div class="statistics-graph" id="statistics-graph-id"></div>
-    <div style="clear: both;"></div>
+<div data-bind="template: { name: 'report-template', data: report }"></div>
 
-    <div class="statistics-sidebar">
+<script type="text/html" id="report-template">
+    <h1 class="statistics-report-title">
+        Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a>
+        <!-- ko if: $data && Total -->
+            <span data-bind="text: '(' + Total + ' over the Last 6 Weeks)'"></span>
+        <!-- /ko -->
+    </h1>
 
-        <form id="dimension-form">
-            <table class="statistics-dimensions-table">
-                @foreach (var item in Model.Dimensions)
-                {
-                    <tr>
-                        <td>
-                            <label for="checkbox-@item.Value">@item.DisplayName</label>
-                        </td>
-                        <td>
-                            <input id="checkbox-@item.Value" class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox" checked="@item.IsChecked">
-                        </td>
-                    </tr>
-                }
-            </table>
-        </form>
-
+    <div data-bind="if: $data && LastUpdatedUtc" class="last-updated">
+        <span data-bind="text: 'Statistics last updated at ' + moment(LastUpdatedUtc).format('YYYY-MM-dd HH:mm:ss') + ' UTC.'"></span>
     </div>
 
-    <div class="statistics-data">
+    <div data-bind="if: $data">
+        <div data-bind="attr: { id: Id }" class="statistics-pivot">
 
-        @if (Model.Table != null)
-        {
-            <table class="pivot-table">
-                <thead>
-                    <tr>
-                        @foreach (var column in Model.Columns)
-                        {
-                            var id = column + "-column";
+            <div class="statistics-graph" id="statistics-graph-id"></div>
+            <div style="clear: both;"></div>
 
-                            <th scope="col" class="dimension-column">@column</th>
-                        }
-                        <th scope="col">Downloads</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{
-                        foreach (var row in Model.Table)
-                        {
-                            <tr>
+            <div class="statistics-sidebar">
 
-                                @foreach (var entry in row)
-                                {
-                                    if (entry != null)
-                                    {
-                                        var entryClass = entry.IsNumeric ? "statistics-number" : "";
+                <form id="dimension-form">
+                    <table data-bind="foreach: Dimensions" class="statistics-dimensions-table">
+                        <tr>
+                            <td>
+                                <label data-bind="attr: { for: 'checkbox-' + Value }, text: DisplayName" />
+                            </td>
+                            <td>
+                                <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked }" class="dimension-checkbox" name="groupby" type="checkbox">
+                            </td>
+                        </tr>
+                    </table>
+                </form>
 
-                                        if (entry.Rowspan > 1)
-                                        {
-                                            <td class="@entryClass" rowspan="@entry.Rowspan" style="vertical-align:top">
-                                                @if (entry.Uri == null)
-                                                {
-                                                    @entry.Data
-                                                }
-                                                else
-                                                {
-                                                    <a href="@entry.Uri">@entry.Data</a>
-                                                }
-                                            </td>
-                                        }
-                                        else
-                                        {
-                                            <td class="@entryClass">
-                                                @if (entry.Uri == null)
-                                                {
-                                                    @entry.Data
-                                                }
-                                                else
-                                                {
-                                                    <a href="@entry.Uri">@entry.Data</a>
-                                                }
-                                            </td>
-                                        }
-                                    }
-                                }
+            </div>
 
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
-                        }
+            <div class="statistics-data">
 
+                <table data-bind="if: Table" class="pivot-table">
+                    <thead>
+                        <tr>
+                            <!-- ko foreach: Columns -->
+                                <th data-bind="attr: { id: $data + '-column' }, text: $data" scope="col" class="dimension-column"></th>
+                            <!-- /ko -->
+                            <th scope="col">Downloads</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: Table">
+                        <tr>
+
+                            <!-- ko foreach: $data -->
+                                <!-- ko if: $data -->
+                                    <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : '', rowspan: Rowspan > 1 ? Rowspan : null }" style="vertical-align:top">
+                                        <!-- ko if: Uri -->
+                                            <a data-bind="attr: { href: Uri }, text: Data"></a>
+                                        <!-- /ko -->
+                                        <!-- ko ifnot: Uri -->
+                                            <span data-bind="text: Data"></span>
+                                        <!-- /ko -->
+                                    </td>
+                                <!-- /ko -->
+                            <!-- /ko -->
+
+                        </tr>
+
+                    </tbody>
+                </table>
+
+            </div>
+            <div style="clear: both;"></div>
+
+        </div>
     </div>
-    <div style="clear: both;"></div>
 
-</div>
+    <p data-bind="ifnot: $data">
+        Download statistics are not currently available for this package. Please <a href="#" id="statistics-retry">retry</a> or check back later.
+    </p>
+</script>

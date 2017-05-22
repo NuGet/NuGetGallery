@@ -4,7 +4,6 @@
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Web;
-using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Authentication;
 using Xunit;
@@ -14,7 +13,7 @@ namespace NuGetGallery.Security
     public class RequirePackageVerifyScopePolicyFacts
     {
         [Fact]
-        public void EvaluateReturnsSuccessIfClaimHasPackageVerifyScope()
+        public void Evaluate_ReturnsSuccessIfClaimHasPackageVerifyScope()
         {
             // Arrange and Act
             var scopes = "[{\"a\":\"package:verify\", \"s\":\"*\"}]";
@@ -26,7 +25,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void EvaluateReturnsFailureIfEmptyScopeClaim()
+        public void Evaluate_ReturnsFailureIfEmptyScopeClaim()
         {
             // Arrange and Act
             var result = Evaluate(string.Empty);
@@ -39,7 +38,7 @@ namespace NuGetGallery.Security
         [Theory]
         [InlineData("[{\"a\":\"package:push\", \"s\":\"*\"}]")]
         [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"*\"}]")]
-        public void EvaluateReturnsFailureIfClaimHasDifferentScope(string scopes)
+        public void Evaluate_ReturnsFailureIfClaimDoesNotHavePackageVerifyScope(string scopes)
         {
             // Arrange and Act
             var result = Evaluate(scopes);
@@ -67,8 +66,8 @@ namespace NuGetGallery.Security
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(c => c.User).Returns(principal.Object);
             
-            var context = new UserSecurityPolicyContext(httpContext.Object,
-                new UserSecurityPolicy[] { new UserSecurityPolicy("RequireApiKeyWithPackageVerifyScopePolicy") });
+            var context = new UserSecurityPolicyEvaluationContext(httpContext.Object,
+                new UserSecurityPolicy[] { new UserSecurityPolicy("RequireApiKeyWithPackageVerifyScopePolicy", "Subscription") });
 
             return new RequirePackageVerifyScopePolicy().Evaluate(context);
         }

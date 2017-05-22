@@ -70,9 +70,19 @@ namespace NuGetGallery
                 new { controller = "Statistics", action = "PackageDownloadsDetail" });
 
             routes.MapRoute(
+                RouteName.StatisticsPackageDownloadsDetailReport,
+                "stats/reports/packages/{id}/{version}",
+                new { controller = "Statistics", action = "PackageDownloadsDetailReport" });
+
+            routes.MapRoute(
                 RouteName.StatisticsPackageDownloadsByVersion,
                 "stats/packages/{id}",
                 new { controller = "Statistics", action = "PackageDownloadsByVersion" });
+
+            routes.MapRoute(
+                RouteName.StatisticsPackageDownloadsByVersionReport,
+                "stats/reports/packages/{id}",
+                new { controller = "Statistics", action = "PackageDownloadsByVersionReport" });
 
             routes.MapRoute(
                 RouteName.JsonApi,

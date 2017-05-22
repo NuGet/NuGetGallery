@@ -127,6 +127,7 @@
     <Compile Include="Auditing\CredentialAuditRecordTests.cs" />
     <Compile Include="Auditing\EnumTests.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecordTests.cs" />
+    <Compile Include="Auditing\UserSecurityPolicyAuditRecordFacts.cs" />
     <Compile Include="Auditing\FileSystemAuditingServiceTests.cs" />
     <Compile Include="Auditing\PackageAuditRecordTests.cs" />
     <Compile Include="Auditing\PackageRegistrationAuditRecordTests.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Auditing\UserAuditRecordTests.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Entities\UserFacts.cs" />
+    <Compile Include="Entities\UserSecurityPolicyFacts.cs" />
     <Compile Include="Packaging\ManifestValidatorFacts.cs" />
     <Compile Include="Packaging\PackageIdValidatorTest.cs" />
     <Compile Include="Packaging\PackageMetadataFacts.cs" />

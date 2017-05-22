@@ -18,7 +18,7 @@ namespace NuGetGallery.Security
         {
         }
 
-        public override SecurityPolicyResult Evaluate(UserSecurityPolicyContext context)
+        public override SecurityPolicyResult Evaluate(UserSecurityPolicyEvaluationContext context)
         {
             if (context == null)
             {

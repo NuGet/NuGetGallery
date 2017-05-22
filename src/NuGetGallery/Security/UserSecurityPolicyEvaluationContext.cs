@@ -8,9 +8,9 @@ using System.Web;
 namespace NuGetGallery.Security
 {
     /// <summary>
-    /// Context providing user security policy handlers with resources necessary for policy actions.
+    /// Context providing user security policy handlers with resources necessary for policy evaluation.
     /// </summary>
-    public class UserSecurityPolicyContext
+    public class UserSecurityPolicyEvaluationContext
     {
         /// <summary>
         /// Current http context.
@@ -22,20 +22,10 @@ namespace NuGetGallery.Security
         /// </summary>
         public IEnumerable<UserSecurityPolicy> Policies { get; }
 
-        public UserSecurityPolicyContext(HttpContextBase httpContext, IEnumerable<UserSecurityPolicy> policies)
+        public UserSecurityPolicyEvaluationContext(HttpContextBase httpContext, IEnumerable<UserSecurityPolicy> policies)
         {
-            if (httpContext == null)
-            {
-                throw new ArgumentNullException(nameof(httpContext));
-            }
-            if (policies == null)
-            {
-                throw new ArgumentNullException(nameof(policies));
-            }
-
-            HttpContext = httpContext;
-            Policies = policies;
+            HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
+            Policies = policies ?? throw new ArgumentNullException(nameof(policies));
         }
-
     }
 }

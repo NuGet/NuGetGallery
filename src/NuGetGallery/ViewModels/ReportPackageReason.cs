@@ -16,7 +16,7 @@ namespace NuGetGallery
         [Description("The package contains malicious code")]
         ContainsMaliciousCode,
 
-        [Description("The package violates a license I own")]
+        [Description("The package violates a copyright I own")]
         ViolatesALicenseIOwn,
 
         [Description("The package owner is fraudulently claiming authorship")]

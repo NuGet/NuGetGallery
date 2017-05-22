@@ -50,12 +50,12 @@
 <section>
     <ul class="actionlist">
         <li class="actionlist-item">
-            <a class="actionlist-item-link" href="@Url.UploadPackage()">
+            <a class="actionlist-item-link" href="@Url.UploadPackage()" aria-labelledby="upload-package-label" aria-describedby="upload-package-description">
                 <div class="actionlist-item-header">
                     <i class="icon-cloud-upload actionlist-item-header-icon"></i>
-                    <span class="actionlist-item-header-text">Upload a Package</span>
+                    <span class="actionlist-item-header-text" id="upload-package-label">Upload a Package</span>
                 </div>
-                <p class="actionlist-item-content">
+                <p class="actionlist-item-content" id="upload-package-description">
                     Upload and publish your package for other NuGet users to download and enjoy.
                     You can upload multiple revisions of the same package, as long as the version
                     is different.
@@ -64,12 +64,12 @@
         </li>
 
         <li class="actionlist-item">
-            <a class="actionlist-item-link" href="@Url.Action(actionName: "Packages", controllerName: "Users")">
+            <a class="actionlist-item-link" href="@Url.Action(actionName: "Packages", controllerName: "Users")" aria-labelledby="manage-my-packages-label" aria-describedby="manage-my-packages-description">
                 <div class="actionlist-item-header">
                     <i class="icon-gears actionlist-item-header-icon"></i>
-                    <span class="actionlist-item-header-text">Manage my Packages</span>
+                    <span class="actionlist-item-header-text" id="manage-my-packages-label">Manage my Packages</span>
                 </div>
-                <p class="actionlist-item-content">
+                <p class="actionlist-item-content" id="manage-my-packages-description">
                     Edit package details or Remove packages that you have previously uploaded.
                 </p>
             </a>

@@ -40,7 +40,6 @@ namespace NuGetGallery
             ErrorMessage = "This doesn't appear to be a valid email address.")]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "Please sign using your name.")]
         [StringLength(1000)]
         [Display(Name = "Signature")]
         public string Signature { get; set; }
