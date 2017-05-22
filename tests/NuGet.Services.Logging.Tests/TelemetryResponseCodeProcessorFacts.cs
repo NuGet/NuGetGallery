@@ -78,12 +78,16 @@ namespace NuGet.Services.Logging.Tests
             }
         }
 
-        private RequestTelemetry ProcessResponseCode(int[] responseCodeOverrides, RequestTelemetry telemetry)
+        private RequestTelemetry ProcessResponseCode(int[] successCodeOverrides, RequestTelemetry telemetry)
         {
             ITelemetry result = null;
             var processor = new TelemetryResponseCodeProcessor(new TelemetryCallbackProcessor(i => result = i));
 
-            processor.SuccessfulResponseCodes = responseCodeOverrides;
+            foreach (var successCode in successCodeOverrides)
+            {
+                processor.SuccessfulResponseCodes.Add(successCode);
+            }
+
             processor.Process(telemetry);
 
             return result as RequestTelemetry;
