@@ -24,7 +24,9 @@ namespace NuGet.IndexingTests.TestSupport
         public static readonly string LucenePropertyProjectUrl = "ProjectUrl";
         public static readonly string LucenePropertySummary = "Summary";
         public static readonly string LucenePropertyTitle = "Title";
-        public static readonly string LucenePropertyVersion = "Version";
+        public static readonly string LucenePropertyFullVersion = "FullVersion";
+        public static readonly string LucenePropertyNormalizedVersion = "Version";
+        public static readonly string LucenePropertyOriginalVersion = "OriginalVersion";
         public static readonly string LucenePropertySemVerLevel = "SemVerLevel";
         public static readonly string MockBase = "Mock";
         public static readonly string MockExplanationBase = MockBase + "Explanation";

@@ -28,7 +28,7 @@ namespace NuGet.Indexing
 
                 AddString(MetadataConstants.IdPropertyName, package.PackageRegistration.Id);
                 AddString(MetadataConstants.NormalizedVersionPropertyName, package.NormalizedVersion);
-                AddString(MetadataConstants.VersionPropertyName, package.Version);
+                AddString(MetadataConstants.VerbatimVersionPropertyName, package.Version);
                 AddString(MetadataConstants.TitlePropertyName, package.Title);
                 AddString(MetadataConstants.DescriptionPropertyName, package.Description);
                 AddString(MetadataConstants.SummaryPropertyName, package.Summary);

@@ -15,7 +15,8 @@ namespace NuGet.Indexing
 
             // Version Properties
             public const string NormalizedVersionPropertyName = "Version";
-            public const string VersionPropertyName = "OriginalVersion";
+            public const string FullVersionPropertyName = "FullVersion";
+            public const string VerbatimVersionPropertyName = "OriginalVersion";
 
             // Date Properties
             public const string LastEditedDatePropertyName = "LastEditedDate";
@@ -86,7 +87,7 @@ namespace NuGet.Indexing
         public const string SupportedFrameworksPropertyName = "supportedFrameworks";
         public const string TagsPropertyName = "tags";
         public const string TitlePropertyName = "title";
-        public const string VersionPropertyName = "verbatimVersion";
+        public const string VerbatimVersionPropertyName = "verbatimVersion";
 
         // Constant Values
         public const string DateTimeZeroStringValue = "01/01/0001 00:00:00";

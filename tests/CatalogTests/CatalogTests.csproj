@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CatalogTests</RootNamespace>
     <AssemblyName>CatalogTests</AssemblyName>
@@ -51,6 +51,9 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="dotNetRDF, Version=1.0.8.3533, Culture=neutral, PublicKeyToken=6055ffe4c97cc780, processorArchitecture=MSIL">
@@ -101,8 +104,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.CatalogPackaging.1.0.0-alpha003\lib\net45\NuGet.Packaging.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Versioning, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Versioning.3.5.0-rc1-final\lib\net45\NuGet.Versioning.dll</HintPath>
+    <Reference Include="NuGet.Versioning, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Versioning.4.0.0\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -140,32 +143,16 @@
     <Compile Include="Helpers\NuGetVersionUtilityTests.cs" />
     <Compile Include="PackageCatalogItemTests.cs" />
     <Compile Include="ReadOnlyGraphTests.cs" />
-    <Compile Include="RegistrationMakerTests.cs" />
-    <Compile Include="Feed2CatalogTests.cs" />
-    <Compile Include="GalleryCompareTests.cs" />
     <Compile Include="Registration\RegistrationEntryKeyTests.cs" />
     <Compile Include="Registration\RegistrationKeyTests.cs" />
     <Compile Include="Registration\RegistrationMakerCatalogItemTests.cs" />
     <Compile Include="Registration\PackagesFolderPackagePathProviderTests.cs" />
     <Compile Include="Registration\RegistrationCatalogEntryTests.cs" />
-    <Compile Include="ReindexTests.cs" />
     <Compile Include="SortingGraphCollectorTests.cs" />
-    <Compile Include="StorageTests.cs" />
     <Compile Include="StringInternerTests.cs" />
     <Compile Include="TestCollector.cs" />
-    <None Include="BuilderTests.cs" />
-    <Compile Include="CatalogTests.cs" />
-    <Compile Include="CheckResults.cs" />
-    <Compile Include="CollectorTests.cs" />
-    <Compile Include="CursorTests.cs" />
-    <Compile Include="InstallDataBrowser.cs" />
-    <Compile Include="IntegrityTests.cs" />
-    <None Include="MakeTestCatalog.cs" />
-    <Compile Include="PartitioningTests.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestCatalogItem.cs" />
-    <Compile Include="WarehouseCatalogTests.cs" />
     <None Include="TestData\Newtonsoft.Json.9.0.2-beta1.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -192,15 +179,6 @@
       <Project>{05c1c78a-9966-4922-9065-a099023e7366}</Project>
       <Name>NgTests</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="DataBrowser\index.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Node\collect.js" />
-    <Content Include="Top1000.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

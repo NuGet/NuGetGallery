@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-    public abstract class SortingCollector : CommitCollector
+    public abstract class SortingCollector<T> : CommitCollector where T : IEquatable<T>
     {
         public SortingCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null)
             : base(index, handlerFunc)
@@ -28,11 +28,11 @@ namespace NuGet.Services.Metadata.Catalog
             bool isLastBatch,
             CancellationToken cancellationToken)
         {
-            IDictionary<string, IList<JObject>> sortedItems = new Dictionary<string, IList<JObject>>();
+            IDictionary<T, IList<JObject>> sortedItems = new Dictionary<T, IList<JObject>>();
 
             foreach (JObject item in items)
             {
-                string key = GetKey(item);
+                T key = GetKey(item);
 
                 IList<JObject> itemList;
                 if (!sortedItems.TryGetValue(key, out itemList))
@@ -46,7 +46,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             IList<Task> tasks = new List<Task>();
 
-            foreach (KeyValuePair<string, IList<JObject>> sortedBatch in sortedItems)
+            foreach (KeyValuePair<T, IList<JObject>> sortedBatch in sortedItems)
             {
                 Task task = ProcessSortedBatch(client, sortedBatch, context, cancellationToken);
 
@@ -62,14 +62,12 @@ namespace NuGet.Services.Metadata.Catalog
 
             return true;
         }
-        protected virtual string GetKey(JObject item)
-        {
-            return item["nuget:id"].ToString();
-        }
+
+        protected abstract T GetKey(JObject item);
 
         protected abstract Task ProcessSortedBatch(
             CollectorHttpClient client, 
-            KeyValuePair<string, IList<JObject>> sortedBatch, 
+            KeyValuePair<T, IList<JObject>> sortedBatch, 
             JToken context, 
             CancellationToken cancellationToken);
     }

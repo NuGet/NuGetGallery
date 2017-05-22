@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Lucene.Net.Search;
 using Newtonsoft.Json;
 using NuGet.Versioning;
+using Lucene.Net.Analysis.Standard;
 
 namespace NuGet.Indexing
 {
@@ -51,6 +52,22 @@ namespace NuGet.Indexing
                 bool includeUnlisted = ignoreFilter;
                 includePrerelease = ignoreFilter || includePrerelease;
                 feed = ignoreFilter ? null : feed;
+
+                var combinedQuery = new BooleanQuery();
+                combinedQuery.Add(query, Occur.SHOULD);
+
+                // Add this clause to the query here so we still respect semVerLevel that is passed when ignoring filters.
+                if (!SemVerHelpers.ShouldIncludeSemVer2Results(semVerLevel))
+                {
+                    combinedQuery.Add(
+                        NuGetQuery.ConstructClauseQuery(
+                            new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), 
+                            MetadataConstants.LuceneMetadata.SemVerLevelPropertyName, 
+                            new List<string> { SemVerHelpers.SemVerLevelKeySemVer2 }), 
+                        Occur.MUST_NOT);
+                }
+
+                query = combinedQuery;
 
                 Filter filter = null;
                 if (!ignoreFilter && searcher.TryGetFilter(includeUnlisted, includePrerelease, semVerLevel, feed, out filter))

@@ -100,12 +100,12 @@ namespace NuGet.Indexing
             return allVersions;
         }
 
-        public static Tuple<int, int> DownloadCounts(VersionResult versions, string version)
+        public static Tuple<int, int> DownloadCounts(VersionResult versions, string normalizedVersion)
         {
             int allVersions = TotalDownloadCounts(versions);
 
             int thisVersion = versions.AllVersionDetails
-                .Where(v => v.Version.Equals(version, StringComparison.OrdinalIgnoreCase))
+                .Where(v => v.NormalizedVersion.Equals(normalizedVersion, StringComparison.OrdinalIgnoreCase))
                 .Select(v => v.Downloads)
                 .FirstOrDefault();
 

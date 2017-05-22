@@ -100,7 +100,7 @@ namespace NuGet.IndexingTests
             var listedPackages = result.AllVersionDetails.Where(x => x.IsListed);
             foreach(var detail in listedPackages)
             {
-                listedMap.Add(detail.Version, detail);
+                listedMap.Add(detail.FullVersion, detail);
             }
 
             var semVer2ListedResult = result.GetVersions(onlyListed: true, includeSemVer2: true);
@@ -143,7 +143,8 @@ namespace NuGet.IndexingTests
                 return new VersionDetail
                 {
                     Downloads = 0,
-                    Version = parsedVersion.ToNormalizedString(),
+                    FullVersion = parsedVersion.ToFullString(),
+                    NormalizedVersion = parsedVersion.ToNormalizedString(),
                     IsListed = listed,
                     IsStable = !parsedVersion.IsPrerelease,
                     IsSemVer2 = parsedVersion.IsSemVer2
@@ -153,7 +154,8 @@ namespace NuGet.IndexingTests
             return new VersionDetail
             {
                 Downloads = 0,
-                Version = parsedVersion.ToNormalizedString(),
+                FullVersion = parsedVersion.ToFullString(),
+                NormalizedVersion = parsedVersion.ToNormalizedString(),
                 IsListed = listed,
                 IsStable = !parsedVersion.IsPrerelease,
                 IsSemVer2 = parsedVersion.IsSemVer2

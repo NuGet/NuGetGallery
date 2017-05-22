@@ -34,7 +34,7 @@ namespace NuGet.IndexingTests.TestSupport
             MockObjectFactory.MockPrefix = Constants.MockBase;
         }
 
-        private static NuGetSearcherManager InitNuGetSearcherManager(string indexName, DateTime? reloadTime, Dictionary<string, DateTime?> lastModifiedTimeForAuxFiles, string machineName)
+        public static NuGetSearcherManager InitNuGetSearcherManager(string indexName, DateTime? reloadTime, Dictionary<string, DateTime?> lastModifiedTimeForAuxFiles, string machineName)
         {
             var mockSearcherManager = new Mock<NuGetSearcherManager>(new Mock<ILogger>().Object, null, null,
                 int.MaxValue, int.MaxValue)

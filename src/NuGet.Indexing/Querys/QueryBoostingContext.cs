@@ -49,20 +49,15 @@ namespace NuGet.Indexing
 
                     var value = serializer.Deserialize<QueryBoostingContext>(reader);
 
-                    return value;
+                    return value ?? throw new InvalidOperationException("Failed to deserialize the query boosting context");
                 }
             }
             catch (Exception ex)
             {
-                if (IndexingUtils.IsFatal(ex))
-                {
-                    throw;
-                }
+                logger.LogError("Unable to load {FileName} as deserialization threw: {Exception}", fileName, ex);
 
-                logger.LogError($"Unable to load {fileName}.", ex);
+                throw;
             }
-
-            return Default;
         }
     }
 }

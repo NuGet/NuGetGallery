@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Ng.Jobs
@@ -55,7 +56,7 @@ namespace Ng.Jobs
         {
             var timeout = TimeSpan.FromSeconds(300);
 
-            using (var client = CatalogUtility.CreateHttpClient(_verbose))
+            using (var client = FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(_verbose)))
             {
                 client.Timeout = timeout;
 
@@ -63,18 +64,18 @@ namespace Ng.Jobs
 
                 var uri = (_version == null) ? MakePackageUri(_gallery, _id) : MakePackageUri(_gallery, _id, _version);
 
-                var packages = await CatalogUtility.GetPackages(client, uri, "Created");
+                var packages = await FeedHelpers.GetPackagesInOrder(client, uri, package => package.CreatedDate);
 
                 Logger.LogInformation($"Downloading {packages.Select(t => t.Value.Count).Sum()} packages");
 
                 var storage = _storageFactory.Create();
 
                 //  the idea here is to leave the lastCreated, lastEdited and lastDeleted values exactly as they were
-                var lastCreated = await CatalogUtility.GetCatalogProperty(storage, "nuget:lastCreated", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
-                var lastEdited = await CatalogUtility.GetCatalogProperty(storage, "nuget:lastEdited", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
-                var lastDeleted = await CatalogUtility.GetCatalogProperty(storage, "nuget:lastDeleted", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
+                var lastCreated = await FeedHelpers.GetCatalogProperty(storage, "nuget:lastCreated", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
+                var lastEdited = await FeedHelpers.GetCatalogProperty(storage, "nuget:lastEdited", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
+                var lastDeleted = await FeedHelpers.GetCatalogProperty(storage, "nuget:lastDeleted", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
 
-                await CatalogUtility.DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited, lastDeleted, null, cancellationToken, Logger);
+                await FeedHelpers.DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited, lastDeleted, null, cancellationToken, Logger);
             }
         }
 

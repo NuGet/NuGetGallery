@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.Services.Metadata.Catalog.Monitoring;
+
 namespace Ng
 {
     public static class Arguments
@@ -90,6 +92,21 @@ namespace Ng
         public const string StorageKeyValueAuditing = "storageKeyValueAuditing";
         public const string StoragePathAuditing = "storagePathAuditing";
         public const string StorageTypeAuditing = "storageTypeAuditing";
+        #endregion
+
+        #region EndpointMonitoring
+        public const string Index = "index";
+        /// <summary>
+        /// A semicolon-delimited list of <see cref="EndpointValidator"/> implementation names.
+        /// E.g. "<see cref="RegistrationEndpoint"/>;<see cref="FlatContainerEndpoint"/>".
+        /// </summary>
+        public const string EndpointsToTest = "endpointsToTest";
+
+        /// <summary>
+        /// A prefix to combine with the name of an endpoint to specify the address of the cursor of an endpoint.
+        /// E.g. "endpointCursor<see cref="RegistrationEndpoint"/>".
+        /// </summary>
+        public const string EndpointCursorPrefix = "endpointCursor";
         #endregion
 
         #region KeyVault

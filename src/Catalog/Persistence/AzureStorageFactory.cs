@@ -49,11 +49,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
-        public bool CompressContent
-        {
-            get;
-            set;
-        }
+        public bool CompressContent { get; set; }
 
         public override Storage Create(string name = null)
         {

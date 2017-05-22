@@ -35,7 +35,7 @@ namespace NuGet.Indexing
 
                 AddString(MetadataConstants.IdPropertyName);
                 AddString(MetadataConstants.NormalizedVersionPropertyName);
-                AddString(MetadataConstants.VersionPropertyName);
+                AddString(MetadataConstants.VerbatimVersionPropertyName);
                 AddString(MetadataConstants.TitlePropertyName);
                 AddString(MetadataConstants.DescriptionPropertyName);
                 AddString(MetadataConstants.SummaryPropertyName);
@@ -127,7 +127,7 @@ namespace NuGet.Indexing
 
             private void AddSemVerLevelKey()
             {
-                var version = (string)_catalog[MetadataConstants.VersionPropertyName];
+                var version = (string)_catalog[MetadataConstants.VerbatimVersionPropertyName];
                 if (version != null)
                 {
                     NuGetVersion packageOriginalVersion;

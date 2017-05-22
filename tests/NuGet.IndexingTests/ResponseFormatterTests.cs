@@ -54,7 +54,8 @@ namespace NuGet.IndexingTests
             {
                 ResponseFormatter.WriteV2Result(writer, searcher, topDocs, skip, take, SemVerHelpers.SemVer2Level);
 
-                Assert.Equal(expected, sb.ToString());
+                var result = sb.ToString();
+                Assert.Equal(expected, result);
             }
         }
 
@@ -179,7 +180,7 @@ namespace NuGet.IndexingTests
                     Constants.LucenePropertyId.ToLower(),
                     Constants.MockBase,
                     Constants.LucenePropertyId,
-                    Constants.LucenePropertyVersion,
+                    Constants.LucenePropertyFullVersion,
                     Constants.LucenePropertyDescription,
                     Constants.LucenePropertySummary,
                     Constants.LucenePropertyTitle,
@@ -323,17 +324,18 @@ namespace NuGet.IndexingTests
                     1.0,  // Top Docs Max Score
                     0,    // skip
                     2,    // take
-                    string.Format("{{\"totalHits\":2,\"index\":\"mockTakeDocuments\",\"indexTimestamp\":\"{0:G}\",\"data\":[{{\"PackageRegistration\":{{\"{2}\":\"{1}{2}0\",\"DownloadCount\":0,\"Owners\":[]}},\"NormalizedVersion\":\"{1}{3}0\",\"{4}\":\"{1}{4}0\",\"{5}\":\"{1}{5}0\",\"{6}\":\"{1}{6}0\",\"{7}\":\"{1}{7}0\",\"{8}\":\"{1}{8}0\",\"IsLatestStable\":false,\"IsLatest\":false,\"Listed\":true,\"DownloadCount\":0,\"Dependencies\":[],\"SupportedFrameworks\":[],\"PackageFileSize\":0,\"{9}\":\"{1}{9}0\",\"RequiresLicenseAcceptance\":false}},{{\"PackageRegistration\":{{\"{2}\":\"{1}{2}1\",\"DownloadCount\":0,\"Owners\":[]}},\"NormalizedVersion\":\"{1}{3}1\",\"{4}\":\"{1}{4}1\",\"{5}\":\"{1}{5}1\",\"{6}\":\"{1}{6}1\",\"{7}\":\"{1}{7}1\",\"{8}\":\"{1}{8}1\",\"IsLatestStable\":false,\"IsLatest\":false,\"Listed\":true,\"DownloadCount\":0,\"Dependencies\":[],\"SupportedFrameworks\":[],\"PackageFileSize\":0,\"{9}\":\"{1}{9}1\",\"RequiresLicenseAcceptance\":false}}]}}",
+                    string.Format("{{\"totalHits\":2,\"index\":\"mockTakeDocuments\",\"indexTimestamp\":\"{0:G}\",\"data\":[{{\"PackageRegistration\":{{\"{2}\":\"{1}{2}0\",\"DownloadCount\":0,\"Owners\":[]}},\"Version\":\"{1}{10}0\",\"NormalizedVersion\":\"{1}{3}0\",\"{4}\":\"{1}{4}0\",\"{5}\":\"{1}{5}0\",\"{6}\":\"{1}{6}0\",\"{7}\":\"{1}{7}0\",\"{8}\":\"{1}{8}0\",\"IsLatestStable\":false,\"IsLatest\":false,\"Listed\":true,\"DownloadCount\":0,\"Dependencies\":[],\"SupportedFrameworks\":[],\"PackageFileSize\":0,\"{9}\":\"{1}{9}0\",\"RequiresLicenseAcceptance\":false}},{{\"PackageRegistration\":{{\"{2}\":\"{1}{2}1\",\"DownloadCount\":0,\"Owners\":[]}},\"Version\":\"{1}{10}1\",\"NormalizedVersion\":\"{1}{3}1\",\"{4}\":\"{1}{4}1\",\"{5}\":\"{1}{5}1\",\"{6}\":\"{1}{6}1\",\"{7}\":\"{1}{7}1\",\"{8}\":\"{1}{8}1\",\"IsLatestStable\":false,\"IsLatest\":false,\"Listed\":true,\"DownloadCount\":0,\"Dependencies\":[],\"SupportedFrameworks\":[],\"PackageFileSize\":0,\"{9}\":\"{1}{9}1\",\"RequiresLicenseAcceptance\":false}}]}}",
                     new DateTime(2000, 1, 1).ToUniversalTime(),
                     Constants.MockBase,
                     Constants.LucenePropertyId,
-                    Constants.LucenePropertyVersion,
+                    Constants.LucenePropertyNormalizedVersion,
                     Constants.LucenePropertyTitle,
                     Constants.LucenePropertyDescription,
                     Constants.LucenePropertySummary,
                     Constants.LucenePropertyProjectUrl,
                     Constants.LucenePropertyIconUrl,
-                    Constants.LucenePropertyLicenseUrl)
+                    Constants.LucenePropertyLicenseUrl,
+                    Constants.LucenePropertyOriginalVersion)
                 };
 
                 // timestamp in commitUserData

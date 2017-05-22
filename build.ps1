@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '1c479a7381ebbc0fe1fded765de70d513b8bd68e'
+    [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -68,18 +68,38 @@ Invoke-BuildStep 'Restoring solution packages' { `
     } `
     -skip:$SkipRestore `
     -ev +BuildErrors
+    
+Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
+        $assemblyInfos = `
+            "src\NuGet.Indexing\Properties\AssemblyInfo.g.cs", `
+            "src\Catalog\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.ApplicationInsights.Owin\Properties\AssemblyInfo.g.cs", `
+            "src\Ng\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.Services.Metadata.Catalog.Monitoring\Properties\AssemblyInfo.g.cs"
+
+        Foreach ($assemblyInfo in $assemblyInfos) {
+            Set-VersionInfo -Path (Join-Path $PSScriptRoot $assemblyInfo) -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+        }
+    } `
+    -ev +BuildErrors
 
 Invoke-BuildStep 'Building solution' { 
         $SolutionPath = Join-Path $PSScriptRoot "NuGet.Services.Metadata.sln"
-        Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" $SolutionPath -SkipRestore:$SkipRestore `
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore `
     } `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' {
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.Indexing\NuGet.Indexing.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
-        New-Package (Join-Path $PSScriptRoot "src\Catalog\NuGet.Services.Metadata.Catalog.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion  -Branch $Branch
-        New-Package (Join-Path $PSScriptRoot "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
-        New-Package (Join-Path $PSScriptRoot "src\Ng\Ng.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
+        $projects = `
+            "src\NuGet.Indexing\NuGet.Indexing.csproj", `
+            "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", `
+            "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", `
+            "src\Ng\Ng.csproj", `
+            "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj"
+            
+        $projects | ForEach-Object {
+            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -IncludeReferencedProjects -MSBuildVersion "15"
+        }
     } `
     -ev +BuildErrors
 
