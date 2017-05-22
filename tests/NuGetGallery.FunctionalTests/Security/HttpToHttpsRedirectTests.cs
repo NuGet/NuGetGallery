@@ -13,24 +13,23 @@ namespace NuGetGallery.FunctionalTests.Security
 {
     public class HttpToHttpsRedirectTests
     {
-        public static IEnumerable<object[]> UrlsToTest
+        public static IEnumerable<object[]> UrlsToTest => new[] {
+            new object[] { UrlHelper.BaseUrl },
+            new object[] { UrlHelper.LogonPageUrl },
+            new object[] { UrlHelper.PackagesPageUrl },
+            new object[] { UrlHelper.RegisterPageUrl },
+            new object[] { UrlHelper.RegistrationPendingPageUrl },
+            new object[] { UrlHelper.AggregateStatsPageUrl },
+            new object[] { UrlHelper.UploadPageUrl },
+            new object[] { UrlHelper.VerifyUploadPageUrl },
+            new object[] { UrlHelper.Windows8CuratedFeedUrl },
+            new object[] { UrlHelper.WebMatrixCuratedFeedUrl },
+        };
+
+        public static IEnumerable<object[]> UrlsExcludedFromRedirect => new[]
         {
-            get
-            {
-                return new [] {
-                    new object[] { UrlHelper.BaseUrl },
-                    new object[] { UrlHelper.LogonPageUrl },
-                    new object[] { UrlHelper.PackagesPageUrl },
-                    new object[] { UrlHelper.RegisterPageUrl },
-                    new object[] { UrlHelper.RegistrationPendingPageUrl },
-                    new object[] { UrlHelper.AggregateStatsPageUrl },
-                    new object[] { UrlHelper.UploadPageUrl },
-                    new object[] { UrlHelper.VerifyUploadPageUrl },
-                    new object[] { UrlHelper.Windows8CuratedFeedUrl },
-                    new object[] { UrlHelper.WebMatrixCuratedFeedUrl },
-                };
-            }
-        }
+            new object[] { UrlHelper.ApiStatusPageUrl },
+        };
 
         public static IEnumerable<object[]> GetForAllUrls()
         {
@@ -62,8 +61,8 @@ namespace NuGetGallery.FunctionalTests.Security
         public async Task HttpRequestsFailureResponseForUnsupportedMethods(HttpMethod method, string url)
         {
             Uri uri = ForceHttp(url);
-            await VerifyHttpResponseStatus(r => 
-                Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode),
+            await VerifyHttpResponseStatus(
+                r => Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode),
                 method, uri);
         }
 
@@ -73,6 +72,16 @@ namespace NuGetGallery.FunctionalTests.Security
         {
             Uri uri = ForceHttp(url);
             Assert.Equal(Uri.UriSchemeHttp, uri.Scheme);
+        }
+
+        [Theory]
+        [MemberData(nameof(UrlsExcludedFromRedirect))]
+        public async Task ExcludedUrlsDontRedirect(string url)
+        {
+            Uri uri = ForceHttp(url);
+            await VerifyHttpResponseStatus(
+                r => Assert.Equal(HttpStatusCode.OK, r.StatusCode),
+                HttpMethod.Get, uri);
         }
 
         private static async Task VerifyHttpResponseStatus(Action<HttpResponseMessage> verifyAction, HttpMethod method, Uri url)

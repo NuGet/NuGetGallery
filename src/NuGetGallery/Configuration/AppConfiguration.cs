@@ -28,6 +28,9 @@ namespace NuGetGallery.Configuration
         [DefaultValue(443)]
         public int SSLPort { get; set; }
 
+        [DefaultValue("")]
+        public string ForceSslExclusion { get; set; }
+
         /// <summary>
         /// Gets the connection string to use when connecting to azure storage
         /// </summary>

@@ -31,6 +31,7 @@ namespace NuGetGallery.FunctionalTests
         private const string _accountApiKeyResetUrlSuffix = "/account/GenerateApiKey";
         private const string _manageMyPackagesUrlSuffix = "/account/Packages";
         private const string _aboutPageUrlSuffix = "policies/About";
+        private const string _apiStatusUrlSuffix = "api/status";
 
         public static string BaseUrl
         {
@@ -177,6 +178,8 @@ namespace NuGetGallery.FunctionalTests
         {
             get { return BaseUrl + _aboutPageUrlSuffix; }
         }
+
+        public static string ApiStatusPageUrl => BaseUrl + _apiStatusUrlSuffix;
 
         public static string GetPackagePageUrl(string packageId)
         {
