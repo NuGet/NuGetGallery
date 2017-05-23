@@ -62,10 +62,6 @@ namespace NuGet.Services.BasicSearch
                 .Enrich.With<HttpRequestUserAgentEnricher>()
                 .Enrich.With<HttpRequestRawUrlEnricher>();
 
-            // Customize Serilog web logging - https://github.com/serilog-web/classic
-            ApplicationLifecycleModule.RequestLoggingLevel = LogEventLevel.Warning;
-            ApplicationLifecycleModule.LogPostedFormData = LogPostedFormDataOption.OnlyOnError;
-
             var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
 
             // Create a logger that is scoped to this class (only)
