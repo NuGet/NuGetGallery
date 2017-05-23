@@ -65,6 +65,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\NuGet.Services.Configuration\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Build\Properties\AssemblyInfo.g.cs",`
             "$PSScriptRoot\src\NuGet.Services.Storage\Properties\AssemblyInfo.g.cs",`
+            "$PSScriptRoot\src\NuGet.Services.Cursor\Properties\AssemblyInfo.g.cs",`
             "$PSScriptRoot\src\NuGet.Services.Owin\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
@@ -91,6 +92,7 @@ Invoke-BuildStep 'Creating artifacts' { `
             "src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj", `
             "src\NuGet.Services.Build\NuGet.Services.Build.csproj",`
             "src\NuGet.Services.Storage\NuGet.Services.Storage.csproj",`
+            "src\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj",`
             "src\NuGet.Services.Owin\NuGet.Services.Owin.csproj"
         
         $projects | ForEach-Object {
