@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Cors;
 using Lucene.Net.Store;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.Cors;
@@ -25,7 +26,6 @@ using Owin;
 using Serilog.Events;
 using SerilogWeb.Classic;
 using SerilogWeb.Classic.Enrichers;
-using NuGet.Services.KeyVault;
 
 [assembly: OwinStartup("NuGet.Services.BasicSearch", typeof(NuGet.Services.BasicSearch.Startup))]
 
@@ -49,6 +49,21 @@ namespace NuGet.Services.BasicSearch
 
             // Configure
             Logging.ApplicationInsights.Initialize(config.ApplicationInsightsInstrumentationKey);
+
+            // Add telemetry processors
+            var processorChain = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
+
+            processorChain.Use(next =>
+            {
+                var responseCodeProcessor = new TelemetryResponseCodeProcessor(next);
+
+                responseCodeProcessor.SuccessfulResponseCodes.Add(400);
+                responseCodeProcessor.SuccessfulResponseCodes.Add(404);
+
+                return responseCodeProcessor;
+            });
+
+            processorChain.Build();
 
             // Create telemetry sink
             _searchTelemetryClient = new SearchTelemetryClient();
