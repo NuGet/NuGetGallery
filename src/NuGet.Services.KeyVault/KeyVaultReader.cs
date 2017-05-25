@@ -40,12 +40,7 @@ namespace NuGet.Services.KeyVault
 
         private KeyVaultClient InitializeClient()
         {
-            var certificate = FindCertificateByThumbprint(
-                _configuration.StoreName,
-                _configuration.StoreLocation,
-                _configuration.CertificateThumbprint,
-                _configuration.ValidateCertificate);
-            _clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, certificate);
+            _clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, _configuration.Certificate);
 
             return new KeyVaultClient(GetTokenAsync);
         }
@@ -61,27 +56,6 @@ namespace NuGet.Services.KeyVault
             }
 
             return result.AccessToken;
-        }
-
-        private static X509Certificate2 FindCertificateByThumbprint(StoreName storeName, StoreLocation storeLocation, string thumbprint, bool validationRequired)
-        {
-            var store = new X509Store(storeName, storeLocation);
-            try
-            {
-                store.Open(OpenFlags.ReadOnly);
-                var col = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, validationRequired);
-                if (col.Count == 0)
-                {
-                    throw new ArgumentException(
-                        $"Certificate with thumbprint {thumbprint} and validation {(validationRequired ? "required" : "not required")} was not found in store {storeLocation} {storeName}.");
-                }
-
-                return col[0];
-            }
-            finally
-            {
-                store.Close();
-            }
         }
     }
 }

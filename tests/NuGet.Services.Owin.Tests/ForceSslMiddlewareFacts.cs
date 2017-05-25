@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
@@ -12,11 +14,36 @@ namespace NuGet.Services.Owin.Tests
 {
     public class ForceSslMiddlewareFacts
     {
+        public static IEnumerable<string> RedirectingMethods => new[]
+        {
+            "GET",
+            "HEAD",
+        };
+
+        public static IEnumerable<string> NonRedirectingMethods => new[]
+        {
+            "POST",
+            "PUT",
+            "DELETE",
+            "OPTIONS",
+            "TRACE",
+            "CONNECT",
+            "PATCH",
+        };
+
+        private static IEnumerable<int> PortsToTest => new[]
+        {
+            443,
+            1234
+        };
+
+        public static IEnumerable<object[]> AllowedMethodPorts =>
+            from method in RedirectingMethods
+            from port in PortsToTest
+            select new object[] { method, port };
+
         [Theory]
-        [InlineData("GET", 443)]
-        [InlineData("HEAD", 443)]
-        [InlineData("GET", 1234)]
-        [InlineData("HEAD", 1234)]
+        [MemberData(nameof(AllowedMethodPorts))]
         public async Task RedirectsGetHeadToHttps(string method, int sslPort)
         {
             var uri = new Uri("http://localhost:8080/somepath/somedocument?somequery=somevalue");
@@ -35,20 +62,92 @@ namespace NuGet.Services.Owin.Tests
             Assert.Equal(uri.PathAndQuery, targetUri.PathAndQuery);
         }
 
+        public static IEnumerable<object[]> ForbiddenMethodsToTest =>
+            from method in NonRedirectingMethods
+            select new object[] { method };
+
         [Theory]
-        [InlineData("POST")]
-        [InlineData("PUT")]
-        [InlineData("DELETE")]
-        [InlineData("OPTIONS")]
-        [InlineData("TRACE")]
-        [InlineData("CONNECT")]
-        [InlineData("PATCH")]
+        [MemberData(nameof(ForbiddenMethodsToTest))]
         public async Task ForbidsNonGetHead(string method)
         {
             var context = CreateOwinContext(method, new Uri("http://localhost"));
             var next = CreateOwinMiddleware();
 
             var middleware = new ForceSslMiddleware(next.Object, 443);
+            await middleware.Invoke(context);
+
+            next.Verify(n => n.Invoke(It.IsAny<IOwinContext>()), Times.Never());
+            Assert.Equal((int)HttpStatusCode.BadRequest, context.Response.StatusCode);
+        }
+
+        private static IEnumerable<(string url, string[] excludedPaths)> UrlsAndExcludesContainingUrls => new []
+        {
+            ("http://localhost/", new[] { "/" }),
+            ("http://localhost/Search/Diag", new[] { "/", "/search/diag" }),
+            ("http://localhost/somepath?something=somevalue", new[] { "/", "/SomePath" }),
+        };
+
+        public static IEnumerable<object[]> ExclusionsToTest =>
+            from method in RedirectingMethods.Concat(NonRedirectingMethods)
+            from urlExclusion in UrlsAndExcludesContainingUrls
+            select new object[] { method, urlExclusion.url, urlExclusion.excludedPaths };
+
+        [Theory]
+        [MemberData(nameof(ExclusionsToTest))]
+        public async Task RespectsExclusionList(string method, string url, IEnumerable<string> excludedPaths)
+        {
+            var uri = new Uri(url);
+            var context = CreateOwinContext(method, uri);
+            var next = CreateOwinMiddleware();
+
+            var middleware = new ForceSslMiddleware(next.Object, 443, excludedPaths);
+            await middleware.Invoke(context);
+
+            next.Verify(n => n.Invoke(It.IsAny<IOwinContext>()), Times.Once());
+            Assert.Equal((int)HttpStatusCode.OK, context.Response.StatusCode);
+        }
+
+        private static IEnumerable<(string url, string[] excludedPaths)> UrlsAndExcludesNotContainingUrl => new[]
+        {
+            ("http://localhost/", new[] { "/health" }),
+            ("http://localhost/search/diag", new[] { "/" }),
+            ("http://localhost/somepath?something=somevalue", new[] { "/", "/SomeOtherPath" }),
+        };
+
+        public static IEnumerable<object[]> NonExclusionsToTest =>
+            from method in RedirectingMethods
+            from urlExclusion in UrlsAndExcludesNotContainingUrl
+            select new object[] { method, urlExclusion.url, urlExclusion.excludedPaths };
+
+        [Theory]
+        [MemberData(nameof(NonExclusionsToTest))]
+        public async Task RedirectsNotExcludedPaths(string method, string url, IEnumerable<string> excludedPaths)
+        {
+            var uri = new Uri(url);
+            var context = CreateOwinContext(method, uri);
+            var next = CreateOwinMiddleware();
+
+            var middleware = new ForceSslMiddleware(next.Object, 443, excludedPaths);
+            await middleware.Invoke(context);
+
+            next.Verify(n => n.Invoke(It.IsAny<IOwinContext>()), Times.Never());
+            Assert.Equal((int)HttpStatusCode.Found, context.Response.StatusCode);
+        }
+
+        public static IEnumerable<object[]> NonGetHeadNonExclusionsToTest =>
+            from method in NonRedirectingMethods
+            from urlExclusion in UrlsAndExcludesNotContainingUrl
+            select new object[] { method, urlExclusion.url, urlExclusion.excludedPaths };
+
+        [Theory]
+        [MemberData(nameof(NonGetHeadNonExclusionsToTest))]
+        public async Task ForbidsNonGetHeadRequestsToNotExcludedPaths(string method, string url, IEnumerable<string> excludedPaths)
+        {
+            var uri = new Uri(url);
+            var context = CreateOwinContext(method, uri);
+            var next = CreateOwinMiddleware();
+
+            var middleware = new ForceSslMiddleware(next.Object, 443, excludedPaths);
             await middleware.Invoke(context);
 
             next.Verify(n => n.Invoke(It.IsAny<IOwinContext>()), Times.Never());
