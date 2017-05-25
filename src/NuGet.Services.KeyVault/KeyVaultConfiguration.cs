@@ -10,12 +10,9 @@ namespace NuGet.Services.KeyVault
     {
         public string VaultName { get; }
         public string ClientId { get; }
-        public string CertificateThumbprint { get; }
-        public StoreName StoreName { get; }
-        public StoreLocation StoreLocation { get; set; }
-        public bool ValidateCertificate { get; }
-
-        public KeyVaultConfiguration(string vaultName, string clientId, string certificateThumbprint, StoreName storeName, StoreLocation storeLocation, bool validateCertificate)
+        public X509Certificate2 Certificate { get; }
+        
+        public KeyVaultConfiguration(string vaultName, string clientId, X509Certificate2 certificate)
         {
             if (string.IsNullOrWhiteSpace(vaultName))
             {
@@ -26,18 +23,10 @@ namespace NuGet.Services.KeyVault
             {
                 throw new ArgumentNullException(nameof(clientId));
             }
-
-            if (string.IsNullOrWhiteSpace(certificateThumbprint))
-            {
-                throw new ArgumentNullException(nameof(certificateThumbprint));
-            }
-
+            
             VaultName = vaultName;
             ClientId = clientId;
-            CertificateThumbprint = certificateThumbprint;
-            ValidateCertificate = validateCertificate;
-            StoreName = storeName;
-            StoreLocation = storeLocation;
+            Certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
         }
     }
 }

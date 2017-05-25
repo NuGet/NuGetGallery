@@ -34,17 +34,20 @@ namespace NuGet.Services.Configuration
                 return new EmptySecretReader();
             }
 
+            var certificate = CertificateUtility.FindCertificateByThumbprint(
+                !string.IsNullOrEmpty(_storeName)
+                    ? (StoreName)Enum.Parse(typeof(StoreName), _storeName)
+                    : StoreName.My,
+                !string.IsNullOrEmpty(_storeLocation)
+                    ? (StoreLocation)Enum.Parse(typeof(StoreLocation), _storeLocation)
+                    : StoreLocation.LocalMachine,
+                _certificateThumbprint,
+                _validateCertificate);
+
             var keyVaultConfiguration = new KeyVaultConfiguration(
                 _vaultName,
                 _clientId,
-                _certificateThumbprint,
-                !string.IsNullOrEmpty(_storeName) 
-                    ? (StoreName) Enum.Parse(typeof(StoreName), _storeName)
-                    : StoreName.My,
-                !string.IsNullOrEmpty(_storeLocation)
-                    ? (StoreLocation) Enum.Parse(typeof(StoreLocation), _storeLocation)
-                    : StoreLocation.LocalMachine,
-                _validateCertificate);
+                certificate);
 
             return new KeyVaultReader(keyVaultConfiguration);
         }
