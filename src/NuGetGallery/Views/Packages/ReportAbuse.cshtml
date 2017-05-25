@@ -36,9 +36,9 @@
         <div class="form-field">
             @if (!Model.ConfirmedUser)
             {
-                @Html.LabelFor(m => m.Email)
-                @Html.EditorFor(m => m.Email)
-                <span class="field-hint-message">Provide your email address so we can follow up with you.</span>
+                @Html.LabelFor(m => m.Email, new { id = "ReportAbuse_Email_Label" })
+                @Html.EditorFor(m => m.Email, new { htmlAttributes = new { aria_labelledby = "ReportAbuse_Email_Label ReportAbuse_Email_Help" } })
+                <span class="field-hint-message" id="ReportAbuse_Email_Help">Provide your email address so we can follow up with you.</span>
                 @Html.ValidationMessageFor(m => m.Email)
             }
             else
