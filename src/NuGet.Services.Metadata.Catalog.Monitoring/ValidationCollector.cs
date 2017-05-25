@@ -27,8 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             _packageValidator = packageValidator ?? throw new ArgumentNullException(nameof(packageValidator));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
-
-        private readonly Storage _auditingStorage;
+        
         private readonly PackageValidator _packageValidator;
         private readonly IMonitoringNotificationService _notificationService;
 
@@ -40,12 +39,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             try
             {
-                var result = await _packageValidator.Validate(packageId, packageVersion, catalogEntriesJson, client, cancellationToken);
-                _notificationService.OnPackageValidationFinished(result);
+                var result = await _packageValidator.ValidateAsync(packageId, packageVersion, catalogEntriesJson, client, cancellationToken);
+                await _notificationService.OnPackageValidationFinishedAsync(result, cancellationToken);
             }
             catch (Exception e)
             {
-                _notificationService.OnPackageValidationFailed(packageId, packageVersion, catalogEntriesJson, e);
+                await _notificationService.OnPackageValidationFailedAsync(packageId, packageVersion, catalogEntriesJson, e, cancellationToken);
             }
         }
     }

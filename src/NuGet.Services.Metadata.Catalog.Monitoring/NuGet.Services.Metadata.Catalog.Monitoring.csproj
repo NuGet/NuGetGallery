@@ -88,7 +88,10 @@
     <Compile Include="Model\PackageRegistrationIndexMetadata.cs" />
     <Compile Include="Model\PackageRegistrationLeafMetadata.cs" />
     <Compile Include="Model\PackageTimestampMetadata.cs" />
+    <Compile Include="Notification\AggregateMonitoringNotificationService.cs" />
     <Compile Include="Notification\IMonitoringNotificationService.cs" />
+    <Compile Include="Notification\PackageMonitoringStatusNotificationService.cs" />
+    <Compile Include="Status\IPackageMonitoringStatusService.cs" />
     <Compile Include="Notification\LoggerMonitoringNotificationService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
@@ -101,6 +104,9 @@
     <Compile Include="Resources\PackageRegistrationMetadataResourceV2Feed.cs" />
     <Compile Include="Resources\PackageRegistrationMetadataResourceV3.cs" />
     <Compile Include="Resources\PackageTimestampMetadataResourceV2.cs" />
+    <Compile Include="Status\PackageMonitoringStatusService.cs" />
+    <Compile Include="Status\PackageMonitoringStatus.cs" />
+    <Compile Include="Status\PackageState.cs" />
     <Compile Include="Utility\CommonLogger.cs" />
     <Compile Include="Utility\ILoggerExtensions.cs" />
     <Compile Include="Utility\NullableNuGetVersionConverter.cs" />
@@ -116,9 +122,12 @@
     <Compile Include="Validation\Test\Endpoint\EndpointFactory.cs" />
     <Compile Include="Validation\Test\AggregateValidator.cs" />
     <Compile Include="Validation\Test\Endpoint\FlatContainerEndpoint.cs" />
+    <Compile Include="Validation\Test\Exceptions\MetadataFieldInconsistencyException.cs" />
     <Compile Include="Validation\Test\Exceptions\MetadataInconsistencyException.cs" />
     <Compile Include="Validation\Test\Exceptions\ValidationException.cs" />
+    <Compile Include="Validation\Test\IAggregateValidator.cs" />
     <Compile Include="Validation\Test\IValidator.cs" />
+    <Compile Include="Validation\Test\IValidatorIdentity.cs" />
     <Compile Include="Validation\Test\PackageValidator.cs" />
     <Compile Include="Validation\Test\Endpoint\RegistrationEndpoint.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationExistsValidator.cs" />
@@ -133,6 +142,7 @@
     <Compile Include="Validation\Test\ValidationContext.cs" />
     <Compile Include="Validation\Test\Validator.cs" />
     <Compile Include="Validation\Test\ValidatorFactory.cs" />
+    <Compile Include="Validation\Test\ValidatorIdentity.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">

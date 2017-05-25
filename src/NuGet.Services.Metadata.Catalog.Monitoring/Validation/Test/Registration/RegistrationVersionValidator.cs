@@ -31,8 +31,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             if (!isEqual)
             {
-                throw new MetadataInconsistencyException<PackageRegistrationIndexMetadata>(v2, v3,
-                    $"{nameof(PackageRegistrationIndexMetadata.Version)} does not match!");
+                throw new MetadataFieldInconsistencyException<PackageRegistrationIndexMetadata>(
+                    v2, v3,
+                    nameof(PackageRegistrationIndexMetadata.Version),
+                    m => m.Version.ToFullString());
             }
         }
     }

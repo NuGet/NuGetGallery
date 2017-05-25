@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Newtonsoft.Json;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -13,14 +14,39 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <summary>
         /// The test that was run.
         /// </summary>
-        public IValidator Validator { get; set; }
+        [JsonProperty("validator")]
+        public IValidatorIdentity Validator { get; }
+
         /// <summary>
         /// The result of the test.
         /// </summary>
-        public TestResult Result { get; set; }
+        [JsonProperty("result")]
+        public TestResult Result { get; }
+
         /// <summary>
         /// If the test <see cref="TestResult.Fail"/>ed, the exception that was thrown.
         /// </summary>
-        public Exception Exception { get; set; }
+        [JsonProperty("exception")]
+        public Exception Exception { get; }
+
+        public ValidationResult(IValidator validator, TestResult result)
+            : this(validator, result, null)
+        {
+        }
+
+        public ValidationResult(IValidatorIdentity validator, TestResult result, Exception exception)
+        {
+            Validator = validator;
+            Result = result;
+            Exception = exception;
+        }
+
+        [JsonConstructor]
+        public ValidationResult(ValidatorIdentity validator, TestResult result, Exception exception)
+        {
+            Validator = validator;
+            Result = result;
+            Exception = exception;
+        }
     }
 }

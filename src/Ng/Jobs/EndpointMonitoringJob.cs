@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Ng.Jobs
 {
@@ -30,11 +31,13 @@ namespace Ng.Jobs
             return "Usage: ng endpointmonitoring "
                    + $"-{Arguments.Gallery} <v2-feed-address> "
                    + $"-{Arguments.Source} <catalog> "
+                   + $"-{Arguments.Index} <index>"
                    + $"-{Arguments.EndpointsToTest} <endpoints-to-test>"
                    + $"-{Arguments.EndpointCursorPrefix}<endpoint-to-test> <endpoint-cursor-address>"
                    + $"-{Arguments.StorageBaseAddress} <storage-base-address> "
                    + $"-{Arguments.StorageType} azure "
                    + $"[-{Arguments.StoragePath} <path>]"
+                   + $"[-{Arguments.PackageStatusFolder} <folder>]"
                    + "|"
                    + $"[-{Arguments.StorageAccountName} <azure-acc> "
                    + $"-{Arguments.StorageKeyValue} <azure-key> "
@@ -66,7 +69,7 @@ namespace Ng.Jobs
                 throw new ArgumentException("File storage is not supported!");
             }
 
-            var storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
+            var monitoringStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
 
             var endpointNames = arguments.GetOrThrow<string>(Arguments.EndpointsToTest).Split(';');
@@ -75,9 +78,19 @@ namespace Ng.Jobs
 
             var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
             
-            var notificationService = new LoggerMonitoringNotificationService(LoggerFactory.CreateLogger<LoggerMonitoringNotificationService>());
+            var loggerNotificationService = new LoggerMonitoringNotificationService(
+                LoggerFactory.CreateLogger<LoggerMonitoringNotificationService>());
 
-            var context = _collectorFactory.Create(gallery, index, source, storageFactory, auditingStorageFactory, endpoints, messageHandlerFactory, notificationService, verbose);
+            var statusService = new PackageMonitoringStatusService(
+                new NamedStorageFactory(monitoringStorageFactory, arguments.GetOrDefault(Arguments.PackageStatusFolder, Arguments.PackageStatusFolderDefault)), 
+                LoggerFactory.CreateLogger<PackageMonitoringStatusService>());
+
+            var statusNotificationService = new PackageMonitoringStatusNotificationService(statusService);
+
+            var aggregateNotificationService = new AggregateNotificationService(
+                new IMonitoringNotificationService[] { loggerNotificationService, statusNotificationService });
+
+            var context = _collectorFactory.Create(gallery, index, source, monitoringStorageFactory, auditingStorageFactory, endpoints, messageHandlerFactory, aggregateNotificationService, verbose);
 
             _collector = context.Collector;
             _front = context.Front;

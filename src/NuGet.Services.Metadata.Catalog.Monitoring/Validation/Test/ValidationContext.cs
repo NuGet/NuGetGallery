@@ -16,26 +16,47 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <summary>
         /// The <see cref="PackageIdentity"/> to run the test on.
         /// </summary>
-        public PackageIdentity Package { get; set; }
+        public PackageIdentity Package { get; }
 
         /// <summary>
         /// The <see cref="CatalogIndexEntry"/>s for the package that were collected.
         /// </summary>
-        public IEnumerable<CatalogIndexEntry> Entries { get; set; }
+        public IEnumerable<CatalogIndexEntry> Entries { get; }
 
         /// <summary>
         /// The <see cref="AuditRecordHelpers.DeletionAuditEntry"/>s, if any are associated with the <see cref="PackageIdentity"/>.
         /// </summary>
-        public IEnumerable<DeletionAuditEntry> DeletionAuditEntries { get; set; }
+        public IEnumerable<DeletionAuditEntry> DeletionAuditEntries { get; }
 
         /// <summary>
         /// The <see cref="CollectorHttpClient"/> to use when needed.
         /// </summary>
-        public CollectorHttpClient Client { get; set; }
+        public CollectorHttpClient Client { get; }
 
         /// <summary>
         /// A <see cref="CancellationToken"/> associated with this run of the test.
         /// </summary>
-        public CancellationToken CancellationToken { get; set; }
+        public CancellationToken CancellationToken { get; }
+
+        /// <summary>
+        /// Empty constructor for testing.
+        /// </summary>
+        public ValidationContext()
+        {
+        }
+
+        public ValidationContext(
+            PackageIdentity package, 
+            IEnumerable<CatalogIndexEntry> entries, 
+            IEnumerable<DeletionAuditEntry> deletionAuditEntries, 
+            CollectorHttpClient client, 
+            CancellationToken token)
+        {
+            Package = package;
+            Entries = entries;
+            DeletionAuditEntries = deletionAuditEntries;
+            Client = client;
+            CancellationToken = token;
+        }
     }
 }

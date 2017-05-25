@@ -33,6 +33,17 @@ namespace NgTests.Infrastructure
           : base(baseAddress)
         {
             Content = content;
+
+            ListMock = new Dictionary<Uri, StorageListItem>();
+            foreach (var resourceUri in Content.Keys)
+            {
+                ListMock[resourceUri] = CreateStorageListItem(resourceUri);
+            }
+        }
+
+        private static StorageListItem CreateStorageListItem(Uri uri)
+        {
+            return new StorageListItem(uri, DateTime.UtcNow);
         }
 
         public Storage WithName(string name)
@@ -43,6 +54,7 @@ namespace NgTests.Infrastructure
         protected override Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             Content[resourceUri] = content;
+            ListMock[resourceUri] = CreateStorageListItem(resourceUri);
             return Task.FromResult(true);
         }
 
@@ -58,6 +70,10 @@ namespace NgTests.Infrastructure
             if (Content.ContainsKey(resourceUri))
             {
                 Content.Remove(resourceUri);
+            }
+            if (ListMock.ContainsKey(resourceUri))
+            {
+                ListMock.Remove(resourceUri);
             }
             return Task.FromResult(true);
         }

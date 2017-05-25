@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Newtonsoft.Json;
+
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public class MetadataInconsistencyException : ValidationException
@@ -27,14 +29,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             V2Metadata = v2Metadata;
             V3Metadata = v3Metadata;
-        }
-    }
 
-    public class MetadataFieldInconsistencyException<T> : MetadataInconsistencyException<T>
-    {
-        public MetadataFieldInconsistencyException(T v2Metadata, T v3Metadata, string fieldName)
-            : base(v2Metadata, v3Metadata, $"{fieldName} does not match!")
-        {
+            Data.Add(nameof(V2Metadata), JsonConvert.SerializeObject(V2Metadata));
+            Data.Add(nameof(V3Metadata), JsonConvert.SerializeObject(V3Metadata));
         }
     }
 }

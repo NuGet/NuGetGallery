@@ -27,7 +27,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             if (v2.Id != v3.Id)
             {
-                throw new MetadataFieldInconsistencyException<PackageRegistrationIndexMetadata>(v2, v3, nameof(PackageRegistrationIndexMetadata.Id));
+                throw new MetadataFieldInconsistencyException<PackageRegistrationIndexMetadata>(
+                    v2, v3, 
+                    nameof(PackageRegistrationIndexMetadata.Id),
+                    m => m.Id);
             }
         }
     }

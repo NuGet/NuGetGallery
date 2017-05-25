@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
 
@@ -11,12 +13,7 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class CatalogIndexEntry : IComparable<CatalogIndexEntry>
     {
-        private readonly Uri _uri;
-        private readonly string _type;
-        private readonly string _commitId;
-        private readonly DateTime _commitTimeStamp;
-        private readonly string _id;
-        private readonly NuGetVersion _version;
+        private string _type;
 
         public CatalogIndexEntry(JToken item)
             : this(
@@ -28,65 +25,49 @@ namespace NuGet.Services.Metadata.Catalog
                 NuGetVersion.Parse(item["nuget:version"].ToString()))
         {
         }
-
+        
         public CatalogIndexEntry(Uri uri, string type, string commitId, DateTime commitTs, string id, NuGetVersion version)
         {
-            _uri = uri;
+            Uri = uri;
             _type = type;
-            _commitId = commitId;
-            _commitTimeStamp = commitTs;
-            _id = id;
-            _version = version;
+            CommitId = commitId;
+            CommitTimeStamp = commitTs;
+            Id = id;
+            Version = version;
         }
 
-        public Uri Uri
+        [JsonConstructor]
+        public CatalogIndexEntry()
         {
-            get
-            {
-                return _uri;
-            }
         }
+        
+        [JsonProperty("@id")]
+        public Uri Uri { get; private set; }
 
+        [JsonProperty("@type")]
         public IEnumerable<string> Types
         {
             get
             {
                 return new string[] { _type };
             }
-        }
-
-        public string Id
-        {
-            get
+            private set
             {
-                return _id;
+                _type = value.Single();
             }
         }
 
-        public NuGetVersion Version
-        {
-            get
-            {
-                return _version;
-            }
-        }
+        [JsonProperty("nuget:id")]
+        public string Id { get; private set; }
 
-        public string CommitId
-        {
-            get
-            {
-                return _commitId;
-            }
-        }
+        [JsonProperty("nuget:version")]
+        public NuGetVersion Version { get; private set; }
 
+        [JsonProperty("commitId")]
+        public string CommitId { get; private set; }
 
-        public DateTime CommitTimeStamp
-        {
-            get
-            {
-                return _commitTimeStamp;
-            }
-        }
+        [JsonProperty("commitTimeStamp")]
+        public DateTime CommitTimeStamp { get; private set; }
 
         public int CompareTo(CatalogIndexEntry other)
         {

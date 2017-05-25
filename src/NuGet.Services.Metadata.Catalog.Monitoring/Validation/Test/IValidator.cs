@@ -8,13 +8,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// <summary>
     /// Performs a validation test on a <see cref="ValidationContext"/>.
     /// </summary>
-    public interface IValidator
+    public interface IValidator : IValidatorIdentity
     {
         /// <summary>
         /// Validates a package.
         /// </summary>
         /// <returns>A <see cref="ValidationResult"/> which contains the results of the validation.</returns>
-        Task<ValidationResult> Validate(ValidationContext data);
+        Task<ValidationResult> ValidateAsync(ValidationContext data);
     }
 
     /// <summary>

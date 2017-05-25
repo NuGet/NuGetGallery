@@ -81,14 +81,12 @@ namespace NgTests
         }
         public static ValidationContext GetFakeValidationContext()
         {
-            return new ValidationContext
-            {
-                CancellationToken = CancellationToken.None,
-                Client = new CollectorHttpClient(),
-                DeletionAuditEntries = null,
-                Entries = null,
-                Package = new PackageIdentity("testPackage", new NuGetVersion(1, 0, 0))
-            };
+            return new ValidationContext(
+                new PackageIdentity("testPackage", new NuGetVersion(1, 0, 0)), 
+                null, 
+                null, 
+                new CollectorHttpClient(), 
+                CancellationToken.None);
         }
     }
 }

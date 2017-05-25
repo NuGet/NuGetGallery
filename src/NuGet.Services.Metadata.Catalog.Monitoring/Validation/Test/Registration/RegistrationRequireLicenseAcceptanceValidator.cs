@@ -29,8 +29,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             if (!isEqual)
             {
-                throw new MetadataInconsistencyException<PackageRegistrationIndexMetadata>(v2, v3,
-                    $"{nameof(PackageRegistrationIndexMetadata.RequireLicenseAcceptance)} does not match!");
+                throw new MetadataFieldInconsistencyException<PackageRegistrationIndexMetadata>(
+                    v2, v3,
+                    nameof(PackageRegistrationIndexMetadata.RequireLicenseAcceptance),
+                    m => m.RequireLicenseAcceptance);
             }
         }
     }

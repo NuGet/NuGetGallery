@@ -15,6 +15,19 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public abstract class Validator : IValidator
     {
+        protected readonly ILogger<Validator> Logger;
+        protected readonly Common.ILogger CommonLogger;
+
+        private readonly IPackageTimestampMetadataResource _timestampMetadataResourceV2;
+
+        public virtual string Name
+        {
+            get
+            {
+                return GetType().FullName;
+            }
+        }
+
         /// <summary>
         /// Constructor for testing purposes.
         /// </summary>
@@ -31,19 +44,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             CommonLogger = logger.AsCommon();
         }
 
-        protected readonly ILogger<Validator> Logger;
-        protected readonly Common.ILogger CommonLogger;
-
-        private readonly IPackageTimestampMetadataResource _timestampMetadataResourceV2;
-
-        public async Task<ValidationResult> Validate(ValidationContext data)
+        public async Task<ValidationResult> ValidateAsync(ValidationContext data)
         {
-            var validationResult = new ValidationResult
-            {
-                Validator = this,
-                Result = TestResult.Pass
-            };
-            
             try
             {
                 bool shouldRun = false;
@@ -62,16 +64,15 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 }
                 else
                 {
-                    validationResult.Result = TestResult.Skip;
+                    return new ValidationResult(this, TestResult.Skip);
                 }
             }
             catch (Exception e)
             {
-                validationResult.Result = TestResult.Fail;
-                validationResult.Exception = e;
+                return new ValidationResult(this, TestResult.Fail, e);
             }
 
-            return validationResult;
+            return new ValidationResult(this, TestResult.Pass);
         }
 
         /// <summary>

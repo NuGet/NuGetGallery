@@ -95,7 +95,11 @@ namespace Ng
         #endregion
 
         #region EndpointMonitoring
+        /// <summary>
+        /// The url of the service index.
+        /// </summary>
         public const string Index = "index";
+
         /// <summary>
         /// A semicolon-delimited list of <see cref="EndpointValidator"/> implementation names.
         /// E.g. "<see cref="RegistrationEndpoint"/>;<see cref="FlatContainerEndpoint"/>".
@@ -107,6 +111,17 @@ namespace Ng
         /// E.g. "endpointCursor<see cref="RegistrationEndpoint"/>".
         /// </summary>
         public const string EndpointCursorPrefix = "endpointCursor";
+        
+        /// <summary>
+        /// The folder in which <see cref="PackageMonitoringStatus"/>es are saved by the <see cref="PackageMonitoringStatusService"/>.
+        /// Defaults to <see cref="PackageStatusFolderDefault"/>.
+        /// </summary>
+        public const string PackageStatusFolder = "statusFolder";
+
+        /// <summary>
+        /// Default value of <see cref="PackageStatusFolder"/>.
+        /// </summary>
+        public const string PackageStatusFolderDefault = "status";
         #endregion
 
         #region KeyVault

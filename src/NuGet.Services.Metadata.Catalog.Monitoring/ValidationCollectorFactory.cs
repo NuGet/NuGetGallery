@@ -45,7 +45,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             string galleryUrl,
             string indexUrl,
             string catalogIndexUrl,
-            StorageFactory cursorStorage,
+            StorageFactory monitoringStorageFactory,
             StorageFactory auditingStorageFactory,
             IEnumerable<EndpointFactory.Input> endpointContexts,
             Func<HttpMessageHandler> messageHandlerFactory,
@@ -54,7 +54,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             _logger.LogInformation(
                 "CONFIG gallery: {Gallery} index: {Index} source: {ConfigSource} storage: {Storage} auditingStorage: {AuditingStorage} endpoints: {Endpoints}",
-                galleryUrl, indexUrl, catalogIndexUrl, cursorStorage, auditingStorageFactory, string.Join(", ", endpointContexts.Select(e => e.Name)));
+                galleryUrl, indexUrl, catalogIndexUrl, monitoringStorageFactory, auditingStorageFactory, string.Join(", ", endpointContexts.Select(e => e.Name)));
 
             var validationFactory = new ValidatorFactory(new Dictionary<FeedType, SourceRepository>()
             {
@@ -75,7 +75,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 notificationService,
                 messageHandlerFactory);
 
-            var storage = cursorStorage.Create();
+            var storage = monitoringStorageFactory.Create();
             var front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
             var back = new AggregateCursor(endpoints.Select(e => e.Cursor));
 
