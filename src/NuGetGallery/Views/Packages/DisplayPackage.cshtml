@@ -221,10 +221,8 @@
         <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
         <h2>@Model.Version</h2>
     </div>
-    @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
-    {
-        <p>@line</p>
-    }
+    @Html.PreFormattedTextWithClickableLinks(Model.Description, true)
+
 
     @if (!Model.Listed && !Model.Deleted)
     {
@@ -277,8 +275,7 @@
     {
         <h3>Release Notes</h3>
 
-        // Not actually using <pre/> because its better to have wrapping text
-        <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
+        <p>@Html.PreFormattedTextWithClickableLinks(Model.ReleaseNotes)</p>
     }
 
     <h3>Owners</h3>
