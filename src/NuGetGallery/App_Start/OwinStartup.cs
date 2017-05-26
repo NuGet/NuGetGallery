@@ -16,6 +16,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
+using NuGet.Services.Logging;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
@@ -64,8 +65,16 @@ namespace NuGetGallery
 
                 var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
 
-                // Add filters
-                telemetryProcessorChainBuilder.Use(next => new TelemetryResponseCodeFilter(next));
+                // Add processors
+                telemetryProcessorChainBuilder.Use(next =>
+                {
+                    var processor = new TelemetryResponseCodeProcessor(next);
+
+                    processor.SuccessfulResponseCodes.Add(400);
+                    processor.SuccessfulResponseCodes.Add(404);
+
+                    return processor;
+                });
 
                 // Note: sampling rate must be a factor 100/N where N is a whole number
                 // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
