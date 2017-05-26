@@ -36,9 +36,9 @@
         <div class="form-field">
             @if (!Model.ConfirmedUser)
             {
-                @Html.LabelFor(m => m.Email)
-                @Html.EditorFor(m => m.Email)
-                <span class="field-hint-message">Provide your email address so we can follow up with you.</span>
+                @Html.LabelFor(m => m.Email, new { id = "ReportAbuse_Email_Label" })
+                @Html.EditorFor(m => m.Email, new { htmlAttributes = new { aria_labelledby = "ReportAbuse_Email_Label ReportAbuse_Email_Help" } })
+                <span class="field-hint-message" id="ReportAbuse_Email_Help">Provide your email address so we can follow up with you.</span>
                 @Html.ValidationMessageFor(m => m.Email)
             }
             else
@@ -83,9 +83,9 @@
             <p>
                 As applicable under 17 U.S.C. 512(f), I acknowledge that I may be subject to liability for damages if I knowingly materially misrepresent that material or activity is infringing.
             </p>
-            @Html.LabelFor(m => m.Signature)
-            @Html.EditorFor(m => m.Signature)
-            <span class="field-hint-message">Sign with your real name.</span>
+            @Html.LabelFor(m => m.Signature, new { id = "ReportAbuse_Signature_Label" })
+            @Html.EditorFor(m => m.Signature, new { htmlAttributes = new { aria_labelledby = "ReportAbuse_Signature_Label ReportAbuse_Signature_Help" } })
+            <span class="field-hint-message" id="ReportAbuse_Signature_Help">Sign with your real name.</span>
             @Html.ValidationMessageFor(m => m.Signature)
         </div>
         <div class="infringement-claim-requirements">You can also send us an email at <a href="mailto:admin@nuget.org">admin@nuget.org</a></div>
