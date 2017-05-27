@@ -145,6 +145,11 @@ namespace NuGetGallery.Controllers
             {
                 packages = packages.Where(p => p.Version == version);
             }
+            else
+            {
+                // When no version provided, hide unlisted to ensure unlisted is not discoverable.
+                packages = packages.Where(p => p.Listed);
+            }
 
             // try the search service
             try
