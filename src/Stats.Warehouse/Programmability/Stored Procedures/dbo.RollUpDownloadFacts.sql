@@ -1,5 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[RollUpDownloadFacts]
-	@MinAgeInDays INT = 90
+	-- 6-weeks of data retention + 1 day (cursor)
+	@MinAgeInDays INT = 43
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -38,6 +39,7 @@ BEGIN
 		WHERE	f.[Dimension_Date_Id] <> -1
 			AND f.[Dimension_Date_Id] <= @MaxDimensionDateId
 		GROUP BY	p.[Id]
+		HAVING  COUNT(f.[Id]) > 1
 		ORDER BY	RecordCountToRemove DESC;
 
 		SELECT	@TotalCursorPositions = COUNT(DISTINCT [Id])
