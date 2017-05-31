@@ -3,50 +3,44 @@
     ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
     ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
     ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="search">
-    @if (!String.IsNullOrEmpty(Model.SearchTerm))
-    {
-        <h1>Search for <i>@Model.SearchTerm</i> returned @Model.TotalCount @if (Model.TotalCount == 1)
-                                                                      {
-                                                                          <text>package</text>
-                                                                      }
-                                                                      else
-                                                                      {
-                                                                          <text>packages</text>
-                                                                      }</h1>
-    }
-    else
-    {
-        <h1>@if (Model.TotalCount == 1)
+<section role="main" class="container main-container page-list-packages">
+    <h1>
+        @if (String.IsNullOrEmpty(Model.SearchTerm))
+        {
+            if (Model.TotalCount == 1)
             {
                 <text>There is 1 package</text>
             }
             else
             {
-                <text>There are @Model.TotalCount.ToNuGetNumberString() packages</text>
-            }</h1>
-    }
-    <span class="sorted-by">Sorted by @ViewBag.SortText</span>
-    @if (Model.LastResultIndex > 0)
-    {
-        <h2>Displaying results @Model.FirstResultIndex.ToNuGetNumberString() - @Model.LastResultIndex.ToNuGetNumberString().</h2>
-    }
-    @if(Model.IndexTimestampUtc.HasValue)
-    {
-        <p class="package-list-lastupdated" title="The time the Search Index was last modified to incorporate new packages.">Search Index last updated <time class="timeago" datetime="@Model.IndexTimestampUtc.Value.ToJavaScriptUTC()">@Model.IndexTimestampUtc.Value.ToNuGetShortDateTimeString() UTC</time></p>
-    }
-</div>
+                <text>There are @Model.TotalCount packages</text>
+            }
+        }
+        else
+        {
+            if (Model.TotalCount == 1)
+            {
+                <text>1 package </text>
+            }
+            else
+            {
+                <text>@Model.TotalCount.ToNuGetNumberString() packages </text>
+            }
 
-<ul id="searchResults">
-    @foreach (var package in Model.Items)
-    {
-        <li>
+            <text>returned for @Model.SearchTerm</text>
+        }
+
+    </h1>
+
+    <div class="list-packages" role="list">
+        @foreach (var package in Model.Items)
+        {
             @Html.Partial("_ListPackage", package)
-        </li>
-    }
-</ul>
+        }
+    </div>
 
-
-@ViewHelpers.PreviousNextPager(Model.Pager)
+    @ViewHelpers.PreviousNextPager(Model.Pager)
+</section>
