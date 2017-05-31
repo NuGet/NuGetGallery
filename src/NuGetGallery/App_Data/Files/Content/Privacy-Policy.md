@@ -5,13 +5,13 @@ The NuGet Website ([https://nuget.org](https://nuget.org)) is provided by the .N
 The process of maintaining a Website is an evolving one, and the .NET Foundation may decide at some point in the future, without advance notice, to modify the terms of this Privacy Statement. Your use of the Website, or materials obtained from the Website, indicates your assent to the Privacy Statement at the time of such use. The effective Privacy Statement will be posted on the Website, and you should check upon every visit for any changes.
 
 ## Sites Covered by this Privacy Statement
-This Privacy Statement applies to all .NET Foundation-maintained Websites related to the NuGet Website, domains, information portals, and registries.
+This Privacy Statement applies to all .NET Foundation-maintained websites related to the NuGet Website, domains, information portals, and registries.
 
 ## Children's Privacy
 The .NET Foundation is committed to protecting the privacy needs of children, and we encourage parents and guardians to take an active role in their children's online activities and interests. The .NET Foundation does not intentionally collect information from children under the age of 13, and the .NET Foundation does not target the Website to children.
 
 ## Links to Non-.NET-Foundation Websites
-The NuGet Website may provide links to third-party Websites for the convenience of our users. If you access those links, you will leave the NuGet Website. The .NET Foundation does not control these third-party Websites and cannot represent that their policies and practices will be consistent with this Privacy Statement. For example, other Websites may collect or use personal information about you in a manner different from that described in this document. Therefore, you should use other Websites with caution, and you do so at your own risk. We encourage you to review the privacy policy of any Website before submitting personal information.
+The NuGet Website may provide links to third-party websites for the convenience of our users. If you access those links, you will leave the NuGet Website. The .NET Foundation does not control these third-party websites and cannot represent that their policies and practices will be consistent with this Privacy Statement. For example, other websites may collect or use personal information about you in a manner different from that described in this document. Therefore, you should use other websites with caution, and you do so at your own risk. We encourage you to review the privacy policy of any Website before submitting personal information.
 
 ## TYPES OF INFORMATION WE COLLECT
 
@@ -19,7 +19,7 @@ The NuGet Website may provide links to third-party Websites for the convenience 
 Non-personal information is data about usage and service operation that is not directly associated with a specific personal identity. The .NET Foundation may collect and analyze non-personal information to evaluate how visitors use the NuGet Website.
 
 ### Aggregate Information
-The .NET Foundation may gather aggregate information, which refers to information your computer automatically provides to us and which cannot be tied back to you as a specific individual. Examples include referral data (the Websites you visited just before and just after the Website), the pages viewed, time spent at the Website, and Internet Protocol (IP) addresses. An IP address is a number that is automatically assigned to your computer whenever you access the Internet. For example, when you request a page from one of our sites, our servers log your IP address to create aggregate reports on user demographics and traffic patterns and for purposes of system administration.
+The .NET Foundation may gather aggregate information, which refers to information your computer automatically provides to us and which cannot be tied back to you as a specific individual. Examples include referral data (the websites you visited just before and just after the Website), the pages viewed, time spent at the Website, and Internet Protocol (IP) addresses. An IP address is a number that is automatically assigned to your computer whenever you access the Internet. For example, when you request a page from one of our sites, our servers log your IP address to create aggregate reports on user demographics and traffic patterns and for purposes of system administration.
 
 ### Log Files
 Every time you request or download a file from the Website, the .NET Foundation may store data about these events and your IP address in a log file. The .NET Foundation may use this information to analyze trends, administer the Website, track users' movements, and gather broad demographic information for aggregate use or for other business purposes.
