@@ -248,7 +248,7 @@
     @if (!Model.Deleted)
     {
         <p>
-            To install @Model.Title, run the following command in the <a href="https://docs.nuget.org/docs/start-here/using-the-package-manager-console">
+            To install @Model.Title using Visual Studio, run the following command in the <a href="https://docs.nuget.org/docs/start-here/using-the-package-manager-console">
                 Package Manager Console
             </a>
         </p>
@@ -263,6 +263,20 @@
                     @if (Model.Prerelease)
                     {
                         <text> -Pre </text>
+                    }
+                </code>
+            </p>
+        </div>
+        <p>
+            To install @Model.Title using the dotnet cli, run the following command in your shell
+        </p>
+        <div class="nuget-badge">
+            <p>
+                <code>
+                    dotnet add package @Model.Id
+                    @if (!Model.LatestVersion || !Model.Listed || Model.Prerelease)
+                    {
+                        <text> --version @Model.Version</text>
                     }
                 </code>
             </p>
