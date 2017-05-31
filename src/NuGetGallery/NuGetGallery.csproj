@@ -33,6 +33,7 @@
     <MvcBuildViews Condition=" '$(MvcBuildViews)' == '' ">false</MvcBuildViews>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -1774,6 +1775,7 @@
     <Content Include="Views\Shared\Gallery\Footer.cshtml" />
     <Content Include="Views\Shared\Gallery\Header.cshtml" />
     <Content Include="Views\Authentication\LogOn.cshtml" />
+    <Content Include="Views\Pages\_PagesView.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
