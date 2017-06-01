@@ -12,20 +12,20 @@
         <meta property="fb:app_id" content="@ViewBag.FacebookAppID" />
     }
 
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:site" content="@("@nuget")">
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@("@nuget")" />
 
     <meta property="og:title" content="@Model.Title" />
     <meta property="og:type" content="nugetgallery:package" />
     <meta property="og:url" content="@absolutePackageUrl" />
     <meta property="og:description" content="@Model.Description" />
-    <meta property="og:determiner" content="a"/>
-    <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))"/>
+    <meta property="og:determiner" content="a" />
+    <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
 }
 @section Meta {
     @if (!Model.Listed || Model.Deleted)
     {
-        <meta name="robots" content="noindex">
+        <meta name="robots" content="noindex" />
     }
 }
 @section SideColumn {
