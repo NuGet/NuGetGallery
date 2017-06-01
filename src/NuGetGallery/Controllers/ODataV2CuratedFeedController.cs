@@ -40,31 +40,42 @@ namespace NuGetGallery.Controllers
             _curatedFeedService = curatedFeedService;
         }
 
-        // /api/v2/curated-feed/curatedFeedName/Packages
+        // /api/v2/curated-feed/curatedFeedName/Packages?semVerLevel=
         [HttpGet]
         [HttpPost]
         [CacheOutput(NoCache = true)]
-        public IHttpActionResult Get(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName)
+        public IHttpActionResult Get(
+            ODataQueryOptions<V2FeedPackage> options,
+            string curatedFeedName,
+            [FromUri] string semVerLevel = null)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
                 return NotFound();
             }
 
+            var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+
             var queryable = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown)
-                .ToV2FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
+                .ToV2FeedPackageQuery(
+                    _configurationService.GetSiteRoot(UseHttps()),
+                    _configurationService.Features.FriendlyLicenses, 
+                    semVerLevelKey)
                 .InterceptWith(new NormalizeVersionInterceptor());
 
             return QueryResult(options, queryable, MaxPageSize);
         }
 
-        // /api/v2/curated-feed/curatedFeedName/Packages/$count
+        // /api/v2/curated-feed/curatedFeedName/Packages/$count?semVerLevel=
         [HttpGet]
         [CacheOutput(NoCache = true)]
-        public IHttpActionResult GetCount(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName)
+        public IHttpActionResult GetCount(
+            ODataQueryOptions<V2FeedPackage> options,
+            string curatedFeedName,
+            [FromUri] string semVerLevel = null)
         {
-            return Get(options, curatedFeedName).FormattedAsCountResult<V2FeedPackage>();
+            return Get(options, curatedFeedName, semVerLevel).FormattedAsCountResult<V2FeedPackage>();
         }
 
         // /api/v2/curated-feed/curatedFeedName/Packages(Id=,Version=)
@@ -72,28 +83,40 @@ namespace NuGetGallery.Controllers
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string id, string version)
         {
-            var result = await GetCore(options, curatedFeedName, id, version, return404NotFoundWhenNoResults: true);
+            var result = await GetCore(options, curatedFeedName, id, version, return404NotFoundWhenNoResults: true, semVerLevel: SemVerLevelKey.SemVerLevel2);
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
-        // /api/v2/curated-feed/curatedFeedName/FindPackagesById()?id=
+        // /api/v2/curated-feed/curatedFeedName/FindPackagesById()?id=&semVerLevel=
         [HttpGet]
         [HttpPost]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
-        public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, [FromODataUri]string id)
+        public async Task<IHttpActionResult> FindPackagesById(
+            ODataQueryOptions<V2FeedPackage> options,
+            string curatedFeedName,
+            [FromODataUri] string id,
+            [FromUri] string semVerLevel = null)
         {
             if (string.IsNullOrEmpty(curatedFeedName) || string.IsNullOrEmpty(id))
             {
+                var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
+
                 var emptyResult = Enumerable.Empty<Package>().AsQueryable()
-                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
                 return QueryResult(options, emptyResult, MaxPageSize);
             }
 
-            return await GetCore(options, curatedFeedName, id, version: null, return404NotFoundWhenNoResults: false);
+            return await GetCore(options, curatedFeedName, id, normalizedVersion: null, return404NotFoundWhenNoResults: false, semVerLevel: semVerLevel);
         }
 
-        private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V2FeedPackage> options, string curatedFeedName, string id, string version, bool return404NotFoundWhenNoResults)
+        private async Task<IHttpActionResult> GetCore(
+            ODataQueryOptions<V2FeedPackage> options,
+            string curatedFeedName,
+            string id,
+            string normalizedVersion,
+            bool return404NotFoundWhenNoResults,
+            string semVerLevel)
         {
             var curatedFeed = _entities.CuratedFeeds.FirstOrDefault(cf => cf.Name == curatedFeedName);
             if (curatedFeed == null)
@@ -102,19 +125,27 @@ namespace NuGetGallery.Controllers
             }
 
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown
-                            && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
+                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
-            if (!string.IsNullOrEmpty(version))
+            if (!string.IsNullOrEmpty(normalizedVersion))
             {
-                packages = packages.Where(p => p.Version == version);
+                packages = packages.Where(p => p.NormalizedVersion == normalizedVersion);
             }
+
+            var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
 
             // try the search service
             try
             {
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                    _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: curatedFeed);
+                    _searchService,
+                    GetTraditionalHttpContext().Request,
+                    packages,
+                    id,
+                    normalizedVersion,
+                    curatedFeed: curatedFeed,
+                    semVerLevel: semVerLevel);
 
                 // If intercepted, create a paged queryresult
                 if (searchAdaptorResult.ResultsAreProvidedBySearchService)
@@ -132,7 +163,7 @@ namespace NuGetGallery.Controllers
 
                     var pagedQueryable = packages
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                        .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+                        .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
                     return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                        SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
@@ -150,7 +181,11 @@ namespace NuGetGallery.Controllers
                 return NotFound();
             }
 
-            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+            var queryable = packages.ToV2FeedPackageQuery(
+                GetSiteRoot(), 
+                _configurationService.Features.FriendlyLicenses, 
+                semVerLevelKey);
+
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -167,7 +202,7 @@ namespace NuGetGallery.Controllers
             return BadRequest("Querying property " + propertyName + " is not supported.");
         }
 
-        // /api/v2/curated-feed/curatedFeedName/Search()?searchTerm=&targetFramework=&includePrerelease=
+        // /api/v2/curated-feed/curatedFeedName/Search()?searchTerm=&targetFramework=&includePrerelease=&semVerLevel=
         [HttpGet]
         [HttpPost]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
@@ -176,7 +211,8 @@ namespace NuGetGallery.Controllers
             string curatedFeedName,
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
-            [FromODataUri]bool includePrerelease = false)
+            [FromODataUri]bool includePrerelease = false,
+            [FromUri]string semVerLevel = null)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
@@ -203,15 +239,24 @@ namespace NuGetGallery.Controllers
             // Perform actual search
             var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown)
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
-                _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: curatedFeed);
+                _searchService,
+                GetTraditionalHttpContext().Request,
+                packages,
+                searchTerm,
+                targetFramework,
+                includePrerelease,
+                curatedFeed: curatedFeed,
+                semVerLevel: semVerLevel);
 
             // Packages provided by search service (even when not hijacked)
             var query = searchAdaptorResult.Packages;
+
+            var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
 
             // If intercepted, create a paged queryresult
             if (searchAdaptorResult.ResultsAreProvidedBySearchService)
@@ -220,7 +265,10 @@ namespace NuGetGallery.Controllers
                 var totalHits = query.LongCount();
                 var pagedQueryable = query
                     .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+                    .ToV2FeedPackageQuery(
+                        GetSiteRoot(), 
+                        _configurationService.Features.FriendlyLicenses, 
+                        semVerLevelKey);
 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
                 {
@@ -228,14 +276,23 @@ namespace NuGetGallery.Controllers
                     // Strip it of for backward compatibility.
                     if (o.Top == null || (resultCount.HasValue && o.Top.Value >= resultCount.Value))
                     {
-                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s);
+                        return SearchAdaptor.GetNextLink(
+                            Request.RequestUri, 
+                            resultCount, 
+                            new { searchTerm, targetFramework, includePrerelease }, 
+                            o, 
+                            s);
                     }
                     return null;
                 });
             }
 
             // If not, just let OData handle things
-            var queryable = query.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+            var queryable = query.ToV2FeedPackageQuery(
+                GetSiteRoot(), 
+                _configurationService.Features.FriendlyLicenses, 
+                semVerLevelKey);
+
             return QueryResult(options, queryable, MaxPageSize);
         }
 
@@ -247,9 +304,10 @@ namespace NuGetGallery.Controllers
             string curatedFeedName,
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "",
-            [FromODataUri]bool includePrerelease = false)
+            [FromODataUri]bool includePrerelease = false,
+            [FromUri]string semVerLevel = null)
         {
-            var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease);
+            var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease, semVerLevel);
             return searchResults.FormattedAsCountResult<V2FeedPackage>();
         }
     }

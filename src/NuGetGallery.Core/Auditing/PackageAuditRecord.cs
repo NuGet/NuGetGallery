@@ -49,7 +49,7 @@ namespace NuGetGallery.Auditing
         
         public override string GetPath()
         {
-            return $"{Id}/{NuGetVersionNormalizer.Normalize(Version)}"
+            return $"{Id}/{NuGetVersionFormatter.Normalize(Version)}"
                 .ToLowerInvariant();
         }
     }

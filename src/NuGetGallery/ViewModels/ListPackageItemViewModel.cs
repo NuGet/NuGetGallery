@@ -38,7 +38,8 @@ namespace NuGetGallery
             get
             {
                 // only use the version in URLs when necessary. This would happen when the latest version is not the same as the latest stable version.
-                return !(LatestVersion && LatestStableVersion);
+                return !(!IsSemVer2 && LatestVersion && LatestStableVersion) 
+                    && !(IsSemVer2 && LatestStableVersionSemVer2 && LatestVersionSemVer2);
             }
         }
 

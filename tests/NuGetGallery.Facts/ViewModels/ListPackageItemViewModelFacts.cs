@@ -231,5 +231,31 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             listPackageItemViewModel.LatestStableVersion = true;
             Assert.False(listPackageItemViewModel.UseVersion);
         }
+
+        [Fact]
+        public void UseVersionIfLatestSemVer2AndStableSemVer2NotSame()
+        {
+            var package = new Package()
+            {
+                SemVerLevelKey = SemVerLevelKey.SemVer2,
+                IsLatestSemVer2 = true,
+                IsLatestStableSemVer2 = false
+            };
+
+            var listPackageItemViewModel = new ListPackageItemViewModel(package);
+            Assert.True(listPackageItemViewModel.UseVersion);
+
+            listPackageItemViewModel.LatestVersionSemVer2 = false;
+            listPackageItemViewModel.LatestStableVersionSemVer2 = true;
+            Assert.True(listPackageItemViewModel.UseVersion);
+
+            listPackageItemViewModel.LatestVersionSemVer2 = false;
+            listPackageItemViewModel.LatestStableVersionSemVer2 = false;
+            Assert.True(listPackageItemViewModel.UseVersion);
+
+            listPackageItemViewModel.LatestVersionSemVer2 = true;
+            listPackageItemViewModel.LatestStableVersionSemVer2 = true;
+            Assert.False(listPackageItemViewModel.UseVersion);
+        }
     }
 }
