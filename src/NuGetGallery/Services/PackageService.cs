@@ -760,7 +760,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "256");
             }
 
-            if (packageMetadata.Version != null && packageMetadata.Version.ToString().Length > 64)
+            if (packageMetadata.Version != null && packageMetadata.Version.ToFullString().Length > 64)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Version", "64");
             }
