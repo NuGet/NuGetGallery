@@ -282,13 +282,35 @@ namespace NuGetGallery
                     return View();
                 }
 
-                var package = _packageService.FindPackageByIdAndVersion(nuspec.GetId(), nuspec.GetVersion().ToStringSafe());
-                if (package != null)
+                var nuspecVersion = nuspec.GetVersion();
+                var existingPackage = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
+                if (existingPackage != null)
                 {
-                    ModelState.AddModelError(
-                        string.Empty,
-                        string.Format(
-                            CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
+                    // Determine if the package versions only differ by metadata, 
+                    // and provide the most optimal the user-facing error message.
+                    var existingPackageVersion = new NuGetVersion(existingPackage.Version);
+                    if ((existingPackageVersion.HasMetadata || nuspecVersion.HasMetadata) 
+                        && !string.Equals(existingPackageVersion.Metadata, nuspecVersion.Metadata))
+                    {
+                        ModelState.AddModelError(
+                            string.Empty,
+                            string.Format(
+                                CultureInfo.CurrentCulture, 
+                                Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified, 
+                                existingPackage.PackageRegistration.Id, 
+                                existingPackage.Version));
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(
+                            string.Empty,
+                            string.Format(
+                                CultureInfo.CurrentCulture, 
+                                Strings.PackageExistsAndCannotBeModified, 
+                                existingPackage.PackageRegistration.Id, 
+                                existingPackage.Version));
+                    }
+
                     return View();
                 }
 
@@ -300,7 +322,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
-            string normalized = NuGetVersionNormalizer.Normalize(version);
+            string normalized = NuGetVersionFormatter.Normalize(version);
             if (!string.Equals(version, normalized))
             {
                 // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
@@ -310,11 +332,11 @@ namespace NuGetGallery
             Package package;
             if (version != null && version.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
-                package = _packageService.FindAbsoluteLatestPackageById(id);
+                package = _packageService.FindAbsoluteLatestPackageById(id, SemVerLevelKey.SemVer2);
             }
             else
             {
-                package = _packageService.FindPackageByIdAndVersion(id, version);
+                package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
             }
 
             if (package == null)
@@ -354,8 +376,11 @@ namespace NuGetGallery
                         .Normalize(NormalizationForm.FormC);
 
                     var searchFilter = SearchAdaptor.GetSearchFilter(
-                            "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
-                            1, null, SearchFilter.ODataSearchContext);
+                            q: "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
+                            page: 1, 
+                            sortOrder: null, 
+                            context: SearchFilter.ODataSearchContext,
+                            semVerLevel: SemVerLevelKey.SemVerLevel2);
 
                     searchFilter.IncludePrerelease = true;
                     searchFilter.IncludeAllVersions = true;
@@ -415,7 +440,13 @@ namespace NuGetGallery
                 var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
                 if (cachedResults == null)
                 {
-                    var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext);
+                    var searchFilter = SearchAdaptor.GetSearchFilter(
+                        q, 
+                        page, 
+                        sortOrder: null, 
+                        context: SearchFilter.UISearchContext, 
+                        semVerLevel: SemVerLevelKey.SemVerLevel2);
+
                     results = await _searchService.Search(searchFilter);
 
                     // note: this is a per instance cache
@@ -435,7 +466,13 @@ namespace NuGetGallery
             }
             else
             {
-                var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext);
+                var searchFilter = SearchAdaptor.GetSearchFilter(
+                    q, 
+                    page, 
+                    sortOrder: null, 
+                    context: SearchFilter.UISearchContext, 
+                    semVerLevel: SemVerLevelKey.SemVerLevel2);
+
                 results = await _searchService.Search(searchFilter);
             }
 
@@ -472,7 +509,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult ReportAbuse(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -521,7 +558,7 @@ namespace NuGetGallery
         {
             var user = GetCurrentUser();
 
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -566,7 +603,7 @@ namespace NuGetGallery
                 return ReportAbuse(id, version);
             }
 
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();
@@ -624,7 +661,7 @@ namespace NuGetGallery
                 return ReportMyPackage(id, version);
             }
 
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();
@@ -818,7 +855,7 @@ namespace NuGetGallery
                     var split = package.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                     if (split.Length == 2)
                     {
-                        var packageToDelete = _packageService.FindPackageByIdAndVersion(split[0], split[1], allowPrerelease: true);
+                        var packageToDelete = _packageService.FindPackageByIdAndVersionStrict(split[0], split[1]);
                         if (packageToDelete != null)
                         {
                             packagesToDelete.Add(packageToDelete);
@@ -998,7 +1035,7 @@ namespace NuGetGallery
 
         internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();
@@ -1064,7 +1101,8 @@ namespace NuGetGallery
             var model = new VerifyPackageRequest
             {
                 Id = packageMetadata.Id,
-                Version = packageMetadata.Version.ToNormalizedStringSafe(),
+                Version = packageMetadata.Version.ToFullStringSafe(),
+                OriginalVersion = packageMetadata.Version.OriginalVersion,
                 LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
                 Listed = true,
                 Language = packageMetadata.Language,
@@ -1123,10 +1161,11 @@ namespace NuGetGallery
 
                 // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user
                 // viewing a different package to what was actually most recently uploaded
-                if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
+                if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.OriginalVersion)))
                 {
                     if (!(String.Equals(packageMetadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
-                        && String.Equals(packageMetadata.Version.ToNormalizedString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
+                        && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
+                        && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
                         return new RedirectResult(Url.VerifyPackage());
@@ -1218,8 +1257,8 @@ namespace NuGetGallery
 
                 // notify user
                 _messageService.SendPackageAddedNotice(package,
-                    Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
-                    Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
+                    Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
+                    Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
                     Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
             }
 
@@ -1231,7 +1270,11 @@ namespace NuGetGallery
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
 
-            return RedirectToRoute(RouteName.DisplayPackage, new { package.PackageRegistration.Id, package.NormalizedVersion });
+            return RedirectToRoute(RouteName.DisplayPackage, new
+            {
+                id = package.PackageRegistration.Id,
+                version = package.NormalizedVersion
+            });
         }
 
         private async Task<PackageArchiveReader> SafeCreatePackage(NuGetGallery.User currentUser, Stream uploadFile)
@@ -1295,7 +1338,7 @@ namespace NuGetGallery
 
         internal virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, string> urlFactory)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();

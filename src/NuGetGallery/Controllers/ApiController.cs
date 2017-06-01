@@ -127,7 +127,7 @@ namespace NuGetGallery
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
             // Ideally shouldn't be necessary?
-            if (!PackageIdValidator.IsValidPackageId(id ?? ""))
+            if (!PackageIdValidator.IsValidPackageId(id ?? string.Empty))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
@@ -142,15 +142,20 @@ namespace NuGetGallery
                 }
 
                 // Normalize the version
-                version = NuGetVersionNormalizer.Normalize(version);
+                version = NuGetVersionFormatter.Normalize(version);
             }
             else
             {
-                // if version is null, get the latest version from the database.
+                // If version is null, get the latest version from the database.
                 // This ensures that on package restore scenario where version will be non null, we don't hit the database.
                 try
                 {
-                    var package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+                    var package = PackageService.FindPackageByIdAndVersion(
+                        id, 
+                        version, 
+                        SemVerLevelKey.SemVer2, 
+                        allowPrerelease: false);
+
                     if (package == null)
                     {
                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
@@ -261,7 +266,7 @@ namespace NuGetGallery
         private async Task<HttpStatusCodeWithBodyResult> VerifyPackageKeyInternalAsync(User user, Credential credential, string id, string version)
         {
             // Verify that the user has permission to push for the specific Id \ version combination.
-            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            var package = PackageService.FindPackageByIdAndVersion(id, version, semVerLevelKey: SemVerLevelKey.SemVer2);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -495,8 +500,8 @@ namespace NuGetGallery
 
                         // Notify user of push
                         MessageService.SendPackageAddedNotice(package,
-                            Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
-                            Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.Version }, protocol: Request.Url.Scheme),
+                            Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
+                            Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
                             Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
 
                         TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
@@ -544,7 +549,7 @@ namespace NuGetGallery
         [ActionName("DeletePackageApi")]
         public virtual async Task<ActionResult> DeletePackage(string id, string version)
         {
-            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -577,7 +582,7 @@ namespace NuGetGallery
         [ActionName("PublishPackageApi")]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
         {
-            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -646,24 +651,30 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("PackageIDs")]
-        public virtual async Task<ActionResult> GetPackageIds(string partialId, bool? includePrerelease)
+        public virtual async Task<ActionResult> GetPackageIds(
+            string partialId, 
+            bool? includePrerelease,
+            string semVerLevel = null)
         {
             var query = GetService<IAutoCompletePackageIdsQuery>();
             return new JsonResult
             {
-                Data = (await query.Execute(partialId, includePrerelease)).ToArray(),
+                Data = (await query.Execute(partialId, includePrerelease, semVerLevel)).ToArray(),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
 
         [HttpGet]
         [ActionName("PackageVersions")]
-        public virtual async Task<ActionResult> GetPackageVersions(string id, bool? includePrerelease)
+        public virtual async Task<ActionResult> GetPackageVersions(
+            string id, 
+            bool? includePrerelease,
+            string semVerLevel = null)
         {
             var query = GetService<IAutoCompletePackageVersionsQuery>();
             return new JsonResult
             {
-                Data = (await query.Execute(id, includePrerelease)).ToArray(),
+                Data = (await query.Execute(id, includePrerelease, semVerLevel)).ToArray(),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
