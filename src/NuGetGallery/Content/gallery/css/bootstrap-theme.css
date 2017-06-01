@@ -224,4 +224,22 @@ body {
 .page-pages p {
   margin-bottom: 24px;
 }
+.page-statistics-most-downloaded .report-title {
+  margin-bottom: 4px;
+}
+.page-statistics-most-downloaded .report-subtitle {
+  margin-bottom: 40px;
+  font-size: 24px;
+  color: gray;
+}
+.page-statistics-most-downloaded .table .headings {
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+  font-size: 24px;
+  border-bottom: lightgray thin solid;
+}
+.page-statistics-most-downloaded .table .data {
+  margin-bottom: 20px;
+  font-size: 20px;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */
