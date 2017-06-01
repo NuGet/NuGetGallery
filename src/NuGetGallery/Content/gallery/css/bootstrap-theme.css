@@ -207,8 +207,8 @@ body {
 .page-sign-in .or-row {
   margin: 30px;
 }
-.page-pages {
-  padding-bottom: 45px;
+.page-pages .pages-container {
+  margin-bottom: 70px;
 }
 .page-pages h1 {
   margin-bottom: 40px;
