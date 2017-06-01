@@ -36,7 +36,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                     Trace.WriteLine(String.Format("Created '{0}' publish container", _directory.Container.Name));
                 }
             }
-
             ResetStatistics();
         }
 
@@ -125,8 +124,46 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                     Trace.WriteLine(String.Format("Saved uncompressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
                 }
             }
+            await TryTakeBlobSnapshotAsync(blob);
         }
 
+        /// <summary>
+        /// Take one snapshot only if there is not any snapshot for the specific blob
+        /// This will prevent the blob to be deleted by a not intended delete action
+        /// </summary>
+        /// <param name="blob"></param>
+        /// <returns></returns>
+        private async Task<bool> TryTakeBlobSnapshotAsync(CloudBlockBlob blob)
+        {
+            if (blob == null )
+            {
+                //no action
+                return false;
+            }
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            try
+            {
+                var allSnapshots = blob.Container.
+                                   ListBlobs(prefix: blob.Name,
+                                             useFlatBlobListing: true,
+                                             blobListingDetails: BlobListingDetails.Snapshots);
+                //the above call will return at least one blob the original
+                if (allSnapshots.Count() == 1)
+                {
+                    var snapshot = await blob.CreateSnapshotAsync();
+                    sw.Stop();
+                    Trace.WriteLine($"SnapshotCreated:milliseconds={sw.ElapsedMilliseconds}:{blob.Uri.ToString()}:{snapshot.SnapshotQualifiedUri}");
+                }
+                return true;
+            }
+            catch(StorageException storageException)
+            {
+                sw.Stop();
+                Trace.WriteLine($"EXCEPTION:milliseconds={sw.ElapsedMilliseconds}:CreateSnapshot: Failed to take the snapshot for blob {blob.Uri.ToString()}. Exception{storageException.ToString()}");
+                return false;
+            }
+        }
         //  load
 
         protected override async Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
@@ -183,8 +220,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string name = GetName(resourceUri);
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
-
-            await blob.DeleteAsync(cancellationToken);
+            await blob.DeleteAsync(deleteSnapshotsOption:DeleteSnapshotsOption.IncludeSnapshots, accessCondition:null, options:null, operationContext:null,  cancellationToken:cancellationToken);
         }
     }
 }
