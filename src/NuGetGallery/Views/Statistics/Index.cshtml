@@ -34,7 +34,7 @@
                                     index++;
 
                                     <div class="row table-row-data">
-                                        <div class="col-xs-8 text-left table-cell"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
+                                        <div class="col-xs-8 text-left table-cell"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></div>
                                         <div class="col-xs-4 text-right table-cell"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></div>
                                     </div>
                                 }
@@ -68,7 +68,7 @@
                                     index++;
 
                                     <div class="row table-row-data">
-                                        <div class="col-xs-6 text-left table-cell"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
+                                        <div class="col-xs-6 text-left table-cell"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></div>
                                         <div class="col-xs-3 text-center table-cell"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></div>
                                         <div class="col-xs-3 text-right table-cell"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></div>
                                     </div>
