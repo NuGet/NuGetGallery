@@ -106,7 +106,9 @@
                                     var numYAxisLabels = 10.0;
                                     foreach (var item in Model.NuGetClientVersion)
                                     {
-                                        <rect class="graph-bar" id="graph-bar-@(item.Version)" x="@(widthOffsetPercent + index * fraction)%" y="@(chartFullHeightInPercent-item.Downloads/max*chartFullHeightInPercent)%" width="@(fraction * (1.0 - gapPercent))%" height="@(item.Downloads/max*chartFullHeightInPercent)%"/>
+                                        <rect class="graph-bar" id="graph-bar-@(item.Version)" x="@(widthOffsetPercent + index * fraction)%" y="@(chartFullHeightInPercent-item.Downloads/max*chartFullHeightInPercent)%" width="@(fraction * (1.0 - gapPercent))%" height="@(item.Downloads/max*chartFullHeightInPercent)%">
+                                            <title>@(item.Downloads) downloads</title>
+                                        </rect>
                                         @:<text class="graph-x-axis-text" x="@(widthOffsetPercent + index * fraction)%" y="@(chartFullHeightInPercent)%" dy="1em">@(item.Version)</text>
                                         index++;
                                     }
@@ -152,18 +154,44 @@
                             <svg class="chart" id="line-chart-sixweeks-downloads">
                                 @{
                                     var chartFullWidthInPercent = 90.0;
-                                    var chartFullHeightInPercent = 85.0;
+                                    var chartFullHeightInPercent = 75.0;
                                     var topOffset = 5;
                                     var widthOffsetPercent = 100.0 - chartFullWidthInPercent;
                                     var index = 0;
+                                    var prevCenterX = -1.0;
+                                    var prevCenterY = -1.0;
+                                    var centerX = 0.0;
+                                    var centerY = 0.0;
                                     var fraction = chartFullWidthInPercent / Model.Last6Weeks.Count();
                                     var max = Model.Last6Weeks.Max(e => e.Downloads) * 1.0;
                                     var numYAxisLabels = 7.0;
+                                    StatisticsWeeklyUsageItem prevItem = null;
                                     foreach (var item in Model.Last6Weeks)
                                     {
-                                        <circle class="graph-dot" id="graph-dot-@(item.Year)-@(item.WeekOfYear)" cx="@(widthOffsetPercent + index * fraction + fraction/3)%" cy="@(topOffset + chartFullHeightInPercent-item.Downloads/max*chartFullHeightInPercent)%" r="5px" />
-                                        @:<text class="graph-x-axis-text" x="@(widthOffsetPercent + index * fraction)%" y="@(topOffset + chartFullHeightInPercent)%" dy="1em">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly)</text>
-                                        @:<text class="graph-x-axis-text" x="@(widthOffsetPercent + index * fraction)%" y="@(topOffset + chartFullHeightInPercent)%" dy="2em">-@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.EndOnly)</text>
+                                        centerX = widthOffsetPercent + index * fraction + fraction / 3;
+                                        centerY = topOffset + chartFullHeightInPercent - item.Downloads / max * chartFullHeightInPercent;
+                                        if (prevCenterY >= 0 && prevCenterX >= 0 && prevItem != null)
+                                        {
+                                            <line class="graph-line" x1="@prevCenterX%" y1="@prevCenterY%" x2="@centerX%" y2="@centerY%" />
+                                            <circle class="graph-dot" id="graph-dot-@(prevItem.Year)-@(prevItem.WeekOfYear)" cx="@prevCenterX%" cy="@prevCenterY%" r="5px">
+                                                <title>@(prevItem.Downloads) downloads</title>
+                                            </circle>
+                                        }
+
+                                        <circle class="graph-dot" id="graph-dot-@(item.Year)-@(item.WeekOfYear)" cx="@centerX%" cy="@centerY%" r="5px">
+                                            <title>@(item.Downloads) downloads</title>
+                                        </circle>
+
+                                        <svg x="@(widthOffsetPercent + index * fraction - 5)%" y="@(topOffset + chartFullHeightInPercent + 2)%">
+                                            <g transform="rotate(-50)">
+                                                <text y="5.6em" class="graph-x-axis-text">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly)-</text>
+                                                <text y="5.6em" class="graph-x-axis-text" dy="1em">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.EndOnly)</text>
+                                            </g>
+                                        </svg>
+
+                                        prevCenterX = widthOffsetPercent + index * fraction + fraction / 3;
+                                        prevCenterY = topOffset + chartFullHeightInPercent - item.Downloads / max * chartFullHeightInPercent;
+                                        prevItem = item;
                                         index++;
                                     }
 

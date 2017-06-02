@@ -273,8 +273,12 @@ body {
 .page-statistics-overview rect.graph-bar:hover {
   fill: orange;
 }
+.page-statistics-overview line.graph-line {
+  stroke: steelblue;
+  stroke-width: 2;
+}
 .page-statistics-overview text.graph-x-axis-text {
-  font-size: .8em;
+  font-size: .6em;
 }
 .page-statistics-overview text.graph-y-axis-text {
   font-size: .9em;
