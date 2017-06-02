@@ -30,6 +30,7 @@
                 <div class="col-xs-@packageColumns">Package</div>
                 <div class="col-xs-@downloadsColumns">Downloads</div>
             </div>
+
             @{
                 var index = 0;
                 foreach (var item in Model.DownloadPackagesAll)
@@ -37,9 +38,9 @@
                     index++;
 
                     <div class="row data">
-                        <div class="col-xs-@indexColumns">@index</div>
-                        <div class="col-xs-@packageColumns"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
-                        <div class="col-xs-@downloadsColumns"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></div>
+                        <div class="col-xs-@indexColumns cell">@index</div>
+                        <div class="col-xs-@packageColumns cell"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
+                        <div class="col-xs-@downloadsColumns cell"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></div>
                     </div>
                 }
             }

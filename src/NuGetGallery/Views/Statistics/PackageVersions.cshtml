@@ -27,10 +27,10 @@
             }
 
             <div class="row headings">
-                <div class="col-md-@indexColumns"></div>
-                <div class="col-md-@packageColumns">Package</div>
-                <div class="col-md-@versionColumns">Version</div>
-                <div class="col-md-@downloadsColumns">Downloads</div>
+                <div class="col-xs-@indexColumns"></div>
+                <div class="col-xs-@packageColumns">Package</div>
+                <div class="col-xs-@versionColumns">Version</div>
+                <div class="col-xs-@downloadsColumns">Downloads</div>
             </div>
             @{
                 var index = 0;
@@ -39,10 +39,10 @@
                     index++;
 
                     <div class="row data">
-                        <div class="col-md-@indexColumns">@index</div>
-                        <div class="col-md-@packageColumns"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
-                        <div class="col-md-@versionColumns"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></div>
-                        <div class="col-md-@downloadsColumns"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></div>
+                        <div class="col-xs-@indexColumns cell">@index</div>
+                        <div class="col-xs-@packageColumns cell"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
+                        <div class="col-xs-@versionColumns cell"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></div>
+                        <div class="col-xs-@downloadsColumns cell"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></div>
                     </div>
                 }
             }

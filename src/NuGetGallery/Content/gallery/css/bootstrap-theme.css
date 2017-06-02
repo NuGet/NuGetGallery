@@ -242,4 +242,8 @@ body {
   margin-bottom: 20px;
   font-size: 20px;
 }
+.page-statistics-most-downloaded .table .data .cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */

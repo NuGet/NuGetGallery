@@ -1,4 +1,5 @@
 .page-statistics-most-downloaded {
+    @subtitle-text-size: 24px;
     @margin-small: 4px;
     
     .report-title {
@@ -6,14 +7,14 @@
     }
     
     .report-subtitle {
-        font-size: 24px;
+        font-size: @subtitle-text-size;
         color: gray;
         margin-bottom: 40px;
     }
     
     .table {
         .headings {
-            font-size: 24px;
+            font-size: @subtitle-text-size;
             border-bottom: lightgray thin solid;
             padding-bottom: @margin-small;
             margin-bottom: 10px;
@@ -22,6 +23,11 @@
         .data {
             font-size: 20px;
             margin-bottom: 20px;
+            
+            .cell {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
         }
     }
 }
