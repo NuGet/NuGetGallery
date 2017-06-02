@@ -40,7 +40,7 @@
             <p class="stat-label">@(Model.DownloadCount == 1 ? "Download" : "Downloads") of v @Model.Version</p>
         </div>
         <div class="stat">
-            <p class="stat-number" title="@Model.TotalDownloadCount.ToNuGetNumberString() @(Model.TotalDownloadCount == 1 ? "download" : "downloads") in @Model.TotalDaysSinceCreated @(Model.TotalDaysSinceCreated == 1 ? "day" : "days")">@(Model.DownloadsPerDay <= 1 ? "<1" : Model.DownloadsPerDay.ToNuGetNumberString())</p>
+            <p class="stat-number" title="@Model.TotalDownloadCount.ToNuGetNumberString() @(Model.TotalDownloadCount == 1 ? "download" : "downloads") in @Model.TotalDaysSinceCreated @(Model.TotalDaysSinceCreated == 1 ? "day" : "days")">@(Model.DownloadsPerDay < 1 ? "<1" : Model.DownloadsPerDay.ToNuGetNumberString())</p>
             <p class="stat-label">Average downloads per day</p>
         </div>
         <div class="stat">
