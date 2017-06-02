@@ -23,8 +23,6 @@ using NuGet.Services.BasicSearch.Configuration;
 using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using Owin;
-using Serilog.Events;
-using SerilogWeb.Classic;
 using SerilogWeb.Classic.Enrichers;
 
 [assembly: OwinStartup("NuGet.Services.BasicSearch", typeof(NuGet.Services.BasicSearch.Startup))]
@@ -48,7 +46,13 @@ namespace NuGet.Services.BasicSearch
             var config = _configFactory.Get<BasicSearchConfiguration>().Result;
 
             // Configure
-            Logging.ApplicationInsights.Initialize(config.ApplicationInsightsInstrumentationKey);
+            if ( ! string.IsNullOrEmpty(config.ApplicationInsightsInstrumentationKey))
+            {
+                TelemetryConfiguration.Active.InstrumentationKey = config.ApplicationInsightsInstrumentationKey;
+            }
+
+            // Add telemetry initializers
+            TelemetryConfiguration.Active.TelemetryInitializers.Add(new MachineNameTelemetryInitializer());
 
             // Add telemetry processors
             var processorChain = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
