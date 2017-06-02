@@ -1,6 +1,9 @@
 ﻿@model StatisticsPackagesViewModel
-@if(Model.LastUpdatedUtc != null) {
-    <div class="last-updated">
-        Statistics last updated at @Model.LastUpdatedUtc.Value.ToNuGetShortDateTimeString() UTC.
+@if (Model.LastUpdatedUtc != null)
+{
+    <div class="row">
+        <div class="last-updated col-xs-12">
+            Statistics last updated at @Model.LastUpdatedUtc.Value.ToNuGetShortDateTimeString() UTC.
+        </div>
     </div>
 }

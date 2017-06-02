@@ -207,4 +207,59 @@ body {
 .page-sign-in .or-row {
   margin: 30px;
 }
+.page-statistics-overview .page-heading {
+  margin-top: 30px;
+  font-size: 2.5em;
+}
+.page-statistics-overview .page-subheading {
+  margin-bottom: 30px;
+  font-size: 1em;
+}
+.page-statistics-overview .stats-title-text {
+  margin-bottom: 10px;
+  font-size: 1.6em;
+}
+.page-statistics-overview .table .table-headings {
+  padding-bottom: 4px;
+  margin-right: 1px;
+  font-size: .8em;
+  font-weight: bold;
+  border-bottom-color: lightgray;
+  border-bottom-style: solid;
+  border-bottom-width: thin;
+}
+.page-statistics-overview .table .table-row-data {
+  margin-top: 5px;
+  margin-right: 1px;
+  margin-bottom: 5px;
+  overflow: hidden;
+  font-size: .9em;
+}
+.page-statistics-overview .table .table-row-data .table-cell {
+  overflow: inherit;
+  text-overflow: ellipsis;
+}
+.page-statistics-overview .chart {
+  width: 98%;
+  min-width: 400px;
+  height: 300px;
+}
+.page-statistics-overview circle.graph-dot {
+  fill: steelblue;
+}
+.page-statistics-overview circle.graph-dot:hover {
+  fill: orange;
+}
+.page-statistics-overview rect.graph-bar {
+  fill: steelblue;
+}
+.page-statistics-overview rect.graph-bar:hover {
+  fill: orange;
+}
+.page-statistics-overview text.graph-x-axis-text {
+  font-size: .8em;
+}
+.page-statistics-overview text.graph-y-axis-text {
+  font-size: .9em;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */
