@@ -207,6 +207,23 @@ body {
 .page-sign-in .or-row {
   margin: 30px;
 }
+.page-pages .pages-container {
+  margin-bottom: 70px;
+}
+.page-pages h1 {
+  margin-bottom: 40px;
+}
+.page-pages h2 {
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+.page-pages h3 {
+  margin-top: 40px;
+  margin-bottom: 10px;
+}
+.page-pages p {
+  margin-bottom: 24px;
+}
 .page-statistics-overview .page-heading {
   margin-top: 30px;
   font-size: 2.5em;
