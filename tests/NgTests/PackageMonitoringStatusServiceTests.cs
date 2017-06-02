@@ -304,6 +304,24 @@ namespace NgTests
         }
 
         [Fact]
+        public async Task GetByPackageNoResults()
+        {
+            // Arrange
+            var statusService = new PackageMonitoringStatusService(
+                new MemoryStorageFactory(),
+                new Mock<ILogger<PackageMonitoringStatusService>>().Object);
+
+            var desiredPackageId = "missingpackage";
+            var desiredPackageVersion = "9.1.1";
+
+            // Act
+            var status = await statusService.GetAsync(new FeedPackageIdentity(desiredPackageId, desiredPackageVersion), CancellationToken.None);
+
+            // Assert
+            Assert.Null(status);
+        }
+
+        [Fact]
         public async Task GetByPackageWithPackageValidationResult()
         {
             // Arrange
@@ -363,6 +381,34 @@ namespace NgTests
             AssertStatus(desiredStatus, status);
         }
 
+        [Fact]
+        public async Task GetByPackageDeserializationException()
+        {
+            // Arrange
+            var desiredPackageId = "brokenpackage";
+            var desiredPackageVersion = "99.9.99";
+
+            var storageFactory = new MemoryStorageFactory();
+            var storage = storageFactory.Create(PackageState.Valid.ToString().ToLowerInvariant());
+
+            await storage.Save(
+                storage.ResolveUri($"{desiredPackageId}/{desiredPackageId}.{desiredPackageVersion}.json"), 
+                new StringStorageContent("this isn't json"), 
+                CancellationToken.None);
+
+            var statusService = new PackageMonitoringStatusService(
+                storageFactory,
+                new Mock<ILogger<PackageMonitoringStatusService>>().Object);
+
+            // Act
+            var status = await statusService.GetAsync(new FeedPackageIdentity(desiredPackageId, desiredPackageVersion), CancellationToken.None);
+
+            // Assert
+            Assert.Equal(desiredPackageId, status.Package.Id);
+            Assert.Equal(desiredPackageVersion, status.Package.Version);
+            Assert.IsType<StatusDeserializationException>(status.ValidationException);
+        }
+
         private static void AssertAll<T>(IEnumerable<T> expecteds, IEnumerable<T> actuals, Action<T, T> assert)
         {
             if (expecteds == null)
@@ -379,6 +425,23 @@ namespace NgTests
             {
                 assert(expectedsArray[i], actualsArray[i]);
             }
+        }
+
+        [Fact]
+        public async Task GetByStateNoResults()
+        {
+            // Arrange
+            var statusService = new PackageMonitoringStatusService(
+                new MemoryStorageFactory(),
+                new Mock<ILogger<PackageMonitoringStatusService>>().Object);
+
+            // Act
+            var validStatuses = await statusService.GetAsync(PackageState.Valid, CancellationToken.None);
+            var invalidStatuses = await statusService.GetAsync(PackageState.Invalid, CancellationToken.None);
+
+            // Assert
+            Assert.Empty(validStatuses);
+            Assert.Empty(invalidStatuses);
         }
 
         [Fact]

@@ -25,6 +25,8 @@
     <file src="Scripts\Catalog2RegistrationV3-Reg2-Secondary.cmd" />
 	
     <file src="Scripts\DB2Catalog.cmd" />
+    
+    <file src="Scripts\EndpointMonitoring.cmd" />
 	
     <file src="Scripts\Feed2CatalogV3.cmd" />
     <file src="Scripts\Feed2CatalogV3-Secondary.cmd" />

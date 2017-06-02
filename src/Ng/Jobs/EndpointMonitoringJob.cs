@@ -32,8 +32,7 @@ namespace Ng.Jobs
                    + $"-{Arguments.Gallery} <v2-feed-address> "
                    + $"-{Arguments.Source} <catalog> "
                    + $"-{Arguments.Index} <index>"
-                   + $"-{Arguments.EndpointsToTest} <endpoints-to-test>"
-                   + $"-{Arguments.EndpointCursorPrefix}<endpoint-to-test> <endpoint-cursor-address>"
+                   + $"-{Arguments.EndpointsToTest} <endpoint-to-test-1-name>|<endpoint-to-test-1-cursor>;<endpoint-to-test-2-name>|<endpoint-to-test-2-cursor>;..."
                    + $"-{Arguments.StorageBaseAddress} <storage-base-address> "
                    + $"-{Arguments.StorageType} azure "
                    + $"[-{Arguments.StoragePath} <path>]"
@@ -71,10 +70,19 @@ namespace Ng.Jobs
 
             var monitoringStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
+            
+            var endpoints = arguments.GetOrThrow<string>(Arguments.EndpointsToTest).Split(';').Select(e => {
+                var endpointParts = e.Split('|');
 
-            var endpointNames = arguments.GetOrThrow<string>(Arguments.EndpointsToTest).Split(';');
-            var endpoints = endpointNames.Select(name => 
-                new EndpointFactory.Input(name, new Uri(arguments.GetOrThrow<string>(Arguments.EndpointCursorPrefix + name))));
+                if (endpointParts.Count() < 2)
+                {
+                    throw new ArgumentException(
+                        $"\"{e}\" is not a valid endpoint! Each endpoint must follow this format: " +
+                        $"<endpoint-to-test-name>|<endpoint-to-test-cursor>.");
+                }
+
+                return new EndpointFactory.Input(endpointParts[0], new Uri(endpointParts[1]));
+            });
 
             var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
             
@@ -90,7 +98,16 @@ namespace Ng.Jobs
             var aggregateNotificationService = new AggregateNotificationService(
                 new IMonitoringNotificationService[] { loggerNotificationService, statusNotificationService });
 
-            var context = _collectorFactory.Create(gallery, index, source, monitoringStorageFactory, auditingStorageFactory, endpoints, messageHandlerFactory, aggregateNotificationService, verbose);
+            var context = _collectorFactory.Create(
+                gallery, 
+                index, 
+                source, 
+                monitoringStorageFactory, 
+                auditingStorageFactory, 
+                endpoints, 
+                messageHandlerFactory, 
+                aggregateNotificationService, 
+                verbose);
 
             _collector = context.Collector;
             _front = context.Front;

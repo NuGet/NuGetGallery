@@ -1,23 +1,27 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     /// <summary>
-    /// Appends a name to the path of another <see cref="StorageFactory"/>.
+    /// Appends a name to the path of another <see cref="IStorageFactory"/>.
     /// </summary>
-    public class NamedStorageFactory : StorageFactory
+    public class NamedStorageFactory : IStorageFactory
     {
-        private StorageFactory _innerStorageFactory;
+        private IStorageFactory _innerStorageFactory;
         private string _name;
 
-        public NamedStorageFactory(StorageFactory inner, string name)
+        public NamedStorageFactory(IStorageFactory inner, string name)
         {
             _innerStorageFactory = inner;
             _name = name;
         }
 
-        public override Storage Create(string name = null)
+        public Uri BaseAddress => new Uri(_innerStorageFactory.BaseAddress, _name);
+
+        public Storage Create(string name = null)
         {
             return _innerStorageFactory.Create($"{_name}/{name}");
         }

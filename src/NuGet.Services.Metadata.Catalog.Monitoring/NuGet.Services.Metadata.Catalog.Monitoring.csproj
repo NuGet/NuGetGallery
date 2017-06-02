@@ -107,6 +107,7 @@
     <Compile Include="Status\PackageMonitoringStatusService.cs" />
     <Compile Include="Status\PackageMonitoringStatus.cs" />
     <Compile Include="Status\PackageState.cs" />
+    <Compile Include="Status\StatusDeserializationException.cs" />
     <Compile Include="Utility\CommonLogger.cs" />
     <Compile Include="Utility\ILoggerExtensions.cs" />
     <Compile Include="Utility\NullableNuGetVersionConverter.cs" />

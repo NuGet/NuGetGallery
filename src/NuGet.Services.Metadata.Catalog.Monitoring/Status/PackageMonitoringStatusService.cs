@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -23,9 +24,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         private ILogger<PackageMonitoringStatusService> _logger;
 
         /// <summary>
-        /// The <see cref="StorageFactory"/> to use to save status of packages.
+        /// The <see cref="IStorageFactory"/> to use to save status of packages.
         /// </summary>
-        private StorageFactory _storageFactory;
+        private IStorageFactory _storageFactory;
 
         /// <summary>
         /// The <see cref="JsonSerializerSettings"/> to use to save and load statuses of packages.
@@ -41,24 +42,26 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             return settings;
         });
 
-        public PackageMonitoringStatusService(StorageFactory storageFactory, ILogger<PackageMonitoringStatusService> logger)
+        public PackageMonitoringStatusService(IStorageFactory storageFactory, ILogger<PackageMonitoringStatusService> logger)
         {
             _logger = logger;
             _storageFactory = storageFactory;
         }
 
-        public Task<PackageMonitoringStatus> GetAsync(FeedPackageIdentity package, CancellationToken token)
+        public async Task<PackageMonitoringStatus> GetAsync(FeedPackageIdentity package, CancellationToken token)
         {
-            foreach (var state in Enum.GetNames(typeof(PackageState)))
-            {
-                var packageStatus = GetPackageAsync(GetStorage(state), package, token);
-                if (packageStatus != null)
-                {
-                    return packageStatus;
-                }
-            }
+            var statusTasks =
+                Enum.GetNames(typeof(PackageState))
+                .Select(state =>
+                    Task.Run(async () =>
+                    {
+                        return await GetPackageAsync(GetStorage(state), package, token);
+                    })
+                );
 
-            return null;
+            return
+                (await Task.WhenAll(statusTasks))
+                .SingleOrDefault(s => s != null);
         }
 
         public async Task<IEnumerable<PackageMonitoringStatus>> GetAsync(PackageState state, CancellationToken token)
@@ -66,20 +69,19 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             var packageStatuses = new List<PackageMonitoringStatus>();
 
             var storage = GetStorage(state);
-            foreach (var listItem in await storage.List(token))
-            {
-                var packageStatus = await GetPackageAsync(storage, listItem.Uri, token);
 
-                if (packageStatus == null)
-                {
-                    _logger.LogWarning("Unable to get package status from {PackageUri}!", listItem.Uri);
-                    continue;
-                }
+            var statusTasks = 
+                (await storage.List(token))
+                .Select(listItem =>
+                    Task.Run(async () =>
+                    {
+                        return await GetPackageAsync(storage, listItem.Uri, token);
+                    })
+                );
 
-                packageStatuses.Add(packageStatus);
-            }
-
-            return packageStatuses;
+            return 
+                (await Task.WhenAll(statusTasks))
+                .Where(s => s != null);
         }
         
         public async Task UpdateAsync(PackageMonitoringStatus status, CancellationToken token)
@@ -144,7 +146,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             if (!storage.Exists(fileName))
             {
-                return null;
+                return Task.FromResult<PackageMonitoringStatus>(null);
             }
 
             return GetPackageAsync(storage, storage.ResolveUri(fileName), token);
@@ -152,7 +154,44 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         private async Task<PackageMonitoringStatus> GetPackageAsync(Storage storage, Uri packageUri, CancellationToken token)
         {
-            return JsonConvert.DeserializeObject<PackageMonitoringStatus>(await GetStorageContentsAsync(storage, packageUri, token), SerializerSettings);
+            try
+            {
+                return JsonConvert.DeserializeObject<PackageMonitoringStatus>(await GetStorageContentsAsync(storage, packageUri, token), SerializerSettings);
+            }
+            catch (Exception deserializationException)
+            {
+                _logger.LogWarning(
+                    LogEvents.StatusDeserializationFailure,
+                    deserializationException,
+                    "Unable to deserialize package status from {PackageUri}!",
+                    packageUri);
+
+                try
+                {
+                    /// Construct a <see cref="PackageMonitoringStatus"/> from the <see cref="Uri"/> with this as the exception.
+                    var uriSegments = packageUri.Segments;
+                    // The second to last segment is the id.
+                    var id = uriSegments[uriSegments.Length - 2].Trim('/');
+
+                    // The last segment is {id}.{version}.json.
+                    // Remove the id and the "." from the beginning.
+                    var version = uriSegments[uriSegments.Length - 1].Substring(id.Length + ".".Length);
+                    // Remove the ".json" from the end.
+                    version = version.Substring(0, version.Length - ".json".Length);
+
+                    return new PackageMonitoringStatus(new FeedPackageIdentity(id, version), new StatusDeserializationException(deserializationException));
+                }
+                catch (Exception uriParsingException)
+                {
+                    _logger.LogError(
+                        LogEvents.StatusDeserializationFatalFailure,
+                        new AggregateException(deserializationException, uriParsingException),
+                        "Unable to get package id and version from {PackageUri}!",
+                        packageUri);
+
+                    return null;
+                }
+            }
         }
 
         private async Task<string> GetStorageContentsAsync(Storage storage, Uri uri, CancellationToken token)
