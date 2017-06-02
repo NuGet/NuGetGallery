@@ -6,37 +6,49 @@
 }
 
 <div class="container main-container page-statistics-most-downloaded">
-    <h1 class="report-title">Most Downloaded Package Versions</h1>
-    <p class="report-subtitle">Top 500 Over the Last 6 Weeks</p>
-    <div class="table">
-        @{
-            // Bootstrap grid variables that must be aligned.
-            var indexColumns = 1;
-            var packageColumns = 6;
-            var versionColumns = 3;
-            var downloadsColumns = 2;
-        }
-
-        <div class="row headings">
-            <div class="col-md-@indexColumns"></div>
-            <div class="col-md-@packageColumns">Package</div>
-            <div class="col-md-@versionColumns">Version</div>
-            <div class="col-md-@downloadsColumns">Downloads</div>
+    <div class="row">
+        <div class="col-xs-12">
+            <h1 class="report-title">Most Downloaded Package Versions</h1>
         </div>
-        @{
-            var index = 0;
-            foreach (var item in Model.DownloadPackageVersionsAll)
-            {
-                index++;
-
-                <div class="row data">
-                    <div class="col-md-@indexColumns">@index</div>
-                    <div class="col-md-@packageColumns"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
-                    <div class="col-md-@versionColumns"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></div>
-                    <div class="col-md-@downloadsColumns"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></div>
-                </div>
-            }
-        }
     </div>
-    @Html.Partial("_LastUpdated", Model)
+    <div class="row">
+        <div class="col-xs-12">
+            <p class="report-subtitle">Top 500 Over the Last 6 Weeks</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 table">
+            @{
+                // Bootstrap grid variables that must be aligned.
+                var indexColumns = 1;
+                var packageColumns = 6;
+                var versionColumns = 3;
+                var downloadsColumns = 2;
+            }
+
+            <div class="row headings">
+                <div class="col-md-@indexColumns"></div>
+                <div class="col-md-@packageColumns">Package</div>
+                <div class="col-md-@versionColumns">Version</div>
+                <div class="col-md-@downloadsColumns">Downloads</div>
+            </div>
+            @{
+                var index = 0;
+                foreach (var item in Model.DownloadPackageVersionsAll)
+                {
+                    index++;
+
+                    <div class="row data">
+                        <div class="col-md-@indexColumns">@index</div>
+                        <div class="col-md-@packageColumns"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
+                        <div class="col-md-@versionColumns"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></div>
+                        <div class="col-md-@downloadsColumns"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+    <div class="row">
+        @Html.Partial("_LastUpdated", Model)
+    </div>
 </div>
