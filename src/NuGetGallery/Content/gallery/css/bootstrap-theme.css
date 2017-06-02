@@ -278,6 +278,9 @@ body {
   stroke-width: 2;
 }
 .page-statistics-overview text.graph-x-axis-text {
+  font-size: .8em;
+}
+.page-statistics-overview text.graph-x-axis-date {
   font-size: .6em;
 }
 .page-statistics-overview text.graph-y-axis-text {

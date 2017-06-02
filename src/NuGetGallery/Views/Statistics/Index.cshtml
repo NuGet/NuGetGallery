@@ -184,8 +184,8 @@
 
                                         <svg x="@(widthOffsetPercent + index * fraction - 5)%" y="@(topOffset + chartFullHeightInPercent + 2)%">
                                             <g transform="rotate(-50)">
-                                                <text y="5.6em" class="graph-x-axis-text">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly)-</text>
-                                                <text y="5.6em" class="graph-x-axis-text" dy="1em">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.EndOnly)</text>
+                                                <text y="5.6em" class="graph-x-axis-date">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly)-</text>
+                                                <text y="5.6em" class="graph-x-axis-date" dy="1em">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.EndOnly)</text>
                                             </g>
                                         </svg>
 
