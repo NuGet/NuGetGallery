@@ -10,18 +10,55 @@
     }
     
     .table {
+        table-layout: fixed;
+        
         .headings {
-            font-size: @subtitle-text-size;
-            border-bottom: lightgray thin solid;
             padding-bottom: @margin-small;
             margin-bottom: 10px;
+            
+            th {
+                font-size: @subtitle-text-size;
+                font-weight: normal;
+            }
+    
+            .packages {
+                th:nth-child(1) {
+                    width: 10%;
+                }
+                
+                th:nth-child(2) {
+                    width: 70%;
+                }
+                
+                th:nth-child(3) {
+                    width: 20%;
+                }
+            }
+    
+            .package-versions {
+                th:nth-child(1) {
+                    width: 10%;
+                }
+                
+                th:nth-child(2) {
+                    width: 50%;
+                }
+                
+                th:nth-child(3) {
+                    width: 20%;
+                }
+                
+                th:nth-child(4) {
+                    width: 20%;
+                }
+            }
         }
         
         .data {
             font-size: 20px;
             margin-bottom: 20px;
             
-            .cell {
+            td {
                 overflow: hidden;
                 text-overflow: ellipsis;
             }

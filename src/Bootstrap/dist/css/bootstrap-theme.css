@@ -230,17 +230,43 @@ body {
   font-size: 24px;
   color: gray;
 }
+.page-statistics-most-downloaded .table {
+  table-layout: fixed;
+}
 .page-statistics-most-downloaded .table .headings {
   padding-bottom: 4px;
   margin-bottom: 10px;
+}
+.page-statistics-most-downloaded .table .headings th {
   font-size: 24px;
-  border-bottom: lightgray thin solid;
+  font-weight: normal;
+}
+.page-statistics-most-downloaded .table .headings .packages th:nth-child(1) {
+  width: 10%;
+}
+.page-statistics-most-downloaded .table .headings .packages th:nth-child(2) {
+  width: 70%;
+}
+.page-statistics-most-downloaded .table .headings .packages th:nth-child(3) {
+  width: 20%;
+}
+.page-statistics-most-downloaded .table .headings .package-versions th:nth-child(1) {
+  width: 10%;
+}
+.page-statistics-most-downloaded .table .headings .package-versions th:nth-child(2) {
+  width: 50%;
+}
+.page-statistics-most-downloaded .table .headings .package-versions th:nth-child(3) {
+  width: 20%;
+}
+.page-statistics-most-downloaded .table .headings .package-versions th:nth-child(4) {
+  width: 20%;
 }
 .page-statistics-most-downloaded .table .data {
   margin-bottom: 20px;
   font-size: 20px;
 }
-.page-statistics-most-downloaded .table .data .cell {
+.page-statistics-most-downloaded .table .data td {
   overflow: hidden;
   text-overflow: ellipsis;
 }

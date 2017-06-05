@@ -17,36 +17,33 @@
         </div>
     </div>
     <div class="row">
-        <div class="col table">
-            @{
-                // Bootstrap grid variables that must be aligned.
-                var indexColumns = 1;
-                var packageColumns = 6;
-                var versionColumns = 3;
-                var downloadsColumns = 2;
-            }
+        <table class="table">
+            <thead class="headings">
+                <tr class="package-versions">
+                    <th>&nbsp;</th>
+                    <th>Package</th>
+                    <th>Version</th>
+                    <th>Downloads</th>
+                </tr>
+            </thead>
 
-            <div class="row headings">
-                <div class="col-xs-@indexColumns"></div>
-                <div class="col-xs-@packageColumns">Package</div>
-                <div class="col-xs-@versionColumns">Version</div>
-                <div class="col-xs-@downloadsColumns">Downloads</div>
-            </div>
-            @{
-                var index = 0;
-                foreach (var item in Model.DownloadPackageVersionsAll)
-                {
-                    index++;
+            <tbody class="data">
+                @{
+                    var index = 0;
+                    foreach (var item in Model.DownloadPackageVersionsAll)
+                    {
+                        index++;
 
-                    <div class="row data">
-                        <div class="col-xs-@indexColumns cell">@index</div>
-                        <div class="col-xs-@packageColumns cell"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
-                        <div class="col-xs-@versionColumns cell"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></div>
-                        <div class="col-xs-@downloadsColumns cell"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></div>
-                    </div>
+                        <tr>
+                            <td>@index</td>
+                            <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                            <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                            <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                        </tr>
+                    }
                 }
-            }
-        </div>
+            </tbody>
+        </table>
     </div>
     <div class="row">
         @Html.Partial("_LastUpdated", Model)

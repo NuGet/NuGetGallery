@@ -17,34 +17,31 @@
         </div>
     </div>
     <div class="row">
-        <div class="col table">
-            @{
-                // Bootstrap grid variables that must be aligned.
-                var indexColumns = 1;
-                var packageColumns = 8;
-                var downloadsColumns = 3;
-            }
+        <table class="table">
+            <thead class="headings">
+                <tr class="packages">
+                    <th>&nbsp;</th>
+                    <th>Package</th>
+                    <th>Downloads</th>
+                </tr>
+            </thead>
 
-            <div class="row headings">
-                <div class="col-xs-@indexColumns"></div>
-                <div class="col-xs-@packageColumns">Package</div>
-                <div class="col-xs-@downloadsColumns">Downloads</div>
-            </div>
+            <tbody class="data">
+                @{
+                    var index = 0;
+                    foreach (var item in Model.DownloadPackagesAll)
+                    {
+                        index++;
 
-            @{
-                var index = 0;
-                foreach (var item in Model.DownloadPackagesAll)
-                {
-                    index++;
-
-                    <div class="row data">
-                        <div class="col-xs-@indexColumns cell">@index</div>
-                        <div class="col-xs-@packageColumns cell"><a href="@Url.Package(item.PackageId)">@item.PackageId</a></div>
-                        <div class="col-xs-@downloadsColumns cell"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></div>
-                    </div>
+                        <tr>
+                            <td>@index</td>
+                            <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                            <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                        </tr>
+                    }
                 }
-            }
-        </div>
+            </tbody>
+        </table>
     </div>
     <div class="row">
         @Html.Partial("_LastUpdated", Model)
