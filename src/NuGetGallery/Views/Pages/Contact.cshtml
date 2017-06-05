@@ -1,82 +1,101 @@
 ﻿@using NuGetGallery.ViewModels
 @model ContactSupportViewModel
 @{
-    ViewBag.Title = "Contact Us";
+    ViewBag.Title = "Contact";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
-<article class="contact">
-    <h2>
-        Contact Us
-    </h2>
-    <p>
-        Need help with NuGet? Let us know!
-    </p>
 
-    <h3>Having problems using a specific package?</h3>
-    <p>
-        If you're having trouble installing a specific package, try contacting the owner of that package first.
-        You can reach them using the "Contact Owners" link on the package details page.
-    </p>
-
-    <h3>Is a package violating a license or otherwise abusive?</h3>
-    <p>
-        If you feel that a package is violating the license of software you own or is violating our terms of service,
-        use the "Report Abuse" link on the package details page to report it directly to us.
-    </p>
-
-    <h3>Having issues working with NuGet.org?</h3>
-    <p>
-        Before reaching out to NuGet support, check out the <a href="https://docs.nuget.org/consume/nuget-faq#managing-packages-in-nuget.org">FAQ</a>.
-    </p>
-
-    <h3>Found a bug in NuGet or the website NuGet.org?</h3>
-    <p>
-        If you're having trouble with the <strong>NuGet.org Website</strong>,
-        file a bug on the NuGet Gallery <a href="https://github.com/NuGet/NuGetGallery/issues">Issue Tracker</a>.
-    </p>
-    <p>
-        If you're having trouble with the <strong>NuGet client tools</strong> (the Visual Studio extension, NuGet.exe command line tool, etc.),
-        file a bug on the NuGet Client <a href="https://github.com/NuGet/Home/issues">Issue Tracker</a>
-    </p>
-
-    <h3>Want to change your NuGet.org username?</h3>
-    <p>
-        No need to contact support. Create a new user and transfer ownership of your packages to it.
-    </p>
-
-    @if (User.Identity.IsAuthenticated)
-    {
-        <h3>The above doesn't help? Get in touch with us using the form below</h3>
-        <p>
-            A member of our Support team will be in touch with you soon.
-        </p>
-        using (Html.BeginForm("Contact", "Pages"))
+<article role="main" class="container main-container page-contact">
+    <div class="row">
+        <div class="col-sm-12">
+            <h1 class="page-heading">Contact</h1>
+            <span class="page-subheading">Need help with NuGet? Let us know!</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <h3>Having problems using a specific package?</h3>
+            <p>
+                If you're having trouble installing a specific package, try contacting the owner of that package first.
+                You can reach them using the "Contact Owners" link on the package details page.
+            </p>
+        </div>
+        <div class="col-sm-6">
+            <h3>Found a bug in NuGet or the website NuGet.org?</h3>
+            <p>
+                If you're having trouble with the <strong>NuGet.org Website</strong>,
+                file a bug on the NuGet Gallery <a href="https://github.com/NuGet/NuGetGallery/issues">Issue Tracker</a>.
+                If you're having trouble with the <strong>NuGet client tools</strong> (the Visual Studio extension, NuGet.exe command line tool, .NET CLI restore etc.),
+                file a bug on the NuGet Client <a href="https://github.com/NuGet/Home/issues">Issue Tracker</a>.
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <h3>Is a package violating a license or otherwise abusive?</h3>
+            <p>
+                If you feel that a package is violating the license of software you own or is violating our terms of service,
+                use the "Report Abuse" link on the package details page to report it directly to us.
+            </p>
+        </div>
+        <div class="col-sm-6">
+            <h3>Want to change your NuGet.org username?</h3>
+            <p>
+                No need to contact support. Create a new user and transfer ownership of your packages to it.
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <h3>Having issues working with NuGet.org?</h3>
+            <p>
+                Before reaching out to NuGet support, check out the <a href="https://docs.nuget.org/consume/nuget-faq#managing-packages-in-nuget.org">FAQ</a>.
+            </p>
+        </div>
+        @if (!User.Identity.IsAuthenticated)
         {
-            <fieldset class="form">
-                @Html.AntiForgeryToken()
-                <div class="form-field">
-                    @Html.LabelFor(m => m.SubjectLine)
-                    @Html.TextAreaFor(m => m.SubjectLine, 1, 50, null)
-                </div>
-                <div class="form-field">
-                    @Html.LabelFor(m => m.Message)
-                    @Html.TextAreaFor(m => m.Message, 10, 50, null)
-                    @Html.ValidationMessageFor(m => m.Message, null, new { id = "contact-support-message" })
-                </div>
-                <div class="form-field">
-                    @Html.CheckBoxFor(m => m.CopySender)
-                    @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
-                </div>
-                <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required.">
-                <input id="form-submit" type="submit" value="Contact" title="Contact Support" />
-            </fieldset>
+            <div class="col-sm-6">
+                <h3>The above doesn't help? @Html.ActionLink("Sign in", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" }) to contact Support</h3>
+                <p>
+                    Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>.
+                </p>
+            </div>
         }
-    }
-    else
+    </div>
+    @if(User.Identity.IsAuthenticated)
     {
-        <h3>The above doesn't help? @Html.ActionLink("Sign In", "LogOn", new {controller = "Authentication", ReturnUrl = "/policies/Contact"}) to contact Support</h3>
-        <p>
-            Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>
-        </p>
+        <div class="row">
+            <div class="col-sm-offset-2 col-sm-8">
+                <h3>The above doesn't help? Get in touch with us using the form below</h3>
+                <p>
+                    A member of our Support team will be in touch with you soon.
+                </p>
+                @using (Html.BeginForm("Contact", "Pages"))
+                {
+                    <fieldset class="form">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group @Html.HasErrorFor(m => m.SubjectLine)">
+                            @Html.ShowLabelFor(m => m.SubjectLine)
+                            @Html.ShowTextBoxFor(m => m.SubjectLine)
+                            @Html.ShowValidationMessagesFor(m => m.SubjectLine)
+                        </div>
+                        <div class="form-group @Html.HasErrorFor(m => m.Message)">
+                            @Html.ShowLabelFor(m => m.Message)
+                            @Html.ShowTextAreaFor(m => m.Message, 10, 50)
+                            @Html.ShowValidationMessagesFor(m => m.Message)
+                        </div>
+                        <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
+                            @Html.ShowLabelFor(m => m.CopySender)
+                            @Html.ShowCheckBoxFor(m => m.CopySender)
+                            @Html.ShowValidationMessagesFor(m => m.CopySender)
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" class="btn btn-primary form-control" value="Contact" title="Contact Support" />
+                        </div>
+                    </fieldset>
+                }
+            </div>
+        </div>
     }
 </article>
 
