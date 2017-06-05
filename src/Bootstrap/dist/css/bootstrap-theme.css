@@ -225,12 +225,12 @@ body {
   margin-bottom: 24px;
 }
 .page-statistics-overview .page-heading {
-  margin-top: 30px;
   font-size: 2.5em;
 }
 .page-statistics-overview .page-subheading {
-  margin-bottom: 30px;
-  font-size: 1em;
+  font-weight: normal;
+  line-height: .5em;
+  color: #777;
 }
 .page-statistics-overview .stats-title-text {
   margin-bottom: 10px;
@@ -246,19 +246,15 @@ body {
   border-bottom-width: thin;
 }
 .page-statistics-overview .table .table-row-data {
-  margin-top: 5px;
-  margin-right: 1px;
-  margin-bottom: 5px;
-  overflow: hidden;
   font-size: .9em;
 }
 .page-statistics-overview .table .table-row-data .table-cell {
   overflow: inherit;
   text-overflow: ellipsis;
+  border-top: none;
 }
 .page-statistics-overview .chart {
   width: 98%;
-  min-width: 400px;
   height: 300px;
 }
 .page-statistics-overview circle.graph-dot {

@@ -7,224 +7,224 @@
 
 <div class="page-statistics-overview">
     <div class="container">
-        <div class="row page-heading">
-            <div class="col-xs-12">Statistics</div>
-        </div>
-        <div class="row page-subheading">
-            <div class="col-xs-12">Actual package downloads from the NuGet.org site</div>
-        </div>
+        <h1 class="page-heading">Statistics</h1>
+        <span class="page-subheading">Actual package downloads from the NuGet.org site</span>
 
         <div class="row">
             @if (Model.IsDownloadPackageAvailable)
             {
                 <div class="col-md-6 col-xs-12">
-                    <div class="row stats-title-text">
-                        <div class="col-xs-12">Package Downloads</div>
-                    </div>
-                    <div class="row">
-                        <div class="table col-xs-12">
-                            <div class="row table-headings">
-                                <div class="col-xs-8 text-left">Name</div>
-                                <div class="col-xs-4 text-right">Downloads</div>
-                            </div>
+                    <h2 class="stats-title-text">Package Downloads</h2>
+                    <table class="table col-xs-12">
+                        <thead>
+                            <tr class="row table-headings">
+                                <td class="text-left">Name</td>
+                                <td class="text-right">Downloads</td>
+                            </tr>
+                        </thead>
+                        <tbody>
                             @{
                                 var index = 0;
                                 foreach (var item in Model.DownloadPackagesSummary)
                                 {
                                     index++;
 
-                                    <div class="row table-row-data">
-                                        <div class="col-xs-8 text-left table-cell"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></div>
-                                        <div class="col-xs-4 text-right table-cell"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></div>
-                                    </div>
+                                    <tr class="row table-row-data">
+                                        <td class="text-left table-cell"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></td>
+                                        <td class="text-right table-cell"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                                    </tr>
                                 }
                             }
-                            <div class="row">
-                                <div class="col-xs-12 table-row-data">
+                        </tbody>
+                        <tfoot>
+                            <tr class="row table-row-data">
+                                <td class="table-cell">
                                     <a href="@Url.StatisticsAllPackageVersionDownloads()">More...</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-                                }
+            }
             @if (Model.IsDownloadPackageDetailAvailable)
             {
                 <div class="col-md-6 col-xs-12">
-                    <div class="row stats-title-text">
-                        <div class="col-xs-12">Version Downloads</div>
-                    </div>
-                    <div class="row">
-                        <div class="table col-xs-12">
-                            <div class="row table-headings">
-                                <div class="col-xs-6 text-left">Name</div>
-                                <div class="col-xs-3 text-center">Version</div>
-                                <div class="col-xs-3 text-right">Downloads</div>
-                            </div>
+                    <h2 class="stats-title-text">Version Downloads</h2>
+                    <table class="table col-xs-12">
+                        <thead>
+                            <tr class="row table-headings">
+                                <td class="text-left">Name</td>
+                                <td class="text-center">Version</td>
+                                <td class="text-right">Downloads</td>
+                            </tr>
+                        </thead>
+                        <tbody>
                             @{
                                 var index = 0;
                                 foreach (var item in Model.DownloadPackageVersionsSummary)
                                 {
                                     index++;
 
-                                    <div class="row table-row-data">
-                                        <div class="col-xs-6 text-left table-cell"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></div>
-                                        <div class="col-xs-3 text-center table-cell"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></div>
-                                        <div class="col-xs-3 text-right table-cell"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></div>
-                                    </div>
+                                    <tr class="row table-row-data">
+                                        <td class="text-left table-cell"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></td>
+                                        <td class="text-center table-cell"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                                        <td class="text-right table-cell"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                                    </tr>
                                 }
                             }
-                            <div class="row">
-                                <div class="col-xs-12 table-row-data">
+                        </tbody>
+                        <tfoot>
+                            <tr class="row table-row-data">
+                                <td class="table-cell">
                                     <a href="@Url.StatisticsAllPackageVersionDownloads()">More...</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-                                }
+            }
         </div>
 
         <div class="row">
             @if (Model.IsNuGetClientVersionAvailable)
             {
                 <div class="col-md-6 col-xs-12">
-                    <div class="row stats-title-text">
-                        <div class="col-xs-12">NuGet&nbsp;Client&nbsp;Usage&nbsp;(Last&nbsp;6&nbsp;Weeks)</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-12 chart">
-                            <svg class="chart" id="bar-chart-client-usage">
-                                @{
-                                    var chartFullWidthInPercent = 94.0;
-                                    var chartFullHeightInPercent = 90.0;
-                                    var widthOffsetPercent = 100.0 - chartFullWidthInPercent;
-                                    var index = 0;
-                                    var fraction = chartFullWidthInPercent / Model.NuGetClientVersion.Count();
-                                    var gapPercent = .1;
-                                    var max = Model.NuGetClientVersion.Max(e => e.Downloads) * 1.0;
-                                    var numYAxisLabels = 10.0;
-                                    foreach (var item in Model.NuGetClientVersion)
-                                    {
-                                        <rect class="graph-bar" id="graph-bar-@(item.Version)" x="@(widthOffsetPercent + index * fraction)%" y="@(chartFullHeightInPercent-item.Downloads/max*chartFullHeightInPercent)%" width="@(fraction * (1.0 - gapPercent))%" height="@(item.Downloads/max*chartFullHeightInPercent)%">
-                                            <title>@(item.Downloads) downloads</title>
-                                        </rect>
-                                        @:<text class="graph-x-axis-text" x="@(widthOffsetPercent + index * fraction)%" y="@(chartFullHeightInPercent)%" dy="1em">@(item.Version)</text>
-                                        index++;
-                                    }
+                    <h2 class="stats-title-text">NuGet Client Usage (Last 6 Weeks)</h2>
+                    <div class="col-xs-12 chart">
+                        <svg class="chart" id="bar-chart-client-usage">
+                            @{
+                                var chartFullWidthInPercent = 94.0;
+                                var chartFullHeightInPercent = 90.0;
+                                var widthOffsetPercent = 100.0 - chartFullWidthInPercent;
+                                var index = 0;
+                                var gapPercent = .1;
+                                var max = Model.NuGetClientVersion.Max(e => e.Downloads) * 1.0;
+                                var numYAxisLabels = 10.0;
+                                var fraction = chartFullWidthInPercent / Model.NuGetClientVersion.Count();
+                                foreach (var item in Model.NuGetClientVersion)
+                                {
+                                    <rect class="graph-bar" id="graph-bar-@(item.Version)" x="@(widthOffsetPercent + index * fraction)%" y="@(chartFullHeightInPercent-item.Downloads/max*chartFullHeightInPercent)%" width="@(fraction * (1.0 - gapPercent))%" height="@(item.Downloads/max*chartFullHeightInPercent)%">
+                                        <title>@(item.Downloads) downloads</title>
+                                    </rect>
 
-                                    for (var i = 0; i < numYAxisLabels; i++)
-                                    {
-                                        @:<text class="graph-y-axis-text" x="0" y="@(i / numYAxisLabels * chartFullHeightInPercent)%" dy="1em" text-overflow="clip">@Model.DisplayShortNumber((int)Math.Floor(max * (numYAxisLabels - i) / numYAxisLabels))</text>
-                                    }
-
+                                        <svg x="@(widthOffsetPercent + index * fraction + fraction/2.0 - 3)%" y="@(chartFullHeightInPercent + 1)%">
+                                            <g transform="rotate(-45)">
+                                                <text y="1.2em" x="-0.8em" class="graph-x-axis-text">@(item.Version)</text>
+                                            </g>
+                                        </svg>
+                                    index++;
                                 }
-                            </svg>
-                        </div>
+
+                                for (var i = 0; i < numYAxisLabels; i++)
+                                {
+                                    @:<text class="graph-y-axis-text" x="0" y="@(i / numYAxisLabels * chartFullHeightInPercent)%" dy="1em" text-overflow="clip">@Model.DisplayShortNumber((int)Math.Floor(max * (numYAxisLabels - i) / numYAxisLabels))</text>
+                                }
+                        }
+                        </svg>
                     </div>
-                    <div class="row">
-                        <div class="table col-xs-12">
-                            <div class="row table-headings">
-                                <div class="col-xs-7 text-left">Client Version</div>
-                                <div class="col-xs-5 text-right">Downloads</div>
-                            </div>
+                    <table class="table col-xs-12">
+                        <thead>
+                            <tr class="row table-headings">
+                                <td class="text-left">Client Version</td>
+                                <td class="text-right">Downloads</td>
+                            </tr>
+                        </thead>
+                        <tbody>
                             @{
                                 foreach (var item in Model.NuGetClientVersion)
                                 {
                                     index++;
 
-                                    <div class="row table-row-data" tabindex="0" aria-label="Version @(item.Version) with @(item.Downloads) Downloads">
-                                        <div class="col-xs-7 text-left">@item.Version</div>
-                                        <div class="col-xs-5 text-right">@Model.DisplayDownloads(item.Downloads)</div>
-                                    </div>
+                                    <tr class="row table-row-data" tabindex="0" aria-label="Version @(item.Version) with @(item.Downloads) Downloads">
+                                        <td class="text-left table-cell">@item.Version</td>
+                                        <td class="text-right table-cell">@Model.DisplayDownloads(item.Downloads)</td>
+                                    </tr>
                                 }
                             }
-                        </div>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
-                                }
+            }
             @if (Model.IsLast6WeeksAvailable)
             {
                 <div class="col-md-6 col-xs-12">
-                    <div class="row stats-title-text">
-                        <div class="col-xs-12">Downloaded&nbsp;Packages&nbsp;Per&nbsp;Week&nbsp;(Last&nbsp;6&nbsp;Weeks)</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-12 chart">
-                            <svg class="chart" id="line-chart-sixweeks-downloads">
-                                @{
-                                    var chartFullWidthInPercent = 90.0;
-                                    var chartFullHeightInPercent = 75.0;
-                                    var topOffset = 5;
-                                    var widthOffsetPercent = 100.0 - chartFullWidthInPercent;
-                                    var index = 0;
-                                    var prevCenterX = -1.0;
-                                    var prevCenterY = -1.0;
-                                    var centerX = 0.0;
-                                    var centerY = 0.0;
-                                    var fraction = chartFullWidthInPercent / Model.Last6Weeks.Count();
-                                    var max = Model.Last6Weeks.Max(e => e.Downloads) * 1.0;
-                                    var numYAxisLabels = 7.0;
-                                    StatisticsWeeklyUsageItem prevItem = null;
-                                    foreach (var item in Model.Last6Weeks)
+                    <h2 class="stats-title-text">Downloaded Packages Per Week (Last 6 Weeks)</h2>
+                    <div class="col-xs-12 chart">
+                        <svg class="chart" id="line-chart-sixweeks-downloads">
+                            @{
+                                var chartFullWidthInPercent = 90.0;
+                                var chartFullHeightInPercent = 75.0;
+                                var topOffset = 5;
+                                var widthOffsetPercent = 100.0 - chartFullWidthInPercent;
+                                var index = 0;
+                                var prevCenterX = -1.0;
+                                var prevCenterY = -1.0;
+                                var centerX = 0.0;
+                                var centerY = 0.0;
+                                var fraction = chartFullWidthInPercent / Model.Last6Weeks.Count();
+                                var max = Model.Last6Weeks.Max(e => e.Downloads) * 1.0;
+                                var numYAxisLabels = 7.0;
+                                StatisticsWeeklyUsageItem prevItem = null;
+                                foreach (var item in Model.Last6Weeks)
+                                {
+                                    centerX = widthOffsetPercent + index * fraction + fraction / 3;
+                                    centerY = topOffset + chartFullHeightInPercent - item.Downloads / max * chartFullHeightInPercent;
+                                    if (prevCenterY >= 0 && prevCenterX >= 0 && prevItem != null)
                                     {
-                                        centerX = widthOffsetPercent + index * fraction + fraction / 3;
-                                        centerY = topOffset + chartFullHeightInPercent - item.Downloads / max * chartFullHeightInPercent;
-                                        if (prevCenterY >= 0 && prevCenterX >= 0 && prevItem != null)
-                                        {
-                                            <line class="graph-line" x1="@prevCenterX%" y1="@prevCenterY%" x2="@centerX%" y2="@centerY%" />
+                                        <line class="graph-line" x1="@prevCenterX%" y1="@prevCenterY%" x2="@centerX%" y2="@centerY%" />
                                             <circle class="graph-dot" id="graph-dot-@(prevItem.Year)-@(prevItem.WeekOfYear)" cx="@prevCenterX%" cy="@prevCenterY%" r="5px">
                                                 <title>@(prevItem.Downloads) downloads</title>
                                             </circle>
-                                        }
+                                    }
 
-                                        <circle class="graph-dot" id="graph-dot-@(item.Year)-@(item.WeekOfYear)" cx="@centerX%" cy="@centerY%" r="5px">
-                                            <title>@(item.Downloads) downloads</title>
-                                        </circle>
+                                    <circle class="graph-dot" id="graph-dot-@(item.Year)-@(item.WeekOfYear)" cx="@centerX%" cy="@centerY%" r="5px">
+                                        <title>@(item.Downloads) downloads</title>
+                                    </circle>
 
-                                        <svg x="@(widthOffsetPercent + index * fraction - 5)%" y="@(topOffset + chartFullHeightInPercent + 2)%">
-                                            <g transform="rotate(-40)">
-                                                <text y="5.6em" class="graph-x-axis-date">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly)-</text>
-                                                <text y="5.6em" class="graph-x-axis-date" dy="1em">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.EndOnly)</text>
+                                        <svg x="@(widthOffsetPercent + index * fraction + fraction/2.0 - 5)%" y="@(topOffset + chartFullHeightInPercent + 2)%">
+                                            <g transform="rotate(-45)">
+                                                <text y="2.6em" x="-2.0em" class="graph-x-axis-date">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly)-</text>
+                                                <text y="2.6em" x="-2.0em" class="graph-x-axis-date" dy="1em">@Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.EndOnly)</text>
                                             </g>
                                         </svg>
 
-                                        prevCenterX = widthOffsetPercent + index * fraction + fraction / 3;
-                                        prevCenterY = topOffset + chartFullHeightInPercent - item.Downloads / max * chartFullHeightInPercent;
-                                        prevItem = item;
-                                        index++;
-                                    }
-
-                                    for (var i = 0; i < numYAxisLabels; i++)
-                                    {
-                                        @:<text class="graph-y-axis-text" x="0" y="@(topOffset + i / numYAxisLabels * chartFullHeightInPercent)%" dy="1em" text-overflow="clip">@Model.DisplayShortNumber((int)Math.Floor(max * (numYAxisLabels - i) / numYAxisLabels))</text>
-                                    }
-
+                                    prevCenterX = widthOffsetPercent + index * fraction + fraction / 3;
+                                    prevCenterY = topOffset + chartFullHeightInPercent - item.Downloads / max * chartFullHeightInPercent;
+                                    prevItem = item;
+                                    index++;
                                 }
-                            </svg>
-                        </div>
+
+                                for (var i = 0; i < numYAxisLabels; i++)
+                                {
+                                    @:<text class="graph-y-axis-text" x="0" y="@(topOffset + i / numYAxisLabels * chartFullHeightInPercent)%" dy="1em" text-overflow="clip">@Model.DisplayShortNumber((int)Math.Floor(max * (numYAxisLabels - i) / numYAxisLabels))</text>
+                                }
+
+                        }
+                        </svg>
                     </div>
-                    <div class="row">
-                        <div class="table col-xs-12">
-                            <div class="row table-headings">
-                                <div class="col-xs-7 text-left">Week</div>
-                                <div class="col-xs-5 text-right">Downloads</div>
-                            </div>
+                    <table class="table col-xs-12">
+                        <thead>
+                            <tr class="row table-headings">
+                                <td class="text-left">Week</td>
+                                <td class="text-right">Downloads</td>
+                            </tr>
+                        </thead>
+                        <tbody>
                             @{
                                 foreach (var item in Model.Last6Weeks)
                                 {
                                     index++;
 
-                                    <div class="row table-row-data" tabindex="0" aria-label="Week of @Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly), @(item.Downloads) Downloads">
-                                        <div class="col-xs-7 text-left">@Model.DisplayWeek(item.Year, item.WeekOfYear)</div>
-                                        <div class="col-xs-5 text-right">@Model.DisplayDownloads(item.Downloads)</div>
-                                    </div>
+                                    <tr class="row table-row-data" tabindex="0" aria-label="Week of @Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly), @(item.Downloads) Downloads">
+                                        <td class="text-left table-cell">@Model.DisplayWeek(item.Year, item.WeekOfYear)</td>
+                                        <td class="text-right table-cell">@Model.DisplayDownloads(item.Downloads)</td>
+                                    </tr>
                                 }
                             }
-                        </div>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
-                                }
+            }
         </div>
         @Html.Partial("_LastUpdated", Model)
     </div>
