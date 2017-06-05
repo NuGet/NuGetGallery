@@ -224,10 +224,8 @@ body {
 .page-pages p {
   margin-bottom: 24px;
 }
-.page-statistics-most-downloaded .report-title {
-  margin-bottom: 4px;
-}
-.page-statistics-most-downloaded .report-subtitle {
+.page-statistics-most-downloaded h2 {
+  margin-top: 4px;
   margin-bottom: 40px;
   font-size: 24px;
   color: gray;
