@@ -5,27 +5,6 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@helper HasError(string key)
-{
-    if (!ViewData.ModelState.IsValid &&
-        ViewData.ModelState.ContainsKey(key) &&
-        ViewData.ModelState[key].Errors.Any())
-    {
-        @:has-error
-    }
-}
-
-@helper ShowErrors(string key)
-{
-    if (!ViewData.ModelState.IsValid && ViewData.ModelState.ContainsKey(key))
-    {
-        foreach (var error in ViewData.ModelState[key].Errors)
-        {
-            <span class="help-block">@error.ErrorMessage</span>
-        }
-    }
-}
-
 <div class="container main-container page-sign-in">
     <div class="row">
         <h1>Sign in</h1>
@@ -81,20 +60,20 @@
                     @Html.HiddenFor(m => m.External.FoundExistingUser)
                 }
 
-                <div class="form-group @HasError("SignIn")">
-                    @ShowErrors("SignIn")
+                <div class="form-group @ViewHelpers.HasError(ViewData.ModelState, "SignIn")">
+                    @ViewHelpers.ShowErrors(ViewData.ModelState, "SignIn")
                 </div>
 
-                <div class="form-group @HasError("SignIn.UserNameOrEmail")">
+                <div class="form-group @ViewHelpers.HasError(ViewData.ModelState, "SignIn.UserNameOrEmail")">
                     <label for="SignIn.UserNameOrEmail">NuGet.org Username or Email</label>
                     <input type="text" class="form-control" id="SignIn.UserNameOrEmail" name="SignIn.UserNameOrEmail"
-                            placeholder="Username or email" value="@Model.SignIn.UserNameOrEmail" />
-                    @ShowErrors("SignIn.UserNameOrEmail")
+                            placeholder="Username or email" value="@Model.SignIn.UserNameOrEmail" title="Username or email field" />
+                    @ViewHelpers.ShowErrors(ViewData.ModelState, "SignIn.UserNameOrEmail")
                 </div>
-                <div class="form-group @HasError("SignIn.Password")">
+                <div class="form-group @ViewHelpers.HasError(ViewData.ModelState, "SignIn.Password")">
                     <label for="SignIn.Password">Password</label>
-                    <input type="password" class="form-control" id="SignIn.Password" name="SignIn.Password" />
-                    @ShowErrors("SignIn.Password")
+                    <input type="password" class="form-control" id="SignIn.Password" name="SignIn.Password" title="Password field" />
+                    @ViewHelpers.ShowErrors(ViewData.ModelState, "SignIn.Password")
                 </div>
                 <p>
                     @Html.ActionLink("Forgot your Password?", "ForgotPassword", "Users")
