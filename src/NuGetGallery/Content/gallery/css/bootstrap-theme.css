@@ -233,40 +233,40 @@ body {
 .page-statistics-most-downloaded .table {
   table-layout: fixed;
 }
-.page-statistics-most-downloaded .table .headings {
+.page-statistics-most-downloaded .table thead {
   padding-bottom: 4px;
   margin-bottom: 10px;
 }
-.page-statistics-most-downloaded .table .headings th {
+.page-statistics-most-downloaded .table thead th {
   font-size: 24px;
   font-weight: normal;
 }
-.page-statistics-most-downloaded .table .headings .packages th:nth-child(1) {
+.page-statistics-most-downloaded .table thead .packages th:nth-child(1) {
   width: 10%;
 }
-.page-statistics-most-downloaded .table .headings .packages th:nth-child(2) {
+.page-statistics-most-downloaded .table thead .packages th:nth-child(2) {
   width: 70%;
 }
-.page-statistics-most-downloaded .table .headings .packages th:nth-child(3) {
+.page-statistics-most-downloaded .table thead .packages th:nth-child(3) {
   width: 20%;
 }
-.page-statistics-most-downloaded .table .headings .package-versions th:nth-child(1) {
+.page-statistics-most-downloaded .table thead .package-versions th:nth-child(1) {
   width: 10%;
 }
-.page-statistics-most-downloaded .table .headings .package-versions th:nth-child(2) {
+.page-statistics-most-downloaded .table thead .package-versions th:nth-child(2) {
   width: 50%;
 }
-.page-statistics-most-downloaded .table .headings .package-versions th:nth-child(3) {
+.page-statistics-most-downloaded .table thead .package-versions th:nth-child(3) {
   width: 20%;
 }
-.page-statistics-most-downloaded .table .headings .package-versions th:nth-child(4) {
+.page-statistics-most-downloaded .table thead .package-versions th:nth-child(4) {
   width: 20%;
 }
-.page-statistics-most-downloaded .table .data {
+.page-statistics-most-downloaded .table tbody {
   margin-bottom: 20px;
   font-size: 20px;
 }
-.page-statistics-most-downloaded .table .data td {
+.page-statistics-most-downloaded .table tbody td {
   overflow: hidden;
   text-overflow: ellipsis;
 }
