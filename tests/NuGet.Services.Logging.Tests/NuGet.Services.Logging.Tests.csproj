@@ -30,6 +30,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Web" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
@@ -37,9 +38,11 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExceptionTelemetryProcessorTests.cs" />
     <Compile Include="LoggingSetupTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TelemetryResponseCodeProcessorFacts.cs" />
+    <Compile Include="RequestTelemetryProcessorTests.cs" />
+    <Compile Include="TelemetryProcessorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Logging\NuGet.Services.Logging.csproj">
