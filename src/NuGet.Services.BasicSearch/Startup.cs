@@ -54,23 +54,25 @@ namespace NuGet.Services.BasicSearch
             // Add telemetry initializers
             TelemetryConfiguration.Active.TelemetryInitializers.Add(new MachineNameTelemetryInitializer());
 
+            // Create telemetry sink
+            _searchTelemetryClient = new SearchTelemetryClient();
+
             // Add telemetry processors
             var processorChain = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
 
             processorChain.Use(next =>
             {
-                var responseCodeProcessor = new TelemetryResponseCodeProcessor(next);
+                var processor = new RequestTelemetryProcessor(next);
 
-                responseCodeProcessor.SuccessfulResponseCodes.Add(400);
-                responseCodeProcessor.SuccessfulResponseCodes.Add(404);
+                processor.SuccessfulResponseCodes.Add(400);
+                processor.SuccessfulResponseCodes.Add(404);
 
-                return responseCodeProcessor;
+                return processor;
             });
 
-            processorChain.Build();
+            processorChain.Use(next => new ExceptionTelemetryProcessor(next, _searchTelemetryClient.TelemetryClient));
 
-            // Create telemetry sink
-            _searchTelemetryClient = new SearchTelemetryClient();
+            processorChain.Build();
 
             // Create an ILoggerFactory
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false)
