@@ -205,6 +205,9 @@ body {
 .page-package-details .install-tabs .tab-pane .copy-button {
   display: table-cell;
 }
+.page-forgot-password .forgot-form {
+  margin-top: 80px;
+}
 .page-sign-in .provider-button {
   margin-top: 70px;
   line-height: 2em;
