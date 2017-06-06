@@ -5,7 +5,7 @@
 
 <script type="text/html" id="contributor-list-template">
     <!-- This is all on a single line because if there is space (new lines) between the <ul> and <li> elements, browsers render the space and it causes the formatting to be off. -->
-    <ul class="contributors list-inline" data-bind="foreach: $data"><li class="contributor"><img class="avatar" data-bind="attr: { href: html_url, src: avatar_url, title: login }" /></li></ul>
+    <ul class="contributors list-inline" data-bind="foreach: $data"><li class="contributor"><a data-bind="attr: { href: html_url }"><img class="avatar" data-bind="attr: { src: avatar_url, title: login }" /></a></li></ul>
 </script>
 
 <div class="container main-container page-about">
