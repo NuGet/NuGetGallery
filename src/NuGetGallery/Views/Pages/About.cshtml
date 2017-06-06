@@ -91,24 +91,30 @@
 
                     // If contributors are in this map, they have been added.
                     // Only display each contributor once.
-                    var contributorMap = {};
+                    var contributionsByContributorMap = {};
 
                     $.each(contributorsPerRepo, function (index, repoContributors) {
                         $.each(repoContributors, function (index, repoContributor) {
                             var isTeam = teamMap.hasOwnProperty(repoContributor.login);
 
-                            if (!contributorMap.hasOwnProperty(repoContributor.login)) {
+                            if (!contributionsByContributorMap.hasOwnProperty(repoContributor.login)) {
                                 if (isTeam) {
                                     team.push(repoContributor);
                                 } else {
                                     contributors.push(repoContributor);
                                 }
-                                contributorMap[repoContributor.login] = 1;
+                                contributionsByContributorMap[repoContributor.login] = repoContributor.contributions;
+                            } else {
+                                contributionsByContributorMap[repoContributor.login] = contributionsByContributorMap[repoContributor.login] + repoContributor.contributions;
                             }
                         });
                     });
 
                     // Sort so that contributors with the most contributions appear first.
+                    function compareContributors(a, b) {
+                        return contributionsByContributorMap[b.login] - contributionsByContributorMap[a.login];
+                    }
+
                     team.sort(compareContributors);
                     contributors.sort(compareContributors);
 
@@ -129,10 +135,6 @@
                         getContributorsHelper(repo, page + 1, current.concat(repoContributors)) :
                         Promise.resolve(current);
                 });
-        }
-        
-        function compareContributors(a, b) {
-            return b.contributions - a.contributions;
         }
     </script>
 }
