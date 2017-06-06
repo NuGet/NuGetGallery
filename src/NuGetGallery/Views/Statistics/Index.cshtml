@@ -5,8 +5,7 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="page-statistics-overview">
-    <div class="container">
+<section class="container main-container page-statistics-overview">
         <h1 class="page-heading">Statistics</h1>
         <span class="page-subheading">Actual package downloads from the NuGet.org site</span>
 
@@ -15,11 +14,11 @@
             {
                 <div class="col-md-6 col-xs-12">
                     <h2 class="stats-title-text">Package Downloads</h2>
-                    <table class="table col-xs-12">
+                    <table class="table col-xs-12 borderless">
                         <thead>
-                            <tr class="row table-headings">
-                                <td class="text-left">Name</td>
-                                <td class="text-right">Downloads</td>
+                            <tr>
+                                <th class="text-left">Name</th>
+                                <th class="text-right">Downloads</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -29,16 +28,16 @@
                                 {
                                     index++;
 
-                                    <tr class="row table-row-data">
-                                        <td class="text-left table-cell"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></td>
-                                        <td class="text-right table-cell"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                                    <tr>
+                                        <td class="text-left"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></td>
+                                        <td class="text-right"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
                                     </tr>
                                 }
                             }
                         </tbody>
                         <tfoot>
-                            <tr class="row table-row-data">
-                                <td class="table-cell">
+                            <tr>
+                                <td colspan="2">
                                     <a href="@Url.StatisticsAllPackageVersionDownloads()">More...</a>
                                 </td>
                             </tr>
@@ -50,12 +49,12 @@
             {
                 <div class="col-md-6 col-xs-12">
                     <h2 class="stats-title-text">Version Downloads</h2>
-                    <table class="table col-xs-12">
+                    <table class="table col-xs-12 borderless">
                         <thead>
-                            <tr class="row table-headings">
-                                <td class="text-left">Name</td>
-                                <td class="text-center">Version</td>
-                                <td class="text-right">Downloads</td>
+                            <tr>
+                                <th class="text-left">Name</th>
+                                <th class="text-center">Version</th>
+                                <th class="text-right">Downloads</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -65,17 +64,17 @@
                                 {
                                     index++;
 
-                                    <tr class="row table-row-data">
-                                        <td class="text-left table-cell"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></td>
-                                        <td class="text-center table-cell"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-                                        <td class="text-right table-cell"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                                    <tr>
+                                        <td class="text-left"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></td>
+                                        <td class="text-center"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                                        <td class="text-right"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
                                     </tr>
                                 }
                             }
                         </tbody>
                         <tfoot>
-                            <tr class="row table-row-data">
-                                <td class="table-cell">
+                            <tr>
+                                <td colspan="3">
                                     <a href="@Url.StatisticsAllPackageVersionDownloads()">More...</a>
                                 </td>
                             </tr>
@@ -122,11 +121,11 @@
                         }
                         </svg>
                     </div>
-                    <table class="table col-xs-12">
+                    <table class="table col-xs-12 borderless">
                         <thead>
-                            <tr class="row table-headings">
-                                <td class="text-left">Client Version</td>
-                                <td class="text-right">Downloads</td>
+                            <tr>
+                                <th class="text-left">Client Version</th>
+                                <th class="text-right">Downloads</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -135,9 +134,9 @@
                                 {
                                     index++;
 
-                                    <tr class="row table-row-data" tabindex="0" aria-label="Version @(item.Version) with @(item.Downloads) Downloads">
-                                        <td class="text-left table-cell">@item.Version</td>
-                                        <td class="text-right table-cell">@Model.DisplayDownloads(item.Downloads)</td>
+                                    <tr tabindex="0" aria-label="Version @(item.Version) with @(item.Downloads) Downloads">
+                                        <td class="text-left">@item.Version</td>
+                                        <td class="text-right">@Model.DisplayDownloads(item.Downloads)</td>
                                     </tr>
                                 }
                             }
@@ -202,11 +201,11 @@
                         }
                         </svg>
                     </div>
-                    <table class="table col-xs-12">
+                    <table class="table col-xs-12 borderless">
                         <thead>
-                            <tr class="row table-headings">
-                                <td class="text-left">Week</td>
-                                <td class="text-right">Downloads</td>
+                            <tr>
+                                <th class="text-left">Week</th>
+                                <th class="text-right">Downloads</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -215,9 +214,9 @@
                                 {
                                     index++;
 
-                                    <tr class="row table-row-data" tabindex="0" aria-label="Week of @Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly), @(item.Downloads) Downloads">
-                                        <td class="text-left table-cell">@Model.DisplayWeek(item.Year, item.WeekOfYear)</td>
-                                        <td class="text-right table-cell">@Model.DisplayDownloads(item.Downloads)</td>
+                                    <tr tabindex="0" aria-label="Week of @Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly), @(item.Downloads) Downloads">
+                                        <td class="text-left">@Model.DisplayWeek(item.Year, item.WeekOfYear)</td>
+                                        <td class="text-right">@Model.DisplayDownloads(item.Downloads)</td>
                                     </tr>
                                 }
                             }
@@ -225,7 +224,6 @@
                     </table>
                 </div>
             }
-        </div>
         @Html.Partial("_LastUpdated", Model)
     </div>
-</div>
+</section>
