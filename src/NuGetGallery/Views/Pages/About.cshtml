@@ -8,7 +8,7 @@
     <ul class="contributors list-inline" data-bind="foreach: $data"><li class="contributor"><a data-bind="attr: { href: html_url }"><img class="avatar" data-bind="attr: { src: avatar_url, title: login }" /></a></li></ul>
 </script>
 
-<div class="container main-container page-about">
+<section class="container main-container page-about">
     <div class="row">
         <div class="col">
             <h1>About NuGet</h1>
@@ -54,7 +54,7 @@
             <div data-bind="template: { name: 'contributor-list-template', data: contributors }"></div>
         </div>
     </div>
-</div>
+</section>
 
 @section BottomScripts {
     <script>
