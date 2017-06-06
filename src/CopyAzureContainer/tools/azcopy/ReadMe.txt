@@ -1,0 +1,1 @@
+﻿To run locally execute the Scripts\InstallAzCopy.ps1. It that will install the azcopy into the bin\Debug\tools\azcopy folder.
