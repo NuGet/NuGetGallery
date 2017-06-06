@@ -49,10 +49,6 @@
                     <a href="https://github.com/NuGet/NuGetGallery/commits?author=zippy1981">Justin Dearing</a> -
                     Added the ability to send a copy of support emails to the originator.
                 </li>
-                <li>
-                    <a href="https://github.com/NuGet/NuGetGallery/commits?author=maartenba">Maarten Balliauw</a> -
-                    Added knowledge of "MyGet" user agents to our statistics warehouse. Lots of performance fixes.
-                </li>
                 <li>And <a href="https://github.com/NuGet/NuGetGallery/graphs/contributors">many many more!</a></li>
             </ul>
             <div data-bind="template: { name: 'contributor-list-template', data: contributors }"></div>
@@ -85,8 +81,7 @@
 
             // Get the list of contributors from each repository.
             $.each(repos, function (index, repo) {
-                var repoPromise = $.getJSON('https://api.github.com/repos/NuGet/' + repo + '/contributors');
-                repoPromises.push(repoPromise);
+                repoPromises.push(getContributors(repo));
             });
 
             Promise.all(repoPromises)
@@ -94,24 +89,50 @@
                     var team = [];
                     var contributors = [];
 
+                    // If contributors are in this map, they have been added.
+                    // Only display each contributor once.
+                    var contributorMap = {};
+
                     $.each(contributorsPerRepo, function (index, repoContributors) {
                         $.each(repoContributors, function (index, repoContributor) {
-                            // Compare each contributor with the map of team members.
-                            if (teamMap.hasOwnProperty(repoContributor.login)) {
-                                // Only add each contributor once.
-                                if (teamMap[repoContributor.login] == 1) {
+                            var isTeam = teamMap.hasOwnProperty(repoContributor.login);
+
+                            if (!contributorMap.hasOwnProperty(repoContributor.login)) {
+                                if (isTeam) {
                                     team.push(repoContributor);
-                                    // Change the map to reflect that this contributor has been added.
-                                    teamMap[repoContributor.login] = 0;
+                                } else {
+                                    contributors.push(repoContributor);
                                 }
-                            } else {
-                                contributors.push(repoContributor);
+                                contributorMap[repoContributor.login] = 1;
                             }
                         });
                     });
 
+                    // Sort so that contributors with the most contributions appear first.
+                    team.sort(compareContributors);
+                    contributors.sort(compareContributors);
+
                     ko.applyBindings({ team: team, contributors: contributors });
                 });
         });
+
+        // Fetches all of the contributors for a repo from GitHub.
+        function getContributors(repo) {
+            return getContributorsHelper(repo, 1, []);
+        }
+
+        function getContributorsHelper(repo, page, current) {
+            // The list of contributors is paged so we must make multiple requests to get every contributor.
+            return $.getJSON('https://api.github.com/repos/NuGet/' + repo + '/contributors?page=' + page)
+                .then(function (repoContributors) {
+                    return repoContributors.length > 0 ?
+                        getContributorsHelper(repo, page + 1, current.concat(repoContributors)) :
+                        Promise.resolve(current);
+                });
+        }
+        
+        function compareContributors(a, b) {
+            return b.contributions - a.contributions;
+        }
     </script>
 }
