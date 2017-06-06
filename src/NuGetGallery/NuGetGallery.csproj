@@ -1776,6 +1776,7 @@
     <Content Include="Views\Shared\Gallery\Header.cshtml" />
     <Content Include="Views\Authentication\SignIn.cshtml" />
     <Content Include="Views\Pages\_PagesView.cshtml" />
+    <Content Include="Views\Shared\_SearchBar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

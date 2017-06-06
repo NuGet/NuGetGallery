@@ -311,7 +311,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     {
         foreach (var error in modelState[key].Errors)
         {
-            <span class="help-block">@error.ErrorMessage</span>
+            <span id="@(key).Error" class="help-block">@error.ErrorMessage</span>
         }
     }
 }

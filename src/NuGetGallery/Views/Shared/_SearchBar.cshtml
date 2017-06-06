@@ -1,0 +1,10 @@
+﻿<div class="input-group">
+    <input name="q" type="text" class="form-control" id="search"
+           placeholder="Search for packages..." autocomplete="off"
+           value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
+    <span class="input-group-btn">
+        <button class="btn btn-default btn-warning" type="submit" title="Search for packages">
+            <span class="ms-Icon ms-Icon--Search" aria-hidden="true"></span>
+        </button>
+    </span>
+</div>
