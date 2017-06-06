@@ -9,13 +9,18 @@ namespace NuGetGallery
 {
     internal static class Telemetry
     {
-        private static readonly TelemetryClient _telemetryClient = new TelemetryClient();
+        static Telemetry()
+        {
+            TelemetryClient = new TelemetryClient();
+        }
+
+        internal static TelemetryClient TelemetryClient { get; }
 
         public static void TrackEvent(string eventName, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
         {
             try
             {
-                _telemetryClient.TrackEvent(eventName, properties, metrics);
+                TelemetryClient.TrackEvent(eventName, properties, metrics);
             }
             catch
             {
@@ -27,7 +32,7 @@ namespace NuGetGallery
         {
             try
             {
-                _telemetryClient.TrackException(exception, properties, metrics);
+                TelemetryClient.TrackException(exception, properties, metrics);
             }
             catch
             {

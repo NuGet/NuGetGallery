@@ -68,13 +68,16 @@ namespace NuGetGallery
                 // Add processors
                 telemetryProcessorChainBuilder.Use(next =>
                 {
-                    var processor = new TelemetryResponseCodeProcessor(next);
+                    var processor = new RequestTelemetryProcessor(next);
 
                     processor.SuccessfulResponseCodes.Add(400);
                     processor.SuccessfulResponseCodes.Add(404);
 
                     return processor;
                 });
+
+                telemetryProcessorChainBuilder.Use(
+                    next => new ExceptionTelemetryProcessor(next, Telemetry.TelemetryClient));
 
                 // Note: sampling rate must be a factor 100/N where N is a whole number
                 // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
