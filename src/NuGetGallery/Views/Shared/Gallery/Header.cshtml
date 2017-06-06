@@ -2,17 +2,35 @@
 {
     <div class="container-fluid banner banner-bright text-center">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-sm-12">
                 @Config.Current.WarningBanner
             </div>
         </div>
     </div>
 }
 
-<nav class="navbar navbar-inverse">
+@helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
+{
+    <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)"
+        aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" role="presentation">
+        <a role="menuitem" href="@url" title="@title">
+            @if (bold)
+            {
+                @:<b>
+            }
+            <span>@tab</span>
+            @if (bold)
+            {
+                @:</b>
+            }
+        </a>
+    </li>
+}
+
+<nav class="navbar navbar-inverse" role="navigation">
     <div class="container">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-sm-12">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                         <span class="sr-only">Toggle navigation</span>
@@ -20,35 +38,39 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a href="@Url.Home()"><img class="navbar-logo" src="~/Content/gallery/img/logo-94x27.png" alt="Smaller NuGet logo in header" /></a>
+                    <a href="@Url.Home()"><img class="navbar-logo" width="94" height="27" alt="NuGet home"
+                                               src="~/Content/gallery/img/logo.svg"
+                                               @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-94x27.png")) /></a>
                 </div>
-                <div id="navbar" class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav">
-                        <li class="@(ViewBag.Tab == "Packages" ? "active" : string.Empty)"><a href="@Url.PackageList()"><span>Packages</span></a></li>
-                        <li class="@(ViewBag.Tab == "Upload" ? "active" : string.Empty)"><a href="@Url.UploadPackage()"><span>Upload</span></a></li>
+                <div id="navbar" class="navbar-collapse collapse" role="menubar">
+                    <ul class="nav navbar-nav" role="menu">
+                        @DisplayNavigationItem("Packages", Url.PackageList())
+                        @DisplayNavigationItem("Upload", Url.UploadPackage())
                         @if (StatisticsHelper.IsStatisticsPageAvailable)
                         {
-                            <li class="@(ViewBag.Tab == "Statistics" ? "active" : string.Empty)"><a href="@Url.Statistics()"><span>Statistics</span></a></li>
+                            @DisplayNavigationItem("Statistics", Url.Statistics())
                         }
                         @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
                         {
-                            <li class="@(ViewBag.Tab == "Admin" ? "active" : string.Empty)"><a href="@Url.Action("Index", "Home", new { area="Admin" })"><span>Admin</span></a></li>
+                            @DisplayNavigationItem("Admin", Url.Action("Index", "Home", new { area = "Admin" }))
                         }
-                        <li class="@(ViewBag.Tab == "Documentation" ? "active" : string.Empty)"><a href="https://docs.microsoft.com/en-us/nuget/"><span>Documentation</span></a></li>
-                        <li class="@(ViewBag.Tab == "Downloads" ? "active" : string.Empty)"><a href="@Url.RouteUrl(RouteName.Downloads)"><span>Downloads</span></a></li>
-                        <li class="@(ViewBag.Tab == "Blog" ? "active" : string.Empty)"><a href="http://blog.nuget.org/"><span>Blog</span></a></li>
+                        @DisplayNavigationItem("Documentation", "https://docs.microsoft.com/en-us/nuget/")
+                        @DisplayNavigationItem("Downloads", Url.RouteUrl(RouteName.Downloads))
+                        @DisplayNavigationItem("Blog", "http://blog.nuget.org/")
                     </ul>
-                    <ul class="nav navbar-nav navbar-right">
+                    <ul class="nav navbar-nav navbar-right navbar-seperated" role="menu">
                         @if (!User.Identity.IsAuthenticated)
                         {
                             var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
-                            <li class="@(ViewBag.Tab == "Sign in" ? "active" : string.Empty)"><a href="@Url.LogOn(returnUrl)" title="Sign in to an existing NuGet.org account"><span>Sign in</span></a></li>
-                            <li class="@(ViewBag.Tab == "Register" ? "active" : string.Empty)"><a href="@Url.SignUp(returnUrl)" title="Register for a new NuGet.org account"><span>Register</span></a></li>
+                            @DisplayNavigationItem("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
+                            <li class="hidden-xs seperator" role="presentation"><span></span></li>
+                            @DisplayNavigationItem("Register", Url.SignUp(returnUrl), title: "Register for a new NuGet.org account")
                         }
                         else
                         {
-                            <li><a href="@Url.Action("Account", "Users", new { area = string.Empty })"><b>@(User.Identity.Name)</b></a></li>
-                            <li><a href="@Url.LogOff()">Sign out</a></li>
+                            @DisplayNavigationItem(User.Identity.Name, Url.Action("Account", "Users", new { area = string.Empty }), bold: true, title: "Manage user account")
+                            <li class="hidden-xs seperator" role="presentation"><span></span></li>
+                            @DisplayNavigationItem("Sign out", Url.LogOff())
                         }
                     </ul>
                 </div>
@@ -60,7 +82,7 @@
     {
         <div class="container search-container">
             <div class="row">
-                <form class="col-md-12" action="@Url.PackageList()" method="get">
+                <form class="col-sm-12" action="@Url.PackageList()" method="get">
                     @Html.Partial("_SearchBar")
                 </form>
             </div>
@@ -72,7 +94,7 @@
 {
     <div class="container-fluid banner banner-info text-center">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-sm-12">
                 @TempData["Message"]
             </div>
         </div>

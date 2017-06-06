@@ -49,6 +49,19 @@ body {
   }
 }
 
+.navbar-seperated {
+  .seperator {
+    padding: 11px 0;
+    color: #fff;
+    display: block;
+    font-weight: 100;
+
+    > span::after {
+      content: " | ";
+    }
+  }
+}
+
 .footer {
   height: @panel-footer-height-sm;
 
@@ -57,6 +70,9 @@ body {
   }
 }
 
+.btn-search {
+  height: 36px;
+}
 
 .borderless {
   > tbody {
@@ -80,7 +96,8 @@ body {
 }
 
 .banner {
-  padding: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 
   &.banner-bright {
     background: yellow;

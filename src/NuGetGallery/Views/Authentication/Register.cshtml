@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<section class="container main-container page-sign-in">
+<section role="main" class="container main-container page-sign-in">
     <div class="row">
         <div class="col-sm-12">
             <h1>Register</h1>
@@ -14,7 +14,7 @@
 
     @foreach (var provider in Model.Providers)
     {
-        var accountNoun = provider.UI.AccountNoun ?? "external account";
+        var accountNoun = provider.UI.AccountNoun != null ? "a " + provider.UI.AccountNoun : "an external account";
         <div class="row">
             <div class="col-sm-12">
                 <p>
@@ -25,7 +25,7 @@
                     else
                     {
                         <text>
-                            If you already have a @accountNoun click the
+                            If you already have @accountNoun click the
                             "Register with @accountNoun" button and we'll create a new
                             NuGet.org account for you! Otherwise, register for a new NuGet.org account.
                         </text>
@@ -39,7 +39,8 @@
                    href="@Url.Action("Authenticate", new {provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey]})">
                     @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
                     {
-                        <img height="24" width="24" src="@Href(provider.UI.IconImagePath)" alt="Icon for @provider.ProviderName authentication provider" />
+                        <img height="24" width="24" al="" aria-hidden="true"
+                             src="@Href(provider.UI.IconImagePath)" />
                     }
                     Register with @accountNoun
                 </a>
