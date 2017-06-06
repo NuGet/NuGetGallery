@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201704242001472_AddSemVer2LatestVersionColumns"; }
+            get { return "201706061829243_AddSemVer2LatestVersionColumns"; }
         }
         
         string IMigrationMetadata.Source
