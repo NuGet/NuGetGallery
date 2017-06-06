@@ -14,6 +14,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Mvc.Html;
 using System.Web.WebPages;
 using Microsoft.Owin;
 using NuGet.Frameworks;
@@ -272,6 +273,60 @@ namespace NuGetGallery
             var metadata = ModelMetadata.FromLambdaExpression(expression, htmlHelper.ViewData);
             var modelState = htmlHelper.ViewData.ModelState[metadata.PropertyName];
             return modelState != null && modelState.Errors != null && modelState.Errors.Count > 0;
+        }
+
+        public static HtmlString HasErrorFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression)
+        {
+            if (IsError(htmlHelper, expression))
+            {
+                return MvcHtmlString.Create("has-error");
+            }
+            else
+            {
+                return MvcHtmlString.Empty;
+            }
+        }
+
+        public static HtmlString ShowLabelFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
+            var propertyName = metadata.PropertyName.ToLower();
+
+            return html.LabelFor(expression, new
+            {
+                id = $"{propertyName}-label"
+            });
+        }
+
+        public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
+            var propertyName = metadata.PropertyName.ToLower();
+
+            var htmlAttributes = new Dictionary<string, object>()
+            {
+                { "class", "form-control" },
+                { "aria-labelledby", $"{propertyName}-label {propertyName}-validation-message" }
+            };
+
+            if (metadata.IsRequired)
+            {
+                htmlAttributes.Add("aria-required", "true");
+            }
+
+            return html.TextBoxFor(expression, htmlAttributes);
+        }
+
+        public static HtmlString ShowValidationMessagesFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
+            var propertyName = metadata.PropertyName.ToLower();
+
+            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new
+            {
+                id = $"{propertyName}-validation-message",
+                @class = "help-block"
+            });
         }
 
         public static string ToShortNameOrNull(this NuGetFramework frameworkName)

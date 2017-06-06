@@ -186,6 +186,8 @@ namespace NuGetGallery
 
             var newScriptBundle = new ScriptBundle("~/Scripts/gallery/site.min.js")
                 .Include("~/Scripts/gallery/jquery-1.12.4.js")
+                .Include("~/Scripts/gallery/jquery.validate.js")
+                .Include("~/Scripts/gallery/jquery.validate.unobtrusive.js")
                 .Include("~/Scripts/gallery/knockout-3.4.2.js")
                 .Include("~/Scripts/gallery/bootstrap.js")
                 .Include("~/Scripts/gallery/moment-2.18.1.js")
