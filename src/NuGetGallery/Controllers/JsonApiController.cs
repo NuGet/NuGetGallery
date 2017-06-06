@@ -1,11 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -59,71 +61,153 @@ namespace NuGetGallery
             return Json(owners.Union(pending), JsonRequestBehavior.AllowGet);
         }
 
-        [HttpPost]
-        public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
+        [HttpGet]
+        [ActionName("GetAddPackageOwnerConfirmation")]
+        public async virtual Task<ActionResult> GetAddPackageOwnerConfirmationAsync(string id, string username)
         {
-            message = HttpUtility.HtmlEncode(message);
-
-            var package = _packageService.FindPackageRegistrationById(id);
-            if (package == null)
+            var jsonResult = await ManagePackageOwnerAsync(id, username, (package, user, currentUser) =>
             {
-                return Json(new { success = false, message = "Package not found." });
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return Json(new { success = false, message = "You are not the package owner." });
-            }
-            var user = _userService.FindByUsername(username);
-            if (user == null)
-            {
-                return Json(new { success = false, message = "Owner not found." });
-            }
-            if (!user.Confirmed)
-            {
-                return Json(new { success = false, message = string.Format(CultureInfo.InvariantCulture, "Sorry, {0} hasn't verified their email account yet and we cannot proceed with the request.", username) });
-            }
-
-            var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
-            var ownerRequest = await _packageService.CreatePackageOwnerRequestAsync(package, currentUser, user);
-
-            var confirmationUrl = Url.ConfirmationUrl(
-                "ConfirmOwner",
-                "Packages",
-                user.Username,
-                ownerRequest.ConfirmationCode,
-                new { id = package.Id });
-            _messageService.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl, message);
-
-            return Json(new { success = true, name = user.Username, pending = true });
+                return Json(new { success = true, confirmation = GetAddPackageOwnerConfirmationMessage(package, user, currentUser) },
+                    JsonRequestBehavior.AllowGet);
+            });
+            
+            return jsonResult;
         }
 
         [HttpPost]
-        public async Task<JsonResult> RemovePackageOwner(string id, string username)
+        public Task<JsonResult> AddPackageOwner(string id, string username, string message)
         {
+            return ManagePackageOwnerAsync(id, username, async (package, user, currentUser) =>
+            {
+                var encodedMessage = HttpUtility.HtmlEncode(message);
+                var ownerRequest = await _packageService.CreatePackageOwnerRequestAsync(package, currentUser, user);
+                var confirmationUrl = Url.ConfirmationUrl(
+                    "ConfirmOwner",
+                    "Packages",
+                    user.Username,
+                    ownerRequest.ConfirmationCode,
+                    new { id = package.Id });
+                var packageUrl = Url.Package(package);
+                var policyMessage = GetNoticeOfPoliciesRequiredMessage(package, user, currentUser);
+
+                _messageService.SendPackageOwnerRequest(currentUser, user, package, packageUrl, confirmationUrl, encodedMessage, policyMessage);
+
+                return Json(new { success = true, name = user.Username, pending = true });
+            });
+        }
+
+        /// <summary>
+        /// UI confirmation message for adding owner from ManageOwners.cshtml
+        /// </summary>
+        private string GetAddPackageOwnerConfirmationMessage(PackageRegistration package, User user, User currentUser)
+        {
+            var defaultMessage = $"Please confirm if you want to proceed adding '{user.Username}' as a co-owner of this package.";
+
+            if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
+            {
+                return SecurePushMessages.ConfirmationOfPoliciesRequiredByNewPendingCoOwner(user)
+                    + Environment.NewLine + defaultMessage;
+            }
+
+            var propagatingOwners = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o)).Select(o => o.Username);
+            if (propagatingOwners.Any())
+            {
+                return SecurePushMessages.ConfirmationOfPoliciesRequiredByCoOwners(propagatingOwners, user)
+                    + Environment.NewLine + defaultMessage;
+            }
+
+            var pendingPropagatingOwners = _packageOwnerRequestRepository.GetAll()
+                .Where(po => po.PackageRegistrationKey == package.Key && RequireSecurePushForCoOwnersPolicy.IsSubscribed(po.NewOwner))
+                .Select(po => po.NewOwner.Username);
+            if (pendingPropagatingOwners.Any())
+            {
+                return SecurePushMessages.ConfirmationOfPoliciesRequiredByPendingCoOwners(pendingPropagatingOwners, user)
+                    + Environment.NewLine + defaultMessage;
+            }
+
+            return defaultMessage;
+        }
+
+        /// <summary>
+        /// Policy message for the package owner request notification.
+        /// </summary>
+        private string GetNoticeOfPoliciesRequiredMessage(PackageRegistration package, User user, User currentUser)
+        {
+            if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
+            {
+                return SecurePushMessages.NoticeOfPoliciesRequiredByNewPendingCoOwner(user);
+            }
+
+            var propagatingOwners = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o)).Select(o => o.Username);
+            if (propagatingOwners.Any())
+            {
+                return SecurePushMessages.NoticeOfPoliciesRequiredByCoOwners(propagatingOwners);
+            }
+
+            var pendingPropagatingOwners = _packageOwnerRequestRepository.GetAll()
+                .Where(po => po.PackageRegistrationKey == package.Key && RequireSecurePushForCoOwnersPolicy.IsSubscribed(po.NewOwner))
+                .Select(po => po.NewOwner.Username);
+            if (pendingPropagatingOwners.Any())
+            {
+                return SecurePushMessages.NoticeOfPoliciesRequiredByPendingCoOwners(pendingPropagatingOwners);
+            }
+
+            return string.Empty;
+        }
+
+        [HttpPost]
+        public Task<JsonResult> RemovePackageOwner(string id, string username)
+        {
+            return ManagePackageOwnerAsync(id, username, async (package, user, currentUser) =>
+            {
+                await _packageService.RemovePackageOwnerAsync(package, user);
+
+                _messageService.SendPackageOwnerRemovedNotice(currentUser, user, package);
+
+                return Json(new { success = true });
+            });
+        }
+
+        private Task<JsonResult> ManagePackageOwnerAsync(string id, string username, Func<PackageRegistration, User, User, JsonResult> action)
+        {
+            return ManagePackageOwnerAsync(id, username, (package, user, currentUser) => Task.FromResult(action(package, user, currentUser)));
+        }
+
+        private Task<JsonResult> ManagePackageOwnerAsync(string id, string username, Func<PackageRegistration, User, User, Task<JsonResult>> actionAsync)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+            if (string.IsNullOrEmpty(username))
+            {
+                throw new ArgumentNullException(nameof(username));
+            }
+
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {
-                return Json(new { success = false, message = "Package not found" });
+                return Task.FromResult(Json(new { success = false, message = "Package not found." }));
             }
             if (!package.IsOwner(HttpContext.User))
             {
-                return Json(new { success = false, message = "You are not the package owner." });
+                return Task.FromResult(Json(new { success = false, message = "You are not the package owner." }));
             }
             var user = _userService.FindByUsername(username);
             if (user == null)
             {
-                return Json(new { success = false, message = "Owner not found" });
+                return Task.FromResult(Json(new { success = false, message = "Owner not found." }));
+            }
+            if (!user.Confirmed)
+            {
+                return Task.FromResult(Json(new { success = false, message = string.Format(CultureInfo.InvariantCulture, "Sorry, {0} hasn't verified their email account yet and we cannot proceed with the request.", username) }));
             }
             var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
             if (currentUser == null)
             {
-                return Json(new { success = false, message = "Current user not found" });
+                return Task.FromResult(Json(new { success = false, message = "Current user not found." }));
             }
-
-            await _packageService.RemovePackageOwnerAsync(package, user);
-            _messageService.SendPackageOwnerRemovedNotice(currentUser, user, package);
-
-            return Json(new { success = true });
+            return actionAsync(package, user, currentUser);
         }
 
         public class OwnerModel

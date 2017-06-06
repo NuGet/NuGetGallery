@@ -285,11 +285,16 @@ The {0} Team";
             }
         }
 
-        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl, string message)
+        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string message, string policyMessage)
         {
             if (!toUser.EmailAllowed)
             {
                 return;
+            }
+
+            if (!string.IsNullOrEmpty(policyMessage))
+            {
+                policyMessage = Environment.NewLine + policyMessage + Environment.NewLine;
             }
 
             const string subject = "[{0}] The user '{1}' wants to add you as an owner of the package '{2}'.";
@@ -297,6 +302,8 @@ The {0} Team";
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{fromUser.Username}' wants to add you as an owner of the package '{package.Id}'.
 If you do not want to be listed as an owner of this package, simply delete this email.
 
+Package URL on NuGet.org: [{packageUrl}]({packageUrl})
+{policyMessage}
 To accept this request and become a listed owner of the package, click the following URL:
 
 [{confirmationUrl}]({confirmationUrl})");
@@ -318,6 +325,40 @@ The {Config.GalleryOwner.DisplayName} Team";
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
+
+                mailMessage.To.Add(toUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl, string policyMessage)
+        {
+            if (!toUser.EmailAllowed)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(policyMessage))
+            {
+                policyMessage = Environment.NewLine + policyMessage + Environment.NewLine;
+            }
+
+            const string subject = "[{0}] The user '{1}' is now an owner of the package '{2}'.";
+
+            string body = @"This is to inform you that '{0}' is now an owner of the package
+
+{1}
+{2}
+Thanks,
+The {3} Team";
+            body = String.Format(CultureInfo.CurrentCulture, body, newOwner.Username, packageUrl, policyMessage, Config.GalleryOwner.DisplayName);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, newOwner.Username, package.Id);
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(Config.GalleryNoReplyAddress);
 
                 mailMessage.To.Add(toUser.ToMailAddress());
                 SendMessage(mailMessage);

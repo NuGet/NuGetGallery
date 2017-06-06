@@ -18,8 +18,8 @@ namespace NuGetGallery.Security
     public class SecurePushSubscription : IUserSecurityPolicySubscription
     {
         public const string Name = "SecurePush";
-        private const string MinClientVersion = "4.1.0";
-        private const int PushKeysExpirationInDays = 30;
+        internal const string MinClientVersion = "4.1.0";
+        internal const int PushKeysExpirationInDays = 30;
 
         private IAuditingService _auditing;
         private IDiagnosticsSource _diagnostics;

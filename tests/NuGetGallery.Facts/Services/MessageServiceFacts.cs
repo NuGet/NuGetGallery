@@ -333,10 +333,11 @@ namespace NuGetGallery
                 var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
+                const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
                 const string userMessage = "Hello World!";
                 var messageService = new TestableMessageService();
-                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl, userMessage);
+                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, userMessage, string.Empty);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
@@ -356,9 +357,10 @@ namespace NuGetGallery
                 var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
+                const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
                 var messageService = new TestableMessageService();
-                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl, string.Empty);
+                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, string.Empty, string.Empty);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.DoesNotContain("The user 'Existing' added the following message for you", message.Body);
@@ -370,11 +372,52 @@ namespace NuGetGallery
                 var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = false };
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
+                const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
 
                 var messageService = new TestableMessageService();
-                messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl, string.Empty);
+                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, string.Empty, string.Empty);
 
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendPackageOwnerAddedNoticeMethod
+        {
+            [Fact]
+            public void SendsPackageOwnerAddedNotice()
+            {
+                // Arrange
+                var toUser = new User { Username = "Existing", EmailAddress = "existing-owner@example.com", EmailAllowed = true };
+                var newUser = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+
+                // Act
+                var messageService = new TestableMessageService();
+                messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, "packageUrl", "policyMessage");
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+                Assert.Equal("existing-owner@example.com", message.To[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, "noreply@example.com");
+                Assert.Contains("The user 'Noob' is now an owner of the package 'CoolStuff'.", message.Subject);
+                Assert.Contains("This is to inform you that 'Noob' is now an owner of the package", message.Body);
+                Assert.Contains("policyMessage", message.Body);
+            }
+
+            [Fact]
+            public void DoesNotSendPackageOwnerAddedNoticeIfUserDoesNotAllowEmails()
+            {
+                // Arrange
+                var toUser = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var newUser = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = false };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+
+                // Act
+                var messageService = new TestableMessageService();
+                messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, "packageUrl", "policyMessage");
+
+                // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
         }

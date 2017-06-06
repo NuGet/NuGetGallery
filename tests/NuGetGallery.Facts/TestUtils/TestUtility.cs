@@ -37,6 +37,7 @@ namespace NuGetGallery
             controller.ControllerContext = controllerContext;
             var routeCollection = new RouteCollection();
             routeCollection.MapRoute("catch-all", "{*catchall}");
+            routeCollection.MapRoute(RouteName.DisplayPackage, "");
             controller.Url = new UrlHelper(requestContext, routeCollection);
             return httpContext;
         }

@@ -773,6 +773,8 @@
     <Compile Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.Designer.cs">
       <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
     </Compile>
+    <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
+    <Compile Include="Security\SecurePushMessages.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
     <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />

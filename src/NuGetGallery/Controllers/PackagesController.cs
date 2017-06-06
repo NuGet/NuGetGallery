@@ -27,6 +27,7 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
+using NuGetGallery.Security;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -53,6 +54,7 @@ namespace NuGetGallery
         private readonly ISupportRequestService _supportRequestService;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
+        private readonly ISecurityPolicyService _securityPolicyService;
 
         public PackagesController(
             IPackageService packageService,
@@ -69,7 +71,8 @@ namespace NuGetGallery
             IPackageDeleteService packageDeleteService,
             ISupportRequestService supportRequestService,
             IAuditingService auditingService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            ISecurityPolicyService securityPolicyService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -86,6 +89,7 @@ namespace NuGetGallery
             _supportRequestService = supportRequestService;
             _auditingService = auditingService;
             _telemetryService = telemetryService;
+            _securityPolicyService = securityPolicyService;
         }
 
         [HttpGet]
@@ -1022,7 +1026,49 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
+
+            // subscribe existing owners if new owner has co-owners policy requirement.
+            // note: if another pending owner has the co-owners policy requirement, this user
+            // will be subscribed when the user with the requirement has confirmed their ownership.
+            var policyMessage = string.Empty;
+            var policyMessageOwners = new List<string>();
+            if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
+            {
+                var subscribeResultsByOwner = package.Owners.ToDictionary(
+                    o => o.Username,
+                    o => _securityPolicyService.SubscribeAsync(o, SecurePushSubscription.Name));
+
+                Task.WaitAll(subscribeResultsByOwner.Values.ToArray());
+
+                // policy message is only sent to users that are newly subscribed.
+                policyMessageOwners = subscribeResultsByOwner
+                    .Where(sr => sr.Value.Result)
+                    .Select(sr => sr.Key).ToList();
+                if (policyMessageOwners.Count > 0)
+                {
+                    policyMessage = SecurePushMessages.NoticeOfPoliciesSubscribedByNewCoOwner(user);
+                }
+            }
+            else
+            {
+                // subscribe new owner if existing owner has co-owners policy requirement.
+                var ownersWithPolicy = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o));
+                if (ownersWithPolicy.Any())
+                {
+                    await _securityPolicyService.SubscribeAsync(user, SecurePushSubscription.Name);
+                    policyMessageOwners = ownersWithPolicy.Select(o => o.Username).ToList();
+                    policyMessage = SecurePushMessages.NoticeOfPoliciesSubscribedByPolicyOwner(policyMessageOwners, user);
+                }
+            }
+
             ConfirmOwnershipResult result = await _packageService.ConfirmPackageOwnerAsync(package, user, token);
+
+            // Send email notification to all co-owners that a new owner has been added.
+            var packageUrl = Url.Package(package);
+            package.Owners
+                .Where(o => !o.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList()
+                .ForEach(o => _messageService.SendPackageOwnerAddedNotice(
+                    o, user, package, packageUrl, policyMessageOwners.Contains(o.Username) ? policyMessage : string.Empty));
 
             var model = new PackageOwnerConfirmationModel
             {

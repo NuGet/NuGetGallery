@@ -27,16 +27,19 @@ namespace NuGetGallery.Security
 
         protected SecurePushSubscription SecurePush { get; set; }
 
+        protected RequireSecurePushForCoOwnersPolicy SecurePushForCoOwners { get; set; }
+
         protected SecurityPolicyService()
         {
         }
 
         public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics,
-            SecurePushSubscription securePush = null)
+            SecurePushSubscription securePush = null, RequireSecurePushForCoOwnersPolicy securePushForCoOwners = null)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
             SecurePush = securePush;
+            SecurePushForCoOwners = securePushForCoOwners;
 
             if (diagnostics == null)
             {
@@ -65,6 +68,7 @@ namespace NuGetGallery.Security
             get
             {
                 yield return SecurePush;
+                yield return SecurePushForCoOwners;
             }
         }
 
@@ -138,7 +142,27 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Subscribe a user to one or more security policies.
         /// </summary>
-        public async Task SubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
+        public Task<bool> SubscribeAsync(User user, string subscriptionName)
+        {
+            if (string.IsNullOrEmpty(subscriptionName))
+            {
+                throw new ArgumentNullException(nameof(subscriptionName));
+            }
+
+            var subscription = UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            if (subscription == null)
+            {
+                throw new NotSupportedException($"Subscription '{subscriptionName}' not found.");
+            }
+
+            return SubscribeAsync(user, subscription);
+        }
+
+        /// <summary>
+        /// Subscribe a user to one or more security policies.
+        /// </summary>
+        /// <returns>True if user was subscribed, false if not (i.e., was already subscribed).</returns>
+        public async Task<bool> SubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
         {
             if (user == null)
             {
@@ -152,6 +176,8 @@ namespace NuGetGallery.Security
             if (IsSubscribed(user, subscription))
             {
                 Diagnostics.Information($"User '{user.Username}' is already subscribed to '{subscription.SubscriptionName}'.");
+
+                return false;
             }
             else
             {
@@ -168,6 +194,8 @@ namespace NuGetGallery.Security
                 await EntitiesContext.SaveChangesAsync();
 
                 Diagnostics.Information($"User '{user.Username}' is now subscribed to '{subscription.SubscriptionName}'.");
+
+                return true;
             }
         }
 

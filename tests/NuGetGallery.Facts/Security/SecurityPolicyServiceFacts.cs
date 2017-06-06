@@ -207,7 +207,16 @@ namespace NuGetGallery.Security
         public void SubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
-                new TestSecurityPolicyService().SubscribeAsync(new User(), null));
+                new TestSecurityPolicyService().SubscribeAsync(new User(), (IUserSecurityPolicySubscription)null));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void SubscribeAsync_ThrowsArgumentNullIfSubscriptionNameIsMissing(string subscriptionName)
+        {
+            Assert.ThrowsAsync<ArgumentNullException>(() =>
+                new TestSecurityPolicyService().SubscribeAsync(new User(), subscriptionName));
         }
 
         [Fact]
@@ -218,9 +227,10 @@ namespace NuGetGallery.Security
             var user = new User("testUser");
 
             // Act.
-            await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            var subscribed = await service.SubscribeAsync(user, service.UserSubscriptions.First());
 
             // Act & Assert.
+            Assert.True(subscribed);
             Assert.Equal(2, user.SecurityPolicies.Count);
             service.Mocks.VerifySubscriptionPolicies(user.SecurityPolicies);
 
@@ -242,9 +252,11 @@ namespace NuGetGallery.Security
             }
 
             // Act.
-            await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            var subscribed = await service.SubscribeAsync(user, service.UserSubscriptions.First());
 
             // Act & Assert.
+            Assert.True(subscribed);
+
             var policies = user.SecurityPolicies.ToList();
             Assert.Equal(4, policies.Count);
             Assert.Equal(subscriptionName2, policies[0].Subscription);
@@ -269,9 +281,10 @@ namespace NuGetGallery.Security
             Assert.Equal(2, user.SecurityPolicies.Count);
 
             // Act.
-            await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            var subscribed = await service.SubscribeAsync(user, service.UserSubscriptions.First());
 
             // Act & Assert.
+            Assert.False(subscribed);
             Assert.Equal(2, user.SecurityPolicies.Count);
             service.Mocks.VerifySubscriptionPolicies(user.SecurityPolicies);
 
