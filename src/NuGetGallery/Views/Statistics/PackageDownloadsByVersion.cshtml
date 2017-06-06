@@ -2,9 +2,12 @@
 @{
     ViewBag.Title = "Package Downloads for " + Model.PackageId;
     ViewBag.Tab = "Statistics";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@Html.Partial("_PivotTable")
+<div class="container">
+    @Html.Partial("_PivotTable")
+</div>
 
 @section BottomScripts
 {

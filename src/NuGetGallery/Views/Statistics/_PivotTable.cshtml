@@ -3,79 +3,78 @@
 <div data-bind="template: { name: 'report-template', data: report }"></div>
 
 <script type="text/html" id="report-template">
-    <h1 class="statistics-report-title">
-        Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a>
-        <!-- ko if: $data && Total -->
+    <div class="row">
+        <h1 class="statistics-report-title col-sm-12">
+            Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a>
+            @*<!-- ko if: $data && Total -->
             <span data-bind="text: '(' + Total + ' over the Last 6 Weeks)'"></span>
-        <!-- /ko -->
-    </h1>
+            <!-- /ko -->*@
+        </h1>
 
-    <div data-bind="if: $data && LastUpdatedUtc" class="last-updated">
-        <span data-bind="text: 'Statistics last updated at ' + moment(LastUpdatedUtc).format('YYYY-MM-dd HH:mm:ss') + ' UTC.'"></span>
-    </div>
+        <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-sm-12">
+            <span data-bind="text: 'Statistics last updated at ' + moment(LastUpdatedUtc).format('YYYY-MM-DD HH:mm:ss') + ' UTC.'"></span>
+        </div>
 
-    <div data-bind="if: $data">
-        <div data-bind="attr: { id: Id }" class="statistics-pivot">
+        <div data-bind="if: $data">
+            <div data-bind="attr: { id: Id }" class="statistics-pivot">
 
-            <div class="statistics-graph" id="statistics-graph-id"></div>
-            <div style="clear: both;"></div>
 
-            <div class="statistics-sidebar">
+                <div class="statistics-sidebar col-sm-2">
+                    <form id="dimension-form">
+                        <table data-bind="foreach: Dimensions" class="statistics-dimensions-table">
+                            <tr>
+                                <td>
+                                    <label data-bind="attr: { for: 'checkbox-' + Value }, text: DisplayName" />
+                                </td>
+                                <td>
+                                    <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked }" class="dimension-checkbox" name="groupby" type="checkbox">
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
 
-                <form id="dimension-form">
-                    <table data-bind="foreach: Dimensions" class="statistics-dimensions-table">
-                        <tr>
-                            <td>
-                                <label data-bind="attr: { for: 'checkbox-' + Value }, text: DisplayName" />
-                            </td>
-                            <td>
-                                <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked }" class="dimension-checkbox" name="groupby" type="checkbox">
-                            </td>
-                        </tr>
-                    </table>
-                </form>
+                <div class="col-sm-10">
+                    <div class="statistics-graph" id="statistics-graph-id"></div>
+                    @*<div style="clear: both;"></div>*@
 
-            </div>
+                    <div class="statistics-data">
+                        <table data-bind="if: Table" class="pivot-table table">
+                            <thead>
+                                <tr class="row table-row-data">
+                                    <!-- ko foreach: Columns -->
+                                    <th data-bind="attr: { id: $data + '-column' }, text: $data" scope="col" class="dimension-column"></th>
+                                    <!-- /ko -->
+                                    <th scope="col">Downloads</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: Table">
+                                <tr class="row table-row-data">
 
-            <div class="statistics-data">
-
-                <table data-bind="if: Table" class="pivot-table">
-                    <thead>
-                        <tr>
-                            <!-- ko foreach: Columns -->
-                                <th data-bind="attr: { id: $data + '-column' }, text: $data" scope="col" class="dimension-column"></th>
-                            <!-- /ko -->
-                            <th scope="col">Downloads</th>
-                        </tr>
-                    </thead>
-                    <tbody data-bind="foreach: Table">
-                        <tr>
-
-                            <!-- ko foreach: $data -->
-                                <!-- ko if: $data -->
+                                    <!-- ko foreach: $data -->
+                                    <!-- ko if: $data -->
                                     <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : '', rowspan: Rowspan > 1 ? Rowspan : null }" style="vertical-align:top">
                                         <!-- ko if: Uri -->
-                                            <a data-bind="attr: { href: Uri }, text: Data"></a>
+                                        <a data-bind="attr: { href: Uri }, text: Data"></a>
                                         <!-- /ko -->
                                         <!-- ko ifnot: Uri -->
-                                            <span data-bind="text: Data"></span>
+                                        <span data-bind="text: Data"></span>
                                         <!-- /ko -->
                                     </td>
-                                <!-- /ko -->
-                            <!-- /ko -->
+                                    <!-- /ko -->
+                                    <!-- /ko -->
 
-                        </tr>
-
-                    </tbody>
-                </table>
-
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
             </div>
-            <div style="clear: both;"></div>
-
         </div>
-    </div>
 
-    <p data-bind="ifnot: $data">
-        Download statistics are not currently available for this package. Please <a href="#" id="statistics-retry">retry</a> or check back later.
-    </p>
+        <p data-bind="ifnot: $data">
+            Download statistics are not currently available for this package. Please <a href="#" id="statistics-retry">retry</a> or check back later.
+        </p>
+    </div>
 </script>

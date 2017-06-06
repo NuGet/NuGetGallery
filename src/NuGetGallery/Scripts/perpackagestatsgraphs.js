@@ -2,19 +2,19 @@
 var packageDisplayGraphs = function () {
 
     if ($('#report-Version').length) {
-        if (Modernizr.svg) {
+        //if (Modernizr.svg) {
             drawDownloadsByVersionBarChart();
-        }
+        //}
     }
     if ($('#report-ClientName').length) {
-        if (Modernizr.svg) {
+        //if (Modernizr.svg) {
             drawDownloadsByClientNameBarChart();
-        }
+        //}
     }
     if ($('#report-Operation').length) {
-        if (Modernizr.svg) {
+        //if (Modernizr.svg) {
             drawDownloadsByOperation();
-        }
+        //}
     }
 }
 

@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Package Downloads for " + Model.PackageId + "/" + Model.PackageVersion;
     ViewBag.Tab = "Statistics";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 @Html.Partial("_PivotTable")
