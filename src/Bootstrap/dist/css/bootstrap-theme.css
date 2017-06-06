@@ -227,4 +227,22 @@ body {
 .page-pages p {
   margin-bottom: 24px;
 }
+.page-about h1 {
+  margin-bottom: 20px;
+}
+.page-about h2,
+.page-about h3 {
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+.page-about p {
+  margin-bottom: 20px;
+}
+.page-about .contributors .contributor {
+  padding: 5px;
+}
+.page-about .contributors .contributor .avatar {
+  width: 75px;
+  height: 75px;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */
