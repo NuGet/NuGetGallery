@@ -760,6 +760,10 @@
     <Compile Include="Migrations\201705041614287_UserSecurityPolicies_SubscriptionColumn.Designer.cs">
       <DependentUpon>201705041614287_UserSecurityPolicies_SubscriptionColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.cs" />
+    <Compile Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.Designer.cs">
+      <DependentUpon>201706061829243_AddSemVer2LatestVersionColumns.cs</DependentUpon>
+    </Compile>
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
     <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />
@@ -775,10 +779,6 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
-    <Compile Include="Migrations\201704242001472_AddSemVer2LatestVersionColumns.cs" />
-    <Compile Include="Migrations\201704242001472_AddSemVer2LatestVersionColumns.Designer.cs">
-      <DependentUpon>201704242001472_AddSemVer2LatestVersionColumns.cs</DependentUpon>
-    </Compile>
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
@@ -1737,8 +1737,8 @@
     <EmbeddedResource Include="Migrations\201705041614287_UserSecurityPolicies_SubscriptionColumn.resx">
       <DependentUpon>201705041614287_UserSecurityPolicies_SubscriptionColumn.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201704242001472_AddSemVer2LatestVersionColumns.resx">
-      <DependentUpon>201704242001472_AddSemVer2LatestVersionColumns.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.resx">
+      <DependentUpon>201706061829243_AddSemVer2LatestVersionColumns.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
