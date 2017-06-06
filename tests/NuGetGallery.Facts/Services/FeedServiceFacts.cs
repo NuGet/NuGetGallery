@@ -618,7 +618,6 @@ namespace NuGetGallery
                 [InlineData("Foo", "1.0.1-a")]
                 [InlineData("Bar", "1.0.0")]
                 [InlineData("Bar", "2.0.0")]
-                [InlineData("Bar", "2.0.1-b")]
                 public async Task V2FeedPackagesByIdAndVersionReturnsPackage(string expectedId, string expectedVersion)
                 {
                     // Arrange
@@ -718,7 +717,7 @@ namespace NuGetGallery
             public class TheFindPackagesByIdMethod
             {
                 [Fact]
-                public async Task V2FeedFindPackagesByIdReturnsUnlistedAndPrereleasePackages()
+                public async Task V2FeedFindPackagesByIdReturnsPrereleasePackagesAndHidesUnlisted()
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
@@ -768,12 +767,9 @@ namespace NuGetGallery
                         .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
 
                     // Assert
-                    Assert.Equal(2, result.Count());
-                    Assert.Equal("Foo", result.First().Id);
-                    Assert.Equal("1.0.0", result.First().Version);
-
-                    Assert.Equal("Foo", result.Last().Id);
-                    Assert.Equal("1.0.1-a", result.Last().Version);
+                    Assert.Equal(1, result.Count());
+                    Assert.Equal("Foo", result.Single().Id);
+                    Assert.Equal("1.0.1-a", result.Single().Version);
                 }
 
                 [Fact]

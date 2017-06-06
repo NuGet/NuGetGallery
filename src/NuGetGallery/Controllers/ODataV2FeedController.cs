@@ -203,6 +203,11 @@ namespace NuGetGallery.Controllers
                     packages = packages.Where(p => p.NormalizedVersion == normalizedString);
                 }
             }
+            else
+            {
+                // When no version provided, hide unlisted to ensure unlisted is not discoverable.
+                packages = packages.Where(p => p.Listed);
+            }
 
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
 
