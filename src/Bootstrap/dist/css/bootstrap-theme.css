@@ -235,14 +235,6 @@ body {
 .page-pages p {
   margin-bottom: 24px;
 }
-.page-statistics-overview th {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.page-statistics-overview td {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .page-statistics-overview .stats-title-text {
   margin-bottom: 10px;
   font-size: 1.6em;
