@@ -1027,6 +1027,24 @@ namespace NuGetGallery
 
             var user = GetCurrentUser();
 
+            ConfirmOwnershipResult result = await _packageService.ConfirmPackageOwnerAsync(package, user, token);
+
+            if (result == ConfirmOwnershipResult.Success)
+            {
+                await HandleNewPackageOwnerAsync(package, user);
+            }
+
+            var model = new PackageOwnerConfirmationModel
+            {
+                Result = result,
+                PackageId = package.Id
+            };
+
+            return View(model);
+        }
+
+        private async Task HandleNewPackageOwnerAsync(PackageRegistration package, User user)
+        {
             // subscribe existing owners if new owner has co-owners policy requirement.
             // note: if another pending owner has the co-owners policy requirement, this user
             // will be subscribed when the user with the requirement has confirmed their ownership.
@@ -1035,8 +1053,8 @@ namespace NuGetGallery
             if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
             {
                 var subscribeResultsByOwner = package.Owners.ToDictionary(
-                    o => o.Username,
-                    o => _securityPolicyService.SubscribeAsync(o, SecurePushSubscription.Name));
+                    owner => owner.Username,
+                    owner => SubscribeToSecurePushAsync(owner));
 
                 Task.WaitAll(subscribeResultsByOwner.Values.ToArray());
 
@@ -1055,28 +1073,31 @@ namespace NuGetGallery
                 var ownersWithPolicy = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o));
                 if (ownersWithPolicy.Any())
                 {
-                    await _securityPolicyService.SubscribeAsync(user, SecurePushSubscription.Name);
+                    await SubscribeToSecurePushAsync(user);
                     policyMessageOwners = ownersWithPolicy.Select(o => o.Username).ToList();
                     policyMessage = SecurePushMessages.NoticeOfPoliciesSubscribedByPolicyOwner(policyMessageOwners, user);
                 }
             }
 
-            ConfirmOwnershipResult result = await _packageService.ConfirmPackageOwnerAsync(package, user, token);
-
             // Send email notification to all co-owners that a new owner has been added.
             var packageUrl = Url.Package(package);
             package.Owners
-                .Where(o => !o.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList()
-                .ForEach(o => _messageService.SendPackageOwnerAddedNotice(
-                    o, user, package, packageUrl, policyMessageOwners.Contains(o.Username) ? policyMessage : string.Empty));
+                .Where(owner => !owner.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList()
+                .ForEach(owner => _messageService.SendPackageOwnerAddedNotice(
+                    owner, user, package, packageUrl, policyMessageOwners.Contains(owner.Username) ? policyMessage : string.Empty));
+        }
 
-            var model = new PackageOwnerConfirmationModel
+        private async Task<bool> SubscribeToSecurePushAsync(User user)
+        {
+            try
             {
-                Result = result,
-                PackageId = package.Id
-            };
-
-            return View(model);
+                return await _securityPolicyService.SubscribeAsync(user, SecurePushSubscription.Name);
+            }
+            catch (Exception e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
         }
 
         internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)

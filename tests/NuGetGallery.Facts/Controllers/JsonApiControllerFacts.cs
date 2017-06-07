@@ -26,7 +26,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<JsonApiController>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => controller.GetAddPackageOwnerConfirmationAsync(id, "user"));
+                await Assert.ThrowsAsync<ArgumentException>(() => controller.GetAddPackageOwnerConfirmationAsync(id, "user"));
             }
 
             [Theory]
@@ -38,7 +38,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<JsonApiController>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => controller.GetAddPackageOwnerConfirmationAsync("package", username));
+                await Assert.ThrowsAsync<ArgumentException>(() => controller.GetAddPackageOwnerConfirmationAsync("package", username));
             }
 
             [Fact]
@@ -242,7 +242,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<JsonApiController>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => controller.AddPackageOwner(id, "user", string.Empty));
+                await Assert.ThrowsAsync<ArgumentException>(() => controller.AddPackageOwner(id, "user", string.Empty));
             }
 
             [Theory]
@@ -254,7 +254,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<JsonApiController>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => controller.AddPackageOwner("package", username, string.Empty));
+                await Assert.ThrowsAsync<ArgumentException>(() => controller.AddPackageOwner("package", username, string.Empty));
             }
 
             [Fact]
@@ -485,7 +485,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<JsonApiController>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => controller.RemovePackageOwner(id, "user"));
+                await Assert.ThrowsAsync<ArgumentException>(() => controller.RemovePackageOwner(id, "user"));
             }
 
             [Theory]
@@ -497,7 +497,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<JsonApiController>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => controller.RemovePackageOwner("package", username));
+                await Assert.ThrowsAsync<ArgumentException>(() => controller.RemovePackageOwner("package", username));
             }
         }
     }

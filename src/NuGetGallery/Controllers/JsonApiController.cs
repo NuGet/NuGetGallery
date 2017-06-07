@@ -177,11 +177,11 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentException(nameof(id));
             }
             if (string.IsNullOrEmpty(username))
             {
-                throw new ArgumentNullException(nameof(username));
+                throw new ArgumentException(nameof(username));
             }
 
             var package = _packageService.FindPackageRegistrationById(id);
