@@ -12,6 +12,8 @@ namespace NuGetGallery.FunctionalTests
     {
         public static void InitializeServerCertificateValidationCallback()
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
             // suppress SSL validation for *.cloudapp.net
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
         }
