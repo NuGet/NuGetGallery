@@ -227,4 +227,50 @@ body {
 .page-pages p {
   margin-bottom: 24px;
 }
+.page-statistics-most-downloaded h2 {
+  margin-top: 4px;
+  margin-bottom: 40px;
+  font-size: 1.5em;
+  color: gray;
+}
+.page-statistics-most-downloaded .table {
+  table-layout: fixed;
+}
+.page-statistics-most-downloaded .table thead {
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+}
+.page-statistics-most-downloaded .table thead th {
+  font-size: 1.5em;
+  font-weight: normal;
+}
+.page-statistics-most-downloaded .table thead .packages th:nth-child(1) {
+  width: 10%;
+}
+.page-statistics-most-downloaded .table thead .packages th:nth-child(2) {
+  width: 70%;
+}
+.page-statistics-most-downloaded .table thead .packages th:nth-child(3) {
+  width: 20%;
+}
+.page-statistics-most-downloaded .table thead .package-versions th:nth-child(1) {
+  width: 10%;
+}
+.page-statistics-most-downloaded .table thead .package-versions th:nth-child(2) {
+  width: 50%;
+}
+.page-statistics-most-downloaded .table thead .package-versions th:nth-child(3) {
+  width: 20%;
+}
+.page-statistics-most-downloaded .table thead .package-versions th:nth-child(4) {
+  width: 20%;
+}
+.page-statistics-most-downloaded .table tbody {
+  margin-bottom: 20px;
+  font-size: 1.25em;
+}
+.page-statistics-most-downloaded .table tbody td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */
