@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Protocol;
@@ -23,7 +24,7 @@ namespace NgTests
         /// 
         /// This data must follow the following rules: 
         /// 1 - If one element is compared against the same element, it must succeed.
-        /// 2 - If one element is compared against a different element,, it must fail.
+        /// 2 - If one element is compared against a different element, it must fail.
         /// 3 - Validation should always run against any pair of these elements.
         /// </summary>
         IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes { get; }
@@ -36,11 +37,18 @@ namespace NgTests
         IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateSkippedIndexes { get; }
 
         /// <summary>
+        /// <see cref="PackageRegistrationIndexMetadata"/>s to use for tests.
+        /// 
+        /// Each tuple of elements represents a pairing that should pass if true and fail otherwise.
+        /// </summary>
+        IEnumerable<Func<Tuple<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>>> CreateSpecialIndexes { get; }
+
+        /// <summary>
         /// <see cref="PackageRegistrationLeafMetadata"/>s to use for tests.
         /// 
         /// This data must follow the following rules: 
         /// 1 - If one element is compared against the same element, it must succeed.
-        /// 2 - If one element is compared against a different element,, it must fail.
+        /// 2 - If one element is compared against a different element, it must fail.
         /// 3 - Validation should always run against any pair of these elements.
         /// </summary>
         IEnumerable<Func<PackageRegistrationLeafMetadata>> CreateLeafs { get; }
@@ -51,6 +59,13 @@ namespace NgTests
         /// Validation should never run when any of these elements are included in a test.
         /// </summary>
         IEnumerable<Func<PackageRegistrationLeafMetadata>> CreateSkippedLeafs { get; }
+
+        /// <summary>
+        /// <see cref="PackageRegistrationLeafMetadata"/>s to use for tests.
+        /// 
+        /// Each tuple of elements represents a pairing that should pass if true and fail otherwise.
+        /// </summary>
+        IEnumerable<Func<Tuple<PackageRegistrationLeafMetadata, PackageRegistrationLeafMetadata, bool>>> CreateSpecialLeafs { get; }
     }
 
     public abstract class RegistrationLeafValidatorTestData<T> : IRegistrationLeafValidatorTestData
@@ -72,8 +87,14 @@ namespace NgTests
 
         public abstract IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateSkippedIndexes { get; }
 
+        public virtual IEnumerable<Func<Tuple<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>>> CreateSpecialIndexes =>
+            Enumerable.Empty<Func<Tuple<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>>>();
+
         public abstract IEnumerable<Func<PackageRegistrationLeafMetadata>> CreateLeafs { get; }
 
         public abstract IEnumerable<Func<PackageRegistrationLeafMetadata>> CreateSkippedLeafs { get; }
+
+        public virtual IEnumerable<Func<Tuple<PackageRegistrationLeafMetadata, PackageRegistrationLeafMetadata, bool>>> CreateSpecialLeafs =>
+            Enumerable.Empty<Func<Tuple<PackageRegistrationLeafMetadata, PackageRegistrationLeafMetadata, bool>>>();
     }
 }
