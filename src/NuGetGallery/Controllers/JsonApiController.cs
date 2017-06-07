@@ -91,7 +91,7 @@ namespace NuGetGallery
                     user.Username,
                     ownerRequest.ConfirmationCode,
                     new { id = package.Id });
-                var packageUrl = Url.Package(package);
+                var packageUrl = Url.Package(package.Id, null, scheme: "http");
                 var policyMessage = GetNoticeOfPoliciesRequiredMessage(package, user, currentUser);
 
                 _messageService.SendPackageOwnerRequest(currentUser, user, package, packageUrl, confirmationUrl, encodedMessage, policyMessage);
@@ -128,7 +128,7 @@ namespace NuGetGallery
                     + Environment.NewLine + defaultMessage;
             }
 
-            var propagatingOwners = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o)).Select(o => o.Username);
+            var propagatingOwners = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed).Select(o => o.Username);
             if (propagatingOwners.Any())
             {
                 var propagators = string.Join(", ", propagatingOwners);
@@ -165,7 +165,7 @@ namespace NuGetGallery
                     _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
             }
 
-            var propagatingOwners = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o)).Select(o => o.Username);
+            var propagatingOwners = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed).Select(o => o.Username);
             if (propagatingOwners.Any())
             {
                 var propagators = string.Join(", ", propagatingOwners);

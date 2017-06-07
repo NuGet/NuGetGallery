@@ -87,14 +87,14 @@
                         cache: false,
                         dataType: 'json',
                         type: 'GET',
-                        headers: this.headers(),
+                        headers: viewModel.headers(),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             if (data.success) {
                                 if (data.confirmation && !confirm(data.confirmation)) {
                                     return;
                                 }
-                                this.addOwner();
+                                viewModel.addOwner();
                             }
                             else {
                                 viewModel.message(data.message);
@@ -120,7 +120,7 @@
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        headers: this.headers(),
+                        headers: viewModel.headers(),
                         data: window.JSON.stringify(ownerInputModel),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
@@ -157,7 +157,7 @@
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        headers: this.headers(),
+                        headers: viewModel.headers(),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             if (data.success) {

@@ -1072,7 +1072,7 @@ namespace NuGetGallery
             else
             {
                 // subscribe new owner if existing owner has co-owners policy requirement.
-                var ownersWithPolicy = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o));
+                var ownersWithPolicy = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
                 if (ownersWithPolicy.Any())
                 {
                     await SubscribeToSecurePushAsync(user);
@@ -1085,7 +1085,7 @@ namespace NuGetGallery
             }
 
             // Send email notification to all co-owners that a new owner has been added.
-            var packageUrl = Url.Package(package);
+            var packageUrl = Url.Package(package.Id, null, scheme: "http");
             package.Owners
                 .Where(owner => !owner.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList()
                 .ForEach(owner => _messageService.SendPackageOwnerAddedNotice(

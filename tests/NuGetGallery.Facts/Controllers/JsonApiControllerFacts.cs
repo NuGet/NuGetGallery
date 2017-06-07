@@ -373,7 +373,7 @@ namespace NuGetGallery.Controllers
                         fakes.Owner,
                         fakes.User,
                         fakes.Package,
-                        "/packages/FakePackage/",
+                        "http://nuget.local/packages/FakePackage/",
                         "https://nuget.local/packages/FakePackage/owners/testUser/confirm/confirmation-code",
                         "Hello World! Html Encoded &lt;3",
                         ""))
@@ -462,7 +462,7 @@ namespace NuGetGallery.Controllers
                         fakes.Owner,
                         fakes.User,
                         fakes.Package,
-                        "/packages/FakePackage/",
+                        "http://nuget.local/packages/FakePackage/",
                         "https://nuget.local/packages/FakePackage/owners/testUser/confirm/confirmation-code",
                         string.Empty,
                         It.IsAny<string>()))
