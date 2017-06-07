@@ -56,7 +56,7 @@
                     <div class="alert alert-info">
                         <ul class="list-unstyled ms-Icon-ul">
                             <li>
-                                <i class="ms-Icon ms-Icon--Info"></i>
+                                <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
                                 An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
                                 These changes will be applied to the package file and become visible to everybody soon unless you
                                 <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
@@ -72,7 +72,7 @@
                 <div class="alert alert-danger">
                     <ul class="list-unstyled ms-Icon-ul">
                         <li>
-                            <i class="ms-Icon ms-Icon--ErrorBadge"></i>
+                            <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
                             Your last edit to this package was not successfully applied.
                             You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
                             the package and submit the edit again to retry the edit.
@@ -86,7 +86,7 @@
                 <div class="alert alert-info">
                     <ul class="list-unstyled ms-Icon-ul">
                         <li>
-                            <i class="ms-Icon ms-Icon--Info"></i>
+                            <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
                             This is a prerelease version of @Model.Title.Abbreviate(65).
                         </li>
                     </ul>
@@ -98,7 +98,7 @@
                 <div class="alert alert-info">
                     <ul class="list-unstyled ms-Icon-ul">
                         <li>
-                            <i class="ms-Icon ms-Icon--Info"></i>
+                            <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
                             There is a newer prerelease version of this package available.
                             <br /> See the version list below for details.
                         </li>
@@ -111,7 +111,7 @@
                 <div class="alert alert-warning">
                     <ul class="list-unstyled ms-Icon-ul">
                         <li>
-                            <i class="ms-Icon ms-Icon--Warning"></i>
+                            <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
                             <strong>This package has not been indexed yet.</strong> It will appear in search results
                             and will be available for install/restore after indexing is completed.
                         </li>
@@ -124,7 +124,7 @@
                 <div class="alert alert-danger">
                     <ul class="list-unstyled ms-Icon-ul">
                         <li>
-                            <i class="ms-Icon ms-Icon--ErrorBadge"></i>
+                            <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
                             <strong>This package has been deleted from the gallery.</strong> It is no longer available
                             for install/restore.
                         </li>
@@ -139,7 +139,7 @@
                     <div class="alert alert-warning">
                         <ul class="list-unstyled ms-Icon-ul">
                             <li>
-                                <i class="ms-Icon ms-Icon--Warning"></i>
+                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
                                 This package is unlisted and hidden from package listings.
                                 You can see the package because you are one of its owners. To list the package again,
                                 <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
@@ -152,7 +152,7 @@
                     <div class="alert alert-warning">
                         <ul class="list-unstyled ms-Icon-ul">
                             <li>
-                                <i class="ms-Icon ms-Icon--Warning"></i>
+                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
                                 The owner has unlisted this package.
                                 This could mean that the package is deprecated or shouldn't be used anymore.
                             </li>
@@ -179,7 +179,7 @@
                         </span>
                         <span class="copy-button">
                             <button id="install-script-button" class="btn btn-default btn-warning" type="button"
-                                    data-toggle="popover" data-placement="bottom" data-content="Copied."><span class="ms-Icon ms-Icon--Copy"></span></button>
+                                    data-toggle="popover" data-placement="bottom" data-content="Copied."><span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span></button>
                         </span>
                     </div>
                 </div>
@@ -333,7 +333,7 @@
             @if (rowCount > 5)            {
                 <button type="button" data-toggle="collapse" class="btn btn-link" data-target="#hidden-versions"
                         aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
-                    <i class="ms-Icon ms-Icon--ChevronDown"></i>
+                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
                     <span>Show more</span>
                 </button>
             }
@@ -348,7 +348,7 @@
                 @if (PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Globe"></i>
+                        <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
                         <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package" rel="nofollow">
                             @if(Model.ProjectUrl.Length <= 28)
                             {
@@ -364,7 +364,7 @@
                 @if (PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Page"></i>
+                        <i class="ms-Icon ms-Icon--Page" aria-hidden="true"></i>
                         <a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">
                             @if(Model.LicenseNames.AnySafe())
                             {
@@ -378,13 +378,13 @@
                     </li>
                 }
                 <li>
-                    <i class="ms-Icon ms-Icon--Mail"></i>
+                    <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
                     <a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact owners</a>
                 </li>
                 @if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Help"></i>
+                        <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
                         <a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
                             Contact support
                         </a>
@@ -393,7 +393,7 @@
                 else if (!Model.Deleted)
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Flag"></i>
+                        <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
                         <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
                             Report
                         </a>
@@ -403,11 +403,11 @@
                 @if (!Model.Deleted)
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Download"></i>
+                        <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
                         <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Manual download</a>
                     </li>
                     <li class="no-clickonce">
-                        <i class="ms-Icon ms-Icon--OpenInNewWindow"></i>
+                        <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
                         <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
                     </li>
                 }
@@ -415,15 +415,15 @@
                 @if (!Model.Deleted && (Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Edit"></i>
+                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                         <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
                     </li>
                     <li>
-                        <i class="ms-Icon ms-Icon--People"></i>
+                        <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
                         <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
                     </li>
                     <li>
-                        <i class="ms-Icon ms-Icon--Delete"></i>
+                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
                         <a href="@Url.DeletePackage(Model)" class="delete">Delete package</a>
                     </li>
                 }
@@ -431,7 +431,7 @@
                 @if (!Model.Deleted && User.IsAdministrator())
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Refresh"></i>
+                        <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
                         <a href="@Url.ReflowPackage(Model)">Reflow package</a>
                     </li>
                 }
@@ -444,16 +444,16 @@
             <h2>Statistics</h2>
             <ul class="list-unstyled ms-Icon-ul">
                 <li>
-                    <i class="ms-Icon ms-Icon--Download"></i>
+                    <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
                     @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
                 </li>
                 <li>
-                    <i class="ms-Icon ms-Icon--Download"></i>
+                    <i class="ms-Icon ms-Icon--Giftbox" aria-hidden="true"></i>
                     @Model.PackageVersions.First().DownloadCount.ToNuGetNumberString() @(Model.PackageVersions.First().DownloadCount == 1 ? "download" : "downloads")
                     of latest version
                 </li>
                 <li>
-                    <i class="ms-Icon ms-Icon--Download"></i>
+                    <i class="ms-Icon ms-Icon--Financial" aria-hidden="true"></i>
                     @Model.DownloadsPerDay.ToNuGetNumberString() @(Model.DownloadsPerDay == 1 ? "download" : "downloads")
                     per day (avg)
                 </li>

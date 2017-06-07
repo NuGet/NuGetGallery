@@ -298,7 +298,19 @@ namespace NuGetGallery
             });
         }
 
+        public static HtmlString ShowPasswordFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            return html.PasswordFor(expression, htmlAttributes);
+        }
+
         public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            return html.TextBoxFor(expression, htmlAttributes);
+        }
+
+        private static Dictionary<string, object> GetHtmlAttributes<TModel, TProperty>(HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
         {
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
@@ -314,7 +326,7 @@ namespace NuGetGallery
                 htmlAttributes.Add("aria-required", "true");
             }
 
-            return html.TextBoxFor(expression, htmlAttributes);
+            return htmlAttributes;
         }
 
         public static HtmlString ShowValidationMessagesFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
