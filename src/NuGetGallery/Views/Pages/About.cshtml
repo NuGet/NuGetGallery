@@ -43,7 +43,7 @@
             <ul>
                 <li>
                     <a href="https://github.com/NuGet/NuGetGallery/commits?author=robertmuehsig">Robert Muehsig</a> -
-                    Lots of bug fixes, up-for-grabs features and various assorted goodies
+                    Lots of bug fixes, up-for-grabs features and various assorted goodies.
                 </li>
                 <li>
                     <a href="https://github.com/NuGet/NuGetGallery/commits?author=zippy1981">Justin Dearing</a> -
@@ -95,10 +95,8 @@
 
                     $.each(contributorsPerRepo, function (index, repoContributors) {
                         $.each(repoContributors, function (index, repoContributor) {
-                            var isTeam = teamMap.hasOwnProperty(repoContributor.login);
-
                             if (!contributionsByContributorMap.hasOwnProperty(repoContributor.login)) {
-                                if (isTeam) {
+                                if (teamMap.hasOwnProperty(repoContributor.login)) {
                                     team.push(repoContributor);
                                 } else {
                                     contributors.push(repoContributor);
