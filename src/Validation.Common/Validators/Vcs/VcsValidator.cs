@@ -90,17 +90,20 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                         message.PackageId,
                         message.PackageVersion,
                         errorMessage);
+                    WriteAuditEntry(auditEntries, $"Submission failed. Error message: {errorMessage}",
+                        ValidationEvent.VirusScanRequestFailed);
+
+                    throw new ValidationException(errorMessage);
                 }
             }
             catch (Exception ex)
             {
                 errorMessage = ex.Message;
                 _logger.TrackValidatorException(ValidatorName, message.ValidationId, ex, message.PackageId, message.PackageVersion);
+                WriteAuditEntry(auditEntries, $"Submission failed. Error message: {errorMessage}",
+                    ValidationEvent.VirusScanRequestFailed);
+                throw;
             }
-
-            WriteAuditEntry(auditEntries, $"Submission failed. Error message: {errorMessage}", 
-                ValidationEvent.VirusScanRequestFailed);
-            return ValidationResult.Failed;
         }
 
         private string BuildStorageUrl(string packageId, string packageVersion)

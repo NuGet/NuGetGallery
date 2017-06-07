@@ -195,6 +195,7 @@
     <Compile Include="Validators\Unzip\UnzipValidator.cs" />
     <Compile Include="Validators\ValidationResult.cs" />
     <Compile Include="Validators\ValidatorBase.cs" />
+    <Compile Include="Validators\ValidationException.cs" />
     <Compile Include="Validators\Vcs\VcsValidator.cs" />
     <Compile Include="Validators\Vcs\VcsCallbackServer.cs" />
   </ItemGroup>
