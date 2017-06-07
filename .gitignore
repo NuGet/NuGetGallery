@@ -160,8 +160,10 @@ $RECYCLE.BIN/
 .DS_Store
 
 # NuGetGallery Specific Ignores
-src/NuGetGallery/App_Data/**
-!src/NuGetGallery/App_Data/Files/Content/**
+src/NuGetGallery/App_Data/*
+!src/NuGetGallery/App_Data/Files/
+src/NuGetGallery/App_Data/Files/*
+!src/NuGetGallery/App_Data/Files/Content/
 !src/NuGetGallery/Views/Packages/
 !src/NuGetGallery/Branding/Views/Packages/
 
