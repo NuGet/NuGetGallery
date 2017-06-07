@@ -12,6 +12,8 @@ param (
     [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
 )
 
+$msBuildVersion = 15;
+
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
 trap {
     Write-Host "BUILD FAILED: $_" -ForegroundColor Red
@@ -48,7 +50,7 @@ Function Prepare-Vcs-Callback {
         Remove-Item $ZipPackagePath
     }
     
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" "src\Validation.Callback.Vcs\Validation.Callback.Vcs.csproj" -Target "Package" -MSBuildProperties "/P:PackageLocation=obj\Validation.Callback.Vcs.zip" -SkipRestore
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" "src\Validation.Callback.Vcs\Validation.Callback.Vcs.csproj" -Target "Package" -MSBuildProperties "/P:PackageLocation=obj\Validation.Callback.Vcs.zip" -SkipRestore
 }
 
 Write-Host ("`r`n" * 3)
@@ -96,7 +98,7 @@ Invoke-BuildStep 'Restoring solution packages' { `
 
 Invoke-BuildStep 'Building solution' { 
     param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore `
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" $SolutionPath -SkipRestore:$SkipRestore `
     } `
     -args $Configuration, $BuildNumber, (Join-Path $PSScriptRoot "NuGet.Jobs.sln"), $SkipRestore `
     -ev +BuildErrors
@@ -124,7 +126,7 @@ Invoke-BuildStep 'Creating artifacts' {
 	    "src/CopyAzureContainer/CopyAzureContainer.csproj"
         
         Foreach ($Project in $Projects) {
-            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
+            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion"
         }
     } `
     -ev +BuildErrors
