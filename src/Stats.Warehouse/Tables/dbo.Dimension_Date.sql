@@ -46,3 +46,6 @@ GO
 CREATE UNIQUE NONCLUSTERED INDEX [Dimension_Date_NCI_Date_Desc]
     ON [dbo].[Dimension_Date]([Date] DESC) WITH (STATISTICS_NORECOMPUTE = ON)
 GO
+CREATE NONCLUSTERED INDEX [Dimension_Date_NCI_WeekOfYear_Date] 
+	ON [dbo].[Dimension_Date] ([WeekOfYear],[Year]) INCLUDE ([Date])
+GO
