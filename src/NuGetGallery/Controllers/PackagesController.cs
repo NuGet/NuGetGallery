@@ -1052,21 +1052,18 @@ namespace NuGetGallery
             var policyMessageOwners = new List<string>();
             if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
             {
-                var subscribeResultsByOwner = package.Owners.ToDictionary(
-                    owner => owner.Username,
-                    owner => SubscribeToSecurePushAsync(owner));
-
-                Task.WaitAll(subscribeResultsByOwner.Values.ToArray());
-
-                // policy message is only sent to users that are newly subscribed.
-                policyMessageOwners = subscribeResultsByOwner
-                    .Where(sr => sr.Value.Result)
-                    .Select(sr => sr.Key).ToList();
-                if (policyMessageOwners.Count > 0)
+                foreach (var owner in package.Owners)
                 {
-                    policyMessage = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddOwnerNotification_SecurePushRequiredByNewOwner,
-                        user.Username, GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
+                    if (await SubscribeToSecurePushAsync(owner))
+                    {
+                        policyMessageOwners.Add(owner.Username);
+                        if (policyMessage == string.Empty)
+                        {
+                            policyMessage = string.Format(CultureInfo.CurrentCulture,
+                                Strings.AddOwnerNotification_SecurePushRequiredByNewOwner,
+                                user.Username, GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
+                        }
+                    }
                 }
             }
             else
@@ -1075,12 +1072,15 @@ namespace NuGetGallery
                 var ownersWithPolicy = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
                 if (ownersWithPolicy.Any())
                 {
-                    await SubscribeToSecurePushAsync(user);
-                    policyMessageOwners = ownersWithPolicy.Select(o => o.Username).ToList();
-                    var propagators = string.Join(", ", policyMessageOwners);
-                    policyMessage = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddOwnerNotification_SecurePushRequiredByOwner,
-                        propagators, user.Username, GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
+                    if (await SubscribeToSecurePushAsync(user))
+                    {
+                        policyMessageOwners.AddRange(ownersWithPolicy.Select(o => o.Username));
+
+                        var propagators = string.Join(", ", policyMessageOwners);
+                        policyMessage = string.Format(CultureInfo.CurrentCulture,
+                            Strings.AddOwnerNotification_SecurePushRequiredByOwner,
+                            propagators, user.Username, GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
+                    }
                 }
             }
 
