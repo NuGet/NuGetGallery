@@ -71,9 +71,9 @@ namespace NuGetGallery
         {
             var jsonResult = await ManagePackageOwnerAsync(id, username, (package, user, currentUser) =>
             {
-                return Json(new { success = true, confirmation = GetAddPackageOwnerConfirmationMessage(package, user, currentUser) },
-                    JsonRequestBehavior.AllowGet);
+                return Json(new { success = true, confirmation = GetAddPackageOwnerConfirmationMessage(package, user, currentUser) });
             });
+            jsonResult.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
             
             return jsonResult;
         }
@@ -124,7 +124,7 @@ namespace NuGetGallery
             {
                 return string.Format(CultureInfo.CurrentCulture,
                     Strings.AddOwnerConfirmation_SecurePushRequiredByNewOwner,
-                    user.Username, Strings.SecurePushPolicyDescriptions, _appConfiguration.GalleryOwner.Address)
+                    user.Username, GetSecurePushPolicyDescriptions(), _appConfiguration.GalleryOwner.Address)
                     + Environment.NewLine + defaultMessage;
             }
 
@@ -134,7 +134,7 @@ namespace NuGetGallery
                 var propagators = string.Join(", ", propagatingOwners);
                 return string.Format(CultureInfo.CurrentCulture,
                     Strings.AddOwnerConfirmation_SecurePushRequiredByOwner,
-                    propagators, user.Username, Strings.SecurePushPolicyDescriptions, _appConfiguration.GalleryOwner.Address)
+                    propagators, user.Username, GetSecurePushPolicyDescriptions(), _appConfiguration.GalleryOwner.Address)
                     + Environment.NewLine + defaultMessage;
             }
 
@@ -146,7 +146,7 @@ namespace NuGetGallery
                 var propagators = string.Join(", ", pendingPropagatingOwners);
                 return string.Format(CultureInfo.CurrentCulture,
                     Strings.AddOwnerConfirmation_SecurePushRequiredByPendingOwner,
-                    propagators, user.Username, Strings.SecurePushPolicyDescriptions, _appConfiguration.GalleryOwner.Address)
+                    propagators, user.Username, GetSecurePushPolicyDescriptions(), _appConfiguration.GalleryOwner.Address)
                     + Environment.NewLine + defaultMessage;
             }
 
@@ -162,7 +162,7 @@ namespace NuGetGallery
             {
                 return string.Format(CultureInfo.CurrentCulture,
                     Strings.AddOwnerRequest_SecurePushRequiredByNewOwner,
-                    _appConfiguration.GalleryOwner.Address, Strings.SecurePushPolicyDescriptions);
+                    _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
             }
 
             var propagatingOwners = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o)).Select(o => o.Username);
@@ -171,7 +171,7 @@ namespace NuGetGallery
                 var propagators = string.Join(", ", propagatingOwners);
                 return string.Format(CultureInfo.CurrentCulture,
                     Strings.AddOwnerRequest_SecurePushRequiredByOwner,
-                    propagators, _appConfiguration.GalleryOwner.Address, Strings.SecurePushPolicyDescriptions);
+                    propagators, _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
             }
 
             var pendingPropagatingOwners = _packageOwnerRequestRepository.GetAll()
@@ -182,10 +182,16 @@ namespace NuGetGallery
                 var propagators = string.Join(", ", pendingPropagatingOwners);
                 return string.Format(CultureInfo.CurrentCulture,
                     Strings.AddOwnerRequest_SecurePushRequiredByPendingOwner,
-                    propagators, _appConfiguration.GalleryOwner.Address, Strings.SecurePushPolicyDescriptions);
+                    propagators, _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
             }
 
             return string.Empty;
+        }
+
+        private string GetSecurePushPolicyDescriptions()
+        {
+            return string.Format(CultureInfo.CurrentCulture, Strings.SecurePushPolicyDescriptions,
+                SecurePushSubscription.MinClientVersion, SecurePushSubscription.PushKeysExpirationInDays);
         }
 
         private Task<JsonResult> ManagePackageOwnerAsync(string id, string username, Func<PackageRegistration, User, User, JsonResult> action)
@@ -221,7 +227,7 @@ namespace NuGetGallery
             if (!user.Confirmed)
             {
                 return Task.FromResult(Json(new { success = false,
-                    message = string.Format(CultureInfo.InvariantCulture, Strings.AddOwner_OwnerNotConfirmed, username) }));
+                    message = string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_OwnerNotConfirmed, username) }));
             }
             var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
             if (currentUser == null)

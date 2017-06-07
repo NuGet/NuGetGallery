@@ -470,23 +470,17 @@ The {1} Team</value>
   </data>
   <data name="AddOwnerConfirmation_SecurePushRequiredByNewOwner" xml:space="preserve">
     <value>User '{0}' has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:
-
 {1}
-
 Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{2}'.</value>
   </data>
   <data name="AddOwnerConfirmation_SecurePushRequiredByOwner" xml:space="preserve">
     <value>Owner(s) '{0}' has (have) the following requirements that will be enforced for user '{1}' once the user accepts ownership of this package:
-
 {2}
-
 Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{3}'.</value>
   </data>
   <data name="AddOwnerConfirmation_SecurePushRequiredByPendingOwner" xml:space="preserve">
     <value>Pending owner(s) '{0}' has (have) the following requirements that will be enforced for all co-owners, including '{1}', once ownership requests are accepted:
-
 {2}
-
 Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{3}'.</value>
   </data>
   <data name="AddOwnerNotification_SecurePushRequiredByNewOwner" xml:space="preserve">

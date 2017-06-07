@@ -116,9 +116,7 @@ namespace NuGetGallery {
         
         /// <summary>
         ///   Looks up a localized string similar to User &apos;{0}&apos; has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:
-        ///
         ///{1}
-        ///
         ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact &apos;{2}&apos;..
         /// </summary>
         public static string AddOwnerConfirmation_SecurePushRequiredByNewOwner {
@@ -129,9 +127,7 @@ namespace NuGetGallery {
         
         /// <summary>
         ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; has (have) the following requirements that will be enforced for user &apos;{1}&apos; once the user accepts ownership of this package:
-        ///
         ///{2}
-        ///
         ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact &apos;{3}&apos;..
         /// </summary>
         public static string AddOwnerConfirmation_SecurePushRequiredByOwner {
@@ -142,9 +138,7 @@ namespace NuGetGallery {
         
         /// <summary>
         ///   Looks up a localized string similar to Pending owner(s) &apos;{0}&apos; has (have) the following requirements that will be enforced for all co-owners, including &apos;{1}&apos;, once ownership requests are accepted:
-        ///
         ///{2}
-        ///
         ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact &apos;{3}&apos;..
         /// </summary>
         public static string AddOwnerConfirmation_SecurePushRequiredByPendingOwner {

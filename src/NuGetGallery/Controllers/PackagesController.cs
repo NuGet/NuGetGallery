@@ -1066,7 +1066,7 @@ namespace NuGetGallery
                 {
                     policyMessage = string.Format(CultureInfo.CurrentCulture,
                         Strings.AddOwnerNotification_SecurePushRequiredByNewOwner,
-                        user.Username, Strings.SecurePushPolicyDescriptions, _config.GalleryOwner.Address);
+                        user.Username, GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
                 }
             }
             else
@@ -1080,7 +1080,7 @@ namespace NuGetGallery
                     var propagators = string.Join(", ", policyMessageOwners);
                     policyMessage = string.Format(CultureInfo.CurrentCulture,
                         Strings.AddOwnerNotification_SecurePushRequiredByOwner,
-                        propagators, user.Username, Strings.SecurePushPolicyDescriptions, _config.GalleryOwner.Address);
+                        propagators, user.Username, GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
                 }
             }
 
@@ -1090,6 +1090,12 @@ namespace NuGetGallery
                 .Where(owner => !owner.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList()
                 .ForEach(owner => _messageService.SendPackageOwnerAddedNotice(
                     owner, user, package, packageUrl, policyMessageOwners.Contains(owner.Username) ? policyMessage : string.Empty));
+        }
+
+        private string GetSecurePushPolicyDescriptions()
+        {
+            return string.Format(CultureInfo.CurrentCulture, Strings.SecurePushPolicyDescriptions,
+                SecurePushSubscription.MinClientVersion, SecurePushSubscription.PushKeysExpirationInDays);
         }
 
         private async Task<bool> SubscribeToSecurePushAsync(User user)
