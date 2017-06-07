@@ -41,6 +41,8 @@ namespace NuGetGallery
                 TotalDaysSinceCreated = 0;
                 DownloadsPerDay = 0;
             }
+
+            DownloadsPerDayLabel = DownloadsPerDay < 1 ? "<1" : DownloadsPerDay.ToNuGetNumberString();
         }
 
         public void SetPendingMetadata(PackageEdit pendingMetadata)
@@ -84,5 +86,7 @@ namespace NuGetGallery
         }
 
         public bool? IsIndexed { get; set; }
+
+        public string DownloadsPerDayLabel { get; private set; }
     }
 }
