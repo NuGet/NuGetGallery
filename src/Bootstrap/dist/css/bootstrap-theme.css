@@ -227,7 +227,7 @@ body {
 .page-statistics-most-downloaded h2 {
   margin-top: 4px;
   margin-bottom: 40px;
-  font-size: 24px;
+  font-size: 1.5em;
   color: gray;
 }
 .page-statistics-most-downloaded .table {
@@ -238,7 +238,7 @@ body {
   margin-bottom: 10px;
 }
 .page-statistics-most-downloaded .table thead th {
-  font-size: 24px;
+  font-size: 1.5em;
   font-weight: normal;
 }
 .page-statistics-most-downloaded .table thead .packages th:nth-child(1) {
@@ -264,7 +264,7 @@ body {
 }
 .page-statistics-most-downloaded .table tbody {
   margin-bottom: 20px;
-  font-size: 20px;
+  font-size: 1.25em;
 }
 .page-statistics-most-downloaded .table tbody td {
   overflow: hidden;
