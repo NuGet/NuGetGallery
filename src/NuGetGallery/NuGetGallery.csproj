@@ -1774,8 +1774,9 @@
     <Content Include="Views\Shared\Gallery\Layout.cshtml" />
     <Content Include="Views\Shared\Gallery\Footer.cshtml" />
     <Content Include="Views\Shared\Gallery\Header.cshtml" />
-    <Content Include="Views\Authentication\LogOn.cshtml" />
+    <Content Include="Views\Authentication\SignIn.cshtml" />
     <Content Include="Views\Pages\_PagesView.cshtml" />
+    <Content Include="Views\Shared\_SearchBar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -1902,7 +1903,7 @@
     <Content Include="Views\Users\Confirm.cshtml" />
     <Content Include="Views\Users\Thanks.cshtml" />
     <Content Include="Views\Users\Profiles.cshtml" />
-    <Content Include="Views\Authentication\SignUp.cshtml" />
+    <Content Include="Views\Authentication\Register.cshtml" />
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />
@@ -1933,8 +1934,6 @@
     <Content Include="Views\Users\ConfirmationRequired.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="T4MVC.tt.settings.t4" />
-    <Content Include="Views\Authentication\_SignIn.cshtml" />
-    <Content Include="Views\Authentication\_Register.cshtml" />
     <Content Include="Scripts\jquery-1.11.0.min.map" />
   </ItemGroup>
   <ItemGroup>

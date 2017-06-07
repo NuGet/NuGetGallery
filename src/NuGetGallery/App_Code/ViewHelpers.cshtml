@@ -294,3 +294,24 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         }
     </li>
 }
+
+@helper HasError(System.Web.Mvc.ModelStateDictionary modelState, string key)
+{
+    if (!modelState.IsValid &&
+        modelState.ContainsKey(key) &&
+        modelState[key].Errors.Any())
+    {
+        @:has-error
+    }
+}
+
+@helper ShowErrors(System.Web.Mvc.ModelStateDictionary modelState, string key)
+{
+    if (!modelState.IsValid && modelState.ContainsKey(key))
+    {
+        foreach (var error in modelState[key].Errors)
+        {
+            <span id="@(key).Error" class="help-block">@error.ErrorMessage</span>
+        }
+    }
+}
