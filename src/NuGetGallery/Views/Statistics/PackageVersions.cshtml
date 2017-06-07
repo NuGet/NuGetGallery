@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="container main-container page-statistics-most-downloaded">
+<section class="container main-container page-statistics-most-downloaded">
     <div class="row">
         <div class="col">
             <h1>Most Downloaded Package Versions</h1>
@@ -17,13 +17,13 @@
         </div>
     </div>
     <div class="row">
-        <table class="table">
+        <table class="table borderless">
             <thead>
                 <tr class="package-versions">
-                    <th>&nbsp;</th>
-                    <th>Package</th>
-                    <th>Version</th>
-                    <th>Downloads</th>
+                    <th scope="col">&nbsp;<span class="sr-only">#</span></th>
+                    <th scope="col">Package</th>
+                    <th scope="col">Version</th>
+                    <th scope="col">Downloads</th>
                 </tr>
             </thead>
 
@@ -35,7 +35,7 @@
                         index++;
 
                         <tr>
-                            <td>@index</td>
+                            <td scope="row">@index</td>
                             <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
                             <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
                             <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
@@ -48,4 +48,4 @@
     <div class="row">
         @Html.Partial("_LastUpdated", Model)
     </div>
-</div>
+</section>
