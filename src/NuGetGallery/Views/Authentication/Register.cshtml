@@ -69,31 +69,24 @@
                     @Html.HiddenFor(m => m.External.AccountName)
                 }
 
-                <div class="form-group @ViewHelpers.HasError(ViewData.ModelState, "Register")">
-                    @ViewHelpers.ShowErrors(ViewData.ModelState, "Register")
+                <div class="form-group @Html.HasErrorFor(m => m.Register)">
+                    @Html.ShowValidationMessagesFor(m => m.Register)
                 </div>
 
-                <div class="form-group @ViewHelpers.HasError(ViewData.ModelState, "Register.Username")">
-                    <label id="Register.Username.Label" for="Register.Username">Username</label>
-                    <input type="text" class="form-control" id="Register.Username" name="Register.Username"
-                           placeholder="Username" value="@Model.Register.Username"
-                           aria-labelledby="Register.Username.Label Register.Username.Error" />
-                    @ViewHelpers.ShowErrors(ViewData.ModelState, "Register.Username")
+                <div class="form-group @Html.HasErrorFor(m => m.Register.Username)">
+                    @Html.ShowLabelFor(m => m.Register.Username)
+                    @Html.ShowTextBoxFor(m => m.Register.Username)
+                    @Html.ShowValidationMessagesFor(m => m.Register.Username)
                 </div>
-                <div class="form-group @ViewHelpers.HasError(ViewData.ModelState, "Register.Password")">
-                    <label id="Register.Password.Label" for="Register.Password">Password</label>
-                    <input type="password" class="form-control" id="Register.Password" name="Register.Password"
-                           aria-labelledby="Register.Password.Label Register.Password.Error" />
-                    @ViewHelpers.ShowErrors(ViewData.ModelState, "Register.Password")
+                <div class="form-group @Html.HasErrorFor(m => m.Register.Password)">
+                    @Html.ShowLabelFor(m => m.Register.Password)
+                    @Html.ShowPasswordFor(m => m.Register.Password)
+                    @Html.ShowValidationMessagesFor(m => m.Register.Password)
                 </div>
-                <div class="form-group @ViewHelpers.HasError(ViewData.ModelState, "Register.EmailAddress")">
-                    <label id="Register.EmailAddress.Label" for="Register.EmailAddress">
-                        Email (<a href="http://www.gravatar.com">Gravatar</a>, notifications, and password recovery)
-                    </label>
-                    <input type="text" class="form-control" id="Register.EmailAddress" name="Register.EmailAddress"
-                           placeholder="Email" value="@Model.Register.EmailAddress"
-                           aria-labelledby="Register.EmailAddress.Label Register.EmailAddress.Error" />
-                    @ViewHelpers.ShowErrors(ViewData.ModelState, "Register.EmailAddress")
+                <div class="form-group @Html.HasErrorFor(m => m.Register.EmailAddress)">
+                    @Html.ShowLabelFor(m => m.Register.EmailAddress)
+                    @Html.ShowTextBoxFor(m => m.Register.EmailAddress)
+                    @Html.ShowValidationMessagesFor(m => m.Register.EmailAddress)
                 </div>
                 <div class="panel panel-default text-center">
                     <div class="panel-body">
