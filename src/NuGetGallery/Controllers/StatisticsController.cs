@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.Versioning;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -23,7 +25,7 @@ namespace NuGetGallery
             Constants.StatisticsDimensions.Operation
         };
 
-        private static readonly string[] PackageDownloadsDetailDimensions = new [] {
+        private static readonly string[] PackageDownloadsDetailDimensions = new[] {
             Constants.StatisticsDimensions.ClientName,
             Constants.StatisticsDimensions.ClientVersion,
             Constants.StatisticsDimensions.Operation
@@ -317,7 +319,15 @@ namespace NuGetGallery
                     }
                 }
 
-                report.Table = result.Item1;
+                report.Table = result.Item1.OrderBy(e =>
+                {
+                    if (NuGetVersion.TryParse(e[0].Data, out NuGetVersion versionOut))
+                    {
+                        return versionOut;
+                    }
+
+                    return new NuGetVersion("1.0.0");
+                }).ToList();
                 report.Total = result.Item2;
                 report.Columns = pivot.Select(GetDimensionDisplayName);
             }

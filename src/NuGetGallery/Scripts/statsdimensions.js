@@ -1,9 +1,14 @@
 ﻿var renderGraph = function (baseUrl, query, clickedId) {
     var renderGraphHandler = function (data) {
+        // Render the graph using the data table
+        packageDisplayGraphs(data);
+
+        data.Table.sort(function (a, b) {
+            return parseInt(b[1].Data.replace(",", "")) - parseInt(a[1].Data.replace(",", ""));
+        });
+
         // Populate the data table
         ko.applyBindings({ report: data });
-        // Render the graph using the data table
-        packageDisplayGraphs();
 
         // Add the click handler to the checkboxes
         groupbyNavigation(baseUrl);

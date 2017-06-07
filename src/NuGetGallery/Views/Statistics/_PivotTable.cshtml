@@ -1,24 +1,25 @@
 ﻿@model StatisticsPackagesViewModel
 
+<div class="col-sm-2">test</div>
+<div class="statistics-graph col-sm-10" id="statistics-graph-id"></div>
+
 <div data-bind="template: { name: 'report-template', data: report }"></div>
 
 <script type="text/html" id="report-template">
     <div class="row">
-        <h1 class="statistics-report-title col-sm-12">
+        <h1 class="statistics-report-title col-sm-12 page-heading">
             Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a>
             @*<!-- ko if: $data && Total -->
             <span data-bind="text: '(' + Total + ' over the Last 6 Weeks)'"></span>
             <!-- /ko -->*@
         </h1>
 
-        <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-sm-12">
+        <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-sm-12 page-subheading">
             <span data-bind="text: 'Statistics last updated at ' + moment(LastUpdatedUtc).format('YYYY-MM-DD HH:mm:ss') + ' UTC.'"></span>
         </div>
 
         <div data-bind="if: $data">
             <div data-bind="attr: { id: Id }" class="statistics-pivot">
-
-
                 <div class="statistics-sidebar col-sm-2">
                     <form id="dimension-form">
                         <table data-bind="foreach: Dimensions" class="statistics-dimensions-table">
@@ -35,13 +36,10 @@
                 </div>
 
                 <div class="col-sm-10">
-                    <div class="statistics-graph" id="statistics-graph-id"></div>
-                    @*<div style="clear: both;"></div>*@
-
                     <div class="statistics-data">
                         <table data-bind="if: Table" class="pivot-table table">
                             <thead>
-                                <tr class="row table-row-data">
+                                <tr>
                                     <!-- ko foreach: Columns -->
                                     <th data-bind="attr: { id: $data + '-column' }, text: $data" scope="col" class="dimension-column"></th>
                                     <!-- /ko -->
@@ -49,8 +47,7 @@
                                 </tr>
                             </thead>
                             <tbody data-bind="foreach: Table">
-                                <tr class="row table-row-data">
-
+                                <tr>
                                     <!-- ko foreach: $data -->
                                     <!-- ko if: $data -->
                                     <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : '', rowspan: Rowspan > 1 ? Rowspan : null }" style="vertical-align:top">
