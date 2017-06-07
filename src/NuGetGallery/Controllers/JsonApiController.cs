@@ -38,7 +38,7 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(new { message = "Package not found" });
+                return Json(new { message = Strings.AddOwner_PackageNotFound });
             }
 
             if (!package.IsOwner(HttpContext.User))
@@ -96,23 +96,37 @@ namespace NuGetGallery
             });
         }
 
+        [HttpPost]
+        public Task<JsonResult> RemovePackageOwner(string id, string username)
+        {
+            return ManagePackageOwnerAsync(id, username, async (package, user, currentUser) =>
+            {
+                await _packageService.RemovePackageOwnerAsync(package, user);
+
+                _messageService.SendPackageOwnerRemovedNotice(currentUser, user, package);
+
+                return Json(new { success = true });
+            });
+        }
+
         /// <summary>
         /// UI confirmation message for adding owner from ManageOwners.cshtml
         /// </summary>
         private string GetAddPackageOwnerConfirmationMessage(PackageRegistration package, User user, User currentUser)
         {
-            var defaultMessage = $"Please confirm if you want to proceed adding '{user.Username}' as a co-owner of this package.";
+            var defaultMessage = string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerConfirmation, user.Username);
 
             if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
             {
-                return SecurePushMessages.ConfirmationOfPoliciesRequiredByNewPendingCoOwner(user)
+                return string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerConfirmation_SecurePushRequiredByNewOwner, user.Username, Strings.SecurePushPolicyDescriptions)
                     + Environment.NewLine + defaultMessage;
             }
 
             var propagatingOwners = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o)).Select(o => o.Username);
             if (propagatingOwners.Any())
             {
-                return SecurePushMessages.ConfirmationOfPoliciesRequiredByCoOwners(propagatingOwners, user)
+                var propagators = string.Join(", ", propagatingOwners);
+                return string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerConfirmation_SecurePushRequiredByOwner, propagators, user.Username, Strings.SecurePushPolicyDescriptions)
                     + Environment.NewLine + defaultMessage;
             }
 
@@ -121,7 +135,8 @@ namespace NuGetGallery
                 .Select(po => po.NewOwner.Username);
             if (pendingPropagatingOwners.Any())
             {
-                return SecurePushMessages.ConfirmationOfPoliciesRequiredByPendingCoOwners(pendingPropagatingOwners, user)
+                var propagators = string.Join(", ", pendingPropagatingOwners);
+                return string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerConfirmation_SecurePushRequiredByPendingOwner, propagators, user.Username, Strings.SecurePushPolicyDescriptions)
                     + Environment.NewLine + defaultMessage;
             }
 
@@ -135,13 +150,14 @@ namespace NuGetGallery
         {
             if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
             {
-                return SecurePushMessages.NoticeOfPoliciesRequiredByNewPendingCoOwner(user);
+                return string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerRequest_SecurePushRequiredByNewOwner, Strings.SecurePushPolicyDescriptions);
             }
 
             var propagatingOwners = package.Owners.Where(o => RequireSecurePushForCoOwnersPolicy.IsSubscribed(o)).Select(o => o.Username);
             if (propagatingOwners.Any())
             {
-                return SecurePushMessages.NoticeOfPoliciesRequiredByCoOwners(propagatingOwners);
+                var propagators = string.Join(", ", propagatingOwners);
+                return string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerRequest_SecurePushRequiredByOwner, propagators, Strings.SecurePushPolicyDescriptions);
             }
 
             var pendingPropagatingOwners = _packageOwnerRequestRepository.GetAll()
@@ -149,23 +165,11 @@ namespace NuGetGallery
                 .Select(po => po.NewOwner.Username);
             if (pendingPropagatingOwners.Any())
             {
-                return SecurePushMessages.NoticeOfPoliciesRequiredByPendingCoOwners(pendingPropagatingOwners);
+                var propagators = string.Join(", ", pendingPropagatingOwners);
+                return string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerRequest_SecurePushRequiredByPendingOwner, propagators, Strings.SecurePushPolicyDescriptions);
             }
 
             return string.Empty;
-        }
-
-        [HttpPost]
-        public Task<JsonResult> RemovePackageOwner(string id, string username)
-        {
-            return ManagePackageOwnerAsync(id, username, async (package, user, currentUser) =>
-            {
-                await _packageService.RemovePackageOwnerAsync(package, user);
-
-                _messageService.SendPackageOwnerRemovedNotice(currentUser, user, package);
-
-                return Json(new { success = true });
-            });
         }
 
         private Task<JsonResult> ManagePackageOwnerAsync(string id, string username, Func<PackageRegistration, User, User, JsonResult> action)
@@ -187,25 +191,26 @@ namespace NuGetGallery
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {
-                return Task.FromResult(Json(new { success = false, message = "Package not found." }));
+                return Task.FromResult(Json(new { success = false, message = Strings.AddOwner_PackageNotFound }));
             }
             if (!package.IsOwner(HttpContext.User))
             {
-                return Task.FromResult(Json(new { success = false, message = "You are not the package owner." }));
+                return Task.FromResult(Json(new { success = false, message = Strings.AddOwner_NotPackageOwner }));
             }
             var user = _userService.FindByUsername(username);
             if (user == null)
             {
-                return Task.FromResult(Json(new { success = false, message = "Owner not found." }));
+                return Task.FromResult(Json(new { success = false, message = Strings.AddOwner_OwnerNotFound }));
             }
             if (!user.Confirmed)
             {
-                return Task.FromResult(Json(new { success = false, message = string.Format(CultureInfo.InvariantCulture, "Sorry, {0} hasn't verified their email account yet and we cannot proceed with the request.", username) }));
+                return Task.FromResult(Json(new { success = false,
+                    message = string.Format(CultureInfo.InvariantCulture, Strings.AddOwner_OwnerNotConfirmed, username) }));
             }
             var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
             if (currentUser == null)
             {
-                return Task.FromResult(Json(new { success = false, message = "Current user not found." }));
+                return Task.FromResult(Json(new { success = false, message = Strings.AddOwner_CurrentUserNotFound }));
             }
             return actionAsync(package, user, currentUser);
         }

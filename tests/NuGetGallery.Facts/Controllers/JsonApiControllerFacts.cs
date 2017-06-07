@@ -111,7 +111,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 Assert.False(data.success);
-                Assert.Equal("Sorry, testUser hasn't verified their email account yet and we cannot proceed with the request.", data.message);
+                Assert.Equal("Sorry, 'testUser' hasn't verified their email account yet and we cannot proceed with the request.", data.message);
             }
 
             [Fact]
@@ -195,7 +195,7 @@ namespace NuGetGallery.Controllers
                 // Assert
                 Assert.True(data.success);
                 Assert.StartsWith(
-                    "Owner 'testPackageOwner' has the following requirements that will be enforced for user 'testUser' once the user accepts ownership of this package:",
+                    "Owner(s) 'testPackageOwner' has (have) the following requirements that will be enforced for user 'testUser' once the user accepts ownership of this package:",
                     data.confirmation);
             }
 
@@ -226,7 +226,7 @@ namespace NuGetGallery.Controllers
                 // Assert
                 Assert.True(data.success);
                 Assert.StartsWith(
-                    "Pending owner 'testShaUser' has the following requirements that will be enforced for all co-owners, including 'testUser', once they accept ownership of this package:",
+                    "Pending owner(s) 'testShaUser' has (have) the following requirements that will be enforced for all co-owners, including 'testUser', once ownership requests are accepted:",
                     data.confirmation);
             }
         }
@@ -318,7 +318,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 Assert.False(data.success);
-                Assert.Equal("Sorry, testUser hasn't verified their email account yet and we cannot proceed with the request.", data.message);
+                Assert.Equal("Sorry, 'testUser' hasn't verified their email account yet and we cannot proceed with the request.", data.message);
             }
 
             [Fact]
@@ -408,7 +408,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 Assert.StartsWith(
-                    "Note: Owner 'testPackageOwner' has the following policies that will be enforced on your account once you accept this request.",
+                    "Note: Owner(s) 'testPackageOwner' has (have) the following policies that will be enforced on your account once you accept this request.",
                     policyMessage);
             }
 
@@ -431,7 +431,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 Assert.StartsWith(
-                    "Note: Pending owner 'testShaUser' has the following policies that will be enforced on your account once owner requests are accepted.",
+                    "Note: Pending owner(s) 'testShaUser' has (have) the following policies that will be enforced on your account once ownership requests are accepted.",
                     policyMessage);
             }
 

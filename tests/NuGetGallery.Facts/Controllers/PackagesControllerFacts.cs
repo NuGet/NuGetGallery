@@ -559,7 +559,7 @@ namespace NuGetGallery
 
                 Assert.False(policyMessages.ContainsKey(fakes.User.Username));
                 Assert.Equal(2, policyMessages.Count);
-                Assert.StartsWith("Owner 'testPackageOwner' has the following requirements that are now enforced for user 'testUser':",
+                Assert.StartsWith("Owner(s) 'testPackageOwner' has (have) the following requirements that are now enforced for user 'testUser':",
                     policyMessages[fakes.Owner.Username]);
                 Assert.Equal("", policyMessages[fakes.ShaUser.Username]);
             }

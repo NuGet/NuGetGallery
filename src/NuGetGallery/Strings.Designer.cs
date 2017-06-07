@@ -61,6 +61,158 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current user not found..
+        /// </summary>
+        public static string AddOwner_CurrentUserNotFound {
+            get {
+                return ResourceManager.GetString("AddOwner_CurrentUserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are not the package owner..
+        /// </summary>
+        public static string AddOwner_NotPackageOwner {
+            get {
+                return ResourceManager.GetString("AddOwner_NotPackageOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sorry, &apos;{0}&apos; hasn&apos;t verified their email account yet and we cannot proceed with the request..
+        /// </summary>
+        public static string AddOwner_OwnerNotConfirmed {
+            get {
+                return ResourceManager.GetString("AddOwner_OwnerNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Owner not found..
+        /// </summary>
+        public static string AddOwner_OwnerNotFound {
+            get {
+                return ResourceManager.GetString("AddOwner_OwnerNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package not found..
+        /// </summary>
+        public static string AddOwner_PackageNotFound {
+            get {
+                return ResourceManager.GetString("AddOwner_PackageNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please confirm if you want to proceed adding &apos;{0}&apos; as a co-owner of this package..
+        /// </summary>
+        public static string AddOwnerConfirmation {
+            get {
+                return ResourceManager.GetString("AddOwnerConfirmation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:
+        ///
+        ///{1}
+        ///
+        ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact support@nuget.org..
+        /// </summary>
+        public static string AddOwnerConfirmation_SecurePushRequiredByNewOwner {
+            get {
+                return ResourceManager.GetString("AddOwnerConfirmation_SecurePushRequiredByNewOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; has (have) the following requirements that will be enforced for user &apos;{1}&apos; once the user accepts ownership of this package:
+        ///
+        ///{2}
+        ///
+        ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact support@nuget.org..
+        /// </summary>
+        public static string AddOwnerConfirmation_SecurePushRequiredByOwner {
+            get {
+                return ResourceManager.GetString("AddOwnerConfirmation_SecurePushRequiredByOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending owner(s) &apos;{0}&apos; has (have) the following requirements that will be enforced for all co-owners, including &apos;{1}&apos;, once ownership requests are accepted:
+        ///
+        ///{2}
+        ///
+        ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact support@nuget.org..
+        /// </summary>
+        public static string AddOwnerConfirmation_SecurePushRequiredByPendingOwner {
+            get {
+                return ResourceManager.GetString("AddOwnerConfirmation_SecurePushRequiredByPendingOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; has the following requirements that are now enforced for your account:
+        ///
+        ///{1}
+        ///
+        ///For more information, please contact support@nuget.org..
+        /// </summary>
+        public static string AddOwnerNotification_SecurePushRequiredByNewOwner {
+            get {
+                return ResourceManager.GetString("AddOwnerNotification_SecurePushRequiredByNewOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; has (have) the following requirements that are now enforced for user &apos;{1}&apos;:
+        ///
+        ///{2}
+        ///
+        ///For more information, please contact support@nuget.org..
+        /// </summary>
+        public static string AddOwnerNotification_SecurePushRequiredByOwner {
+            get {
+                return ResourceManager.GetString("AddOwnerNotification_SecurePushRequiredByOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note: The following policies will be enforced on package co-owners once you accept this request. If you are unsure and/or need more information, please contact support@nuget.org.
+        ///
+        ///{0}.
+        /// </summary>
+        public static string AddOwnerRequest_SecurePushRequiredByNewOwner {
+            get {
+                return ResourceManager.GetString("AddOwnerRequest_SecurePushRequiredByNewOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note: Owner(s) &apos;{0}&apos; has (have) the following policies that will be enforced on your account once you accept this request. If you are unsure and/or need more information, please contact support@nuget.org.
+        ///
+        ///{1}.
+        /// </summary>
+        public static string AddOwnerRequest_SecurePushRequiredByOwner {
+            get {
+                return ResourceManager.GetString("AddOwnerRequest_SecurePushRequiredByOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note: Pending owner(s) &apos;{0}&apos; has (have) the following policies that will be enforced on your account once ownership requests are accepted. If you are unsure and/or need more information, please contact support@nuget.org.
+        ///
+        ///{1}.
+        /// </summary>
+        public static string AddOwnerRequest_SecurePushRequiredByPendingOwner {
+            get {
+                return ResourceManager.GetString("AddOwnerRequest_SecurePushRequiredByPendingOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You are already logged in!.
         /// </summary>
         public static string AlreadyLoggedIn {
@@ -776,6 +928,16 @@ namespace NuGetGallery {
         public static string ScopeDescription_VerifyPackage {
             get {
                 return ResourceManager.GetString("ScopeDescription_VerifyPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1. All co-owners must use client version &apos;{0}&apos; or higher to push all of their packages.
+        ///2. All existing push API keys for co-owners new to this policy will expire in &apos;{1}&apos; days..
+        /// </summary>
+        public static string SecurePushPolicyDescriptions {
+            get {
+                return ResourceManager.GetString("SecurePushPolicyDescriptions", resourceCulture);
             }
         }
         

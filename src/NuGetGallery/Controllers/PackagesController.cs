@@ -1064,7 +1064,7 @@ namespace NuGetGallery
                     .Select(sr => sr.Key).ToList();
                 if (policyMessageOwners.Count > 0)
                 {
-                    policyMessage = SecurePushMessages.NoticeOfPoliciesSubscribedByNewCoOwner(user);
+                    policyMessage = string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerNotification_SecurePushRequiredByNewOwner, user.Username, Strings.SecurePushPolicyDescriptions);
                 }
             }
             else
@@ -1075,7 +1075,8 @@ namespace NuGetGallery
                 {
                     await SubscribeToSecurePushAsync(user);
                     policyMessageOwners = ownersWithPolicy.Select(o => o.Username).ToList();
-                    policyMessage = SecurePushMessages.NoticeOfPoliciesSubscribedByPolicyOwner(policyMessageOwners, user);
+                    var propagators = string.Join(", ", policyMessageOwners);
+                    policyMessage = string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerNotification_SecurePushRequiredByOwner, propagators, user.Username, Strings.SecurePushPolicyDescriptions);
                 }
             }
 
