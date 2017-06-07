@@ -119,7 +119,7 @@ namespace NuGetGallery {
         ///
         ///{1}
         ///
-        ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact support@nuget.org..
+        ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact &apos;{2}&apos;..
         /// </summary>
         public static string AddOwnerConfirmation_SecurePushRequiredByNewOwner {
             get {
@@ -132,7 +132,7 @@ namespace NuGetGallery {
         ///
         ///{2}
         ///
-        ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact support@nuget.org..
+        ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact &apos;{3}&apos;..
         /// </summary>
         public static string AddOwnerConfirmation_SecurePushRequiredByOwner {
             get {
@@ -145,7 +145,7 @@ namespace NuGetGallery {
         ///
         ///{2}
         ///
-        ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact support@nuget.org..
+        ///Note this step cannot be easily undone. If you are unsure and/or need more information, please contact &apos;{3}&apos;..
         /// </summary>
         public static string AddOwnerConfirmation_SecurePushRequiredByPendingOwner {
             get {
@@ -158,7 +158,7 @@ namespace NuGetGallery {
         ///
         ///{1}
         ///
-        ///For more information, please contact support@nuget.org..
+        ///For more information, please contact &apos;{2}&apos;..
         /// </summary>
         public static string AddOwnerNotification_SecurePushRequiredByNewOwner {
             get {
@@ -171,7 +171,7 @@ namespace NuGetGallery {
         ///
         ///{2}
         ///
-        ///For more information, please contact support@nuget.org..
+        ///For more information, please contact &apos;{3}&apos;..
         /// </summary>
         public static string AddOwnerNotification_SecurePushRequiredByOwner {
             get {
@@ -180,9 +180,9 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Note: The following policies will be enforced on package co-owners once you accept this request. If you are unsure and/or need more information, please contact support@nuget.org.
+        ///   Looks up a localized string similar to Note: The following policies will be enforced on package co-owners once you accept this request. If you are unsure and/or need more information, please contact &apos;{0}&apos;.
         ///
-        ///{0}.
+        ///{1}.
         /// </summary>
         public static string AddOwnerRequest_SecurePushRequiredByNewOwner {
             get {
@@ -191,9 +191,9 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Note: Owner(s) &apos;{0}&apos; has (have) the following policies that will be enforced on your account once you accept this request. If you are unsure and/or need more information, please contact support@nuget.org.
+        ///   Looks up a localized string similar to Note: Owner(s) &apos;{0}&apos; has (have) the following policies that will be enforced on your account once you accept this request. If you are unsure and/or need more information, please contact &apos;{1}&apos;.
         ///
-        ///{1}.
+        ///{2}.
         /// </summary>
         public static string AddOwnerRequest_SecurePushRequiredByOwner {
             get {
@@ -202,9 +202,9 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Note: Pending owner(s) &apos;{0}&apos; has (have) the following policies that will be enforced on your account once ownership requests are accepted. If you are unsure and/or need more information, please contact support@nuget.org.
+        ///   Looks up a localized string similar to Note: Pending owner(s) &apos;{0}&apos; has (have) the following policies that will be enforced on your account once ownership requests are accepted. If you are unsure and/or need more information, please contact &apos;{1}&apos;.
         ///
-        ///{1}.
+        ///{2}.
         /// </summary>
         public static string AddOwnerRequest_SecurePushRequiredByPendingOwner {
             get {

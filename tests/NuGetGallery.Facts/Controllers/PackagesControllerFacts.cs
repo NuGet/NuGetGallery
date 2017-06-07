@@ -61,6 +61,7 @@ namespace NuGetGallery
             searchService = searchService ?? CreateSearchService();
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
             config = config ?? new Mock<IAppConfiguration>();
+            config.Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
 
             if (packageFileService == null)
             {

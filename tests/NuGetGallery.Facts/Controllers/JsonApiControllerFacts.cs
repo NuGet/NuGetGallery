@@ -10,6 +10,8 @@ using Moq;
 using NuGetGallery.Framework;
 using Xunit;
 using NuGetGallery.Security;
+using NuGetGallery.Configuration;
+using System.Net.Mail;
 
 namespace NuGetGallery.Controllers
 {
@@ -161,6 +163,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var controller = GetController<JsonApiController>();
+                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
@@ -183,6 +186,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var controller = GetController<JsonApiController>();
+                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
@@ -205,6 +209,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var controller = GetController<JsonApiController>();
+                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
@@ -439,6 +444,7 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var controller = GetController<JsonApiController>();
+                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));

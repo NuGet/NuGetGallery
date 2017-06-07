@@ -473,49 +473,49 @@ The {1} Team</value>
 
 {1}
 
-Note this step cannot be easily undone. If you are unsure and/or need more information, please contact support@nuget.org.</value>
+Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{2}'.</value>
   </data>
   <data name="AddOwnerConfirmation_SecurePushRequiredByOwner" xml:space="preserve">
     <value>Owner(s) '{0}' has (have) the following requirements that will be enforced for user '{1}' once the user accepts ownership of this package:
 
 {2}
 
-Note this step cannot be easily undone. If you are unsure and/or need more information, please contact support@nuget.org.</value>
+Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{3}'.</value>
   </data>
   <data name="AddOwnerConfirmation_SecurePushRequiredByPendingOwner" xml:space="preserve">
     <value>Pending owner(s) '{0}' has (have) the following requirements that will be enforced for all co-owners, including '{1}', once ownership requests are accepted:
 
 {2}
 
-Note this step cannot be easily undone. If you are unsure and/or need more information, please contact support@nuget.org.</value>
+Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{3}'.</value>
   </data>
   <data name="AddOwnerNotification_SecurePushRequiredByNewOwner" xml:space="preserve">
     <value>User '{0}' has the following requirements that are now enforced for your account:
 
 {1}
 
-For more information, please contact support@nuget.org.</value>
+For more information, please contact '{2}'.</value>
   </data>
   <data name="AddOwnerNotification_SecurePushRequiredByOwner" xml:space="preserve">
     <value>Owner(s) '{0}' has (have) the following requirements that are now enforced for user '{1}':
 
 {2}
 
-For more information, please contact support@nuget.org.</value>
+For more information, please contact '{3}'.</value>
   </data>
   <data name="AddOwnerRequest_SecurePushRequiredByNewOwner" xml:space="preserve">
-    <value>Note: The following policies will be enforced on package co-owners once you accept this request. If you are unsure and/or need more information, please contact support@nuget.org.
+    <value>Note: The following policies will be enforced on package co-owners once you accept this request. If you are unsure and/or need more information, please contact '{0}'.
 
-{0}</value>
+{1}</value>
   </data>
   <data name="AddOwnerRequest_SecurePushRequiredByOwner" xml:space="preserve">
-    <value>Note: Owner(s) '{0}' has (have) the following policies that will be enforced on your account once you accept this request. If you are unsure and/or need more information, please contact support@nuget.org.
+    <value>Note: Owner(s) '{0}' has (have) the following policies that will be enforced on your account once you accept this request. If you are unsure and/or need more information, please contact '{1}'.
 
-{1}</value>
+{2}</value>
   </data>
   <data name="AddOwnerRequest_SecurePushRequiredByPendingOwner" xml:space="preserve">
-    <value>Note: Pending owner(s) '{0}' has (have) the following policies that will be enforced on your account once ownership requests are accepted. If you are unsure and/or need more information, please contact support@nuget.org.
+    <value>Note: Pending owner(s) '{0}' has (have) the following policies that will be enforced on your account once ownership requests are accepted. If you are unsure and/or need more information, please contact '{1}'.
 
-{1}</value>
+{2}</value>
   </data>
 </root>
