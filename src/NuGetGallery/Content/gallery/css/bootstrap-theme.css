@@ -200,6 +200,19 @@ body {
 .page-forgot-password .forgot-form {
   margin-top: 80px;
 }
+.page-report-abuse .report-form {
+  margin-top: 40px;
+}
+.page-report-abuse .report-form #alreadycontactedowner-label {
+  display: inline;
+}
+.page-report-abuse .report-form .infringement-claim-requirements h2 {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+}
 .page-sign-in .provider-button {
   margin-top: 70px;
   line-height: 2em;
