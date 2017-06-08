@@ -287,10 +287,27 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 
                 if (!processedRequest)
                 {
-                    _logger.LogWarning(
-                        "Callback was not handled for State={State}, Result={Result}. " +
-                        "Request body: {RequestBody}",
-                        result?.State, result?.Result, TruncateString(body, ReasonableBodySize));
+                    if (validationEntity == null)
+                    {
+                        _logger.LogWarning(
+                            "Callback was not handled for State={State}, Result={Result}. " +
+                            "Request body: {RequestBody}",
+                            result?.State, result?.Result, TruncateString(body, ReasonableBodySize));
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Callback was not handled for State={State}, Result={Result}," +
+                            $"{{{TraceConstant.ValidationId}}}, " +
+                            $"Package: {{{TraceConstant.PackageId}}} {{{TraceConstant.PackageVersion}}}. " +
+                            "Request body: {RequestBody}",
+                            result?.State,
+                            result?.Result,
+                            validationEntity.ValidationId,
+                            validationEntity.PackageId,
+                            validationEntity.PackageVersion,
+                            TruncateString(body, ReasonableBodySize));
+                    }
                 }
             }
         }
