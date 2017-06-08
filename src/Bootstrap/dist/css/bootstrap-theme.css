@@ -38,6 +38,16 @@ body {
     margin-bottom: 330px;
   }
 }
+body h1,
+body h2,
+body h3,
+body p {
+  margin-bottom: 24px;
+}
+body h2,
+body h3 {
+  margin-top: 40px;
+}
 .navbar-seperated .seperator {
   display: block;
   padding: 11px 0;
@@ -242,19 +252,12 @@ body {
 .page-pages .pages-container {
   margin-bottom: 70px;
 }
-.page-pages h1 {
-  margin-bottom: 40px;
+.page-about .contributors .contributor {
+  padding: 5px;
 }
-.page-pages h2 {
-  margin-top: 40px;
-  margin-bottom: 20px;
-}
-.page-pages h3 {
-  margin-top: 40px;
-  margin-bottom: 10px;
-}
-.page-pages p {
-  margin-bottom: 24px;
+.page-about .contributors .contributor .avatar {
+  width: 75px;
+  height: 75px;
 }
 .page-statistics-most-downloaded h2 {
   margin-top: 4px;
