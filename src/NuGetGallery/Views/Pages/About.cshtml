@@ -119,6 +119,8 @@
                     contributors.sort(compareContributors);
 
                     ko.applyBindings({ team: team, contributors: contributors });
+
+                    $(".contributors").hide().slideDown();
                 });
         });
 
