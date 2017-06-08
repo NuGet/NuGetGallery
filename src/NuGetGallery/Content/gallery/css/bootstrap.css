@@ -660,8 +660,9 @@ dd {
 }
 abbr[title],
 abbr[data-original-title] {
+  text-decoration: none;
   cursor: help;
-  border-bottom: 1px dotted #777;
+  border-bottom: 0;
 }
 .initialism {
   font-size: 90%;
