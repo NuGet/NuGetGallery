@@ -102,17 +102,13 @@ body h3 {
   left: -24px;
 }
 .list-packages {
-  border-top-color: #dbdbdb;
-  border-top-style: solid;
-  border-top-width: 1px;
+  border-top: 1px solid #dbdbdb;
 }
 .list-packages .package {
   padding-top: 20px;
   padding-bottom: 20px;
   font-size: 15px;
-  border-bottom-color: #dbdbdb;
-  border-bottom-style: solid;
-  border-bottom-width: 1px;
+  border-bottom: 1px solid #dbdbdb;
 }
 @media screen and (max-width: 768px) {
   .list-packages .package img {
@@ -292,7 +288,7 @@ body h3 {
 }
 .page-profile .profile-title h1 {
   display: inline;
-  font-size: 46px;
+  font-size: 2.285em;
   font-weight: 300;
 }
 .page-profile .profile-title .verified {
