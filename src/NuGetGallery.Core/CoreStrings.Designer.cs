@@ -124,6 +124,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid Dependency Version: &apos;{0}&apos;.
+        /// </summary>
+        public static string Manifest_InvalidDependencyVersion {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidDependencyVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an invalid ID: &apos;{0}&apos;.
         /// </summary>
         public static string Manifest_InvalidId {
@@ -165,15 +174,6 @@ namespace NuGetGallery {
         public static string Manifest_InvalidVersion {
             get {
                 return ResourceManager.GetString("Manifest_InvalidVersion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The version &apos;{0}&apos; is not supported. The NuGet Gallery currently does not currently support Semantic Version 2.0 as it would break older NuGet clients..
-        /// </summary>
-        public static string Manifest_InvalidVersionSemVer200 {
-            get {
-                return ResourceManager.GetString("Manifest_InvalidVersionSemVer200", resourceCulture);
             }
         }
         

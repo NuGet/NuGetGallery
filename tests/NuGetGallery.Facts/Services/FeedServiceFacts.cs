@@ -635,7 +635,9 @@ namespace NuGetGallery
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
-                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages(Id='" + expectedId + "', Version='" + expectedVersion + "')");
+                    v2Service.Request = new HttpRequestMessage(
+                        HttpMethod.Get,
+                        $"https://localhost:8081/api/v2/Packages(Id=\'{expectedId}\', Version=\'{expectedVersion}\')");
 
                     // Act
                     var result = (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), expectedId, expectedVersion))

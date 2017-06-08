@@ -425,24 +425,26 @@
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Common, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Common.4.3.0-preview1-2507\lib\net45\NuGet.Common.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Common.4.3.0-preview1-2524\lib\net45\NuGet.Common.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Frameworks, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Frameworks.4.3.0-preview1-2507\lib\net45\NuGet.Frameworks.dll</HintPath>
-    </Reference>
-    <Reference Include="NuGet.Logging, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Logging.3.5.0-beta-1160\lib\net45\NuGet.Logging.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\packages\NuGet.Frameworks.4.3.0-preview1-2524\lib\net45\NuGet.Frameworks.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Packaging, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Packaging.4.3.0-preview1-2507\lib\net45\NuGet.Packaging.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.4.3.0-preview1-2524\lib\net45\NuGet.Packaging.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Packaging.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Packaging.Core.4.3.0-preview1-2507\lib\net45\NuGet.Packaging.Core.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Packaging.Core.4.3.0-preview1-2524\lib\net45\NuGet.Packaging.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NuGet.Services.Logging, Version=2.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Logging.2.2.3\lib\net452\NuGet.Services.Logging.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Services.Platform.Client, Version=3.0.29.0, Culture=neutral, processorArchitecture=MSIL">
@@ -450,11 +452,8 @@
       <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.29-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2507\lib\net45\NuGet.Protocol.dll</HintPath>
-    </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2507\lib\net45\NuGet.Versioning.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor, Version=0.5.4237.2641, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -762,8 +761,16 @@
     <Compile Include="Migrations\201705041614287_UserSecurityPolicies_SubscriptionColumn.Designer.cs">
       <DependentUpon>201705041614287_UserSecurityPolicies_SubscriptionColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.cs" />
+    <Compile Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.Designer.cs">
+      <DependentUpon>201706061829243_AddSemVer2LatestVersionColumns.cs</DependentUpon>
+    </Compile>
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
+    <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\IFeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\V1FeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategy.cs" />
     <Compile Include="Security\UserSecurityPolicyHandler.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
@@ -775,7 +782,6 @@
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
-    <Compile Include="Telemetry\TelemetryResponseCodeFilter.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
     <Compile Include="Infrastructure\Authentication\ICredentialBuilder.cs" />
@@ -1470,6 +1476,7 @@
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
+    <Compile Include="WebApi\QueryResultDefaults.cs" />
     <Compile Include="WebApi\QueryResultExtensions.cs" />
     <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <Content Include="ApplicationInsights.config">
@@ -1731,6 +1738,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201705041614287_UserSecurityPolicies_SubscriptionColumn.resx">
       <DependentUpon>201705041614287_UserSecurityPolicies_SubscriptionColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.resx">
+      <DependentUpon>201706061829243_AddSemVer2LatestVersionColumns.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
