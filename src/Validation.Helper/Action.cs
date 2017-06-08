@@ -3,7 +3,7 @@
 
 namespace NuGet.Jobs.Validation.Helper
 {
-    internal enum Action
+    public enum Action
     {
         /// <summary>
         /// Request to rescan the package

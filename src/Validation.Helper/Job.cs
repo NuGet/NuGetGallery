@@ -157,6 +157,9 @@ namespace NuGet.Jobs.Validation.Helper
             Console.WriteLine($"\t-{CommandLineArguments.ValidationId} <validation Id (GUID)>");
             Console.WriteLine($"\t-{CommandLineArguments.Alias} <alias>");
             Console.WriteLine($"\t-{CommandLineArguments.Comment} <comment>");
+            Console.WriteLine();
+            Console.WriteLine("Package Id and version are supposed to be urlencoded (https://www.bing.com/search?q=urlencode).");
+            Console.WriteLine("You need it for package ids and versions containing non-latin unicode characters and versions containing '+'.");
         }
 
         private static T ParseEnum<T>(string value)

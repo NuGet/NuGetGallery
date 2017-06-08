@@ -11,19 +11,21 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.Common.OData;
 using NuGet.Jobs.Validation.Common.Validators.Vcs;
+using System.Web;
 
 namespace NuGet.Jobs.Validation.Helper
 {
-    internal class Rescan : ICommand
+    public class Rescan : ICommand
     {
         private readonly ILogger<Rescan> _logger;
         private readonly NuGetV2Feed _feed;
         private readonly string _containerName;
         private readonly CloudStorageAccount _cloudStorageAccount;
-        private readonly string _packageId;
-        private readonly string _packageVersion;
         private readonly PackageValidationService _packageValidationService;
         private readonly string _galleryBaseAddress;
+
+        public string PackageId { get; private set; }
+        public string PackageVersion { get; private set; }
 
         public Action Action => Helper.Action.Rescan;
 
@@ -43,8 +45,10 @@ namespace NuGet.Jobs.Validation.Helper
             _containerName = containerName;
             _cloudStorageAccount = cloudStorageAccount;
 
-            _packageId = JobConfigurationManager.GetArgument(jobArgsDictionary, CommandLineArguments.PackageId);
-            _packageVersion = JobConfigurationManager.GetArgument(jobArgsDictionary, CommandLineArguments.PackageVersion);
+            PackageId = JobConfigurationManager.GetArgument(jobArgsDictionary, CommandLineArguments.PackageId);
+            PackageId = HttpUtility.UrlDecode(PackageId);
+            PackageVersion = JobConfigurationManager.GetArgument(jobArgsDictionary, CommandLineArguments.PackageVersion);
+            PackageVersion = HttpUtility.UrlDecode(PackageVersion);
             _packageValidationService = packageValidationService;
             _galleryBaseAddress = galleryBaseAddress;
         }
@@ -53,16 +57,16 @@ namespace NuGet.Jobs.Validation.Helper
         {
             _logger.LogInformation($"Creating rescan request for {{{TraceConstant.PackageId}}} " +
                     $"{{{TraceConstant.PackageVersion}}}",
-                _packageId,
-                _packageVersion);
+                PackageId,
+                PackageVersion);
 
-            NuGetPackage package = await Util.GetPackage(_galleryBaseAddress, _feed, _packageId, _packageVersion);
+            NuGetPackage package = await Util.GetPackage(_galleryBaseAddress, _feed, PackageId, PackageVersion);
             if (package == null)
             {
                 _logger.LogError($"Unable to find {{{TraceConstant.PackageId}}} " +
                         $"{{{TraceConstant.PackageVersion}}}. Terminating.",
-                    _packageId,
-                    _packageVersion);
+                    PackageId,
+                    PackageVersion);
                 return false;
             }
             _logger.LogInformation($"Found package {{{TraceConstant.PackageId}}} " +
