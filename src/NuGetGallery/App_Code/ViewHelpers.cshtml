@@ -60,6 +60,11 @@
     }
 }
 
+@helper ImageFallback(string url)
+{
+    <text>onerror="this.src='@url'; this.onerror = null;"</text>
+}
+
 @helper Option(string value, string label, string currentValue)
 {
     <option value="@value" @if (value == currentValue)
@@ -320,25 +325,4 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             </div>
         }
     </li>
-}
-
-@helper HasError(System.Web.Mvc.ModelStateDictionary modelState, string key)
-{
-    if (!modelState.IsValid &&
-        modelState.ContainsKey(key) &&
-        modelState[key].Errors.Any())
-    {
-        @:has-error
-    }
-}
-
-@helper ShowErrors(System.Web.Mvc.ModelStateDictionary modelState, string key)
-{
-    if (!modelState.IsValid && modelState.ContainsKey(key))
-    {
-        foreach (var error in modelState[key].Errors)
-        {
-            <span id="@(key).Error" class="help-block">@error.ErrorMessage</span>
-        }
-    }
 }

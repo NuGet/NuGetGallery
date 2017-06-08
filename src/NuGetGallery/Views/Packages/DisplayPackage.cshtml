@@ -29,15 +29,17 @@
     }
 }
 
-<div class="container main-container page-package-details">
+<section role="main" class="container main-container page-package-details">
     <div class="row">
-        <div class="col-md-1">
+        <aside class="col-sm-1">
             <h3>
-                <img class="img-responsive" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/gallery/img/default-package-icon.png")';"
-                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.png"))" />
+                <img class="img-responsive"
+                     aria-hidden="true" alt=""
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))
+                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))" />
             </h3>
-        </div>
-        <div class="col-md-8">
+        </aside>
+        <article class="col-sm-8">
             <h1 title="@Model.Title">
                 @Model.Title.Abbreviate(40)
                 <small>@Model.Version</small>
@@ -314,8 +316,8 @@
                     <span>Show more</span>
                 </button>
             }
-        </div>
-        <div class="col-md-3 package-details-info">
+        </article>
+        <aside class="col-sm-3 package-details-info">
             <h2>Info</h2>
             <ul class="list-unstyled ms-Icon-ul">
                 <li>
@@ -492,12 +494,12 @@
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
             }
             <p>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank" title="Share on Facebook"><img width="24" height="24" src="~/Content/gallery/img/facebook.png" alt="Small icon of Facebook's logo" /></a>
-                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank" title="Tweet this package"><img width="24" height="24" src="~/Content/gallery/img/twitter.png" alt="Small icon of Twitter's logo" /></a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank"><img width="24" height="24" src="~/Content/gallery/img/facebook.png" alt="Share on Facebook" /></a>
+                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank"><img width="24" height="24" src="~/Content/gallery/img/twitter.png" alt="Tweet this package" /></a>
             </p>
-        </div>
+        </aside>
     </div>
-</div>
+</section>
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/gallery/page-display-package.min.js")

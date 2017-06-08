@@ -39,3 +39,7 @@ docs/.jekyll-metadata
 # Folders to ignore
 bower_components
 node_modules
+
+# .map files are currently unused and minification is done by MVC.
+dist/css/*.map
+dist/css/*.min.css
