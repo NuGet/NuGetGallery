@@ -4,21 +4,13 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="page-home">
+<section class="page-home">
     <div class="jumbotron text-center">
         <div class="container">
             <h1>Power your projects with NuGet</h1>
             <div class="row">
                 <form class="col-md-8 col-md-offset-2" action="@Url.PackageList()" method="get">
-                    <div class="input-group">
-                        <input name="q" type="text" class="form-control" id="search"
-                               placeholder="Search for packages..." autocomplete="off"
-                               value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
-                               @(Request.Url != null && (Request.Url.PathAndQuery == "/" || Request.Url.PathAndQuery == "/packages") ? "autofocus" : string.Empty) />
-                        <span class="input-group-btn">
-                            <button class="btn btn-default btn-warning" type="submit"><span class="ms-Icon ms-Icon--Search"></span></button>
-                        </span>
-                    </div>
+                    @Html.Partial("_SearchBar")
                 </form>
             </div>
             <div class="row">
@@ -76,7 +68,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/gallery/page-home.min.js")

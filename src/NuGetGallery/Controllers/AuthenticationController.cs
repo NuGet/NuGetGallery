@@ -93,7 +93,7 @@ namespace NuGetGallery
                 return SafeRedirect(returnUrl);
             }
 
-            return SignUpView(new LogOnViewModel());
+            return RegisterView(new LogOnViewModel());
         }
 
         [HttpPost]
@@ -220,7 +220,7 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return SignUpView(model);
+                return RegisterView(model);
             }
 
             AuthenticatedUser user;
@@ -250,7 +250,7 @@ namespace NuGetGallery
             catch (EntityException ex)
             {
                 ModelState.AddModelError("Register", ex.Message);
-                return SignUpView(model);
+                return RegisterView(model);
             }
 
             // Send a new account email
@@ -378,7 +378,7 @@ namespace NuGetGallery
                     }
                 };
 
-                return SignUpView(model);
+                return RegisterView(model);
             }
         }
 
@@ -439,16 +439,15 @@ namespace NuGetGallery
             existingModel.Providers = GetProviders();
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
 
-            return View("LogOn", existingModel);
+            return View("SignIn", existingModel);
         }
 
-        private ActionResult SignUpView(LogOnViewModel existingModel)
+        private ActionResult RegisterView(LogOnViewModel existingModel)
         {
             existingModel.Providers = GetProviders();
-            existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
-            return View("SignUp", existingModel);
+            return View("Register", existingModel);
         }
     }
 }
