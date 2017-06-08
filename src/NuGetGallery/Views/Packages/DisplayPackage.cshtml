@@ -35,7 +35,7 @@
             <h3>
                 <img class="img-responsive"
                      aria-hidden="true" alt=""
-                     onerror="this.src = '@Url.Absolute("~/Content/gallery/img/default-package-icon.svg")'; this.onerror = null;"
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))
                      src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))" />
             </h3>
         </aside>
