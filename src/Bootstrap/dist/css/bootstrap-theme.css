@@ -35,6 +35,16 @@ body {
     margin-bottom: 330px;
   }
 }
+body h1,
+body h2,
+body h3,
+body p {
+  margin-bottom: 24px;
+}
+body h2,
+body h3 {
+  margin-top: 40px;
+}
 .footer {
   height: 520px;
 }
@@ -212,31 +222,6 @@ body {
 }
 .page-pages .pages-container {
   margin-bottom: 70px;
-}
-.page-pages h1 {
-  margin-bottom: 40px;
-}
-.page-pages h2 {
-  margin-top: 40px;
-  margin-bottom: 20px;
-}
-.page-pages h3 {
-  margin-top: 40px;
-  margin-bottom: 10px;
-}
-.page-pages p {
-  margin-bottom: 24px;
-}
-.page-about h1 {
-  margin-bottom: 20px;
-}
-.page-about h2,
-.page-about h3 {
-  margin-top: 40px;
-  margin-bottom: 20px;
-}
-.page-about p {
-  margin-bottom: 20px;
 }
 .page-about .contributors .contributor {
   padding: 5px;
