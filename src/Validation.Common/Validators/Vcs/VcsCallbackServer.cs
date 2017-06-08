@@ -22,6 +22,13 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
     public class VcsCallbackServerStartup
     {
         private readonly VcsStatusCallbackParser _callbackParser = new VcsStatusCallbackParser();
+        private readonly HashSet<string> SuccessResults = new HashSet<string>
+        {
+            "Pass",
+            "PassWithInfo",
+            "PassManual",
+            "PassWithWarn",
+        };
 
         private readonly PackageValidationTable _packageValidationTable;
         private readonly PackageValidationAuditor _packageValidationAuditor;
@@ -220,7 +227,7 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                     // This denotes scan has completed and we have a pass (or results)
                     if (result.State == State.Complete || result.State == State.Released)
                     {
-                        if (result.Result == "Pass" || result.Result == "PassWithInfo" || result.Result == "PassManual")
+                        if (SuccessResults.Contains(result.Result))
                         {
                             // The result is clean.
                             processedRequest = true;
