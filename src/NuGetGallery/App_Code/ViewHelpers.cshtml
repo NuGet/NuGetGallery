@@ -1,4 +1,5 @@
 ﻿@using System.Web.Mvc
+@using System.Web.Mvc.Html
 @using Microsoft.Web.Helpers
 @using NuGetGallery
 @using NuGetGallery.Helpers
@@ -29,6 +30,36 @@
 @helper AlertDanger(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = true)
 {
     @Alert(htmlContent, "danger", "ErrorBadge", isAlertRole)
+}
+
+@helper ErrorPage(Func<MvcHtmlString, HelperResult> htmlContent, UrlHelper url, System.Web.Mvc.HtmlHelper html, string errorName)
+{
+    <section class="container main-container">
+        <div class="row page-error">
+            <div class="col-sm-12">
+                <h1>Sorry, an error occurred while processing your request.</h1>
+                <h2>Error: @errorName</h2>
+                @htmlContent(MvcHtmlString.Empty)
+
+                <h1>What now?</h1>
+                <h2><a href="/">Return to the home page.</a></h2>
+
+                <h2 class="search">Try searching.</h2>
+                <div class="container search-container">
+                    <div class="row">
+                        <form class="col-sm-12" action="@url.PackageList()" method="get">
+                            @html.Partial("_SearchBar")
+                        </form>
+                    </div>
+                </div>
+
+                <h2>Still nothing?</h2>
+                <ul>
+                    <li>File a bug in <a href="https://github.com/NuGet/NuGetGallery/issues">the issue tracker</a> so we can fix it.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
 }
 
 @helper PreviousNextPager(IPreviousNextPager pager)

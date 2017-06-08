@@ -1,13 +1,12 @@
 ﻿@{
-    Page.Title = "Invalid Request";
+    Page.Title = "Invalid Cookies";
     Response.StatusCode = 400;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="error-page">
-    <h1>Error: Invalid Request</h1>
-    <p>We can't process your request because your browser sent an invalid request. This is likely because you have disabled Cookies in your browser.
-        Please enable cookies in your browser settings and try your request again.</p>
-
-    <h2>What now?</h2>
-    <p><a href="/">Return to the home page.</a></p>
-</div>
+@ViewHelpers.ErrorPage(@<text>
+    <p>
+        The cookies in your request were invalid. This is likely because you have disabled Cookies in your browser.
+        Please enable cookies in your browser settings and try your request again.
+    </p>
+</text>, Url, Html, "Invalid cookies!")

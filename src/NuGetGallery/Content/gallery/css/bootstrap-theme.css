@@ -305,4 +305,7 @@ body h3 {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.page-error ul {
+  margin-bottom: 24px;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */

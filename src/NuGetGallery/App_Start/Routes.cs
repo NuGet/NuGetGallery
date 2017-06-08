@@ -45,6 +45,11 @@ namespace NuGetGallery
                 new { controller = "Errors", action = "NotFound" });
 
             routes.MapRoute(
+                RouteName.Error400,
+                "errors/400",
+                new { controller = "Errors", action = "BadRequest" });
+
+            routes.MapRoute(
                 RouteName.StatisticsHome,
                 "stats",
                 new { controller = "Statistics", action = "Index" });

@@ -1778,6 +1778,7 @@
     <Content Include="Views\Authentication\SignIn.cshtml" />
     <Content Include="Views\Pages\_PagesView.cshtml" />
     <Content Include="Views\Shared\_SearchBar.cshtml" />
+    <Content Include="Views\Errors\CookieError.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -2083,7 +2084,7 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
-    <Content Include="Views\Errors\CookieError.cshtml" />
+    <Content Include="Views\Errors\BadRequest.cshtml" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
     <Content Include="Views\Statistics\Index.cshtml" />
     <Content Include="Views\Statistics\Packages.cshtml" />

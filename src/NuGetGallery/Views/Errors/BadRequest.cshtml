@@ -1,0 +1,11 @@
+﻿@{
+    Page.Title = "Invalid Request";
+    Response.StatusCode = 400;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+@ViewHelpers.ErrorPage(@<text>
+    <p>
+        We can't process your request because it was invalid.
+    </p>
+</text>, Url, Html, "Invalid request!")
