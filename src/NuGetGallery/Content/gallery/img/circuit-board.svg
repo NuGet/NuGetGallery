@@ -1,0 +1,876 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg338"
+   version="1.1"
+   width="574px"
+   height="396px"
+   viewBox="0 0 461.18 319.03">
+  <metadata
+     id="metadata342">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Hero Image v4</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs4">
+    <style
+       id="style2">.cls-1,.cls-2,.cls-3,.cls-4,.cls-5,.cls-7,.cls-8{fill:none;stroke-width:3px;}.cls-1,.cls-2{stroke:#9ebbe2;}.cls-1,.cls-2,.cls-3,.cls-4,.cls-5,.cls-6,.cls-7{stroke-linejoin:round;}.cls-2,.cls-3,.cls-7,.cls-8{stroke-linecap:round;}.cls-3,.cls-4{stroke:#9fbce2;}.cls-5,.cls-6,.cls-7,.cls-8{stroke:#fff;}.cls-6{fill:#fff;}.cls-8{stroke-miterlimit:10;}</style>
+  </defs>
+  <title
+     id="title6">Hero Image v4</title>
+  <rect
+     style="stroke:none;stroke-opacity:0;fill:#004880;fill-opacity:1"
+     height="100%"
+     width="100%"
+     id="rect344" />
+  <g
+     data-name="Layer 2"
+     id="Layer_2">
+    <g
+       id="Hero">
+      <g
+         id="chip">
+        <polygon
+           id="polygon8"
+           points="224.49 180.14 298.11 137.64 298.11 127.64 259.13 105.14 185.52 147.64 185.52 157.64 224.49 180.14"
+           class="cls-1" />
+        <polygon
+           id="polygon10"
+           points="185.52 147.64 224.49 170.14 224.49 180.14 185.52 157.64 185.52 147.64"
+           class="cls-1" />
+        <polygon
+           id="polygon12"
+           points="224.49 170.14 298.11 127.64 298.11 137.64 224.49 180.14 224.49 170.14"
+           class="cls-1" />
+        <g
+           id="clips">
+          <polyline
+             id="polyline14"
+             points="289.44 137.64 298.03 142.6 298.03 147.69"
+             class="cls-2" />
+          <polyline
+             points="280.82 142.62 289.44 147.64 289.52 152.6"
+             class="cls-2"
+             data-name="7"
+             id="_7" />
+          <polyline
+             points="272.13 147.14 280.71 152.6 280.82 157.66"
+             class="cls-2"
+             data-name="6"
+             id="_6" />
+          <polyline
+             points="263.54 152.6 272.13 157.64 272.16 162.66"
+             class="cls-2"
+             data-name="5"
+             id="_5" />
+          <polyline
+             points="254.8 157.64 263.36 162.58 263.54 167.69"
+             class="cls-2"
+             data-name="4"
+             id="_4" />
+          <polyline
+             points="246.14 162.64 254.8 167.64 254.8 172.64"
+             class="cls-2"
+             data-name="3"
+             id="_3" />
+          <polyline
+             points="237.48 167.64 246.14 172.64 246.14 177.64"
+             class="cls-2"
+             data-name="2"
+             id="_2" />
+          <polyline
+             points="228.82 172.64 237.48 177.64 237.48 182.64"
+             class="cls-2"
+             data-name="1"
+             id="_1" />
+        </g>
+        <g
+           data-name="clips"
+           id="clips-2">
+          <polyline
+             id="polyline24"
+             points="189.85 150.14 181.19 145.14 181.19 150.14"
+             class="cls-2" />
+          <polyline
+             id="polyline26"
+             points="194.27 142.67 189.85 140.12 189.85 145.12"
+             class="cls-2" />
+          <polyline
+             id="polyline28"
+             points="202.93 137.69 198.51 135.14 198.51 140.14"
+             class="cls-2" />
+          <polyline
+             id="polyline30"
+             points="211.61 132.69 207.19 130.14 207.19 135.14"
+             class="cls-2" />
+          <polyline
+             id="polyline32"
+             points="215.92 130.14 215.83 125.14 220.16 127.64"
+             class="cls-2" />
+          <polyline
+             id="polyline34"
+             points="224.49 125.14 224.49 120.14 228.82 122.64"
+             class="cls-2" />
+          <polyline
+             id="polyline36"
+             points="233.15 120.14 233.15 115.14 237.48 117.64"
+             class="cls-2" />
+          <polyline
+             id="polyline38"
+             points="241.81 115.14 241.81 110.14 246.14 112.64"
+             class="cls-2" />
+          <polyline
+             id="polyline40"
+             points="250.47 110.14 250.47 105.14 254.8 107.64"
+             class="cls-2" />
+        </g>
+        <g
+           data-name="clips copy 2"
+           id="clips_copy_2">
+          <polyline
+             points="189.94 155.14 181.38 160.08 181.2 165.19"
+             class="cls-2"
+             data-name="4"
+             id="_4-2" />
+          <polyline
+             points="198.6 160.14 189.94 165.14 189.94 170.14"
+             class="cls-2"
+             data-name="3"
+             id="_3-2" />
+          <polyline
+             points="207.26 165.14 198.6 170.14 198.6 175.14"
+             class="cls-2"
+             data-name="2"
+             id="_2-2" />
+          <polyline
+             points="215.92 170.14 207.26 175.14 207.26 180.14"
+             class="cls-2"
+             data-name="1"
+             id="_1-2" />
+        </g>
+        <g
+           id="clipsBack">
+          <polyline
+             id="polyline48"
+             points="263.54 107.6 267.79 105.14 267.79 110.14"
+             class="cls-2" />
+          <polyline
+             id="polyline50"
+             points="272.12 112.64 276.47 110.15 276.47 115.14"
+             class="cls-2" />
+          <polyline
+             id="polyline52"
+             points="280.79 117.64 285.17 115.17 285.11 120.14"
+             class="cls-2" />
+          <polyline
+             id="polyline54"
+             points="289.44 122.64 293.74 120.16 293.78 125.14"
+             class="cls-2" />
+        </g>
+      </g>
+      <g
+         id="chips">
+        <g
+           data-name="2"
+           id="_2-3">
+          <polygon
+             id="polygon58"
+             points="323.84 122.45 354.07 104.99 354.07 99.99 336.75 89.99 306.48 107.47 306.48 112.52 323.84 122.45"
+             class="cls-2" />
+          <polygon
+             id="polygon60"
+             points="323.84 117.45 354.07 99.99 354.07 104.99 323.84 122.45 323.84 117.45"
+             class="cls-2" />
+          <polygon
+             id="polygon62"
+             points="306.48 107.47 323.84 117.45 323.84 122.45 306.48 112.52 306.48 107.47"
+             class="cls-2" />
+        </g>
+        <g
+           data-name="1"
+           id="_1-3">
+          <polygon
+             id="polygon65"
+             points="289.27 102.43 319.5 84.98 319.5 79.98 302.18 69.98 271.91 87.45 271.91 92.5 289.27 102.43"
+             class="cls-2" />
+          <polygon
+             id="polygon67"
+             points="289.27 97.43 319.5 79.98 319.5 84.98 289.27 102.43 289.27 97.43"
+             class="cls-2" />
+          <polygon
+             id="polygon69"
+             points="271.91 87.45 289.27 97.43 289.27 102.43 271.91 92.5 271.91 87.45"
+             class="cls-2" />
+        </g>
+      </g>
+      <g
+         id="wires">
+        <path
+           id="path73"
+           transform="translate(-1.03)"
+           d="M290,192.65c-2.38,1.37-2.38,3.62,0,5a9.61,9.61,0,0,0,8.66,0c2.38-1.38,2.38-3.63,0-5A9.61,9.61,0,0,0,290,192.65Z"
+           class="cls-1" />
+        <line
+           id="line75"
+           y2="192.65"
+           x2="289.01"
+           y1="175.65"
+           x1="259.45"
+           class="cls-2" />
+        <path
+           id="path77"
+           transform="translate(-1.03)"
+           d="M189.68,245c-2.38,1.37-2.38,3.62,0,5a9.61,9.61,0,0,0,8.66,0c2.38-1.38,2.38-3.63,0-5A9.61,9.61,0,0,0,189.68,245Z"
+           class="cls-1" />
+        <line
+           id="line79"
+           y2="245.03"
+           x2="188.65"
+           y1="225.03"
+           x1="154.09"
+           class="cls-2" />
+        <polyline
+           id="polyline81"
+           points="242.21 185.57 267.44 200.03 206.91 234.97 172.18 215.03"
+           class="cls-2" />
+        <polyline
+           id="polyline83"
+           points="163.52 220.03 206.91 245.08 284.76 200.03 250.79 180.53"
+           class="cls-2" />
+        <polyline
+           id="polyline85"
+           points="268.11 170.53 310.53 195.15 198.16 260.02 146.19 230.03"
+           class="cls-2" />
+        <line
+           id="line87"
+           y2="200.03"
+           x2="172.18"
+           y1="182.44"
+           x1="202.63"
+           class="cls-2" />
+        <path
+           id="path89"
+           transform="translate(-1.03)"
+           d="M199.28,180.08"
+           class="cls-2" />
+        <line
+           id="line91"
+           y2="194.74"
+           x2="164.2"
+           y1="177.58"
+           x1="193.92"
+           class="cls-2" />
+        <line
+           id="line93"
+           y2="184.75"
+           x2="164.2"
+           y1="172.55"
+           x1="185.22"
+           class="cls-2" />
+        <line
+           id="line95"
+           y2="174.58"
+           x2="164.2"
+           y1="167.58"
+           x1="176.58"
+           class="cls-2" />
+        <polyline
+           id="polyline97"
+           points="128.83 240.05 163.62 259.97 89.94 302.5"
+           class="cls-2" />
+        <polyline
+           id="polyline99"
+           points="68.3 220.05 25.01 245.08 29.28 247.53"
+           class="cls-2" />
+        <line
+           id="line101"
+           y2="264.86"
+           x2="59.88"
+           y1="240.05"
+           x1="102.94"
+           class="cls-2" />
+        <g
+           id="thingiee">
+          <line
+             id="line103"
+             y2="255.03"
+             x2="59.59"
+             y1="265.59"
+             x1="59.59"
+             class="cls-3" />
+          <path
+             id="path105"
+             transform="translate(-1.03)"
+             d="M26,255v35H26c0,2.57,1.68,5.13,5,7.08,6.73,3.89,17.75,3.89,24.48,0"
+             class="cls-3" />
+          <path
+             id="path107"
+             transform="translate(-1.03)"
+             d="M31.09,247.95c6.73-3.89,17.75-3.89,24.48,0h0c6.73,3.89,6.73,10.27,0,14.16h0c-6.73,3.89-17.75,3.89-24.48,0h0c-6.73-3.89-6.73-10.27,0-14.16Z"
+             class="cls-4" />
+        </g>
+        <g
+           data-name="thingiee"
+           id="thingiee-2">
+          <line
+             id="line110"
+             y2="296.59"
+             x2="55.3"
+             y1="272.53"
+             x1="55.3"
+             class="cls-3" />
+          <path
+             id="path112"
+             transform="translate(-1.03)"
+             d="M56.33,296.59v10.93h.06c0,2.57,1.68,5.13,5,7.08,6.73,3.89,17.75,3.89,24.48,0,3.37-1.95,5-4.51,5-7.08v-35"
+             class="cls-3" />
+          <path
+             id="path114"
+             transform="translate(-1.03)"
+             d="M61.44,265.45c6.73-3.89,17.75-3.89,24.48,0h0c6.73,3.89,6.73,10.27,0,14.16h0c-6.73,3.89-17.75,3.89-24.48,0h0c-6.73-3.89-6.73-10.27,0-14.16Z"
+             class="cls-4" />
+        </g>
+        <polyline
+           id="polyline117"
+           points="137.53 234.97 198.16 270.02 310.51 205.16"
+           class="cls-2" />
+        <polyline
+           id="polyline119"
+           points="176.45 112.56 189.47 119.98 159.24 137.64 176.65 147.69"
+           class="cls-2" />
+        <polyline
+           id="polyline121"
+           points="185.17 107.53 202.64 117.66 172.28 134.86 185 142.62"
+           class="cls-2" />
+        <polyline
+           id="polyline123"
+           points="193.97 102.44 215.41 115.03 184.98 132.64 193.62 137.64"
+           class="cls-2" />
+        <polyline
+           id="polyline125"
+           points="202.63 97.44 228.47 112.56 198.3 130.17"
+           class="cls-2" />
+        <line
+           id="line127"
+           y2="107.48"
+           x2="237.1"
+           y1="92.52"
+           x1="211.14"
+           class="cls-2" />
+        <line
+           id="line129"
+           y2="102.44"
+           x2="245.7"
+           y1="87.52"
+           x1="219.81"
+           class="cls-2" />
+        <path
+           id="path131"
+           transform="translate(-1.03)"
+           d="M29.77,232.5c-2.36-1.41-2.38-3.67,0-5a9.52,9.52,0,0,1,8.59,0c2.38,1.38,2.39,3.64,0,5A9.32,9.32,0,0,1,29.77,232.5Z"
+           class="cls-2" />
+        <line
+           id="line133"
+           y2="227.55"
+           x2="37.98"
+           y1="215.03"
+           x1="59.59"
+           class="cls-2" />
+        <path
+           id="path135"
+           transform="translate(-1.03)"
+           d="M51.67,239.87c-2.36-1.41-2.38-3.67,0-5a9.52,9.52,0,0,1,8.59,0c2.38,1.38,2.39,3.64,0,5A9.32,9.32,0,0,1,51.67,239.87Z"
+           class="cls-2" />
+        <line
+           id="line137"
+           y2="234.92"
+           x2="59.88"
+           y1="225.03"
+           x1="76.96"
+           class="cls-2" />
+        <path
+           id="path139"
+           transform="translate(-1.03)"
+           d="M103.56,120.25c-2.36-1.41-2.38-3.67,0-5a9.52,9.52,0,0,1,8.59,0c2.38,1.38,2.39,3.64,0,5A9.32,9.32,0,0,1,103.56,120.25Z"
+           class="cls-2" />
+        <line
+           id="line141"
+           y2="115.29"
+           x2="111.77"
+           y1="102.77"
+           x1="133.39"
+           class="cls-2" />
+        <polyline
+           id="polyline143"
+           points="116.03 92.61 42.27 135.03 76.91 155.03"
+           class="cls-2" />
+        <polyline
+           id="polyline145"
+           points="124.4 97.44 59.59 135.03 85.57 150.03"
+           class="cls-2" />
+        <polyline
+           id="polyline147"
+           points="141.87 107.53 85.61 140 94.23 145.03"
+           class="cls-2" />
+        <polyline
+           id="polyline149"
+           points="150.47 112.56 120.4 129.73 172.28 159.97 163.62 164.97"
+           class="cls-2" />
+        <line
+           id="line151"
+           y2="240.05"
+           x2="302.12"
+           y1="224.98"
+           x1="276.02"
+           class="cls-2" />
+        <polyline
+           id="polyline153"
+           points="310.74 245.03 302.08 250.03 267.48 230.05"
+           class="cls-2" />
+        <polyline
+           id="polyline155"
+           points="319.4 250.03 302.08 260.02 258.87 234.97"
+           class="cls-2" />
+        <polyline
+           id="polyline157"
+           points="328.06 255.03 302.12 270 241.55 234.97"
+           class="cls-2" />
+        <polyline
+           id="polyline159"
+           points="336.72 260.02 302.08 280.02 224.14 235.11"
+           class="cls-2" />
+        <polyline
+           id="polyline161"
+           points="345.38 265.02 302.08 290.02 232.69 250.03"
+           class="cls-2" />
+        <polyline
+           id="polyline163"
+           points="85.57 230.03 68.3 240.05 85.57 250.03"
+           class="cls-2" />
+        <polyline
+           id="polyline165"
+           points="94.28 234.91 85.61 240 94.23 245.03"
+           class="cls-2" />
+        <polyline
+           id="polyline167"
+           points="219.81 72.53 245.79 72.53 267.51 84.98"
+           class="cls-2" />
+        <line
+           id="line169"
+           y2="97.44"
+           x2="271.91"
+           y1="99.99"
+           x1="267.38"
+           class="cls-2" />
+        <polyline
+           id="polyline171"
+           points="212.28 62.45 245.79 62.52 276.02 79.98"
+           class="cls-2" />
+        <polyline
+           id="polyline173"
+           points="212.28 52.53 245.78 52.53 284.65 74.96"
+           class="cls-2" />
+        <line
+           id="line175"
+           y2="180.08"
+           x2="319"
+           y1="160.45"
+           x1="285.56"
+           class="cls-2" />
+        <line
+           id="line177"
+           y2="174.9"
+           x2="327.85"
+           y1="155.48"
+           x1="294.01"
+           class="cls-2" />
+        <line
+           id="line179"
+           y2="169.98"
+           x2="336.49"
+           y1="150.53"
+           x1="302.75"
+           class="cls-2" />
+        <line
+           id="line181"
+           y2="102.43"
+           x2="280.26"
+           y1="107.64"
+           x1="288.89"
+           class="cls-2" />
+        <line
+           id="line183"
+           y2="99.99"
+           x2="310.55"
+           y1="97.42"
+           x1="306.22"
+           class="cls-2" />
+        <line
+           id="line185"
+           y2="95.14"
+           x2="319.21"
+           y1="92.42"
+           x1="314.88"
+           class="cls-2" />
+        <polyline
+           id="polyline187"
+           points="288.89 117.64 297.75 112.53 328.06 130.03 345.38 120.03"
+           class="cls-2" />
+        <polyline
+           id="polyline189"
+           points="301.84 120.16 327.85 134.9 358.46 117.57 349.76 112.74"
+           class="cls-2" />
+        <line
+           id="line191"
+           y2="185.21"
+           x2="310.5"
+           y1="165.59"
+           x1="277.05"
+           class="cls-2" />
+        <line
+           id="line193"
+           y2="112.47"
+           x2="280.26"
+           y1="107.64"
+           x1="288.89"
+           class="cls-2" />
+        <line
+           id="line195"
+           y2="105"
+           x2="276.06"
+           y1="99.99"
+           x1="267.38"
+           class="cls-2" />
+        <line
+           id="line197"
+           y2="105"
+           x2="276.06"
+           y1="107.61"
+           x1="271.91"
+           class="cls-2" />
+        <line
+           id="line199"
+           y2="120.03"
+           x2="345.38"
+           y1="117.43"
+           x1="340.97"
+           class="cls-2" />
+        <line
+           id="line201"
+           y2="122.36"
+           x2="298.03"
+           y1="120.16"
+           x1="301.84"
+           class="cls-2" />
+      </g>
+      <g
+         id="box2">
+        <polygon
+           id="polygon204"
+           points="310.51 229.98 358.14 257.48 405.87 229.98 405.87 184.92 358.19 157.45 310.51 184.98 310.51 229.98"
+           class="cls-5" />
+        <polygon
+           id="polygon206"
+           points="358.18 212.46 405.87 184.92 405.87 229.98 358.14 257.48 358.18 212.46"
+           class="cls-5" />
+        <polygon
+           id="polygon208"
+           points="310.51 184.98 358.18 212.46 358.14 257.48 310.51 229.98 310.51 184.98"
+           class="cls-5" />
+        <g
+           data-name="Layer 6 copy"
+           id="Layer_6_copy">
+          <polygon
+             id="polygon210"
+             points="336.49 169.98 384.12 197.48 384.12 232.48 379.79 234.98 379.79 199.98 332.16 172.48 336.49 169.98"
+             class="cls-6" />
+          <polygon
+             id="polygon212"
+             points="379.79 169.98 332.16 197.46 332.16 232.48 336.49 234.98 336.49 199.96 384.12 172.48 379.79 169.98"
+             class="cls-6" />
+        </g>
+        <g
+           data-name="clips copy 4"
+           id="clips_copy_4">
+          <polyline
+             id="polyline215"
+             points="401.44 227.48 410.1 232.48 410.1 237.48"
+             class="cls-7" />
+          <polyline
+             id="polyline217"
+             points="392.78 232.48 401.44 237.48 401.44 242.48"
+             class="cls-7" />
+          <polyline
+             id="polyline219"
+             points="384.12 237.48 392.78 242.48 392.78 247.48"
+             class="cls-7" />
+          <polyline
+             id="polyline221"
+             points="375.46 242.48 384.12 247.48 384.12 252.48"
+             class="cls-7" />
+          <polyline
+             id="polyline223"
+             points="366.8 247.48 375.46 252.48 375.46 257.48"
+             class="cls-7" />
+          <polyline
+             id="polyline225"
+             points="358.18 252.46 366.8 257.48 366.8 262.48"
+             class="cls-7" />
+        </g>
+        <g
+           data-name="clipsFront copy"
+           id="clipsFront_copy">
+          <polyline
+             id="polyline228"
+             points="314.88 227.48 306.22 232.48 306.22 237.48"
+             class="cls-7" />
+          <polyline
+             id="polyline230"
+             points="323.54 232.48 314.88 237.48 314.88 242.48"
+             class="cls-7" />
+          <polyline
+             id="polyline232"
+             points="332.2 237.48 323.54 242.48 323.54 247.48"
+             class="cls-7" />
+          <polyline
+             id="polyline234"
+             points="340.86 242.48 332.2 247.48 332.2 252.48"
+             class="cls-7" />
+          <polyline
+             id="polyline236"
+             points="349.52 247.48 340.86 252.48 340.86 257.48"
+             class="cls-7" />
+          <polyline
+             id="polyline238"
+             points="358.14 252.46 349.52 257.48 349.52 262.48"
+             class="cls-7" />
+        </g>
+        <polyline
+           points="405.87 224.92 410.1 222.48 410.1 227.48"
+           class="cls-7"
+           id="MrClips" />
+      </g>
+      <g
+         id="box3">
+        <g
+           id="box">
+          <polygon
+             id="polygon243"
+             points="68.25 205.03 115.89 232.53 163.62 205.03 163.62 159.97 115.94 132.5 68.25 160.03 68.25 205.03"
+             class="cls-5" />
+          <polygon
+             id="polygon245"
+             points="115.93 187.5 163.62 159.97 163.62 205.03 115.89 232.53 115.93 187.5"
+             class="cls-5" />
+          <polygon
+             id="polygon247"
+             points="68.25 160.03 115.93 187.5 115.89 232.53 68.25 205.03 68.25 160.03"
+             class="cls-5" />
+          <g
+             data-name="Layer 6"
+             id="Layer_6">
+            <polygon
+               id="polygon249"
+               points="94.23 145.03 141.87 172.53 141.87 207.53 137.53 210.03 137.53 175.03 89.9 147.53 94.23 145.03"
+               class="cls-6" />
+            <polygon
+               id="polygon251"
+               points="137.54 145.03 89.9 172.5 89.9 207.53 94.23 210.03 94.23 175 141.87 147.53 137.54 145.03"
+               class="cls-6" />
+          </g>
+          <g
+             data-name="clips"
+             id="clips-3">
+            <polyline
+               id="polyline254"
+               points="159.19 202.53 167.85 207.53 167.85 212.53"
+               class="cls-7" />
+            <polyline
+               id="polyline256"
+               points="150.53 207.53 159.19 212.53 159.19 217.53"
+               class="cls-7" />
+            <polyline
+               id="polyline258"
+               points="141.87 212.53 150.53 217.53 150.53 222.53"
+               class="cls-7" />
+            <polyline
+               id="polyline260"
+               points="133.21 217.53 141.87 222.53 141.87 227.53"
+               class="cls-7" />
+            <polyline
+               id="polyline262"
+               points="124.55 222.53 133.21 227.53 133.21 232.53"
+               class="cls-7" />
+            <polyline
+               id="polyline264"
+               points="115.93 227.5 124.55 232.53 124.55 237.53"
+               class="cls-7" />
+          </g>
+          <g
+             id="clipsFront">
+            <polyline
+               id="polyline267"
+               points="72.63 202.53 63.97 207.53 63.97 212.53"
+               class="cls-7" />
+            <polyline
+               id="polyline269"
+               points="81.28 207.53 72.63 212.53 72.63 217.53"
+               class="cls-7" />
+            <polyline
+               id="polyline271"
+               points="89.94 212.53 81.28 217.53 81.28 222.53"
+               class="cls-7" />
+            <polyline
+               id="polyline273"
+               points="98.61 217.53 89.94 222.53 89.94 227.53"
+               class="cls-7" />
+            <polyline
+               id="polyline275"
+               points="107.27 222.53 98.61 227.53 98.61 232.53"
+               class="cls-7" />
+            <polyline
+               id="polyline277"
+               points="115.89 227.5 107.27 232.53 107.27 237.53"
+               class="cls-7" />
+          </g>
+          <polyline
+             points="163.62 199.97 167.85 197.53 167.85 202.53"
+             class="cls-7"
+             data-name="MrClips"
+             id="MrClips-2" />
+        </g>
+        <polygon
+           id="polygon282"
+           points="116.03 77.53 163.66 105.03 211.39 77.53 211.39 32.47 163.71 5 116.03 32.52 116.03 77.53"
+           class="cls-5" />
+        <polygon
+           id="polygon284"
+           points="163.7 60 211.39 32.47 211.39 77.53 163.66 105.03 163.7 60"
+           class="cls-5" />
+        <polygon
+           id="polygon286"
+           points="116.03 32.52 163.7 60 163.66 105.03 116.03 77.53 116.03 32.52"
+           class="cls-5" />
+        <g
+           data-name="Layer 6 copy 2"
+           id="Layer_6_copy_2">
+          <polygon
+             id="polygon288"
+             points="142.01 17.53 189.64 45.02 189.64 80.03 185.31 82.53 185.31 47.52 137.68 20.02 142.01 17.53"
+             class="cls-6" />
+          <polygon
+             id="polygon290"
+             points="185.31 17.53 137.68 45 137.68 80.03 142.01 82.53 142.01 47.5 189.64 20.03 185.31 17.53"
+             class="cls-6" />
+        </g>
+        <g
+           data-name="clips copy 5"
+           id="clips_copy_5">
+          <polyline
+             id="polyline293"
+             points="206.96 75.03 215.62 80.03 215.62 85.03"
+             class="cls-7" />
+          <polyline
+             id="polyline295"
+             points="198.3 80.03 206.96 85.03 206.96 90.03"
+             class="cls-7" />
+          <polyline
+             id="polyline297"
+             points="189.64 85.03 198.3 90.03 198.3 95.03"
+             class="cls-7" />
+          <polyline
+             id="polyline299"
+             points="180.98 90.03 189.64 95.03 189.64 100.03"
+             class="cls-7" />
+          <polyline
+             id="polyline301"
+             points="172.32 95.03 180.98 100.03 180.98 105.03"
+             class="cls-7" />
+          <polyline
+             id="polyline303"
+             points="163.7 100 172.32 105.03 172.32 110.03"
+             class="cls-7" />
+        </g>
+        <g
+           data-name="clipsFront copy 2"
+           id="clipsFront_copy_2">
+          <polyline
+             id="polyline306"
+             points="120.4 75.03 111.74 80.03 111.74 85.03"
+             class="cls-7" />
+          <polyline
+             id="polyline308"
+             points="129.06 80.03 120.4 85.03 120.4 90.03"
+             class="cls-7" />
+          <polyline
+             id="polyline310"
+             points="137.72 85.03 129.06 90.03 129.06 95.03"
+             class="cls-7" />
+          <polyline
+             id="polyline312"
+             points="146.38 90.03 137.72 95.03 137.72 100.03"
+             class="cls-7" />
+          <polyline
+             id="polyline314"
+             points="155.04 95.03 146.38 100.03 146.38 105.03"
+             class="cls-7" />
+          <polyline
+             id="polyline316"
+             points="163.66 100 155.04 105.03 155.04 110.03"
+             class="cls-7" />
+        </g>
+        <polyline
+           points="211.39 72.47 215.62 70.03 215.62 75.03"
+           class="cls-7"
+           data-name="MrClips"
+           id="MrClips-3" />
+      </g>
+      <g
+         id="callouts">
+        <polyline
+           id="polyline321"
+           points="414.74 224.98 453.56 202.48 453.56 137.57"
+           class="cls-7" />
+        <path
+           id="path323"
+           transform="translate(-1.03)"
+           d="M450.26,131.06c-2.38,1.38-2.38,3.63,0,5a9.61,9.61,0,0,0,8.66,0c2.38-1.37,2.38-3.62,0-5A9.61,9.61,0,0,0,450.26,131.06Z"
+           class="cls-7" />
+        <polyline
+           id="polyline325"
+           points="7.53 119.97 7.53 159.97 63.71 192.65"
+           class="cls-7" />
+        <path
+           id="path327"
+           transform="translate(-1.03)"
+           d="M0,115"
+           class="cls-7" />
+        <path
+           id="path329"
+           transform="translate(-1.03)"
+           d="M4.28,112.53c-2.35,1.38-2.33,3.63.05,5a9.61,9.61,0,0,0,8.66,0c2.38-1.37,2.36-3.62-.05-5A9.61,9.61,0,0,0,4.28,112.53Z"
+           class="cls-7" />
+        <polyline
+           id="polyline331"
+           points="59.59 10.03 59.59 80.03 89.9 97.44 107.22 87.53"
+           class="cls-8" />
+        <path
+           id="path333"
+           transform="translate(-1.03)"
+           d="M56.33,2.52c-2.37,1.36-2.38,3.61,0,5a9.53,9.53,0,0,0,8.63,0c2.38-1.38,2.39-3.62,0-5A9.6,9.6,0,0,0,56.33,2.52Z"
+           class="cls-8" />
+      </g>
+    </g>
+  </g>
+</svg>

@@ -20,6 +20,7 @@ using Microsoft.Owin;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGetGallery.Authentication;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -310,20 +311,48 @@ namespace NuGetGallery
             return html.TextBoxFor(expression, htmlAttributes);
         }
 
-        private static Dictionary<string, object> GetHtmlAttributes<TModel, TProperty>(HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        public static HtmlString ShowCheckboxFor<TModel>(this HtmlHelper<TModel> html, Expression<Func<TModel, bool>> expression)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression, isFormControl: false);
+            return html.CheckBoxFor(expression, htmlAttributes);
+        }
+
+        public static HtmlString ShowTextAreaFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, int rows, int columns)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            return html.TextAreaFor(expression, rows, columns, htmlAttributes);
+        }
+
+        public static MvcHtmlString ShowEnumDropDownListFor<TModel, TEnum>(
+            this HtmlHelper<TModel> html,
+            Expression<Func<TModel, TEnum?>> expression,
+            IEnumerable<TEnum> values,
+            string emptyItemText)
+          where TEnum : struct
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            return html.EnumDropDownListFor(expression, values, emptyItemText, htmlAttributes);
+        }
+
+        private static Dictionary<string, object> GetHtmlAttributes<TModel, TProperty>(
+            HtmlHelper<TModel> html,
+            Expression<Func<TModel, TProperty>> expression,
+            bool isFormControl = true)
         {
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
+            var htmlAttributes = new Dictionary<string, object>();
 
-            var htmlAttributes = new Dictionary<string, object>()
+            htmlAttributes["aria-labelledby"] = $"{propertyName}-label {propertyName}-validation-message";
+
+            if (isFormControl)
             {
-                { "class", "form-control" },
-                { "aria-labelledby", $"{propertyName}-label {propertyName}-validation-message" }
-            };
+                htmlAttributes["class"] = "form-control";
+            }
 
             if (metadata.IsRequired)
             {
-                htmlAttributes.Add("aria-required", "true");
+                htmlAttributes["aria-required"] = "true";
             }
 
             return htmlAttributes;

@@ -29,15 +29,17 @@
     }
 }
 
-<div class="container main-container page-package-details">
+<section role="main" class="container main-container page-package-details">
     <div class="row">
-        <div class="col-md-1">
+        <aside class="col-sm-1">
             <h3>
-                <img class="img-responsive" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/gallery/img/default-package-icon.png")';"
-                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.png"))" />
+                <img class="img-responsive"
+                     aria-hidden="true" alt=""
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))
+                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))" />
             </h3>
-        </div>
-        <div class="col-md-8">
+        </aside>
+        <article class="col-sm-8">
             <h1 title="@Model.Title">
                 @Model.Title.Abbreviate(40)
                 <small>@Model.Version</small>
@@ -53,111 +55,88 @@
                 using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
                 {
                     @Html.AntiForgeryToken()
-                    <div class="alert alert-info">
-                        <ul class="list-unstyled ms-Icon-ul">
-                            <li>
-                                <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
-                                An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
-                                These changes will be applied to the package file and become visible to everybody soon unless you
-                                <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
-                                first.
-                            </li>
-                        </ul>
-                    </div>
+
+                    @ViewHelpers.AlertInfo(
+                        @<text>
+                            An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
+                            These changes will be applied to the package file and become visible to everybody soon unless you
+                            <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
+                            first.
+                        </text>
+                    )
                 }
             }
 
             @if (Model.IsLastEditFailed)
             {
-                <div class="alert alert-danger">
-                    <ul class="list-unstyled ms-Icon-ul">
-                        <li>
-                            <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
-                            Your last edit to this package was not successfully applied.
-                            You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
-                            the package and submit the edit again to retry the edit.
-                        </li>
-                    </ul>
-                </div>
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        Your last edit to this package was not successfully applied.
+                        You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
+                        the package and submit the edit again to retry the edit.
+                    </text>
+                )
             }
 
             @if (Model.Prerelease)
             {
-                <div class="alert alert-info">
-                    <ul class="list-unstyled ms-Icon-ul">
-                        <li>
-                            <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
-                            This is a prerelease version of @Model.Title.Abbreviate(65).
-                        </li>
-                    </ul>
-                </div>
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        This is a prerelease version of @(Model.Title.Abbreviate(65)).
+                    </text>
+                )
             }
 
             @if (Model.LatestStableVersion && Model.HasNewerPrerelease)
             {
-                <div class="alert alert-info">
-                    <ul class="list-unstyled ms-Icon-ul">
-                        <li>
-                            <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
-                            There is a newer prerelease version of this package available.
-                            <br /> See the version list below for details.
-                        </li>
-                    </ul>
-                </div>
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        There is a newer prerelease version of this package available.
+                        <br /> See the version list below for details.
+                    </text>
+                )
             }
 
             @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
             {
-                <div class="alert alert-warning">
-                    <ul class="list-unstyled ms-Icon-ul">
-                        <li>
-                            <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                            <strong>This package has not been indexed yet.</strong> It will appear in search results
-                            and will be available for install/restore after indexing is completed.
-                        </li>
-                    </ul>
-                </div>
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        <strong>This package has not been indexed yet.</strong> It will appear in search results
+                        and will be available for install/restore after indexing is completed.
+                    </text>
+                )
             }
 
             @if (Model.Deleted)
             {
-                <div class="alert alert-danger">
-                    <ul class="list-unstyled ms-Icon-ul">
-                        <li>
-                            <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
-                            <strong>This package has been deleted from the gallery.</strong> It is no longer available
-                            for install/restore.
-                        </li>
-                    </ul>
-                </div>
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                        for install/restore.
+                    </text>
+                )
             }
 
             @if (!Model.Listed && !Model.Deleted)
             {
                 if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
-                    <div class="alert alert-warning">
-                        <ul class="list-unstyled ms-Icon-ul">
-                            <li>
-                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                                This package is unlisted and hidden from package listings.
-                                You can see the package because you are one of its owners. To list the package again,
-                                <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-                            </li>
-                        </ul>
-                    </div>
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            This package is unlisted and hidden from package listings.
+                            You can see the package because you are one of its owners. To list the package again,
+                            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+                        </text>
+                    )
                 }
                 else
                 {
-                    <div class="alert alert-warning">
-                        <ul class="list-unstyled ms-Icon-ul">
-                            <li>
-                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                                The owner has unlisted this package.
-                                This could mean that the package is deprecated or shouldn't be used anymore.
-                            </li>
-                        </ul>
-                    </div>
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            The owner has unlisted this package.
+                            This could mean that the package is deprecated or shouldn't be used anymore.
+                        </text>
+                    )
                 }
             }
 
@@ -337,8 +316,8 @@
                     <span>Show more</span>
                 </button>
             }
-        </div>
-        <div class="col-md-3 package-details-info">
+        </article>
+        <aside class="col-sm-3 package-details-info">
             <h2>Info</h2>
             <ul class="list-unstyled ms-Icon-ul">
                 <li>
@@ -515,12 +494,12 @@
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
             }
             <p>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank" title="Share on Facebook"><img width="24" height="24" src="~/Content/gallery/img/facebook.png" alt="Small icon of Facebook's logo" /></a>
-                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank" title="Tweet this package"><img width="24" height="24" src="~/Content/gallery/img/twitter.png" alt="Small icon of Twitter's logo" /></a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank"><img width="24" height="24" src="~/Content/gallery/img/facebook.png" alt="Share on Facebook" /></a>
+                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank"><img width="24" height="24" src="~/Content/gallery/img/twitter.png" alt="Tweet this package" /></a>
             </p>
-        </div>
+        </aside>
     </div>
-</div>
+</section>
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/gallery/page-display-package.min.js")

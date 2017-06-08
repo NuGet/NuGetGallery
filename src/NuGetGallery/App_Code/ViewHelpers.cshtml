@@ -4,6 +4,33 @@
 @using NuGetGallery.Helpers
 @using NuGetGallery.Configuration
 
+@helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
+{
+    <div class="alert alert-@subclass" @if (isAlertRole) { <text> role="alert" </text>   }>
+        <ul class="list-unstyled ms-Icon-ul">
+            <li>
+                <i class="ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
+                @htmlContent(MvcHtmlString.Empty)
+            </li>
+        </ul>
+    </div>
+}
+
+@helper AlertInfo(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = false)
+{
+    @Alert(htmlContent, "info", "Info", isAlertRole)
+}
+
+@helper AlertWarning(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = false)
+{
+    @Alert(htmlContent, "warning", "Warning", isAlertRole)
+}
+
+@helper AlertDanger(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = true)
+{
+    @Alert(htmlContent, "danger", "ErrorBadge", isAlertRole)
+}
+
 @helper PreviousNextPager(IPreviousNextPager pager)
 {
     if (pager.HasNextPage || pager.HasPreviousPage)
@@ -31,6 +58,11 @@
             </li>
         </ul>
     }
+}
+
+@helper ImageFallback(string url)
+{
+    <text>onerror="this.src='@url'; this.onerror = null;"</text>
 }
 
 @helper Option(string value, string label, string currentValue)
@@ -293,25 +325,4 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             </div>
         }
     </li>
-}
-
-@helper HasError(System.Web.Mvc.ModelStateDictionary modelState, string key)
-{
-    if (!modelState.IsValid &&
-        modelState.ContainsKey(key) &&
-        modelState[key].Errors.Any())
-    {
-        @:has-error
-    }
-}
-
-@helper ShowErrors(System.Web.Mvc.ModelStateDictionary modelState, string key)
-{
-    if (!modelState.IsValid && modelState.ContainsKey(key))
-    {
-        foreach (var error in modelState[key].Errors)
-        {
-            <span id="@(key).Error" class="help-block">@error.ErrorMessage</span>
-        }
-    }
 }

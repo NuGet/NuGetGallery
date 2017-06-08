@@ -17,6 +17,12 @@ namespace NuGetGallery.Helpers
     public static class HtmlExtensions
     {
         public static MvcHtmlString EnumDropDownListFor<TModel, TEnum>(this HtmlHelper<TModel> self, Expression<Func<TModel, TEnum?>> expression, IEnumerable<TEnum> values, string emptyItemText)
+            where TEnum : struct // Can't do ": enum" but this is close
+        {
+            return EnumDropDownListFor(self, expression, values, emptyItemText, null);
+        }
+
+        public static MvcHtmlString EnumDropDownListFor<TModel, TEnum>(this HtmlHelper<TModel> self, Expression<Func<TModel, TEnum?>> expression, IEnumerable<TEnum> values, string emptyItemText, Dictionary<string, object> htmlAttributes)
             where TEnum: struct // Can't do ": enum" but this is close
         {
             Debug.Assert(typeof(TEnum).IsEnum, "Expected an Enum Type!");
@@ -33,7 +39,7 @@ namespace NuGetGallery.Helpers
                     Selected = value.Equals(metadata.Model)
                 }));
 
-            return self.DropDownListFor(expression, items);
+            return self.DropDownListFor(expression, items, htmlAttributes);
         }
 
         public static IHtmlString PreFormattedText(this HtmlHelper self, string text)

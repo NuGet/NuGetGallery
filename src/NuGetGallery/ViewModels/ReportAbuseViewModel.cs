@@ -15,11 +15,11 @@ namespace NuGetGallery
         public string PackageId { get; set; }
         public string PackageVersion { get; set; }
 
-        [Display(Name = "Contacted Owner")]
+        [Display(Name = "Yes! I have already tried to contact the package owner about this problem.")]
         public bool AlreadyContactedOwner { get; set; }
 
         [NotEqual(ReportPackageReason.HasABugOrFailedToInstall, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. Please contact owner(s) for assistance.")]
-        [Required(ErrorMessage = "You must select a reason for reporting the package")]
+        [Required(ErrorMessage = "You must select a reason for reporting the package.")]
         [Display(Name = "Reason")]
         public ReportPackageReason? Reason { get; set; }
 
