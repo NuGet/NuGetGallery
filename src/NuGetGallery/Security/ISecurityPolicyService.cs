@@ -21,12 +21,16 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Check if a user is subscribed to one or more security policies.
         /// </summary>
+        bool IsSubscribed(User user, string subscriptionName);
+
+        /// <summary>
+        /// Check if a user is subscribed to one or more security policies.
+        /// </summary>
         bool IsSubscribed(User user, IUserSecurityPolicySubscription subscription);
 
         /// <summary>
         /// Subscribe a user to one or more security policies.
         /// </summary>
-        /// <returns></returns>
         Task<bool> SubscribeAsync(User user, string subscriptionName);
 
         /// <summary>

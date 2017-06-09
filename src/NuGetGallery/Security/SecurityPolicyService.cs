@@ -122,6 +122,25 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Check if a user is subscribed to one or more security policies.
         /// </summary>
+        public bool IsSubscribed(User user, string subscriptionName)
+        {
+            if (string.IsNullOrEmpty(subscriptionName))
+            {
+                throw new ArgumentException(nameof(subscriptionName));
+            }
+
+            var subscription = UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            if (subscription == null)
+            {
+                throw new NotSupportedException($"Subscription '{subscriptionName}' not found.");
+            }
+
+            return IsSubscribed(user, subscription);
+        }
+
+        /// <summary>
+        /// Check if a user is subscribed to one or more security policies.
+        /// </summary>
         public bool IsSubscribed(User user, IUserSecurityPolicySubscription subscription)
         {
             if (user == null)

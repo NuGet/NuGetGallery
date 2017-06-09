@@ -106,7 +106,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please confirm if you want to proceed adding &apos;{0}&apos; as a co-owner of this package..
+        ///   Looks up a localized string similar to Please confirm if you would like to proceed adding &apos;{0}&apos; as a co-owner of this package..
         /// </summary>
         public static string AddOwnerConfirmation {
             get {
@@ -148,28 +148,28 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User &apos;{0}&apos; has the following requirements that are now enforced for your account:
-        ///
-        ///{1}
-        ///
-        ///For more information, please contact &apos;{2}&apos;..
-        /// </summary>
-        public static string AddOwnerNotification_SecurePushRequiredByNewOwner {
-            get {
-                return ResourceManager.GetString("AddOwnerNotification_SecurePushRequiredByNewOwner", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; has (have) the following requirements that are now enforced for user &apos;{1}&apos;:
+        ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; has (have) the following requirements that are now enforced for co-owner(s) &apos;{1}&apos;:
         ///
         ///{2}
         ///
         ///For more information, please contact &apos;{3}&apos;..
         /// </summary>
-        public static string AddOwnerNotification_SecurePushRequiredByOwner {
+        public static string AddOwnerNotification_SecurePushRequired_Propagators {
             get {
-                return ResourceManager.GetString("AddOwnerNotification_SecurePushRequiredByOwner", resourceCulture);
+                return ResourceManager.GetString("AddOwnerNotification_SecurePushRequired_Propagators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; has (have) the following requirements that are now enforced for your account:
+        ///
+        ///{1}
+        ///
+        ///For more information, please contact &apos;{2}&apos;..
+        /// </summary>
+        public static string AddOwnerNotification_SecurePushRequired_Subscribed {
+            get {
+                return ResourceManager.GetString("AddOwnerNotification_SecurePushRequired_Subscribed", resourceCulture);
             }
         }
         
@@ -926,8 +926,8 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1. All co-owners must use client version &apos;{0}&apos; or higher to push all of their packages.
-        ///2. All existing push API keys for co-owners new to this policy will expire in &apos;{1}&apos; days..
+        ///   Looks up a localized string similar to 1. All co-owners must use client version {0} or higher to push all of their packages.
+        ///2. All existing push API keys for co-owners new to this policy will expire in {1} days..
         /// </summary>
         public static string SecurePushPolicyDescriptions {
             get {

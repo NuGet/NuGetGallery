@@ -3,15 +3,15 @@
 
 using System;
 using System.Linq;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
-using NuGetGallery.Framework;
-using Xunit;
-using NuGetGallery.Security;
 using NuGetGallery.Configuration;
-using System.Net.Mail;
+using NuGetGallery.Framework;
+using NuGetGallery.Security;
+using Xunit;
 
 namespace NuGetGallery.Controllers
 {
@@ -22,35 +22,35 @@ namespace NuGetGallery.Controllers
             [Theory]
             [InlineData("")]
             [InlineData(null)]
-            public async Task ThrowsArgumentNullIfPackageIdMissing(string id)
+            public void ThrowsArgumentNullIfPackageIdMissing(string id)
             {
                 // Arrange
                 var controller = GetController<JsonApiController>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentException>(() => controller.GetAddPackageOwnerConfirmationAsync(id, "user"));
+                Assert.Throws<ArgumentException>(() => controller.GetAddPackageOwnerConfirmation(id, "user"));
             }
 
             [Theory]
             [InlineData("")]
             [InlineData(null)]
-            public async Task ThrowsArgumentNullIfUsernameMissing(string username)
+            public void ThrowsArgumentNullIfUsernameMissing(string username)
             {
                 // Arrange
                 var controller = GetController<JsonApiController>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentException>(() => controller.GetAddPackageOwnerConfirmationAsync("package", username));
+                Assert.Throws<ArgumentException>(() => controller.GetAddPackageOwnerConfirmation("package", username));
             }
 
             [Fact]
-            public async Task ReturnsFailureIfPackageNotFound()
+            public void ReturnsFailureIfPackageNotFound()
             {
                 // Arrange
                 var controller = GetController<JsonApiController>();
 
                 // Act
-                var result = await controller.GetAddPackageOwnerConfirmationAsync("package", "user");
+                var result = controller.GetAddPackageOwnerConfirmation("package", "user");
                 dynamic data = ((JsonResult)result).Data;
 
                 // Assert
@@ -59,7 +59,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ReturnsFailureIfUserIsNotPackageOwner()
+            public void ReturnsFailureIfUserIsNotPackageOwner()
             {
                 // Arrange
                 var controller = GetController<JsonApiController>();
@@ -68,7 +68,7 @@ namespace NuGetGallery.Controllers
                     .Returns(new PackageRegistration());
 
                 // Act
-                var result = await controller.GetAddPackageOwnerConfirmationAsync("package", "nonOwner");
+                var result = controller.GetAddPackageOwnerConfirmation("package", "nonOwner");
                 dynamic data = ((JsonResult)result).Data;
 
                 // Assert
@@ -77,7 +77,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ReturnsFailureIfOwnerIsNotRealUser()
+            public void ReturnsFailureIfOwnerIsNotRealUser()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -87,7 +87,7 @@ namespace NuGetGallery.Controllers
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
 
                 // Act
-                var result = await controller.GetAddPackageOwnerConfirmationAsync(fakes.Package.Id, "nonUser");
+                var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, "nonUser");
                 dynamic data = ((JsonResult)result).Data;
 
                 // Assert
@@ -96,7 +96,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ReturnsFailureIfNewOwnerIsNotConfirmed()
+            public void ReturnsFailureIfNewOwnerIsNotConfirmed()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -108,7 +108,7 @@ namespace NuGetGallery.Controllers
                 fakes.User.EmailAddress = null;
 
                 // Act
-                var result = await controller.GetAddPackageOwnerConfirmationAsync(fakes.Package.Id, fakes.User.Username);
+                var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
                 dynamic data = ((JsonResult)result).Data;
 
                 // Assert
@@ -117,7 +117,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ReturnsFailureIfCurrentUserNotFound()
+            public void ReturnsFailureIfCurrentUserNotFound()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -130,7 +130,7 @@ namespace NuGetGallery.Controllers
                     .ReturnsNull();
 
                 // Act
-                var result = await controller.GetAddPackageOwnerConfirmationAsync(fakes.Package.Id, fakes.User.Username);
+                var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
                 dynamic data = ((JsonResult)result).Data;
 
                 // Assert
@@ -139,7 +139,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ReturnsDefaultConfirmationIfNoPolicyPropagation()
+            public void ReturnsDefaultConfirmationIfNoPolicyPropagation()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -149,16 +149,16 @@ namespace NuGetGallery.Controllers
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
 
                 // Act
-                var result = await controller.GetAddPackageOwnerConfirmationAsync(fakes.Package.Id, fakes.User.Username);
+                var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
                 dynamic data = ((JsonResult)result).Data;
 
                 // Assert
                 Assert.True(data.success);
-                Assert.Equal("Please confirm if you want to proceed adding 'testUser' as a co-owner of this package.", data.confirmation);
+                Assert.Equal("Please confirm if you would like to proceed adding 'testUser' as a co-owner of this package.", data.confirmation);
             }
 
             [Fact]
-            public async Task ReturnsDetailedConfirmationIfNewOwnerPropagatesPolicy()
+            public void ReturnsDetailedConfirmationIfNewOwnerPropagatesPolicy()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -170,7 +170,7 @@ namespace NuGetGallery.Controllers
                 fakes.User.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
                 // Act
-                var result = await controller.GetAddPackageOwnerConfirmationAsync(fakes.Package.Id, fakes.User.Username);
+                var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
                 dynamic data = ((JsonResult)result).Data;
 
                 // Assert
@@ -181,7 +181,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ReturnsDetailedConfirmationIfCurrentOwnerPropagatesPolicy()
+            public void ReturnsDetailedConfirmationIfCurrentOwnerPropagatesPolicy()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -193,7 +193,7 @@ namespace NuGetGallery.Controllers
                 fakes.Owner.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
                 // Act
-                var result = await controller.GetAddPackageOwnerConfirmationAsync(fakes.Package.Id, fakes.User.Username);
+                var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
                 dynamic data = ((JsonResult)result).Data;
 
                 // Assert
@@ -204,7 +204,30 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ReturnsDetailedConfirmationIfPendingOwnerPropagatesPolicy()
+            public void DoesNotReturnConfirmationIfCurrentOwnerPropagatesButNewOwnerIsSubscribed()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var controller = GetController<JsonApiController>();
+                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
+                GetMock<HttpContextBase>()
+                    .Setup(c => c.User)
+                    .Returns(Fakes.ToPrincipal(fakes.Owner));
+                GetMock<ISecurityPolicyService>().Setup(s => s.IsSubscribed(fakes.User, SecurePushSubscription.Name)).Returns(true);
+                fakes.Owner.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
+
+                // Act
+                var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
+                dynamic data = ((JsonResult)result).Data;
+
+                // Assert
+                Assert.True(data.success);
+                Assert.StartsWith("Please confirm if you would like to proceed adding 'testUser' as a co-owner of this package.",
+                    data.confirmation);
+            }
+
+            [Fact]
+            public void ReturnsDetailedConfirmationIfPendingOwnerPropagatesPolicy()
             {
                 // Arrange
                 var fakes = Get<Fakes>();
@@ -225,7 +248,7 @@ namespace NuGetGallery.Controllers
                     .Returns((new [] { pendingOwner }).AsQueryable());
 
                 // Act
-                var result = await controller.GetAddPackageOwnerConfirmationAsync(fakes.Package.Id, fakes.User.Username);
+                var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
                 dynamic data = ((JsonResult)result).Data;
 
                 // Assert
@@ -234,6 +257,39 @@ namespace NuGetGallery.Controllers
                     "Pending owner(s) 'testShaUser' has (have) the following requirements that will be enforced for all co-owners, including 'testUser', once ownership requests are accepted:",
                     data.confirmation);
             }
+            
+            [Fact]
+            public void DoesNotReturnConfirmationIfPendingOwnerPropagatesButNewOwnerIsSubscribed()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var controller = GetController<JsonApiController>();
+                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
+                GetMock<HttpContextBase>()
+                    .Setup(c => c.User)
+                    .Returns(Fakes.ToPrincipal(fakes.Owner));
+                GetMock<ISecurityPolicyService>().Setup(s => s.IsSubscribed(fakes.User, SecurePushSubscription.Name)).Returns(true);
+
+                fakes.ShaUser.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
+                var pendingOwner = new PackageOwnerRequest()
+                {
+                    PackageRegistrationKey = fakes.Package.Key,
+                    NewOwner = fakes.ShaUser
+                };
+                GetMock<IEntityRepository<PackageOwnerRequest>>()
+                    .Setup(r => r.GetAll())
+                    .Returns((new[] { pendingOwner }).AsQueryable());
+
+                // Act
+                var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
+                dynamic data = ((JsonResult)result).Data;
+
+                // Assert
+                Assert.True(data.success);
+                Assert.StartsWith("Please confirm if you would like to proceed adding 'testUser' as a co-owner of this package.",
+                    data.confirmation);
+            }
+
         }
 
         public class TheAddPackageOwnerMethod : TestContainer

@@ -1012,11 +1012,7 @@ namespace NuGetGallery
 
             if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                return View(new PackageOwnerConfirmationModel()
-                {
-                    Username = username,
-                    Result = ConfirmOwnershipResult.NotYourRequest
-                });
+                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.NotYourRequest));
             }
 
             var package = _packageService.FindPackageRegistrationById(id);
@@ -1026,70 +1022,101 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
-
-            ConfirmOwnershipResult result = await _packageService.ConfirmPackageOwnerAsync(package, user, token);
-
-            if (result == ConfirmOwnershipResult.Success)
+            if (package.IsOwner(user))
             {
-                await HandleNewPackageOwnerAsync(package, user);
+                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
             }
 
-            var model = new PackageOwnerConfirmationModel
+            if (!_packageService.IsValidPackageOwnerRequest(package, user, token))
             {
-                Result = result,
-                PackageId = package.Id
-            };
+                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
+            }
 
-            return View(model);
+            var result = await HandleSecurePushPropagation(package, user);
+            
+            await _packageService.AddPackageOwnerAsync(package, user);
+
+            SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
+
+            return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Success));
         }
 
-        private async Task HandleNewPackageOwnerAsync(PackageRegistration package, User user)
+        /// <summary>
+        /// Send notification that a new package owner was added.
+        /// </summary>
+        /// <param name="package">Package to which owner was added.</param>
+        /// <param name="newOwner">Owner added.</param>
+        /// <param name="propagators">Propagating owners for secure push.</param>
+        /// <param name="subscribed">Owners subscribed to secure push.</param>
+        private void SendAddPackageOwnerNotification(PackageRegistration package, User newOwner, List<User> propagators, List<User> subscribed)
         {
-            // subscribe existing owners if new owner has co-owners policy requirement.
-            // note: if another pending owner has the co-owners policy requirement, this user
-            // will be subscribed when the user with the requirement has confirmed their ownership.
-            var policyMessage = string.Empty;
-            var policyMessageOwners = new List<string>();
+            var packageUrl = Url.Package(package.Id, null, scheme: "http");
+            Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
+
+            // prepare policy messages if there were any secure push subscriptions.
+            var propagatorsPolicyMessage = string.Empty;
+            var subscribedPolicyMessage = string.Empty;
+            if (subscribed.Any())
+            {
+                propagatorsPolicyMessage = string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddOwnerNotification_SecurePushRequired_Propagators,
+                    string.Join(", ", propagators.Select(u => u.Username)),
+                    string.Join(", ", subscribed.Select(s => s.Username)),
+                    GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
+
+                subscribedPolicyMessage = string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddOwnerNotification_SecurePushRequired_Subscribed,
+                    string.Join(", ", propagators.Select(u => u.Username)),
+                    GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
+            }
+            else
+            {
+                // new owner should only be notified if they have propagated policies.
+                propagators = propagators.Where(notNewOwner).ToList();
+            }
+
+            // notify propagators about new owner, including policy statement if any owners were subscribed.
+            propagators.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, propagatorsPolicyMessage));
+
+            // notify subscribed about new owner, including policy statement.
+            subscribed.Where(notNewOwner).ToList()
+                .ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, subscribedPolicyMessage));
+
+            // notify already subscribed about new owner, excluding any policy statement.
+            var notSubscribed = package.Owners.Where(notNewOwner).Except(propagators).Except(subscribed).ToList();
+            notSubscribed.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, ""));
+        }
+
+        /// <summary>
+        /// Enforce secure push policies on co-owners if new or existing owner requires it.
+        /// </summary>
+        /// <returns>Tuple where Item1 is propagators, Item2 is subscribed owners</returns>
+        private async Task<Tuple<List<User>, List<User>>> HandleSecurePushPropagation(PackageRegistration package, User user)
+        {
+            var subscribed = new List<User>();
+            var propagators = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed).ToList();
+
             if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
             {
+                propagators.Add(user);
+            }
+
+            if (propagators.Any())
+            {
+                if (await SubscribeToSecurePushAsync(user))
+                {
+                    subscribed.Add(user);
+                }
                 foreach (var owner in package.Owners)
                 {
                     if (await SubscribeToSecurePushAsync(owner))
                     {
-                        policyMessageOwners.Add(owner.Username);
-                        if (policyMessage == string.Empty)
-                        {
-                            policyMessage = string.Format(CultureInfo.CurrentCulture,
-                                Strings.AddOwnerNotification_SecurePushRequiredByNewOwner,
-                                user.Username, GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // subscribe new owner if existing owner has co-owners policy requirement.
-                var ownersWithPolicy = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
-                if (ownersWithPolicy.Any())
-                {
-                    if (await SubscribeToSecurePushAsync(user))
-                    {
-                        policyMessageOwners.AddRange(ownersWithPolicy.Select(o => o.Username));
-
-                        var propagators = string.Join(", ", policyMessageOwners);
-                        policyMessage = string.Format(CultureInfo.CurrentCulture,
-                            Strings.AddOwnerNotification_SecurePushRequiredByOwner,
-                            propagators, user.Username, GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
+                        subscribed.Add(owner);
                     }
                 }
             }
 
-            // Send email notification to all co-owners that a new owner has been added.
-            var packageUrl = Url.Package(package.Id, null, scheme: "http");
-            package.Owners
-                .Where(owner => !owner.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList()
-                .ForEach(owner => _messageService.SendPackageOwnerAddedNotice(
-                    owner, user, package, packageUrl, policyMessageOwners.Contains(owner.Username) ? policyMessage : string.Empty));
+            return Tuple.Create(propagators, subscribed);
         }
 
         private string GetSecurePushPolicyDescriptions()

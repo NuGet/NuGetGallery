@@ -297,7 +297,7 @@ The {0} Team";
                 policyMessage = Environment.NewLine + policyMessage + Environment.NewLine;
             }
 
-            const string subject = "[{0}] The user '{1}' wants to add you as an owner of the package '{2}'.";
+            const string subject = "[{0}] The user '{1}' would like to add you as an owner of the package '{2}'.";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{fromUser.Username}' wants to add you as an owner of the package '{package.Id}'.
 If you do not want to be listed as an owner of this package, simply delete this email.
@@ -307,7 +307,6 @@ Package URL on NuGet.org: [{packageUrl}]({packageUrl})
 To accept this request and become a listed owner of the package, click the following URL:
 
 [{confirmationUrl}]({confirmationUrl})");
-
 
             if (!string.IsNullOrWhiteSpace(message))
             {

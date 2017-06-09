@@ -343,7 +343,7 @@ namespace NuGetGallery
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
-                Assert.Equal("[Joe Shmoe] The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Subject);
+                Assert.Equal("[Joe Shmoe] The user 'Existing' would like to add you as an owner of the package 'CoolStuff'.", message.Subject);
                 Assert.Contains("The user 'Existing' added the following message for you", message.Body);
                 Assert.Contains(userMessage, message.Body);
                 Assert.Contains(confirmationUrl, message.Body);

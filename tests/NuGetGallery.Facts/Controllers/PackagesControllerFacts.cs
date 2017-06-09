@@ -473,6 +473,18 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WithIdentityNotMatchingUserInRequestReturnsViewWithMessage()
+            {
+                var controller = CreateController();
+                controller.SetCurrentUser(new User("userA"));
+                var result = await controller.ConfirmOwner("foo", "userB", "token");
+
+                var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
+                Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
+                Assert.Equal("userB", model.Username);
+            }
+
+            [Fact]
             public async Task WithNonExistentPackageIdReturnsHttpNotFound()
             {
                 // Arrange
@@ -487,30 +499,15 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WithIdentityNotMatchingUserInRequestReturnsViewWithMessage()
-            {
-                var controller = CreateController();
-                controller.SetCurrentUser(new User("userA"));
-                var result = await controller.ConfirmOwner("foo", "userB", "token");
-
-                var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
-                Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
-                Assert.Equal("userB", model.Username);
-            }
-
-            [Theory]
-            [InlineData(ConfirmOwnershipResult.Success)]
-            [InlineData(ConfirmOwnershipResult.AlreadyOwner)]
-            [InlineData(ConfirmOwnershipResult.Failure)]
-            public async Task AcceptsResultOfPackageServiceIfOtherwiseValid(ConfirmOwnershipResult confirmationResult)
+            public async Task WithOwnerReturnsAlreadyOwnerResult()
             {
                 // Arrange
                 var package = new PackageRegistration { Id = "foo" };
                 var user = new User { Username = "username" };
+                package.Owners.Add(user);
                 var mockHttpContext = new Mock<HttpContextBase>();
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
-                packageService.Setup(p => p.ConfirmPackageOwnerAsync(package, user, "token")).Returns(Task.FromResult(confirmationResult));
                 var controller = CreateController(httpContext: mockHttpContext, packageService: packageService);
                 controller.SetCurrentUser(user);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
@@ -520,97 +517,131 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
-                Assert.Equal(confirmationResult, model.Result);
-                Assert.Equal("foo", model.PackageId);
+                Assert.Equal(ConfirmOwnershipResult.AlreadyOwner, model.Result);
             }
 
-            [Fact]
-            public async Task SubscribesOwnersToSecurePushAndSendsEmailIfNewOwnerRequires()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task ReturnsSuccessIfTokenIsValid(bool tokenValid)
             {
                 // Arrange
-                var fakes = Get<Fakes>();
-                fakes.Package.Owners.Add(fakes.ShaUser);
-                fakes.User.SecurityPolicies = new RequireSecurePushForCoOwnersPolicy().Policies.ToList();
-
-                Assert.Equal(0, fakes.Owner.SecurityPolicies.Count);
-
-                // Act & Assert
-                var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.Owner, fakes.ShaUser);
-
-                Assert.False(policyMessages.ContainsKey(fakes.User.Username));
-                Assert.Equal(2, policyMessages.Count);
-                Assert.StartsWith("User 'testUser' has the following requirements that are now enforced for your account:",
-                    policyMessages[fakes.Owner.Username]);
-                Assert.StartsWith("User 'testUser' has the following requirements that are now enforced for your account:",
-                    policyMessages[fakes.ShaUser.Username]);
-            }
-
-            [Fact]
-            public async Task SubscribesNewOwnerToSecurePushAndSendsEmailIfOwnerRequires()
-            {
-                // Arrange
-                var fakes = Get<Fakes>();
-                fakes.Package.Owners.Add(fakes.ShaUser);
-                fakes.Owner.SecurityPolicies = new RequireSecurePushForCoOwnersPolicy().Policies.ToList();
-
-                Assert.Equal(0, fakes.User.SecurityPolicies.Count);
-
-                // Act & Assert
-                var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.User);
-
-                Assert.False(policyMessages.ContainsKey(fakes.User.Username));
-                Assert.Equal(2, policyMessages.Count);
-                Assert.StartsWith("Owner(s) 'testPackageOwner' has (have) the following requirements that are now enforced for user 'testUser':",
-                    policyMessages[fakes.Owner.Username]);
-                Assert.Equal("", policyMessages[fakes.ShaUser.Username]);
-            }
-
-            private async Task<IDictionary<string, string>> AssertConfirmOwnerSubscribesUser(Fakes fakes, params User[] usersSubscribed)
-            {
-                // Arrange
+                var package = new PackageRegistration { Id = "foo" };
+                var user = new User { Username = "username" };
                 var mockHttpContext = new Mock<HttpContextBase>();
-
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakes.Package);
-                packageService.Setup(p => p.ConfirmPackageOwnerAsync(fakes.Package, fakes.User, "token"))
-                    .Returns(Task.FromResult(ConfirmOwnershipResult.Success));
-                
-                var policyService = new Mock<ISecurityPolicyService>();
-                foreach (var user in usersSubscribed)
-                {
-                    policyService.Setup(s => s.SubscribeAsync(user, "SecurePush"))
-                        .Returns(Task.FromResult(true))
-                        .Verifiable();
-                }
-
-                var policyMessages = new Dictionary<string, string>();
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(s => s.SendPackageOwnerAddedNotice(
-                    It.IsAny<User>(), It.IsAny<User>(), It.IsAny<PackageRegistration>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Callback<User, User, PackageRegistration, string, string>((toUser, newOwner, pkg, pkgUrl, policyMessage) =>
-                    {
-                        policyMessages.Add(toUser.Username, policyMessage);
-                    });
-
-                var controller = CreateController(
-                    httpContext: mockHttpContext,
-                    packageService: packageService,
-                    messageService: messageService,
-                    securityPolicyService: policyService);
-
-                controller.SetCurrentUser(fakes.User);
+                packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
+                packageService.Setup(p => p.IsValidPackageOwnerRequest(package, user, "token"))
+                    .Returns(tokenValid);
+                packageService.Setup(p => p.AddPackageOwnerAsync(package, user)).Returns(Task.CompletedTask).Verifiable();
+                var controller = CreateController(httpContext: mockHttpContext, packageService: packageService);
+                controller.SetCurrentUser(user);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
                 // Act
-                await controller.ConfirmOwner(fakes.Package.Id, fakes.User.Username, "token");
+                var result = await controller.ConfirmOwner("foo", "username", "token");
 
                 // Assert
-                foreach (var user in usersSubscribed)
+                var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
+                var expectedResult = tokenValid ? ConfirmOwnershipResult.Success : ConfirmOwnershipResult.Failure;
+                Assert.Equal(expectedResult, model.Result);
+                Assert.Equal("foo", model.PackageId);
+                packageService.Verify(p => p.AddPackageOwnerAsync(package, user), tokenValid ? Times.Once() : Times.Never());
+            }
+
+            public class TheConfirmOwnerMethod_SecurePushPropagation : TestContainer
+            {
+                [Fact]
+                public async Task SubscribesOwnersToSecurePushAndSendsEmailIfNewOwnerRequires()
                 {
-                    policyService.Verify(s => s.SubscribeAsync(user, "SecurePush"), Times.Once);
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    fakes.Package.Owners.Add(fakes.ShaUser);
+                    fakes.User.SecurityPolicies = new RequireSecurePushForCoOwnersPolicy().Policies.ToList();
+
+                    Assert.Equal(0, fakes.Owner.SecurityPolicies.Count);
+
+                    // Act & Assert
+                    var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.Owner, fakes.ShaUser);
+                    Assert.Equal(3, policyMessages.Count);
+
+                    // subscribed notification
+                    Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for your account:",
+                        policyMessages[fakes.Owner.Username]);
+                    Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for your account:",
+                        policyMessages[fakes.ShaUser.Username]);
+
+                    // propagator notification
+                    Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for co-owner(s) '",
+                        policyMessages[fakes.User.Username]);
                 }
 
-                return policyMessages;
+                [Fact]
+                public async Task SubscribesNewOwnerToSecurePushAndSendsEmailIfOwnerRequires()
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    fakes.Package.Owners.Add(fakes.ShaUser);
+                    fakes.Owner.SecurityPolicies = new RequireSecurePushForCoOwnersPolicy().Policies.ToList();
+
+                    Assert.Equal(0, fakes.User.SecurityPolicies.Count);
+
+                    // Act & Assert
+                    var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.User);
+
+                    Assert.False(policyMessages.ContainsKey(fakes.User.Username));
+                    Assert.Equal(2, policyMessages.Count);
+                    Assert.StartsWith("Owner(s) 'testPackageOwner' has (have) the following requirements that are now enforced for co-owner(s) 'testUser':",
+                        policyMessages[fakes.Owner.Username]);
+                    Assert.Equal("", policyMessages[fakes.ShaUser.Username]);
+                }
+
+                private async Task<IDictionary<string, string>> AssertConfirmOwnerSubscribesUser(Fakes fakes, params User[] usersSubscribed)
+                {
+                    // Arrange
+                    var mockHttpContext = new Mock<HttpContextBase>();
+
+                    var packageService = new Mock<IPackageService>();
+                    packageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakes.Package);
+                    packageService.Setup(p => p.IsValidPackageOwnerRequest(fakes.Package, fakes.User, "token")).Returns(true);
+
+                    var policyService = new Mock<ISecurityPolicyService>();
+                    foreach (var user in usersSubscribed)
+                    {
+                        policyService.Setup(s => s.SubscribeAsync(user, "SecurePush"))
+                            .Returns(Task.FromResult(true))
+                            .Verifiable();
+                    }
+
+                    var policyMessages = new Dictionary<string, string>();
+                    var messageService = new Mock<IMessageService>();
+                    messageService.Setup(s => s.SendPackageOwnerAddedNotice(
+                        It.IsAny<User>(), It.IsAny<User>(), It.IsAny<PackageRegistration>(), It.IsAny<string>(), It.IsAny<string>()))
+                        .Callback<User, User, PackageRegistration, string, string>((toUser, newOwner, pkg, pkgUrl, policyMessage) =>
+                        {
+                            policyMessages.Add(toUser.Username, policyMessage);
+                        });
+
+                    var controller = CreateController(
+                        httpContext: mockHttpContext,
+                        packageService: packageService,
+                        messageService: messageService,
+                        securityPolicyService: policyService);
+
+                    controller.SetCurrentUser(fakes.User);
+                    TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
+
+                    // Act
+                    await controller.ConfirmOwner(fakes.Package.Id, fakes.User.Username, "token");
+
+                    // Assert
+                    foreach (var user in usersSubscribed)
+                    {
+                        policyService.Verify(s => s.SubscribeAsync(user, "SecurePush"), Times.Once);
+                    }
+
+                    return policyMessages;
+                }
             }
         }
 

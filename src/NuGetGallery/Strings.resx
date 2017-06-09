@@ -447,7 +447,7 @@ The {1} Team</value>
     <value>Package versions that differ only by metadata cannot be uploaded. A package with ID '{0}' and version '{1}' already exists and cannot be modified.</value>
   </data>
   <data name="AddOwnerConfirmation" xml:space="preserve">
-    <value>Please confirm if you want to proceed adding '{0}' as a co-owner of this package.</value>
+    <value>Please confirm if you would like to proceed adding '{0}' as a co-owner of this package.</value>
   </data>
   <data name="AddOwner_CurrentUserNotFound" xml:space="preserve">
     <value>Current user not found.</value>
@@ -465,8 +465,8 @@ The {1} Team</value>
     <value>Package not found.</value>
   </data>
   <data name="SecurePushPolicyDescriptions" xml:space="preserve">
-    <value>1. All co-owners must use client version '{0}' or higher to push all of their packages.
-2. All existing push API keys for co-owners new to this policy will expire in '{1}' days.</value>
+    <value>1. All co-owners must use client version {0} or higher to push all of their packages.
+2. All existing push API keys for co-owners new to this policy will expire in {1} days.</value>
   </data>
   <data name="AddOwnerConfirmation_SecurePushRequiredByNewOwner" xml:space="preserve">
     <value>User '{0}' has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:
@@ -483,15 +483,8 @@ Note this step cannot be easily undone. If you are unsure and/or need more infor
 {2}
 Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{3}'.</value>
   </data>
-  <data name="AddOwnerNotification_SecurePushRequiredByNewOwner" xml:space="preserve">
-    <value>User '{0}' has the following requirements that are now enforced for your account:
-
-{1}
-
-For more information, please contact '{2}'.</value>
-  </data>
-  <data name="AddOwnerNotification_SecurePushRequiredByOwner" xml:space="preserve">
-    <value>Owner(s) '{0}' has (have) the following requirements that are now enforced for user '{1}':
+  <data name="AddOwnerNotification_SecurePushRequired_Propagators" xml:space="preserve">
+    <value>Owner(s) '{0}' has (have) the following requirements that are now enforced for co-owner(s) '{1}':
 
 {2}
 
@@ -511,5 +504,12 @@ For more information, please contact '{3}'.</value>
     <value>Note: Pending owner(s) '{0}' has (have) the following policies that will be enforced on your account once ownership requests are accepted. If you are unsure and/or need more information, please contact '{1}'.
 
 {2}</value>
+  </data>
+  <data name="AddOwnerNotification_SecurePushRequired_Subscribed" xml:space="preserve">
+    <value>Owner(s) '{0}' has (have) the following requirements that are now enforced for your account:
+
+{1}
+
+For more information, please contact '{2}'.</value>
   </data>
 </root>

@@ -139,6 +139,14 @@ namespace NuGetGallery.Security
             service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Exactly(times));
         }
 
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void IsSubscribed_ThrowsArgumentIfUsernameMissing(string username)
+        {
+            Assert.Throws<ArgumentException>(() => new TestSecurityPolicyService().IsSubscribed(new User(), username));
+        }
+
         [Fact]
         public void IsSubscribed_ThrowsArgumentNullIfUserIsNull()
         {
@@ -150,7 +158,7 @@ namespace NuGetGallery.Security
         public void IsSubscribed_ThrowsArgumentNullIfSubscriptionIsNull()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new TestSecurityPolicyService().IsSubscribed(new User(), null));
+                new TestSecurityPolicyService().IsSubscribed(new User(), (IUserSecurityPolicySubscription)null));
         }
 
         [Fact]
