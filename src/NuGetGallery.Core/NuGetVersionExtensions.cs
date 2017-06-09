@@ -7,7 +7,7 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public static class NuGetVersionNormalizer
+    public static class NuGetVersionFormatter
     {
         public static string Normalize(string version)
         {
@@ -19,16 +19,34 @@ namespace NuGetGallery
 
             return parsed.ToNormalizedString();
         }
+
+        public static string ToFullStringOrFallback(string version, string fallback = "")
+        {
+            NuGetVersion nugetVersion;
+            if (NuGetVersion.TryParse(version, out nugetVersion))
+            {
+                return nugetVersion.ToFullString();
+            }
+            else
+            {
+                return fallback;
+            }
+        }
     }
 
     public static class NuGetVersionExtensions
     {
-        private const RegexOptions Flags = RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture;
-        private static readonly Regex SemanticVersionRegex = new Regex(@"^(?<Version>\d+(\s*\.\s*\d+){0,3})(?<Release>-[a-z][0-9a-z-]*)?$", Flags);
+        private const RegexOptions SemanticVersionRegexFlags = RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture;
+        private static readonly Regex SemanticVersionRegex = new Regex(@"^(?<Version>\d+(\s*\.\s*\d+){0,3})(?<Release>-[a-z][0-9a-z-]*)?$", SemanticVersionRegexFlags);
 
         public static string ToNormalizedStringSafe(this NuGetVersion self)
         {
-            return self != null ? self.ToNormalizedString() : String.Empty;
+            return self != null ? self.ToNormalizedString() : string.Empty;
+        }
+
+        public static string ToFullStringSafe(this NuGetVersion self)
+        {
+            return self != null ? self.ToFullString() : string.Empty;
         }
 
         public static bool IsValidVersionForLegacyClients(this NuGetVersion self)

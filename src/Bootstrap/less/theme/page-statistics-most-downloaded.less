@@ -1,0 +1,67 @@
+.page-statistics-most-downloaded {
+    @subtitle-text-size: 1.5em;
+    @margin-small: 4px;
+    
+    h2 {
+        font-size: @subtitle-text-size;
+        color: gray;
+        margin-top: @margin-small;
+        margin-bottom: 40px;
+    }
+    
+    .table {
+        table-layout: fixed;
+        
+        thead {
+            padding-bottom: @margin-small;
+            margin-bottom: 10px;
+            
+            th {
+                font-size: @subtitle-text-size;
+                font-weight: normal;
+            }
+    
+            .packages {
+                th:nth-child(1) {
+                    width: 10%;
+                }
+                
+                th:nth-child(2) {
+                    width: 70%;
+                }
+                
+                th:nth-child(3) {
+                    width: 20%;
+                }
+            }
+    
+            .package-versions {
+                th:nth-child(1) {
+                    width: 10%;
+                }
+                
+                th:nth-child(2) {
+                    width: 50%;
+                }
+                
+                th:nth-child(3) {
+                    width: 20%;
+                }
+                
+                th:nth-child(4) {
+                    width: 20%;
+                }
+            }
+        }
+        
+        tbody {
+            font-size: 1.25em;
+            margin-bottom: 20px;
+            
+            td {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+}

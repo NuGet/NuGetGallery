@@ -14,11 +14,13 @@ using System.Security.Principal;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Mvc.Html;
 using System.Web.WebPages;
 using Microsoft.Owin;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGetGallery.Authentication;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -272,6 +274,100 @@ namespace NuGetGallery
             var metadata = ModelMetadata.FromLambdaExpression(expression, htmlHelper.ViewData);
             var modelState = htmlHelper.ViewData.ModelState[metadata.PropertyName];
             return modelState != null && modelState.Errors != null && modelState.Errors.Count > 0;
+        }
+
+        public static HtmlString HasErrorFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression)
+        {
+            if (IsError(htmlHelper, expression))
+            {
+                return MvcHtmlString.Create("has-error");
+            }
+            else
+            {
+                return MvcHtmlString.Empty;
+            }
+        }
+
+        public static HtmlString ShowLabelFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
+            var propertyName = metadata.PropertyName.ToLower();
+
+            return html.LabelFor(expression, new
+            {
+                id = $"{propertyName}-label"
+            });
+        }
+
+        public static HtmlString ShowPasswordFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            return html.PasswordFor(expression, htmlAttributes);
+        }
+
+        public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            return html.TextBoxFor(expression, htmlAttributes);
+        }
+
+        public static HtmlString ShowCheckboxFor<TModel>(this HtmlHelper<TModel> html, Expression<Func<TModel, bool>> expression)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression, isFormControl: false);
+            return html.CheckBoxFor(expression, htmlAttributes);
+        }
+
+        public static HtmlString ShowTextAreaFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, int rows, int columns)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            return html.TextAreaFor(expression, rows, columns, htmlAttributes);
+        }
+
+        public static MvcHtmlString ShowEnumDropDownListFor<TModel, TEnum>(
+            this HtmlHelper<TModel> html,
+            Expression<Func<TModel, TEnum?>> expression,
+            IEnumerable<TEnum> values,
+            string emptyItemText)
+          where TEnum : struct
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            return html.EnumDropDownListFor(expression, values, emptyItemText, htmlAttributes);
+        }
+
+        private static Dictionary<string, object> GetHtmlAttributes<TModel, TProperty>(
+            HtmlHelper<TModel> html,
+            Expression<Func<TModel, TProperty>> expression,
+            bool isFormControl = true)
+        {
+            var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
+            var propertyName = metadata.PropertyName.ToLower();
+            var htmlAttributes = new Dictionary<string, object>();
+
+            htmlAttributes["aria-labelledby"] = $"{propertyName}-label {propertyName}-validation-message";
+
+            if (isFormControl)
+            {
+                htmlAttributes["class"] = "form-control";
+            }
+
+            if (metadata.IsRequired)
+            {
+                htmlAttributes["aria-required"] = "true";
+            }
+
+            return htmlAttributes;
+        }
+
+        public static HtmlString ShowValidationMessagesFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
+            var propertyName = metadata.PropertyName.ToLower();
+
+            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new
+            {
+                id = $"{propertyName}-validation-message",
+                @class = "help-block"
+            });
         }
 
         public static string ToShortNameOrNull(this NuGetFramework frameworkName)

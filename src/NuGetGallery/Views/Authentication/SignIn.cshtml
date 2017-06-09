@@ -1,0 +1,101 @@
+﻿@model LogOnViewModel
+@{
+    ViewBag.Title = "Sign In";
+    ViewBag.Tab = "Sign in";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container page-sign-in">
+    <div class="row">
+        <div class="col-sm-12">
+            <h1>Sign in</h1>
+        </div>
+    </div>
+
+    @foreach (var provider in Model.Providers)
+    {
+        var accountNoun = provider.UI.AccountNoun ?? "external account";
+        var accountArticle = provider.UI.AccountNoun != null ? "a" : "an";
+        <div class="row">
+            <div class="col-sm-12">
+                <p>
+                    @if (!string.IsNullOrEmpty(provider.UI.SignInInfo))
+                    {
+                        @provider.UI.SignInInfo
+                    }
+                    else
+                    {
+                        <text>
+                            We recommend using @accountArticle @accountNoun to sign in to NuGet.org.
+                            If you already have a NuGet.org account, click the button below to associate it with your @accountNoun.
+                            If not, click the button anyway and we'll create a new NuGet.org account for you!
+                        </text>
+                    }
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 text-center">
+                <a role="button" class="btn btn-default provider-button"
+                   href="@Url.Action("Authenticate", new {provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey]})">
+                    @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
+                    {
+                        <img height="24" width="24" alt="" aria-hidden="true"
+                             src="@Href(provider.UI.IconImagePath)" />
+                    }
+                    @provider.UI.SignInMessage
+                </a>
+            </div>
+        </div>
+        <div class="row or-row">
+            <div class="col-sm-12 text-center">
+                <b>OR</b>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-sm-offset-3 col-sm-6">
+            @{
+                var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+            }
+            @using (Html.BeginForm("SignIn", "Authentication"))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("ReturnUrl", returnUrl)
+                @Html.Hidden("LinkingAccount", Model.External != null)
+
+                if (Model.External != null)
+                {
+                    @Html.HiddenFor(m => m.External.ProviderAccountNoun)
+                    @Html.HiddenFor(m => m.External.AccountName)
+                    @Html.HiddenFor(m => m.External.FoundExistingUser)
+                }
+                
+                <div class="form-group @Html.HasErrorFor(m => m.SignIn)">
+                    @Html.ShowValidationMessagesFor(m => m.SignIn)
+                </div>
+
+                <div class="form-group @Html.HasErrorFor(m => m.SignIn.UserNameOrEmail)">
+                    @Html.ShowLabelFor(m => m.SignIn.UserNameOrEmail)
+                    @Html.ShowTextBoxFor(m => m.SignIn.UserNameOrEmail)
+                    @Html.ShowValidationMessagesFor(m => m.SignIn.UserNameOrEmail)
+                </div>
+                <div class="form-group @Html.HasErrorFor(m => m.SignIn.Password)">
+                    @Html.ShowLabelFor(m => m.SignIn.Password)
+                    @Html.ShowPasswordFor(m => m.SignIn.Password)
+                    @Html.ShowValidationMessagesFor(m => m.SignIn.Password)
+                </div>
+                <p>
+                    @Html.ActionLink("Forgot your Password?", "ForgotPassword", "Users")
+                </p>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary form-control" value="Sign in" />
+                </div>
+            }
+            <p class="text-center">
+                Don't have an account? <a href="@Url.SignUp(returnUrl)">Register</a>
+            </p>
+        </div>
+    </div>
+</section>

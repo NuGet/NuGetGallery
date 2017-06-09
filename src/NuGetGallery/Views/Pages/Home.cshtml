@@ -4,38 +4,34 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="page-home">
+<section role="main" class="page-home">
     <div class="jumbotron text-center">
         <div class="container">
-            <h1>Power your projects with NuGet</h1>
             <div class="row">
-                <form class="col-md-8 col-md-offset-2" action="@Url.PackageList()" method="get">
-                    <div class="input-group">
-                        <input name="q" type="text" class="form-control" id="search"
-                               placeholder="Search for packages..." autocomplete="off"
-                               value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
-                               @(Request.Url != null && (Request.Url.PathAndQuery == "/" || Request.Url.PathAndQuery == "/packages") ? "autofocus" : string.Empty) />
-                        <span class="input-group-btn">
-                            <button class="btn btn-default btn-warning" type="submit"><span class="ms-Icon ms-Icon--Search"></span></button>
-                        </span>
-                    </div>
-                </form>
+                <div class="col">
+                    <h1>Power your projects with NuGet</h1>
+                </div>
             </div>
             <div class="row">
-                <div class="circuit-board">
-                    <div class="circuit-board-label circuit-board-pd triangle triangle-left">
-                        <h3 data-bind="animateNumber: packageDownloads">0</h3>
-                        <h5>package downloads</h5>
-                    </div>
-                    <div class="circuit-board-label circuit-board-pv triangle triangle-right">
-                        <h3 data-bind="animateNumber: packageVersions">0</h3>
-                        <h5>package versions</h5>
-                    </div>
-                    <div class="circuit-board-label circuit-board-up triangle triangle-left">
-                        <h3 data-bind="animateNumber: uniquePackages">0</h3>
-                        <h5>unique packages</h5>
-                    </div>
+                <div class="col-sm-8 col-sm-offset-2">
+                    <form action="@Url.PackageList()" method="get">
+                        @Html.Partial("_SearchBar")
+                    </form>
                 </div>
+            </div>            
+        </div>
+        <div class="circuit-board hidden-xs">
+            <div class="circuit-board-label circuit-board-pd triangle triangle-left">
+                <h3 data-bind="animateNumber: packageDownloads">0</h3>
+                <h5>package downloads</h5>
+            </div>
+            <div class="circuit-board-label circuit-board-pv triangle triangle-right">
+                <h3 data-bind="animateNumber: packageVersions">0</h3>
+                <h5>package versions</h5>
+            </div>
+            <div class="circuit-board-label circuit-board-up triangle triangle-left">
+                <h3 data-bind="animateNumber: uniquePackages">0</h3>
+                <h5>unique packages</h5>
             </div>
         </div>
     </div>
@@ -50,7 +46,7 @@
             </p>
         </div>
         <div class="row row-gap">
-            <div class="col-md-4">
+            <div class="col-sm-4">
                 <img src="~/Content/gallery/img/upload-hero.png" alt="Cartoon image of a person lifting a package into the clouds" />
                 <h3>Upload</h3>
                 <p>
@@ -58,7 +54,7 @@
                     justo consectetur leo, nec interdum odio odio non lacus. Donec commodo enim et suscipit ultrices.
                 </p>
             </div>
-            <div class="col-md-4">
+            <div class="col-sm-4">
                 <img src="~/Content/gallery/img/download-hero.png" alt="Cartoon image a toolbox" />
                 <h3>Download</h3>
                 <p>
@@ -66,7 +62,7 @@
                     justo consectetur leo, nec interdum odio odio non lacus. Donec commodo enim et suscipit ultrices.
                 </p>
             </div>
-            <div class="col-md-4">
+            <div class="col-sm-4">
                 <img src="~/Content/gallery/img/contribute-hero.png" alt="Cartoon image of a person looking into the clouds with a telescope" />
                 <h3>Contribute</h3>
                 <p>
@@ -76,7 +72,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/gallery/page-home.min.js")

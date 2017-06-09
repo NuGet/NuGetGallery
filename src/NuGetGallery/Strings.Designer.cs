@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -600,24 +600,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Package {0} invalid: the release label can not only contain numerics..
-        /// </summary>
-        public static string NuGetPackageReleaseVersionContainsOnlyNumerics {
-            get {
-                return ResourceManager.GetString("NuGetPackageReleaseVersionContainsOnlyNumerics", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Package {0} invalid: no &apos;.&apos; allowed in the release label..
-        /// </summary>
-        public static string NuGetPackageReleaseVersionWithDot {
-            get {
-                return ResourceManager.GetString("NuGetPackageReleaseVersionWithDot", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Package created from API..
         /// </summary>
         public static string PackageCreatedFromApi {
@@ -668,6 +650,15 @@ namespace NuGetGallery {
         public static string PackageIsMissingRequiredData {
             get {
                 return ResourceManager.GetString("PackageIsMissingRequiredData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package versions that differ only by metadata cannot be uploaded. A package with ID &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
+        /// </summary>
+        public static string PackageVersionDiffersOnlyByMetadataAndCannotBeModified {
+            get {
+                return ResourceManager.GetString("PackageVersionDiffersOnlyByMetadataAndCannotBeModified", resourceCulture);
             }
         }
         

@@ -12,8 +12,10 @@ namespace NuGetGallery.OData.Interceptors
     {
         public class TheProjectV2FeedPackageMethod
         {
-            [Fact]
-            public void MapsBasicPackagePropertiesCorrectly()
+            [Theory]
+            [InlineData(null)] // SemVerLevelKey.Unknown
+            [InlineData(2)] // SemVerLevelKey.SemVer2
+            public void MapsBasicPackagePropertiesCorrectly(int? semVerLevelKey)
             {
                 // Arrange
                 var packages = new List<Package>
@@ -25,7 +27,8 @@ namespace NuGetGallery.OData.Interceptors
                 var projected = PackageExtensions.ProjectV2FeedPackage(
                     packages,
                     siteRoot: "http://nuget.org",
-                    includeLicenseReport: true).ToList();
+                    includeLicenseReport: true,
+                    semVerLevelKey: semVerLevelKey).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -74,7 +77,8 @@ namespace NuGetGallery.OData.Interceptors
                 var projected = PackageExtensions.ProjectV2FeedPackage(
                     packages,
                     siteRoot: "http://nuget.org",
-                    includeLicenseReport: true).ToList();
+                    includeLicenseReport: true,
+                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -97,7 +101,8 @@ namespace NuGetGallery.OData.Interceptors
                 var projected = PackageExtensions.ProjectV2FeedPackage(
                     packages,
                     siteRoot: "http://nuget.org",
-                    includeLicenseReport: true).ToList();
+                    includeLicenseReport: true,
+                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -117,7 +122,8 @@ namespace NuGetGallery.OData.Interceptors
                 var projected = PackageExtensions.ProjectV2FeedPackage(
                     packages,
                     siteRoot: "http://nuget.org",
-                    includeLicenseReport: false).ToList();
+                    includeLicenseReport: false,
+                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -147,7 +153,9 @@ namespace NuGetGallery.OData.Interceptors
                 Description = "The standard repository for all knowledge and wisdom",
                 IconUrl = "http://notreal.example/foo.ico",
                 IsLatestStable = false,
+                IsLatestStableSemVer2 = false,
                 IsLatest = true,
+                IsLatestSemVer2 = true,
                 IsPrerelease = true,
                 LastUpdated = new DateTime(2002, 4, 30),
                 Language = "en-GB",

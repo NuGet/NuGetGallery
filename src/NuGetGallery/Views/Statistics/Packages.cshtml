@@ -2,34 +2,48 @@
 @{
     ViewBag.Title = "Package Download Statistics";
     ViewBag.Tab = "Statistics";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div>
-    <h1 class="statistics-report-title">Most Downloaded Packages (Top 100 Over the Last 6 Weeks)</h1>
-    <table class="sexy-table">
-        <thead>
-            <tr>
-                <th scope="col"></th>
-                <th scope="col" class="first">Package</th>
-                <th scope="col">Downloads</th>
-            </tr>
-        </thead>
-        <tbody>
-            @{
-                var index = 0;
+<section role="main" class="container main-container page-statistics-most-downloaded">
+    <div class="row">
+        <div class="col">
+            <h1>Most Downloaded Packages</h1>
+            <h2>Top 100 Over the Last 6 Weeks</h2>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table borderless">
+            <caption class="sr-only">
+                The packages with the most downloads.
+            </caption>
+            <thead>
+                <tr class="packages">
+                    <th scope="col">&nbsp;<span class="sr-only">#</span></th>
+                    <th scope="col">Package</th>
+                    <th scope="col">Downloads</th>
+                </tr>
+            </thead>
 
-                foreach (var item in Model.DownloadPackagesAll)
-                {
-                    index++;
+            <tbody>
+                @{
+                    var index = 0;
+                    foreach (var item in Model.DownloadPackagesAll)
+                    {
+                        index++;
 
-                    <tr>
-                        <td class="statistics-rank">@index</td>
-                        <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
-                        <td class="statistics-number"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
-                    </tr>
+                        <tr>
+                            <td scope="row">@index</td>
+                            <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                            <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                        </tr>
+                    }
                 }
-            }
-        </tbody>
-    </table>
-    @Html.Partial("_LastUpdated", Model)
-</div>
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        @Html.Partial("_LastUpdated", Model)
+    </div>
+</section>
+
