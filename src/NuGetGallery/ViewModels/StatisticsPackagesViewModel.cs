@@ -18,6 +18,8 @@ namespace NuGetGallery
             YearWeekNumber
         }
 
+        private readonly string[] _magnitudeAbbreviations = new string[] { "", "k", "M", "B", "T", "q", "Q", "s", "S", "o", "n" };
+
         private DateTime? _lastUpdatedUtc;
 
         public StatisticsPackagesViewModel()
@@ -135,7 +137,6 @@ namespace NuGetGallery
 
         public string DisplayShortNumber(int number)
         {
-            var abbreviation = new string[] { "", "k", "M", "B", "q", "Q", "s", "S", "o", "n" };
             var numDiv = 0;
 
             while (number >= 1000)
@@ -144,12 +145,12 @@ namespace NuGetGallery
                 numDiv++;
             }
 
-            if (numDiv >= abbreviation.Length)
+            if (numDiv >= _magnitudeAbbreviations.Length)
             {
                 return number + $"10^{numDiv*3}";
             }
 
-            return number + abbreviation[numDiv];
+            return number + _magnitudeAbbreviations[numDiv];
         }
     }
 }
