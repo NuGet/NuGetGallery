@@ -12,8 +12,6 @@
         // var section = $('section.aggstatserr');
         // section.show();
     });
-
-    setTimeout(function () { getStats(currData); }, 30000);
 }
 
 function update(data, currData, key) {

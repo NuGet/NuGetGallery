@@ -2,98 +2,94 @@
 @model ReportAbuseViewModel
 @{
     ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
     string returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
 }
 
-<h1 class="page-heading">Report Abuse</h1>
+<section class="container main-container page-report-abuse">
+    <h1 class="page-heading">Report Abuse</h1>
 
-<p class="message">
-    <strong>Important: Please do not use this form to report a bug in a package you are using!</strong><br />
-    This form is for reporting <em>abusive</em> packages such as
-    packages containing <em>malicious code</em> or spam. If "@Model.PackageId" simply doesn't
-    work, or if you need help getting the package installed, please
-    <a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.PackageId })" title="contact the owners">contact the owners instead.</a>
-</p>
+    @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+        @<text>
+            <strong>Important - Please do not use this form to report a bug in a package you are using!</strong><br />
+            This form is for reporting abusive packages such as
+            packages containing malicious code or spam. If "@Model.PackageId" simply doesn't
+            work, or if you need help getting the package installed, please
+            <a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.PackageId })" title="contact the owners">contact the owners instead.</a>    
+        </text>
+    )
 
-<p>
-    Please provide a detailed abuse report. Include exactly what the package did, for example if you are reporting a package with a virus or malicious code,
-    <em>please provide evidence to support your claim!</em> We cannot delete packages without evidence that they exhibit malicious behavior.
-</p>
-
-@if (!Model.ConfirmedUser)
-{
     <p>
-        Note: if you are the owner of @Model.PackageId, please
-        <a href="@Url.LogOn(returnUrl)">sign in now before you complete this form.</a>
+        Please provide a detailed abuse report. Include exactly what the package did, for example if you are reporting a package with a virus or malicious code,
+        please provide evidence to support your claim! We cannot delete packages without evidence that they exhibit malicious behavior.
     </p>
-}
 
-@using (Html.BeginForm())
-{
-    <fieldset id="report-abuse-form" class="form">
-        <legend>Report Abuse</legend>
-        @Html.AntiForgeryToken()
-        <div class="form-field">
-            @if (!Model.ConfirmedUser)
+    @if (!Model.ConfirmedUser)
+    {
+        <p>
+            Note: if you are the owner of @Model.PackageId, please
+            <a href="@Url.LogOn(returnUrl)">sign in now before you complete this form.</a>
+        </p>
+    }
+
+    <div class="row report-form">
+        <div class="col-sm-offset-2 col-sm-8">
+            @using (Html.BeginForm())
             {
-                @Html.LabelFor(m => m.Email)
-                @Html.EditorFor(m => m.Email)
-                <span class="field-hint-message">Provide your email address so we can follow up with you.</span>
-                @Html.ValidationMessageFor(m => m.Email)
+                @Html.AntiForgeryToken()
+                @Html.SpamPreventionFields()
+
+                <div class="form-group @Html.HasErrorFor(m => m.Email)">
+                    @Html.ShowLabelFor(m => m.Email)
+                    @Html.ShowTextBoxFor(m => m.Email)
+                    @Html.ShowValidationMessagesFor(m => m.Email)
+                </div>
+                <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
+                    @Html.ShowLabelFor(m => m.Reason)
+                    @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>")
+                    @Html.ShowValidationMessagesFor(m => m.Reason)
+                </div>
+                <div class="form-group @Html.HasErrorFor(m => m.AlreadyContactedOwner)">
+                    @Html.ShowCheckboxFor(m => m.AlreadyContactedOwner)
+                    @Html.ShowLabelFor(m => m.AlreadyContactedOwner)
+                    @Html.ShowValidationMessagesFor(m => m.AlreadyContactedOwner)
+                </div>
+                <div class="form-group @Html.HasErrorFor(m => m.Message)">
+                    @Html.ShowLabelFor(m => m.Message)
+                    <p>In addition to selecting the reason for reporting the package, you must provide details of the problem here.</p>
+                    @Html.ShowTextAreaFor(m => m.Message, 10, 50)
+                    @Html.ShowValidationMessagesFor(m => m.Message)
+                </div>
+                <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
+                    @Html.ShowCheckboxFor(m => m.CopySender)
+                    @Html.ShowLabelFor(m => m.CopySender)
+                    @Html.ShowValidationMessagesFor(m => m.CopySender)
+                </div>
+                <div class="form-group infringement-claim-requirements @Html.HasErrorFor(m => m.Signature)">
+                    <h2><span style="color:red">*</span> Required Statements for infringement claims</h2>
+                    <h2>Good Faith Belief:</h2>
+                    <p>
+                        By typing my name (electronic signature), I have a good faith belief that the use of the material is not authorized by the intellectual property owner, its agent, or the law (e.g., it is not fair use).
+                    </p>
+                    <h2>Authority to Act:</h2>
+                    <p>
+                        I represent that the information in the notification is accurate, and under penalty of perjury, that I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
+                    </p>
+                    <h2>512(f) Acknowledgement:</h2>
+                    <p>
+                        As applicable under 17 U.S.C. 512(f), I acknowledge that I may be subject to liability for damages if I knowingly materially misrepresent that material or activity is infringing.
+                    </p>
+                    @Html.ShowLabelFor(m => m.Signature)
+                    @Html.ShowTextBoxFor(m => m.Signature)
+                    @Html.ShowValidationMessagesFor(m => m.Signature)
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary form-control" value="Report" />
+                </div>
             }
-            else
-            {
-                <input type="hidden" name="Email" value="test@example.com" />
-            }
         </div>
-        <div id="form-field-reason" class="form-field">
-            @Html.LabelFor(m => m.Reason)
-            @Html.EnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>")
-            @Html.ValidationMessageFor(m => m.Reason)
-        </div>
-        <div class="form-field">
-            @Html.CheckBoxFor(m => m.AlreadyContactedOwner)
-            @Html.LabelFor(m => m.AlreadyContactedOwner, "Yes! I have already tried to contact the package owner about this problem.",
-                new Dictionary<string, object>
-                {
-                    { "style", "display: inline" },
-                })<br />
-        </div>
-        <div class="form-field">
-            @Html.LabelFor(m => m.Message, "Abuse Report")
-            <p>In addition to selecting the reason for reporting the package, you must provide details of the problem here.</p>
-            @Html.TextAreaFor(m => m.Message, 10, 50, null)
-            @Html.ValidationMessageFor(m => m.Message, null, new { id = "report-abuse-message" })
-        </div>
-        <div class="form-field">
-            @Html.CheckBoxFor(m => m.CopySender)
-            @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
-        </div>
-        <div class="form-field infringement-claim-requirements">
-            <br /><span style="color: red">*</span> Required Statements for infringement claims<br /><br />
-            <strong>Good Faith Belief:</strong><br />
-            <p>
-                By typing my name (electronic signature), I have a good faith belief that the use of the material is not authorized by the intellectual property owner, its agent, or the law (e.g., it is not fair use).
-            </p>
-            <strong>Authority to Act:</strong>
-            <p>
-                I represent that the information in the notification is accurate, and under penalty of perjury, that I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
-            </p>
-            <strong>512(f) Acknowledgement:</strong>
-            <p>
-                As applicable under 17 U.S.C. 512(f), I acknowledge that I may be subject to liability for damages if I knowingly materially misrepresent that material or activity is infringing.
-            </p>
-            @Html.LabelFor(m => m.Signature)
-            @Html.EditorFor(m => m.Signature)
-            <span class="field-hint-message">Sign with your real name.</span>
-            @Html.ValidationMessageFor(m => m.Signature)
-        </div>
-        <div class="infringement-claim-requirements">You can also send us an email at <a href="mailto:admin@nuget.org">admin@nuget.org</a></div>
-        <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
-        @Html.SpamPreventionFields()
-        <input id="form-submit" type="submit" value="Report" title="Report '@Model.PackageId' for abuse" />
-    </fieldset>
-}
+    </div>
+</section>
 
 @section BottomScripts {
     @Html.SpamPreventionScript()

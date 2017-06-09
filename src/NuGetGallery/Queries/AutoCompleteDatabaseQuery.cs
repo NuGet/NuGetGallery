@@ -23,7 +23,7 @@ namespace NuGetGallery
             _dbContext = (DbContext)entities;
         }
 
-        public Task<IEnumerable<string>> RunQuery(string sql, params object[] sqlParameters)
+        public Task<IEnumerable<string>> RunSqlQuery(string sql, params object[] sqlParameters)
         {
             return Task.FromResult(_dbContext.Database.SqlQuery<string>(sql, sqlParameters).AsEnumerable());
         }

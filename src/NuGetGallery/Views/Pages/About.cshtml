@@ -1,102 +1,63 @@
 ﻿@{
     ViewBag.Title = "About the Gallery";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<h2>About the Gallery</h2>
+<script type="text/html" id="contributor-list-template">
+    <!-- This is all on a single line because if there is space (new lines) between the <ul> and <li> elements, browsers render the space and it causes the formatting to be off. -->
+    <ul class="contributors list-inline" data-bind="foreach: $data"><li class="contributor"><a data-bind="attr: { href: html_url }"><img class="avatar" data-bind="attr: { src: avatar_url, title: login }" /></a></li></ul>
+</script>
 
-<p>
-    The NuGet Gallery is <a href="http://opensource.org/">Open-Source Software</a> licensed under the
-    <a href="https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt">Apache 2 License</a>. This means
-    you can take the code, modify it and redistribute it freely, as long as you adhere to the terms of the license.
-</p>
-<p>
-    We also welcome contributions from the community. If you would like to contribute, check out our
-    <a href="https://github.com/NuGet/NuGetGallery/blob/master/CONTRIBUTING.md">Contributors Guide</a> on
-    our <a href="https://github.com/NuGet/NuGetGallery">GitHub Project Page</a>.
-</p>
+<section class="container main-container page-about">
+    <div class="row">
+        <div class="col">
+            <h1>About NuGet</h1>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
 
-<h3>Special Thanks</h3>
-<p>
-    A special thanks go out to some of our contributors who have made major contributions to the site.
-</p>
-<ul>
-    <li>
-        <a href="https://github.com/NuGet/NuGetGallery/commits?author=robertmuehsig">Robert Muehsig</a> -
-        Lots of bug fixes, up-for-grabs features and various assorted goodies
-    </li>
-    <li>
-        <a href="https://github.com/NuGet/NuGetGallery/commits?author=zippy1981">Justin Dearing</a> -
-        Added the ability to send a copy of support emails to the originator.
-    </li>
-    <li>
-        <a href="https://github.com/NuGet/NuGetGallery/commits?author=maartenba">Maarten Balliauw</a> -
-        Added knowledge of "MyGet" user agents to our statistics warehouse. Lots of performance fixes.
-    </li>
-    <li>And <a href="https://github.com/NuGet/NuGetGallery/graphs/contributors">many many more!</a></li>
-</ul>
-<ul class="contributor-list" id="contributors"></ul>
+                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            </p>
 
-<h3>The NuGet Team</h3>
-<p>
-    These are contributors from the NuGet team, including current and past team members.  The NuGet team works on the <a href="https://github.com/NuGet">NuGet Gallery</a>, and the <a href="https://github.com/NuGet/Home">NuGet Client tools</a> (Visual Studio Extension, nuget.exe, etc).
-</p>
-<ul class="contributor-list" id="team"></ul>
+            <h2>The NuGet Team</h2>
+            <p>
+                These are contributors from the NuGet team, including current and past team members.  The NuGet team works on the <a href="https://github.com/NuGet">NuGet Gallery</a>, and the <a href="https://github.com/NuGet/Home">NuGet Client tools</a> (Visual Studio Extension, nuget.exe, etc).
+            </p>
+            <div data-bind="template: { name: 'contributor-list-template', data: team }"></div>
+
+            <h2>About the Gallery</h2>
+            <p>
+                The NuGet Gallery is <a href="http://opensource.org/">Open-Source Software</a> licensed under the
+                <a href="https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt">Apache 2 License</a>. This means
+                you can take the code, modify it and redistribute it freely, as long as you adhere to the terms of the license.
+            </p>
+            <p>
+                We also welcome contributions from the community. If you would like to contribute, check out our
+                <a href="https://github.com/NuGet/NuGetGallery/blob/master/CONTRIBUTING.md">Contributors Guide</a> on
+                our <a href="https://github.com/NuGet/NuGetGallery">GitHub Project Page</a>.
+            </p>
+
+            <h3>Special Thanks</h3>
+            <p>
+                A special thanks go out to some of our contributors who have made major contributions to the site.
+            </p>
+            <ul>
+                <li>
+                    <a href="https://github.com/NuGet/NuGetGallery/commits?author=robertmuehsig">Robert Muehsig</a> -
+                    Lots of bug fixes, up-for-grabs features and various assorted goodies.
+                </li>
+                <li>
+                    <a href="https://github.com/NuGet/NuGetGallery/commits?author=zippy1981">Justin Dearing</a> -
+                    Added the ability to send a copy of support emails to the originator.
+                </li>
+            </ul>
+            <p>
+                And <a href="https://github.com/NuGet/NuGetGallery/graphs/contributors" aria-label="Read the full list of contributors on GitHub.">many many more!</a>
+            </p>
+            <div data-bind="template: { name: 'contributor-list-template', data: contributors }"></div>
+        </div>
+    </div>
+</section>
 
 @section BottomScripts {
-    <script>
-        function addContributors($host, contributors, hrefBase) {
-            $.each(contributors, function (index, value) {
-                if (!value.avatar_url || !value.login) {
-                    return;
-                }
-
-                var $img = $('<img/>');
-                $img.attr('src', value.avatar_url);
-                $img.attr('class', 'contributors-contributor-avatar');
-                var $a = $('<a/>');
-                $a.attr('href', hrefBase + value.login);
-                $a.attr('title', value.login);
-                $a.append($img);
-                var $li = $('<li/>');
-                $li.attr('class', 'contributors-contributor');
-                $li.append($a);
-                $host.append($li);
-            });
-            $host.fadeIn();
-        }
-
-        // Little script to grab contributors and shove their faces into a box :)
-        $(function () {
-            var $contributors = $('#contributors');
-            var $team = $('#team');
-            var contributors = [];
-            var team = [];
-            var teamMap = {};
-            $.when(
-                $.getJSON('https://api.github.com/repos/NuGet/NuGetGallery/contributors', function (data) {
-                    contributors = data;
-                }),
-                $.getJSON(window.app.root + 'api/v2/team', function (data) {
-                    team = data;
-                    $.each(data, function (index, member) {
-                        teamMap[member] = 1; // Value is ignored
-                    });
-                })
-            ).then(function () {
-                // Filter out members from contributors
-                var externalContributors = []; // Quick-n-dirty filter because I don't want to pull a library in
-                var teamContributors = [];
-                $.each(contributors, function (index, contributor) {
-                    if (!teamMap.hasOwnProperty(contributor.login)) {
-                        externalContributors.push(contributor);
-                    } else {
-                        teamContributors.push(contributor);
-                    }
-                });
-
-                addContributors($contributors, externalContributors, 'https://github.com/NuGet/NuGetGallery/commits?author=');
-                addContributors($team, teamContributors, 'https://github.com/');
-            });
-        });
-    </script>
+    @Scripts.Render("~/Scripts/gallery/page-about.min.js")
 }

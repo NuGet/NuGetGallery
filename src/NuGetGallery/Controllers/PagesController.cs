@@ -52,13 +52,13 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult Contact()
         {
-            return View();
+            return View(new ContactSupportViewModel());
         }
 
         [HttpGet]
         public virtual ActionResult Downloads()
         {
-            return Redirect("https://dist.nuget.org/index.html");
+            return View();
         }
 
         [HttpPost]
@@ -68,7 +68,7 @@ namespace NuGetGallery
         {
             if (!ModelState.IsValid)
             {
-                return View();
+                return View(contactForm);
             }
 
             // since HTML is allowed in these fields, encode it to avoid malicious HTML

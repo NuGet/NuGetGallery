@@ -1,35 +1,43 @@
 ﻿<footer class="footer">
     <div class="container">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-sm-4">
                 <h4><a href="@Href("~/policies/Contact")">Contact</a></h4>
                 <p>
                     Got questions about NuGet or the NuGet Gallery?
                 </p>
             </div>
-            <div class="col-md-4">
+            <div class="col-sm-4">
                 <h4><a href="https://status.nuget.org/">Status</a></h4>
                 <p>
                     Find out the service status of NuGet.org and its related services.
                 </p>
             </div>
-            <div class="col-md-4">
-                <h4><a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq">FAQ</a></h4>
+            <div class="col-sm-4">
+                <h4>
+                    <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq">
+                        <abbr title="Frequently Asked Questions">FAQ</abbr>
+                    </a>
+                </h4>
                 <p>
                     Read the Frequently Asked Questions about NuGet and see if your question made the list.
                 </p>
             </div>
         </div>
         <div class="row row-gap">
-            <div class="col-md-3">
-                <img src="~/Content/gallery/img/logo-184x53.png" alt="Larger NuGet logo in the page footer" />
+            <div class="col-sm-3">
+                <img alt="" aria-hidden="true" width="184" height="53"
+                     src="~/Content/gallery/img/logo.svg"
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-184x53.png"))/>
             </div>
-            <div class="col-md-9">
+            <div class="col-sm-9">
                 <div class="row">
-                    <div class="col-md-1 text-right">
-                        <a title=".NET Foundation" href="https://www.dotnetfoundation.org"><img src="~/Content/gallery/img/dotnet-foundation-32x30.png" alt="Logo of the .NET Foundation in the page footer" /></a>
+                    <div class="col-sm-1 text-right">
+                        <a href="https://www.dotnetfoundation.org"><img 
+                            width="32" height="30" alt=".NET Foundation website"
+                            src="~/Content/gallery/img/dotnet-foundation-32x30.png" /></a>
                     </div>
-                    <div class="col-md-11">
+                    <div class="col-sm-11">
                         <p>
                             &copy; @DateTime.UtcNow.Year .NET Foundation -
                             <a href="@Url.Action("Terms", "Pages")">Terms of Use</a> -

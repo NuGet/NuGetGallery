@@ -1,0 +1,104 @@
+﻿@model LogOnViewModel
+@{
+    ViewBag.Title = "Register";
+    ViewBag.Tab = "Register";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container page-sign-in">
+    <div class="row">
+        <div class="col-sm-12">
+            <h1>Register</h1>
+        </div>
+    </div>
+
+    @foreach (var provider in Model.Providers)
+    {
+        var accountNoun = provider.UI.AccountNoun != null ? "a " + provider.UI.AccountNoun : "an external account";
+        <div class="row">
+            <div class="col-sm-12">
+                <p>
+                    @if (!string.IsNullOrEmpty(provider.UI.SignInInfo))
+                {
+                        @provider.UI.SignInInfo
+                    }
+                    else
+                    {
+                        <text>
+                            If you already have @accountNoun click the
+                            "Register with @accountNoun" button and we'll create a new
+                            NuGet.org account for you! Otherwise, register for a new NuGet.org account.
+                        </text>
+                    }
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 text-center">
+                <a role="button" class="btn btn-default provider-button"
+                   href="@Url.Action("Authenticate", new {provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey]})">
+                    @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
+                    {
+                        <img height="24" width="24" al="" aria-hidden="true"
+                             src="@Href(provider.UI.IconImagePath)" />
+                    }
+                    Register with @accountNoun
+                </a>
+            </div>
+        </div>
+        <div class="row or-row">
+            <div class="col-sm-12 text-center">
+                <b>OR</b>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-sm-offset-3 col-sm-6">
+            @{
+                var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+            }
+            @using (Html.BeginForm("Register", "Authentication"))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("ReturnUrl", returnUrl)
+                @Html.Hidden("LinkingAccount", Model.External != null)
+
+                if (Model.External != null)
+                {
+                    @Html.HiddenFor(m => m.External.ProviderAccountNoun)
+                    @Html.HiddenFor(m => m.External.AccountName)
+                }
+
+                <div class="form-group @Html.HasErrorFor(m => m.Register)">
+                    @Html.ShowValidationMessagesFor(m => m.Register)
+                </div>
+
+                <div class="form-group @Html.HasErrorFor(m => m.Register.Username)">
+                    @Html.ShowLabelFor(m => m.Register.Username)
+                    @Html.ShowTextBoxFor(m => m.Register.Username)
+                    @Html.ShowValidationMessagesFor(m => m.Register.Username)
+                </div>
+                <div class="form-group @Html.HasErrorFor(m => m.Register.Password)">
+                    @Html.ShowLabelFor(m => m.Register.Password)
+                    @Html.ShowPasswordFor(m => m.Register.Password)
+                    @Html.ShowValidationMessagesFor(m => m.Register.Password)
+                </div>
+                <div class="form-group @Html.HasErrorFor(m => m.Register.EmailAddress)">
+                    @Html.ShowLabelFor(m => m.Register.EmailAddress)
+                    @Html.ShowTextBoxFor(m => m.Register.EmailAddress)
+                    @Html.ShowValidationMessagesFor(m => m.Register.EmailAddress)
+                </div>
+                <div class="panel panel-default text-center">
+                    <div class="panel-body">
+                        By clicking Register you agree that you have read and accept our
+                        <a href="@Url.Action("Terms", "Pages")">Terms of Use</a> and <a href="@Url.Action("Privacy", "Pages")">Privacy Policy</a>.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary form-control" value="Register" />
+                </div>
+            }
+        </div>
+    </div>
+</section>

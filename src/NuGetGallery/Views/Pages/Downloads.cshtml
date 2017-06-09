@@ -1,0 +1,105 @@
+﻿@{
+    ViewBag.Title = "Downloads";
+    ViewBag.Tab = "Downloads";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container page-downloads" id="stage-static">
+    <div class="row">
+        <div class="col-sm-12">
+            <h1>Available NuGet Distribution Versions</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <h2 class="ms-fontSize-xxl">Windows x86 Commandline</h2>
+            <ul class="list-unstyled list-tools">
+                <li><a href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <h2 class="ms-fontSize-xxl">Visual Studio 2015</h2>
+            <ul class="list-unstyled list-tools">
+                <li><a href="https://dist.nuget.org/visualstudio-2015-vsix/latest/NuGet.Tools.vsix">VS 2015 VSIX - latest</a></li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <h2 class="ms-fontSize-xxl">Visual Studio 2017</h2>
+            <p>
+                NuGet 4.x is included in the Visual Studio 2017 installation. Latest NuGet releases are delivered as part of Visual Studio updates.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section role="main" class="container main-container page-downloads" style="display: none" id="stage-dynamic">
+    <div class="row">
+        <div class="col-sm-12">
+            <h1>Available NuGet Distribution Versions</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <!-- ko foreach: artifacts -->
+            <!-- ko if: name == "win-x86-commandline" -->
+            <div data-bind="template: { name: 'tool-list-template', data: $data }"></div>
+            <!-- /ko -->
+            <!-- /ko -->
+        </div>
+        <div class="col-md-4">
+            <!-- ko foreach: artifacts -->
+            <!-- ko if: name == "visualstudio-2015-vsix" -->
+            <div data-bind="template: { name: 'tool-list-template', data: $data }"></div>
+            <!-- /ko -->
+            <!-- /ko -->
+        </div>
+        <div class="col-md-4">
+            <!-- ko foreach: artifacts -->
+            <!-- ko if: name != "win-x86-commandline" && name != "visualstudio-2015-vsix" -->
+            <div data-bind="template: { name: 'tool-list-template', data: $data }"></div>
+            <!-- /ko -->
+            <!-- /ko -->
+        </div>
+    </div>
+</section>
+
+<script type="text/html" id="tool-list-template">
+    <h2 class="ms-fontSize-xxl" data-bind="text: displayName"></h2>
+    <!-- ko if: note -->
+    <p data-bind="html: note"></p>
+    <!-- /ko -->
+    <!-- ko if: versions && versions.length > 0 -->
+    <ul class="list-unstyled list-tools" data-bind="foreach: versions">
+        <li>
+            <a data-bind="attr: { href: url }" href="#">
+                <span data-bind="text: displayName"></span>
+                <span data-bind="visible: version != 'nightly'">v<span data-bind="text: version"></span></span>
+            </a>
+        </li>
+    </ul>
+    <!-- /ko -->
+</script>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            $.ajax({
+                url: '//dist.nuget.org/index.json',
+                cache: false,
+                type: 'GET',
+                xhrFields: {
+                    withCredentials: false
+                },
+                success: function (data) {
+                    if (typeof data == "string") {
+                        data = $.parseJSON(data);
+                    }
+
+                    ko.applyBindings(data, $('#stage-dynamic').get(0));
+                    $('#stage-static').hide();
+                    $('#stage-dynamic').show();
+                }
+            });
+        });
+    </script>
+}
