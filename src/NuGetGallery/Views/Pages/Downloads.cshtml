@@ -14,13 +14,13 @@
         <div class="col-md-4">
             <h2 class="ms-fontSize-xxl">Windows x86 Commandline</h2>
             <ul class="list-unstyled list-tools">
-                <li><a title="nuget.exe - recommended latest" href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
+                <li><a href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
             </ul>
         </div>
         <div class="col-md-4">
             <h2 class="ms-fontSize-xxl">Visual Studio 2015</h2>
             <ul class="list-unstyled list-tools">
-                <li><a title="VS 2015 VSIX - latest" href="https://dist.nuget.org/visualstudio-2015-vsix/latest/NuGet.Tools.vsix">VS 2015 VSIX - latest</a></li>
+                <li><a href="https://dist.nuget.org/visualstudio-2015-vsix/latest/NuGet.Tools.vsix">VS 2015 VSIX - latest</a></li>
             </ul>
         </div>
         <div class="col-md-4">
@@ -71,7 +71,7 @@
     <!-- ko if: versions && versions.length > 0 -->
     <ul class="list-unstyled list-tools" data-bind="foreach: versions">
         <li>
-            <a data-bind="attr: { href: url, title: displayName }" href="#">
+            <a data-bind="attr: { href: url }" href="#">
                 <span data-bind="text: displayName"></span>
                 <span data-bind="visible: version != 'nightly'">v<span data-bind="text: version"></span></span>
             </a>
