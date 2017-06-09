@@ -152,6 +152,78 @@ body h3 {
   margin-top: 10px;
   margin-left: -2px;
 }
+.page-about .contributors .contributor {
+  padding: 5px;
+}
+.page-about .contributors .contributor .avatar {
+  width: 75px;
+  height: 75px;
+}
+.page-package-details h4 > span {
+  margin-bottom: 3px;
+  border-bottom: 1px solid #d8d8d8;
+}
+.page-package-details .dependency-group li span {
+  color: #666;
+}
+.page-package-details .no-border {
+  border: 0;
+}
+.page-package-details #show-hidden-versions:hover,
+.page-package-details #show-hidden-versions:focus {
+  text-decoration: none;
+}
+.page-package-details .package-details-info .ms-Icon-ul li {
+  margin-bottom: 15px;
+}
+.page-package-details .owner-list li {
+  margin-bottom: 5px;
+}
+.page-package-details .install-tabs {
+  font-size: .8em;
+}
+.page-package-details .install-tabs ul {
+  margin-left: 0;
+}
+.page-package-details .install-tabs .nav-tabs > li {
+  padding: 0;
+  margin-left: 5px;
+}
+.page-package-details .install-tabs .nav-tabs > li > a {
+  padding: 5px 10px;
+  margin: 0;
+  color: #000;
+  background-color: #eaeaea;
+  border: 0;
+}
+.page-package-details .install-tabs .nav-tabs > li.active > a {
+  color: #fff;
+  background-color: #002440;
+  border: 0;
+}
+.page-package-details .install-tabs .tab-pane {
+  display: table;
+}
+.page-package-details .install-tabs .tab-pane .install-script {
+  display: table-cell;
+  width: 100%;
+  padding: 8px 10px;
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  color: #fff;
+  background-color: #002440;
+}
+.page-package-details .install-tabs .tab-pane .install-script span::before {
+  content: "PM> ";
+}
+.page-package-details .install-tabs .tab-pane .copy-button {
+  display: table-cell;
+}
+.page-downloads .list-tools li {
+  margin-top: 20px;
+}
+.page-forgot-password .forgot-form {
+  margin-top: 80px;
+}
 .page-home .jumbotron h1 {
   margin: 32px;
 }
@@ -223,64 +295,8 @@ body h3 {
   margin-top: 75px;
   margin-bottom: 0;
 }
-.page-package-details h4 > span {
-  margin-bottom: 3px;
-  border-bottom: 1px solid #d8d8d8;
-}
-.page-package-details .dependency-group li span {
-  color: #666;
-}
-.page-package-details .no-border {
-  border: 0;
-}
-.page-package-details #show-hidden-versions:hover,
-.page-package-details #show-hidden-versions:focus {
-  text-decoration: none;
-}
-.page-package-details .package-details-info .ms-Icon-ul li {
-  margin-bottom: 15px;
-}
-.page-package-details .owner-list li {
-  margin-bottom: 5px;
-}
-.page-package-details .install-tabs {
-  font-size: .8em;
-}
-.page-package-details .install-tabs ul {
-  margin-left: 0;
-}
-.page-package-details .install-tabs .nav-tabs > li {
-  padding: 0;
-  margin-left: 5px;
-}
-.page-package-details .install-tabs .nav-tabs > li > a {
-  padding: 5px 10px;
-  margin: 0;
-  color: #000;
-  background-color: #eaeaea;
-  border: 0;
-}
-.page-package-details .install-tabs .nav-tabs > li.active > a {
-  color: #fff;
-  background-color: #002440;
-  border: 0;
-}
-.page-package-details .install-tabs .tab-pane {
-  display: table;
-}
-.page-package-details .install-tabs .tab-pane .install-script {
-  display: table-cell;
-  width: 100%;
-  padding: 8px 10px;
-  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
-  color: #fff;
-  background-color: #002440;
-}
-.page-package-details .install-tabs .tab-pane .install-script span::before {
-  content: "PM> ";
-}
-.page-package-details .install-tabs .tab-pane .copy-button {
-  display: table-cell;
+.page-pages .pages-container {
+  margin-bottom: 70px;
 }
 .page-profile .profile-title {
   margin-top: 50px;
@@ -316,12 +332,6 @@ body h3 {
 .page-profile .profile-details .statistics .statistic .description {
   font-size: 24px;
 }
-.page-downloads .list-tools li {
-  margin-top: 20px;
-}
-.page-forgot-password .forgot-form {
-  margin-top: 80px;
-}
 .page-report-abuse .report-form {
   margin-top: 40px;
 }
@@ -344,16 +354,6 @@ body h3 {
 }
 .page-sign-in .or-row {
   margin: 30px;
-}
-.page-pages .pages-container {
-  margin-bottom: 70px;
-}
-.page-about .contributors .contributor {
-  padding: 5px;
-}
-.page-about .contributors .contributor .avatar {
-  width: 75px;
-  height: 75px;
 }
 .page-statistics-most-downloaded h2 {
   margin-top: 4px;
