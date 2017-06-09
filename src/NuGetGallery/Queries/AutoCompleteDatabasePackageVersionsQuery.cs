@@ -14,7 +14,7 @@ namespace NuGetGallery
         private const string _sqlFormat = @"SELECT p.[Version]
 FROM Packages p (NOLOCK)
 	JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
-WHERE {0} AND pr.ID = {{0}}
+WHERE p.[Deleted] <> 1 AND {0} AND pr.ID = {{0}}
 	{1}";
 
         public AutoCompleteDatabasePackageVersionsQuery(IEntitiesContext entities)
@@ -40,7 +40,7 @@ WHERE {0} AND pr.ID = {{0}}
                 var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
                 if (semVerLevelKey == SemVerLevelKey.SemVer2)
                 {
-                    semVerLevelSqlFilter = "p.[SemVerLevelKey] = " + SemVerLevelKey.SemVer2;
+                    semVerLevelSqlFilter = $"(p.[SemVerLevelKey] IS NULL OR p.[SemVerLevelKey] <= {SemVerLevelKey.SemVer2})";
                 }
             }
 

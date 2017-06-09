@@ -765,6 +765,14 @@
     <Compile Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.Designer.cs">
       <DependentUpon>201706061829243_AddSemVer2LatestVersionColumns.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201706080632469_AddIndexIsLatestSemVer2.cs" />
+    <Compile Include="Migrations\201706080632469_AddIndexIsLatestSemVer2.Designer.cs">
+      <DependentUpon>201706080632469_AddIndexIsLatestSemVer2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs" />
+    <Compile Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.Designer.cs">
+      <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
+    </Compile>
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
     <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />
@@ -1742,6 +1750,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.resx">
       <DependentUpon>201706061829243_AddSemVer2LatestVersionColumns.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201706080632469_AddIndexIsLatestSemVer2.resx">
+      <DependentUpon>201706080632469_AddIndexIsLatestSemVer2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.resx">
+      <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
