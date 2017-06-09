@@ -1,88 +1,47 @@
 ﻿@model UserProfileModel
 @{
     ViewBag.Title = @Model.Username;
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
+<div class="container main-container page-profile">
+    <section role="main" class="row">
+        <article class="col-md-8">
+            <div class="profile-title">
+                <h1>@Model.Username</h1>
 
-@section SideColumn {
-    @if (!String.IsNullOrEmpty(Model.EmailAddress))
-    {
-        <p>
-            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128)
-        </p>
-    }
-    <div id="stats">
-        <div class="stat">
-            <p class="stat-number">@Model.AllPackages.Count.ToNuGetNumberString()</p>
-            <p class="stat-label">@(Model.AllPackages.Count == 1 ? "Package" : "Packages")</p>
-        </div>
-        <div class="stat">
-            <p class="stat-number">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</p>
-            <p class="stat-label">@(Model.TotalPackageDownloadCount == 1 ? "Download" : "Downloads") of @Model.Username's packages</p>
-        </div>
-    </div>
-}
+                @if (false) // TODO: Add verified user check
+                {
+                    <span class="verified">
+                        <i class="ms-Icon ms-Icon--Completed" aria-hidden="true"></i>
+                        Verified
+                    </span>
+                }
+            </div>
 
-<h1 class="page-heading">@Model.Username's Profile</h1>
+            <div class="list-packages" role="list">
+                @foreach (var package in Model.PagedPackages)
+                {
+                    @Html.Partial("_ListPackage", package)
+                }
+            </div>
 
-<h2>Packages
-@if (Model.PackagePageTotalCount > 1 && Model.ShowAllPackages == false)
-{
-    <small>(Page @(Model.PackagePage + 1) of @Model.PackagePageTotalCount) <a href="@Url.UserShowAllPackages(Model.Username)">Show all packages</a></small>
-}
-else if (Model.ShowAllPackages)
-{
-    <small><a href="@Url.User(Model.User)">Show paged package list</a></small>
-}
-</h2>
-<ul id="searchResults">
-@{
-    var allOrPagedPackages = Model.PagedPackages;
+            @ViewHelpers.PreviousNextPager(Model.Pager)
+        </article>
+        <aside class="col-md-4 profile-details">
+            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 332)
 
-    if (Model.ShowAllPackages)
-    {
-        allOrPagedPackages = Model.AllPackages;
-    }
-}
-
-    @foreach (var package in allOrPagedPackages)
-    {
-        <li>
-            <section class="package">
-                <div class="side">
-                    <a href="@Url.Package(package.Id)" title="View more about @package.Title">
-                        <img src="@(package.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png"))" alt="@package.Id icon" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png")';" />
-                    </a>
+            <div class="statistics">
+                <div class="statistic">
+                    <div class="value">@Model.AllPackages.Count.ToNuGetNumberString()</div>
+                    <div class="description">@(Model.AllPackages.Count == 1 ? "Package" : "Packages")</div>
                 </div>
-                <div class="main">
-                    <h1><a href="@Url.Package(package.Id)">@package.Title</a> <small>Latest version: @package.Version</small></h1>
-
-                    <p>
-                        @if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 350)
-                        {
-                            @package.Description
-                        }
-                        else
-                        {
-                            @package.Description.Substring(0, 350)<text>... </text>
-                            <a href="@Url.Package(package)">More information</a>
-                        }
-                    </p>
-
-                    <footer>
-                        <p class="downloads">
-                            @package.TotalDownloadCount.ToNuGetNumberString() @(package.TotalDownloadCount == 1 ? "download" : "downloads")
-                        </p>
-                    </footer>
+                <div class="statistic">
+                    <div class="value">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</div>
+                    <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
                 </div>
-            </section>
-        </li>
-    }
-</ul>
-
-@if (Model.ShowAllPackages == false)
-{
-    @ViewHelpers.PreviousNextPager(Model.Pager)
-}
-
+            </div>
+        </aside>
+    </section>
+</div>
