@@ -14,7 +14,7 @@ namespace NuGetGallery
         private const string _sqlFormat = @"SELECT p.[Version]
 FROM Packages p (NOLOCK)
 	JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
-WHERE p.[Deleted] <> 1 AND {0} AND pr.ID = {{0}}
+WHERE p.[Deleted] <> 1 AND p.[Listed] = 1 AND {0} AND pr.ID = {{0}}
 	{1}";
 
         public AutoCompleteDatabasePackageVersionsQuery(IEntitiesContext entities)
