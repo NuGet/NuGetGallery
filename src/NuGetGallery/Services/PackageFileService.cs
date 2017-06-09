@@ -131,7 +131,7 @@ namespace NuGetGallery
             return BuildFileName(
                 package.PackageRegistration.Id, 
                 String.IsNullOrEmpty(package.NormalizedVersion) ?
-                    NuGetVersionNormalizer.Normalize(package.Version) :
+                    NuGetVersionFormatter.Normalize(package.Version) :
                     package.NormalizedVersion);
         }
 

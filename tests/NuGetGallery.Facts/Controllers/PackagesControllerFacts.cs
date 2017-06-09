@@ -190,7 +190,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var controller = CreateController(packageService: packageService);
 
-                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", true))
+                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
                               .ReturnsNull();
 
                 // Act
@@ -210,7 +210,7 @@ namespace NuGetGallery
                     packageService: packageService, indexingService: indexingService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", true))
+                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
                               .Returns(new Package()
                               {
                                   PackageRegistration = new PackageRegistration()
@@ -268,7 +268,7 @@ namespace NuGetGallery
                 };
 
                 packageService
-                    .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", true))
+                    .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
                 // Act
@@ -308,7 +308,7 @@ namespace NuGetGallery
                 };
 
                 packageService
-                    .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", true))
+                    .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
                     .Returns(package);
                 editPackageService
                     .Setup(e => e.GetPendingMetadata(package))
@@ -355,7 +355,7 @@ namespace NuGetGallery
                 };
 
                 packageService
-                    .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", true))
+                    .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
                     .Returns(package);
                 editPackageService
                     .Setup(e => e.GetPendingMetadata(package))
@@ -387,7 +387,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
                 
                packageService
-                    .Setup(p => p.FindAbsoluteLatestPackageById("Foo"))
+                    .Setup(p => p.FindAbsoluteLatestPackageById("Foo", SemVerLevelKey.SemVer2))
                     .Returns(new Package()
                     {
                         PackageRegistration = new PackageRegistration()
@@ -425,7 +425,7 @@ namespace NuGetGallery
                     packageService: packageService, indexingService: indexingService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", null, true))
+                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", null, SemVerLevelKey.SemVer2, true))
                     .Returns(new Package()
                     {
                         PackageRegistration = new PackageRegistration()
@@ -620,7 +620,7 @@ namespace NuGetGallery
                     .Throws(new Exception("Shouldn't be called"));
                 packageService.Setup(svc => svc.MarkPackageUnlistedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0)).Verifiable();
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true))
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
                     .Returns(package).Verifiable();
 
                 var indexingService = new Mock<IIndexingService>();
@@ -656,7 +656,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(0)).Verifiable();
                 packageService.Setup(svc => svc.MarkPackageUnlistedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
                     .Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true))
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
                     .Returns(package).Verifiable();
 
                 var indexingService = new Mock<IIndexingService>();
@@ -708,7 +708,7 @@ namespace NuGetGallery
                         Version = "2.0.1"
                     };
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", "2.0.1")).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
                     packageService: packageService,
@@ -749,7 +749,7 @@ namespace NuGetGallery
                         Version = "2.0.1"
                     };
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("mordor", It.IsAny<string>(), true)).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", It.IsAny<string>())).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
                     packageService: packageService,
@@ -785,7 +785,7 @@ namespace NuGetGallery
                     Version = "2.0.1"
                 };
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("Mordor", It.IsAny<string>(), true)).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("Mordor", It.IsAny<string>())).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
                     packageService: packageService,
@@ -810,7 +810,7 @@ namespace NuGetGallery
                     Version = "2.0.1"
                 };
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", "2.0.1")).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(h => h.Request.IsAuthenticated).Returns(false);
                 var controller = CreateController(
@@ -851,7 +851,7 @@ namespace NuGetGallery
                 };
                 var user = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 2 };
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("Mordor", It.IsAny<string>(), true)).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("Mordor", It.IsAny<string>())).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
                     packageService: packageService,
@@ -874,7 +874,7 @@ namespace NuGetGallery
                     Version = "2.0.1"
                 };
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", "2.0.1")).Returns(package);
 
                 ReportPackageRequest reportRequest = null;
                 var messageService = new Mock<IMessageService>();
@@ -1093,8 +1093,8 @@ namespace NuGetGallery
                 var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0" });
                 var controller = CreateController(
                     packageService: fakePackageService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
@@ -1104,7 +1104,30 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(
-                    String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "theVersion"),
+                    String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.0"),
+                    controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExistsAndOnlyDiffersByMetadata()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0+metadata2");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0+metadata" });
+                var controller = CreateController(
+                    packageService: fakePackageService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal(
+                    String.Format(Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified, "theId", "1.0.0+metadata"),
                     controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
@@ -2015,7 +2038,7 @@ namespace NuGetGallery
                     .Throws(new Exception("Shouldn't be called"));
                 packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == false), It.IsAny<bool>()))
                     .Returns(Task.CompletedTask).Verifiable();
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true))
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
                     .Returns(package).Verifiable();
 
                 var httpContext = new Mock<HttpContextBase>();

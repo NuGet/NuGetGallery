@@ -42,7 +42,7 @@
         <article class="col-sm-8">
             <h1 title="@Model.Title">
                 @Model.Title.Abbreviate(40)
-                <small>@Model.Version</small>
+                <small>@Model.FullVersion</small>
             </h1>
 
             @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
@@ -87,7 +87,7 @@
                 )
             }
 
-            @if (Model.LatestStableVersion && Model.HasNewerPrerelease)
+            @if (Model.LatestStableVersionSemVer2 && Model.HasNewerPrerelease)
             {
                 @ViewHelpers.AlertInfo(
                     @<text>
@@ -113,6 +113,16 @@
                     @<text>
                         <strong>This package has been deleted from the gallery.</strong> It is no longer available
                         for install/restore.
+                    </text>
+                )
+            }
+
+            @if (Model.IsSemVer2)
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        This package is only available for download with Visual Studio 2017 (version 15.3) and above or with NuGet client 4.3.0 and above.
+                        Reach out to support if you have more questions.
                     </text>
                 )
             }
@@ -257,7 +267,7 @@
                                 @if (packageVersion.IsCurrent(Model))
                                 {
                                     <a href="@Url.Package(packageVersion)">
-                                        @packageVersion.Version
+                                        @packageVersion.FullVersion
                                         @if (packageVersion.IsCurrent(Model))
                                         {
                                             @:(current version)
@@ -267,7 +277,7 @@
                                 else
                                 {
                                     <a href="@Url.Package(packageVersion)">
-                                        @packageVersion.Version
+                                        @packageVersion.FullVersion
                                     </a>
                                 }
                             </td>
@@ -295,7 +305,7 @@
 
                         <tr class="versionTableRow deleted">
                             <td class="version">
-                                <s>@packageVersion.Version</s> (deleted)
+                                <s>@packageVersion.FullVersion</s> (deleted)
                             </td>
                             <td>
                                 @packageVersion.DownloadCount
@@ -433,7 +443,7 @@
                 </li>
                 <li>
                     <i class="ms-Icon ms-Icon--Financial" aria-hidden="true"></i>
-                    @Model.DownloadsPerDay.ToNuGetNumberString() @(Model.DownloadsPerDay == 1 ? "download" : "downloads")
+                    @Model.DownloadsPerDayLabel @(Model.DownloadsPerDayLabel == "1" || Model.DownloadsPerDayLabel == "<1" ? "download" : "downloads")
                     per day (avg)
                 </li>
             </ul>
