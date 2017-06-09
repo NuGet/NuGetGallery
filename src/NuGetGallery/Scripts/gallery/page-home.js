@@ -39,9 +39,6 @@ $(function () {
             })
             .error(function () {
                 // Fail silently.
-            })
-            .always(function () {
-                setTimeout(updateStats, 30000);
             });
     }
 
