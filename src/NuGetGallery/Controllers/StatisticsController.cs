@@ -21,14 +21,12 @@ namespace NuGetGallery
         private static readonly string[] PackageDownloadsByVersionDimensions = new[] {
             Constants.StatisticsDimensions.Version,
             Constants.StatisticsDimensions.ClientName,
-            Constants.StatisticsDimensions.ClientVersion,
-            Constants.StatisticsDimensions.Operation
+            Constants.StatisticsDimensions.ClientVersion
         };
 
         private static readonly string[] PackageDownloadsDetailDimensions = new[] {
             Constants.StatisticsDimensions.ClientName,
-            Constants.StatisticsDimensions.ClientVersion,
-            Constants.StatisticsDimensions.Operation
+            Constants.StatisticsDimensions.ClientVersion
         };
 
         public StatisticsController(IAggregateStatsService aggregateStatsService)
@@ -319,15 +317,20 @@ namespace NuGetGallery
                     }
                 }
 
-                report.Table = result.Item1.OrderBy(e =>
-                {
-                    if (NuGetVersion.TryParse(e[0].Data, out NuGetVersion versionOut))
+                NuGetVersion prevVersion = new NuGetVersion("1.0.0");
+                report.Table = result.Item1
+                    .Select(e =>
                     {
-                        return versionOut;
-                    }
+                        if (NuGetVersion.TryParse(e[0]?.Data, out NuGetVersion versionOut))
+                        {
+                            prevVersion = versionOut;
+                            return new { version = versionOut, e };
+                        }
 
-                    return new NuGetVersion("1.0.0");
-                }).ToList();
+                        return new { version = prevVersion, e };
+                    })
+                    .OrderByDescending(e => e.version)
+                .Select(e => e.e).ToList();
                 report.Total = result.Item2;
                 report.Columns = pivot.Select(GetDimensionDisplayName);
             }

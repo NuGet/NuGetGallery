@@ -1,5 +1,9 @@
 ﻿
+var graphData;
+
 var packageDisplayGraphs = function (data) {
+    window.graphData = data;
+    $("#stats-graph-svg").remove();
     switch (data.Id) {
         case 'report-Version':
             drawDownloadsByVersionBarChart(data);
@@ -7,14 +11,9 @@ var packageDisplayGraphs = function (data) {
         case 'report-ClientName':
             drawDownloadsByClientNameBarChart(data);
             break;
-        case 'report-Operation':
-            drawDownloadsByOperation(data);
-            break;
         default:
             break;
     }
-
-
 
     //}
     //if ($('#report-Version').length) {
@@ -122,154 +121,95 @@ var drawDownloadsByVersionBarChart = function (rawData) {
         });
     }
 
+    // we get descending order from server. Reverse so we can cut the right versions.
+    data.reverse();
+
     //  limit the bar graph to the most recent 15 versions
     if (data.length > 15) {
         data = data.slice(data.length - 15, data.length);
     }
 
-    var svgns = "http://www.w3.org/2000/svg";
-    var svgDocument = document.createElementNS(svgns, "svg");
-    svgDocument.setAttributeNS(null, "width", "100%");
-    svgDocument.setAttributeNS(null, "height", "400px");
-    svgDocument.setAttributeNS(null, "overflow", "visible");
-
-    $('#statistics-graph-id').append(svgDocument);
-
-    var chartFullWidthInPercent = 94.0;
-    var chartFullHeightInPercent = 70.0;
-    var widthOffsetPercent = 100.0 - chartFullWidthInPercent;
-    var index = 0;
-    var gapPercent = .1;
-    var numYAxisLabels = 10.0;
-    var max = data.reduce(function (a, b) {
-        return Math.max(a, b.downloads);
-    }, 0);
-    var maxXAxis = data.reduce(function (a, b) {
-        return Math.max(a, b.label.length);
-    }, 0);
-    var fraction = chartFullWidthInPercent / data.length;
-    var axisAngleDegrees = -45;
-
-    data.forEach(function (item) {
-        var bar = document.createElementNS(svgns, "rect");
-        bar.setAttributeNS(null, "x", (widthOffsetPercent + index * fraction) + "%");
-        bar.setAttributeNS(null, "y", (chartFullHeightInPercent - item.downloads / max * chartFullHeightInPercent) + "%");
-        bar.setAttributeNS(null, "width", (fraction * (1.0 - gapPercent)) + "%");
-        bar.setAttributeNS(null, "height", (item.downloads / max * chartFullHeightInPercent) + "%");
-
-        svgDocument.appendChild(bar);
-
-        var svgSubDoc = document.createElementNS(svgns, "svg");
-        svgSubDoc.setAttributeNS(null, "x", (widthOffsetPercent + index * fraction + fraction / 2.0) + "%");
-        svgSubDoc.setAttributeNS(null, "y", (chartFullHeightInPercent) + "%");
-        //svgSubDoc.setAttributeNS(null, "viewBox", (-maxXAxis / 2 * Math.sin(Math.abs(axisAngleDegrees))) + "," + (maxXAxis / 2 * Math.cos(Math.abs(axisAngleDegrees)))+"," + svgDocument.clientWidth + "," + svgDocument.clientHeight);
-        svgSubDoc.setAttributeNS(null, "overflow", "visible");
-
-        var xAxisLabel = document.createElementNS(svgns, "text");
-        xAxisLabel.setAttributeNS(null, "y", maxXAxis/2 * Math.cos(Math.abs(axisAngleDegrees)) + "em");
-        xAxisLabel.setAttributeNS(null, "x", -maxXAxis / 2 * Math.sin(Math.abs(axisAngleDegrees)) + "em");
-        xAxisLabel.setAttributeNS(null, "transform", "rotate(" + axisAngleDegrees + ")");
-        xAxisLabel.setAttributeNS(null, "overflow", "visible");
-        xAxisLabel.setAttributeNS(null, "text-overflow", "ellipsis");
-        xAxisLabel.setAttributeNS(null, "class", "graph-x-axis-text");
-        xAxisLabel.setAttributeNS(null, "style", "font-size:.8em");
-        xAxisLabel.textContent = item.label;
-        
-        svgSubDoc.appendChild(xAxisLabel);
-
-        svgDocument.appendChild(svgSubDoc);
-
-        index++;
-    });
-
-    for (var i = 0; i < numYAxisLabels; i++) {
-        var yAxisLabel = document.createElementNS(svgns, "text");
-        yAxisLabel.setAttributeNS(null, "y", (i / numYAxisLabels * chartFullHeightInPercent) + "%");
-        yAxisLabel.setAttributeNS(null, "x", "0");
-        yAxisLabel.setAttributeNS(null, "dy", "1em");
-        yAxisLabel.setAttributeNS(null, "class", "graph-x-axis-text");
-        yAxisLabel.textContent = GetShortNumberString(Math.floor(max * (numYAxisLabels - i) / numYAxisLabels));
-
-        svgDocument.appendChild(yAxisLabel);
-    }
     //  draw graph
+    var reportGraphWidth = $('#statistics-graph-id').width();
 
-    //var reportGraphWidth = $('#report-Version').width();
+    reportGraphWidth = Math.min(reportGraphWidth, 1170);
 
-    //reportGraphWidth = Math.min(reportGraphWidth, 960);
+    var margin = { top: 40, right: 30, bottom: 130, left: 45 },
+        width = reportGraphWidth - margin.left - margin.right,
+        height = 450 - margin.top - margin.bottom;
 
-    //var margin = { top: 20, right: 30, bottom: 160, left: 80 },
-    //    width = reportGraphWidth - margin.left - margin.right,
-    //    height = 450 - margin.top - margin.bottom;
+    var xScale = d3.scale.ordinal()
+        .rangeRoundBands([0, width], .1);
 
-    //var xScale = d3.scale.ordinal()
-    //    .rangeRoundBands([0, width], .1);
+    var yScale = d3.scale.linear()
+        .range([height, 0]);
 
-    //var yScale = d3.scale.linear()
-    //    .range([height, 0]);
+    var xAxis = d3.svg.axis()
+        .scale(xScale)
+        .orient('bottom');
 
-    //var xAxis = d3.svg.axis()
-    //    .scale(xScale)
-    //    .orient('bottom');
+    var yAxis = d3.svg.axis()
+        .scale(yScale)
+        .orient('left')
+        .tickFormat(function (d) {
+            return GetShortNumberString(d);
+        });
 
-    //var yAxis = d3.svg.axis()
-    //    .scale(yScale)
-    //    .orient('left');
+    var svg = d3.select('#statistics-graph-id')
+        .append('svg')
+        .attr('id', 'stats-graph-svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
 
-    //var svg = d3.select('#statistics-graph-id')
-    //    .append('svg')
-    //    .attr('width', width + margin.left + margin.right)
-    //    .attr('height', height + margin.top + margin.bottom);
+    svg.append('title').text('Downloads By Version');
+    svg.append('desc').text('This is a graph showing the number of downloads of this Package broken out by version.');
 
-    //svg.append('title').text('Downloads By Version');
-    //svg.append('desc').text('This is a graph showing the number of downloads of this Package broken out by version.');
+    svg = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-    //svg = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    xScale.domain(data.map(function (d) { return d.label; }));
+    yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
 
-    //xScale.domain(data.map(function (d) { return d.label; }));
-    //yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
+    //  the use of dx attribute on the text element is correct, however, the negative shift doesn't appear to work on Firefox
+    //  the workaround employed here is to add a translation to the rotation transform
 
-    ////  the use of dx attribute on the text element is correct, however, the negative shift doesn't appear to work on Firefox
-    ////  the workaround employed here is to add a translation to the rotation transform
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+        .selectAll("text")
+        .style("text-anchor", "end")
+        //.attr("dx", "-.8em")
+        .attr("dy", ".15em")
+        .attr("transform", function (d) {
+            return "rotate(-65),translate(-10,0)";
+        });
 
-    //svg.append("g")
-    //    .attr("class", "x axis")
-    //    .attr("transform", "translate(0," + height + ")")
-    //    .call(xAxis)
-    //    .selectAll("text")
-    //    .style("text-anchor", "end")
-    //    //.attr("dx", "-.8em")
-    //    .attr("dy", ".15em")
-    //    .attr("transform", function (d) {
-    //        return "rotate(-65),translate(-10,0)";
-    //    });
+    svg.append("text")
+        .style("text-anchor", "middle")
+        .attr("x", (width - margin.right) / 2.0)
+        .attr("y", -10)
+        .attr("font-weight", "bold")
+        .text("Downloads for 15 Latest Package Versions (Last 6 weeks)");
 
-    //svg.append("text")
-    //    .style("text-anchor", "middle")
-    //    .attr("x", (width - margin.right) / 2.0)
-    //    .attr("y", -10)
-    //    .attr("font-weight", "bold")
-    //    .text("Downloads for 15 Latest Package Versions (Last 6 weeks)");
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Downloads");
 
-    //svg.append("g")
-    //    .attr("class", "y axis")
-    //    .call(yAxis)
-    //    .append("text")
-    //    .attr("transform", "rotate(-90)")
-    //    .attr("y", 6)
-    //    .attr("dy", ".71em")
-    //    .style("text-anchor", "end")
-    //    .text("Downloads");
-
-    //svg.selectAll(".bar")
-    //    .data(data)
-    //    .enter()
-    //    .append("rect")
-    //        .attr("class", "bar")
-    //        .attr("x", function (d) { return xScale(d.label); })
-    //        .attr("width", xScale.rangeBand())
-    //        .attr("y", function (d) { return yScale(d.downloads); })
-    //        .attr("height", function (d) { return height - yScale(d.downloads); });
+    svg.selectAll(".bar")
+        .data(data)
+        .enter()
+        .append("rect")
+            .attr("class", "bar")
+            .attr("x", function (d) { return xScale(d.label); })
+            .attr("width", xScale.rangeBand())
+            .attr("y", function (d) { return yScale(d.downloads); })
+        .attr("height", function (d) { return height - yScale(d.downloads); });
 }
 
 var drawDownloadsByClientNameBarChart = function (rawData) {
@@ -294,26 +234,14 @@ var drawDownloadsByClientNameBarChart = function (rawData) {
         });
     }
 
-    //d3.selectAll('#report-ClientName .statistics-data tbody tr').each(function () {
-    //    var item = {
-    //        clientName: d3.select(this).select(':nth-child(1)').text().replace(/(^\s*)|(\s*$)/g, ''),
-    //        downloads: +(d3.select(this).select(':nth-child(2)').text().replace(/[^0-9]+/g, ''))
-    //    };
-
-    //    //  filter out unknown
-    //    if (item.clientName !== '(unknown)') {
-    //        data[data.length] = item;
-    //    }
-    //});
-
     data.reverse();
 
     //  draw graph
 
-    var reportGraphWidth = $('#report-ClientName').width();
-    reportGraphWidth = Math.min(reportGraphWidth, 960);
+    var reportGraphWidth = $('#statistics-graph-id').width();
+    reportGraphWidth = Math.min(reportGraphWidth, 1170);
 
-    var margin = { top: 20, right: 30, bottom: 100, left: 250 },
+    var margin = { top: 40, right: 30, bottom: 100, left: 250 },
         width = reportGraphWidth - margin.left - margin.right,
         height = Math.max(550, data.length * 25) - margin.top - margin.bottom;
 
@@ -324,13 +252,18 @@ var drawDownloadsByClientNameBarChart = function (rawData) {
 
     var xAxis = d3.svg.axis()
         .scale(xScale)
-        .orient('bottom');
+        .orient('bottom')
+        .tickFormat(function (d) {
+            return GetShortNumberString(d);
+        });
+
     var yAxis = d3.svg.axis()
         .scale(yScale)
         .orient('left');
 
     var svg = d3.select('#statistics-graph-id')
         .append('svg')
+        .attr('id', 'stats-graph-svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom);
 
@@ -383,110 +316,7 @@ var drawDownloadsByClientNameBarChart = function (rawData) {
             return xScale(d.downloads) + 40;
         })
         .attr("y", function (d, i) {
-            return yScale(d.clientName) + yScale.rangeBand() - 4;
-        })
-        .text(function (d) {
-            return d.downloads.toLocaleString();
-        });
-}
-
-var drawDownloadsByOperation = function (rawData) {
-
-    //  scrape data
-
-    var data = [];
-
-    d3.selectAll('#report-Operation .statistics-data tbody tr').each(function () {
-        var item = {
-            downloads: +(d3.select(this).select(':nth-child(2)').text().replace(/[^0-9]+/g, '')),
-            operation: d3.select(this).select(':nth-child(1)').text().replace(/(^\s*)|(\s*$)/g, '')
-        };
-
-        //  filter out unknown so we just compare Install, Restore etc.
-        if (item.operation !== 'unknown') {
-            data[data.length] = item;
-        }
-    });
-
-    //  reversing the data moves the high columns to the right (away from the y-axis label "Downloads")
-    data.reverse();
-
-    //  draw graph
-    var reportGraphWidth = $('#report-Operation').width();
-
-    reportGraphWidth = Math.min(reportGraphWidth, 960);
-
-    var margin = { top: 20, right: 30, bottom: 100, left: 250 },
-        width = reportGraphWidth - margin.left - margin.right,
-        height = Math.max(550, data.length * 25) - margin.top - margin.bottom;
-
-    var xScale = d3.scale.linear()
-        .range([0, width - 50]);
-    var yScale = d3.scale.ordinal()
-        .rangeRoundBands([height, 20], .1);
-
-    var xAxis = d3.svg.axis()
-        .scale(xScale)
-        .orient('bottom');
-    var yAxis = d3.svg.axis()
-        .scale(yScale)
-        .orient('left');
-
-    var svg = d3.select('#statistics-graph-id')
-        .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom);
-
-    svg.append('title').text('Downloads By Operation');
-    svg.append('desc').text('This is a graph showing the number of downloads of this Package broken out by Operation.');
-
-    svg = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-    xScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
-    yScale.domain(data.map(function (d) { return d.operation; }));
-
-    //  the use of dx attribute on the text element is correct, however, the negative shift doesn't appear to work on Firefox
-    //  the workaround employed here is to add a translation to the rotation transform
-
-    svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
-
-    svg.append("text")
-        .style("text-anchor", "middle")
-        .attr("x", (width - margin.right) / 2.0)
-        .attr("y", -10)
-        .attr("font-weight", "bold")
-        .text("Downloads by Operation (Last 6 weeks)");
-
-    svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxis);
-
-    svg.selectAll(".bar")
-        .data(data)
-        .enter()
-        .append("rect")
-        .attr("class", "bar")
-        .attr("x", 0)
-        .attr("width", function (d) { return xScale(d.downloads); })
-        .attr("y", function (d) { return yScale(d.operation); })
-        .attr("height", yScale.rangeBand());
-
-    svg.selectAll(".bartext")
-        .data(data)
-        .enter()
-        .append("text")
-        .attr("class", "bartext")
-        .attr("text-anchor", "end")
-        .attr("fill", "black")
-        .attr("font-size", "11px")
-        .attr("x", function (d, i) {
-            return xScale(d.downloads) + 40;
-        })
-        .attr("y", function (d, i) {
-            return yScale(d.operation) + 25;
+            return yScale(d.label) + yScale.rangeBand() - 4;
         })
         .text(function (d) {
             return d.downloads.toLocaleString();
@@ -513,7 +343,7 @@ var GetChartData = function (rawData, filter) {
 }
 
 var GetShortNumberString = function (number) {
-    var abbreviation = ["", "k", "M", "B", "q", "Q", "s", "S", "o", "n"];
+    var abbreviation = ["", "k", "M", "B", "T", "q", "Q", "s", "S", "o", "n"];
     var numDiv = 0;
     while (number >= 1000) {
         number = Math.floor(number / 1000);
@@ -525,3 +355,8 @@ var GetShortNumberString = function (number) {
     }
     return number + abbreviation[numDiv];
 }
+
+
+$(window).resize(function () {
+    packageDisplayGraphs(graphData);
+});

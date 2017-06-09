@@ -227,4 +227,13 @@ body {
 .page-pages p {
   margin-bottom: 24px;
 }
+.page-stats-per-package .stats-table-control {
+  margin-top: 40px;
+}
+.page-stats-per-package #loading-placeholder {
+  display: none;
+}
+.page-stats-per-package .axis path {
+  display: none;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */
