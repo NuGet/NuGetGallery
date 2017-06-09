@@ -1,24 +1,8 @@
 $(function () {
     'use strict';
-
-    // Hidden versions.
-    var hiddenVersions = $('#hidden-versions');
-    var showHiddenVersion = $('#show-hidden-versions');
-    var showHiddenVersionText = $('#show-hidden-versions span');
-    var showHiddenVersionIcon = $('#show-hidden-versions i');
-    hiddenVersions.on('hide.bs.collapse', function () {
-        showHiddenVersionText.text('Show more');
-        showHiddenVersionIcon.removeClass('ms-Icon--ChevronUp');
-        showHiddenVersionIcon.addClass('ms-Icon--ChevronDown');
-    });
-    hiddenVersions.on('show.bs.collapse', function () {
-        showHiddenVersionText.text('Show less');
-        showHiddenVersionIcon.removeClass('ms-Icon--ChevronDown');
-        showHiddenVersionIcon.addClass('ms-Icon--ChevronUp');
-    });
-    showHiddenVersion.on('click', function (e) {
-        e.preventDefault();
-    });
+    
+    window.nuget.configureExpander("hidden-versions", "Show less", "Show more");
+    window.nuget.configureExpander("dependency-groups", "Hide", "Show");
 
     // Copy button.
     var copyButton = $('#install-script-button');

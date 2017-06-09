@@ -108,17 +108,28 @@ body {
 }
 
 .banner {
-  padding-top: 10px;
   padding-bottom: 10px;
+
+  span {
+    font-size: 1.25em;
+    line-height: 1.75em;
+  }
+
+  .ms-Icon {
+    font-size: 1.75em;
+    position: relative;
+    top: 0.25em;
+  }
 
   &.banner-bright {
     background: yellow;
-    font-size: 1.25em;
   }
+}
 
-  &.banner-info {
-    background: #f4f4f4;
-  }
+.alert-transient {
+  .alert {
+    margin: 0;
+  } 
 }
 
 .ms-Icon-ul {
