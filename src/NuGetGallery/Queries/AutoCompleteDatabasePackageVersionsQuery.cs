@@ -40,7 +40,7 @@ WHERE {0} AND pr.ID = {{0}}
                 var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
                 if (semVerLevelKey == SemVerLevelKey.SemVer2)
                 {
-                    semVerLevelSqlFilter = "p.[SemVerLevelKey] = " + SemVerLevelKey.SemVer2;
+                    semVerLevelSqlFilter = $"(p.[SemVerLevelKey] IS NULL OR p.[SemVerLevelKey] <= {SemVerLevelKey.SemVer2})";
                 }
             }
 
