@@ -22,7 +22,7 @@ namespace NgTests
             var data = new ValidationContext();
 
             // Act
-            var result = await validator.Validate(data);
+            var result = await validator.ValidateAsync(data);
 
             // Assert
             Assert.Same(validator, result.Validator);
@@ -42,7 +42,7 @@ namespace NgTests
             var data = new ValidationContext();
 
             // Act
-            var result = await validator.Validate(data);
+            var result = await validator.ValidateAsync(data);
 
             // Assert
             Assert.Same(validator, result.Validator);
@@ -64,7 +64,7 @@ namespace NgTests
             var data = new ValidationContext();
 
             // Act
-            var result = await validator.Validate(data);
+            var result = await validator.ValidateAsync(data);
 
             // Assert
             Assert.Same(validator, result.Validator);

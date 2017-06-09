@@ -13,7 +13,7 @@ namespace NgTests
     public class RegistrationIdValidatorTestData : RegistrationIndexValidatorTestData<RegistrationIdValidator>
     {
         protected override RegistrationIdValidator CreateValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource, 
+            IDictionary<FeedType, SourceRepository> feedToSource,
             ILogger<RegistrationIdValidator> logger)
         {
             return new RegistrationIdValidator(feedToSource, logger);
@@ -28,6 +28,14 @@ namespace NgTests
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateSkippedIndexes => new Func<PackageRegistrationIndexMetadata>[]
         {
             () => null
+        };
+
+        public override IEnumerable<Func<Tuple<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>>> CreateSpecialIndexes => new Func<Tuple<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>>[]
+        {
+            () => Tuple.Create(
+                new PackageRegistrationIndexMetadata() { Id = "testPackage1" },
+                new PackageRegistrationIndexMetadata() { Id = "testpackage1" },
+                true)
         };
     }
 }

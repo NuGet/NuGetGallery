@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using Lucene.Net.Store;
@@ -316,15 +317,20 @@ namespace Ng
 
         public static Func<HttpMessageHandler> GetHttpMessageHandlerFactory(bool verbose, string catalogBaseAddress = null, string storageBaseAddress = null)
         {
-            Func<HttpMessageHandler> handlerFunc = null;
+            Func<HttpMessageHandler> defaultHandlerFunc = 
+                () => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
+
+            Func<HttpMessageHandler> handlerFunc = defaultHandlerFunc;
+
             if (verbose)
             {
                 handlerFunc =
                     () =>
                         catalogBaseAddress != null
-                            ? new VerboseHandler(new StorageAccessHandler(catalogBaseAddress, storageBaseAddress))
-                            : new VerboseHandler();
+                            ? new VerboseHandler(new StorageAccessHandler(catalogBaseAddress, storageBaseAddress, defaultHandlerFunc()))
+                            : new VerboseHandler(defaultHandlerFunc());
             }
+
             return handlerFunc;
         }
     }

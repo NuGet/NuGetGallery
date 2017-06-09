@@ -6,20 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     /// <summary>
-    /// Runs a set of <see cref="IValidator"/>s.
+    /// Abstract class with the shared functionality between all <see cref="IAggregateValidator"/> implementations.
     /// </summary>
-    public abstract class AggregateValidator
+    public abstract class AggregateValidator : IAggregateValidator
     {
-        public AggregateValidator(ValidatorFactory factory, ILogger<AggregateValidator> logger)
-        {
-            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _validators = GetValidators(factory);
-        }
-
         /// <summary>
         /// Returns an <see cref="IEnumerable{IValidationTest}"/> representing all <see cref="IValidator"/>s that should be run.
         /// </summary>
@@ -29,18 +24,31 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         private IEnumerable<IValidator> _validators;
 
+        [JsonProperty("name")]
+        public virtual string Name
+        {
+            get
+            {
+                return GetType().FullName;
+            }
+        }
+
+        public AggregateValidator(ValidatorFactory factory, ILogger<AggregateValidator> logger)
+        {
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _validators = GetValidators(factory);
+        }
+
         /// <summary>
         /// Runs validations returned by <see cref="GetValidators(ValidatorFactory)"/>.
         /// </summary>
         /// <param name="package">The <see cref="PackageIdentity"/> to validate.</param>
         /// <returns>A <see cref="AggregateValidationResult"/> which contains the results of the validation.</returns>
-        public async Task<AggregateValidationResult> Validate(ValidationContext data)
+        public async Task<AggregateValidationResult> ValidateAsync(ValidationContext data)
         {
-            return new AggregateValidationResult
-            {
-                AggregateValidator = this,
-                ValidationResults = await Task.WhenAll(_validators.Select(v => v.Validate(data)))
-            };
+            return new AggregateValidationResult(
+                this, 
+                await Task.WhenAll(_validators.Select(v => v.ValidateAsync(data))));
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Cors;
 using Lucene.Net.Store;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.Cors;
@@ -22,10 +23,7 @@ using NuGet.Services.BasicSearch.Configuration;
 using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using Owin;
-using Serilog.Events;
-using SerilogWeb.Classic;
 using SerilogWeb.Classic.Enrichers;
-using NuGet.Services.KeyVault;
 
 [assembly: OwinStartup("NuGet.Services.BasicSearch", typeof(NuGet.Services.BasicSearch.Startup))]
 
@@ -48,10 +46,33 @@ namespace NuGet.Services.BasicSearch
             var config = _configFactory.Get<BasicSearchConfiguration>().Result;
 
             // Configure
-            Logging.ApplicationInsights.Initialize(config.ApplicationInsightsInstrumentationKey);
+            if ( ! string.IsNullOrEmpty(config.ApplicationInsightsInstrumentationKey))
+            {
+                TelemetryConfiguration.Active.InstrumentationKey = config.ApplicationInsightsInstrumentationKey;
+            }
+
+            // Add telemetry initializers
+            TelemetryConfiguration.Active.TelemetryInitializers.Add(new MachineNameTelemetryInitializer());
 
             // Create telemetry sink
             _searchTelemetryClient = new SearchTelemetryClient();
+
+            // Add telemetry processors
+            var processorChain = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
+
+            processorChain.Use(next =>
+            {
+                var processor = new RequestTelemetryProcessor(next);
+
+                processor.SuccessfulResponseCodes.Add(400);
+                processor.SuccessfulResponseCodes.Add(404);
+
+                return processor;
+            });
+
+            processorChain.Use(next => new ExceptionTelemetryProcessor(next, _searchTelemetryClient.TelemetryClient));
+
+            processorChain.Build();
 
             // Create an ILoggerFactory
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false)
@@ -61,10 +82,6 @@ namespace NuGet.Services.BasicSearch
                 .Enrich.With<HttpRequestUrlReferrerEnricher>()
                 .Enrich.With<HttpRequestUserAgentEnricher>()
                 .Enrich.With<HttpRequestRawUrlEnricher>();
-
-            // Customize Serilog web logging - https://github.com/serilog-web/classic
-            ApplicationLifecycleModule.RequestLoggingLevel = LogEventLevel.Warning;
-            ApplicationLifecycleModule.LogPostedFormData = LogPostedFormDataOption.OnlyOnError;
 
             var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
 

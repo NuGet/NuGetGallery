@@ -9,7 +9,7 @@ namespace NuGet.Services.BasicSearch
 {
     public class SearchTelemetryClient
     {
-        private readonly TelemetryClient _telemetryClient;
+        internal TelemetryClient TelemetryClient { get; }
 
         public static class MetricName
         {
@@ -25,12 +25,12 @@ namespace NuGet.Services.BasicSearch
 
         public SearchTelemetryClient()
         {
-            _telemetryClient = new TelemetryClient(TelemetryConfiguration.Active);
+            TelemetryClient = new TelemetryClient(TelemetryConfiguration.Active);
         }
 
         public void TrackMetric(string name, double value, IDictionary<string, string> properties = null)
         {
-            _telemetryClient.TrackMetric(name, value, properties);
+            TelemetryClient.TrackMetric(name, value, properties);
         }
     }
 }

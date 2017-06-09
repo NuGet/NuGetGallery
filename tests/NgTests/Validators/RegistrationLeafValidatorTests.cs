@@ -29,6 +29,25 @@ namespace NgTests
             }
         }
 
+        private static IEnumerable<object[]> ValidatorSpecialTestData<T>(Func<IRegistrationLeafValidatorTestData, IEnumerable<Tuple<T, T, bool>>> getPairs)
+        {
+            foreach (var testData in ValidatorTestUtility.GetImplementations<IRegistrationLeafValidatorTestData>())
+            {
+                var validator = testData.CreateValidator();
+
+                foreach (var pair in getPairs(testData))
+                {
+                    yield return new object[]
+                    {
+                            validator,
+                            pair.Item1,
+                            pair.Item2,
+                            pair.Item3
+                    };
+                }
+            }
+        }
+
         public class TheCompareLeafMethod
         {
             public class OnIndex
@@ -36,6 +55,8 @@ namespace NgTests
                 public static IEnumerable<object[]> ValidatorEqualIndexTestData => ValidatorTestData(t => ValidatorTestUtility.GetEqualPairs(t.CreateIndexes));
 
                 public static IEnumerable<object[]> ValidatorUnequalIndexTestData => ValidatorTestData(t => ValidatorTestUtility.GetUnequalPairs(t.CreateIndexes));
+
+                public static IEnumerable<object[]> ValidatorSpecialIndexTestData => ValidatorSpecialTestData(t => ValidatorTestUtility.GetSpecialPairs(t.CreateSpecialIndexes));
 
                 [Theory]
                 [MemberData(nameof(ValidatorEqualIndexTestData))]
@@ -57,6 +78,27 @@ namespace NgTests
                     await Assert.ThrowsAnyAsync<MetadataInconsistencyException>(
                         () => validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
+
+                [Theory]
+                [MemberData(nameof(ValidatorSpecialIndexTestData))]
+                public async Task SpecialCasesReturnAsExpected(
+                    RegistrationLeafValidator validator,
+                    PackageRegistrationIndexMetadata v2,
+                    PackageRegistrationIndexMetadata v3,
+                    bool shouldPass)
+                {
+                    var compareTask = Task.Run(async () => await validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+
+                    if (shouldPass)
+                    {
+                        await compareTask;
+                    }
+                    else
+                    {
+                        await Assert.ThrowsAnyAsync<MetadataInconsistencyException>(
+                            () => compareTask);
+                    }
+                }
             }
 
             public class OnLeaf
@@ -64,6 +106,8 @@ namespace NgTests
                 public static IEnumerable<object[]> ValidatorEqualLeafTestData => ValidatorTestData(t => ValidatorTestUtility.GetEqualPairs(t.CreateLeafs));
 
                 public static IEnumerable<object[]> ValidatorUnequalLeafTestData => ValidatorTestData(t => ValidatorTestUtility.GetUnequalPairs(t.CreateLeafs));
+
+                public static IEnumerable<object[]> ValidatorSpecialIndexTestData => ValidatorSpecialTestData(t => ValidatorTestUtility.GetSpecialPairs(t.CreateSpecialLeafs));
 
                 [Theory]
                 [MemberData(nameof(ValidatorEqualLeafTestData))]
@@ -84,6 +128,27 @@ namespace NgTests
                 {
                     await Assert.ThrowsAnyAsync<MetadataInconsistencyException>(
                         () => validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                }
+
+                [Theory]
+                [MemberData(nameof(ValidatorSpecialIndexTestData))]
+                public async Task SpecialCasesReturnAsExpected(
+                    RegistrationLeafValidator validator,
+                    PackageRegistrationLeafMetadata v2,
+                    PackageRegistrationLeafMetadata v3,
+                    bool shouldPass)
+                {
+                    var compareTask = Task.Run(async () => await validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+
+                    if (shouldPass)
+                    {
+                        await compareTask;
+                    }
+                    else
+                    {
+                        await Assert.ThrowsAnyAsync<MetadataInconsistencyException>(
+                            () => compareTask);
+                    }
                 }
             }
         }

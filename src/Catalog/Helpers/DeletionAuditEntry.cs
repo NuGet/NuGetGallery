@@ -70,30 +70,52 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             InitValues();
         }
 
+        [JsonConstructor]
+        public DeletionAuditEntry()
+        {
+        }
+
+        /// <summary>
+        /// Constructor for testing.
+        /// </summary>
+        public DeletionAuditEntry(Uri uri, JObject record, string id, string version, DateTime? timestamp)
+        {
+            Uri = uri;
+            Record = record;
+            PackageId = id;
+            PackageVersion = version;
+            TimestampUtc = timestamp;
+        }
+
         /// <summary>
         /// The <see cref="Uri"/> for the audit entry.
         /// </summary>
-        public Uri Uri { get; set; }
+        [JsonProperty("uri")]
+        public Uri Uri { get; private set; }
 
         /// <summary>
         /// The entire contents of the audit entry file.
         /// </summary>
-        public JObject Record { get; set; }
+        [JsonProperty("record")]
+        public JObject Record { get; private set; }
 
         /// <summary>
         /// The id of the package being audited.
         /// </summary>
-        public string PackageId { get; set; }
+        [JsonProperty("id")]
+        public string PackageId { get; private set; }
 
         /// <summary>
         /// The version of the package being audited.
         /// </summary>
-        public string PackageVersion { get; set; }
+        [JsonProperty("version")]
+        public string PackageVersion { get; private set; }
 
         /// <summary>
         /// The <see cref="DateTime"/> the package was deleted.
         /// </summary>
-        public DateTime? TimestampUtc { get; set; }
+        [JsonProperty("timestamp")]
+        public DateTime? TimestampUtc { get; private set; }
 
         private const string RecordPart = "Record";
         private const string ActorPart = "Actor";

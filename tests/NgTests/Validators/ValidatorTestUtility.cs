@@ -44,6 +44,23 @@ namespace NgTests
             }
         }
 
+        public static IEnumerable<Tuple<T, T, bool>> GetSpecialPairs<T>(IEnumerable<Func<Tuple<T, T, bool>>> pairFactories)
+        {
+            foreach (var pairFactory in pairFactories)
+            {
+                // We want to insert both 
+                //    (registration a, registration b, pass/fail) and 
+                //    (registration b, registration a, pass/fail).
+                //
+                // This is because there could be an issue with one ordering but not the other.
+
+                var pair = pairFactory();
+                
+                yield return pair;
+                yield return Tuple.Create(pair.Item2, pair.Item1, pair.Item3);
+            }
+        }
+
         public static IEnumerable<Tuple<T, T>> GetEqualPairs<T>(IEnumerable<Func<T>> valueFactories)
         {
             foreach (var factory in valueFactories)
@@ -81,14 +98,12 @@ namespace NgTests
         }
         public static ValidationContext GetFakeValidationContext()
         {
-            return new ValidationContext
-            {
-                CancellationToken = CancellationToken.None,
-                Client = new CollectorHttpClient(),
-                DeletionAuditEntries = null,
-                Entries = null,
-                Package = new PackageIdentity("testPackage", new NuGetVersion(1, 0, 0))
-            };
+            return new ValidationContext(
+                new PackageIdentity("testPackage", new NuGetVersion(1, 0, 0)), 
+                null, 
+                null, 
+                new CollectorHttpClient(), 
+                CancellationToken.None);
         }
     }
 }

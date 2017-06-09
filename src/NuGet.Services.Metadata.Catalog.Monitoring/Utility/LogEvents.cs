@@ -10,5 +10,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         public static EventId ValidationFailed = new EventId(900, "Validation failed!");
         public static EventId ValidationFailedToRun = new EventId(901, "Failed to run validation!");
         public static EventId ValidationFailedToInitialize = new EventId(902, "Failed to initialize validation!");
+
+        public static EventId StatusDeserializationFailure = new EventId(903, "Status deserialization failed!");
+        public static EventId StatusDeserializationFatalFailure = new EventId(904, "Status deserialization failed, and was unable to parse id and version from filename!");
     }
 }

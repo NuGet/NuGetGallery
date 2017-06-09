@@ -152,6 +152,7 @@
     <Compile Include="Helpers\UriUtils.cs" />
     <Compile Include="LogEvents.cs" />
     <Compile Include="Helpers\NuGetVersionUtility.cs" />
+    <Compile Include="Persistence\NamedStorageFactory.cs" />
     <Compile Include="ReadOnlyGraph.cs" />
     <Compile Include="Persistence\StorageListItem.cs" />
     <Compile Include="SortingIdVersionCollector.cs" />

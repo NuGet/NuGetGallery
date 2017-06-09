@@ -25,9 +25,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         public override async Task CompareIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
         {
-            if (v2.Id != v3.Id)
+            if (!v2.Id.Equals(v3.Id, System.StringComparison.OrdinalIgnoreCase))
             {
-                throw new MetadataFieldInconsistencyException<PackageRegistrationIndexMetadata>(v2, v3, nameof(PackageRegistrationIndexMetadata.Id));
+                throw new MetadataFieldInconsistencyException<PackageRegistrationIndexMetadata>(
+                    v2, v3, 
+                    nameof(PackageRegistrationIndexMetadata.Id),
+                    m => m.Id);
             }
         }
     }

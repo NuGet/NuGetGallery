@@ -231,8 +231,8 @@
     <Reference Include="NuGet.Services.KeyVault, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.2.1.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Logging, Version=2.1.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Logging.2.1.1\lib\net452\NuGet.Services.Logging.dll</HintPath>
+    <Reference Include="NuGet.Services.Logging, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Logging.2.2.3\lib\net452\NuGet.Services.Logging.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.0.0\lib\net45\NuGet.Versioning.dll</HintPath>

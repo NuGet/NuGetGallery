@@ -214,13 +214,16 @@
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="FeedHelpersTests.cs" />
     <Compile Include="Infrastructure\MemoryStorage.cs" />
+    <Compile Include="Infrastructure\MemoryStorageFactory.cs" />
     <Compile Include="Infrastructure\MockServerHttpClientHandlerExtensions.cs" />
+    <Compile Include="PackageMonitoringStatusTests.cs" />
     <Compile Include="Infrastructure\StorageContentExtensions.cs" />
     <Compile Include="Infrastructure\TestDirectory.cs" />
     <Compile Include="Infrastructure\TestStorageFactory.cs" />
     <Compile Include="Infrastructure\MockServerHttpClientHandler.cs" />
     <Compile Include="Infrastructure\ODataFeedHelper.cs" />
     <Compile Include="Infrastructure\ODataPackage.cs" />
+    <Compile Include="PackageMonitoringStatusServiceTests.cs" />
     <Compile Include="UriUtilsTests.cs" />
     <Compile Include="PackageTimestampMetadataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -235,6 +238,8 @@
       <DependentUpon>TestCatalogEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="Data\Catalogs.cs" />
+    <Compile Include="Validators\DummyAggregateValidator.cs" />
+    <Compile Include="Validators\DummyValidator.cs" />
     <Compile Include="Validators\RegistrationIndexValidatorTestData.cs" />
     <Compile Include="Validators\RegistrationIndexValidatorTests.cs" />
     <Compile Include="Validators\RegistrationListedValidatorTestData.cs" />

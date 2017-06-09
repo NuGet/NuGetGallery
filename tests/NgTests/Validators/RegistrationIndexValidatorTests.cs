@@ -29,11 +29,32 @@ namespace NgTests
             }
         }
 
+        private static IEnumerable<object[]> ValidatorSpecialTestData<T>(Func<IRegistrationIndexValidatorTestData, IEnumerable<Tuple<T, T, bool>>> getPairs)
+        {
+            foreach (var testData in ValidatorTestUtility.GetImplementations<IRegistrationIndexValidatorTestData>())
+            {
+                var validator = testData.CreateValidator();
+
+                foreach (var pair in getPairs(testData))
+                {
+                    yield return new object[]
+                    {
+                            validator,
+                            pair.Item1,
+                            pair.Item2,
+                            pair.Item3
+                    };
+                }
+            }
+        }
+
         public class TheCompareIndexMethod
         {
             public static IEnumerable<object[]> ValidatorEqualIndexTestData => ValidatorTestData(t => ValidatorTestUtility.GetEqualPairs(t.CreateIndexes));
 
             public static IEnumerable<object[]> ValidatorUnequalIndexTestData => ValidatorTestData(t => ValidatorTestUtility.GetUnequalPairs(t.CreateIndexes));
+
+            public static IEnumerable<object[]> ValidatorSpecialIndexTestData => ValidatorSpecialTestData(t => ValidatorTestUtility.GetSpecialPairs(t.CreateSpecialIndexes));
 
             [Theory]
             [MemberData(nameof(ValidatorEqualIndexTestData))]
@@ -54,6 +75,27 @@ namespace NgTests
             {
                 await Assert.ThrowsAnyAsync<MetadataInconsistencyException>(
                     () => validator.CompareIndex(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+            }
+
+            [Theory]
+            [MemberData(nameof(ValidatorSpecialIndexTestData))]
+            public async Task SpecialCasesReturnAsExpected(
+                RegistrationIndexValidator validator,
+                PackageRegistrationIndexMetadata v2,
+                PackageRegistrationIndexMetadata v3,
+                bool shouldPass)
+            {
+                var compareTask = Task.Run(async () => await validator.CompareIndex(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+
+                if (shouldPass)
+                {
+                    await compareTask;
+                }
+                else
+                {
+                    await Assert.ThrowsAnyAsync<MetadataInconsistencyException>(
+                        () => compareTask);
+                }
             }
         }
 
