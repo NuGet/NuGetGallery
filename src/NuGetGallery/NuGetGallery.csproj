@@ -443,8 +443,8 @@
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.Logging, Version=2.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Logging.2.2.1\lib\net452\NuGet.Services.Logging.dll</HintPath>
+    <Reference Include="NuGet.Services.Logging, Version=2.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Logging.2.2.3\lib\net452\NuGet.Services.Logging.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Services.Platform.Client, Version=3.0.29.0, Culture=neutral, processorArchitecture=MSIL">
