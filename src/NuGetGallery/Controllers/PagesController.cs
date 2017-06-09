@@ -58,7 +58,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult Downloads()
         {
-            return Redirect("https://dist.nuget.org/index.html");
+            return View();
         }
 
         [HttpPost]

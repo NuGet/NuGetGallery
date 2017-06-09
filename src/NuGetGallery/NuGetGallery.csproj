@@ -1802,6 +1802,7 @@
     <Content Include="Views\Authentication\SignIn.cshtml" />
     <Content Include="Views\Pages\_PagesView.cshtml" />
     <Content Include="Views\Shared\_SearchBar.cshtml" />
+    <Content Include="Views\Pages\Downloads.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

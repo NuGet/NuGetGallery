@@ -316,6 +316,9 @@ body h3 {
 .page-profile .profile-details .statistics .statistic .description {
   font-size: 24px;
 }
+.page-downloads .list-tools li {
+  margin-top: 20px;
+}
 .page-forgot-password .forgot-form {
   margin-top: 80px;
 }
