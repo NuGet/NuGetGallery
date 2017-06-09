@@ -1478,7 +1478,6 @@
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultDefaults.cs" />
     <Compile Include="WebApi\QueryResultExtensions.cs" />
-    <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -1713,6 +1712,8 @@
     <Compile Include="ViewModels\UserProfileModel.cs" />
     <Content Include="Branding\Views\_ViewStart.cshtml" />
     <Content Include="App_Data\Files\Content\Privacy-Policy.md" />
+    <Content Include="App_Data\Files\Content\ReadOnly.md" />
+    <Content Include="App_Data\Files\Content\Team.json" />
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />

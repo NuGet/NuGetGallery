@@ -46,11 +46,19 @@ html {
 }
 
 body {
-  margin-bottom: @panel-footer-height-sm;
+    margin-bottom: @panel-footer-height-sm;
 
-  @media (min-width: @screen-md-min) {
-    margin-bottom: @panel-footer-height-md;
-  }
+    @media (min-width: @screen-md-min) {
+        margin-bottom: @panel-footer-height-md;
+    }
+
+    h1, h2, h3, p {
+        margin-bottom: 24px;
+    }
+
+    h2, h3 {
+        margin-top: 40px;
+    }
 }
 
 .navbar-seperated {
