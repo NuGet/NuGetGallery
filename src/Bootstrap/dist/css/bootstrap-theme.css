@@ -437,10 +437,31 @@ body h3 {
 .page-stats-per-package .stats-table-control {
   margin-top: 40px;
 }
+.page-stats-per-package .stats-table-footer {
+  border: none;
+}
+.page-stats-per-package .stats-table-footer td {
+  border: none;
+}
+.page-stats-per-package .stats-table-footer tr {
+  border: none;
+}
 .page-stats-per-package #loading-placeholder {
   display: none;
 }
 .page-stats-per-package #stats-graph-svg .axis path {
   display: none;
+}
+.page-stats-per-package #stats-graph-svg .long text {
+  font-size: .8em;
+}
+.page-stats-per-package #stats-graph-svg .bar {
+  fill: steelblue;
+}
+.page-stats-per-package #stats-graph-svg .bar:hover {
+  fill: orange;
+}
+.page-stats-per-package #stats-graph-svg .bartext {
+  font-size: 1em;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */

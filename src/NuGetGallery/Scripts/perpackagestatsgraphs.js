@@ -1,5 +1,6 @@
 ﻿
 var graphData;
+var axisLabelCharLimit = 20;
 
 var packageDisplayGraphs = function (data) {
     window.graphData = data;
@@ -14,23 +15,6 @@ var packageDisplayGraphs = function (data) {
         default:
             break;
     }
-
-    //}
-    //if ($('#report-Version').length) {
-    //    //if (Modernizr.svg) {
-    //        drawDownloadsByVersionBarChart(data);
-    //    //}
-    //}
-    //if ($('#report-ClientName').length) {
-    //    //if (Modernizr.svg) {
-    //        drawDownloadsByClientNameBarChart(data);
-    //    //}
-    //}
-    //if ($('#report-Operation').length) {
-    //    //if (Modernizr.svg) {
-    //        drawDownloadsByOperation(data);
-    //    //}
-    //}
 }
 
 var SemVer = function (versionString) {
@@ -134,7 +118,7 @@ var drawDownloadsByVersionBarChart = function (rawData) {
 
     reportGraphWidth = Math.min(reportGraphWidth, 1170);
 
-    var margin = { top: 40, right: 30, bottom: 130, left: 45 },
+    var margin = { top: 40, right: 10, bottom: 130, left: 45 },
         width = reportGraphWidth - margin.left - margin.right,
         height = 450 - margin.top - margin.bottom;
 
@@ -146,7 +130,10 @@ var drawDownloadsByVersionBarChart = function (rawData) {
 
     var xAxis = d3.svg.axis()
         .scale(xScale)
-        .orient('bottom');
+        .orient('bottom')
+        .tickFormat(function (d) {
+            return d.substring(0, axisLabelCharLimit) + (d.length > axisLabelCharLimit? "..." :"");
+        });
 
     var yAxis = d3.svg.axis()
         .scale(yScale)
@@ -173,7 +160,7 @@ var drawDownloadsByVersionBarChart = function (rawData) {
     //  the workaround employed here is to add a translation to the rotation transform
 
     svg.append("g")
-        .attr("class", "x axis")
+        .attr("class", "x axis long")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
         .selectAll("text")
@@ -205,11 +192,12 @@ var drawDownloadsByVersionBarChart = function (rawData) {
         .data(data)
         .enter()
         .append("rect")
-            .attr("class", "bar")
-            .attr("x", function (d) { return xScale(d.label); })
-            .attr("width", xScale.rangeBand())
-            .attr("y", function (d) { return yScale(d.downloads); })
-        .attr("height", function (d) { return height - yScale(d.downloads); });
+        .attr("class", "bar")
+        .attr("x", function (d) { return xScale(d.label); })
+        .attr("width", xScale.rangeBand())
+        .attr("y", function (d) { return yScale(d.downloads); })
+        .attr("height", function (d) { return height - yScale(d.downloads); })
+        .append("title").text(function (d) { return d.downloads + " Downloads"; });
 }
 
 var drawDownloadsByClientNameBarChart = function (rawData) {
@@ -241,7 +229,7 @@ var drawDownloadsByClientNameBarChart = function (rawData) {
     var reportGraphWidth = $('#statistics-graph-id').width();
     reportGraphWidth = Math.min(reportGraphWidth, 1170);
 
-    var margin = { top: 40, right: 30, bottom: 100, left: 250 },
+    var margin = { top: 40, right: 10, bottom: 50, left: 150 },
         width = reportGraphWidth - margin.left - margin.right,
         height = Math.max(550, data.length * 25) - margin.top - margin.bottom;
 
@@ -259,7 +247,10 @@ var drawDownloadsByClientNameBarChart = function (rawData) {
 
     var yAxis = d3.svg.axis()
         .scale(yScale)
-        .orient('left');
+        .orient('left')
+        .tickFormat(function (d) {
+            return d.substring(0, axisLabelCharLimit) + (d.length > axisLabelCharLimit ? "..." : "");
+        });
 
     var svg = d3.select('#statistics-graph-id')
         .append('svg')
@@ -291,7 +282,7 @@ var drawDownloadsByClientNameBarChart = function (rawData) {
         .text("Downloads by Client (Last 6 weeks)");
 
     svg.append("g")
-        .attr("class", "y axis")
+        .attr("class", "y axis long")
         .call(yAxis);
 
     svg.selectAll(".bar")
@@ -302,25 +293,8 @@ var drawDownloadsByClientNameBarChart = function (rawData) {
         .attr("x", 0)
         .attr("width", function (d) { return xScale(d.downloads); })
         .attr("y", function (d) { return yScale(d.label); })
-        .attr("height", yScale.rangeBand());
-
-    svg.selectAll(".bartext")
-        .data(data)
-        .enter()
-        .append("text")
-        .attr("class", "bartext")
-        .attr("text-anchor", "end")
-        .attr("fill", "black")
-        .attr("font-size", "11px")
-        .attr("x", function (d, i) {
-            return xScale(d.downloads) + 40;
-        })
-        .attr("y", function (d, i) {
-            return yScale(d.label) + yScale.rangeBand() - 4;
-        })
-        .text(function (d) {
-            return d.downloads.toLocaleString();
-        });
+        .attr("height", yScale.rangeBand())
+        .append("title").text(function (d) { return d.downloads.toLocaleString() + " Downloads"; });
 }
 
 var GetChartData = function (rawData, filter) {

@@ -87,10 +87,10 @@
                             </tr>
                         </thead>
                         <tbody data-bind="foreach: Table">
-                            <tr>
+                            <tr data-bind="attr: { class: $index() > 6 ? 'hidden-row' : ''}, visible: $index() <= 6">
                                 <!-- ko foreach: $data -->
                                 <!-- ko if: $data -->
-                                <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : '', rowspan: Rowspan >= 1 ? Rowspan : null }" style="vertical-align:top">
+                                <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
                                     <!-- ko if: Uri -->
                                     <a data-bind="attr: { href: Uri }, text: Data"></a>
                                     <!-- /ko -->
@@ -100,9 +100,31 @@
                                 </td>
                                 <!-- /ko -->
                                 <!-- /ko -->
-
                             </tr>
                         </tbody>
+
+                        <!-- ko if: $data.reportSize > 6 -->
+                        <tfoot class="stats-table-footer">
+                            <tr data-bind="click: showMoreFunction" id="stats-table-showmore">
+                                <td>
+                                    <button type="button" data-toggle="collapse" class="btn btn-link" data-target="#hidden-versions"
+                                            aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
+                                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                                        <span>Show more</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr data-bind="visible: false, click: hideMoreFunction" id="stats-table-showless">
+                                <td>
+                                    <button type="button" data-toggle="collapse" class="btn btn-link" data-target="#hidden-versions"
+                                            aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
+                                        <i class="ms-Icon ms-Icon--ChevronUp" aria-hidden="true"></i>
+                                        <span>Show less</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        <!-- /ko -->
                     </table>
                 </div>
             </div>
