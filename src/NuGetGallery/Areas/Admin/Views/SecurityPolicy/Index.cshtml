@@ -72,6 +72,7 @@
             var viewModel = function () {
                 var $self = this;
 
+                this.currentSubscription;
                 this.subscriptions = @Html.Raw(Json.Encode(@Model.SubscriptionNames));
                 this.searchQuery = ko.observable('');
 
@@ -117,13 +118,14 @@
                 this.resetSelectAllState = function () {
                     for (var i = 0; i < $self.subscriptions.length; i++)
                     {
-                        $self.selectAllState[$self.subscriptions[i]](false);
+                        var subscription = $self.subscriptions[i];
+                        $self.selectAllState[subscription](false);
                     }
                 }
                 
                 this.toggleSelectAll = function (data, e) {
-                    var subscription = e.currentTarget.nextSibling.data;
-                    $self.selectAllState[subscription](!$self.selectAllState[subscription]());
+                    $self.currentSubscription = e.currentTarget.nextSibling.data;
+                    $self.selectAllState[$self.currentSubscription](!$self.selectAllState[$self.currentSubscription]());
                     return true;
                 };
 
@@ -146,11 +148,12 @@
                 };
 
                 for (var i = 0; i < this.subscriptions.length; i++) {
+                    var subscription = this.subscriptions[i];
                     this.selectAllState[subscription].subscribe(function () {
-                        var state = $self.selectAllState[subscription]();
+                        var state = $self.selectAllState[$self.currentSubscription]();
 
                         ko.utils.arrayForEach($self.searchResults(), function (result) {
-                            result.Selected[subscription](state);
+                            result.Selected[$self.currentSubscription](state);
                         });
                     });
                 }
