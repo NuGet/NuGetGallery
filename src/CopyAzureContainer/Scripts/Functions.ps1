@@ -8,10 +8,11 @@ Function Install-BackupV3Task
     $STName = "Nuget\BackupV3Job"
 
     #Action to run as
-    $STAction = New-ScheduledTaskAction -Execute "$PSScriptRoot\backupv3storage.cmd"
+    $cmdexe = [system.environment]::getenvironmentvariable("ComSpec")
+    $STAction = New-ScheduledTaskAction -Execute $cmdexe -Argument "/c $PSScriptRoot\backupv3storage.cmd" -WorkingDirectory $PSScriptRoot
 
     #Configure when to stop the task and how long it can run for. In this example it does not stop on idle and uses the maximum possible duration by setting a timelimit of 0
-    $STSettings = New-ScheduledTaskSettingsSet -DontStopOnIdleEnd -ExecutionTimeLimit ([TimeSpan]::Zero) 
+    $STSettings = New-ScheduledTaskSettingsSet -DontStopOnIdleEnd -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew
 
     #Configure the principal to use for the scheduled task and the level to run as
     $STPrincipal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel "Highest"
