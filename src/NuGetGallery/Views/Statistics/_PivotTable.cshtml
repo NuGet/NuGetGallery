@@ -21,11 +21,11 @@
                     <table class="table borderless stats-table-control">
                         <tbody data-bind="foreach: Dimensions">
                             <tr>
-                                <td class="text-left">
-                                    <label data-bind="attr: { for: 'checkbox-' + Value }, text: DisplayName" />
-                                </td>
                                 <td class="text-right">
                                     <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked }" class="dimension-checkbox" name="groupby" type="checkbox">
+                                </td>
+                                <td class="text-left">
+                                    <label data-bind="attr: { for: 'checkbox-' + Value }, text: DisplayName" />
                                 </td>
                             </tr>
                         </tbody>
