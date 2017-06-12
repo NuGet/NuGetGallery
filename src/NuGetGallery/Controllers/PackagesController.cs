@@ -1154,7 +1154,7 @@ namespace NuGetGallery
             catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return false;
+                throw;
             }
         }
 
