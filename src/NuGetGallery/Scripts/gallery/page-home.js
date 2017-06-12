@@ -59,10 +59,19 @@ $(function () {
                 },
                 done: function () {
                     $(element).text(commaThousands(newValue));
+
+                    // Add the statistic as an aria-label to enable screen readers.
+                    var statText = $(element.parentElement).text().replace(/\s+/g, ' ').trim();
+                    var label = "There are " + statText + " on NuGet.org.";
+                    $(element).attr('title', label);
                 }
             });
         }
     };
+
+    if (!window.nuget.supportsSvg()) {
+        $('.circuit-board').hide();
+    }
 
     ko.applyBindings(stats);
     updateStats();

@@ -279,7 +279,7 @@ body h3 {
   height: 482px;
   margin: 0 auto;
   margin-top: 50px;
-  background-image: url('../img/circuit-board.svg'), url('../img/circuit-board.png');
+  background-image: url('../img/circuit-board.svg');
   background-repeat: no-repeat;
   background-position: center bottom;
 }
