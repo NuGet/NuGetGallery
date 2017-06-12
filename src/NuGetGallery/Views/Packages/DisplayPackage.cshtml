@@ -29,6 +29,30 @@
     }
 }
 
+@helper CommandTab(string label, string id, bool active)
+{
+    <li role="presentation" class="@(active ? "active" : string.Empty)">
+        <a href="#@id" aria-controls="@id" role="tab" data-toggle="tab">@label</a>
+    </li>
+}
+
+@helper CommandPanel(Func<MvcHtmlString, HelperResult> htmlContent, string id, bool active)
+{
+    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@id">
+        <div>
+            <span class="install-script">
+                <span id="@id-text">@htmlContent(MvcHtmlString.Empty)</span>
+            </span>
+            <span class="copy-button">
+                <button id="@id-button" class="btn btn-default btn-warning" type="button"
+                        data-toggle="popover" data-placement="bottom" data-content="Copied.">
+                    <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                </button>
+            </span>
+        </div>
+    </div>
+}
+
 <section role="main" class="container main-container page-package-details">
     <div class="row">
         <aside class="col-sm-1">
@@ -157,20 +181,12 @@
 
             <div class="install-tabs">
                 <ul class="nav nav-tabs" role="tablist">
-                    <li role="presentation" class="active">
-                        <a href="#package-manager" aria-controls="package-manager" role="tab" data-toggle="tab">Package Manager</a>
-                    </li>
+                    @CommandTab("Package Manager", "package-manager", active: true)
+                    @CommandTab(".NET CLI", "dotnet-cli", active: false)
                 </ul>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="tab-package-manager">
-                        <span class="install-script">
-                            <span id="install-script-text">Install-Package @Model.Id -Version @Model.Version</span>
-                        </span>
-                        <span class="copy-button">
-                            <button id="install-script-button" class="btn btn-default btn-warning" type="button"
-                                    data-toggle="popover" data-placement="bottom" data-content="Copied."><span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span></button>
-                        </span>
-                    </div>
+                    @CommandPanel(@<text>Install-Package @Model.Id -Version @Model.Version</text>, "package-manager", active: true)
+                    @CommandPanel(@<text>dotnet add package @Model.Id --version @Model.Version</text>, "dotnet-cli", active: false)
                 </div>
             </div>
 
@@ -180,61 +196,6 @@
 
                 // Not actually using <pre/> because its better to have wrapping text
                 <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
-            }
-
-            @if (Model.Dependencies.DependencySets == null)
-            {
-                if ((Model.IsOwner(User) || User.IsAdministrator()))
-                {
-                    <h2>Dependencies</h2>
-                    <p>
-                        An error occurred processing dependencies.
-                        Your package can still be downloaded and installed, but dependencies cannot be shown.
-                        Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have questions.
-                    </p>
-                    <p>
-                        <strong>Note: This message is only visible to you and any other package owners.</strong>
-                    </p>
-                }
-            }
-            else
-            {
-                <h2>Dependencies</h2>
-                if (Model.Dependencies.DependencySets.Any())
-                {
-                    <ul class="list-unstyled">
-                        @foreach (var dependencySet in Model.Dependencies.DependencySets)
-                        {
-                            var dependencySetTitle = dependencySet.Key;
-                            <li>
-                                @if (!Model.Dependencies.OnlyHasAllFrameworks)
-                                {
-                                    <h4><span>@dependencySetTitle</span></h4>
-                                }
-                                <ul class="list-unstyled dependency-group">
-                                @foreach (var dependency in dependencySet.Value)
-                                {
-                                    <li>
-                                    @if (dependency == null)
-                                    {
-                                        @:No dependencies.
-                                    }
-                                    else
-                                    {
-                                        <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
-                                        <span>@dependency.VersionSpec</span>
-                                    }
-                                    </li>
-                                }
-                                </ul>
-                            </li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p>This package has no dependencies.</p>
-                }
             }
 
             <h2>Version History</h2>
@@ -319,12 +280,73 @@
                 }
                 </tbody>
             </table>
-            @if (rowCount > 5)            {
-                <button type="button" data-toggle="collapse" class="btn btn-link" data-target="#hidden-versions"
+            @if (rowCount > 5)
+            {
+                <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#hidden-versions"
                         aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
                     <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
                     <span>Show more</span>
                 </button>
+            }
+
+            @if (Model.Dependencies.DependencySets == null)
+            {
+                if ((Model.IsOwner(User) || User.IsAdministrator()))
+                {
+                    <h2>Dependencies</h2>
+                    <p>
+                        An error occurred processing dependencies.
+                        Your package can still be downloaded and installed, but dependencies cannot be shown.
+                        Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have questions.
+                    </p>
+                    <p>
+                        <strong>Note: This message is only visible to you and any other package owners.</strong>
+                    </p>
+                }
+            }
+            else
+            {
+                <h2>Dependencies</h2>
+                if (Model.Dependencies.DependencySets.Any())
+                {
+                    <ul class="list-unstyled panel-collapse collapse" id="dependency-groups">
+                        @foreach (var dependencySet in Model.Dependencies.DependencySets)
+                        {
+                            var dependencySetTitle = dependencySet.Key;
+                            <li>
+                                @if (!Model.Dependencies.OnlyHasAllFrameworks)
+                                {
+                                    <h4><span>@dependencySetTitle</span></h4>
+                                }
+                                <ul class="list-unstyled dependency-group">
+                                    @foreach (var dependency in dependencySet.Value)
+                                    {
+                                        <li>
+                                            @if (dependency == null)
+                                            {
+                                                @:No dependencies.
+                                            }
+                                            else
+                                            {
+                                                <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                                                <span>@dependency.VersionSpec</span>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#dependency-groups"
+                            aria-expanded="false" aria-controls="dependency-groups" id="show-dependency-groups">
+                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                        <span>Show</span>
+                    </button>
+                }
+                else
+                {
+                    <p>This package has no dependencies.</p>
+                }
             }
         </article>
         <aside class="col-sm-3 package-details-info">
@@ -353,7 +375,7 @@
                 @if (PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Page" aria-hidden="true"></i>
+                        <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
                         <a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">
                             @if(Model.LicenseNames.AnySafe())
                             {
@@ -392,7 +414,7 @@
                 @if (!Model.Deleted)
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
+                        <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
                         <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Manual download</a>
                     </li>
                     <li class="no-clickonce">
