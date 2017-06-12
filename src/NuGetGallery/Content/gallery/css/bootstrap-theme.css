@@ -78,8 +78,12 @@ body h3 {
   padding: 2px 10px;
   margin: 0 2px;
   line-height: 2em;
-  color: #266daa;
+  color: #2e6da4;
   background-color: #eff9ff;
+}
+.tag:hover,
+.tag:focus {
+  color: #23527c;
 }
 .banner {
   padding-bottom: 10px;
@@ -95,6 +99,13 @@ body h3 {
 }
 .banner.banner-bright {
   background: yellow;
+}
+.alert a {
+  color: #2e6da4;
+}
+.alert a:hover,
+.alert a:focus {
+  color: #23527c;
 }
 .alert-transient .alert {
   padding: 10px;
@@ -415,6 +426,31 @@ body h3 {
 .page-statistics-most-downloaded .table tbody td {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.page-error {
+  margin-top: 48px;
+}
+.page-error .oops {
+  margin-bottom: 10px;
+  font-size: 6em;
+}
+.page-error .error-title {
+  margin-bottom: 60px;
+  font-size: 3em;
+}
+.page-error .error-text {
+  margin-bottom: 40px;
+}
+.page-error .error-text .text-main {
+  margin-bottom: 20px;
+  font-size: 2.5em;
+}
+.page-error .error-text .text-sub {
+  font-size: 2em;
+}
+.page-error .error-action {
+  margin-bottom: 20px;
+  font-size: 1.25em;
 }
 .page-statistics-overview .stats-title-text {
   margin-bottom: 10px;

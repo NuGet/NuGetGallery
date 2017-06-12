@@ -35,6 +35,11 @@ namespace NuGetGallery
                 new { controller = "Pages", action = "Home" }); // T4MVC doesn't work with Async Action
 
             routes.MapRoute(
+                RouteName.ErrorReadOnly,
+                "errors/readonly",
+                new { controller = "Errors", action = "ReadOnlyMode" });
+
+            routes.MapRoute(
                 RouteName.Error500,
                 "errors/500",
                 new { controller = "Errors", action = "InternalError" });
@@ -43,6 +48,11 @@ namespace NuGetGallery
                 RouteName.Error404,
                 "errors/404",
                 new { controller = "Errors", action = "NotFound" });
+
+            routes.MapRoute(
+                RouteName.Error400,
+                "errors/400",
+                new { controller = "Errors", action = "BadRequest" });
 
             routes.MapRoute(
                 RouteName.StatisticsHome,

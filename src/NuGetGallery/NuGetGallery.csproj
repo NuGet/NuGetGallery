@@ -2108,7 +2108,7 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
-    <Content Include="Views\Errors\CookieError.cshtml" />
+    <Content Include="Views\Errors\BadRequest.cshtml" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
     <Content Include="Views\Statistics\Index.cshtml" />
     <Content Include="Views\Statistics\Packages.cshtml" />
