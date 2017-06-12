@@ -196,99 +196,46 @@ namespace NuGetGallery
             }
         }
 
-        public class TheConfirmPackageOwnerMethod
+        public class TheIsValidPackageOwnerRequestMethod
         {
             [Fact]
-            public async Task WithValidUserAndMatchingTokenReturnsSuccess()
+            public void ThrowsArgumentNullIfPackageIsNull()
             {
-                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
-                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-                packageRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
-                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                repository.Setup(r => r.GetAll()).Returns(
-                    new[]
-                        {
-                            new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token" },
-                            new PackageOwnerRequest { PackageRegistrationKey = 2, NewOwnerKey = 100, ConfirmationCode = "secret-token" }
-                        }.AsQueryable());
-                var service = CreateService(packageRepository: packageRepository, packageOwnerRequestRepo: repository);
-
-                var result = await service.ConfirmPackageOwnerAsync(package, pendingOwner, "secret-token");
-
-                Assert.Equal(ConfirmOwnershipResult.Success, result);
-                Assert.Contains(pendingOwner, package.Owners);
-                packageRepository.VerifyAll();
+                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(null, new User(), "token"));
             }
 
             [Fact]
-            public async Task WhenUserIsAlreadyOwnerReturnsAlreadyOwner()
+            public void ThrowsArgumentNullIfPendingOwnerIsNull()
             {
-                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-                var package = new PackageRegistration { Key = 2, Id = "pkg42", Owners = new[] { pendingOwner } };
+                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(new PackageRegistration(), null, "token"));
+            }
+
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            public void ThrowsArgumentNullIfTokenIsNullOrEmpty(string token)
+            {
+                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(new PackageRegistration(), new User(), token));
+            }
+
+            [Theory]
+            [InlineData(1, 2, "token", true)]
+            [InlineData(2, 2, "token", false)]
+            [InlineData(1, 1, "token", false)]
+            [InlineData(1, 2, "token2", false)]
+            private void ReturnsSuccessIfPackageOwnerRequestMatches(int packageId, int userId, string token, bool success)
+            {
+                // Arrange
                 var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
                 repository.Setup(r => r.GetAll()).Returns(
-                    new[]
-                        {
-                            new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token" }
-                        }.AsQueryable());
+                    new[] { new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 2, ConfirmationCode = "token" } }
+                    .AsQueryable());
                 var service = CreateService(packageOwnerRequestRepo: repository);
+                var package = new PackageRegistration { Key = packageId, Id = "pkg42" };
+                var pendingOwner = new User { Key = userId, Username = "teamawesome" };
 
-                var result = await service.ConfirmPackageOwnerAsync(package, pendingOwner, "secret-token");
-
-                Assert.Equal(ConfirmOwnershipResult.AlreadyOwner, result);
-            }
-
-            [Fact]
-            public async Task WithNoMatchingPackgageOwnerRequestReturnsFailure()
-            {
-                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
-                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                repository.Setup(r => r.GetAll()).Returns(
-                    new[]
-                        {
-                            new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token" }
-                        }.AsQueryable());
-                var service = CreateService(packageOwnerRequestRepo: repository);
-
-                var result = await service.ConfirmPackageOwnerAsync(package, pendingOwner, "secret-token");
-
-                Assert.Equal(ConfirmOwnershipResult.Failure, result);
-            }
-
-            [Fact]
-            public async Task WithValidUserAndNonMatchingTokenReturnsFailure()
-            {
-                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
-                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-                packageRepository.Setup(r => r.CommitChangesAsync()).Throws(new InvalidOperationException());
-                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                repository.Setup(r => r.GetAll()).Returns(
-                    new[]
-                        {
-                            new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token" },
-                            new PackageOwnerRequest { PackageRegistrationKey = 2, NewOwnerKey = 100, ConfirmationCode = "wrong-token" }
-                        }.AsQueryable());
-                var service = CreateService(packageRepository: packageRepository, packageOwnerRequestRepo: repository);
-
-                var result = await service.ConfirmPackageOwnerAsync(package, pendingOwner, "secret-token");
-
-                Assert.Equal(ConfirmOwnershipResult.Failure, result);
-                Assert.DoesNotContain(pendingOwner, package.Owners);
-            }
-
-            [Fact]
-            public async Task ThrowsArgumentNullExceptionsForBadArguments()
-            {
-                var service = CreateService();
-
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.ConfirmPackageOwnerAsync(null, new User(), "token"));
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.ConfirmPackageOwnerAsync(new PackageRegistration(), null, "token"));
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.ConfirmPackageOwnerAsync(new PackageRegistration(), null, null));
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.ConfirmPackageOwnerAsync(new PackageRegistration(), null, ""));
+                // Act & Assert
+                Assert.Equal(success, service.IsValidPackageOwnerRequest(package, pendingOwner, token));
             }
         }
 

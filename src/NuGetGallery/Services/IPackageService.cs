@@ -59,8 +59,24 @@ namespace NuGetGallery
         Task MarkPackageListedAsync(Package package, bool commitChanges = true);
 
         Task<PackageOwnerRequest> CreatePackageOwnerRequestAsync(PackageRegistration package, User currentOwner, User newOwner);
-        Task<ConfirmOwnershipResult> ConfirmPackageOwnerAsync(PackageRegistration package, User user, string token);
-        Task AddPackageOwnerAsync(PackageRegistration package, User user);
+        
+        /// <summary>
+        /// Checks if the pending owner has a request for this package which matches the specified token.
+        /// </summary>
+        /// <param name="package">Package associated with the request.</param>
+        /// <param name="pendingOwner">Pending owner for the request.</param>
+        /// <param name="token">Token generated for the owner request.</param>
+        /// <returns>True if valid, false otherwise.</returns>
+        bool IsValidPackageOwnerRequest(PackageRegistration package, User pendingOwner, string token);
+
+        /// <summary>
+        /// Performs database changes to add a new package owner while removing the corresponding package owner request.
+        /// </summary>
+        /// <param name="package">Package to which owner is added.</param>
+        /// <param name="newOwner">New owner to add.</param>
+        /// <returns>Awaitable task.</returns>
+        Task AddPackageOwnerAsync(PackageRegistration package, User newOwner);
+
         Task RemovePackageOwnerAsync(PackageRegistration package, User user);
 
         Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true);

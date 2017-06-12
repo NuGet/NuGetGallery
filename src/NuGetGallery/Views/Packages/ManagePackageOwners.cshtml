@@ -5,6 +5,7 @@
 
 
 <h1 class="page-heading">Manage Owners for Package "@Model.Title.Abbreviate(50)"</h1>
+
 <div class="error message" style="display: none" data-bind="text: message, visible: message"></div>
 
 <h2>Current Owners</h2>
@@ -29,15 +30,28 @@
     @Html.AntiForgeryToken()
     <fieldset class="form">
         <legend>Add Owner</legend>
-        <div class="form-field">
-            <label for="newOwnerUserName">Username</label>
-            <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername"/>
+        <div id="input-form">
+            <div class="form-field">
+                <label for="newOwnerUserName">Username</label>
+                <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername" />
+            </div>
+            <div class="form-field">
+                <label for="newOwnerUserName">Message</label>
+                <textarea id="newOwnerMessage" name="newOwnerUserName" data-bind="value: newOwnerMessage"></textarea>
+            </div>
+            <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: confirmAddOwner" />
         </div>
-        <div class="form-field">
-            <label for="newOwnerUserName">Message</label>
-            <textarea id="newOwnerMessage" name="newOwnerUserName" data-bind="value: newOwnerMessage"></textarea>
+        <div style="display: none" data-bind="visible: confirmation">
+            <h2>Confirm</h2>
+
+            <div data-bind="text: confirmation"></div>
+            <br />
+
+            <div class="warning message" data-bind="visible: policyMessage, html: policyMessage"></div>
+            <br />
+            <input type="submit" value="Confirm" title="Confirm adding the user as an owner to @Model.Title" data-bind="click: addOwner" />
+            <a class="cancel" title="Cancel changes and reload the page." data-bind="click: resetAddOwnerConfirmation">Cancel</a>
         </div>
-        <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: addOwner" />
     </fieldset>
 }
 
@@ -55,6 +69,8 @@
                 owners: ko.observableArray([]),
                 newOwnerUsername: ko.observable(''),
                 newOwnerMessage: ko.observable(''),
+                confirmation: ko.observable(''),
+                policyMessage: ko.observable(''),
 
                 message: ko.observable(''),
 
@@ -62,10 +78,18 @@
                     return true;
                 },
 
-                addOwner: function () {
-                    var newUsername = viewModel.newOwnerUsername();
-                    var message = viewModel.newOwnerMessage();
+                headers: function () {
+                    return { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
+                },
 
+                resetAddOwnerConfirmation: function () {
+                    viewModel.confirmation('');
+                    viewModel.policyMessage('');
+                    $("#input-form :input").attr("disabled", false);
+                },
+
+                confirmAddOwner: function () {
+                    var newUsername = viewModel.newOwnerUsername();
                     if (!newUsername) {
                         viewModel.message("Please enter a valid user name.");
                         return;
@@ -80,6 +104,31 @@
                         return;
                     }
 
+                    $.ajax({
+                        url: '@Url.Action("GetAddPackageOwnerConfirmation", "JsonApi")?id=' + viewModel.package.id + '&username=' + newUsername,
+                        cache: false,
+                        dataType: 'json',
+                        type: 'GET',
+                        headers: viewModel.headers(),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data.success) {
+                                viewModel.confirmation(data.confirmation);
+                                viewModel.policyMessage(data.policyMessage);
+                                $("#input-form :input").attr("disabled", true);
+                            }
+                            else {
+                                viewModel.message(data.message);
+                            }
+                        }
+                    })
+                    .error(failHandler);
+                },
+
+                addOwner: function () {
+                    var newUsername = viewModel.newOwnerUsername();
+                    var message = viewModel.newOwnerMessage();
+
                     var ownerInputModel =
                     {
                         username: newUsername,
@@ -87,14 +136,12 @@
                         message: message
                     };
 
-                    var headers = { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
-
                     $.ajax({
                         url: '@Url.Action("AddPackageOwner", "JsonApi")',
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        headers: headers,
+                        headers: viewModel.headers(),
                         data: window.JSON.stringify(ownerInputModel),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
@@ -108,6 +155,7 @@
 
                                 // when an operation succeeds, always clear the error message
                                 viewModel.message('');
+                                viewModel.resetAddOwnerConfirmation();
                             }
                             else {
                                 viewModel.message(data.message);
@@ -119,23 +167,19 @@
 
                 removeOwner: function (item) {
                     var package = viewModel.package;
-                    var headers = { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
-
-                    var proceedToRemoveFunction = true;
 
                     if (item.current) {
-                        proceedToRemoveFunction = confirm("Are you sure you want to remove yourself from the owners?");
+                        if (!confirm("Are you sure you want to remove yourself from the owners?")) {
+                            return;
+                        }
                     }
-
-                    if (proceedToRemoveFunction === false)
-                        return;
 
                     $.ajax({
                         url: '@Url.Action("RemovePackageOwner", "JsonApi")?id=' + package.id + '&username=' + item.name(),
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        headers: headers,
+                        headers: viewModel.headers(),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             if (data.success) {

@@ -27,6 +27,7 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
+using NuGetGallery.Security;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -53,6 +54,7 @@ namespace NuGetGallery
         private readonly ISupportRequestService _supportRequestService;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
+        private readonly ISecurityPolicyService _securityPolicyService;
 
         public PackagesController(
             IPackageService packageService,
@@ -69,7 +71,8 @@ namespace NuGetGallery
             IPackageDeleteService packageDeleteService,
             ISupportRequestService supportRequestService,
             IAuditingService auditingService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            ISecurityPolicyService securityPolicyService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -86,6 +89,7 @@ namespace NuGetGallery
             _supportRequestService = supportRequestService;
             _auditingService = auditingService;
             _telemetryService = telemetryService;
+            _securityPolicyService = securityPolicyService;
         }
 
         [HttpGet]
@@ -365,6 +369,8 @@ namespace NuGetGallery
                 }
             }
 
+            model.PolicyMessage = GetDisplayPackagePolicyMessage(package.PackageRegistration);
+
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
             {
@@ -408,6 +414,24 @@ namespace NuGetGallery
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
+        }
+
+        private string GetDisplayPackagePolicyMessage(PackageRegistration package)
+        {
+            // display package policy message to package owners and admins.
+            if (User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
+            {
+                var propagators = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
+                if (propagators.Any())
+                {
+                    return string.Format(CultureInfo.CurrentCulture,
+                        Strings.DisplayPackage_SecurePushRequired,
+                        string.Join(", ", propagators.Select(u => u.Username)),
+                        SecurePushSubscription.MinClientVersion,
+                        _config.GalleryOwner.Address);
+                }
+            }
+            return string.Empty;
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
@@ -1008,11 +1032,7 @@ namespace NuGetGallery
 
             if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                return View(new PackageOwnerConfirmationModel()
-                {
-                    Username = username,
-                    Result = ConfirmOwnershipResult.NotYourRequest
-                });
+                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.NotYourRequest));
             }
 
             var package = _packageService.FindPackageRegistrationById(id);
@@ -1022,15 +1042,120 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
-            ConfirmOwnershipResult result = await _packageService.ConfirmPackageOwnerAsync(package, user, token);
-
-            var model = new PackageOwnerConfirmationModel
+            if (package.IsOwner(user))
             {
-                Result = result,
-                PackageId = package.Id
-            };
+                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
+            }
 
-            return View(model);
+            if (!_packageService.IsValidPackageOwnerRequest(package, user, token))
+            {
+                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
+            }
+
+            var result = await HandleSecurePushPropagation(package, user);
+            
+            await _packageService.AddPackageOwnerAsync(package, user);
+
+            SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
+
+            return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Success));
+        }
+
+        /// <summary>
+        /// Send notification that a new package owner was added.
+        /// </summary>
+        /// <param name="package">Package to which owner was added.</param>
+        /// <param name="newOwner">Owner added.</param>
+        /// <param name="propagators">Propagating owners for secure push.</param>
+        /// <param name="subscribed">Owners subscribed to secure push.</param>
+        private void SendAddPackageOwnerNotification(PackageRegistration package, User newOwner, List<User> propagators, List<User> subscribed)
+        {
+            var packageUrl = Url.Package(package.Id, null, scheme: "http");
+            Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
+
+            // prepare policy messages if there were any secure push subscriptions.
+            var propagatorsPolicyMessage = string.Empty;
+            var subscribedPolicyMessage = string.Empty;
+            if (subscribed.Any())
+            {
+                propagatorsPolicyMessage = string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddOwnerNotification_SecurePushRequired_Propagators,
+                    string.Join(", ", propagators.Select(u => u.Username)),
+                    string.Join(", ", subscribed.Select(s => s.Username)),
+                    GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
+
+                subscribedPolicyMessage = string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddOwnerNotification_SecurePushRequired_Subscribed,
+                    string.Join(", ", propagators.Select(u => u.Username)),
+                    GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
+            }
+            else
+            {
+                // new owner should only be notified if they have propagated policies.
+                propagators = propagators.Where(notNewOwner).ToList();
+            }
+
+            // notify propagators about new owner, including policy statement if any owners were subscribed.
+            propagators.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, propagatorsPolicyMessage));
+
+            // notify subscribed about new owner, including policy statement.
+            subscribed.Where(notNewOwner).ToList()
+                .ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, subscribedPolicyMessage));
+
+            // notify already subscribed about new owner, excluding any policy statement.
+            var notSubscribed = package.Owners.Where(notNewOwner).Except(propagators).Except(subscribed).ToList();
+            notSubscribed.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, ""));
+        }
+
+        /// <summary>
+        /// Enforce secure push policies on co-owners if new or existing owner requires it.
+        /// </summary>
+        /// <returns>Tuple where Item1 is propagators, Item2 is subscribed owners</returns>
+        private async Task<Tuple<List<User>, List<User>>> HandleSecurePushPropagation(PackageRegistration package, User user)
+        {
+            var subscribed = new List<User>();
+            var propagators = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed).ToList();
+
+            if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
+            {
+                propagators.Add(user);
+            }
+
+            if (propagators.Any())
+            {
+                if (await SubscribeToSecurePushAsync(user))
+                {
+                    subscribed.Add(user);
+                }
+                foreach (var owner in package.Owners)
+                {
+                    if (await SubscribeToSecurePushAsync(owner))
+                    {
+                        subscribed.Add(owner);
+                    }
+                }
+            }
+
+            return Tuple.Create(propagators, subscribed);
+        }
+
+        private string GetSecurePushPolicyDescriptions()
+        {
+            return string.Format(CultureInfo.CurrentCulture, Strings.SecurePushPolicyDescriptions,
+                SecurePushSubscription.MinClientVersion, SecurePushSubscription.PushKeysExpirationInDays);
+        }
+
+        private async Task<bool> SubscribeToSecurePushAsync(User user)
+        {
+            try
+            {
+                return await _securityPolicyService.SubscribeAsync(user, SecurePushSubscription.Name);
+            }
+            catch (Exception e)
+            {
+                QuietLog.LogHandledException(e);
+                throw;
+            }
         }
 
         internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)
