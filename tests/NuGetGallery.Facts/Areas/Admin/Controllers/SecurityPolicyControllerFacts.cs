@@ -140,16 +140,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Assert.False(users.Any(u => policyService.IsSubscribed(u, subscription)));
 
             // Act.
-            var viewModel = new SecurityPolicyViewModel()
+            var model = new List<string>
             {
-                UsersQuery = "A,B,C",
-                UserSubscriptions = new[]
-                {
-                    $"{{\"u\":\"A\",\"g\":\"{subscription.SubscriptionName}\"}}",
-                    $"{{\"u\":\"C\",\"g\":\"{subscription.SubscriptionName}\"}}"
-                }
+                $"{{\"u\":\"A\",\"g\":\"{subscription.SubscriptionName}\",\"v\":true}}",
+                $"{{\"u\":\"B\",\"g\":\"{subscription.SubscriptionName}\",\"v\":false}}",
+                $"{{\"u\":\"C\",\"g\":\"{subscription.SubscriptionName}\",\"v\":true}}"
             };
-            var result = await controller.Update(viewModel);
+            var result = await controller.Update(model);
 
             // Assert.
             Assert.True(policyService.IsSubscribed(users[0], subscription));
@@ -174,15 +171,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
             policyService.MockEntitiesContext.ResetCalls();
 
             // Act.
-            var viewModel = new SecurityPolicyViewModel()
+            var model = new List<string>
             {
-                UsersQuery = "A,B,C",
-                UserSubscriptions = new[]
-                {
-                    $"{{\"u\":\"B\",\"g\":\"{subscription.SubscriptionName}\"}}"
-                }
+                $"{{\"u\":\"A\",\"g\":\"{subscription.SubscriptionName}\",\"v\":\"false\"}}",
+                $"{{\"u\":\"B\",\"g\":\"{subscription.SubscriptionName}\",\"v\":\"true\"}}",
+                $"{{\"u\":\"C\",\"g\":\"{subscription.SubscriptionName}\",\"v\":\"false\"}}"
             };
-            var result = await controller.Update(viewModel);
+            var result = await controller.Update(model);
 
             // Assert.
             Assert.False(policyService.IsSubscribed(users[0], subscription));

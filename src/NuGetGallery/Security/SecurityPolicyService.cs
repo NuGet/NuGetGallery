@@ -221,6 +221,25 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Unsubscribe a user from one or more security policies.
         /// </summary>
+        public Task UnsubscribeAsync(User user, string subscriptionName)
+        {
+            if (string.IsNullOrEmpty(subscriptionName))
+            {
+                throw new ArgumentNullException(nameof(subscriptionName));
+            }
+
+            var subscription = UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            if (subscription == null)
+            {
+                throw new NotSupportedException($"Subscription '{subscriptionName}' not found.");
+            }
+
+            return UnsubscribeAsync(user, subscription);
+        }
+
+        /// <summary>
+        /// Unsubscribe a user from one or more security policies.
+        /// </summary>
         public async Task UnsubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
         {
             if (user == null)

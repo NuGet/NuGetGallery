@@ -69,40 +69,43 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Update(SecurityPolicyViewModel viewModel)
+        public async Task<JsonResult> Update(List<string> subscriptionsJson)
         {
-            // Policy subscription requests by user.
-            var subscriptions = viewModel.UserSubscriptions?
-                .Select(json => JsonConvert.DeserializeObject<JObject>(json))
+            var subscribeRequests =  subscriptionsJson?.Select(JsonConvert.DeserializeObject<JObject>)
+                .Where(obj => obj["v"].ToObject<bool>())
                 .GroupBy(obj => obj["u"].ToString())
                 .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(obj => obj["g"].ToString())
+                    g => g.Key, // username
+                    g => g.Select(obj => obj["g"].ToString()) // subscriptions
+                );
+            
+            var unsubscribeRequests = subscriptionsJson?.Select(JsonConvert.DeserializeObject<JObject>)
+                .Where(obj => !obj["v"].ToObject<bool>())
+                .GroupBy(obj => obj["u"].ToString())
+                .ToDictionary(
+                    g => g.Key, // username
+                    g => g.Select(obj => obj["g"].ToString()) // subscriptions
                 );
 
-            // Iterate all users and groups to handle both subscribe and unsubscribe.
-            var usernames = GetUsernamesFromQuery(viewModel.UsersQuery);
-            var users = FindUsers(usernames);
-            foreach (var user in users)
+            foreach (var r in subscribeRequests)
             {
-                foreach (var subscription in PolicyService.UserSubscriptions)
+                var user = FindUser(r.Key);
+                foreach (var subscription in r.Value)
                 {
-                    var userKeyExists = subscriptions?.ContainsKey(user.Username) ?? false;
-                    if (userKeyExists && subscriptions[user.Username].Contains(subscription.SubscriptionName))
-                    {
-                        await PolicyService.SubscribeAsync(user, subscription);
-                    }
-                    else
-                    {
-                        await PolicyService.UnsubscribeAsync(user, subscription);
-                    }
+                    await PolicyService.SubscribeAsync(user, subscription);
                 }
             }
 
-            TempData["Message"] = $"Updated policies for {users.Count()} users.";
+            foreach (var r in unsubscribeRequests)
+            {
+                var user = FindUser(r.Key);
+                foreach (var subscription in r.Value)
+                {
+                    await PolicyService.UnsubscribeAsync(user, subscription);
+                }
+            }
 
-            return RedirectToAction("Index");
+            return Json(new { success = true });
         }
 
         private static string[] GetUsernamesFromQuery(string query)
@@ -110,6 +113,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return query.Split(',', '\r', '\n')
                 .Select(username => username.Trim())
                 .Where(username => !string.IsNullOrEmpty(username)).ToArray();
+        }
+
+        private User FindUser(string username)
+        {
+            return EntitiesContext.Users
+                .FirstOrDefault(u => username.Equals(u.Username, StringComparison.OrdinalIgnoreCase));
         }
 
         private IEnumerable<User> FindUsers(string[] usernames)

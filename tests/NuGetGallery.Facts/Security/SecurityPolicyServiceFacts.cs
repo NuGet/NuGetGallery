@@ -343,7 +343,16 @@ namespace NuGetGallery.Security
         public void UnsubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
-                new TestSecurityPolicyService().UnsubscribeAsync(new User(), null));
+                new TestSecurityPolicyService().UnsubscribeAsync(new User(), (IUserSecurityPolicySubscription)null));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void UnsubscribeAsync_ThrowsArgumentNullIfSubscriptionNameIsMissing(string subscriptionName)
+        {
+            Assert.ThrowsAsync<ArgumentNullException>(() =>
+                new TestSecurityPolicyService().UnsubscribeAsync(new User(), subscriptionName));
         }
 
         [Fact]
