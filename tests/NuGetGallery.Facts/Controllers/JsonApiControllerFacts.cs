@@ -177,7 +177,7 @@ namespace NuGetGallery.Controllers
                 Assert.True(data.success);
                 Assert.StartsWith(
                     "User 'testUser' has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:",
-                    data.confirmation);
+                    data.policyMessage);
             }
 
             [Fact]
@@ -200,7 +200,7 @@ namespace NuGetGallery.Controllers
                 Assert.True(data.success);
                 Assert.StartsWith(
                     "Owner(s) 'testPackageOwner' has (have) the following requirements that will be enforced for user 'testUser' once the user accepts ownership of this package:",
-                    data.confirmation);
+                    data.policyMessage);
             }
 
             [Fact]
@@ -255,7 +255,7 @@ namespace NuGetGallery.Controllers
                 Assert.True(data.success);
                 Assert.StartsWith(
                     "Pending owner(s) 'testShaUser' has (have) the following requirements that will be enforced for all co-owners, including 'testUser', once ownership requests are accepted:",
-                    data.confirmation);
+                    data.policyMessage);
             }
             
             [Fact]

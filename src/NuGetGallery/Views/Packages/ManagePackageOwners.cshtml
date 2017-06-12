@@ -6,11 +6,6 @@
 
 <h1 class="page-heading">Manage Owners for Package "@Model.Title.Abbreviate(50)"</h1>
 
-@if (!string.IsNullOrEmpty(Model.PolicyMessage))
-{
-    <div class="message warning">@Model.PolicyMessage</div>
-}
-
 <div class="error message" style="display: none" data-bind="text: message, visible: message"></div>
 
 <h2>Current Owners</h2>
@@ -35,15 +30,28 @@
     @Html.AntiForgeryToken()
     <fieldset class="form">
         <legend>Add Owner</legend>
-        <div class="form-field">
-            <label for="newOwnerUserName">Username</label>
-            <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername"/>
+        <div id="input-form">
+            <div class="form-field">
+                <label for="newOwnerUserName">Username</label>
+                <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername" />
+            </div>
+            <div class="form-field">
+                <label for="newOwnerUserName">Message</label>
+                <textarea id="newOwnerMessage" name="newOwnerUserName" data-bind="value: newOwnerMessage"></textarea>
+            </div>
+            <input type="submit" value="Verify" title="Verify new owner username for package @Model.Title" data-bind="click: confirmAddOwner" />
         </div>
-        <div class="form-field">
-            <label for="newOwnerUserName">Message</label>
-            <textarea id="newOwnerMessage" name="newOwnerUserName" data-bind="value: newOwnerMessage"></textarea>
+        <div style="display: none" data-bind="visible: confirmation">
+            <h2>Confirm</h2>
+
+            <div data-bind="text: confirmation"></div>
+            <br />
+
+            <div class="warning message" data-bind="visible: policyMessage, html: policyMessage"></div>
+            <br />
+            <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: addOwner" />
+            <a class="cancel" title="Cancel changes and reload the page." data-bind="click: resetAddOwnerConfirmation">Cancel</a>
         </div>
-        <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: confirmAddOwner" />
     </fieldset>
 }
 
@@ -61,6 +69,8 @@
                 owners: ko.observableArray([]),
                 newOwnerUsername: ko.observable(''),
                 newOwnerMessage: ko.observable(''),
+                confirmation: ko.observable(''),
+                policyMessage: ko.observable(''),
 
                 message: ko.observable(''),
 
@@ -70,6 +80,12 @@
 
                 headers: function () {
                     return { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
+                },
+
+                resetAddOwnerConfirmation: function () {
+                    viewModel.confirmation('');
+                    viewModel.policyMessage('');
+                    $("#input-form :input").attr("disabled", false);
                 },
 
                 confirmAddOwner: function () {
@@ -97,10 +113,9 @@
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             if (data.success) {
-                                if (data.confirmation && !confirm(data.confirmation)) {
-                                    return;
-                                }
-                                viewModel.addOwner();
+                                viewModel.confirmation(data.confirmation);
+                                viewModel.policyMessage(data.policyMessage);
+                                $("#input-form :input").attr("disabled", true);
                             }
                             else {
                                 viewModel.message(data.message);
@@ -140,6 +155,7 @@
 
                                 // when an operation succeeds, always clear the error message
                                 viewModel.message('');
+                                viewModel.resetAddOwnerConfirmation();
                             }
                             else {
                                 viewModel.message(data.message);

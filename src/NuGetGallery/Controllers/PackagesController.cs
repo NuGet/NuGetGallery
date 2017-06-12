@@ -806,7 +806,6 @@ namespace NuGetGallery
             }
 
             var model = new ManagePackageOwnersViewModel(package, User);
-            model.PolicyMessage = GetDisplayPackagePolicyMessage(package.PackageRegistration);
 
             return View(model);
         }

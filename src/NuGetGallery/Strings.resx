@@ -516,4 +516,10 @@ For more information, please contact '{2}'.</value>
     <value>Owner(s) '{0}' require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
 </value>
   </data>
+  <data name="SecurePushPolicyDescriptionsHtml" xml:space="preserve">
+    <value>&lt;ol&gt;
+&lt;li&gt;All co-owners must use client version {0} or higher to push all of their packages.&lt;/li&gt;
+&lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
+&lt;/ol&gt;</value>
+  </data>
 </root>
