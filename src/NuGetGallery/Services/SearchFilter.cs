@@ -22,6 +22,8 @@ namespace NuGetGallery
 
         public bool IncludePrerelease { get; set; }
 
+        public string SemVerLevel { get; set; }
+
         public CuratedFeed CuratedFeed { get; set; }
 
         public SortOrder SortOrder { get; set; }

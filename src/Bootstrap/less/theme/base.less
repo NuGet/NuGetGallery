@@ -21,7 +21,7 @@ html {
 
 .main-container {
   padding-bottom: 75px;
-
+  
   .page-subheading {
     color: #777;
   }
@@ -101,24 +101,53 @@ body {
 }
 
 .tag {
+  color: @link-color-darker;
   background-color: #eff9ff;
   padding: 2px 10px;
   line-height: 2em;
   margin: 0 2px;
+
+  &:hover,
+  &:focus {
+    color: @link-hover-color;
+  }
 }
 
 .banner {
-  padding-top: 10px;
   padding-bottom: 10px;
+
+  span {
+    font-size: 1.25em;
+    line-height: 1.75em;
+  }
+
+  .ms-Icon {
+    font-size: 1.75em;
+    position: relative;
+    top: 0.25em;
+  }
 
   &.banner-bright {
     background: yellow;
-    font-size: 1.25em;
   }
+}
 
-  &.banner-info {
-    background: #f4f4f4;
+.alert {
+  a {
+    color: @link-color-darker;
+
+    &:hover,
+    &:focus {
+      color: @link-hover-color;
+    }
   }
+}
+
+.alert-transient {
+  .alert {
+    margin: 0;
+    padding: 10px;
+  } 
 }
 
 .ms-Icon-ul {

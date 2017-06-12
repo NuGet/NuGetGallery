@@ -11,8 +11,8 @@
 @gray-darker:            lighten(@gray-base, 13.5%); // #222
 @gray-dark:              lighten(@gray-base, 20%);   // #333
 @gray:                   lighten(@gray-base, 33.5%); // #555
-@gray-light:             lighten(@gray-base, 46.7%); // #777
-@gray-lighter:           lighten(@gray-base, 93.5%); // #eee
+@gray-light:             lighten(@gray-base, 40%); // #666666
+@gray-lighter:           lighten(@gray-base, 86%); // #dbdbdb
 
 @brand-primary:         darken(#428bca, 6.5%); // #337ab7
 @brand-success:         #5cb85c;
@@ -20,6 +20,7 @@
 @brand-warning:         #ef8b00;
 @brand-danger:          #d9534f;
 
+@verified-color:        #068918;
 
 //== Scaffolding
 //
@@ -32,6 +33,8 @@
 
 //** Global textual link color.
 @link-color:            @brand-primary;
+//** Darker link color, for higher contrast when needed by accessibility
+@link-color-darker:     darken(@link-color, 5%);
 //** Link hover color set via `darken()` function.
 @link-hover-color:      darken(@link-color, 15%);
 //** Link hover decoration.

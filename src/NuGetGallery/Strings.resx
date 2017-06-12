@@ -314,12 +314,6 @@ The {1} Team</value>
   <data name="UploadPackage_InvalidNuspec" xml:space="preserve">
     <value>The NuGet package contains an invalid .nuspec file. The error encountered was: '{0}'. Correct the error and try again.</value>
   </data>
-  <data name="NuGetPackageReleaseVersionWithDot" xml:space="preserve">
-    <value>Package {0} invalid: no '.' allowed in the release label.</value>
-  </data>
-  <data name="NuGetPackageReleaseVersionContainsOnlyNumerics" xml:space="preserve">
-    <value>Package {0} invalid: the release label can not only contain numerics.</value>
-  </data>
   <data name="CopyExternalPackages_PackageFileBlobAlreadyExists" xml:space="preserve">
     <value>SKIPPED! Package file blob {0} already exists</value>
   </data>
@@ -448,5 +442,8 @@ The {1} Team</value>
   </data>
   <data name="SecurityPolicy_RequireMinClientVersionForPush" xml:space="preserve">
     <value>Your account requires client version '{0}' or higher to be able to push packages. Please contact support@nuget.org to get more details.</value>
+  </data>
+  <data name="PackageVersionDiffersOnlyByMetadataAndCannotBeModified" xml:space="preserve">
+    <value>Package versions that differ only by metadata cannot be uploaded. A package with ID '{0}' and version '{1}' already exists and cannot be modified.</value>
   </data>
 </root>

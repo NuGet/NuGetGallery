@@ -11,33 +11,26 @@
   &:extend(.clearfix all);
   li {
     display: inline;
+    display: inline-block;
+    padding: 5px 14px;
+    font-size: 20px;
+    color: @gray-light;
+
     > a,
     > span {
-      display: inline-block;
-      padding: 5px 14px;
-      background-color: @pager-bg;
-      border: 1px solid @pager-border;
-      border-radius: @pager-border-radius;
-    }
-
-    > a:hover,
-    > a:focus {
-      text-decoration: none;
-      background-color: @pager-hover-bg;
+      color: @link-color;
     }
   }
 
   .next {
-    > a,
-    > span {
-      float: right;
-    }
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-left-color: @brand-primary;
   }
 
   .previous {
     > a,
     > span {
-      float: left;
     }
   }
 

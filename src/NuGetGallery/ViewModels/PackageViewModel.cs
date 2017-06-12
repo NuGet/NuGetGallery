@@ -3,20 +3,28 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
     public class PackageViewModel : IPackageVersionModel
     {
         private readonly Package _package;
+        private readonly bool _isSemVer2;
         private string _pendingTitle;
+        private string _fullVersion;
 
         public PackageViewModel(Package package)
         {
             _package = package;
+
+            _fullVersion = NuGetVersionFormatter.ToFullStringOrFallback(package.Version, fallback: package.Version);
+            _isSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
+
             Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
-                NuGetVersionNormalizer.Normalize(package.Version) :
+                NuGetVersionFormatter.Normalize(package.Version) :
                 package.NormalizedVersion;
+            
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
@@ -24,7 +32,9 @@ namespace NuGetGallery
             LicenseUrl = package.LicenseUrl;
             HideLicenseReport = package.HideLicenseReport;
             LatestVersion = package.IsLatest;
+            LatestVersionSemVer2 = package.IsLatestSemVer2;
             LatestStableVersion = package.IsLatestStable;
+            LatestStableVersionSemVer2 = package.IsLatestStableSemVer2;
             LastUpdated = package.Published;
             Listed = package.Listed;
             Deleted = package.Deleted;
@@ -38,6 +48,7 @@ namespace NuGetGallery
                 LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
             }
         }
+
         public string Description { get; set; }
         public string ReleaseNotes { get; set; }
         public string IconUrl { get; set; }
@@ -49,6 +60,8 @@ namespace NuGetGallery
         public DateTime LastUpdated { get; set; }
         public bool LatestVersion { get; set; }
         public bool LatestStableVersion { get; set; }
+        public bool LatestVersionSemVer2 { get; set; }
+        public bool LatestStableVersionSemVer2 { get; set; }
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
@@ -65,6 +78,8 @@ namespace NuGetGallery
         }
 
         public string Version { get; set; }
+        public string FullVersion => _fullVersion;
+        public bool IsSemVer2 => _isSemVer2;
 
         public string Title
         {

@@ -341,7 +341,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public virtual ActionResult Profiles(string username, int page = 1, bool showAllPackages = false)
+        public virtual ActionResult Profiles(string username, int page = 1)
         {
             var user = _userService.FindByUsername(username);
             if (user == null)
@@ -351,13 +351,12 @@ namespace NuGetGallery
 
             var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new PackageViewModel(p)
+                .Select(p => new ListPackageItemViewModel(p)
                 {
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
 
             var model = new UserProfileModel(user, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
-            model.ShowAllPackages = showAllPackages;
 
             return View(model);
         }

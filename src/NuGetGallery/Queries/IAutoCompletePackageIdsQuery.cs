@@ -10,6 +10,7 @@ namespace NuGetGallery
     {
         Task<IEnumerable<string>> Execute(
             string partialId,
-            bool? includePrerelease = false);
+            bool? includePrerelease = false,
+            string semVerLevel = null);
     }
 }
