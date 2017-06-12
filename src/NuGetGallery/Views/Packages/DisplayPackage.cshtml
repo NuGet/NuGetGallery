@@ -29,6 +29,30 @@
     }
 }
 
+@helper CommandTab(string label, string id, bool active)
+{
+    <li role="presentation" class="@(active ? "active" : string.Empty)">
+        <a href="#@id" aria-controls="@id" role="tab" data-toggle="tab">@label</a>
+    </li>
+}
+
+@helper CommandPanel(Func<MvcHtmlString, HelperResult> htmlContent, string id, bool active)
+{
+    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@id">
+        <div>
+            <span class="install-script">
+                <span id="@id-text">@htmlContent(MvcHtmlString.Empty)</span>
+            </span>
+            <span class="copy-button">
+                <button id="@id-button" class="btn btn-default btn-warning" type="button"
+                        data-toggle="popover" data-placement="bottom" data-content="Copied.">
+                    <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                </button>
+            </span>
+        </div>
+    </div>
+}
+
 <section role="main" class="container main-container page-package-details">
     <div class="row">
         <aside class="col-sm-1">
@@ -157,20 +181,12 @@
 
             <div class="install-tabs">
                 <ul class="nav nav-tabs" role="tablist">
-                    <li role="presentation" class="active">
-                        <a href="#package-manager" aria-controls="package-manager" role="tab" data-toggle="tab">Package Manager</a>
-                    </li>
+                    @CommandTab("Package Manager", "package-manager", active: true)
+                    @CommandTab(".NET CLI", "dotnet-cli", active: false)
                 </ul>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="tab-package-manager">
-                        <span class="install-script">
-                            <span id="install-script-text">Install-Package @Model.Id -Version @Model.Version</span>
-                        </span>
-                        <span class="copy-button">
-                            <button id="install-script-button" class="btn btn-default btn-warning" type="button"
-                                    data-toggle="popover" data-placement="bottom" data-content="Copied."><span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span></button>
-                        </span>
-                    </div>
+                    @CommandPanel(@<text>Install-Package @Model.Id -Version @Model.Version</text>, "package-manager", active: true)
+                    @CommandPanel(@<text>dotnet add package @Model.Id --version @Model.Version</text>, "dotnet-cli", active: false)
                 </div>
             </div>
 
