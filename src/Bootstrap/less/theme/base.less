@@ -101,11 +101,16 @@ body {
 }
 
 .tag {
-  color: #266daa;
+  color: @link-color-darker;
   background-color: #eff9ff;
   padding: 2px 10px;
   line-height: 2em;
   margin: 0 2px;
+
+  &:hover,
+  &:focus {
+    color: @link-hover-color;
+  }
 }
 
 .banner {
@@ -124,6 +129,17 @@ body {
 
   &.banner-bright {
     background: yellow;
+  }
+}
+
+.alert {
+  a {
+    color: @link-color-darker;
+
+    &:hover,
+    &:focus {
+      color: @link-hover-color;
+    }
   }
 }
 
