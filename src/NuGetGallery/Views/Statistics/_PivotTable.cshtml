@@ -22,7 +22,7 @@
                         <tbody data-bind="foreach: Dimensions">
                             <tr>
                                 <td class="text-right">
-                                    <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked }" class="dimension-checkbox" name="groupby" type="checkbox">
+                                    <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked, 'aria-labelledby': DisplayName }" class="dimension-checkbox" name="groupby" type="checkbox">
                                 </td>
                                 <td class="text-left">
                                     <label data-bind="attr: { for: 'checkbox-' + Value }, text: DisplayName" />
@@ -87,7 +87,7 @@
                             </tr>
                         </thead>
                         <tbody data-bind="foreach: Table">
-                            <tr data-bind="attr: { class: $index() > 6 ? 'hidden-row' : ''}, visible: $index() <= 6">
+                            <tr data-bind="attr: { class: $index() > 6 ? 'hidden-row' : '' }, visible: $index() <= 6">
                                 <!-- ko foreach: $data -->
                                 <!-- ko if: $data -->
                                 <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
@@ -95,7 +95,7 @@
                                     <a data-bind="attr: { href: Uri }, text: Data"></a>
                                     <!-- /ko -->
                                     <!-- ko ifnot: Uri -->
-                                    <span data-bind="text: Data"></span>
+                                    <span data-bind="text: Data" tabindex="0"></span>
                                     <!-- /ko -->
                                 </td>
                                 <!-- /ko -->
