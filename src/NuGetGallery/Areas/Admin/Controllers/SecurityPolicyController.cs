@@ -48,7 +48,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             // Parse query and look for users in the DB.
             var usernames = GetUsernamesFromQuery(query ?? "");
-            var users = FindUsers(usernames);
+            var users = EntitiesContext.Users
+                .Where(u => usernames.Any(name => u.Username == name))
+                .ToList();
             var usersNotFound = usernames.Except(users.Select(u => u.Username));
 
             var results = new UserSecurityPolicySearchResult()
@@ -89,19 +91,25 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             foreach (var r in subscribeRequests)
             {
-                var user = FindUser(r.Key);
-                foreach (var subscription in r.Value)
+                var user = EntitiesContext.Users.FirstOrDefault(u => u.Username == r.Key);
+                if (user != null)
                 {
-                    await PolicyService.SubscribeAsync(user, subscription);
+                    foreach (var subscription in r.Value)
+                    {
+                        await PolicyService.SubscribeAsync(user, subscription);
+                    }
                 }
             }
 
             foreach (var r in unsubscribeRequests)
             {
-                var user = FindUser(r.Key);
-                foreach (var subscription in r.Value)
+                var user = EntitiesContext.Users.FirstOrDefault(u => u.Username == r.Key);
+                if (user != null)
                 {
-                    await PolicyService.UnsubscribeAsync(user, subscription);
+                    foreach (var subscription in r.Value)
+                    {
+                        await PolicyService.UnsubscribeAsync(user, subscription);
+                    }
                 }
             }
 
@@ -113,19 +121,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return query.Split(',', '\r', '\n')
                 .Select(username => username.Trim())
                 .Where(username => !string.IsNullOrEmpty(username)).ToArray();
-        }
-
-        private User FindUser(string username)
-        {
-            return EntitiesContext.Users
-                .FirstOrDefault(u => username.Equals(u.Username, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private IEnumerable<User> FindUsers(string[] usernames)
-        {
-            return EntitiesContext.Users
-                .Where(u => usernames.Any(name => u.Username.Equals(name, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
         }
     }
 }

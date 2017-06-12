@@ -187,6 +187,28 @@ namespace NuGetGallery.Areas.Admin.Controllers
             policyService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Exactly(2));
         }
 
+        [Fact]
+        public async Task UpdateIgnoresBadUsers()
+        {
+            // Arrange.
+            var users = TestUsers.ToList();
+            var policyService = new TestSecurityPolicyService();
+            var entitiesMock = policyService.MockEntitiesContext;
+            entitiesMock.Setup(c => c.Users).Returns(users.MockDbSet().Object);
+            var controller = new SecurityPolicyController(entitiesMock.Object, policyService);
+            var subscription = policyService.Mocks.Subscription.Object;
+
+            // Act.
+            var model = new List<string>
+            {
+                $"{{\"u\":\"D\",\"g\":\"{subscription.SubscriptionName}\",\"v\":\"false\"}}"
+            };
+            var result = await controller.Update(model);
+
+            // Assert.
+            policyService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+        }
+
         private IEnumerable<User> TestUsers
         {
             get

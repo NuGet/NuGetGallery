@@ -165,7 +165,7 @@ namespace NuGetGallery.Security
         {
             if (string.IsNullOrEmpty(subscriptionName))
             {
-                throw new ArgumentNullException(nameof(subscriptionName));
+                throw new ArgumentException(nameof(subscriptionName));
             }
 
             var subscription = UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
@@ -225,7 +225,7 @@ namespace NuGetGallery.Security
         {
             if (string.IsNullOrEmpty(subscriptionName))
             {
-                throw new ArgumentNullException(nameof(subscriptionName));
+                throw new ArgumentException(nameof(subscriptionName));
             }
 
             var subscription = UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
