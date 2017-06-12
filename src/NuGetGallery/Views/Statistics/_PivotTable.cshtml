@@ -2,9 +2,6 @@
 
 <h1 class="statistics-report-title col-sm-12 page-heading">
     Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a>
-    @*<!-- ko if: $data && Total -->
-        <span data-bind="text: '(' + Total + ' over the Last 6 Weeks)'"></span>
-        <!-- /ko -->*@
 </h1>
 
 <div data-bind="template: { name: 'report-template', data: report }"></div>
@@ -87,7 +84,7 @@
                             </tr>
                         </thead>
                         <tbody data-bind="foreach: Table">
-                            <tr data-bind="attr: { class: $index() > 6 ? 'hidden-row' : '' }, visible: $index() <= 6">
+                            <tr data-bind="attr: { class: $index() > 6 ? 'hidden-row collapse' : '' }">
                                 <!-- ko foreach: $data -->
                                 <!-- ko if: $data -->
                                 <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
@@ -95,7 +92,7 @@
                                     <a data-bind="attr: { href: Uri }, text: Data"></a>
                                     <!-- /ko -->
                                     <!-- ko ifnot: Uri -->
-                                    <span data-bind="text: Data" tabindex="0"></span>
+                                    <span data-bind="attr: { 'aria-label': Data }, text: Data" tabindex="0"></span>
                                     <!-- /ko -->
                                 </td>
                                 <!-- /ko -->
@@ -103,29 +100,15 @@
                             </tr>
                         </tbody>
 
-                        <!-- ko if: $data.reportSize > 6 -->
-                        <tfoot class="stats-table-footer">
-                            <tr data-bind="click: showMoreFunction" id="stats-table-showmore">
-                                <td>
-                                    <button type="button" data-toggle="collapse" class="btn btn-link" data-target="#hidden-versions"
-                                            aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
-                                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                                        <span>Show more</span>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr data-bind="visible: false, click: hideMoreFunction" id="stats-table-showless">
-                                <td>
-                                    <button type="button" data-toggle="collapse" class="btn btn-link" data-target="#hidden-versions"
-                                            aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
-                                        <i class="ms-Icon ms-Icon--ChevronUp" aria-hidden="true"></i>
-                                        <span>Show less</span>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tfoot>
-                        <!-- /ko -->
                     </table>
+
+                    <!-- ko if: $data.reportSize > 6 -->
+                    <button type="button" data-toggle="collapse" class="btn btn-link" data-target=".hidden-row"
+                            aria-expanded="false" aria-controls="hidden-row" id="show-hidden-row">
+                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                        <span>Show more</span>
+                    </button>
+                    <!-- /ko -->
                 </div>
             </div>
         </div>

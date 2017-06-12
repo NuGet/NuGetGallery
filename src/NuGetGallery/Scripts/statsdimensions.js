@@ -1,26 +1,16 @@
 ﻿var renderGraph = function (baseUrl, query, clickedId) {
     var renderGraphHandler = function (rawData) {
-        //TODO Push state so you can see page.
         var data = JSON.parse(JSON.stringify(rawData));
 
         $("#loading-placeholder").hide();
         // Populate the data table
         data['reportSize'] = data.Table.length;
-        data['showMoreFunction'] = function () {
-            $('#stats-table-showmore').hide();
-            $('.hidden-row').show();
-            $('#stats-table-showless').show();
-        }
-
-        data['hideMoreFunction'] = function () {
-            $('#stats-table-showless').hide();
-            $('.hidden-row').hide();
-            $('#stats-table-showmore').show();
-        }
 
         ko.applyBindings({ report: data });
         // Render the graph using the data table
         packageDisplayGraphs(rawData);
+
+        window.nuget.configureExpander("hidden-row", "Show less", "Show more");
 
         // Add the click handler to the checkboxes
         groupbyNavigation(baseUrl);
