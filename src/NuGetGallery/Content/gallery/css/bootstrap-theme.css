@@ -305,7 +305,29 @@ body h3 {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.page-error ul {
-  margin-bottom: 24px;
+.page-error {
+  margin-top: 48px;
+}
+.page-error .oops {
+  margin-bottom: 10px;
+  font-size: 6em;
+}
+.page-error .error-title {
+  margin-bottom: 60px;
+  font-size: 3em;
+}
+.page-error .error-text {
+  margin-bottom: 40px;
+}
+.page-error .error-text .text-main {
+  margin-bottom: 20px;
+  font-size: 2.5em;
+}
+.page-error .error-text .text-subtext {
+  font-size: 2em;
+}
+.page-error .error-action {
+  margin-bottom: 20px;
+  font-size: 1.25em;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */

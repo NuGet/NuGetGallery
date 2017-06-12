@@ -4,15 +4,6 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@ViewHelpers.ErrorPage(@<text>
-    <p>
-        We can't process the request right now because the site is temporarily in read-only-mode. We
-        understand your disappointment - but look on the bright side! This way the site is still
-        available for package searching and downloading while we address temporary technical problems.
-    </p>
-
-    <p>
-        You can retry whatever you just tried to do in a few hours - hopefully we'll be fully operational by then!
-        While you're waiting why not follow <a href="http://twitter.com/nuget">@@nuget</a> on Twitter for status updates?
-    </p>
-</text>, Url, Html, "The site is read-only!")
+@ViewHelpers.ErrorPage(Url, Html, "503", "Read-only Mode", @<text>
+<p>We can't process the request right now because the site is temporarily in read-only mode. Please try again later!</p></text>, @<text>
+<p>You can still search and download packages while we address temporary technical problems.</p></text>)

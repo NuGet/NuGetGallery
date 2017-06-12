@@ -32,31 +32,31 @@
     @Alert(htmlContent, "danger", "ErrorBadge", isAlertRole)
 }
 
-@helper ErrorPage(Func<MvcHtmlString, HelperResult> htmlContent, UrlHelper url, System.Web.Mvc.HtmlHelper html, string errorName)
+@helper ErrorPage(UrlHelper url, System.Web.Mvc.HtmlHelper html, string errorNumber, string errorName, Func<MvcHtmlString, HelperResult> errorTextMain, Func<MvcHtmlString, HelperResult> errorTextSub = null)
 {
     <section class="container main-container">
         <div class="row page-error">
-            <div class="col-sm-12">
-                <h1>Sorry, an error occurred while processing your request.</h1>
-                <h2>Error: @errorName</h2>
-                @htmlContent(MvcHtmlString.Empty)
-
-                <h1>What now?</h1>
-                <h2><a href="/">Return to the home page.</a></h2>
-
-                <h2 class="search">Try searching.</h2>
-                <div class="container search-container">
-                    <div class="row">
-                        <form class="col-sm-12" action="@url.PackageList()" method="get">
-                            @html.Partial("_SearchBar")
-                        </form>
+            <div class="col-sm-12 ms-fontWeight-light">
+                <p class="oops">Oops!</p>
+                <p class="error-title">Error @errorNumber - @errorName</p>
+                <div class="error-text">
+                    <div class="text-main">
+                        @errorTextMain(MvcHtmlString.Empty)
                     </div>
+                    @if (errorTextSub != null)
+                    {
+                        <div class="text-subtext">
+                            @errorTextSub(MvcHtmlString.Empty)
+                        </div>
+                    }
                 </div>
 
-                <h2>Still nothing?</h2>
-                <ul>
-                    <li>File a bug in <a href="https://github.com/NuGet/NuGetGallery/issues">the issue tracker</a> so we can fix it.</li>
-                </ul>
+                <p class="error-action">Get me out of here! <a href="@url.Action("Home", "Pages")">Go home</a></p>
+                <p class="error-action">Wondering if NuGet is down? <a href="https://status.nuget.org/">Check our status</a></p>
+                <p class="error-action">Looking for a package? <a href="@url.Action("ListPackages", "Packages")">Try searching</a></p>
+                <p class="error-action">Package you're looking for doesn't exist? <a href="https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package">Make one</a></p>
+                <p class="error-action">Pretty sure we messed up? <a href="https://github.com/NuGet/NuGetGallery/issues">File a bug</a></p>
+                <p class="error-action">Can't get enough NuGet? <a href="https://twitter.com/nuget">Follow us</a></p>
             </div>
         </div>
     </section>

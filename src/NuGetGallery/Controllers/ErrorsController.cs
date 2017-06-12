@@ -24,5 +24,11 @@ namespace NuGetGallery
         {
             return View();
         }
+
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Head)]
+        public virtual ActionResult ReadOnlyMode()
+        {
+            return View();
+        }
     }
 }

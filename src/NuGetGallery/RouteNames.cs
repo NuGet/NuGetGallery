@@ -63,6 +63,7 @@ namespace NuGetGallery
         public const string RemovePassword = "RemovePassword";
         public const string ConfirmAccount = "ConfirmAccount";
         public const string ChangeEmailSubscription = "ChangeEmailSubscription";
+        public const string ErrorReadOnly = "ErrorReadOnly";
         public const string Error500 = "Error500";
         public const string Error404 = "Error404";
         public const string Error400 = "Error400";

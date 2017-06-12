@@ -24,12 +24,6 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@ViewHelpers.ErrorPage(@<text>
-<p>You might be here because:</p>
-<ul>
-    <li>The page you are looking for does not exist anymore.</li>
-    <li>We moved the page that you are looking for, sorry!</li>
-    <li>You know how to hack URLs and you're trying to find something.</li>
-    <li>We just plain suck and messed something up.</li>
-</ul>
-</text>, Url, Html, "Page not found!")
+@ViewHelpers.ErrorPage(Url, Html, "404", "Page Not Found", @<text>
+<p>Looks like you might have gotten lost. Let's see if we can help you find your way!</p>
+</text>)

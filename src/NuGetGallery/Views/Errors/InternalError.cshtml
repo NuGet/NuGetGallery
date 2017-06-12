@@ -4,11 +4,6 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@ViewHelpers.ErrorPage(@<text>
-<p>You might be here because:</p>
-<ul>
-    <li>There is an error on our server and the server is &quot;givin' her all she's got, captain.&quot; </li>
-    <li>The system is down, the system is down, the system is down.</li>
-    <li>Our name is smalls.</li>
-</ul>
-</text>, Url, Html, "Server error!")
+@ViewHelpers.ErrorPage(Url, Html, "500", "Internal Server Error", @<text>
+<p>An error occurred while processing your request. We really messed up this time...</p></text>, @<text>
+<p>We have logged the error and will look into it so that it doesn't happen again; however, if you keep seeing this page, please <a href="https://github.com/NuGet/NuGetGallery/issues">file a bug!</a></p></text>)
