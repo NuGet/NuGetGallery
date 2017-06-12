@@ -39,7 +39,7 @@
                 <label for="newOwnerUserName">Message</label>
                 <textarea id="newOwnerMessage" name="newOwnerUserName" data-bind="value: newOwnerMessage"></textarea>
             </div>
-            <input type="submit" value="Verify" title="Verify new owner username for package @Model.Title" data-bind="click: confirmAddOwner" />
+            <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: confirmAddOwner" />
         </div>
         <div style="display: none" data-bind="visible: confirmation">
             <h2>Confirm</h2>
@@ -49,7 +49,7 @@
 
             <div class="warning message" data-bind="visible: policyMessage, html: policyMessage"></div>
             <br />
-            <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: addOwner" />
+            <input type="submit" value="Confirm" title="Confirm adding the user as an owner to @Model.Title" data-bind="click: addOwner" />
             <a class="cancel" title="Cancel changes and reload the page." data-bind="click: resetAddOwnerConfirmation">Cancel</a>
         </div>
     </fieldset>
