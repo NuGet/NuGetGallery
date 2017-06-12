@@ -218,11 +218,6 @@
                     if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                     {
                         rowCount++;
-                        @*if (rowCount == 6)
-                        {
-                            @:</tbody><tbody class="collapse no-border" id="hidden-versions">
-                        }*@
-
                         <tr class="@(rowCount >= 6 ? "collapse" : "")">
                             <td>
                                 @if (packageVersion.IsCurrent(Model))
@@ -259,11 +254,6 @@
                     else if (packageVersion.Deleted)
                     {
                         rowCount++;
-                        @*if (rowCount == 6)
-                        {
-                            @:</tbody><tbody class="panel-collapse collapse no-border" id="hidden-versions">
-                        }*@
-
                         <tr class="versionTableRow deleted @(rowCount >= 6 ? "collapse" : "")">
                             <td class="version">
                                 <s>@packageVersion.FullVersion</s> (deleted)
