@@ -30,6 +30,13 @@ $(function () {
         uniquePackages: ko.observable(0)
     };
 
+    stats.label = ko.computed(function () {
+        return 'NuGet.org has ' +
+            stats.packageDownloads() + ' package download' + (stats.packageDownloads() != 1 ? 's' : '') + ', ' +
+            stats.packageVersions() + ' package version' + (stats.packageVersions() != 1 ? 's' : '') + ', and ' +
+            stats.uniquePackages() + ' unique package' + (stats.uniquePackages() != 1 ? 's' : '') + '.';
+    });
+
     function updateStats() {
         $.get('/stats/totals')
             .done(function (data) {
@@ -59,11 +66,6 @@ $(function () {
                 },
                 done: function () {
                     $(element).text(commaThousands(newValue));
-
-                    // Add the statistic as an aria-label to enable screen readers.
-                    var statText = $(element.parentElement).text().replace(/\s+/g, ' ').trim();
-                    var label = "There are " + statText + " on NuGet.org.";
-                    $(element).attr('title', label);
                 }
             });
         }

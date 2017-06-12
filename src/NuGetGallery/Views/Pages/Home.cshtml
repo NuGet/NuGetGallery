@@ -20,18 +20,21 @@
                 </div>
             </div>            
         </div>
-        <div class="circuit-board hidden-xs">
+        <div class="circuit-board hidden-xs" role="img" data-bind="attr: { 'aria-label': label }">
             <div class="circuit-board-label circuit-board-pd triangle triangle-left">
-                <h3 data-bind="animateNumber: packageDownloads">0</h3>
-                <h5>package downloads</h5>
+                <span class="ms-font-xxl" data-bind="animateNumber: packageDownloads">0</span>
+                <br />
+                <span class="ms-fontSize-l">package downloads</span>
             </div>
             <div class="circuit-board-label circuit-board-pv triangle triangle-right">
-                <h3 data-bind="animateNumber: packageVersions">0</h3>
-                <h5>package versions</h5>
+                <span class="ms-font-xxl" data-bind="animateNumber: packageVersions">0</span>
+                <br />
+                <span class="ms-fontSize-l">package versions</span>
             </div>
             <div class="circuit-board-label circuit-board-up triangle triangle-left">
-                <h3 data-bind="animateNumber: uniquePackages">0</h3>
-                <h5>unique packages</h5>
+                <span class="ms-font-xxl" data-bind="animateNumber: uniquePackages">0</span>
+                <br />
+                <span class="ms-fontSize-l">unique packages</span>
             </div>
         </div>
     </div>
