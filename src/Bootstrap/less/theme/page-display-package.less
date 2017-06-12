@@ -12,7 +12,7 @@
     border: 0;
   }
 
-  #show-hidden-versions {
+  .btn-expander {
     &:hover, &:focus {
       text-decoration: none;
     }
@@ -28,7 +28,7 @@
 
   .owner-list {
     li {
-      margin-bottom: 5px;
+      margin-bottom: 8px;
     }
   }
 
@@ -40,7 +40,7 @@
     }
 
     .nav-tabs > li {
-      margin-left: 5px;
+      margin-right: 5px;
       padding: 0;
 
       > a {
@@ -52,6 +52,14 @@
       }
     }
 
+    #package-manager .install-script span::before {
+      content: "PM> ";
+    }
+
+    #dotnet-cli .install-script span::before {
+      content: "> ";
+    }
+
     .nav-tabs > li.active > a {
       background-color: #002440;
       border: 0;
@@ -59,7 +67,9 @@
     }
 
     .tab-pane {
-      display: table;
+      > div {
+        display: table;
+      }
 
       .install-script {
         padding: 8px 10px;
@@ -68,14 +78,13 @@
         background-color: #002440;
         font-family: @font-family-monospace;
         color: #fff;
-
-        span::before {
-          content: "PM> ";
-        }
       }
 
       .copy-button {
         display: table-cell;
+        button {
+          height: 38px;
+        }
       }
     }
   }

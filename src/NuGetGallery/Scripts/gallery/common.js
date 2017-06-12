@@ -25,7 +25,7 @@
 
     // source: http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
     // enhancement with special case for IEs, otherwise the temp textarea will be visible
-    nuget.copyTextToClipboard = function(text) {
+    nuget.copyTextToClipboard = function (text) {
         if (detectIE()) {
             try {
                 window.clipboardData.setData('Text', text);
@@ -93,7 +93,27 @@
 
             document.body.removeChild(textArea);
         }
-    }
+    };
+
+    nuget.configureExpander = function (prefix, lessMessage, moreMessage) {
+        var hidden = $('#' + prefix);
+        var show = $('#show-' + prefix);
+        var showText = $('#show-' + prefix + ' span');
+        var showIcon = $('#show-' + prefix + ' i');
+        hidden.on('hide.bs.collapse', function () {
+            showText.text(moreMessage);
+            showIcon.removeClass('ms-Icon--ChevronUp');
+            showIcon.addClass('ms-Icon--ChevronDown');
+        });
+        hidden.on('show.bs.collapse', function () {
+            showText.text(lessMessage);
+            showIcon.removeClass('ms-Icon--ChevronDown');
+            showIcon.addClass('ms-Icon--ChevronUp');
+        });
+        show.on('click', function (e) {
+            e.preventDefault();
+        });
+    };
 
     window.nuget = nuget;
 

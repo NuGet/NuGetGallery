@@ -78,18 +78,27 @@ body h3 {
   padding: 2px 10px;
   margin: 0 2px;
   line-height: 2em;
+  color: #266daa;
   background-color: #eff9ff;
 }
 .banner {
-  padding-top: 10px;
   padding-bottom: 10px;
 }
-.banner.banner-bright {
+.banner span {
   font-size: 1.25em;
+  line-height: 1.75em;
+}
+.banner .ms-Icon {
+  position: relative;
+  top: .25em;
+  font-size: 1.75em;
+}
+.banner.banner-bright {
   background: yellow;
 }
-.banner.banner-info {
-  background: #f4f4f4;
+.alert-transient .alert {
+  padding: 10px;
+  margin: 0;
 }
 .ms-Icon-ul {
   margin-left: 24px;
@@ -169,15 +178,15 @@ body h3 {
 .page-package-details .no-border {
   border: 0;
 }
-.page-package-details #show-hidden-versions:hover,
-.page-package-details #show-hidden-versions:focus {
+.page-package-details .btn-expander:hover,
+.page-package-details .btn-expander:focus {
   text-decoration: none;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
 }
 .page-package-details .owner-list li {
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 .page-package-details .install-tabs {
   font-size: .8em;
@@ -187,7 +196,7 @@ body h3 {
 }
 .page-package-details .install-tabs .nav-tabs > li {
   padding: 0;
-  margin-left: 5px;
+  margin-right: 5px;
 }
 .page-package-details .install-tabs .nav-tabs > li > a {
   padding: 5px 10px;
@@ -196,12 +205,18 @@ body h3 {
   background-color: #eaeaea;
   border: 0;
 }
+.page-package-details .install-tabs #package-manager .install-script span::before {
+  content: "PM> ";
+}
+.page-package-details .install-tabs #dotnet-cli .install-script span::before {
+  content: "> ";
+}
 .page-package-details .install-tabs .nav-tabs > li.active > a {
   color: #fff;
   background-color: #002440;
   border: 0;
 }
-.page-package-details .install-tabs .tab-pane {
+.page-package-details .install-tabs .tab-pane > div {
   display: table;
 }
 .page-package-details .install-tabs .tab-pane .install-script {
@@ -212,11 +227,11 @@ body h3 {
   color: #fff;
   background-color: #002440;
 }
-.page-package-details .install-tabs .tab-pane .install-script span::before {
-  content: "PM> ";
-}
 .page-package-details .install-tabs .tab-pane .copy-button {
   display: table-cell;
+}
+.page-package-details .install-tabs .tab-pane .copy-button button {
+  height: 38px;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;
