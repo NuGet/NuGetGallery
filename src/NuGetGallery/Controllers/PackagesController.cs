@@ -369,6 +369,8 @@ namespace NuGetGallery
                 }
             }
 
+            model.PolicyMessage = GetDisplayPackagePolicyMessage(package.PackageRegistration);
+
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
             {
@@ -412,6 +414,24 @@ namespace NuGetGallery
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
+        }
+
+        private string GetDisplayPackagePolicyMessage(PackageRegistration package)
+        {
+            // display package policy message to package owners and admins.
+            if (User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
+            {
+                var propagators = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
+                if (propagators.Any())
+                {
+                    return string.Format(CultureInfo.CurrentCulture,
+                        Strings.DisplayPackage_SecurePushRequired,
+                        string.Join(", ", propagators.Select(u => u.Username)),
+                        SecurePushSubscription.MinClientVersion,
+                        _config.GalleryOwner.Address);
+                }
+            }
+            return string.Empty;
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
@@ -786,6 +806,7 @@ namespace NuGetGallery
             }
 
             var model = new ManagePackageOwnersViewModel(package, User);
+            model.PolicyMessage = GetDisplayPackagePolicyMessage(package.PackageRegistration);
 
             return View(model);
         }

@@ -433,6 +433,16 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
+        ///.
+        /// </summary>
+        public static string DisplayPackage_SecurePushRequired {
+            get {
+                return ResourceManager.GetString("DisplayPackage_SecurePushRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The email address &apos;{0}&apos; is being used..
         /// </summary>
         public static string EmailAddressBeingUsed {
