@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using NuGetGallery.Filters;
 
 namespace NuGetGallery.Security
 {
@@ -11,7 +10,7 @@ namespace NuGetGallery.Security
     /// </summary>
     public class RequirePackageVerifyScopePolicy : UserSecurityPolicyHandler
     {
-        public const string PolicyName = "RequirePackageVerifyScopePolicy";
+        public const string PolicyName = nameof(RequirePackageVerifyScopePolicy);
 
         public RequirePackageVerifyScopePolicy()
             : base(PolicyName, SecurityPolicyAction.PackageVerify)

@@ -139,6 +139,14 @@ namespace NuGetGallery.Security
             service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Exactly(times));
         }
 
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void IsSubscribed_ThrowsArgumentIfUsernameMissing(string username)
+        {
+            Assert.Throws<ArgumentException>(() => new TestSecurityPolicyService().IsSubscribed(new User(), username));
+        }
+
         [Fact]
         public void IsSubscribed_ThrowsArgumentNullIfUserIsNull()
         {
@@ -150,7 +158,7 @@ namespace NuGetGallery.Security
         public void IsSubscribed_ThrowsArgumentNullIfSubscriptionIsNull()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new TestSecurityPolicyService().IsSubscribed(new User(), null));
+                new TestSecurityPolicyService().IsSubscribed(new User(), (IUserSecurityPolicySubscription)null));
         }
 
         [Fact]
@@ -207,7 +215,16 @@ namespace NuGetGallery.Security
         public void SubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
-                new TestSecurityPolicyService().SubscribeAsync(new User(), null));
+                new TestSecurityPolicyService().SubscribeAsync(new User(), (IUserSecurityPolicySubscription)null));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void SubscribeAsync_ThrowsArgumentNullIfSubscriptionNameIsMissing(string subscriptionName)
+        {
+            Assert.ThrowsAsync<ArgumentNullException>(() =>
+                new TestSecurityPolicyService().SubscribeAsync(new User(), subscriptionName));
         }
 
         [Fact]
@@ -218,9 +235,10 @@ namespace NuGetGallery.Security
             var user = new User("testUser");
 
             // Act.
-            await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            var subscribed = await service.SubscribeAsync(user, service.UserSubscriptions.First());
 
             // Act & Assert.
+            Assert.True(subscribed);
             Assert.Equal(2, user.SecurityPolicies.Count);
             service.Mocks.VerifySubscriptionPolicies(user.SecurityPolicies);
 
@@ -242,9 +260,11 @@ namespace NuGetGallery.Security
             }
 
             // Act.
-            await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            var subscribed = await service.SubscribeAsync(user, service.UserSubscriptions.First());
 
             // Act & Assert.
+            Assert.True(subscribed);
+
             var policies = user.SecurityPolicies.ToList();
             Assert.Equal(4, policies.Count);
             Assert.Equal(subscriptionName2, policies[0].Subscription);
@@ -269,9 +289,10 @@ namespace NuGetGallery.Security
             Assert.Equal(2, user.SecurityPolicies.Count);
 
             // Act.
-            await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            var subscribed = await service.SubscribeAsync(user, service.UserSubscriptions.First());
 
             // Act & Assert.
+            Assert.False(subscribed);
             Assert.Equal(2, user.SecurityPolicies.Count);
             service.Mocks.VerifySubscriptionPolicies(user.SecurityPolicies);
 
@@ -322,7 +343,16 @@ namespace NuGetGallery.Security
         public void UnsubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
         {
             Assert.ThrowsAsync<ArgumentNullException>(() =>
-                new TestSecurityPolicyService().UnsubscribeAsync(new User(), null));
+                new TestSecurityPolicyService().UnsubscribeAsync(new User(), (IUserSecurityPolicySubscription)null));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void UnsubscribeAsync_ThrowsArgumentNullIfSubscriptionNameIsMissing(string subscriptionName)
+        {
+            Assert.ThrowsAsync<ArgumentNullException>(() =>
+                new TestSecurityPolicyService().UnsubscribeAsync(new User(), subscriptionName));
         }
 
         [Fact]

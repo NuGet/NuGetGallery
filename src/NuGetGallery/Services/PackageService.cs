@@ -415,13 +415,13 @@ namespace NuGetGallery
                 await _packageRepository.CommitChangesAsync();
             }
         }
-
-        public async Task AddPackageOwnerAsync(PackageRegistration package, User user)
+        
+        public async Task AddPackageOwnerAsync(PackageRegistration package, User newOwner)
         {
-            package.Owners.Add(user);
+            package.Owners.Add(newOwner);
             await _packageRepository.CommitChangesAsync();
 
-            var request = FindExistingPackageOwnerRequest(package, user);
+            var request = FindExistingPackageOwnerRequest(package, newOwner);
             if (request != null)
             {
                 _packageOwnerRequestRepository.DeleteOnCommit(request);
@@ -429,7 +429,7 @@ namespace NuGetGallery
             }
 
             await _auditingService.SaveAuditRecordAsync(
-                new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.AddOwner, user.Username));
+                new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.AddOwner, newOwner.Username));
         }
 
         public async Task RemovePackageOwnerAsync(PackageRegistration package, User user)
@@ -541,7 +541,7 @@ namespace NuGetGallery
             return newRequest;
         }
 
-        public async Task<ConfirmOwnershipResult> ConfirmPackageOwnerAsync(PackageRegistration package, User pendingOwner, string token)
+        public bool IsValidPackageOwnerRequest(PackageRegistration package, User pendingOwner, string token)
         {
             if (package == null)
             {
@@ -558,19 +558,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(token));
             }
 
-            if (package.IsOwner(pendingOwner))
-            {
-                return ConfirmOwnershipResult.AlreadyOwner;
-            }
-
             var request = FindExistingPackageOwnerRequest(package, pendingOwner);
-            if (request != null && request.ConfirmationCode == token)
-            {
-                await AddPackageOwnerAsync(package, pendingOwner);
-                return ConfirmOwnershipResult.Success;
-            }
-
-            return ConfirmOwnershipResult.Failure;
+            return (request != null && request.ConfirmationCode == token);
         }
 
         private IQueryable<Package> GetPackagesByIdQueryable(string id)

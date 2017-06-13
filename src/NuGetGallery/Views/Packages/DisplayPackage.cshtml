@@ -167,6 +167,10 @@
 
 }
 <div class="package-page">
+    @if (!string.IsNullOrEmpty(Model.PolicyMessage))
+    {
+        <p class="message warning">@Model.PolicyMessage</p>
+    }
     @if (Model.HasPendingMetadata)
     {
         using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
