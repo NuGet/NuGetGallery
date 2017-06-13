@@ -95,20 +95,22 @@
         }
     };
 
-    nuget.configureExpander = function (prefix, lessMessage, moreMessage) {
+    nuget.configureExpander = function (prefix, lessIcon, lessMessage, moreIcon, moreMessage) {
         var hidden = $('.' + prefix);
         var show = $('#show-' + prefix);
-        var showText = $('#show-' + prefix + ' span');
         var showIcon = $('#show-' + prefix + ' i');
-        hidden.on('hide.bs.collapse', function () {
+        var showText = $('#show-' + prefix + ' span');
+        hidden.on('hide.bs.collapse', function (e) {
+            showIcon.removeClass('ms-Icon--' + moreIcon);
+            showIcon.addClass('ms-Icon--' + lessIcon);
             showText.text(moreMessage);
-            showIcon.removeClass('ms-Icon--ChevronUp');
-            showIcon.addClass('ms-Icon--ChevronDown');
+            e.stopPropagation();
         });
-        hidden.on('show.bs.collapse', function () {
+        hidden.on('show.bs.collapse', function (e) {
+            showIcon.removeClass('ms-Icon--' + lessIcon);
+            showIcon.addClass('ms-Icon--' + moreIcon);
             showText.text(lessMessage);
-            showIcon.removeClass('ms-Icon--ChevronDown');
-            showIcon.addClass('ms-Icon--ChevronUp');
+            e.stopPropagation();
         });
         show.on('click', function (e) {
             e.preventDefault();
