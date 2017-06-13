@@ -7,8 +7,6 @@ if "%1"=="" (
 	exit 1
 )
 
-cd bin
-
 SET vn=#{KeyVault:VaultName}
 SET clientid=#{KeyVault:ClientId}
 SET tp=#{KeyVault:CertificateThumbprint}
@@ -20,4 +18,3 @@ SET gba=#{Jobs.validation.GalleryBaseAddress}
 
 NuGet.Jobs.Validation.Helper.exe -VaultName "%vn%" -ClientId "%clientid%" -CertificateThumbprint "%tp%" -LogsAzureStorageConnectionString "%la%" -DataStorageAccount "%dsa%" -ContainerName "%cn%" -InstrumentationKey "%ik%" -GalleryBaseAddress "%gba%" %*
 
-cd ..
