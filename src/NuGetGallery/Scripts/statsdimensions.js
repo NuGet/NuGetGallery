@@ -10,7 +10,12 @@
         // Render the graph using the data table
         packageDisplayGraphs(rawData);
 
-        window.nuget.configureExpander("hidden-row", "Show less", "Show more");
+        window.nuget.configureExpander(
+            "hidden-row",
+            "CalculatorAddition",
+            "Show less",
+            "CalculatorSubtract",
+            "Show more");
 
         // Add the click handler to the checkboxes
         groupbyNavigation(baseUrl);
