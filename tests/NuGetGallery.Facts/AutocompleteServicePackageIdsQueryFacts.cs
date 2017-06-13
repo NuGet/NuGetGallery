@@ -43,5 +43,22 @@ namespace NuGetGallery
             var result = await query.Execute("jquery", false);
             Assert.Contains("jquery", result, StringComparer.OrdinalIgnoreCase);
         }
+
+        [Theory]
+        [InlineData(true, null, "?take=30&q=Json&prerelease=True")]
+        [InlineData(true, "2.0.0", "?take=30&q=Json&prerelease=True&semVerLevel=2.0.0")]
+        [InlineData(false, null, "?take=30&q=Json&prerelease=False")]
+        [InlineData(false, "2.0.0", "?take=30&q=Json&prerelease=False&semVerLevel=2.0.0")]
+        public void PackageIdQueryBuildsCorrectQueryString(bool includePrerelease, string semVerLevel, string expectedQueryString)
+        {
+            // Arrange
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
+
+            // Act
+            var actualQueryString = query.BuildQueryString("take=30&q=Json", includePrerelease, semVerLevel);
+
+            // Assert
+            Assert.Equal(expectedQueryString, actualQueryString);
+        }
     }
 }
