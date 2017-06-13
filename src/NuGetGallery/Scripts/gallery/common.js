@@ -95,24 +95,45 @@
         }
     };
 
-    nuget.configureExpander = function (prefix, lessMessage, moreMessage) {
-        var hidden = $('#' + prefix);
+    nuget.configureExpander = function (prefix, lessIcon, lessMessage, moreIcon, moreMessage) {
+        var hidden = $('.' + prefix);
         var show = $('#show-' + prefix);
-        var showText = $('#show-' + prefix + ' span');
         var showIcon = $('#show-' + prefix + ' i');
-        hidden.on('hide.bs.collapse', function () {
+        var showText = $('#show-' + prefix + ' span');
+        hidden.on('hide.bs.collapse', function (e) {
+            showIcon.removeClass('ms-Icon--' + moreIcon);
+            showIcon.addClass('ms-Icon--' + lessIcon);
             showText.text(moreMessage);
-            showIcon.removeClass('ms-Icon--ChevronUp');
-            showIcon.addClass('ms-Icon--ChevronDown');
+            e.stopPropagation();
         });
-        hidden.on('show.bs.collapse', function () {
+        hidden.on('show.bs.collapse', function (e) {
+            showIcon.removeClass('ms-Icon--' + lessIcon);
+            showIcon.addClass('ms-Icon--' + moreIcon);
             showText.text(lessMessage);
-            showIcon.removeClass('ms-Icon--ChevronDown');
-            showIcon.addClass('ms-Icon--ChevronUp');
+            e.stopPropagation();
         });
         show.on('click', function (e) {
             e.preventDefault();
         });
+    };
+
+    // Source: https://stackoverflow.com/a/27568129/52749
+    // Detects whether SVG is supported in the browser.
+    nuget.supportsSvg = function () {
+        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect);
+    }
+
+    // Source: https://developers.google.com/analytics/devguides/collection/analyticsjs/sending-hits
+    nuget.createFunctionWithTimeout = function (callback, opt_timeout) {
+        var called = false;
+        function fn() {
+            if (!called) {
+                called = true;
+                callback();
+            }
+        }
+        setTimeout(fn, opt_timeout || 1000);
+        return fn;
     };
 
     window.nuget = nuget;
@@ -150,6 +171,22 @@ $(function () {
         .find('input,textarea,select')
         .filter(':visible:first')
         .focus();
+
+    // Handle Google analytics tracking event on specific links.
+    $.each($('a[data-track]'), function () {
+        $(this).click(function (e) {
+            var href = $(this).attr('href');
+            var category = $(this).attr('data-track');
+            if (ga && href && category) {
+                ga('send', 'event', category, 'click', href, {
+                    'transport': 'beacon',
+                    'hitCallback': window.nuget.createFunctionWithTimeout(function () {
+                        document.location = href;
+                    })
+                });
+            }
+        });
+    });
 
     // Show elements that require ClickOnce
     (function () {

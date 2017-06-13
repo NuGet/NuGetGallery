@@ -32,7 +32,10 @@
 @helper CommandTab(string label, string id, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
-        <a href="#@id" aria-controls="@id" role="tab" data-toggle="tab">@label</a>
+        <a href="#@id" aria-controls="@id" title="Switch to tab panel which contains package installation command for @label"
+           role="tab" data-toggle="tab">
+            @label
+        </a>
     </li>
 }
 
@@ -198,97 +201,6 @@
                 <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
             }
 
-            <h2>Version History</h2>
-            <table class="table borderless">
-                <thead>
-                    <tr>
-                        <th>Version</th>
-                        <th>Downloads</th>
-                        <th>Last updated</th>
-                        @if ((Model.IsOwner(User) || User.IsAdministrator()))
-                        {
-                            <th>Listed</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                @{var rowCount = 0;}
-                @foreach (var packageVersion in Model.PackageVersions)
-                {
-                    if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
-                    {
-                        rowCount++;
-                        if (rowCount == 6)
-                        {
-                            @:</tbody><tbody class="collapse no-border" id="hidden-versions">
-                        }
-
-                        <tr>
-                            <td>
-                                @if (packageVersion.IsCurrent(Model))
-                                {
-                                    <a href="@Url.Package(packageVersion)">
-                                        @packageVersion.FullVersion
-                                        @if (packageVersion.IsCurrent(Model))
-                                        {
-                                            @:(current version)
-                                }
-                                    </a>
-                                }
-                                else
-                                {
-                                    <a href="@Url.Package(packageVersion)">
-                                        @packageVersion.FullVersion
-                                    </a>
-                                }
-                            </td>
-                            <td>
-                                @packageVersion.DownloadCount.ToNuGetNumberString()
-                            </td>
-                            <td>
-                                <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
-                            </td>
-                            @if ((Model.IsOwner(User) || User.IsAdministrator()))
-                            {
-                                <td>
-                                    <a href="@Url.DeletePackage(packageVersion)">@(packageVersion.Listed ? "yes" : "no")</a>
-                                </td>
-                            }
-                        </tr>
-                    }
-                    else if (packageVersion.Deleted)
-                    {
-                        rowCount++;
-                        if (rowCount == 6)
-                        {
-                            @:</tbody><tbody class="panel-collapse collapse no-border" id="hidden-versions">
-                        }
-
-                        <tr class="versionTableRow deleted">
-                            <td class="version">
-                                <s>@packageVersion.FullVersion</s> (deleted)
-                            </td>
-                            <td>
-                                @packageVersion.DownloadCount
-                            </td>
-                            <td>
-                                <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
-                            </td>
-                            <td></td>
-                        </tr>
-                    }
-                }
-                </tbody>
-            </table>
-            @if (rowCount > 5)
-            {
-                <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#hidden-versions"
-                        aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
-                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                    <span>Show more</span>
-                </button>
-            }
-
             @if (Model.Dependencies.DependencySets == null)
             {
                 if ((Model.IsOwner(User) || User.IsAdministrator()))
@@ -297,7 +209,7 @@
                     <p>
                         An error occurred processing dependencies.
                         Your package can still be downloaded and installed, but dependencies cannot be shown.
-                        Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have questions.
+                        Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have any questions.
                     </p>
                     <p>
                         <strong>Note: This message is only visible to you and any other package owners.</strong>
@@ -306,10 +218,16 @@
             }
             else
             {
-                <h2>Dependencies</h2>
                 if (Model.Dependencies.DependencySets.Any())
                 {
-                    <ul class="list-unstyled panel-collapse collapse" id="dependency-groups">
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target=".dependency-groups"
+                           aria-expanded="false" id="show-dependency-groups">
+                            <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
+                            <span>Dependencies</span>
+                        </a>
+                    </h2>
+                    <ul class="dependency-groups list-unstyled panel-collapse collapse">
                         @foreach (var dependencySet in Model.Dependencies.DependencySets)
                         {
                             var dependencySetTitle = dependencySet.Key;
@@ -337,17 +255,102 @@
                             </li>
                         }
                     </ul>
-                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#dependency-groups"
-                            aria-expanded="false" aria-controls="dependency-groups" id="show-dependency-groups">
-                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                        <span>Show</span>
-                    </button>
                 }
                 else
                 {
+                    <h2>Dependencies</h2>
                     <p>This package has no dependencies.</p>
                 }
             }
+
+            <h2>
+                <a href="#" role="button" data-toggle="collapse" data-target=".version-history"
+                   aria-expanded="true" id="show-version-history">
+                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                    <span>Version History</span>
+                </a>
+            </h2>
+            <div class="version-history panel-collapse collapse in" aria-expanded="true">
+                <table class="table borderless">
+                    <thead>
+                        <tr>
+                            <th>Version</th>
+                            <th>Downloads</th>
+                            <th>Last updated</th>
+                            @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                            {
+                                <th>Listed</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{var rowCount = 0;}
+                        @foreach (var packageVersion in Model.PackageVersions)
+                        {
+                            if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
+                            {
+                                rowCount++;
+                                <tr class="@(rowCount >= 6 ? "hidden-version collapse" : "")">
+                                    <td>
+                                        @if (packageVersion.IsCurrent(Model))
+                                        {
+                                            <a href="@Url.Package(packageVersion)">
+                                                @packageVersion.FullVersion
+                                                @if (packageVersion.IsCurrent(Model))
+                                                {
+                                                    @:(current version)
+                                                }
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="@Url.Package(packageVersion)">
+                                                @packageVersion.FullVersion
+                                            </a>
+                                        }
+                                    </td>
+                                    <td>
+                                        @packageVersion.DownloadCount.ToNuGetNumberString()
+                                    </td>
+                                    <td>
+                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                    </td>
+                                    @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                                    {
+                                        <td>
+                                            <a href="@Url.DeletePackage(packageVersion)">@(packageVersion.Listed ? "yes" : "no")</a>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                            else if (packageVersion.Deleted)
+                            {
+                                rowCount++;
+                                <tr class="deleted @(rowCount >= 6 ? "hidden-version collapse" : "")">
+                                    <td class="version">
+                                        <s>@packageVersion.FullVersion</s> (deleted)
+                                    </td>
+                                    <td>
+                                        @packageVersion.DownloadCount
+                                    </td>
+                                    <td>
+                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+                @if (rowCount > 5)
+                {
+                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target=".hidden-version"
+                            aria-expanded="false" id="show-hidden-version">
+                        <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
+                        <span>Show more</span>
+                    </button>
+                }
+            </div>
         </article>
         <aside class="col-sm-3 package-details-info">
             <h2>Info</h2>
@@ -360,7 +363,7 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
-                        <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package" rel="nofollow">
+                        <a href="@Model.ProjectUrl" data-track="outbound-project-url" title="Visit the project site to learn more about this package" rel="nofollow">
                             @if(Model.ProjectUrl.Length <= 28)
                             {
                                 @Model.ProjectUrl
@@ -376,7 +379,7 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
-                        <a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">
+                        <a href="@Model.LicenseUrl" data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
                             @if(Model.LicenseNames.AnySafe())
                             {
                                 @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
@@ -415,7 +418,7 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Manual download</a>
+                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Manual download</a>
                     </li>
                     <li class="no-clickonce">
                         <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>

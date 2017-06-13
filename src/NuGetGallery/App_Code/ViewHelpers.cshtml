@@ -270,9 +270,17 @@
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
     if(config != null) {
         var propertyId = config.Current.GoogleAnalyticsPropertyId;
-        if (propertyId != null)
+        if (!string.IsNullOrEmpty(propertyId))
         {
-            @Analytics.GetGoogleAsyncHtml(propertyId)
+            <script>
+                (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+                ga('create', '@propertyId', 'auto');
+                ga('send', 'pageview');
+            </script>
         }
     }
 }
