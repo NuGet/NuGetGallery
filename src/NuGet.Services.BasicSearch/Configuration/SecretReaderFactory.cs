@@ -44,10 +44,13 @@ namespace NuGet.Services.BasicSearch.Configuration
                                                 $"Parameter: {nameof(BasicSearchConfiguration.ValidateCertificate)} Value: {config.ValidateCertificate}");
                 }
 
+                var keyVaultCertificate = CertificateUtility.FindCertificateByThumbprint(
+                    config.StoreName,
+                    config.StoreLocation,
+                    config.CertificateThumbprint,
+                    config.ValidateCertificate);
                 secretReader =
-                    new KeyVaultReader(new KeyVaultConfiguration(config.VaultName, config.ClientId,
-                        config.CertificateThumbprint, config.StoreName,
-                        config.StoreLocation, config.ValidateCertificate));
+                    new KeyVaultReader(new KeyVaultConfiguration(config.VaultName, config.ClientId, keyVaultCertificate));
             }
 
             return secretReader;

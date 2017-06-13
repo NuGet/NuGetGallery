@@ -67,7 +67,8 @@ namespace Ng
                 var storeLocation = arguments.GetOrDefault(Arguments.StoreLocation, StoreLocation.LocalMachine);
                 var shouldValidateCert = arguments.GetOrDefault(Arguments.ValidateCertificate, false);
 
-                var keyVaultConfig = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, storeName, storeLocation, shouldValidateCert);
+                var keyVaultCertificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, shouldValidateCert);
+                var keyVaultConfig = new KeyVaultConfiguration(vaultName, clientId, keyVaultCertificate);
 
                 secretReader = new CachingSecretReader(new KeyVaultReader(keyVaultConfig),
                     arguments.GetOrDefault(Arguments.RefreshIntervalSec, CachingSecretReader.DefaultRefreshIntervalSec));
