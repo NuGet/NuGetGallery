@@ -6,6 +6,10 @@
 }
 
 <div class="container main-container page-stats-per-package">
+    <h1 class="statistics-report-title col-sm-12 page-heading">
+        Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a>
+    </h1>
+
     @Html.Partial("_PivotTable")
 </div>
 

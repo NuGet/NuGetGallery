@@ -1,9 +1,5 @@
 ﻿@model StatisticsPackagesViewModel
 
-<h1 class="statistics-report-title col-sm-12 page-heading">
-    Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a>
-</h1>
-
 <div data-bind="template: { name: 'report-template', data: report }"></div>
 
 <script type="text/html" id="report-template">

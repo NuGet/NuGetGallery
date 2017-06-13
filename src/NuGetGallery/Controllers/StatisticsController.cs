@@ -317,6 +317,9 @@ namespace NuGetGallery
                     }
                 }
 
+                // We do this here to try to order the result by the Version if available.
+                // Since Version might not be available, don't sort if it isn't.
+                // If Version is available, we need the following empty version rows to be moved with it (rowspan)
                 NuGetVersion prevVersion = new NuGetVersion("1.0.0");
                 report.Table = result.Item1
                     .Select(e =>
