@@ -17,5 +17,15 @@ param(
 
 $galleryPath = Join-Path $PSScriptRoot "\..\src\NuGetGallery"
 
+# Export all CSS assets
 Copy-Item (Join-Path $galleryPath "\Content\gallery\css\*") $CssExportPath
-Copy-Item (Join-Path $galleryPath "\Scripts\gallery\*") $JsExportPath
+
+# Export JS assets that do not have the "page-" prefix
+$scriptsPath = Join-Path $galleryPath "\Scripts\Gallery"
+$scripts = Get-ChildItem $scriptsPath | ? { $_.Name.StartsWith("page-") -eq $false }
+
+$scripts | % {
+	$scriptPath = Join-Path $scriptsPath $_.Name
+
+	Copy-Item (Join-Path $scriptsPath $_.Name) $JsExportPath
+}
