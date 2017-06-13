@@ -221,7 +221,7 @@
                 <h2>Dependencies</h2>
                 if (Model.Dependencies.DependencySets.Any())
                 {
-                    <ul class="list-unstyled panel-collapse collapse" id="dependency-groups">
+                    <ul class="list-unstyled panel-collapse collapse dependency-groups">
                         @foreach (var dependencySet in Model.Dependencies.DependencySets)
                         {
                             var dependencySetTitle = dependencySet.Key;
@@ -249,7 +249,7 @@
                             </li>
                         }
                     </ul>
-                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#dependency-groups"
+                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target=".dependency-groups"
                             aria-expanded="false" aria-controls="dependency-groups" id="show-dependency-groups">
                         <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
                         <span>Show</span>
@@ -281,12 +281,7 @@
                     if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                     {
                         rowCount++;
-                        if (rowCount == 6)
-                        {
-                            @:</tbody><tbody class="collapse no-border" id="hidden-versions">
-                        }
-
-                        <tr>
+                        <tr class="@(rowCount >= 6 ? "collapse" : "")">
                             <td>
                                 @if (packageVersion.IsCurrent(Model))
                                 {
@@ -322,12 +317,7 @@
                     else if (packageVersion.Deleted)
                     {
                         rowCount++;
-                        if (rowCount == 6)
-                        {
-                            @:</tbody><tbody class="panel-collapse collapse no-border" id="hidden-versions">
-                        }
-
-                        <tr class="versionTableRow deleted">
+                        <tr class="versionTableRow deleted @(rowCount >= 6 ? "collapse" : "")">
                             <td class="version">
                                 <s>@packageVersion.FullVersion</s> (deleted)
                             </td>
