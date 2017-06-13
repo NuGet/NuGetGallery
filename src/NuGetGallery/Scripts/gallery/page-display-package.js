@@ -15,8 +15,24 @@ $(function () {
         });
     }
 
-    window.nuget.configureExpander("hidden-versions", "Show less", "Show more");
-    window.nuget.configureExpander("dependency-groups", "Hide", "Show");
+    window.nuget.configureExpander(
+        "dependency-groups",
+        "ChevronRight",
+        "Dependencies",
+        "ChevronDown",
+        "Dependencies");
+    window.nuget.configureExpander(
+        "hidden-version",
+        "CalculatorAddition",
+        "Show less",
+        "CalculatorSubtract",
+        "Show more");    
+    window.nuget.configureExpander(
+        "version-history",
+        "ChevronRight",
+        "Version History",
+        "ChevronDown",
+        "Version History");
 
     configureCopyButton('package-manager');
     configureCopyButton('dotnet-cli');
