@@ -115,6 +115,25 @@
         });
     };
 
+    // Source: https://stackoverflow.com/a/27568129/52749
+    // Detects whether SVG is supported in the browser.
+    nuget.supportsSvg = function () {
+        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect);
+    }
+
+    // Source: https://developers.google.com/analytics/devguides/collection/analyticsjs/sending-hits
+    nuget.createFunctionWithTimeout = function (callback, opt_timeout) {
+        var called = false;
+        function fn() {
+            if (!called) {
+                called = true;
+                callback();
+            }
+        }
+        setTimeout(fn, opt_timeout || 1000);
+        return fn;
+    };
+
     window.nuget = nuget;
 
     // Source: https://stackoverflow.com/questions/18754020/bootstrap-3-with-jquery-validation-plugin
@@ -150,6 +169,22 @@ $(function () {
         .find('input,textarea,select')
         .filter(':visible:first')
         .focus();
+
+    // Handle Google analytics tracking event on specific links.
+    $.each($('a[data-track]'), function () {
+        $(this).click(function (e) {
+            var href = $(this).attr('href');
+            var category = $(this).attr('data-track');
+            if (ga && href && category) {
+                ga('send', 'event', category, 'click', href, {
+                    'transport': 'beacon',
+                    'hitCallback': window.nuget.createFunctionWithTimeout(function () {
+                        document.location = href;
+                    })
+                });
+            }
+        });
+    });
 
     // Show elements that require ClickOnce
     (function () {
