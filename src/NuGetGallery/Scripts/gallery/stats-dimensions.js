@@ -6,7 +6,14 @@
         // Populate the data table
         data['reportSize'] = data.Table.length;
 
-        ko.applyBindings({ report: data });
+        $("#report").remove();
+
+        var reportContainerElement = document.createElement("div");
+        $(reportContainerElement).attr("id", "report");
+        $(reportContainerElement).attr("data-bind", "template: { name: 'report-template', data: report }");
+        $("#report-container").append(reportContainerElement);
+
+        ko.applyBindings({ report: data }, reportContainerElement);
         // Render the graph using the data table
         packageDisplayGraphs(rawData);
 

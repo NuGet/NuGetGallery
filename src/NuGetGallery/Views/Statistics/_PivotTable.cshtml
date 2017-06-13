@@ -1,6 +1,7 @@
 ﻿@model StatisticsPackagesViewModel
 
-<div data-bind="template: { name: 'report-template', data: report }"></div>
+<div id="report-container">
+</div>
 
 <script type="text/html" id="report-template">
     <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-xs-12 page-subheading">
@@ -99,7 +100,7 @@
                     </table>
 
                     <!-- ko if: $data.reportSize > 6 -->
-                    <button type="button" data-toggle="collapse" class="btn btn-link" data-target=".hidden-row"
+                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target=".hidden-row"
                             aria-expanded="false" id="show-hidden-row">
                         <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
                         <span>Show more</span>

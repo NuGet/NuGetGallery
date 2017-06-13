@@ -15,14 +15,7 @@
 
 @section BottomScripts
 {
-    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
-    <script src="@Url.Content("~/Scripts/moment.js")"></script>
-    @if (Model.UseD3)
-    {
-        @Scripts.Render("~/Scripts/d3.v3.min.js")
-    }
-    @Scripts.Render("~/Scripts/statsdimensions.js")
-    @Scripts.Render("~/Scripts/perpackagestatsgraphs.js")
+    @Scripts.Render("~/Scripts/gallery/stats.min.js");
     <script>
         $(document)
             .ready(function () {
