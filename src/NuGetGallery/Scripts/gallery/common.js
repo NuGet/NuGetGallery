@@ -115,6 +115,12 @@
         });
     };
 
+    // Source: https://stackoverflow.com/a/27568129/52749
+    // Detects whether SVG is supported in the browser.
+    nuget.supportsSvg = function () {
+        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect);
+    }
+
     window.nuget = nuget;
 
     // Source: https://stackoverflow.com/questions/18754020/bootstrap-3-with-jquery-validation-plugin
