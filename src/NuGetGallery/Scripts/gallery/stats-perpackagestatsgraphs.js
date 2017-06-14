@@ -232,7 +232,7 @@ var GetChartData = function (rawData, filter) {
         rawData.Table.forEach(function (dataPoint) {
             var item = {
                 label: dataPoint[0].Data,
-                downloads: parseInt(dataPoint[1].Data.replace(",", ""))
+                downloads: window.nuget.parseNumber(dataPoint[1].Data)
             };
 
             if (!filter(item)) {

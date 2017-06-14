@@ -23,6 +23,12 @@
         return false;
     }
 
+    nuget.parseNumber = function (unparsedValue) {
+        unparsedValue = ('' + unparsedValue).replace(/,/g, '');
+        var parsedValue = parseInt(unparsedValue);
+        return parsedValue;
+    }
+
     // source: http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
     // enhancement with special case for IEs, otherwise the temp textarea will be visible
     nuget.copyTextToClipboard = function (text) {

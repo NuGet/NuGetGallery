@@ -1,12 +1,6 @@
 $(function () {
     'use strict';
 
-    function parseNumber(unparsedValue) {
-        unparsedValue = ('' + unparsedValue).replace(/,/g, '');
-        var parsedValue = parseInt(unparsedValue);
-        return parsedValue;
-    }
-
     function commaThousands(value) {
         var output = value.toString();
         for (var i = output.length - 3; i > 0; i -= 3)
@@ -18,7 +12,7 @@ $(function () {
     }
 
     function updateStat(observable, unparsedValue) {
-        var parsedValue = parseNumber(unparsedValue);
+        var parsedValue = window.nuget.parseNumber(unparsedValue);
         if (!isNaN(parsedValue)) {
             observable(parsedValue);
         }
@@ -55,7 +49,7 @@ $(function () {
             $(element).text(value);
         },
         update: function (element, valueAccessor) {
-            var oldValue = parseNumber($(element).text());
+            var oldValue = window.nuget.parseNumber($(element).text());
             var newValue = ko.unwrap(valueAccessor());
 
             $({ value: oldValue }).animate({ value: newValue }, {
