@@ -443,8 +443,8 @@
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.Owin, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Owin.2.2.2-develop-7285\lib\net452\NuGet.Services.Owin.dll</HintPath>
+    <Reference Include="NuGet.Services.Owin, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Owin.2.2.3\lib\net452\NuGet.Services.Owin.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.Logging, Version=2.2.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Logging.2.2.3\lib\net452\NuGet.Services.Logging.dll</HintPath>
