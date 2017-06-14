@@ -2,20 +2,20 @@
 @{
     ViewBag.Title = "Package Downloads for " + Model.PackageId;
     ViewBag.Tab = "Statistics";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@Html.Partial("_PivotTable")
+<div class="container main-container page-stats-per-package">
+    <h1 class="statistics-report-title col-sm-12 page-heading">
+        Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a>
+    </h1>
+
+    @Html.Partial("_PivotTable")
+</div>
 
 @section BottomScripts
 {
-    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
-    <script src="@Url.Content("~/Scripts/moment.js")"></script>
-    @if (Model.UseD3)
-    {
-        @Scripts.Render("~/Scripts/d3.v3.min.js")
-    }
-    @Scripts.Render("~/Scripts/statsdimensions.js")
-    @Scripts.Render("~/Scripts/perpackagestatsgraphs.js")
+    @Scripts.Render("~/Scripts/gallery/stats.min.js");
     <script>
         $(document)
             .ready(function () {

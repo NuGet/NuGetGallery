@@ -1,77 +1,113 @@
 ﻿@model StatisticsPackagesViewModel
 
-<div data-bind="template: { name: 'report-template', data: report }"></div>
+<div id="report-container">
+</div>
 
 <script type="text/html" id="report-template">
-    <h1 class="statistics-report-title">
-        Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a>
-        <!-- ko if: $data && Total -->
-            <span data-bind="text: '(' + Total + ' over the Last 6 Weeks)'"></span>
-        <!-- /ko -->
-    </h1>
-
-    <div data-bind="if: $data && LastUpdatedUtc" class="last-updated">
+    <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-xs-12 page-subheading">
         <span data-bind="text: 'Statistics last updated at ' + moment(LastUpdatedUtc).format('YYYY-MM-DD HH:mm:ss') + ' UTC.'"></span>
     </div>
 
     <div data-bind="if: $data">
         <div data-bind="attr: { id: Id }" class="statistics-pivot">
-
-            <div class="statistics-graph" id="statistics-graph-id"></div>
-            <div style="clear: both;"></div>
-
-            <div class="statistics-sidebar">
-
+            <div class="statistics-sidebar col-sm-2">
                 <form id="dimension-form">
-                    <table data-bind="foreach: Dimensions" class="statistics-dimensions-table">
-                        <tr>
-                            <td>
-                                <label data-bind="attr: { for: 'checkbox-' + Value }, text: DisplayName" />
-                            </td>
-                            <td>
-                                <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked }" class="dimension-checkbox" name="groupby" type="checkbox">
-                            </td>
-                        </tr>
+                    <table class="table borderless stats-table-control">
+                        <tbody data-bind="foreach: Dimensions">
+                            <tr>
+                                <td class="text-right">
+                                    <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked, 'aria-labelledby': DisplayName }" class="dimension-checkbox" name="groupby" type="checkbox">
+                                </td>
+                                <td class="text-left">
+                                    <label data-bind="attr: { for: 'checkbox-' + Value }, text: DisplayName" />
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </form>
-
             </div>
-
-            <div class="statistics-data">
-
-                <table data-bind="if: Table" class="pivot-table">
-                    <thead>
-                        <tr>
-                            <!-- ko foreach: Columns -->
+            <div class="col-sm-10 text-center" id="loading-placeholder">
+                <svg width='200px' height='200px' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="uil-default">
+                    <rect x="0" y="0" width="100" height="100" fill="none" class="bk">
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(0 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-1s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(30 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.9166666666666666s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(60 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.8333333333333334s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(90 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.75s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(120 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.6666666666666666s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(150 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.5833333333333334s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(180 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.5s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(210 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.4166666666666667s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(240 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.3333333333333333s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(270 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.25s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(300 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.16666666666666666s' repeatCount='indefinite' />
+                    </rect>
+                    <rect x='45' y='45' width='10' height='10' rx='10' ry='10' fill='#004880' transform='rotate(330 50 50) translate(0 -30)'>
+                        <animate attributeName='opacity' from='1' to='0' dur='1s' begin='-0.08333333333333333s' repeatCount='indefinite' />
+                    </rect>
+                </svg>
+            </div>
+            <div class="col-sm-10" id="stats-data-display">
+                <div class="stats-graph col-xs-12" id="statistics-graph-id"></div>
+                <div class="stats-table-data">
+                    <table data-bind="if: Table" class="pivot-table table">
+                        <thead>
+                            <tr>
+                                <!-- ko foreach: Columns -->
                                 <th data-bind="attr: { id: $data + '-column' }, text: $data" scope="col" class="dimension-column"></th>
-                            <!-- /ko -->
-                            <th scope="col">Downloads</th>
-                        </tr>
-                    </thead>
-                    <tbody data-bind="foreach: Table">
-                        <tr>
-
-                            <!-- ko foreach: $data -->
-                                <!-- ko if: $data -->
-                                    <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : '', rowspan: Rowspan > 1 ? Rowspan : null }" style="vertical-align:top">
-                                        <!-- ko if: Uri -->
-                                            <a data-bind="attr: { href: Uri }, text: Data"></a>
-                                        <!-- /ko -->
-                                        <!-- ko ifnot: Uri -->
-                                            <span data-bind="text: Data"></span>
-                                        <!-- /ko -->
-                                    </td>
                                 <!-- /ko -->
-                            <!-- /ko -->
+                                <th scope="col">Downloads</th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: Table">
+                            <tr data-bind="attr: { class: $index() > 6 ? 'hidden-row collapse' : '' }">
+                                <!-- ko foreach: $data -->
+                                <!-- ko if: $data -->
+                                <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
+                                    <!-- ko if: Uri -->
+                                    <a data-bind="attr: { href: Uri }, text: Data"></a>
+                                    <!-- /ko -->
+                                    <!-- ko ifnot: Uri -->
+                                    <span data-bind="attr: { 'aria-label': Data }, text: Data" tabindex="0"></span>
+                                    <!-- /ko -->
+                                </td>
+                                <!-- /ko -->
+                                <!-- /ko -->
+                            </tr>
+                        </tbody>
 
-                        </tr>
+                    </table>
 
-                    </tbody>
-                </table>
-
+                    <!-- ko if: $data.reportSize > 6 -->
+                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target=".hidden-row"
+                            aria-expanded="false" id="show-hidden-row">
+                        <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
+                        <span>Show more</span>
+                    </button>
+                    <!-- /ko -->
+                </div>
             </div>
-            <div style="clear: both;"></div>
-
         </div>
     </div>
 

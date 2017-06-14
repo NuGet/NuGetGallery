@@ -1726,8 +1726,7 @@
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
     <Content Include="Public\Blocked.html" />
-    <Content Include="Scripts\d3.v3.js" />
-    <Content Include="Scripts\d3.v3.min.js" />
+    <Content Include="Scripts\gallery\d3.v3.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
     <EmbeddedResource Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.resx">
@@ -1907,10 +1906,10 @@
     <Content Include="Content\font\FontAwesome.otf" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="packages.config" />
-    <Content Include="Scripts\perpackagestatsgraphs.js" />
+    <Content Include="Scripts\gallery\stats-perpackagestatsgraphs.js" />
     <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\nugetgallery.js" />
-    <Content Include="Scripts\statsdimensions.js" />
+    <Content Include="Scripts\gallery\stats-dimensions.js" />
     <Content Include="Scripts\async-file-upload.js" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\gallery\**\*" />

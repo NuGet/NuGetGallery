@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -20,13 +21,11 @@ namespace NuGetGallery
             Constants.StatisticsDimensions.Version,
             Constants.StatisticsDimensions.ClientName,
             Constants.StatisticsDimensions.ClientVersion,
-            Constants.StatisticsDimensions.Operation
         };
 
-        private static readonly string[] PackageDownloadsDetailDimensions = new [] {
+        private static readonly string[] PackageDownloadsDetailDimensions = new[] {
             Constants.StatisticsDimensions.ClientName,
             Constants.StatisticsDimensions.ClientVersion,
-            Constants.StatisticsDimensions.Operation
         };
 
         public StatisticsController(IAggregateStatsService aggregateStatsService)
@@ -317,7 +316,23 @@ namespace NuGetGallery
                     }
                 }
 
-                report.Table = result.Item1;
+                // We do this here to try to order the result by the Version if available.
+                // Since Version might not be available, don't sort if it isn't.
+                // If Version is available, we need the following empty version rows to be moved with it (rowspan)
+                NuGetVersion prevVersion = null;
+                report.Table = result.Item1
+                    .Select(e =>
+                    {
+                        if (NuGetVersion.TryParse(e[0]?.Data, out NuGetVersion versionOut))
+                        {
+                            prevVersion = versionOut;
+                            return new { version = versionOut, e };
+                        }
+
+                        return new { version = prevVersion, e };
+                    })
+                    .OrderByDescending(e => e.version)
+                .Select(e => e.e).ToList();
                 report.Total = result.Item2;
                 report.Columns = pivot.Select(GetDimensionDisplayName);
             }

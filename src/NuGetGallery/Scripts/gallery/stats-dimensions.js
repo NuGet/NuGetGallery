@@ -1,12 +1,32 @@
 ﻿var renderGraph = function (baseUrl, query, clickedId) {
-    var renderGraphHandler = function (data) {
+    var renderGraphHandler = function (rawData) {
+        var data = JSON.parse(JSON.stringify(rawData));
+
+        $("#loading-placeholder").hide();
         // Populate the data table
-        ko.applyBindings({ report: data });
+        data['reportSize'] = data.Table.length;
+
+        $("#report").remove();
+
+        var reportContainerElement = document.createElement("div");
+        $(reportContainerElement).attr("id", "report");
+        $(reportContainerElement).attr("data-bind", "template: { name: 'report-template', data: report }");
+        $("#report-container").append(reportContainerElement);
+
+        ko.applyBindings({ report: data }, reportContainerElement);
         // Render the graph using the data table
-        packageDisplayGraphs();
+        packageDisplayGraphs(rawData);
+
+        window.nuget.configureExpander(
+            "hidden-row",
+            "CalculatorAddition",
+            "Show less",
+            "CalculatorSubtract",
+            "Show more");
 
         // Add the click handler to the checkboxes
         groupbyNavigation(baseUrl);
+
         // Set the focus to the checkbox that initiated this request
         if (clickedId) {
             $('#' + clickedId).focus();
@@ -20,6 +40,7 @@
         success: renderGraphHandler,
         error: function () {
             renderGraphHandler(null);
+            $("#loading-placeholder").hide();
 
             $('#statistics-retry').click(function () {
                 renderGraph(baseUrl, query);
@@ -30,6 +51,9 @@
 
 var groupbyNavigation = function (baseUrl) {
     $('.dimension-checkbox').click(function (event) {
+        var container = $("#stats-data-display").parent();
+        $("#stats-data-display").remove();
+        $("#loading-placeholder").show();
         var clickedId = event.target.id;
 
         var query = '';
@@ -44,6 +68,7 @@ var groupbyNavigation = function (baseUrl) {
             }
         });
 
+        history.replaceState({}, "", query);
         renderGraph(baseUrl, query, clickedId);
     });
 }
