@@ -314,12 +314,6 @@ The {1} Team</value>
   <data name="UploadPackage_InvalidNuspec" xml:space="preserve">
     <value>The NuGet package contains an invalid .nuspec file. The error encountered was: '{0}'. Correct the error and try again.</value>
   </data>
-  <data name="NuGetPackageReleaseVersionWithDot" xml:space="preserve">
-    <value>Package {0} invalid: no '.' allowed in the release label.</value>
-  </data>
-  <data name="NuGetPackageReleaseVersionContainsOnlyNumerics" xml:space="preserve">
-    <value>Package {0} invalid: the release label can not only contain numerics.</value>
-  </data>
   <data name="CopyExternalPackages_PackageFileBlobAlreadyExists" xml:space="preserve">
     <value>SKIPPED! Package file blob {0} already exists</value>
   </data>
@@ -448,5 +442,84 @@ The {1} Team</value>
   </data>
   <data name="SecurityPolicy_RequireMinClientVersionForPush" xml:space="preserve">
     <value>Your account requires client version '{0}' or higher to be able to push packages. Please contact support@nuget.org to get more details.</value>
+  </data>
+  <data name="PackageVersionDiffersOnlyByMetadataAndCannotBeModified" xml:space="preserve">
+    <value>Package versions that differ only by metadata cannot be uploaded. A package with ID '{0}' and version '{1}' already exists and cannot be modified.</value>
+  </data>
+  <data name="AddOwnerConfirmation" xml:space="preserve">
+    <value>Please confirm if you would like to proceed adding '{0}' as a co-owner of this package.</value>
+  </data>
+  <data name="AddOwner_CurrentUserNotFound" xml:space="preserve">
+    <value>Current user not found.</value>
+  </data>
+  <data name="AddOwner_NotPackageOwner" xml:space="preserve">
+    <value>You are not the package owner.</value>
+  </data>
+  <data name="AddOwner_OwnerNotConfirmed" xml:space="preserve">
+    <value>Sorry, '{0}' hasn't verified their email account yet and we cannot proceed with the request.</value>
+  </data>
+  <data name="AddOwner_OwnerNotFound" xml:space="preserve">
+    <value>Owner not found.</value>
+  </data>
+  <data name="AddOwner_PackageNotFound" xml:space="preserve">
+    <value>Package not found.</value>
+  </data>
+  <data name="SecurePushPolicyDescriptions" xml:space="preserve">
+    <value>1. All co-owners must use client version {0} or higher to push all of their packages.
+2. All existing push API keys for co-owners new to this policy will expire in {1} days.</value>
+  </data>
+  <data name="AddOwnerConfirmation_SecurePushRequiredByNewOwner" xml:space="preserve">
+    <value>User '{0}' has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:
+{1}
+Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{2}'.</value>
+  </data>
+  <data name="AddOwnerConfirmation_SecurePushRequiredByOwner" xml:space="preserve">
+    <value>Owner(s) '{0}' has (have) the following requirements that will be enforced for user '{1}' once the user accepts ownership of this package:
+{2}
+Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{3}'.</value>
+  </data>
+  <data name="AddOwnerConfirmation_SecurePushRequiredByPendingOwner" xml:space="preserve">
+    <value>Pending owner(s) '{0}' has (have) the following requirements that will be enforced for all co-owners, including '{1}', once ownership requests are accepted:
+{2}
+Note this step cannot be easily undone. If you are unsure and/or need more information, please contact '{3}'.</value>
+  </data>
+  <data name="AddOwnerNotification_SecurePushRequired_Propagators" xml:space="preserve">
+    <value>Owner(s) '{0}' has (have) the following requirements that are now enforced for co-owner(s) '{1}':
+
+{2}
+
+For more information, please contact '{3}'.</value>
+  </data>
+  <data name="AddOwnerRequest_SecurePushRequiredByNewOwner" xml:space="preserve">
+    <value>Note: The following policies will be enforced on package co-owners once you accept this request. If you are unsure and/or need more information, please contact '{0}'.
+
+{1}</value>
+  </data>
+  <data name="AddOwnerRequest_SecurePushRequiredByOwner" xml:space="preserve">
+    <value>Note: Owner(s) '{0}' has (have) the following policies that will be enforced on your account once you accept this request. If you are unsure and/or need more information, please contact '{1}'.
+
+{2}</value>
+  </data>
+  <data name="AddOwnerRequest_SecurePushRequiredByPendingOwner" xml:space="preserve">
+    <value>Note: Pending owner(s) '{0}' has (have) the following policies that will be enforced on your account once ownership requests are accepted. If you are unsure and/or need more information, please contact '{1}'.
+
+{2}</value>
+  </data>
+  <data name="AddOwnerNotification_SecurePushRequired_Subscribed" xml:space="preserve">
+    <value>Owner(s) '{0}' has (have) the following requirements that are now enforced for your account:
+
+{1}
+
+For more information, please contact '{2}'.</value>
+  </data>
+  <data name="DisplayPackage_SecurePushRequired" xml:space="preserve">
+    <value>Owner(s) '{0}' require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
+</value>
+  </data>
+  <data name="SecurePushPolicyDescriptionsHtml" xml:space="preserve">
+    <value>&lt;ol&gt;
+&lt;li&gt;All co-owners must use client version {0} or higher to push all of their packages.&lt;/li&gt;
+&lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
+&lt;/ol&gt;</value>
   </data>
 </root>

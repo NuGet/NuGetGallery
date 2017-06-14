@@ -439,7 +439,7 @@ namespace NuGetGallery
             return string.Format(
                 Constants.PackageFileSavePathTemplate,
                 id.ToLowerInvariant(),
-                NuGetVersionNormalizer.Normalize(version).ToLowerInvariant(), // No matter what ends up getting passed in, the version should be normalized
+                NuGetVersionFormatter.Normalize(version).ToLowerInvariant(), // No matter what ends up getting passed in, the version should be normalized
                 Constants.NuGetPackageFileExtension);
         }
 

@@ -27,7 +27,7 @@ namespace NuGetGallery
 
         public async Task<Package> ReflowAsync(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {

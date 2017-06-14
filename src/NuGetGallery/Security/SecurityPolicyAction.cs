@@ -6,6 +6,7 @@ namespace NuGetGallery.Security
     public enum SecurityPolicyAction
     {
         PackagePush,
-        PackageVerify
+        PackageVerify,
+        ManagePackageOwners
     }
 }

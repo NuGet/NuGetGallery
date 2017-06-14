@@ -22,8 +22,8 @@ namespace NuGetGallery.Controllers
                 "/api/v1/Packages");
 
             // Assert
-            AssertResultCorrect(resultSet);
-            Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
+            AssertSemVer2PackagesFilteredFromResult(resultSet);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
         }
 
         [Fact]
@@ -35,7 +35,7 @@ namespace NuGetGallery.Controllers
                 "/api/v1/Packages/$count");
 
             // Assert
-            Assert.Equal(NonSemVer2Packages.Count, count);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), count);
         }
 
         [Fact]
@@ -47,8 +47,8 @@ namespace NuGetGallery.Controllers
                 $"/api/v1/FindPackagesById?id='{TestPackageId}'");
 
             // Assert
-            AssertResultCorrect(resultSet);
-            Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
+            AssertSemVer2PackagesFilteredFromResult(resultSet);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
         }
 
         [Fact]
@@ -60,8 +60,8 @@ namespace NuGetGallery.Controllers
                 $"/api/v1/Search?searchTerm='{TestPackageId}'");
 
             // Assert
-            AssertResultCorrect(resultSet);
-            Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
+            AssertSemVer2PackagesFilteredFromResult(resultSet);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v1/Search/$count?searchTerm='{TestPackageId}'");
 
             // Assert
-            Assert.Equal(NonSemVer2Packages.Count, searchCount);
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), searchCount);
         }
 
         protected override ODataV1FeedController CreateController(IEntityRepository<Package> packagesRepository,
@@ -82,7 +82,7 @@ namespace NuGetGallery.Controllers
             return new ODataV1FeedController(packagesRepository, configurationService, searchService);
         }
 
-        private void AssertResultCorrect(IEnumerable<V1FeedPackage> resultSet)
+        private void AssertSemVer2PackagesFilteredFromResult(IEnumerable<V1FeedPackage> resultSet)
         {
             foreach (var feedPackage in resultSet)
             {

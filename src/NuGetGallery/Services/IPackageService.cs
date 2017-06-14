@@ -11,8 +11,26 @@ namespace NuGetGallery
     public interface IPackageService
     {
         PackageRegistration FindPackageRegistrationById(string id);
-        Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true);
-        Package FindAbsoluteLatestPackageById(string id);
+
+        /// <summary>
+        /// Gets the package with the given ID and version when exists;
+        /// otherwise gets the latest package version for the given package ID matching the provided constraints.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version if known; otherwise <c>null</c> to fallback to retrieve the latest version matching filter criteria.</param>
+        /// <param name="semVerLevelKey">The SemVer-level key that determines the SemVer filter to be applied.</param>
+        /// <param name="allowPrerelease"><c>True</c> indicating pre-release packages are allowed, otherwise <c>false</c>.</param>
+        /// <returns></returns>
+        Package FindPackageByIdAndVersion(string id, string version, int? semVerLevelKey = null, bool allowPrerelease = true);
+
+        /// <summary>
+        /// Gets the package with the given ID and version when exists; otherwise <c>null</c>.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        Package FindPackageByIdAndVersionStrict(string id, string version);
+
+        Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey);
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted);
         IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);
@@ -41,8 +59,24 @@ namespace NuGetGallery
         Task MarkPackageListedAsync(Package package, bool commitChanges = true);
 
         Task<PackageOwnerRequest> CreatePackageOwnerRequestAsync(PackageRegistration package, User currentOwner, User newOwner);
-        Task<ConfirmOwnershipResult> ConfirmPackageOwnerAsync(PackageRegistration package, User user, string token);
-        Task AddPackageOwnerAsync(PackageRegistration package, User user);
+        
+        /// <summary>
+        /// Checks if the pending owner has a request for this package which matches the specified token.
+        /// </summary>
+        /// <param name="package">Package associated with the request.</param>
+        /// <param name="pendingOwner">Pending owner for the request.</param>
+        /// <param name="token">Token generated for the owner request.</param>
+        /// <returns>True if valid, false otherwise.</returns>
+        bool IsValidPackageOwnerRequest(PackageRegistration package, User pendingOwner, string token);
+
+        /// <summary>
+        /// Performs database changes to add a new package owner while removing the corresponding package owner request.
+        /// </summary>
+        /// <param name="package">Package to which owner is added.</param>
+        /// <param name="newOwner">New owner to add.</param>
+        /// <returns>Awaitable task.</returns>
+        Task AddPackageOwnerAsync(PackageRegistration package, User newOwner);
+
         Task RemovePackageOwnerAsync(PackageRegistration package, User user);
 
         Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true);

@@ -28,7 +28,7 @@ namespace NuGetGallery.Packaging
             catch (Exception ex)
             {
                 nuspecReader = null;
-                return new [] { new ValidationResult(ex.Message) };
+                return new[] { new ValidationResult(ex.Message) };
             }
 
             return Enumerable.Empty<ValidationResult>();
@@ -59,7 +59,7 @@ namespace NuGetGallery.Packaging
             // Check and validate URL properties
             foreach (var result in CheckUrls(
                 packageMetadata.GetValueFromMetadata("IconUrl"),
-                packageMetadata.GetValueFromMetadata("ProjectUrl"), 
+                packageMetadata.GetValueFromMetadata("ProjectUrl"),
                 packageMetadata.GetValueFromMetadata("LicenseUrl")))
             {
                 yield return result;
@@ -76,7 +76,7 @@ namespace NuGetGallery.Packaging
                     version));
             }
 
-            var versionValidationResult = ValidateVersion(packageMetadata.Version);
+            var versionValidationResult = ValidateVersionForLegacyClients(packageMetadata.Version);
             if (versionValidationResult != null)
             {
                 yield return versionValidationResult;
@@ -143,17 +143,19 @@ namespace NuGetGallery.Packaging
                         // Versions
                         if (dependency.VersionRange.MinVersion != null)
                         {
-                            var versionRangeValidationResult = ValidateVersion(dependency.VersionRange.MinVersion);
+                            var versionRangeValidationResult =
+                                ValidateDependencyVersion(dependency.VersionRange.MinVersion);
                             if (versionRangeValidationResult != null)
                             {
                                 yield return versionRangeValidationResult;
                             }
                         }
 
-                        if (dependency.VersionRange.MaxVersion != null 
+                        if (dependency.VersionRange.MaxVersion != null
                             && dependency.VersionRange.MaxVersion != dependency.VersionRange.MinVersion)
                         {
-                            var versionRangeValidationResult = ValidateVersion(dependency.VersionRange.MaxVersion);
+                            var versionRangeValidationResult =
+                                ValidateDependencyVersion(dependency.VersionRange.MaxVersion);
                             if (versionRangeValidationResult != null)
                             {
                                 yield return versionRangeValidationResult;
@@ -164,16 +166,16 @@ namespace NuGetGallery.Packaging
             }
         }
 
-        private static ValidationResult ValidateVersion(NuGetVersion version)
+        /// <summary>
+        /// Checks whether the provided version is consumable by legacy 2.x clients,
+        /// which do not support a `.` in release labels, or release labels starting with numeric characters.
+        /// See also https://github.com/NuGet/NuGetGallery/issues/3226.
+        /// </summary>
+        /// <param name="version">The <see cref="NuGetVersion"/> to check for 2.x client compatibility.</param>
+        /// <returns>Returns a <see cref="ValidationResult"/> when non-compliant; otherwise <c>null</c>.</returns>
+        private static ValidationResult ValidateVersionForLegacyClients(NuGetVersion version)
         {
-            if (version.IsSemVer2)
-            {
-                return new ValidationResult(string.Format(
-                    CultureInfo.CurrentCulture,
-                    CoreStrings.Manifest_InvalidVersionSemVer200,
-                    version.ToFullString()));
-            }
-            else if (!version.IsValidVersionForLegacyClients())
+            if (!version.IsSemVer2 && !version.IsValidVersionForLegacyClients())
             {
                 return new ValidationResult(string.Format(
                     CultureInfo.CurrentCulture,
@@ -182,6 +184,19 @@ namespace NuGetGallery.Packaging
             }
 
             return null;
+        }
+
+        private static ValidationResult ValidateDependencyVersion(NuGetVersion version)
+        {
+            if (version.HasMetadata)
+            {
+                return new ValidationResult(string.Format(
+                    CultureInfo.CurrentCulture,
+                    CoreStrings.Manifest_InvalidDependencyVersion,
+                    version.ToFullString()));
+            }
+
+            return ValidateVersionForLegacyClients(version);
         }
 
         private static IEnumerable<ValidationResult> CheckUrls(params string[] urls)

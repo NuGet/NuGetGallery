@@ -40,7 +40,7 @@
             <p class="stat-label">@(Model.DownloadCount == 1 ? "Download" : "Downloads") of v @Model.Version</p>
         </div>
         <div class="stat">
-            <p class="stat-number" title="@Model.TotalDownloadCount.ToNuGetNumberString() @(Model.TotalDownloadCount == 1 ? "download" : "downloads") in @Model.TotalDaysSinceCreated @(Model.TotalDaysSinceCreated == 1 ? "day" : "days")">@(Model.DownloadsPerDay <= 1 ? "<1" : Model.DownloadsPerDay.ToNuGetNumberString())</p>
+            <p class="stat-number" title="@Model.TotalDownloadCount.ToNuGetNumberString() @(Model.TotalDownloadCount == 1 ? "download" : "downloads") in @Model.TotalDaysSinceCreated @(Model.TotalDaysSinceCreated == 1 ? "day" : "days")">@(Model.DownloadsPerDayLabel)</p>
             <p class="stat-label">Average downloads per day</p>
         </div>
         <div class="stat">
@@ -167,6 +167,10 @@
 
 }
 <div class="package-page">
+    @if (!string.IsNullOrEmpty(Model.PolicyMessage))
+    {
+        <p class="message warning">@Model.PolicyMessage</p>
+    }
     @if (Model.HasPendingMetadata)
     {
         using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
@@ -217,9 +221,17 @@
         </p>
     }
 
+    @if (Model.IsSemVer2)
+    {
+        <p class="message warning">
+            This package is only available for download with Visual Studio 2017 (version 15.3) and above or with NuGet client 4.3.0 and above.
+            Reach out to support if you have more questions.
+        </p>
+    }
+
     <div class="package-page-heading">
         <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
-        <h2>@Model.Version</h2>
+        <h2>@Model.FullVersion</h2>
     </div>
     @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
     {
@@ -256,7 +268,7 @@
             <p>
                 <code>
                     Install-Package @Model.Id
-                    @if (!Model.LatestVersion || !Model.Listed)
+                    @if (!Model.LatestVersionSemVer2 || !Model.Listed)
                     {
                         <text> -Version @Model.Version</text>
                     }
@@ -346,18 +358,18 @@
         <tbody>
             @foreach (var packageVersion in Model.PackageVersions)
             {
-                var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
-                var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
+                var rowClass = packageVersion.LatestStableVersionSemVer2 ? "recommended" : null;
+                var cellTitle = packageVersion.LatestStableVersionSemVer2 ? "Latest Stable Version" : null;
                 if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                 {
                     <tr class="versionTableRow @rowClass">
                         <td class="version" title="@cellTitle">
                             @if (!packageVersion.IsCurrent(Model))
                             {
-                                <a title="@packageVersion.Title @packageVersion.Version" href="@Url.Package(packageVersion) ">
+                                <a title="@packageVersion.Title @packageVersion.FullVersion" href="@Url.Package(packageVersion) ">
                                     @packageVersion.Title.Abbreviate(20)
                                     @packageVersion.Version
-                                    @if (packageVersion.LatestStableVersion)
+                                    @if (packageVersion.LatestStableVersionSemVer2)
                                     {
                                         @:(latest stable)
                                     }
@@ -365,7 +377,7 @@
                             }
                             else
                             {
-                                <a href="@Url.Package(packageVersion)" title="@packageVersion.Title @packageVersion.Version (this version)">
+                                <a href="@Url.Package(packageVersion)" title="@packageVersion.Title @packageVersion.FullVersion (this version)">
                                     @packageVersion.Title.Abbreviate(20) @packageVersion.Version (this version)
                                 </a>
                             }

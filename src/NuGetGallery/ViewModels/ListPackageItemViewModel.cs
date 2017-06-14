@@ -32,13 +32,15 @@ namespace NuGetGallery
         public string MinClientVersion { get; set; }
         public string ShortDescription { get; set; }
         public bool IsDescriptionTruncated { get; set; }
+        public string PolicyMessage { get; set; }
 
         public bool UseVersion
         {
             get
             {
                 // only use the version in URLs when necessary. This would happen when the latest version is not the same as the latest stable version.
-                return !(LatestVersion && LatestStableVersion);
+                return !(!IsSemVer2 && LatestVersion && LatestStableVersion) 
+                    && !(IsSemVer2 && LatestStableVersionSemVer2 && LatestVersionSemVer2);
             }
         }
 
