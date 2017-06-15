@@ -463,6 +463,11 @@ namespace NuGetGallery
                 new { controller = "Api", action = "StatusApi" });
 
             routes.MapRoute(
+                RouteName.GalleryStatus,
+                "api/gallery-status",
+                new { controller = "Api", action = "GalleryStatusApi" });
+
+            routes.MapRoute(
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
                 new { controller = "Api", action = "GetNuGetExeApi" });

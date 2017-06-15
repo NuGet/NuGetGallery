@@ -208,6 +208,13 @@ namespace NuGetGallery
             return await StatusService.GetStatus();
         }
 
+        [HttpGet]
+        [ActionName("GalleryStatusApi")]
+        public ActionResult GalleryStatus()
+        {
+            return new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Gallery is Available");
+        }
+
         [HttpPost]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
