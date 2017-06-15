@@ -32,7 +32,7 @@ namespace NuGetGallery.FunctionalTests
         private const string _manageMyPackagesUrlSuffix = "/account/Packages";
         private const string _aboutPageUrlSuffix = "policies/About";
         private const string _apiStatusUrlSuffix = "api/status";
-        private const string _apiGalleryStatusUrlSuffix = "api/gallery-status";
+        private const string _apiGalleryHealthProbeUrlSuffix = "api/gallery-status";
 
         public static string BaseUrl
         {
@@ -182,7 +182,7 @@ namespace NuGetGallery.FunctionalTests
 
         public static string ApiStatusPageUrl => BaseUrl + _apiStatusUrlSuffix;
 
-        public static string ApiGalleryStatusPageUrl => BaseUrl + _apiGalleryStatusUrlSuffix;
+        public static string ApiGalleryHealthProbeUrl => BaseUrl + _apiGalleryHealthProbeUrlSuffix;
 
         public static string GetPackagePageUrl(string packageId)
         {

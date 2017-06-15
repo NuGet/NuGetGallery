@@ -209,8 +209,8 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ActionName("GalleryStatusApi")]
-        public ActionResult GalleryStatus()
+        [ActionName("HealthProbeApi")]
+        public ActionResult HealthProbe()
         {
             return new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Gallery is Available");
         }

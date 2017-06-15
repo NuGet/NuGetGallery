@@ -28,7 +28,7 @@ namespace NuGetGallery.FunctionalTests.Security
 
         public static IEnumerable<object[]> UrlsExcludedFromRedirect => new[]
         {
-            new object[] { UrlHelper.ApiGalleryStatusPageUrl },
+            new object[] { UrlHelper.ApiGalleryHealthProbeUrl },
         };
 
         public static IEnumerable<object[]> GetForAllUrls()
