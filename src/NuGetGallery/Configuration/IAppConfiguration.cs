@@ -37,6 +37,7 @@ namespace NuGetGallery.Configuration
         /// A string containing a path exluded from
         /// forcing the HTTP to HTTPS redirection.
         /// </summary>
+        /// <example>/api/health-probe</example>
         string ForceSslExclusion { get; set; }
 
         /// <summary>

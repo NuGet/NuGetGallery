@@ -28,6 +28,10 @@ namespace NuGetGallery.Configuration
         [DefaultValue(443)]
         public int SSLPort { get; set; }
 
+        /// <summary>
+        /// A string containing a path exluded from
+        /// forcing the HTTP to HTTPS redirection.
+        /// </summary>
         [DefaultValue("")]
         public string ForceSslExclusion { get; set; }
 
