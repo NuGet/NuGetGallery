@@ -529,8 +529,14 @@
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
             }
             <p>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank"><img width="24" height="24" src="~/Content/gallery/img/facebook.png" alt="Share on Facebook" /></a>
-                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank"><img width="24" height="24" src="~/Content/gallery/img/twitter.png" alt="Tweet this package" /></a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank"><img
+                    width="24" height="24" alt="Share this package on Facebook"
+                    src="~/Content/gallery/img/facebook2.svg"
+                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) /></a>
+                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank"><img
+                    width="24" height="24" alt="Tweet this package"
+                    src="~/Content/gallery/img/twitter2.svg"
+                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) /></a>
             </p>
         </aside>
     </div>

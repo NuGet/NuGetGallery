@@ -1,54 +1,34 @@
 //== Theme Variables
-@panel-footer-height-xs: 620px;
-@panel-footer-height-sm: 480px;
-@panel-footer-height-md: 330px;
-@panel-footer-height: 330px;
 @panel-footer-color:  @navbar-inverse-color;
 
 //== Theme Definition
-html {
-  position: relative;
-  min-height: 100%;
+html, body {
+  width: 100%;
+  height: 100%;
 }
 
-.row-gap {
-  margin-top: 50px;
-}
+body {
+  display: table;
 
-.search-container {
-  padding-top: 16px;
-  padding-bottom: 16px;
-}
-
-.main-container {
-  padding-bottom: 75px;
-  
-  .page-subheading {
-    color: #777;
+  h1, h2, h3, p {
+    margin-bottom: 24px;
   }
-}
 
-.navbar-logo {
-  margin: 8px 20px 0 0;
+  h2, h3 {
+    margin-top: 40px;
+  }
 }
 
 .footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
   background-color: @panel-footer-bg;
   color: @panel-footer-color;
   font-size: 0.70em;
-  padding-top: 60px;
+  display: table-row;
+  height: 1px;
 
-  height: @panel-footer-height-xs;
-
-  @media (min-width: @screen-sm-min) {
-    height: @panel-footer-height-sm;
-  }
-
-  @media (min-width: @screen-md-min) {
-    height: @panel-footer-height-md;
+  .container {
+    margin-top: 50px;
+    margin-bottom: 50px;
   }
 
   a {
@@ -66,24 +46,26 @@ html {
   }
 }
 
-body {
-  margin-bottom: @panel-footer-height-xs;
+.row-gap {
+  margin-top: 50px;
+}
 
-  @media (min-width: @screen-sm-min) {
-    margin-bottom: @panel-footer-height-sm;
-  }
+.search-container {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
 
-  @media (min-width: @screen-md-min) {
-    margin-bottom: @panel-footer-height-md;
+.main-container {
+  padding-bottom: 75px;
+  height: auto;
+  
+  .page-subheading {
+    color: #777;
   }
+}
 
-  h1, h2, h3, p {
-    margin-bottom: 24px;
-  }
-
-  h2, h3 {
-    margin-top: 40px;
-  }
+.navbar-logo {
+  margin: 8px 20px 0 0;
 }
 
 .navbar-seperated {
