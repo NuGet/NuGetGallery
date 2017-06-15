@@ -20,7 +20,7 @@
     <meta property="og:url" content="@absolutePackageUrl" />
     <meta property="og:description" content="@Model.Description" />
     <meta property="og:determiner" content="a" />
-    <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.png"))" />
+    <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))" />
 }
 @section Meta {
     @if (!Model.Listed || Model.Deleted)
@@ -60,10 +60,9 @@
     <div class="row">
         <aside class="col-sm-1">
             <h3>
-                <img class="img-responsive"
-                     aria-hidden="true" alt=""
-                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))
-                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))" />
+                <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
             </h3>
         </aside>
         <article class="col-sm-8">

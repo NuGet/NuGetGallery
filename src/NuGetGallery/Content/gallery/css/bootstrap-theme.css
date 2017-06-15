@@ -124,6 +124,16 @@ body h3 {
   position: relative;
   top: 2px;
 }
+@media screen and (max-width: 768px) {
+  img.package-icon {
+    max-width: 60px;
+    max-height: 60px;
+  }
+}
+img.package-icon {
+  margin-right: auto;
+  margin-left: auto;
+}
 .list-packages {
   border-top: 1px solid #dbdbdb;
 }
@@ -132,16 +142,6 @@ body h3 {
   padding-bottom: 20px;
   font-size: 15px;
   border-bottom: 1px solid #dbdbdb;
-}
-@media screen and (max-width: 768px) {
-  .list-packages .package img {
-    max-width: 60px;
-    max-height: 60px;
-  }
-}
-.list-packages .package img {
-  margin-right: auto;
-  margin-left: auto;
 }
 .list-packages .package .package-header h2 {
   display: inline;

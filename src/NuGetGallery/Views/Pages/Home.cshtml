@@ -50,7 +50,9 @@
         </div>
         <div class="row row-gap">
             <div class="col-sm-4">
-                <img src="~/Content/gallery/img/upload-hero.png" alt="Cartoon image of a person lifting a package into the clouds" />
+                <img width="225" height="225" alt="Cartoon image of a person lifting a package into the clouds"
+                     src="~/Content/gallery/img/orange-circle.svg"
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/orange-circle-225x225.png")) />
                 <h3>Upload</h3>
                 <p>
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porttitor, neque id consectetur fringilla, odio
@@ -58,7 +60,9 @@
                 </p>
             </div>
             <div class="col-sm-4">
-                <img src="~/Content/gallery/img/download-hero.png" alt="Cartoon image a toolbox" />
+                <img width="225" height="225" alt="Cartoon image a toolbox"
+                     src="~/Content/gallery/img/blue-circle.svg"
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/blue-circle-225x225.png")) />
                 <h3>Download</h3>
                 <p>
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porttitor, neque id consectetur fringilla, odio
@@ -66,7 +70,9 @@
                 </p>
             </div>
             <div class="col-sm-4">
-                <img src="~/Content/gallery/img/contribute-hero.png" alt="Cartoon image of a person looking into the clouds with a telescope" />
+                <img width="225" height="225" alt="Cartoon image of a person looking into the clouds with a telescope"
+                     src="~/Content/gallery/img/purple-circle.svg"
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/purple-circle-225x225.png")) />
                 <h3>Contribute</h3>
                 <p>
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porttitor, neque id consectetur fringilla, odio

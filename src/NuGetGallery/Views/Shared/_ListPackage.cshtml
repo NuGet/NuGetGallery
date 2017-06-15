@@ -2,7 +2,9 @@
 
 <article class="row package" role="listitem">
     <div class="col-sm-1">
-        <img class="img-responsive" src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.png"))" alt="" onerror="this.src = '@Url.Absolute("~/Content/gallery/img/default-package-icon.png")';" aria-hidden="true" />
+        <img class="package-icon img-responsive" aria-hidden="true" alt=""
+             src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
     </div>
     <div class="col-sm-11">
         <div class="package-header">

@@ -33,7 +33,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
                 Strings.MicrosoftAccount_AccountNoun,
                 Strings.MicrosoftAccount_Caption)
             {
-                    IconImagePath = "~/Content/gallery/img/microsoft-account.png",
+                    IconImagePath = "~/Content/gallery/img/microsoft-account-24x24.png",
                     IconCssClass = "icon-windows"
             };
         }
