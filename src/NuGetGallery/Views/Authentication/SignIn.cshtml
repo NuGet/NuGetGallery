@@ -41,7 +41,8 @@
                     @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
                     {
                         <img height="24" width="24" alt="" aria-hidden="true"
-                             src="@Href(provider.UI.IconImagePath)" />
+                             src="@Href(provider.UI.IconImagePath)"
+                             @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty)) />
                     }
                     @provider.UI.SignInMessage
                 </a>
