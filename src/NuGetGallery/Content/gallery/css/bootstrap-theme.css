@@ -22,16 +22,40 @@ html {
   position: absolute;
   bottom: 0;
   width: 100%;
+  height: 620px;
   padding-top: 60px;
   font-size: .70em;
   color: #e3ebf1;
   background-color: #002440;
 }
+@media (min-width: 768px) {
+  .footer {
+    height: 480px;
+  }
+}
+@media (min-width: 992px) {
+  .footer {
+    height: 330px;
+  }
+}
 .footer a {
   color: #e3ebf1;
 }
+.footer .footer-dotnet-foundation {
+  float: left;
+  width: 48px;
+  margin-right: 15px;
+}
+.footer .footer-release-info {
+  float: left;
+}
 body {
-  margin-bottom: 520px;
+  margin-bottom: 620px;
+}
+@media (min-width: 768px) {
+  body {
+    margin-bottom: 480px;
+  }
 }
 @media (min-width: 992px) {
   body {
@@ -56,14 +80,6 @@ body h3 {
 }
 .navbar-seperated .seperator > span::after {
   content: " | ";
-}
-.footer {
-  height: 520px;
-}
-@media (min-width: 992px) {
-  .footer {
-    height: 330px;
-  }
 }
 .btn-search {
   height: 36px;
