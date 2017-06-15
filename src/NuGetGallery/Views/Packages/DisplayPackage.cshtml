@@ -530,11 +530,11 @@
             <p>
                 <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank"><img
                     width="24" height="24" alt="Share this package on Facebook"
-                    src="~/Content/gallery/img/facebook.svg"
+                    src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) /></a>
                 <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank"><img
                     width="24" height="24" alt="Tweet this package"
-                    src="~/Content/gallery/img/twitter.svg"
+                    src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) /></a>
             </p>
         </aside>
