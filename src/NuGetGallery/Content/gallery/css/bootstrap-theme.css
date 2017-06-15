@@ -110,6 +110,9 @@ body h3 {
   padding: 10px;
   margin: 0;
 }
+.alert-transient-jumbotron {
+  background-color: #004880;
+}
 .ms-Icon-ul {
   margin-left: 24px;
 }
@@ -133,6 +136,9 @@ body h3 {
 img.package-icon {
   margin-right: auto;
   margin-left: auto;
+}
+.icon-bar {
+  border: 1px solid #fff;
 }
 .list-packages {
   border-top: 1px solid #dbdbdb;
@@ -220,9 +226,13 @@ img.package-icon {
 .page-package-details .install-tabs ul {
   margin-left: 0;
 }
+.page-package-details .install-tabs .nav-tabs {
+  border: 0;
+}
 .page-package-details .install-tabs .nav-tabs > li {
   padding: 0;
   margin-right: 5px;
+  margin-bottom: 0;
 }
 .page-package-details .install-tabs .nav-tabs > li > a {
   padding: 5px 10px;
@@ -231,12 +241,6 @@ img.package-icon {
   background-color: #eaeaea;
   border: 0;
 }
-.page-package-details .install-tabs #package-manager .install-script span::before {
-  content: "PM> ";
-}
-.page-package-details .install-tabs #dotnet-cli .install-script span::before {
-  content: "> ";
-}
 .page-package-details .install-tabs .nav-tabs > li.active > a {
   color: #fff;
   background-color: #002440;
@@ -244,20 +248,36 @@ img.package-icon {
 }
 .page-package-details .install-tabs .tab-pane > div {
   display: table;
+  height: 1px;
 }
 .page-package-details .install-tabs .tab-pane .install-script {
   display: table-cell;
   width: 100%;
+  max-width: 1px;
   padding: 8px 10px;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  line-height: 1.5;
   color: #fff;
+  word-wrap: break-word;
   background-color: #002440;
+  border-color: #002440;
+  border-style: solid;
+  border-width: 1px 0 1px 1px;
 }
 .page-package-details .install-tabs .tab-pane .copy-button {
   display: table-cell;
 }
 .page-package-details .install-tabs .tab-pane .copy-button button {
-  height: 38px;
+  height: 100%;
+  min-height: 40px;
+  line-height: 1.5;
+  vertical-align: baseline;
+}
+.page-package-details .install-tabs #package-manager .install-script span::before {
+  content: "PM> ";
+}
+.page-package-details .install-tabs #dotnet-cli .install-script span::before {
+  content: "> ";
 }
 .page-downloads .list-tools li {
   margin-top: 20px;
@@ -281,6 +301,11 @@ img.package-icon {
   border-color: #fff transparent;
   border-style: solid;
   border-width: 7px 7px 0;
+}
+@media screen and (-ms-high-contrast: active) {
+  .page-home .triangle:after {
+    display: none;
+  }
 }
 .page-home .triangle-left:after {
   left: 30px;
