@@ -22,7 +22,7 @@ $(function () {
         "ChevronDown",
         "Dependencies");
     window.nuget.configureExpander(
-        "hidden-version",
+        "hidden-versions",
         "CalculatorAddition",
         "Show less",
         "CalculatorSubtract",

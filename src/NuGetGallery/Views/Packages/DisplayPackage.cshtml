@@ -221,13 +221,13 @@
                 if (Model.Dependencies.DependencySets.Any())
                 {
                     <h2>
-                        <a href="#" role="button" data-toggle="collapse" data-target=".dependency-groups"
-                           aria-expanded="false" id="show-dependency-groups">
+                        <a href="#" role="button" data-toggle="collapse" data-target="#dependency-groups"
+                           aria-expanded="false" aria-controls="dependency-groups" id="show-dependency-groups">
                             <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
                             <span>Dependencies</span>
                         </a>
                     </h2>
-                    <ul class="dependency-groups list-unstyled panel-collapse collapse">
+                    <ul class="list-unstyled panel-collapse collapse" id="dependency-groups">
                         @foreach (var dependencySet in Model.Dependencies.DependencySets)
                         {
                             var dependencySetTitle = dependencySet.Key;
@@ -264,13 +264,13 @@
             }
 
             <h2>
-                <a href="#" role="button" data-toggle="collapse" data-target=".version-history"
-                   aria-expanded="true" id="show-version-history">
+                <a href="#" role="button" data-toggle="collapse" data-target="#version-history"
+                   aria-expanded="true" aria-controls="version-history" id="show-version-history">
                     <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
                     <span>Version History</span>
                 </a>
             </h2>
-            <div class="version-history panel-collapse collapse in" aria-expanded="true">
+            <div class="version-history panel-collapse collapse in" aria-expanded="true" id="version-history">
                 <table class="table borderless">
                     <thead>
                         <tr>
@@ -290,7 +290,11 @@
                             if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                             {
                                 rowCount++;
-                                <tr class="@(rowCount >= 6 ? "hidden-version collapse" : "")">
+                                if(rowCount >=6)
+                                {
+                                    @:</tbody><tbody class="collapse" id="hidden-versions">
+                                }
+                                <tr>
                                     <td>
                                         @if (packageVersion.IsCurrent(Model))
                                         {
@@ -326,7 +330,11 @@
                             else if (packageVersion.Deleted)
                             {
                                 rowCount++;
-                                <tr class="deleted @(rowCount >= 6 ? "hidden-version collapse" : "")">
+                                if(rowCount >=6)
+                                {
+                                    @:</tbody><tbody class="collapse" id="hidden-versions">
+                                }
+                                <tr class="deleted">
                                     <td class="version">
                                         <s>@packageVersion.FullVersion</s> (deleted)
                                     </td>
@@ -344,8 +352,8 @@
                 </table>
                 @if (rowCount > 5)
                 {
-                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target=".hidden-version"
-                            aria-expanded="false" id="show-hidden-version">
+                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#hidden-versions"
+                            aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
                         <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
                         <span>Show more</span>
                     </button>

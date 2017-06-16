@@ -80,8 +80,25 @@
                                 <th scope="col">Downloads</th>
                             </tr>
                         </thead>
-                        <tbody data-bind="foreach: Table">
-                            <tr data-bind="attr: { class: $index() > 6 ? 'hidden-row collapse' : '' }">
+                        <tbody data-bind="foreach: ShownRows">
+                            <tr>
+                                <!-- ko foreach: $data -->
+                                <!-- ko if: $data -->
+                                <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
+                                    <!-- ko if: Uri -->
+                                    <a data-bind="attr: { href: Uri }, text: Data"></a>
+                                    <!-- /ko -->
+                                    <!-- ko ifnot: Uri -->
+                                    <span data-bind="attr: { 'aria-label': Data }, text: Data" tabindex="0"></span>
+                                    <!-- /ko -->
+                                </td>
+                                <!-- /ko -->
+                                <!-- /ko -->
+                            </tr>
+                        </tbody>
+
+                        <tbody data-bind="foreach: HiddenRows" class="collapse" id="hidden-rows">
+                            <tr>
                                 <!-- ko foreach: $data -->
                                 <!-- ko if: $data -->
                                 <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
@@ -100,8 +117,8 @@
                     </table>
 
                     <!-- ko if: $data.reportSize > 6 -->
-                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target=".hidden-row"
-                            aria-expanded="false" id="show-hidden-row">
+                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#hidden-rows"
+                            aria-expanded="false" aria-controls="hidden-rows" id="show-hidden-rows">
                         <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
                         <span>Show more</span>
                     </button>
