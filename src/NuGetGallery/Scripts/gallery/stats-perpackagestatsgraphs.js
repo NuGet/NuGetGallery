@@ -36,6 +36,10 @@ var drawDownloadsByVersionBarChart = function (rawData) {
     // we get descending order from server. Reverse so we can cut the right versions.
     data.reverse();
 
+    if (data.length < 1) {
+        return;
+    }
+
     //  limit the bar graph to the most recent 15 versions
     if (data.length > 15) {
         data = data.slice(data.length - 15, data.length);
@@ -152,6 +156,10 @@ var drawDownloadsByClientNameBarChart = function (rawData) {
 
     data.reverse();
 
+    if (data.length < 1) {
+        return;
+    }
+
     //  draw graph
 
     var reportGraphWidth = $('#statistics-graph-id').width();
@@ -232,7 +240,7 @@ var GetChartData = function (rawData, filter) {
         rawData.Table.forEach(function (dataPoint) {
             var item = {
                 label: dataPoint[0].Data,
-                downloads: parseInt(dataPoint[1].Data.replace(",", ""))
+                downloads: window.nuget.parseNumber(dataPoint[1].Data)
             };
 
             if (!filter(item)) {
