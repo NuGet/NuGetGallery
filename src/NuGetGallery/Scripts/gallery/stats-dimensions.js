@@ -4,7 +4,7 @@
 
         $("#loading-placeholder").hide();
         // Populate the data table
-        data['reportSize'] = data.Table != null? data.Table.length : 0;
+        data['reportSize'] = data.Table != null ? data.Table.length : 0;
 
         $("#report").remove();
 
