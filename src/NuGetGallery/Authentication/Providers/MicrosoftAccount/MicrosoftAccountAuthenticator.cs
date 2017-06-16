@@ -1,12 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
+
 using System.Web.Mvc;
-using Microsoft.Owin;
 using Microsoft.Owin.Security.MicrosoftAccount;
 using NuGetGallery.Configuration;
 using Owin;
@@ -33,8 +28,8 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
                 Strings.MicrosoftAccount_AccountNoun,
                 Strings.MicrosoftAccount_Caption)
             {
-                    IconImagePath = "~/Content/gallery/img/microsoft-account.png",
-                    IconCssClass = "icon-windows"
+                    IconImagePath = "~/Content/gallery/img/microsoft-account.svg",
+                    IconImageFallbackPath = "~/Content/gallery/img/microsoft-account-24x24.png",
             };
         }
 

@@ -196,7 +196,7 @@
     <value>User is not authorized</value>
   </data>
   <data name="MicrosoftAccount_SignInMessage" xml:space="preserve">
-    <value>Sign in with a Microsoft account</value>
+    <value>Sign in with Microsoft</value>
   </data>
   <data name="MissingRequiredConfigurationValue" xml:space="preserve">
     <value>Missing required configuration value: '{0}'</value>

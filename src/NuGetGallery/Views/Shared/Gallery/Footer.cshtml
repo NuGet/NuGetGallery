@@ -24,30 +24,29 @@
                 </p>
             </div>
         </div>
-        <div class="row row-gap">
-            <div class="col-sm-3">
-                <img alt="" aria-hidden="true" width="184" height="53"
+        <div class="row">
+            <div class="col-md-3 row-gap">
+                <img alt="" aria-hidden="true" width="184" height="55"
                      src="~/Content/gallery/img/logo.svg"
-                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-184x53.png"))/>
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-184x55.png")) />
             </div>
-            <div class="col-sm-9">
-                <div class="row">
-                    <div class="col-sm-1 text-right">
-                        <a href="https://www.dotnetfoundation.org"><img 
-                            width="32" height="30" alt=".NET Foundation website"
-                            src="~/Content/gallery/img/dotnet-foundation-32x30.png" /></a>
-                    </div>
-                    <div class="col-sm-11">
-                        <p>
-                            &copy; @DateTime.UtcNow.Year .NET Foundation -
-                            <a href="@Url.Action("Terms", "Pages")">Terms of Use</a> -
-                            <a href="@Url.Action("Privacy", "Pages")">Privacy Policy</a> -
-                            <a href="@Url.Action("About", "Pages")">About the Gallery</a>
-                            <br />
-                            Deployed using <a href="https://octopus.com/" target="referral">Octopus Deploy</a>
-                        </p>
-                        @ViewHelpers.ReleaseTag()
-                    </div>
+            <div class="col-md-9 row-gap">
+                <div class="text-right footer-dotnet-foundation">
+                    <a href="https://www.dotnetfoundation.org"><img 
+                        width="36" height="34" alt=".NET Foundation website"
+                        src="~/Content/gallery/img/dotnet-foundation.svg"
+                        @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/dotnet-foundation-36x34.png")) /></a>
+                </div>
+                <div class="footer-release-info">
+                    <p>
+                        &copy; @DateTime.UtcNow.Year .NET Foundation -
+                        <a href="@Url.Action("Terms", "Pages")">Terms of Use</a> -
+                        <a href="@Url.Action("Privacy", "Pages")">Privacy Policy</a> -
+                        <a href="@Url.Action("About", "Pages")">About the Gallery</a>
+                        <br />
+                        Deployed using <a href="https://octopus.com/" target="referral">Octopus Deploy</a>
+                    </p>
+                    @ViewHelpers.ReleaseTag()
                 </div>
             </div>
         </div>

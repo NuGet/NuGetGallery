@@ -39,8 +39,10 @@
                    href="@Url.Action("Authenticate", new {provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey]})">
                     @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
                     {
-                        <img height="24" width="24" al="" aria-hidden="true"
-                             src="@Href(provider.UI.IconImagePath)" />
+                        <img height="24" width="24" alt="" aria-hidden="true"
+                             src="@Href(provider.UI.IconImagePath)"
+                             @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString) ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty))
+                             />
                     }
                     Register with @accountNoun
                 </a>
