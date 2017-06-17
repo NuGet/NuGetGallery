@@ -1,11 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -17,17 +21,23 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
+        private readonly IAppConfiguration _appConfiguration;
+        private readonly ISecurityPolicyService _policyService;
 
         public JsonApiController(
             IPackageService packageService,
             IUserService userService,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
-            IMessageService messageService)
+            IMessageService messageService,
+            IAppConfiguration appConfiguration,
+            ISecurityPolicyService policyService)
         {
             _packageService = packageService;
             _userService = userService;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _messageService = messageService;
+            _appConfiguration = appConfiguration;
+            _policyService = policyService;
         }
 
         [HttpGet]
@@ -36,7 +46,7 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(new { message = "Package not found" });
+                return Json(new { message = Strings.AddOwner_PackageNotFound });
             }
 
             if (!package.IsOwner(HttpContext.User))
@@ -59,71 +69,209 @@ namespace NuGetGallery
             return Json(owners.Union(pending), JsonRequestBehavior.AllowGet);
         }
 
+        [HttpGet]
+        public virtual ActionResult GetAddPackageOwnerConfirmation(string id, string username)
+        {
+            ManagePackageOwnerModel model;
+            if (TryGetManagePackageOwnerModel(id, username, out model))
+            {
+                return Json(new {
+                    success = true,
+                    confirmation = string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerConfirmation, username),
+                    policyMessage = GetNoticeOfPoliciesRequiredConfirmation(model.Package, model.User, model.CurrentUser)
+                },
+                JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(new { success = false, message = model.Error }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         [HttpPost]
         public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
         {
-            message = HttpUtility.HtmlEncode(message);
-
-            var package = _packageService.FindPackageRegistrationById(id);
-            if (package == null)
+            ManagePackageOwnerModel model;
+            if (TryGetManagePackageOwnerModel(id, username, out model))
             {
-                return Json(new { success = false, message = "Package not found." });
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return Json(new { success = false, message = "You are not the package owner." });
-            }
-            var user = _userService.FindByUsername(username);
-            if (user == null)
-            {
-                return Json(new { success = false, message = "Owner not found." });
-            }
-            if (!user.Confirmed)
-            {
-                return Json(new { success = false, message = string.Format(CultureInfo.InvariantCulture, "Sorry, {0} hasn't verified their email account yet and we cannot proceed with the request.", username) });
-            }
+                var encodedMessage = HttpUtility.HtmlEncode(message);
+                var ownerRequest = await _packageService.CreatePackageOwnerRequestAsync(
+                    model.Package, model.CurrentUser, model.User);
+                var confirmationUrl = Url.ConfirmationUrl(
+                    "ConfirmOwner",
+                    "Packages",
+                    model.User.Username,
+                    ownerRequest.ConfirmationCode,
+                    new { id = model.Package.Id });
+                var packageUrl = Url.Package(model.Package.Id, null, scheme: "http");
+                var policyMessage = GetNoticeOfPoliciesRequiredMessage(model.Package, model.User, model.CurrentUser);
 
-            var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
-            var ownerRequest = await _packageService.CreatePackageOwnerRequestAsync(package, currentUser, user);
+                _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
+                    confirmationUrl, encodedMessage, policyMessage);
 
-            var confirmationUrl = Url.ConfirmationUrl(
-                "ConfirmOwner",
-                "Packages",
-                user.Username,
-                ownerRequest.ConfirmationCode,
-                new { id = package.Id });
-            _messageService.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl, message);
-
-            return Json(new { success = true, name = user.Username, pending = true });
+                return Json(new { success = true, name = model.User.Username, pending = true });
+            }
+            else
+            {
+                return Json(new { success = false, message = model.Error }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         [HttpPost]
         public async Task<JsonResult> RemovePackageOwner(string id, string username)
         {
+            ManagePackageOwnerModel model;
+            if (TryGetManagePackageOwnerModel(id, username, out model))
+            {
+                await _packageService.RemovePackageOwnerAsync(model.Package, model.User);
+
+                _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
+
+                return Json(new { success = true });
+            }
+            else
+            {
+                return Json(new { success = false, message = model.Error }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// UI confirmation message for adding owner from ManageOwners.cshtml
+        /// </summary>
+        private string GetNoticeOfPoliciesRequiredConfirmation(PackageRegistration package, User user, User currentUser)
+        {
+            if (IsFirstPropagatingOwner(package, user))
+            {
+                return string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddOwnerConfirmation_SecurePushRequiredByNewOwner,
+                    user.Username, GetSecurePushPolicyDescriptions(), _appConfiguration.GalleryOwner.Address);
+            }
+            else if (!_policyService.IsSubscribed(user, SecurePushSubscription.Name))
+            {
+                IEnumerable<string> propagating = null;
+                if ((propagating = GetPropagatingOwners(package)).Any())
+                {
+                    var propagators = string.Join(", ", propagating);
+                    return string.Format(CultureInfo.CurrentCulture,
+                        Strings.AddOwnerConfirmation_SecurePushRequiredByOwner,
+                        propagators, user.Username, GetSecurePushPolicyDescriptions(), _appConfiguration.GalleryOwner.Address);
+                }
+                else if ((propagating = GetPendingPropagatingOwners(package)).Any())
+                {
+                    var propagators = string.Join(", ", propagating);
+                    return string.Format(CultureInfo.CurrentCulture,
+                        Strings.AddOwnerConfirmation_SecurePushRequiredByPendingOwner,
+                        propagators, user.Username, GetSecurePushPolicyDescriptions(), _appConfiguration.GalleryOwner.Address);
+                }
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Policy message for the package owner request notification.
+        /// </summary>
+        private string GetNoticeOfPoliciesRequiredMessage(PackageRegistration package, User user, User currentUser)
+        {
+            IEnumerable<string> propagating = null;
+
+            if (IsFirstPropagatingOwner(package, user))
+            {
+                return string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddOwnerRequest_SecurePushRequiredByNewOwner,
+                    _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
+            }
+            else if (!_policyService.IsSubscribed(user, SecurePushSubscription.Name))
+            {
+                if ((propagating = GetPropagatingOwners(package)).Any())
+                {
+                    var propagators = string.Join(", ", propagating);
+                    return string.Format(CultureInfo.CurrentCulture,
+                        Strings.AddOwnerRequest_SecurePushRequiredByOwner,
+                        propagators, _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
+                }
+                else if ((propagating = GetPendingPropagatingOwners(package)).Any())
+                {
+                    var propagators = string.Join(", ", propagating);
+                    return string.Format(CultureInfo.CurrentCulture,
+                        Strings.AddOwnerRequest_SecurePushRequiredByPendingOwner,
+                        propagators, _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private bool IsFirstPropagatingOwner(PackageRegistration package, User user)
+        {
+            return RequireSecurePushForCoOwnersPolicy.IsSubscribed(user) &&
+                !package.Owners.Any(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
+        }
+
+        private IEnumerable<string> GetPropagatingOwners(PackageRegistration package)
+        {
+            return package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed).Select(o => o.Username);
+        }
+
+        private IEnumerable<string> GetPendingPropagatingOwners(PackageRegistration package)
+        {
+            return _packageOwnerRequestRepository.GetAll()
+                .Where(po => po.PackageRegistrationKey == package.Key)
+                .Select(po => po.NewOwner)
+                .Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed)
+                .Select(po => po.Username);
+        }
+
+        private string GetSecurePushPolicyDescriptions()
+        {
+            return string.Format(CultureInfo.CurrentCulture, Strings.SecurePushPolicyDescriptionsHtml,
+                SecurePushSubscription.MinClientVersion, SecurePushSubscription.PushKeysExpirationInDays);
+        }
+
+        private bool TryGetManagePackageOwnerModel(string id, string username, out ManagePackageOwnerModel model)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException(nameof(id));
+            }
+            if (string.IsNullOrEmpty(username))
+            {
+                throw new ArgumentException(nameof(username));
+            }
+            
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {
-                return Json(new { success = false, message = "Package not found" });
+                model = new ManagePackageOwnerModel(Strings.AddOwner_PackageNotFound);
+                return false;
             }
             if (!package.IsOwner(HttpContext.User))
             {
-                return Json(new { success = false, message = "You are not the package owner." });
+                model = new ManagePackageOwnerModel(Strings.AddOwner_NotPackageOwner);
+                return false;
             }
+
             var user = _userService.FindByUsername(username);
             if (user == null)
             {
-                return Json(new { success = false, message = "Owner not found" });
+                model = new ManagePackageOwnerModel(Strings.AddOwner_OwnerNotFound);
+                return false;
             }
+            if (!user.Confirmed)
+            {
+                model = new ManagePackageOwnerModel(
+                    string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_OwnerNotConfirmed, username));
+                return false;
+            }
+
             var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
             if (currentUser == null)
             {
-                return Json(new { success = false, message = "Current user not found" });
+                model = new ManagePackageOwnerModel(Strings.AddOwner_CurrentUserNotFound);
+                return false;
             }
 
-            await _packageService.RemovePackageOwnerAsync(package, user);
-            _messageService.SendPackageOwnerRemovedNotice(currentUser, user, package);
-
-            return Json(new { success = true });
+            model = new ManagePackageOwnerModel(package, user, currentUser);
+            return true;
         }
 
         public class OwnerModel
@@ -131,6 +279,26 @@ namespace NuGetGallery
             public string name { get; set; }
             public bool current { get; set; }
             public bool pending { get; set; }
+        }
+
+        private class ManagePackageOwnerModel
+        {
+            public ManagePackageOwnerModel(string error)
+            {
+                Error = error;
+            }
+
+            public ManagePackageOwnerModel(PackageRegistration package, User user, User currentUser)
+            {
+                Package = package;
+                User = user;
+                CurrentUser = currentUser;
+            }
+
+            public PackageRegistration Package { get; }
+            public User User { get; }
+            public User CurrentUser { get; }
+            public string Error { get; }
         }
     }
 }

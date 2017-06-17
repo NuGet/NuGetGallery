@@ -6,62 +6,62 @@
 
 <section>
     <article id="stage">
+
+        <div class="message" style="display: none" data-bind="text: message, visible: message"></div>
+
         <h2>User Security Policies</h2>
 
         <form>
             <textarea placeholder="Search for usernames (comma-separated)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
-            <input type="button" value="Search" data-bind="click: search" />
+            <input type="button" value="Search" title="Search" data-bind="click: search" />
         </form><br />
 
-        @using (Html.BeginForm("Update", "SecurityPolicy", new { area = "Admin" }, FormMethod.Post, new { id = "delete-form" }))
-        {
             <div data-bind="visible: searchResults().length > 0">
-                <input type="hidden" name="UsersQuery" data-bind="value: searchQuery" />
-
+                
                 <div class="message warning" style="display: none;" data-bind="visible: searchNotFoundResults().length > 0">
                     <strong>The following users were not found:</strong><br />
                     <span data-bind="text: searchNotFoundResults().join(',')"></span>
                 </div>
+                
+                @using (Html.BeginForm())
+                {
+                    <div>
+                        <table id="searchResults" class="sexy-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    @foreach (var subscription in Model.SubscriptionNames)
+                                    {
+                                        <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState.@subscription" />@subscription</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody id="policies" data-bind="foreach: searchResults">
+                                <tr>
+                                    <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateUserUrl($data) }"></a></td>
+                                    @foreach (var subscription in Model.SubscriptionNames)
+                                    {
+                                        <td><input type="checkbox" data-bind="checked: $data.Selected.@subscription, value: $parent.generateValue($data, '@subscription')" /></td>
+                                    }
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                <div>
-                    <table id="searchResults" class="sexy-table">
-                        <thead>
-                            <tr>
-                                <th>Username</th>
-                                @foreach (var subscription in Model.SubscriptionNames)
-                                {
-                                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState.@subscription" />@subscription</th>
-                                }
-                            </tr>
-                        </thead>
-                        <tbody data-bind="foreach: searchResults">
-                            <tr>
-                                <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateUserUrl($data) }"></a></td>
-                                @foreach (var subscription in Model.SubscriptionNames)
-                                {
-                                    <td><input type="checkbox" name="UserSubscriptions[]" data-bind="checked: $data.Selected.@subscription, value: $parent.generateValue($data, '@subscription')" /></td>
-                                }
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="danger-zone" style="display: none;" data-bind="visible: changeTracker">
+                    <div class="danger-zone" style="display: none;" data-bind="visible: changeTracker">
                     
-                <fieldset id="unlist-form" class="form">
-                    @Html.AntiForgeryToken()
+                    <fieldset id="update-form" class="form">
+                        <p>
+                            Onboarding users to security policy subscriptions could result in changes which <strong>CANNOT</strong> be undone.
+                        </p>
 
-                    <p>
-                        Onboarding users to security policy subscriptions could result in changes which <strong>CANNOT</strong> be undone.
-                    </p>
-
-                    <input type="submit" value="I understand, update security policies." title="I understand, update security policies." />
-                    <a class="cancel" href="@Url.Action("Index", "Home")" title="Cancel changes">Cancel</a>
-                    </fieldset>
-                </div>
+                        <input type="submit" value="I understand, update policies." title="I understand, update policies." data-bind="click: update"  />
+                        <a class="cancel" href="@Url.Action("Index", "Home")" title="Cancel changes">Cancel</a>
+                        </fieldset>
+                    </div>
+                }
 
             </div>
-        }
 </article>
 </section>
 
@@ -72,63 +72,88 @@
             var viewModel = function () {
                 var $self = this;
 
-                this.subscriptions = @Html.Raw(Json.Encode(@Model.SubscriptionNames));
+                this.message = ko.observable('');
+
+                this.currentSubscription;
+                this.subscriptionNames = @Html.Raw(Json.Encode(@Model.SubscriptionNames));
                 this.searchQuery = ko.observable('');
 
+                this.update = function () {
+                    var subscriptions = [];
+                    $('#policies input:checkbox').each(function (i, checkbox) {
+                        subscriptions.push(checkbox.value);
+                    });
+                    
+                    $.ajax({
+                        url: '@Url.Action("Update", "SecurityPolicy", new { area = "Admin" })',
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: JSON.stringify(subscriptions),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            $self.changeTracker(false);
+                            $self.message("Security policies updated!");
+                        }
+                    })
+                    .error(function(jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    });
+                },
+
                 this.search = function () {
+                    $self.message("");
                     $.ajax({
                         url: '@Url.Action("Search", "SecurityPolicy", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
-                            cache: false,
-                            dataType: 'json',
-                            success: function (data) {
-                                $self.changeTracker(false);
-                                $self.resetSelectAllState();
-                                $self.searchResults.removeAll();
-                                $self.searchNotFoundResults.removeAll();
+                        cache: false,
+                        dataType: 'json',
+                        success: function (data) {
+                            $self.changeTracker(false);
+                            $self.resetSelectAllState();
+                            $self.searchResults.removeAll();
+                            $self.searchNotFoundResults.removeAll();
 
-                                for (var i = 0; i < data.Users.length; i++) {
-                                    var user = data.Users[i];
-                                    user.Selected = {};
-                                    for (var key in user.Subscriptions) {
-                                        user.Selected[key] = ko.observable(user.Subscriptions[key]);
-                                        user.Selected[key].subscribe($self.markDirty);
-                                    }
+                            for (var i = 0; i < data.Users.length; i++) {
+                                var user = data.Users[i];
+                                user.Selected = {};
+                                for (var key in user.Subscriptions) {
+                                    user.Selected[key] = ko.observable(user.Subscriptions[key]);
+                                    user.Selected[key].subscribe($self.markDirty);
                                 }
-
-                                $self.searchResults(data.Users);
-                                $self.searchNotFoundResults(data.UsersNotFound);
-                            },
-                            error: function (data) {
-                                alert("Error: " + errorThrown);
                             }
-                        })
-                        .error(function(jqXhr, textStatus, errorThrown) {
-                            alert("Error: " + errorThrown);
-                        });
+
+                            $self.searchResults(data.Users);
+                            $self.searchNotFoundResults(data.UsersNotFound);
+                        }
+                    })
+                    .error(function(jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    });
                 };
-                
+
                 this.selectAllState = {};
-                for (var i = 0; i < this.subscriptions.length; i++)
+                for (var i = 0; i < this.subscriptionNames.length; i++)
                 {
-                    var subscription = this.subscriptions[i];
+                    var subscription = this.subscriptionNames[i];
                     this.selectAllState[subscription] = ko.observable(false);
                 }
 
                 this.resetSelectAllState = function () {
-                    for (var i = 0; i < $self.subscriptions.length; i++)
+                    for (var i = 0; i < $self.subscriptionNames.length; i++)
                     {
-                        $self.selectAllState[$self.subscriptions[i]](false);
+                        var subscription = $self.subscriptionNames[i];
+                        $self.selectAllState[subscription](false);
                     }
                 }
-                
+
                 this.toggleSelectAll = function (data, e) {
-                    var subscription = e.currentTarget.nextSibling.data;
-                    $self.selectAllState[subscription](!$self.selectAllState[subscription]());
+                    $self.currentSubscription = e.currentTarget.nextSibling.data;
+                    $self.selectAllState[$self.currentSubscription](!$self.selectAllState[$self.currentSubscription]());
                     return true;
                 };
 
                 this.generateValue = function (user, subscription) {
-                    return JSON.stringify({ "u": user.Username, "g": subscription })
+                    return JSON.stringify({ "u": user.Username, "g": subscription, "v": user.Selected[subscription]() })
                 };
 
                 this.generateUserUrl = function (user) {
@@ -145,24 +170,19 @@
                     $self.changeTracker(true);
                 };
 
-                for (var i = 0; i < this.subscriptions.length; i++) {
+                for (var i = 0; i < this.subscriptionNames.length; i++) {
+                    var subscription = this.subscriptionNames[i];
                     this.selectAllState[subscription].subscribe(function () {
-                        var state = $self.selectAllState[subscription]();
+                        var state = $self.selectAllState[$self.currentSubscription]();
 
                         ko.utils.arrayForEach($self.searchResults(), function (result) {
-                            result.Selected[subscription](state);
+                            result.Selected[$self.currentSubscription](state);
                         });
                     });
                 }
             };
 
             ko.applyBindings(new viewModel(), $('#stage').get(0));
-
-            $('#delete-form').submit(function (e) {
-                if (!confirm('Are you sure you want to continue?')) {
-                    e.preventDefault();
-                }
-            });
         });
     </script>
 }

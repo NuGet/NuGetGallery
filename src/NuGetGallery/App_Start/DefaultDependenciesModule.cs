@@ -210,6 +210,9 @@ namespace NuGetGallery
             builder.RegisterType<SecurePushSubscription>()
                 .SingleInstance();
 
+            builder.RegisterType<RequireSecurePushForCoOwnersPolicy>()
+                .SingleInstance();
+
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                 {
