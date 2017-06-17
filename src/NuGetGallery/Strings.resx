@@ -313,6 +313,7 @@ The {1} Team</value>
   </data>
   <data name="UploadPackage_InvalidNuspec" xml:space="preserve">
     <value>The NuGet package contains an invalid .nuspec file. The error encountered was: '{0}'. Correct the error and try again.</value>
+  </data>
   <data name="CopyExternalPackages_PackageFileBlobAlreadyExists" xml:space="preserve">
     <value>SKIPPED! Package file blob {0} already exists</value>
   </data>

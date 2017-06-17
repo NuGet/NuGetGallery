@@ -570,14 +570,6 @@ namespace NuGetGallery
                             .Where(p => p.PackageRegistration.Id == id);
         }
 
-        private IQueryable<Package> GetPackagesByIdQueryable(string id)
-        {
-            return _packageRepository.GetAll()
-                            .Include(p => p.LicenseReports)
-                            .Include(p => p.PackageRegistration)
-                            .Where(p => p.PackageRegistration.Id == id);
-        }
-
         private PackageRegistration CreateOrGetPackageRegistration(User currentUser, PackageMetadata packageMetadata)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);

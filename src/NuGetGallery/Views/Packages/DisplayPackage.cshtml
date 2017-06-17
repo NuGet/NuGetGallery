@@ -78,6 +78,11 @@
                 <p>@line</p>
             }
 
+            @if (!string.IsNullOrEmpty(Model.PolicyMessage))
+            {
+                @ViewHelpers.AlertWarning(@<text>@Model.PolicyMessage</text>)
+            }
+
             @if (Model.HasPendingMetadata)
             {
                 using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
