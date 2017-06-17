@@ -93,13 +93,12 @@
 
 @if (TempData.ContainsKey("Message"))
 {
-    <div class="container alert-transient">
-        <div class="row">
-            <div class="col-sm-offset-2 col-sm-8">
-                @ViewHelpers.AlertInfo(
-                    @<text>
-                        @TempData["Message"]
-                    </text>)
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-offset-2 col-sm-8">
+                    @ViewHelpers.AlertInfo(@<text>@TempData["Message"]</text>)
+                </div>
             </div>
         </div>
     </div>

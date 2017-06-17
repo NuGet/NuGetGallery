@@ -56,16 +56,63 @@
       margin-left: 0;
     }
 
-    .nav-tabs > li {
-      margin-right: 5px;
-      padding: 0;
+    .nav-tabs  {
+      border: 0;
 
-      > a {
-        color: #000;
-        background-color: #eaeaea;
-        border: 0;
-        padding: 5px 10px;
-        margin: 0;
+      > li {
+        margin-right: 5px;
+        padding: 0;
+        margin-bottom: 0;
+
+        > a {
+          color: #000;
+          background-color: #eaeaea;
+          border: 0;
+          padding: 5px 10px;
+          margin: 0;
+        }
+      }
+    }
+
+    .nav-tabs > li.active > a {
+      background-color: @panel-footer-bg;
+      border: 0;
+      color: #fff;
+    }
+
+    .tab-pane {    
+      > div {
+        display: table;
+        height: 1px;
+      }
+
+      .install-script {
+        display: table-cell;
+        background-color: @panel-footer-bg;
+        font-family: @font-family-monospace;
+        color: #fff;
+        padding: 8px 10px;
+        width: 100%;
+        max-width: 1px;
+        word-wrap: break-word;
+        line-height: 1.5;
+
+        // Add a border with the same color as the background to support visual callout
+        // in high contrast mode (since borders are shown).
+        border-color: @panel-footer-bg;
+        border-style: solid;
+        border-width: 1px 0 1px 1px;        
+      }
+
+      .copy-button {
+        display: table-cell;
+
+        button {
+          height: 100%;
+          vertical-align: baseline;
+          min-height: 40px;
+          line-height: 1.5;
+        }
       }
     }
 
@@ -75,34 +122,6 @@
 
     #dotnet-cli .install-script span::before {
       content: "> ";
-    }
-
-    .nav-tabs > li.active > a {
-      background-color: #002440;
-      border: 0;
-      color: #fff;
-    }
-
-    .tab-pane {
-      > div {
-        display: table;
-      }
-
-      .install-script {
-        padding: 8px 10px;
-        display: table-cell;
-        width: 100%;
-        background-color: #002440;
-        font-family: @font-family-monospace;
-        color: #fff;
-      }
-
-      .copy-button {
-        display: table-cell;
-        button {
-          height: 38px;
-        }
-      }
     }
   }
 }

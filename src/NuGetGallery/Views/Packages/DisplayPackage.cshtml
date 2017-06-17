@@ -43,15 +43,17 @@
 {
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@id">
         <div>
-            <span class="install-script">
-                <span id="@id-text">@htmlContent(MvcHtmlString.Empty)</span>
-            </span>
-            <span class="copy-button">
+            <div class="install-script" id="@id-text">
+                <span>
+                    @htmlContent(MvcHtmlString.Empty)
+                </span>
+            </div>
+            <div class="copy-button">
                 <button id="@id-button" class="btn btn-default btn-warning" type="button"
                         data-toggle="popover" data-placement="bottom" data-content="Copied.">
                     <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                 </button>
-            </span>
+            </div>
         </div>
     </div>
 }
@@ -68,7 +70,7 @@
         <article class="col-sm-8">
             <h1 title="@Model.Title">
                 @Model.Title.Abbreviate(40)
-                <small>@Model.FullVersion</small>
+                <small class="text-nowrap">@Model.FullVersion</small>
             </h1>
 
             @foreach (var line in Model.Description.ToStringSafe().Split('\n'))

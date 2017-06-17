@@ -21,6 +21,12 @@
     width: 0;
   }
 
+  @media screen and (-ms-high-contrast: active) {
+    .triangle:after {
+      display: none;
+    }
+  }
+
   .triangle-left:after {
     left: 30px;
   }
