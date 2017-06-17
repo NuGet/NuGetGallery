@@ -3,6 +3,19 @@
 <div id="report-container">
 </div>
 
+<script type="text/html" id="rows-template">
+            <!-- ko if: $data -->
+            <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
+                <!-- ko if: Uri -->
+                <a data-bind="attr: { href: Uri }, text: Data"></a>
+                <!-- /ko -->
+                <!-- ko ifnot: Uri -->
+                <span data-bind="attr: { 'aria-label': Data }, text: Data" tabindex="0"></span>
+                <!-- /ko -->
+            </td>
+            <!-- /ko -->
+</script>
+
 <script type="text/html" id="report-template">
     <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-xs-12 page-subheading">
         <span data-bind="text: 'Statistics last updated at ' + moment(LastUpdatedUtc).format('YYYY-MM-DD HH:mm:ss') + ' UTC.'"></span>
@@ -81,48 +94,17 @@
                             </tr>
                         </thead>
                         <tbody data-bind="foreach: ShownRows">
-                            <tr>
-                                <!-- ko foreach: $data -->
-                                <!-- ko if: $data -->
-                                <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
-                                    <!-- ko if: Uri -->
-                                    <a data-bind="attr: { href: Uri }, text: Data"></a>
-                                    <!-- /ko -->
-                                    <!-- ko ifnot: Uri -->
-                                    <span data-bind="attr: { 'aria-label': Data }, text: Data" tabindex="0"></span>
-                                    <!-- /ko -->
-                                </td>
-                                <!-- /ko -->
-                                <!-- /ko -->
-                            </tr>
+                            <tr data-bind="template: { name: 'rows-template', foreach: $data}"></tr>
                         </tbody>
-
                         <tbody data-bind="foreach: HiddenRows" class="collapse" id="hidden-rows">
-                            <tr>
-                                <!-- ko foreach: $data -->
-                                <!-- ko if: $data -->
-                                <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
-                                    <!-- ko if: Uri -->
-                                    <a data-bind="attr: { href: Uri }, text: Data"></a>
-                                    <!-- /ko -->
-                                    <!-- ko ifnot: Uri -->
-                                    <span data-bind="attr: { 'aria-label': Data }, text: Data" tabindex="0"></span>
-                                    <!-- /ko -->
-                                </td>
-                                <!-- /ko -->
-                                <!-- /ko -->
-                            </tr>
                         </tbody>
 
                     </table>
-
-                    <!-- ko if: $data.reportSize > 6 -->
-                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#hidden-rows"
+                    <button data-bind="if: $data.reportSize > 6, click: $data.SetupHiddenRows" type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#hidden-rows"
                             aria-expanded="false" aria-controls="hidden-rows" id="show-hidden-rows">
                         <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
                         <span>Show more</span>
                     </button>
-                    <!-- /ko -->
                 </div>
             </div>
         </div>
