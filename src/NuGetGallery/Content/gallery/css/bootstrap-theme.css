@@ -30,13 +30,13 @@ body h3 {
 .footer a {
   color: #e3ebf1;
 }
-.footer .footer-dotnet-foundation {
-  float: left;
-  width: 48px;
-  margin-right: 15px;
-}
-.footer .footer-release-info {
-  float: left;
+@media (min-width: 992px) {
+  .footer .footer-dotnet-foundation-logo {
+    text-align: right;
+  }
+  .footer .footer-release-info {
+    padding-left: 0;
+  }
 }
 .row-gap {
   margin-top: 50px;

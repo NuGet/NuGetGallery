@@ -35,14 +35,14 @@ body {
     color: @panel-footer-color;
   }
 
-  .footer-dotnet-foundation {
-    width: 48px;
-    float: left;
-    margin-right: 15px;
-  }
+  @media (min-width: @screen-md-min) {
+    .footer-dotnet-foundation-logo {
+      text-align: right;
+    }
 
-  .footer-release-info {
-    float: left;
+    .footer-release-info {
+      padding-left: 0;
+    }
   }
 }
 
