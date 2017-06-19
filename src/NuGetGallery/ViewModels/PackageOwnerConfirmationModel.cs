@@ -4,8 +4,17 @@ namespace NuGetGallery
 {
     public class PackageOwnerConfirmationModel
     {
-        public ConfirmOwnershipResult Result { get; set; }
-        public string PackageId { get; set; }
-        public string Username { get; set; }
+        public PackageOwnerConfirmationModel(string packageId, string username, ConfirmOwnershipResult result)
+        {
+            Result = result;
+            PackageId = packageId;
+            Username = username;
+        }
+
+        public ConfirmOwnershipResult Result { get; }
+
+        public string PackageId { get; }
+
+        public string Username { get; }
     }
 }

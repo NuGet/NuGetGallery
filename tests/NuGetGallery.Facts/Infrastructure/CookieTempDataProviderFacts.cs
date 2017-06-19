@@ -35,6 +35,30 @@ namespace NuGetGallery.Infrastructure
                 Assert.Equal("How am I funny?", tempData["QUESTION"]);
             }
 
+
+            [Fact]
+            public void DoesNotThrowWhenKeyValuesFromCookieContainsNullKey()
+            {
+                var cookies = new HttpCookieCollection();
+                var cookie = new HttpCookie("__Controller::TempData");
+                cookie.HttpOnly = true;
+                cookies.Add(cookie);
+                cookie["message"] = "Say hello to my little friend";
+                cookie["question"] = "How am I funny?";
+                cookie[null] = "This should be ignored.";
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.Request.Cookies).Returns(cookies);
+                ITempDataProvider provider = new CookieTempDataProvider(httpContext.Object);
+                var controllerContext = new ControllerContext();
+
+                var tempData = provider.LoadTempData(controllerContext);
+
+                Assert.Equal(2, tempData.Count);
+                Assert.Equal("Say hello to my little friend", tempData["message"]);
+                Assert.Equal("How am I funny?", tempData["question"]);
+                Assert.Equal("How am I funny?", tempData["QUESTION"]);
+            }
+
             [Fact]
             public void WithNullCookieReturnsEmptyDictionary()
             {

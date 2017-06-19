@@ -16,7 +16,7 @@ namespace NuGetGallery.Security
     /// </summary>
     public class RequireMinClientVersionForPushPolicy : UserSecurityPolicyHandler
     {
-        public const string PolicyName = "RequireMinClientVersionForPushPolicy";
+        public const string PolicyName = nameof(RequireMinClientVersionForPushPolicy);
 
         public class State
         {
