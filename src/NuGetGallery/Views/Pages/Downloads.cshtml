@@ -48,14 +48,14 @@
         </div>
         <div class="col-md-4">
             <!-- ko foreach: artifacts -->
-            <!-- ko if: name == "visualstudio-2015-vsix" -->
+            <!-- ko if: name == "visualstudio-2017-vsix" -->
             <div data-bind="template: { name: 'tool-list-template', data: $data }"></div>
             <!-- /ko -->
             <!-- /ko -->
         </div>
         <div class="col-md-4">
             <!-- ko foreach: artifacts -->
-            <!-- ko if: name != "win-x86-commandline" && name != "visualstudio-2015-vsix" -->
+            <!-- ko if: name != "win-x86-commandline" && name != "visualstudio-2017-vsix" -->
             <div data-bind="template: { name: 'tool-list-template', data: $data }"></div>
             <!-- /ko -->
             <!-- /ko -->
