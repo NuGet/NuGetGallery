@@ -211,23 +211,19 @@
             @if (Model.HasSemVer2Version)
             {
                 <text>
-                    Warning: This package has a SemVer2 package version. <br />
-                    <span style="font-weight: normal; font-style:italic;">
-                        This package will only be available for download with SemVer2-compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3.0 and above.<br />
-                        Reach out to support if you have more questions.
-                    </span>
+                    Warning: This package has a SemVer 2.0.0 package version. <br />
                 </text>
             }
             else if (Model.HasSemVer2Dependency)
             {
                 <text>
-                    Warning: This package is considered a SemVer2 package as it has a package dependency declaring a SemVer2 version range.<br />
-                    <span style="font-weight: normal; font-style:italic;">
-                        This package will only be available for download with SemVer2-compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3.0 and above.<br />
-                        Reach out to support if you have more questions.
-                    </span>
+                    Warning: This package is considered a SemVer 2.0.0 package as it has a package dependency declaring a SemVer2 version range.<br />
                 </text>
             }
+            <span style="font-weight: normal; font-style:italic;">
+                This package will only be available for download with SemVer 2.0.0 compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3.0 and above.<br />
+                Reach out to support if you have more questions.
+            </span>
             <br />
             <br />
             <input id="verifyUploadSubmit" type="submit" value="Submit" title="Verify Details &amp; Submit" />
