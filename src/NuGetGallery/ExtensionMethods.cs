@@ -272,7 +272,8 @@ namespace NuGetGallery
         public static bool IsError<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression)
         {
             var metadata = ModelMetadata.FromLambdaExpression(expression, htmlHelper.ViewData);
-            var modelState = htmlHelper.ViewData.ModelState[metadata.PropertyName];
+            var name = htmlHelper.NameFor(expression).ToString();
+            var modelState = htmlHelper.ViewData.ModelState[name];
             return modelState != null && modelState.Errors != null && modelState.Errors.Count > 0;
         }
 

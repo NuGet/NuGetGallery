@@ -1,0 +1,97 @@
+﻿@model LogOnViewModel
+@{
+    ViewBag.Title = "Sign In";
+    ViewBag.Tab = "Sign in";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container page-sign-in">
+    <div class="row">
+        <div class="col-xs-12">
+            <h1 class="text-center">Link @Model.External.ProviderAccountNoun</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-offset-4 col-sm-4">
+            <p class="text-center">
+                @if (Model.External.FoundExistingUser)
+                {
+                    <text>
+                    We found an account with this email address. Sign in with your password to link with this account.
+                    Don't have a password? Sorry, you'll have to log in using an existing credential and
+                    set a password to associate a @Model.External.ProviderAccountNoun. If you're still having trouble, you can 
+                    <a href="mailto:@Config.Current.GalleryOwner.Address">contact support.</a>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    Looks like we don't recognize
+                    @if (String.IsNullOrEmpty(Model.External.AccountName))
+                    {
+                        @:this @Model.External.ProviderAccountNoun.
+                    }
+                    else
+                    {
+                        @:the @Model.External.ProviderAccountNoun '@Model.External.AccountName'.
+                    }
+                    Let's fix that.
+                    </text>
+                }
+            </p>
+        </div>
+    </div>
+    <div class="row @(Model.External.FoundExistingUser ? "hidden" : string.Empty)" id="choice-container">
+        <div class="col-sm-offset-4 col-sm-4">
+            <div class="form-group">
+                <a class="btn btn-primary btn-block" href="#" role="button" id="show-sign-in">Connect to an existing NuGet.org account</a>
+                <b class="or-row center-block text-center">OR</b>
+                <a class="btn btn-primary btn-block" href="#" role="button" id="show-register">Create a new NuGet.org account</a>
+            </div>
+        </div>
+    </div>
+    <div class="row @(Model.External.FoundExistingUser ? string.Empty : "hidden")" id="sign-in-container">
+        <div class="col-sm-offset-4 col-sm-4">
+            @Html.Partial("_SignIn", Model)
+        </div>
+    </div>
+    <div class="row hidden" id="register-container">
+        <div class="col-sm-offset-4 col-sm-4">
+            @Html.Partial("_Register", Model)
+        </div>
+    </div>
+</section>
+
+@section bottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            function setHidden(id, hidden) {
+                var $el = $('#' + id);
+                if (hidden) {
+                    $el.addClass('hidden');
+                    $el.attr('aria-hidden', 'true');
+                } else {
+                    $el.removeClass('hidden');
+                    $el.attr('aria-hidden', 'false');
+                }
+            }
+
+            $('#show-sign-in').click(function () {
+                setHidden('choice-container', true);
+                setHidden('sign-in-container', false);
+            });
+            $('#cancel-sign-in').click(function () {
+                setHidden('choice-container', false);
+                setHidden('sign-in-container', true);
+            });
+            $('#show-register').click(function () {
+                setHidden('choice-container', true);
+                setHidden('register-container', false);
+            });
+            $('#cancel-register').click(function () {
+                setHidden('choice-container', false);
+                setHidden('register-container', true);
+            });
+        });
+    </script>
+}

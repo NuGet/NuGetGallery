@@ -5,19 +5,18 @@ namespace NuGetGallery.Authentication.Providers
 {
     public class AuthenticatorUI
     {
-        public string SignInMessage { get; private set; }
-        public string AccountNoun { get; private set; }
-        public string Caption { get; private set; }
+        public string SignInMessage { get; }
+        public string RegisterMessage { get; }
+        public string AccountNoun { get; }
         public string IconImagePath { get; set; }
         public string IconImageFallbackPath { get; set; }
         public bool ShowOnLoginPage { get; set; }
-        public string SignInInfo { get; set; }
 
-        public AuthenticatorUI(string signInMessage, string accountNoun, string caption)
+        public AuthenticatorUI(string signInMessage, string registerMessage, string accountNoun)
         {
             SignInMessage = signInMessage;
+            RegisterMessage = registerMessage;
             AccountNoun = accountNoun;
-            Caption = caption;
 
             ShowOnLoginPage = true;
         }

@@ -2,437 +2,370 @@
 
 @{
     ViewBag.Title = "Edit Profile";
-    var credGroups = Model.Credentials.GroupBy(c => c.Kind).ToDictionary(g => g.Key, g => g.ToList());
-
-    var hasPassword = credGroups.ContainsKey(CredentialKind.Password);
-
-    var loginCredentials = hasPassword ? 1 : 0;
-    if (credGroups.ContainsKey(CredentialKind.External))
-    {
-        loginCredentials += credGroups[CredentialKind.External].Count;
-    }
-
-    var currentEmailAddress = CurrentUser.UnconfirmedEmailAddress ?? CurrentUser.EmailAddress;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<h1 class="page-heading">My NuGet.org Account</h1>
-
-@if (!string.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) && !string.IsNullOrEmpty(CurrentUser.EmailAddress))
+@helper Section(
+    string id,
+    Func<MvcHtmlString, HelperResult> title,
+    Func<MvcHtmlString, HelperResult> data,
+    Func<MvcHtmlString, HelperResult> content,
+    bool expanded = false)
 {
-    <p class="message">
-        You recently registered a new email address: <strong>@CurrentUser.UnconfirmedEmailAddress</strong><br />
-
-        @if (!string.IsNullOrEmpty(CurrentUser.EmailAddress))
-        {
-            <text>We will continue sending notification emails to your old verified email address (@CurrentUser.EmailAddress)
-            until you <a href="@Url.ConfirmationRequired()">verify your new email address.</a></text>
-        }
-        else
-        {
-            <text>We will only send you notification emails after you
-                <a href="@Url.ConfirmationRequired()">verify your email address.</a><br />
-            </text>
-        }
-    </p>
+    <div class="row">
+        <div class="col-sm-5">
+            <h2>
+                <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
+                   aria-expanded="@expanded" aria-controls="@id-container" id="show-@id-container">
+                    <i class="ms-Icon ms-Icon--@(expanded ? "ChevronDown" : "ChevronRight")" aria-hidden="@(!expanded)"></i>
+                    <span>@title(MvcHtmlString.Empty)</span>
+                </a>
+            </h2>
+        </div>
+        <div class="col-sm-7 form-section-data">
+            @data(MvcHtmlString.Empty)
+        </div>
+    </div>
+    <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)" id="@id-container">
+        <div class="panel-body">
+            @content(MvcHtmlString.Empty)
+        </div>
+    </div>
 }
 
-<text>
-    <a href="https://www.research.net/r/DRPXR92?nugetgallery_user=[@CurrentUser.Username]">What do you think about NuGet.org?</a><br /><br />
-</text>
+<section role="main" class="container main-container page-account-settings">
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <h1 class="text-center">Account Settings</h1>
+            <div class="text-center ms-font-xxl">
+                <a href="@Url.User(CurrentUser)">@CurrentUser.Username</a>
+            </div>
 
-@if (!CurrentUser.Confirmed)
-{
-    <p class="message">
-        Uploading packages or contacting package owners will require that you <a href="@Url.ConfirmationRequired()">confirm your account</a>. Why not get that out of the way now?
-    </p>
-}
+            <p>
+                <a href="https://www.research.net/r/DRPXR92?nugetgallery_user=[@CurrentUser.Username]">What do you think about NuGet.org?</a>
+            </p>
 
-<section>
-    <ul class="actionlist">
-        <li class="actionlist-item">
-            <a class="actionlist-item-link" href="@Url.UploadPackage()" aria-labelledby="upload-package-label" aria-describedby="upload-package-description">
-                <div class="actionlist-item-header">
-                    <i class="icon-cloud-upload actionlist-item-header-icon"></i>
-                    <span class="actionlist-item-header-text" id="upload-package-label">Upload a Package</span>
-                </div>
-                <p class="actionlist-item-content" id="upload-package-description">
-                    Upload and publish your package for other NuGet users to download and enjoy.
-                    You can upload multiple revisions of the same package, as long as the version
-                    is different.
-                </p>
-            </a>
-        </li>
+            @if (Model.HasUnconfirmedEmailAddress && Model.HasConfirmedEmailAddress)
+            {
+                @ViewHelpers.AlertInfo(@<text>
+                    You recently registered a new email address: <strong>@CurrentUser.UnconfirmedEmailAddress</strong><br />
 
-        <li class="actionlist-item">
-            <a class="actionlist-item-link" href="@Url.Action(actionName: "Packages", controllerName: "Users")" aria-labelledby="manage-my-packages-label" aria-describedby="manage-my-packages-description">
-                <div class="actionlist-item-header">
-                    <i class="icon-gears actionlist-item-header-icon"></i>
-                    <span class="actionlist-item-header-text" id="manage-my-packages-label">Manage my Packages</span>
-                </div>
-                <p class="actionlist-item-content" id="manage-my-packages-description">
-                    Edit package details or Remove packages that you have previously uploaded.
-                </p>
-            </a>
-        </li>
-    </ul>
+                    @if (Model.HasConfirmedEmailAddress)
+                    {
+                        <text>We will continue sending notification emails to your old verified email address (@CurrentUser.EmailAddress)
+                        until you <a href="@Url.ConfirmationRequired()">verify your new email address.</a></text>
+                    }
+                    else
+                    {
+                        <text>We will only send you notification emails after you
+                            <a href="@Url.ConfirmationRequired()">verify your email address.</a><br />
+                        </text>
+                    }
+                </text>)
+            }
+
+
+            @if (!CurrentUser.Confirmed)
+            {
+                @ViewHelpers.AlertInfo(@<text>
+                    Uploading packages or contacting package owners will require that you <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                    Why not get that out of the way now?
+                </text>)
+            }
+
+            @Section(
+                "change-email",
+                @<text>@(Model.HasUnconfirmedEmailAddress ? "Pending Email Address" : "Email Address")</text>,
+                @<text>@Model.CurrentEmailAddress</text>,
+                @<text>
+                    @if (Model.HasConfirmedEmailAddress && Model.HasUnconfirmedEmailAddress)
+                    {
+                        using (Html.BeginForm("CancelChangeEmail", "Users"))
+                        {
+                            <div class="row form-group">
+                                <div class="col-sm-6">
+                                    <input type="submit" class="btn btn-primary form-control" value="Reset to Confirmed Email Address" />
+                                </div>
+                                <div class="col-sm-6">
+                                    <a href="#" role="button" class="btn btn-default form-control" id="cancel-change-email">
+                                        Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        using (Html.BeginForm("ChangeEmail", "Users"))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            if (Model.HasPassword)
+                            {
+                                <div class="form-group @Html.HasErrorFor(m => m.ChangeEmail.Password)">
+                                    @Html.ShowLabelFor(m => m.ChangeEmail.Password)
+                                    @Html.ShowPasswordFor(m => m.ChangeEmail.Password)
+                                    @Html.ShowValidationMessagesFor(m => m.ChangeEmail.Password)
+                                </div>
+                            }
+                            <div class="form-group @Html.HasErrorFor(m => m.ChangeEmail.NewEmail)">
+                                @Html.ShowLabelFor(m => m.ChangeEmail.NewEmail)
+                                @Html.ShowTextBoxFor(m => m.ChangeEmail.NewEmail)
+                                @Html.ShowValidationMessagesFor(m => m.ChangeEmail.NewEmail)
+                            </div>
+
+                            <div class="row form-group">
+                                <div class="col-sm-6">
+                                    <input type="submit" class="btn btn-primary form-control" value="Save" />
+                                </div>
+                                <div class="col-sm-6">
+                                    <a href="#" role="button" class="btn btn-default form-control" id="cancel-change-email">
+                                        Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    }
+                </text>,
+                ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangeEmail")))
+
+            @Section(
+                "change-notifications",
+                @<text>Email Notifications</text>,
+                @<text>
+                    @(CurrentUser.EmailAllowed ? "Users can contact you" : "Users can not contact you") |
+                    @(CurrentUser.NotifyPackagePushed ? "Receiving package push notifications" : "Not receiving package push notifications")
+                </text>,
+                @<text>
+                    @using (Html.BeginRouteForm(RouteName.ChangeEmailSubscription))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="checkbox">
+                            <label for="CurrentUser_EmailAllowed">
+                                <input type="checkbox" name="emailAllowed" id="CurrentUser_EmailAllowed"
+                                       checked="@(CurrentUser.EmailAllowed)" value="true">
+                                <b>Users can contact me through the <em>Contact Owners form</em></b>
+                                <br />
+                                This subscription allows other registered users of the site to contact you
+                                about packages that you own using the <em>Contact Owners</em> form, or to request
+                                that you become an owner of their package. Unsubscribing means users cannot contact you for these reasons.
+                            </label>
+                        </div>
+
+                        <div class="checkbox">
+                            <label for="CurrentUser_NotifyPackagePushed">
+                                <input type="checkbox" name="notifyPackagePushed" id="CurrentUser_NotifyPackagePushed"
+                                       checked="@(CurrentUser.NotifyPackagePushed)" value="true">
+                                <b>Notify me when a package is pushed to @Config.Current.Brand using my account</b>
+                                <br />
+                                This subscription allows other registered users of the site to contact you
+                                about packages that you own using the <em>Contact Owners</em> form, or to request
+                                that you become an owner of their package. Unsubscribing means users cannot contact you for these reasons.
+                            </label>
+                        </div>
+
+                        <p>
+                            <strong>Note:</strong> We will always send important account management and security notices.
+                        </p>
+
+                        <div class="row form-group">
+                            <div class="col-sm-6">
+                                <input type="submit" class="btn btn-primary form-control" value="Save" />
+                            </div>
+                            <div class="col-sm-6">
+                                <a href="#" role="button" class="btn btn-default form-control" id="cancel-change-notifications">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </text>)
+
+            @if (Model.CredentialGroups.ContainsKey(CredentialKind.External))
+            {
+                foreach (var cred in Model.CredentialGroups[CredentialKind.External])
+                {
+                    @Section(
+                        "change-credential-" + cred.Key,
+                        @<text>@cred.TypeCaption</text>,
+                        @<text>@cred.Identity</text>,
+                        @<text>
+                            <p>You can use this @cred.AuthUI.AccountNoun to sign in to @(Config.Current.Brand).</p>
+
+                            @using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden(cred.Type)
+
+                                <div class="row form-group">
+                                    <div class="col-sm-6">
+                                        <button class="btn btn-danger btn-block" type="submit"
+                                                data-confirm="Are you sure you want to disassociate your @cred.AuthUI.AccountNoun? This is an irreversable action!">
+                                            Remove @cred.TypeCaption
+                                        </button>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <a href="#" role="button" class="btn btn-default btn-block" id="cancel-change-credential-@cred.Key">
+                                            Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </text>)
+                }
+            }
+
+            @Section(
+                "change-password",
+                @<text>Password Login</text>,
+                @<text><em>@(Model.HasPassword ? "(Enabled)" : "(Disabled)")</em></text>,
+                @<text>
+                    @using (Html.BeginForm("ChangePassword", "Users"))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ShowValidationMessagesFor(m => m.ChangePassword)
+
+                        if (Model.SignInCredentialCount > 1)
+                        {
+                            <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.EnablePasswordLogin)">
+                                @Html.ShowCheckboxFor(m => m.ChangePassword.EnablePasswordLogin)
+                                @Html.ShowLabelFor(m => m.ChangePassword.EnablePasswordLogin)
+                                @Html.ShowValidationMessagesFor(m => m.ChangePassword.EnablePasswordLogin)
+                            </div>
+                        }
+                        else
+                        {
+                            @Html.HiddenFor(m => m.ChangePassword.EnablePasswordLogin);
+                        }
+
+                        if (Model.HasPassword)
+                        {
+                            <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.OldPassword)">
+                                @Html.ShowLabelFor(m => m.ChangePassword.OldPassword)
+                                @Html.ShowPasswordFor(m => m.ChangePassword.OldPassword)
+                                @Html.ShowValidationMessagesFor(m => m.ChangePassword.OldPassword)
+                            </div>
+                            <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.NewPassword)">
+                                @Html.ShowLabelFor(m => m.ChangePassword.NewPassword)
+                                @Html.ShowPasswordFor(m => m.ChangePassword.NewPassword)
+                                @Html.ShowValidationMessagesFor(m => m.ChangePassword.NewPassword)
+                            </div>
+                            <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.VerifyPassword)">
+                                @Html.ShowLabelFor(m => m.ChangePassword.VerifyPassword)
+                                @Html.ShowPasswordFor(m => m.ChangePassword.VerifyPassword)
+                                @Html.ShowValidationMessagesFor(m => m.ChangePassword.VerifyPassword)
+                            </div>
+                        }
+                        else
+                        {
+                            <p>To enable password login, an email will be sent to '@(CurrentUser.EmailAddress ?? CurrentUser.UnconfirmedEmailAddress)'.</p>
+                        }
+
+                        <div class="row form-group">
+                            <div class="col-sm-6">
+                                <input type="submit" class="btn btn-primary form-control" value="@(Model.HasPassword ? "Save" : "Enable Password Login")" />
+                            </div>
+                            <div class="col-sm-6">
+                                <a href="#" role="button" class="btn btn-default form-control" id="cancel-change-password">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </text>,
+                ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangePassword")))
+
+            @Section(
+                "profile-picture",
+                @<text>Profile Picture @(Model.HasUnconfirmedEmailAddress ? "(preview)" : string.Empty)</text>,
+                @<text>@ViewHelpers.GravatarImage(Model.CurrentEmailAddress, CurrentUser.Username, 32)</text>,
+                @<text>
+                    @if (Model.HasUnconfirmedEmailAddress)
+                    {
+                        <p>
+                            This is a preview of how your profile picture will look once you have verified your
+                            current email address.
+                        </p>
+                    }
+
+                    We use your verified email address and
+                    <a href="http://www.gravatar.com" target="_blank">gravatar.com</a>
+                    to get your publicly visible profile picture.
+                    <a href="http://gravatar.com" target="_blank">Go to gravatar.com</a>
+                    to change your profile picture.
+                </text>)
+
+            @foreach (var curatedFeed in Model.CuratedFeeds)
+            {
+                @Section(
+                    "curated-feed-" + curatedFeed,
+                    @<text>Curated Feed</text>,
+                    @<text>@curatedFeed</text>,
+                    @<text>
+                        <div class="row form-group">
+                            <div class="col-sm-6">
+                                <a role="button" href="@Url.RouteUrl(RouteName.CuratedFeed, new {name = curatedFeed})"
+                                   class="btn btn-primary form-control">Manage</a>
+                            </div>
+                            <div class="col-sm-6">
+                                <a href="#" role="button" class="btn btn-default form-control" id="cancel-curated-feed-@curatedFeed">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </text>)
+            }
+        </div>
+    </div>
 </section>
 
-<ul id="account-accordion" class="accordion">
-    @**************************
-            Email Address
-    **************************@
-    @ViewHelpers.AccordionBar(
-        groupName: "editprofile",
-        page: this,
-        title: (string.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress) ? "Email Address" : "Pending Email Address"),
-        subtitle: currentEmailAddress,
-        enabled: string.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress),
-        formModelStatePrefix: "ChangeEmail",
-        actions: @<text>@item.ExpandButton("Change", "Cancel")
-                     @if (!String.IsNullOrEmpty(CurrentUser.EmailAddress) && !String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
-                     {
-                         using (Html.BeginForm("CancelChangeEmail", "Users", FormMethod.Post, new {@class = "form-inline"}))
-                         {
-                             <fieldset class="form">
-                                 <legend>Reset to Confirmed Email Address</legend>
-                                 @Html.AntiForgeryToken()
-                                 <button class="btn btn-inline" type="submit">Reset to Confirmed Email Address</button>
-                             </fieldset>
-                         }
-                     }
-                  </text>,
-        content: @<text>
-                     @using (Html.BeginForm("ChangeEmail", "Users", FormMethod.Post, new {@class = "form-inline"}))
-                     {
-                         <fieldset class="form">
-                             <legend>Change Email Address</legend>
-
-                             @Html.AntiForgeryToken()
-                             @Html.ValidationSummaryFor("ChangeEmail")
-
-                             <div class="form-field">
-                                 @Html.LabelFor(m => m.ChangeEmail.NewEmail)
-                                 @Html.TextBoxFor(m => m.ChangeEmail.NewEmail)
-                                 @Html.ValidationMessageFor(m => m.ChangeEmail.NewEmail)
-                             </div>
-
-                             @if (hasPassword)
-                             {
-                                 <div class="form-field">
-                                     @Html.LabelFor(m => m.ChangeEmail.Password)
-                                     @Html.PasswordFor(m => m.ChangeEmail.Password)
-                                     @Html.ValidationMessageFor(m => m.ChangeEmail.Password)
-                                 </div>
-                             }
-
-                             <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required."/>
-
-                             <input type="submit" value="Save" title="Change email address"/>
-                         </fieldset>
-                     }
-                  </text>)
-
-    @**************************
-        Email Notifications
-    **************************@
-    @ViewHelpers.AccordionBar(
-        groupName: "editprofile",
-        page: this,
-        title: "Email Notifications",
-        enabled: true,
-        actions: @<text>
-                     @(CurrentUser.EmailAllowed ? "Users can contact you" : "Users can not contact you")
-                     | @(CurrentUser.NotifyPackagePushed ? "Receiving package push notifications" : "Not receiving package push notifications")
-                     @item.ExpandButton("Change", "Cancel")
-                  </text>,
-        content: @<text>
-                     @using (Html.BeginRouteForm(routeName: RouteName.ChangeEmailSubscription, method: FormMethod.Post, htmlAttributes: new {@class = "form-inline"}))
-                     {
-                         <fieldset class="form">
-                             <legend>Update Email Notifications</legend>
-                             @Html.AntiForgeryToken()
-                             <div class="form-field">
-                                 <input name="emailAllowed" id="CurrentUser_EmailAllowed" type="checkbox" checked="@(CurrentUser.EmailAllowed)" value="true">
-                                 <label class="checkbox" for="CurrentUser_EmailAllowed">Users can contact me through the <em>Contact Owners form</em></label>
-                                 <p class="smaller">
-                                     This subscription allows other registered users of the site to contact you
-                                     about packages that you own using the <em>Contact Owners</em> form, or to request
-                                     that you become an owner of their package. Unsubscribing means users cannot contact you for these reasons.
-                                 </p>
-                             </div>
-                             <div class="form-field">
-                                 <input name="notifyPackagePushed" id="CurrentUser_NotifyPackagePushed" type="checkbox" checked="@(CurrentUser.NotifyPackagePushed)" value="true">
-                                 <label class="checkbox" for="CurrentUser_NotifyPackagePushed">Notify me when a package is pushed to @Config.Current.Brand using my account</label>
-                                 <p class="smaller">
-                                     This subscription will send a notification whenever a package is pushed using your account.
-                                     We recommend to enable this subscription so that you can inspect whether a package was pushed intentional or not.
-                                     Unsubscribing means no notification will be sent on push.
-                                 </p>
-                             </div>
-                             <input type="submit" value="Save" title="Save changes to email notifications"/>
-                         </fieldset>
-                     }
-
-                     <p>
-                         <br/> <strong>Note:</strong> We will <em>always</em> send important account management and security notices.
-                     </p>
-                  </text>)
-
-    @**************************
-        Profile Picture
-    **************************@
-    @ViewHelpers.AccordionBar(
-        groupName: "editprofile",
-        page: this,
-        title: @<text>
-                   Profile Picture
-                   @if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
-                   {
-                       @:(preview)
-                   }
-                </text>,
-        subtitle: @<text>@ViewHelpers.GravatarImage(currentEmailAddress, CurrentUser.Username, 32)</text>,
-        actions: @<text>@item.ExpandLink("More Info", "Less Info")</text>,
-        content: @<text>
-                     @if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
-                     {
-                         <text>This is a preview of how your profile picture will look once you have verified your
-                             current email address. </text>
-                     }
-                     We use your verified email address and
-                     <a href="http://www.gravatar.com" target="_blank">gravatar.com</a>
-                     to get your profile picture.
-                     <a href="http://gravatar.com" target="_blank">Go to gravatar.com</a>
-                     to change your profile picture.
-                  </text>)
-
-    @**************************
-        Curated Feeds
-    **************************@
-    @if (Model.CuratedFeeds.Any())
-    {
-        foreach (var curatedFeed in Model.CuratedFeeds)
-        {
-            @ViewHelpers.AccordionBar(
-                groupName: "editprofile",
-                page: this,
-                title: "Curated Feed",
-                subtitle: curatedFeed,
-                actions: @<text>
-                             <a class="btn btn-inline" href="@Url.RouteUrl(RouteName.CuratedFeed, new {name = curatedFeed})">
-                                 Manage
-                             </a>
-                          </text>)
-        }
-    }
-</ul>
-
-<h2>Credentials</h2>
-@if (hasPassword && credGroups.ContainsKey(CredentialKind.External) && credGroups[CredentialKind.External].Any())
-{
-    <p class="message">
-        Because you have an external account registered you can remove your password below and use
-        that account to sign in to @Config.Current.Brand. No more passwords to forget!
-    </p>
-}
-    
-<ul class="accordion">
-    @**************************
-            External Credentials
-        **************************@
-    @if (credGroups.ContainsKey(CredentialKind.External))
-    {
-        foreach (var cred in credGroups[CredentialKind.External])
-        {
-            @ViewHelpers.AccordionBar(
-                groupName: "editprofile",
-                page: this,
-                title: cred.TypeCaption,
-                subtitle: cred.Identity,
-                actions: @<text>
-                             @item.ExpandLink("More Info", "Less Info")
-                             @if (loginCredentials > 1)
-                             {
-                                 using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }, FormMethod.Post, new { @class = "form-inline" }))
-                                 {
-                                     <fieldset class="form">
-                                         <legend>Remove @cred.TypeCaption Credential</legend>
-                                         @Html.AntiForgeryToken()
-                                         @Html.Hidden(cred.Type)
-                                         <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disassociate your @cred.AuthUI.AccountNoun? This is an irreversable action!">Remove</button>
-                                     </fieldset>
-                                 }
-                             }
-                          </text>,
-                content: @<p>
-                             You can use this @cred.AuthUI.AccountNoun to sign in to @Config.Current.Brand
-                         </p>)
-        }
-    }
-
-    @**************************
-            Password
-    **************************@
-    @ViewHelpers.AccordionBar(
-        groupName: "editprofile",
-        page: this,
-        title: (hasPassword ? "Password Login" : "Password Login Disabled"),
-        enabled: hasPassword,
-        formModelStatePrefix: "ChangePassword",
-        actions: @<text>
-                     @if (hasPassword)
-                     {
-                         @item.ExpandButton("Change", "Cancel")
-                         if (loginCredentials > 1)
-                         {
-                             using (Html.BeginForm("RemovePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
-                             {
-                                 <fieldset class="form">
-                                     <legend>Disable Password Login</legend>
-                                     @Html.AntiForgeryToken()
-                                     <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disable password login and remove your password? This is an irreversable action!">Disable</button>
-                                 </fieldset>
-                             }
-                         }
-                     }
-                     else
-                     {
-                         using (Html.BeginForm("ChangePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
-                         {
-                             <fieldset class="form">
-                                 <legend>Enable Password Login</legend>
-                                 @Html.AntiForgeryToken()
-                                 <button class="btn btn-inline" type="submit">Enable</button>
-                             </fieldset>
-                         }
-                     }
-                  </text>,
-        content: @<text>
-                     @using (Html.BeginForm("ChangePassword", "Users"))
-                     {
-                         <fieldset id="account-changepassword-fieldset" class="form">
-                             <legend>Change Password Form</legend>
-                             <p>
-                                 Using this form, you can change your password for @(Config.Current.Brand).
-                             </p>
-                             @Html.AntiForgeryToken()
-                             @Html.ValidationSummaryFor("ChangePassword")
-                             <div class="form-field">
-                                 @Html.LabelFor(m => m.ChangePassword.OldPassword)
-                                 @Html.PasswordFor(m => m.ChangePassword.OldPassword)
-                                 @Html.ValidationMessageFor(m => m.ChangePassword.OldPassword)
-                             </div>
-                             <div class="form-field">
-                                 @Html.LabelFor(m => m.ChangePassword.NewPassword)
-                                 @Html.PasswordFor(m => m.ChangePassword.NewPassword)
-                                 @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
-                             </div>
-                             <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
-                             <input type="submit" value="Change" title="Change password" />
-                         </fieldset>
-                     }
-                  </text>)
-    @**************************
-            API Key
-    **************************@
-    
-    @Html.Partial("ApiKeys", Model)
-  
-</ul>
-
 @section bottomScripts {
-    <script>
-        function detectIE() {
-            var ua = window.navigator.userAgent;
-
-            var msie = ua.indexOf('MSIE ');
-            if (msie > 0) {
-                // IE 10 or older => return version number
-                return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+    <script type="text/javascript">
+        $(function () {
+            var configureSection = function (prefix) {
+                var containerId = prefix + "-container";
+                window.nuget.configureExpanderHeading(containerId);
+                $("#cancel-" + prefix).click(function (e) {
+                    // Collapse the container.
+                    $("#" + containerId).collapse('hide');
+                    e.preventDefault();
+                });
             }
 
-            var trident = ua.indexOf('Trident/');
-            if (trident > 0) {
-                // IE 11 => return version number
-                var rv = ua.indexOf('rv:');
-                return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
-            }
-
-            // other browser or edge
-            return false;
-        }
-
-        // source: http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
-        // enhancement with special case for IEs, otherwise the temp textarea will be visible
-        function copyTextToClipboard(text) {
-            if (detectIE()) {
-                try {
-                    window.clipboardData.setData('Text', text);
-                    console.log('Copying text command via IE-setData');
-                } catch (err) {
-                    console.log('Oops, unable to copy via IE-setData');
-                }
-            }
-            else {
-
-                var textArea = document.createElement("textarea");
-
-                //
-                //  This styling is an extra step which is likely not required. 
-                //
-                // Why is it here? To ensure:
-                // 1. the element is able to have focus and selection.
-                // 2. if element was to flash render it has minimal visual impact.
-                // 3. less flakyness with selection and copying which might occur if
-                //    the textarea element is not visible.
-                //
-                // The likelihood is the element won't even render, not even a flash,
-                // so some of these are just precautions. 
-                // 
-                // However in IE the element
-                // is visible whilst the popup box asking the user for permission for
-                // the web page to copy to the clipboard. To prevent this, we are using 
-                // the detectIE workaround.
-
-                // Place in top-left corner of screen regardless of scroll position.
-                textArea.style.position = 'fixed';
-                textArea.style.top = 0;
-                textArea.style.left = 0;
-
-                // Ensure it has a small width and height. Setting to 1px / 1em
-                // doesn't work as this gives a negative w/h on some browsers.
-                textArea.style.width = '2em';
-                textArea.style.height = '2em';
-
-                // We don't need padding, reducing the size if it does flash render.
-                textArea.style.padding = 0;
-
-                // Clean up any borders.
-                textArea.style.border = 'none';
-                textArea.style.outline = 'none';
-                textArea.style.boxShadow = 'none';
-
-                // Avoid flash of white box if rendered for any reason.
-                textArea.style.background = 'transparent';
-
-
-                textArea.value = text;
-
-                document.body.appendChild(textArea);
-
-                textArea.select();
-
-                try {
-                    var successful = document.execCommand('copy');
-                    var msg = successful ? 'successful' : 'unsuccessful';
-                    console.log('Copying text command was ' + msg);
-                } catch (err) {
-                    console.log('Oops, unable to copy');
+            // Set up the change password form.
+            var $enablePasswordLogin = $("#ChangePassword_EnablePasswordLogin");
+            function setPasswordLoginReadonly() {
+                var enablePasswordLogin = $enablePasswordLogin[0];
+                if (!enablePasswordLogin) {
+                    return;
                 }
 
-                document.body.removeChild(textArea);
+                var disabled = !enablePasswordLogin.checked;
+                $("#ChangePassword_OldPassword").prop('disabled', disabled);
+                $("#ChangePassword_NewPassword").prop('disabled', disabled);
+                $("#ChangePassword_VerifyPassword").prop('disabled', disabled);
             }
+            $("#show-change-password-container").click(setPasswordLoginReadonly);
+            $enablePasswordLogin.change(setPasswordLoginReadonly);
+            setPasswordLoginReadonly();
 
-        }
+            // Set up the section expanders.
+            configureSection("change-email");
+            configureSection("change-notifications");
+            @if (Model.CredentialGroups.ContainsKey(CredentialKind.External))
+            {
+                foreach (var cred in Model.CredentialGroups[CredentialKind.External])
+                {
+                    @:configureSection("change-credential-@cred.Key");
+                }
+            }
+            configureSection("change-password");
+            configureSection("profile-picture");
+            @foreach (var curatedFeed in Model.CuratedFeeds)
+            {
+                @:configureSection("curated-feed-@curatedFeed");
+            }
+        });
     </script>
 }

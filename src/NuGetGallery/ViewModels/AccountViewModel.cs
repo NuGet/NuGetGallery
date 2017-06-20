@@ -14,16 +14,22 @@ namespace NuGetGallery
     {
         public AccountViewModel()
         {
+            CuratedFeeds = new List<string>();
             ChangePassword = new ChangePasswordViewModel();
-            Packages = new List<string>();
+            ChangeEmail = new ChangeEmailViewModel();
+            CredentialGroups = new Dictionary<CredentialKind, List<CredentialViewModel>>();
         }
 
-        public IEnumerable<string> CuratedFeeds { get; set; }
-        public IList<CredentialViewModel> Credentials { get; set; }
-        public List<string> Packages { get; set; }
+        public IList<string> CuratedFeeds { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
         public ChangeEmailViewModel ChangeEmail { get; set; }
         public int ExpirationInDaysForApiKeyV1 { get; set; }
+        public bool HasPassword { get; set; }
+        public string CurrentEmailAddress { get; set; }
+        public bool HasUnconfirmedEmailAddress { get; set; }
+        public bool HasConfirmedEmailAddress { get; set; }
+        public IDictionary<CredentialKind, List<CredentialViewModel>> CredentialGroups { get; set; }
+        public int SignInCredentialCount { get; set; }
     }
 
     public class ChangeEmailViewModel
@@ -31,13 +37,12 @@ namespace NuGetGallery
         [Required]
         [StringLength(255)]
         [Display(Name = "New Email Address")]
-        //[DataType(DataType.EmailAddress)] - does not work with client side validation
         [RegularExpression(RegisterViewModel.EmailValidationRegex, ErrorMessage = RegisterViewModel.EmailValidationErrorMessage)]
         public string NewEmail { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
-        [Display(Name = "Current Password (for verification)")]
+        [Display(Name = "Password")]
         [StringLength(64)]
         [AllowHtml]
         public string Password { get; set; }
@@ -46,7 +51,11 @@ namespace NuGetGallery
     public class ChangePasswordViewModel
     {
         [Required]
-        [Display(Name = "Old Password")]
+        [Display(Name = "Enable Password Login")]
+        public bool EnablePasswordLogin { get; set; }
+
+        [Required]
+        [Display(Name = "Current Password")]
         [AllowHtml]
         public string OldPassword { get; set; }
 
@@ -55,6 +64,12 @@ namespace NuGetGallery
         [PasswordValidation]
         [AllowHtml]
         public string NewPassword { get; set; }
+
+        [Required]
+        [Display(Name = "Verify Password")]
+        [PasswordValidation]
+        [AllowHtml]
+        public string VerifyPassword { get; set; }
     }
     
     public class CredentialViewModel

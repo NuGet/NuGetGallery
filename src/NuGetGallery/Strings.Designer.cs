@@ -289,7 +289,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Active Directory Account.
+        ///   Looks up a localized string similar to Azure Active Directory account.
         /// </summary>
         public static string AzureActiveDirectory_AccountNoun {
             get {
@@ -298,11 +298,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Active Directory.
+        ///   Looks up a localized string similar to Register with Azure Active Directory.
         /// </summary>
-        public static string AzureActiveDirectory_Caption {
+        public static string AzureActiveDirectory_RegisterMessage {
             get {
-                return ResourceManager.GetString("AzureActiveDirectory_Caption", resourceCulture);
+                return ResourceManager.GetString("AzureActiveDirectory_RegisterMessage", resourceCulture);
             }
         }
         
@@ -666,15 +666,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Microsoft account.
-        /// </summary>
-        public static string MicrosoftAccount_Caption {
-            get {
-                return ResourceManager.GetString("MicrosoftAccount_Caption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Sign in with Microsoft.
         /// </summary>
         public static string MicrosoftAccount_SignInMessage {
@@ -860,6 +851,15 @@ namespace NuGetGallery {
         public static string PasswordCredentialsCannotBeUsedHere {
             get {
                 return ResourceManager.GetString("PasswordCredentialsCannotBeUsedHere", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The new passwords provided do not match..
+        /// </summary>
+        public static string PasswordDoesNotMatch {
+            get {
+                return ResourceManager.GetString("PasswordDoesNotMatch", resourceCulture);
             }
         }
         

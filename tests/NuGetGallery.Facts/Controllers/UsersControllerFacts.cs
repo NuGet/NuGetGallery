@@ -72,11 +72,14 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
-                var descs = model.Credentials.ToDictionary(c => c.Kind); // Should only be one of each kind
+                var descs = model
+                    .CredentialGroups
+                    .SelectMany(x => x.Value)
+                    .ToDictionary(c => c.Kind); // Should only be one of each kind
                 Assert.Equal(3, descs.Count);
                 Assert.Equal(Strings.CredentialType_Password, descs[CredentialKind.Password].TypeCaption);
                 Assert.Equal(Strings.CredentialType_ApiKey, descs[CredentialKind.Token].TypeCaption);
-                Assert.Equal(Strings.MicrosoftAccount_Caption, descs[CredentialKind.External].TypeCaption);
+                Assert.Equal(Strings.MicrosoftAccount_AccountNoun, descs[CredentialKind.External].TypeCaption);
             }
 
 
@@ -108,7 +111,10 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
-                var descs = model.Credentials.ToDictionary(c => c.Type); // Should only be one of each type
+                var descs = model
+                    .CredentialGroups
+                    .SelectMany(x => x.Value)
+                    .ToDictionary(c => c.Type); // Should only be one of each type
                 Assert.Equal(6, descs.Count);
                 Assert.True(descs.ContainsKey(credentials[0].Type));
                 Assert.True(descs.ContainsKey(credentials[1].Type));
@@ -933,7 +939,13 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController<UsersController>();
                 controller.ModelState.AddModelError("ChangePassword.blarg", "test");
-                var inputModel = new AccountViewModel();
+                var inputModel = new AccountViewModel
+                {
+                    ChangePassword =
+                    {
+                        EnablePasswordLogin = true,
+                    }
+                };
                 controller.SetCurrentUser(new User()
                 {
                     Credentials = new List<Credential> {
@@ -947,6 +959,46 @@ namespace NuGetGallery
                 // Assert
                 var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
+            }
+
+            [Fact]
+            public async Task GivenMismatchedNewPassword_ItAddsModelError()
+            {
+                // Arrange
+                var user = new User("foo");
+                user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
+
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.ChangePassword(user, "old", "new"))
+                    .CompletesWith(false);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var inputModel = new AccountViewModel()
+                {
+                    ChangePassword = new ChangePasswordViewModel()
+                    {
+                        EnablePasswordLogin = true,
+                        OldPassword = "old",
+                        NewPassword = "new",
+                        VerifyPassword = "new2",
+                    }
+                };
+
+                // Act
+                var result = await controller.ChangePassword(inputModel);
+
+                // Assert
+                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                Assert.Same(inputModel, outputModel);
+
+                var errorMessages = controller
+                    .ModelState["ChangePassword.VerifyPassword"]
+                    .Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToArray();
+                Assert.Equal(errorMessages, new[] { Strings.PasswordDoesNotMatch });
             }
 
             [Fact]
@@ -967,8 +1019,10 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
+                        EnablePasswordLogin = true,
                         OldPassword = "old",
                         NewPassword = "new",
+                        VerifyPassword = "new",
                     }
                 };
 
@@ -988,6 +1042,42 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task GivenDisablePasswordLogin_RemovesCredentialAndSendsNotice()
+            {
+                // Arrange
+                var user = new User("foo");
+                var cred = new CredentialBuilder().CreatePasswordCredential("old");
+                user.Credentials.Add(cred);
+                user.Credentials.Add(new CredentialBuilder()
+                    .CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
+                
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.RemoveCredential(user, cred))
+                    .Completes()
+                    .Verifiable();
+                GetMock<IMessageService>()
+                    .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+                var inputModel = new AccountViewModel()
+                {
+                    ChangePassword = new ChangePasswordViewModel()
+                    {
+                        EnablePasswordLogin = false,
+                    }
+                };
+
+                // Act
+                var result = await controller.ChangePassword(inputModel);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.PasswordRemoved, controller.TempData["Message"]);
+            }
+
+            [Fact]
             public async Task GivenSuccessInAuthService_ItRedirectsBackToManageCredentialsWithMessage()
             {
                 // Arrange
@@ -1003,8 +1093,10 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
+                        EnablePasswordLogin = true,
                         OldPassword = "old",
                         NewPassword = "new",
+                        VerifyPassword = "new",
                     }
                 };
 
