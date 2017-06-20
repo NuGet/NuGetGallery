@@ -102,7 +102,7 @@
     };
 
     nuget.configureExpander = function (prefix, lessIcon, lessMessage, moreIcon, moreMessage) {
-        var hidden = $('.' + prefix);
+        var hidden = $('#' + prefix);
         var show = $('#show-' + prefix);
         var showIcon = $('#show-' + prefix + ' i');
         var showText = $('#show-' + prefix + ' span');
