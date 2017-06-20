@@ -1,43 +1,68 @@
 ﻿@model ContactOwnersViewModel
 @{
     ViewBag.Tab = "Packages";
-    var owners = Model.Owners.Flatten(@<text>@item.Username</text>);
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<h1 class="page-heading">Contact the Owners of "@Model.PackageId.Abbreviate(50)"</h1>
-@if (Model.Owners.Any())
-{
-    <p class="message">
-        By submitting this form, you agree to <em>disclose your email address</em> 
-        to the package owners listed below so they can reply to you.
-    </p>
-    using (Html.BeginForm())
-    {
-        <fieldset class="form">
-            <legend>Contact Owners</legend>
-            @Html.AntiForgeryToken()
-            <div class="form-field">
-                <label>To</label>
-                <p class="authors"><strong>@owners</strong></p>
+<section role="main" class="container main-container page-contact-owners">
+    <div class="row forgot-form">
+        <div class="col-sm-offset-2 col-sm-8">
+            <h1 class="text-center">Contact the Owners of <a href="@Url.Package(Model.PackageId)">@Model.PackageId.Abbreviate(50)</a></h1>
+            @if (Model.Owners.Any())
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        By submitting this form, you agree to disclose your email address
+                        to the package owners listed below so they can reply to you.
+                    </text>
+                );
+
+                using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group">
+                        <label>To</label>
+                        <p>
+                            @foreach (var owner in Model.Owners)
+                            {
+                                <a href="@Url.User(owner)" title="View @owner.Username's profile" class="ms-font-xl">@owner.Username</a>
+                            }
+                        </p>
+                    </div>
+                    <div class="form-group">
+                        <label>From</label>
+                        <p class="ms-font-xl">@CurrentUser.EmailAddress</p>
+                    </div>
+                    <div class="form-group @Html.HasErrorFor(m => m.Message)">
+                        @Html.ShowLabelFor(m => m.Message)
+                        @Html.ShowTextAreaFor(m => m.Message, 10, 50)
+                        @Html.ShowValidationMessagesFor(m => m.Message)
+                    </div>
+                    <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
+                        @Html.ShowCheckboxFor(m => m.CopySender)
+                        @Html.ShowLabelFor(m => m.CopySender)
+                        @Html.ShowValidationMessagesFor(m => m.CopySender)
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6 text-left">
+                            <input type="submit" class="btn btn-primary form-control" value="Send" />
+                        </div>
+                        <div class="col-sm-6 text-right">
+                            <a href="@Url.Package(Model.PackageId)" class="btn btn-default form-control">Cancel</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        Sorry, the owners of this package do not allow contacting them through this form.
+                        Try visiting the project home page for "@Model.PackageId" in order to contact the package owner.
+                    </text>
+                );
+            }
             </div>
-            <div class="form-field">
-                @Html.LabelFor(m => m.Message)
-                @Html.TextAreaFor(m => m.Message, 10, 50, null)
-                @Html.ValidationMessageFor(m => m.Message)
-            </div>
-            <div class="form-field">
-                @Html.CheckBoxFor(m => m.CopySender)
-                @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
-            </div>
-            <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
-            <input type="submit" value="Send" title="Send your message to the owners of '@Model.PackageId'" />
-        </fieldset>
-    }
-}
-else
-{
-    <p class="error message">
-        Sorry, the owners of this package do not allow contacting them through this form.
-        Try visiting the project home page for "@Model.PackageId" in order to contact the package owner.
-    </p>
-}
+        </div>
+    </section>
