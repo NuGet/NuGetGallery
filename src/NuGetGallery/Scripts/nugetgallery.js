@@ -46,6 +46,7 @@
                 var href = $(this).attr('href');
                 var category = $(this).attr('data-track');
                 if (ga && href && category) {
+                    e.preventDefault();
                     ga('send', 'event', category, 'click', href, {
                         'transport': 'beacon',
                         'hitCallback': createFunctionWithTimeout(function () {
