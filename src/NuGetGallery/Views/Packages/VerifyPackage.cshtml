@@ -146,12 +146,12 @@
         }
 
 
-                                    @if (!String.IsNullOrEmpty(Model.LicenseUrl))
+        @if (!String.IsNullOrEmpty(Model.LicenseUrl))
         {
             <li>
                 <h4>Requires License Acceptance
                     @{
-                                            var formid2 = "Edit_RequiresLicenseAcceptance";
+                        var formid2 = "Edit_RequiresLicenseAcceptance";
                         <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit" title="Edit Requires License Acceptance"></span></button>
                         <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
                     }
@@ -201,8 +201,44 @@
     </ul>
 
     @Html.AntiForgeryToken()
-    <input id="verifyUploadSubmit" type="submit" value="Submit" title="Verify Details &amp; Submit" /> 
-    <a class="cancel" href="@Url.CancelUpload()" title="Cancel the upload in progress.">Cancel</a>
+    @if (Model.IsSemVer2)
+    {
+        <p class="message warning fancy">
+            <span class="icon-stack warningsign">
+                <i class="icon-circle icon-stack-base"></i>
+                <i class="icon-exclamation"></i>
+            </span>
+            @if (Model.HasSemVer2Version)
+            {
+                <text>
+                    Warning: This package has a SemVer2 package version. <br />
+                    <span style="font-weight: normal; font-style:italic;">
+                        This package will only be available for download with SemVer2-compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3.0 and above.<br />
+                        Reach out to support if you have more questions.
+                    </span>
+                </text>
+            }
+            else if (Model.HasSemVer2Dependency)
+            {
+                <text>
+                    Warning: This package is considered a SemVer2 package as it has a package dependency declaring a SemVer2 version range.<br />
+                    <span style="font-weight: normal; font-style:italic;">
+                        This package will only be available for download with SemVer2-compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3.0 and above.<br />
+                        Reach out to support if you have more questions.
+                    </span>
+                </text>
+            }
+            <br />
+            <br />
+            <input id="verifyUploadSubmit" type="submit" value="Submit" title="Verify Details &amp; Submit" />
+            <a class="cancel" href="@Url.CancelUpload()" title="Cancel the upload in progress.">Cancel</a>
+</p>
+    }
+    else
+    {
+        <input id="verifyUploadSubmit" type="submit" value="Submit" title="Verify Details &amp; Submit" />
+        <a class="cancel" href="@Url.CancelUpload()" title="Cancel the upload in progress.">Cancel</a>
+    }
 </fieldset>
 }
 
