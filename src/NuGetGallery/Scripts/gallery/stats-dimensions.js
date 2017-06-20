@@ -6,6 +6,28 @@
         // Populate the data table
         data['reportSize'] = data.Table != null ? data.Table.length : 0;
 
+        data['ShownRows'] = function (allRows) {
+            var shownRows = [];
+            var index = 0;
+            while (shownRows.length < Math.min(6, allRows.length)) {
+                shownRows.push(allRows[index]);
+                var currRowSpan = shownRows[index].reduce(function (currMax, nextObj) {
+                    return Math.max(currMax, nextObj != null ? nextObj.Rowspan : 0);
+                }, 0);
+                for (var i = 0; i < currRowSpan - 1; i++) {
+                    index++;
+                    shownRows.push(allRows[index]);
+                }
+
+                index++;
+            }
+            return shownRows;
+        }(data.Table != null ? data.Table : []);
+
+        data['HiddenRows'] = data.Table != null ? data.Table.slice(data['ShownRows'].length) : [];
+
+        data['SetupHiddenRows'] = setupHiddenRows.bind(this, data['HiddenRows']);
+
         $("#report").remove();
 
         var reportContainerElement = document.createElement("div");
@@ -18,7 +40,7 @@
         packageDisplayGraphs(rawData);
 
         window.nuget.configureExpander(
-            "hidden-row",
+            "hidden-rows",
             "CalculatorAddition",
             "Show less",
             "CalculatorSubtract",
@@ -31,7 +53,8 @@
         if (clickedId) {
             $('#' + clickedId).focus();
         }
-    }
+    };
+
 
     $.ajax({
         url: baseUrl + query,
@@ -71,4 +94,54 @@ var groupbyNavigation = function (baseUrl) {
         history.replaceState({}, "", query);
         renderGraph(baseUrl, query, clickedId);
     });
+}
+
+var setupHiddenRows = function (data) {
+    var container = $("#hidden-rows");
+    // no-op if we've already appended the hidden rows
+    if (container.children().length > 0) {
+        return;
+    }
+
+    var tableContainer = container.parent();
+    container.remove();
+
+    var trArr = [];
+    for (var i = 0; i < data.length; i++) {
+        var tempTr = $(document.createElement("tr"));
+        var tdArr = [];
+        for (var j = 0; j < data[i].length; j++) {
+            var tempTd = $(document.createElement("td"));
+            var item = data[i][j];
+            if (item != null) {
+                tempTd.attr("class", item.IsNumeric ? "statistics-number" : "");
+                tempTd.attr("rowspan", item.Rowspan > 0 ? item.Rowspan : "");
+                var content = null;
+                if (item.Uri != null) {
+                    content = $(document.createElement("a"));
+                    content.attr("href", item.Uri);
+                } else {
+                    content = $(document.createElement("span"));
+                    content.attr("aria-label", item.Data);
+                }
+
+                content.text(item.Data);
+                tempTd.append(content);
+            }
+            tdArr.push(tempTd);
+        }
+        tempTr.append(tdArr);
+        trArr.push(tempTr);
+    }
+
+    container.append(trArr);
+    tableContainer.append(container);
+
+    // When we remove the 'hidden-rows' element from the container above, we apparently kill all the event handlers on it. So reattach here.
+    window.nuget.configureExpander(
+        "hidden-rows",
+        "CalculatorAddition",
+        "Show less",
+        "CalculatorSubtract",
+        "Show more");
 }
