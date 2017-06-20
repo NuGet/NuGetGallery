@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -19,11 +20,27 @@ namespace Ng.Jobs
         private bool _verbose;
         private string _id;
         private string _version;
-        private StorageFactory _storageFactory;
+        private IStorage _storage;
 
         public Package2CatalogJob(ILoggerFactory loggerFactory)
             : base(loggerFactory)
         {
+        }
+
+        protected Package2CatalogJob(
+            ILoggerFactory loggerFactory,
+            IStorage storage,
+            string gallery,
+            string packageId,
+            string packageVersion,
+            bool verbose)
+            : this(loggerFactory)
+        {
+            _storage = storage;
+            _gallery = gallery;
+            _id = packageId;
+            _version = packageVersion;
+            _verbose = verbose;
         }
 
         public override string GetUsage()
@@ -49,14 +66,17 @@ namespace Ng.Jobs
             _verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             _id = arguments.GetOrThrow<string>(Arguments.Id);
             _version = arguments.GetOrDefault<string>(Arguments.Version);
-            _storageFactory = CommandHelpers.CreateStorageFactory(arguments, _verbose);
+
+            var storageFactory = CommandHelpers.CreateStorageFactory(arguments, _verbose);
+
+            _storage = storageFactory.Create();
         }
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
         {
             var timeout = TimeSpan.FromSeconds(300);
 
-            using (var client = FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(_verbose)))
+            using (var client = CreateHttpClient())
             {
                 client.Timeout = timeout;
 
@@ -68,15 +88,28 @@ namespace Ng.Jobs
 
                 Logger.LogInformation($"Downloading {packages.Select(t => t.Value.Count).Sum()} packages");
 
-                var storage = _storageFactory.Create();
-
                 //  the idea here is to leave the lastCreated, lastEdited and lastDeleted values exactly as they were
-                var lastCreated = await FeedHelpers.GetCatalogProperty(storage, "nuget:lastCreated", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
-                var lastEdited = await FeedHelpers.GetCatalogProperty(storage, "nuget:lastEdited", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
-                var lastDeleted = await FeedHelpers.GetCatalogProperty(storage, "nuget:lastDeleted", cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
+                var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(_storage, cancellationToken);
+                var lastCreated = catalogProperties.LastCreated ?? DateTime.MinValue.ToUniversalTime();
+                var lastEdited = catalogProperties.LastEdited ?? DateTime.MinValue.ToUniversalTime();
+                var lastDeleted = catalogProperties.LastDeleted ?? DateTime.MinValue.ToUniversalTime();
 
-                await FeedHelpers.DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited, lastDeleted, null, cancellationToken, Logger);
+                await FeedHelpers.DownloadMetadata2Catalog(
+                    client,
+                    packages,
+                    _storage,
+                    lastCreated,
+                    lastEdited,
+                    lastDeleted,
+                    createdPackages: null,
+                    cancellationToken: cancellationToken,
+                    logger: Logger);
             }
+        }
+
+        protected virtual HttpClient CreateHttpClient()
+        {
+            return FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(_verbose));
         }
 
         private static Uri MakePackageUri(string source, string id, string version)

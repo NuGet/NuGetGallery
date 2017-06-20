@@ -32,11 +32,23 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         };
 
         /// <summary>
-        /// Creates a <see cref="DeletionAuditEntry"/> from a <see cref="System.Uri"/> and a <see cref="Storage"/>.
+        /// Asynchronously creates a <see cref="DeletionAuditEntry" /> from a <see cref="Uri" />
+        /// and an <see cref="IStorage" />.
         /// </summary>
-        /// <param name="auditingStorage"><see cref="Storage"/> through which <paramref name="uri"/> can be accessed.</param>
-        /// <param name="uri"><see cref="System.Uri"/> to the record to build a <see cref="DeletionAuditEntry"/> from.</param>
-        public static async Task<DeletionAuditEntry> CreateAsync(Storage auditingStorage, Uri uri, CancellationToken cancellationToken, ILogger logger)
+        /// <param name="auditingStorage">The <see cref="IStorage" /> through which <paramref name="uri"/>
+        /// can be accessed.</param>
+        /// <param name="uri">A <see cref="Uri" /> to the record to build a <see cref="DeletionAuditEntry" />
+        /// from.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <param name="logger">A logger.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="DeletionAuditEntry" />
+        /// instance.</returns>
+        public static async Task<DeletionAuditEntry> CreateAsync(
+            IStorage auditingStorage,
+            Uri uri,
+            CancellationToken cancellationToken,
+            ILogger logger)
         {
             try
             {
@@ -144,11 +156,11 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// <param name="logger">An <see cref="ILogger"/> to log messages to.</param>
         /// <returns>An <see cref="IEnumerable{DeletionAuditEntry}"/> containing the relevant <see cref="DeletionAuditEntry"/>s.</returns>
         public static Task<IEnumerable<DeletionAuditEntry>> GetAsync(
-            StorageFactory auditingStorageFactory, 
-            CancellationToken cancellationToken, 
-            PackageIdentity package = null, 
-            DateTime? minTime = null, 
-            DateTime? maxTime = null, 
+            StorageFactory auditingStorageFactory,
+            CancellationToken cancellationToken,
+            PackageIdentity package = null,
+            DateTime? minTime = null,
+            DateTime? maxTime = null,
             ILogger logger = null)
         {
             Storage storage = auditingStorageFactory.Create(package != null ? GetAuditRecordPrefixFromPackage(package) : null);
@@ -156,19 +168,25 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         }
 
         /// <summary>
-        /// Fetches <see cref="DeletionAuditEntry"/>s.
+        /// Asynchronously fetches <see cref="DeletionAuditEntry"/>s.
         /// </summary>
-        /// <param name="auditingStorage">The <see cref="Storage"/> to fetch audit records from.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the task.</param>
-        /// <param name="minTime">If specified, will only fetch <see cref="DeletionAuditEntry"/>s that are newer than this <see cref="DateTime"/> (non-inclusive).</param>
-        /// <param name="maxTime">If specified, will only fetch <see cref="DeletionAuditEntry"/>s that are older than this <see cref="DateTime"/> (non-inclusive).</param>
+        /// <param name="auditingStorage">The <see cref="IStorage"/> to fetch audit records from.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel
+        /// the task.</param>
+        /// <param name="minTime">If specified, will only fetch <see cref="DeletionAuditEntry"/>s that are newer than
+        /// this <see cref="DateTime"/> (non-inclusive).</param>
+        /// <param name="maxTime">If specified, will only fetch <see cref="DeletionAuditEntry"/>s that are older than
+        /// this <see cref="DateTime"/> (non-inclusive).</param>
         /// <param name="logger">An <see cref="ILogger"/> to log messages to.</param>
-        /// <returns>An <see cref="IEnumerable{DeletionAuditEntry}"/> containing the relevant <see cref="DeletionAuditEntry"/>s.</returns>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns an
+        /// <see cref="IEnumerable{DeletionAuditEntry}" /> containing the relevant
+        /// <see cref="DeletionAuditEntry"/>s.</returns>
         public static async Task<IEnumerable<DeletionAuditEntry>> GetAsync(
-            Storage auditingStorage, 
-            CancellationToken cancellationToken, 
-            DateTime? minTime = null, 
-            DateTime? maxTime = null, 
+            IStorage auditingStorage,
+            CancellationToken cancellationToken,
+            DateTime? minTime = null,
+            DateTime? maxTime = null,
             ILogger logger = null)
         {
             Func<StorageListItem, bool> filterAuditRecord = (record) =>

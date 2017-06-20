@@ -8,8 +8,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
@@ -24,8 +22,8 @@ namespace Ng.Jobs
 
         protected bool Verbose;
         protected string Gallery;
-        protected Storage CatalogStorage;
-        protected Storage AuditingStorage;
+        protected IStorage CatalogStorage;
+        protected IStorage AuditingStorage;
         protected DateTime? StartDate;
         protected TimeSpan Timeout;
         protected int Top;
@@ -88,9 +86,11 @@ namespace Ng.Jobs
                 client.Timeout = Timeout;
 
                 // baseline timestamps
-                var lastCreated = await FeedHelpers.GetCatalogProperty(CatalogStorage, "nuget:lastCreated", cancellationToken) ?? (StartDate ?? DateTimeMinValueUtc);
-                var lastEdited = await FeedHelpers.GetCatalogProperty(CatalogStorage, "nuget:lastEdited", cancellationToken) ?? lastCreated;
-                var lastDeleted = await FeedHelpers.GetCatalogProperty(CatalogStorage, "nuget:lastDeleted", cancellationToken) ?? lastCreated;
+                var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(CatalogStorage, cancellationToken);
+                var lastCreated = catalogProperties.LastCreated ?? (StartDate ?? DateTimeMinValueUtc);
+                var lastEdited = catalogProperties.LastEdited ?? lastCreated;
+                var lastDeleted = catalogProperties.LastDeleted ?? lastCreated;
+
                 if (lastDeleted == DateTime.MinValue.ToUniversalTime())
                 {
                     lastDeleted = lastCreated;
@@ -211,7 +211,7 @@ namespace Ng.Jobs
             return FeedHelpers.GetPackagesInOrder(client, MakeLastEditedUri(source, since, top), package => package.LastEditedDate);
         }
 
-        private async Task<SortedList<DateTime, IList<FeedPackageIdentity>>> GetDeletedPackages(Storage auditingStorage, DateTime since)
+        private async Task<SortedList<DateTime, IList<FeedPackageIdentity>>> GetDeletedPackages(IStorage auditingStorage, DateTime since)
         {
             var result = new SortedList<DateTime, IList<FeedPackageIdentity>>();
 
@@ -279,7 +279,13 @@ namespace Ng.Jobs
             }
         }
 
-        private async Task<DateTime> Deletes2Catalog(SortedList<DateTime, IList<FeedPackageIdentity>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, CancellationToken cancellationToken)
+        private async Task<DateTime> Deletes2Catalog(
+            SortedList<DateTime, IList<FeedPackageIdentity>> packages,
+            IStorage storage,
+            DateTime lastCreated,
+            DateTime lastEdited,
+            DateTime lastDeleted,
+            CancellationToken cancellationToken)
         {
             var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 
