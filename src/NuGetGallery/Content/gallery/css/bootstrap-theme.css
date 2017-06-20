@@ -157,19 +157,16 @@ img.package-icon {
   margin-left: 10px;
   color: #000;
 }
-.list-packages .package .package-statistics {
+.list-packages .package .package-list {
   margin-top: 10px;
   line-height: 20px;
   color: #666;
 }
-.list-packages .package .package-statistics .package-statistics-middle {
-  padding-right: 10px;
+.list-packages .package .package-list li + li {
   padding-left: 10px;
-  margin-right: 10px;
   margin-left: 10px;
   border-color: #dbdbdb;
   border-width: 1px;
-  border-right-style: solid;
   border-left-style: solid;
 }
 .list-packages .package .package-details {
@@ -533,6 +530,9 @@ img.package-icon {
 }
 .page-stats-per-package .stats-table-footer tr {
   border: none;
+}
+.page-stats-per-package #hidden-rows {
+  border-top: none;
 }
 .page-stats-per-package #loading-placeholder {
   display: none;

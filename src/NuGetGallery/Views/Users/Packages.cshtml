@@ -7,24 +7,12 @@
 
 <section role="main" class="container main-container page-manage-packages page-package-details">
     <h1>Manage Packages</h1>
-    @if (Model.Packages.Any())
-            {
-                var listedPackages = Model.Packages.Where(p => p.Listed);
-                var unlistedPackages = Model.Packages.Where(p => !p.Listed);
+    @{
+        var listedPackages = Model.Packages.Where(p => p.Listed);
+        var unlistedPackages = Model.Packages.Where(p => !p.Listed);
 
-                if (listedPackages.Any())
-                {
-            @Html.Partial("_UserPackagesList", new ManagePackagesListViewModel(listedPackages, "Published"))
-        }
-        if (unlistedPackages.Any())
-        {
-            @Html.Partial("_UserPackagesList", new ManagePackagesListViewModel(unlistedPackages, "Unlisted"))
-        }
-    }
-    else
-    {
-        <h2>My Packages</h2>
-                <p>You have no packages.</p>
+        @Html.Partial("_UserPackagesList", new ManagePackagesListViewModel(listedPackages, "Published"))
+        @Html.Partial("_UserPackagesList", new ManagePackagesListViewModel(unlistedPackages, "Unlisted"))
     }
 </section>
 
