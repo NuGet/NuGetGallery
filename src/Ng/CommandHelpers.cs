@@ -118,7 +118,8 @@ namespace Ng
                 { Arguments.StorageAccountName, Arguments.StorageAccountName },
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue },
                 { Arguments.StorageContainer, Arguments.StorageContainer },
-                { Arguments.StoragePath, Arguments.StoragePath }
+                { Arguments.StoragePath, Arguments.StoragePath },
+                { Arguments.StorageSuffix, Arguments.StorageSuffix }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
@@ -137,7 +138,8 @@ namespace Ng
                 { Arguments.StorageAccountName, Arguments.CompressedStorageAccountName },
                 { Arguments.StorageKeyValue, Arguments.CompressedStorageKeyValue },
                 { Arguments.StorageContainer, Arguments.CompressedStorageContainer },
-                { Arguments.StoragePath, Arguments.CompressedStoragePath }
+                { Arguments.StoragePath, Arguments.CompressedStoragePath },
+                { Arguments.StorageSuffix, Arguments.StorageSuffix }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
@@ -156,7 +158,8 @@ namespace Ng
                 { Arguments.StorageAccountName, Arguments.SemVer2StorageAccountName },
                 { Arguments.StorageKeyValue, Arguments.SemVer2StorageKeyValue },
                 { Arguments.StorageContainer, Arguments.SemVer2StorageContainer },
-                { Arguments.StoragePath, Arguments.SemVer2StoragePath }
+                { Arguments.StoragePath, Arguments.SemVer2StoragePath },
+                { Arguments.StorageSuffix, Arguments.StorageSuffix }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
@@ -216,9 +219,12 @@ namespace Ng
                 var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
                 var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
+                var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
 
                 var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
-                var account = new CloudStorageAccount(credentials, true);
+                var account = string.IsNullOrEmpty(storageSuffix) ?
+                                new CloudStorageAccount(credentials, true) :
+                                new CloudStorageAccount(credentials, storageSuffix, true);
                 return new AzureStorageFactory(account, storageContainer, storagePath, storageBaseAddress)
                             { Verbose = verbose, CompressContent = compressed };
             }

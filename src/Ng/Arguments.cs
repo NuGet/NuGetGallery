@@ -45,6 +45,9 @@ namespace Ng
         public const string StoragePath = "storagePath";
         public const string StorageType = "storageType";
         public const string Version = "version";
+
+        public const string StorageSuffix = "storageSuffix";
+ 
         #endregion
 
         #region Catalog2Lucene

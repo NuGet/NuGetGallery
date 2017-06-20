@@ -358,6 +358,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Scripts\Catalog2DnxV3China.cmd" />
     <None Include="Scripts\Catalog2DnxV3Secondary.cmd" />
     <None Include="Scripts\Catalog2LuceneV3-Reg2.cmd" />
     <None Include="Scripts\Catalog2LuceneV3-Reg2-Secondary.cmd" />
