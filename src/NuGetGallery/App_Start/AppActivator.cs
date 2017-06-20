@@ -208,6 +208,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-display-package.js");
             BundleTable.Bundles.Add(displayPackageScriptBundle);
 
+            var managePackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-packages.min.js")
+                .Include("~/Scripts/gallery/page-manage-packages.js");
+            BundleTable.Bundles.Add(managePackagesScriptBundle);
+
             var aboutScriptBundle = new ScriptBundle("~/Scripts/gallery/page-about.min.js")
                 .Include("~/Scripts/gallery/page-about.js");
             BundleTable.Bundles.Add(aboutScriptBundle);
