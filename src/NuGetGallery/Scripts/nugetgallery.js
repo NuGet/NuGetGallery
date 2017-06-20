@@ -13,6 +13,8 @@
         attachPlugins();
 
         sniffClickonce();
+
+        addOutboundTrackingEvent();
     });
 
 	// Add validator that ensures provided value is NOT equal to a specified value.
@@ -23,6 +25,37 @@
     // Add unobtrusive adapters for mandatory checkboxes and notequal values
     $.validator.unobtrusive.adapters.addBool("mandatory", "required");
     $.validator.unobtrusive.adapters.addSingleVal('notequal', 'disallowed');
+
+    // Source: https://developers.google.com/analytics/devguides/collection/analyticsjs/sending-hits
+    function createFunctionWithTimeout(callback, opt_timeout) {
+        var called = false;
+        function fn() {
+            if (!called) {
+                called = true;
+                callback();
+            }
+        }
+        setTimeout(fn, opt_timeout || 1000);
+        return fn;
+    };
+
+    function addOutboundTrackingEvent() {
+        // Handle Google analytics tracking event on specific links.
+        $.each($('a[data-track]'), function () {
+            $(this).click(function (e) {
+                var href = $(this).attr('href');
+                var category = $(this).attr('data-track');
+                if (ga && href && category) {
+                    ga('send', 'event', category, 'click', href, {
+                        'transport': 'beacon',
+                        'hitCallback': createFunctionWithTimeout(function () {
+                            document.location = href;
+                        })
+                    });
+                }
+            });
+        });
+    }
 
     function padInt(i, size) {
         var s = i.toString();
