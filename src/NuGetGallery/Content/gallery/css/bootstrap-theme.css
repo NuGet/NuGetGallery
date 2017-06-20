@@ -534,6 +534,9 @@ img.package-icon {
 .page-stats-per-package .stats-table-footer tr {
   border: none;
 }
+.page-stats-per-package #hidden-rows {
+  border-top: none;
+}
 .page-stats-per-package #loading-placeholder {
   display: none;
 }
