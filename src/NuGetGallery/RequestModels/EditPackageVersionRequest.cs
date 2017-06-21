@@ -61,6 +61,7 @@ namespace NuGetGallery
                 Summary = package.Summary,
                 Tags = package.Tags,
                 Title = package.Title,
+                RepoUrl = package.RepoUrl,
             };
             Authors = metadata.Authors;
             Copyright = metadata.Copyright;
