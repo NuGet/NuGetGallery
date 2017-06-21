@@ -23,6 +23,37 @@
         return false;
     }
 
+    function initializeJQueryValidator() {
+        // Add validator that ensures provided value is NOT equal to a specified value.
+        $.validator.addMethod('notequal', function (value, element, params) {
+            return value !== params;
+        });
+
+        // Add unobtrusive adapters for mandatory checkboxes and notequal values
+        $.validator.unobtrusive.adapters.addBool("mandatory", "required");
+        $.validator.unobtrusive.adapters.addSingleVal('notequal', 'disallowed');
+
+        // Source: https://stackoverflow.com/questions/18754020/bootstrap-3-with-jquery-validation-plugin
+        // Set the JQuery validation plugin's defaults to use classes recognized by Bootstrap.
+        $.validator.setDefaults({
+            highlight: function (element) {
+                $(element).closest('.form-group').addClass('has-error');
+            },
+            unhighlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-error');
+            },
+            errorElement: 'span',
+            errorClass: 'help-block',
+            errorPlacement: function (error, element) {
+                if (element.parent('.input-group').length) {
+                    error.insertAfter(element.parent());
+                } else {
+                    error.insertAfter(element);
+                }
+            }
+        });
+    }
+
     nuget.parseNumber = function (unparsedValue) {
         unparsedValue = ('' + unparsedValue).replace(/,/g, '');
         var parsedValue = parseInt(unparsedValue);
@@ -144,25 +175,7 @@
 
     window.nuget = nuget;
 
-    // Source: https://stackoverflow.com/questions/18754020/bootstrap-3-with-jquery-validation-plugin
-    // Set the JQuery validation plugin's defaults to use classes recognized by Bootstrap.
-    $.validator.setDefaults({
-        highlight: function (element) {
-            $(element).closest('.form-group').addClass('has-error');
-        },
-        unhighlight: function (element) {
-            $(element).closest('.form-group').removeClass('has-error');
-        },
-        errorElement: 'span',
-        errorClass: 'help-block',
-        errorPlacement: function (error, element) {
-            if (element.parent('.input-group').length) {
-                error.insertAfter(element.parent());
-            } else {
-                error.insertAfter(element);
-            }
-        }
-    });
+    initializeJQueryValidator();
 })();
 
 $(function () {

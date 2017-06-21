@@ -7,7 +7,7 @@
 }
 
 <section class="container main-container page-report-abuse">
-    <h1 class="page-heading">Report Abuse</h1>
+    <h1 class="page-heading">Report Abuse by <a href="@Url.Package(@Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a></h1>
 
     @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
         @<text>
