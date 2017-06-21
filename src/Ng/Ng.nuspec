@@ -13,6 +13,7 @@
     <file src="bin\$configuration$\*.*" target="Ng"/>
 		
     <file src="Scripts\Catalog2DnxV3.cmd" />
+    <file src="Scripts\Catalog2DnxV3China.cmd" />
     <file src="Scripts\Catalog2DnxV3Secondary.cmd" />
     <file src="Scripts\Catalog2LuceneV3-Reg1.cmd" />
     <file src="Scripts\Catalog2LuceneV3-Reg1-Secondary.cmd" />
