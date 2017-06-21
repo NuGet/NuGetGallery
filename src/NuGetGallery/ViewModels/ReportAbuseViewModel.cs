@@ -29,7 +29,7 @@ namespace NuGetGallery
         [Required(ErrorMessage = "Please enter a message.")]
         [AllowHtml]
         [StringLength(4000)]
-        [Display(Name = "Abuse Report")]
+        [Display(Name = "Details")]
         public string Message { get; set; }
 
         [Required(ErrorMessage = "Please enter your email address.")]
