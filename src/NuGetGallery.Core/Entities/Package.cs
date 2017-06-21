@@ -119,6 +119,11 @@ namespace NuGetGallery
         /// </remarks>
         public string ProjectUrl { get; set; }
 
+        /// <remarks>
+        ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
+        /// </remarks>
+        public string RepositoryUrl { get; set; }
+
         public bool RequiresLicenseAcceptance { get; set; }
 
         /// <remarks>
@@ -211,6 +216,7 @@ namespace NuGetGallery
             IconUrl = edit.IconUrl;
             LicenseUrl = edit.LicenseUrl;
             ProjectUrl = edit.ProjectUrl;
+            RepositoryUrl = edit.RepositoryUrl;
             ReleaseNotes = edit.ReleaseNotes;
             RequiresLicenseAcceptance = edit.RequiresLicenseAcceptance;
             Summary = edit.Summary;

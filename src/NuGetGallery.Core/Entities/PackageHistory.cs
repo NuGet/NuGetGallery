@@ -28,6 +28,7 @@ namespace NuGetGallery
             IconUrl = package.IconUrl;
             LicenseUrl = package.LicenseUrl;
             ProjectUrl = package.ProjectUrl;
+            RepositoryUrl = package.RepositoryUrl;
             ReleaseNotes = package.ReleaseNotes;
             RequiresLicenseAcceptance = package.RequiresLicenseAcceptance;
             Summary = package.Summary;
@@ -65,6 +66,7 @@ namespace NuGetGallery
         public string IconUrl { get; set; }
         public string LicenseUrl { get; set; }
         public string ProjectUrl { get; set; }
+        public string RepositoryUrl { get; set; }
         public string ReleaseNotes { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
