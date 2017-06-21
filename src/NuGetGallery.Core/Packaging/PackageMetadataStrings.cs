@@ -14,6 +14,7 @@ namespace NuGetGallery.Packaging
         public const string Metadata = "metadata";
         public const string Owners = "owners";
         public const string ProjectUrl = "projectUrl";
+        public const string RepoUrl = "repositoryUrl";
         public const string ReleaseNotes = "releaseNotes";
         public const string RequireLicenseAcceptance = "requireLicenseAcceptance";
         public const string Summary = "summary";
