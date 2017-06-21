@@ -53,12 +53,12 @@ namespace NuGetGallery
                 IconUrl = package.IconUrl,
                 LicenseUrl = package.LicenseUrl,
                 ProjectUrl = package.ProjectUrl,
+                RepoUrl = package.RepoUrl,
                 ReleaseNotes = package.ReleaseNotes,
                 RequiresLicenseAcceptance = package.RequiresLicenseAcceptance,
                 Summary = package.Summary,
                 Tags = package.Tags,
                 Title = package.Title,
-                RepoUrl = package.RepoUrl,
             };
             Authors = metadata.Authors;
             Copyright = metadata.Copyright;
@@ -147,6 +147,7 @@ namespace NuGetGallery
             package.IconUrl = IconUrl;
             package.LicenseUrl = LicenseUrl;
             package.ProjectUrl = ProjectUrl;
+            package.RepoUrl = RepoUrl;
             package.ReleaseNotes = ReleaseNotes;
             package.RequiresLicenseAcceptance = RequiresLicenseAcceptance;
             package.Summary = Summary;
