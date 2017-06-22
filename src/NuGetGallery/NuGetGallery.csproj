@@ -773,9 +773,9 @@
     <Compile Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.Designer.cs">
       <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201706211737167_RepositoryUrl.cs" />
-    <Compile Include="Migrations\201706211737167_RepositoryUrl.Designer.cs">
-      <DependentUpon>201706211737167_RepositoryUrl.cs</DependentUpon>
+    <Compile Include="Migrations\201706221634506_AddRepositoryURL_ReadMe.cs" />
+    <Compile Include="Migrations\201706221634506_AddRepositoryURL_ReadMe.Designer.cs">
+      <DependentUpon>201706221634506_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </Compile>
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
@@ -1761,8 +1761,8 @@
     <EmbeddedResource Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.resx">
       <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201706211737167_RepositoryUrl.resx">
-      <DependentUpon>201706211737167_RepositoryUrl.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201706221634506_AddRepositoryURL_ReadMe.resx">
+      <DependentUpon>201706221634506_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
