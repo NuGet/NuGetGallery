@@ -53,7 +53,7 @@ namespace NuGetGallery
                 IconUrl = package.IconUrl,
                 LicenseUrl = package.LicenseUrl,
                 ProjectUrl = package.ProjectUrl,
-                RepoUrl = package.RepoUrl,
+                RepositoryUrl = package.RepositoryUrl,
                 ReleaseNotes = package.ReleaseNotes,
                 RequiresLicenseAcceptance = package.RequiresLicenseAcceptance,
                 Summary = package.Summary,
@@ -66,7 +66,7 @@ namespace NuGetGallery
             IconUrl = metadata.IconUrl;
             LicenseUrl = metadata.LicenseUrl;
             ProjectUrl = metadata.ProjectUrl;
-            RepoUrl = metadata.RepoUrl;
+            RepositoryUrl = metadata.RepositoryUrl;
             ReleaseNotes = metadata.ReleaseNotes;
             RequiresLicenseAcceptance = metadata.RequiresLicenseAcceptance;
             Summary = metadata.Summary;
@@ -109,7 +109,7 @@ namespace NuGetGallery
         [Display(Name = RepoUrlStr)]
         [DataType(DataType.Text)]
         [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
-        public string RepoUrl { get; set; }
+        public string RepositoryUrl { get; set; }
 
         [StringLength(512)]
         [Display(Name = AuthorsStr)]
@@ -147,7 +147,7 @@ namespace NuGetGallery
             package.IconUrl = IconUrl;
             package.LicenseUrl = LicenseUrl;
             package.ProjectUrl = ProjectUrl;
-            package.RepoUrl = RepoUrl;
+            package.RepositoryUrl = RepositoryUrl;
             package.ReleaseNotes = ReleaseNotes;
             package.RequiresLicenseAcceptance = RequiresLicenseAcceptance;
             package.Summary = Summary;
