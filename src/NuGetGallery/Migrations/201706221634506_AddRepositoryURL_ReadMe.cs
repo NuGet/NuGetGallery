@@ -3,11 +3,12 @@ namespace NuGetGallery.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class RepositoryUrl : DbMigration
+    public partial class AddRepositoryURL_ReadMe : DbMigration
     {
         public override void Up()
         {
             AddColumn("dbo.Packages", "RepositoryUrl", c => c.String());
+            AddColumn("dbo.Packages", "HasReadMe", c => c.Boolean(nullable: false));
             AddColumn("dbo.PackageEdits", "RepositoryUrl", c => c.String());
             AddColumn("dbo.PackageEdits", "ReadmeModified", c => c.Boolean(nullable: false));
             AddColumn("dbo.PackageHistories", "RepositoryUrl", c => c.String());
@@ -18,6 +19,7 @@ namespace NuGetGallery.Migrations
             DropColumn("dbo.PackageHistories", "RepositoryUrl");
             DropColumn("dbo.PackageEdits", "ReadmeModified");
             DropColumn("dbo.PackageEdits", "RepositoryUrl");
+            DropColumn("dbo.Packages", "HasReadMe");
             DropColumn("dbo.Packages", "RepositoryUrl");
         }
     }
