@@ -72,7 +72,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(readMe));
             }
-            var fileName = BuildFileName(package);
+            var fileName = BuildReadMeFileName(package);
             return _fileStorageService.SaveFileAsync(Constants.PendingReadMeFolderName, fileName, readMe, overwrite:false);
         }
 
@@ -131,6 +131,31 @@ namespace NuGetGallery
                 Constants.NuGetPackageFileExtension);
         }
 
+        private static string BuildReadMeFileName(string id, string version)
+        {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (version == null)
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            // Note: packages should be saved and retrieved in blob storage using the lower case version of their filename because
+            // a) package IDs can and did change case over time
+            // b) blob storage is case sensitive
+            // c) we don't want to hit the database just to look up the right case
+            // and remember - version can contain letters too.
+            return String.Format(
+                CultureInfo.InvariantCulture,
+                Constants.PackageFileSavePathTemplate,
+                id.ToLowerInvariant(),
+                version.ToLowerInvariant(),
+                Constants.ReadMeFileExtension);
+        }
+
         private static string BuildFileName(Package package)
         {
             if (package == null)
@@ -147,6 +172,27 @@ namespace NuGetGallery
 
             return BuildFileName(
                 package.PackageRegistration.Id, 
+                String.IsNullOrEmpty(package.NormalizedVersion) ?
+                    NuGetVersionFormatter.Normalize(package.Version) :
+                    package.NormalizedVersion);
+        }
+
+        private static string BuildReadMeFileName(Package package)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (package.PackageRegistration == null ||
+                String.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
+                (String.IsNullOrWhiteSpace(package.NormalizedVersion) && String.IsNullOrWhiteSpace(package.Version)))
+            {
+                throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
+            }
+
+            return BuildReadMeFileName(
+                package.PackageRegistration.Id,
                 String.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :
                     package.NormalizedVersion);
