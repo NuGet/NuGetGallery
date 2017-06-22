@@ -555,4 +555,34 @@ img.package-icon {
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
 }
+.page-upload h2 .ms-Icon {
+  position: relative;
+  top: -2px;
+  font-size: .6em;
+}
+.page-upload h2 a {
+  color: #000;
+  text-decoration: none;
+}
+.page-upload h2 a:hover {
+  text-decoration: none;
+}
+.page-upload .tall-text-input {
+  height: 4.2em;
+}
+.page-upload .dependency-set-title {
+  font-size: 1.2em;
+  border-bottom: 1px grey solid;
+}
+.page-upload .dependency-container .dependency-versionspec {
+  font-size: .6em;
+  color: gray;
+}
+.page-upload .dependency-container .dependency-id {
+  font-size: .8em;
+}
+.page-upload .verify-package-field-heading {
+  font-size: .75em;
+  font-weight: 700;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */

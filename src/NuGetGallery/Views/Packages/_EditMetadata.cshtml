@@ -1,5 +1,4 @@
 ﻿<script type="text/html" id="display-data-or-default">
-    <div data-bind="text: ko.toJSON($data, null, 2)"></div>
     <!-- ko if: DisplayText -->
     <!-- ko if: $data.Link -->
     <p><a data-bind="text: DisplayText, href: DisplayText"></a></p>
@@ -16,14 +15,17 @@
 <script type="text/html" id="display-dependencysets">
     <div data-bind="foreach: {data: DependencySets, as: '_data'}">
         <div data-bind="foreach: {data: Object.keys(_data), as: '_propkey'}">
-            <div data-bind="text: _propkey"></div>
+            <div class="dependency-set-title" data-bind="text: _propkey"></div>
             <div data-bind="foreach: _data[_propkey]">
-                <!-- ko if: $data -->
                 <div class="dependency-container col-sm-12">
+                    <!-- ko if: $data -->
                     <a class="dependency-id" data-bind="attr: { href: PackageUrl }, text: Id"></a>
                     <span class="dependency-versionspec" data-bind="text: VersionSpec"></span>
+                    <!-- /ko -->
+                    <!-- ko ifnot: $data -->
+                    <span class="dependency-none">No Package Dependencies</span>
+                    <!-- /ko -->
                 </div>
-                <!-- /ko -->
             </div>
         </div>
     </div>
@@ -93,7 +95,7 @@
         <div class="verify-package-field-heading">Icon Preview</div>
         <div id="icon-preview-container">
             <!-- ko if: Edit.IconUrl -->
-            <img id="icon-preview" data-bind="src: Edit.IconUrl" /> <!-- probably need to check this for safety-->
+            <img id="icon-preview" data-bind="attr: { src: Edit.IconUrl }" /> <!-- probably need to check this for safety-->
             <!-- /ko -->
             <!-- ko ifnot: Edit.IconUrl -->
             <p><i data-bind="text:'(none specified)'"></i></p>
@@ -110,7 +112,7 @@
         <div class="verify-package-field-heading">Tags (space separated - e.g. 'ASP.NET Template MVC')</div>
         <input data-bind="value: Edit.Tags" type="text" class="col-xs-12" />
 
-        <input type="button" class="btn btn-default" value="Submit" />
-        <input type="button" class="btn btn-default" value="Cancel" />
+        <input type="button" class="btn btn-default col-md-2 col-xs-6" value="Submit" id="verify-submit" />
+        <input type="button" class="btn btn-default col-md-2 col-xs-6" value="Cancel" id="verify-cancel" />
     </div>
 </script>
