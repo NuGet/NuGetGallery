@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class RepositoryUrl : IMigrationMetadata
+    public sealed partial class AddRepositoryURL_ReadMe : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(RepositoryUrl));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddRepositoryURL_ReadMe));
         
         string IMigrationMetadata.Id
         {
-            get { return "201706211737167_RepositoryUrl"; }
+            get { return "201706221634506_AddRepositoryURL_ReadMe"; }
         }
         
         string IMigrationMetadata.Source
