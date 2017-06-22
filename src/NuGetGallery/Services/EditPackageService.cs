@@ -64,6 +64,7 @@ namespace NuGetGallery
 
             EntitiesContext.Set<PackageEdit>().Add(edit);
             // Note: EditPackageRequests are completed asynchronously by the worker role.
+
         }
     }
 }
