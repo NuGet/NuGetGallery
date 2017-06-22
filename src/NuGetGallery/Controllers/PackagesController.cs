@@ -1335,7 +1335,7 @@ namespace NuGetGallery
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Summary, packageMetadata.Summary);
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Tags, PackageHelper.ParseTags(packageMetadata.Tags));
                     pendEdit = pendEdit || IsDifferent(formData.Edit.VersionTitle, packageMetadata.Title);
-                    pendEdit = pendEdit || formData.ReadMe.Count > 0;
+                    pendEdit = pendEdit || formData.ReadMe != null;
                 }
 
                 var packageStreamMetadata = new PackageStreamMetadata
@@ -1363,7 +1363,7 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
-                    var readMeChanged = formData.ReadMe.Count > 0;
+                    var readMeChanged = formData.ReadMe != null;
                     if (readMeChanged)
                     {
                         await _packageFileService.SaveReadMeFileAsync(package, formData.ReadMe[0].InputStream);

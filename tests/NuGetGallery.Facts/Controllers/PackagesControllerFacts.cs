@@ -1868,7 +1868,7 @@ namespace NuGetGallery
                     await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit });
 
                     // Assert 
-                    fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser), Times.Once);
+                    fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser, false), Times.Once);
                 }
             }
         }
