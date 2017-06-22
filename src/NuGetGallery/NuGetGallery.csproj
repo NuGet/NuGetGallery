@@ -1803,6 +1803,7 @@
     <Content Include="Views\Pages\_PagesView.cshtml" />
     <Content Include="Views\Shared\_SearchBar.cshtml" />
     <Content Include="Views\Pages\Downloads.cshtml" />
+    <Content Include="Views\Packages\_EditMetadata.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

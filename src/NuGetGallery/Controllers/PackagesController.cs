@@ -170,16 +170,67 @@ namespace NuGetGallery
         public async virtual Task<ActionResult> UploadPackage()
         {
             var currentUser = GetCurrentUser();
+            var model = new SubmitPackageRequest();
+            PackageMetadata packageMetadata;
 
-            using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
+            using (var uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
-                if (existingUploadFile != null)
+                if (uploadedFile != null)
                 {
-                    return RedirectToRoute(RouteName.VerifyPackage);
+
+                    var package = await SafeCreatePackage(currentUser, uploadedFile);
+                    if (package == null)
+                    {
+                        return View(model);
+                    }
+
+                    try
+                    {
+                        packageMetadata = PackageMetadata.FromNuspecReader(
+                            package.GetNuspecReader());
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["Message"] = ex.GetUserSafeMessage();
+                        return View(model);
+                    }
+
+                    model.IsUploadInProgress = true;
+
+                    var verifyRequest = new VerifyPackageRequest
+                    {
+                        Id = packageMetadata.Id,
+                        Version = packageMetadata.Version.ToFullStringSafe(),
+                        OriginalVersion = packageMetadata.Version.OriginalVersion,
+                        LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
+                        Listed = true,
+                        Language = packageMetadata.Language,
+                        MinClientVersion = packageMetadata.MinClientVersion,
+                        FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
+                        Dependencies = new DependencySetsViewModel(
+                            packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
+                        DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
+                        Edit = new EditPackageVersionRequest
+                        {
+                            Authors = packageMetadata.Authors.Flatten(),
+                            Copyright = packageMetadata.Copyright,
+                            Description = packageMetadata.Description,
+                            IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull(),
+                            LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
+                            ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull(),
+                            ReleaseNotes = packageMetadata.ReleaseNotes,
+                            RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
+                            Summary = packageMetadata.Summary,
+                            Tags = PackageHelper.ParseTags(packageMetadata.Tags),
+                            VersionTitle = packageMetadata.Title,
+                        }
+                    };
+
+                    model.InProgressUpload = verifyRequest;
                 }
             }
 
-            return View();
+            return View(model);
         }
 
         [HttpPost]
@@ -321,7 +372,64 @@ namespace NuGetGallery
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
             }
 
-            return RedirectToRoute(RouteName.VerifyPackage);
+            //return VerifyPackage().Result;
+
+            PackageMetadata packageMetadata;
+            using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
+            {
+                if (uploadedFile == null)
+                {
+                    return RedirectToRoute(RouteName.UploadPackage);
+                }
+
+                var package = await SafeCreatePackage(currentUser, uploadedFile);
+                if (package == null)
+                {
+                    return Redirect(Url.UploadPackage());
+                }
+
+                try
+                {
+                    packageMetadata = PackageMetadata.FromNuspecReader(
+                        package.GetNuspecReader());
+                }
+                catch (Exception ex)
+                {
+                    TempData["Message"] = ex.GetUserSafeMessage();
+                    return Redirect(Url.UploadPackage());
+                }
+            }
+
+            var model = new VerifyPackageRequest
+            {
+                Id = packageMetadata.Id,
+                Version = packageMetadata.Version.ToFullStringSafe(),
+                OriginalVersion = packageMetadata.Version.OriginalVersion,
+                LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
+                Listed = true,
+                Language = packageMetadata.Language,
+                MinClientVersion = packageMetadata.MinClientVersion,
+                FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
+                Dependencies = new DependencySetsViewModel(
+                    packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
+                DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
+                Edit = new EditPackageVersionRequest
+                {
+                    Authors = packageMetadata.Authors.Flatten(),
+                    Copyright = packageMetadata.Copyright,
+                    Description = packageMetadata.Description,
+                    IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull(),
+                    LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
+                    ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull(),
+                    ReleaseNotes = packageMetadata.ReleaseNotes,
+                    RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
+                    Summary = packageMetadata.Summary,
+                    Tags = PackageHelper.ParseTags(packageMetadata.Tags),
+                    VersionTitle = packageMetadata.Title,
+                }
+            };
+
+            return Json(model);
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)

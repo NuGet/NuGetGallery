@@ -3,15 +3,13 @@
 @{
     ViewBag.Title = "Verify Package";
     ViewBag.Tab = "Upload";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
-
 <h1 class="page-heading">Verify Details &amp; Submit</h1>
-
-@ViewHelpers.UploadSequence(2)
 
 <h2>Verify Details</h2>
 <p class="long note">
-    You have successfully uploaded a package. But you have not yet published it in the gallery. The package metadata 
+    You have successfully uploaded a package. But you have not yet published it in the gallery. The package metadata
     is shown below. Please verify the details and make any necessary changes. Then click submit.
 </p>
 <p class="long note">
@@ -21,18 +19,18 @@
 @helper ReadOnlyField(string name, string formid, string value, bool link = false)
 {
     <h4>@name</h4>
-    if (String.IsNullOrEmpty(value))
-    {
+if (String.IsNullOrEmpty(value))
+{
         <p><i>(none specified)</i></p>
-    }
-    else if (link)
-    {
+}
+else if (link)
+{
         <p><a href="@value">@value</a></p>
-    }
-    else
-    {
+}
+else
+{
         <p>@value</p>
-    }
+}
     <input type="hidden" name="@formid" value="@value" />
 }
 
@@ -43,11 +41,11 @@
 
 @helper EditableField(string name, Expression<Func<VerifyPackageRequest, object>> func, bool link = false, bool pre = false)
 {
-    var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
-    object temp = func.Compile().Invoke(Model);
-    string value = temp == null ? null : temp.ToString();
+var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
+object temp = func.Compile().Invoke(Model);
+string value = temp == null ? null : temp.ToString();
     <div class="form-field">
-        <div style="display: block" >
+        <div style="display: block">
             @Html.Label(formid, name, new { style = "display: inline-block" })
             <button type="button" class="edit-button" id="@(formid + "Button")"><span class="icon-edit" title="Edit @(name)"></span></button>
             <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
@@ -82,87 +80,88 @@
 {
     <fieldset class="form">
         <legend>Verify Package Details</legend>
-    <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
-        <li>@ReadOnlyField("Package ID", "Id", Model.Id)</li>
-        <li>@ReadOnlyField("Version", "Version", Model.Version)@HiddenField("OriginalVersion", Model.OriginalVersion)</li>
-        <li>@ReadOnlyField("Minimum NuGet Client Version", "MinClientVersion", Model.MinClientVersion.ToStringSafe())</li>
-        <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
-        <li>@ReadOnlyField("Language", "Language", Model.Language)</li>
-        <li>@ReadOnlyField("Development Dependency", "DevDependency", Model.DevelopmentDependency)</li>
-        <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
-        <li>@EditableField("Description", m => m.Edit.Description)</li>
-        <li>@EditableField("Summary", m => m.Edit.Summary)</li>
-        <li>@EditableField("Icon URL", m => m.Edit.IconUrl, link: true)</li>
-        <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
-        <li>@EditableField("Authors", m => m.Edit.Authors)</li>
-        <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
-        <li>@EditableField("Tags", m => m.Edit.Tags)</li>
-        <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
+        <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
+            <li>@ReadOnlyField("Package ID", "Id", Model.Id)</li>
+            <li>@ReadOnlyField("Version", "Version", Model.Version)@HiddenField("OriginalVersion", Model.OriginalVersion)</li>
+            <li>@ReadOnlyField("Minimum NuGet Client Version", "MinClientVersion", Model.MinClientVersion.ToStringSafe())</li>
+            <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
+            <li>@ReadOnlyField("Language", "Language", Model.Language)</li>
+            <li>@ReadOnlyField("Development Dependency", "DevDependency", Model.DevelopmentDependency)</li>
+            <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
+            <li>@EditableField("Description", m => m.Edit.Description)</li>
+            <li>@EditableField("Summary", m => m.Edit.Summary)</li>
+            <li>@EditableField("Icon URL", m => m.Edit.IconUrl, link: true)</li>
+            <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
+            <li>@EditableField("Authors", m => m.Edit.Authors)</li>
+            <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
+            <li>@EditableField("Tags", m => m.Edit.Tags)</li>
+            <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
 
-        @if (Model.Dependencies != null)
-        {
-            <li>
-                <h4>
-                    Dependencies
-                </h4>
-                <div style="position: relative; margin-left: 15px;">
-                    @Html.Partial("_PackageDependencies", Model.Dependencies)
-                </div>
-            </li>
-        }
-
-        @if (Model.FrameworkReferenceGroups.Any())
-        {
-            <li>
-                <h4>
-                    Framework Assembly References
-                </h4>
-                <div style="position: relative; margin-left: 15px;">
-                    <ul id="dependencySets">
-                        @foreach (var framework in Model.FrameworkReferenceGroups)
-                        {
-                            <li>
-                                @if (!framework.TargetFramework.IsAny)
-                                {
-                                    <h4>@framework.TargetFramework.ToFriendlyName()</h4>
-                                }
-                                else
-                                {
-                                    <h4>Any</h4>
-                                }
-
-                                <ul class="dependencySet">
-                                    @foreach (var assembly in framework.Items)
-                                    {
-                                        <li>@assembly</li>
-                                    }
-                                </ul>
-                            </li>
-                        }
-                    </ul>
-
-                </div>
-            </li>
-        }
-
-
-                                    @if (!String.IsNullOrEmpty(Model.LicenseUrl))
-        {
-            <li>
-                <h4>Requires License Acceptance
-                    @{
-                                            var formid2 = "Edit_RequiresLicenseAcceptance";
-                        <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit" title="Edit Requires License Acceptance"></span></button>
-                        <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
-                    }
-                </h4>
-                <div style="position: relative">
-                    <div id="Edit_RequiresLicenseAcceptanceText">
-                        <p>@(Model.Edit.RequiresLicenseAcceptance ? Strings.Yes : Strings.No)</p>
+            @if (Model.Dependencies != null)
+            {
+                <li>
+                    <h4>
+                        Dependencies
+                    </h4>
+                    <div style="position: relative; margin-left: 15px;">
+                        @Html.Partial("_PackageDependencies", Model.Dependencies)
                     </div>
-                    <div id="Edit_RequiresLicenseAcceptanceField" style="display: none; width: 100%">
-                        <div class="form-field" style="display: inline">
-                            @Html.DropDownList("Edit.RequiresLicenseAcceptance",
+                </li>
+            }
+
+            @if (Model.FrameworkReferenceGroups.Any())
+            {
+                <li>
+                    <h4>
+                        Framework Assembly References
+                    </h4>
+                    <div style="position: relative; margin-left: 15px;">
+                        <ul id="dependencySets">
+                            @foreach (var framework in Model.FrameworkReferenceGroups)
+                            {
+                                <li>
+                                    @if (!framework.TargetFramework.IsAny)
+                                    {
+                                        <h4>@framework.TargetFramework.ToFriendlyName()</h4>
+                                    }
+                                    else
+                                    {
+                                        <h4>Any</h4>
+                                    }
+
+                                    <ul class="dependencySet">
+                                        @foreach (var assembly in framework.Items)
+                                        {
+                                            <li>@assembly</li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+
+                    </div>
+                </li>
+            }
+
+
+            @if (!String.IsNullOrEmpty(Model.LicenseUrl))
+            {
+                <li>
+                    <h4>
+                        Requires License Acceptance
+                        @{
+                            var formid2 = "Edit_RequiresLicenseAcceptance";
+                            <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit" title="Edit Requires License Acceptance"></span></button>
+                            <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
+                        }
+                    </h4>
+                    <div style="position: relative">
+                        <div id="Edit_RequiresLicenseAcceptanceText">
+                            <p>@(Model.Edit.RequiresLicenseAcceptance ? Strings.Yes : Strings.No)</p>
+                        </div>
+                        <div id="Edit_RequiresLicenseAcceptanceField" style="display: none; width: 100%">
+                            <div class="form-field" style="display: inline">
+                                @Html.DropDownList("Edit.RequiresLicenseAcceptance",
                                 new List<SelectListItem>
                                 {
                                     new SelectListItem { Text = Strings.Yes, Value = "true" },
@@ -172,15 +171,15 @@
                                 {
                                     { "aria-label", "Requires License Acceptance" }
                                 })
-                            @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                                @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                            </div>
                         </div>
                     </div>
-                </div>
-            </li>
-        }
+                </li>
+                            }
 
-        <li>
-            <h4>Listed in Search Results</h4>
+            <li>
+                <h4>Listed in Search Results</h4>
                 <div class="form-field">
                     @Html.DropDownList("Listed",
                         new List<SelectListItem>
@@ -194,17 +193,17 @@
                         })
                     @Html.ValidationMessageFor(model => model.Listed)
                     @*<label for="Listed" class="checkbox">
-                        List this package in search results. 
-                    </label>*@
+                            List this package in search results.
+                        </label>*@
                 </div>
-        </li>
-    </ul>
+            </li>
+        </ul>
 
-    @Html.AntiForgeryToken()
-    <input id="verifyUploadSubmit" type="submit" value="Submit" title="Verify Details &amp; Submit" /> 
-    <a class="cancel" href="@Url.CancelUpload()" title="Cancel the upload in progress.">Cancel</a>
-</fieldset>
-}
+        @Html.AntiForgeryToken()
+        <input id="verifyUploadSubmit" type="submit" value="Submit" title="Verify Details &amp; Submit" />
+        <a class="cancel" href="@Url.CancelUpload()" title="Cancel the upload in progress.">Cancel</a>
+    </fieldset>
+                            }
 
 @section BottomScripts {
     <script>

@@ -1,13 +1,17 @@
 ﻿var AsyncFileUploadManager = new function () {
+    var _actionUrl;
     var _isWebkitBrowser = false; // $.browser.webkit is not longer supported on jQuery
     var _iframeId = '__fileUploadFrame';
+    var _formId;
     var _pollingInterval = 200;
     var _pingUrl;
     var _failureCount;
     var _isUploadInProgress;
 
-    this.init = function (pingUrl, formId, jQueryUrl) {
+    this.init = function (pingUrl, formId, jQueryUrl, actionUrl) {
         _pingUrl = pingUrl;
+        _formId = formId;
+        _actionUrl = actionUrl;
 
         // attach the sumbit event to the form
         $('#' + formId).submit(function () {
@@ -17,9 +21,52 @@
             return false;
         });
 
+        $('#' + formId).find(':submit').on('click', function () {
+            $.ajax({
+                url: _actionUrl,
+                type: 'POST',
+
+                data: new FormData($('#' + _formId)[0]),
+
+                cache: false,
+                contentType: false,
+                processData: false,
+                
+                success: function (model, resultCodeString, fullResponse) {
+                    console.log(JSON.stringify(model));
+                    bindData(model);
+                    console.log(JSON.stringify(resultCodeString));
+                    console.log(JSON.stringify(fullResponse));
+                    $('#' + formId).find(':submit').val('Upload');
+                }
+            })
+        });
+
+        if (InProgressPackage != null) {
+            bindData(InProgressPackage);
+        }
+        
         if (_isWebkitBrowser) {
             constructIframe(jQueryUrl);
         }
+    }
+
+    function bindData(model) {
+        $("#verify-package-block").remove();
+        var reportContainerElement = document.createElement("div");
+        $(reportContainerElement).attr("id", "verify-package-block");
+        $(reportContainerElement).attr("class", "collapse in");
+        $(reportContainerElement).attr("aria-expanded", "true");
+        $(reportContainerElement).attr("data-bind", "template: { name: 'verify-metadata-template', data: data }");
+        $("#verify-package-container").append(reportContainerElement);
+        ko.applyBindings({ data: model }, reportContainerElement);
+        
+        window.nuget.configureExpander(
+            "verify-package-form",
+            "ChevronRight",
+            "Verify",
+            "ChevronDown",
+            "Verify");
     }
 
     function submitForm(form) {
@@ -28,7 +75,7 @@
         }
 
         if (!form.action) {
-            form.submit();
+            //form.submit();
             return;
         }
 
@@ -36,7 +83,7 @@
         var totalFile = 0;
         $('input[type=file]', form).each(function (index, el) { if (el.value) totalFile++; });
 
-        form.submit();
+        //form.submit();
 
         // only show progress indicator if the form actually uploads some files
         if (totalFile > 0) {

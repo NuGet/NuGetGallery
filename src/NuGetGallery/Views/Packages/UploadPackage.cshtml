@@ -2,48 +2,75 @@
 @{
     ViewBag.Title = "Upload Package";
     ViewBag.Tab = "Upload";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<h1 class="page-heading">Upload Your Package</h1>
+<div class="page-upload container main-container">
+    <h1 class="page-heading">Upload Your Package</h1>
+    @if (Model.IsUploadInProgress)
+    {
+        @ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>);
+    }
+    <div class="col-xs-12" id="upload-package-container">
+        <h2>
+            <a href="#" role="button" data-toggle="collapse" data-target="#upload-package-form"
+               aria-expanded="false" aria-controls="upload-package-form" id="show-upload-package-form">
+                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                <span>Upload</span>
+            </a>
+        </h2>
+        <div class="collapse in" id="upload-package-form" aria-expanded="true">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <fieldset class="form">
+                    @Html.AntiForgeryToken()
 
-@ViewHelpers.UploadSequence(1)
+                    <p class="message">Your package file will be uploaded and hosted on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>
 
-@using (Html.BeginForm("UploadPackage", "Packages", FormMethod.Post, new { id = "uploadForm", enctype = "multipart/form-data" }))
-{
-    <fieldset class="form">
-        <legend>Upload a Package</legend>
-        @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true)
 
-        <p class="message">Your package file will be uploaded and hosted on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>
+                    <div class="form-field col-xs-12">
+                        <label for="PackageFile" id="PackageFileLabel" class="btn btn-default btn-file col-sm-11">
+                            Select Package File<input type="file" name="UploadFile" accept=".nupkg" aria-labelledby="PackageFileLabel" />
+                        </label>
 
-        @Html.ValidationSummary(true)
+                        <input class="btn btn-default col-sm-1" type="submit" value="Upload" title="Upload the package." />
+                    </div>
 
-        <div class="form-field">
-            <label for="PackageFile" id="PackageFileLabel">Choose a package...</label>
-            <input type="file" name="UploadFile" accept=".nupkg" aria-labelledby="PackageFileLabel" />
+                    <div id="asyncUploadPanel" class="async-upload-panel">
+                        <div id="asyncUploadProgressInitial" class="async-upload-progress-initial">
+                            <span id="asyncUploadProgressAdvance" class="async-upload-progress-advance"></span>
+                        </div>
+                        <div id="asyncUploadFileName" class="async-upload-file-name"></div>
+                    </div>
+                </fieldset>
+            </form>
         </div>
+    </div>
 
-        <input type="submit" value="Upload" title="Upload the package." />
+    <div class="col-sm-12" id="verify-package-container">
+    </div>
 
-        <div id="asyncUploadPanel" class="async-upload-panel">
-            <div id="asyncUploadProgressInitial" class="async-upload-progress-initial">
-                <span id="asyncUploadProgressAdvance" class="async-upload-progress-advance"></span>
-            </div>
-            <div id="asyncUploadFileName" class="async-upload-file-name"></div>
-        </div>
-    </fieldset>
-}
+    @Html.Partial("_EditMetadata")
+</div>
 
 @section BottomScripts
 {
     @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
     <script type="text/javascript" src="@Url.Content("~/Scripts/async-file-upload.js")"></script>
     <script type="text/javascript">
+        var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
+        window.nuget.configureExpander(
+            "upload-package-form",
+            "ChevronRight",
+            "Upload",
+            "ChevronDown",
+            "Upload");
         $(function () {
             AsyncFileUploadManager.init(
                 '@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',
                 'uploadForm',
-                '@Scripts.Url("~/Scripts/jquery")');
+                '@Scripts.Url("~/Scripts/jquery")',
+                '@Url.Action(actionName: "UploadPackage", controllerName: "Packages")');
         });
     </script>
 }

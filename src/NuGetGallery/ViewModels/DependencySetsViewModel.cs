@@ -58,10 +58,13 @@ namespace NuGetGallery
                 {
                     VersionSpec = VersionRange.Parse(versionSpec).PrettyPrint();
                 }
+
+                PackageUrl = UrlExtensions.Package(new System.Web.Mvc.UrlHelper(System.Web.HttpContext.Current.Request.RequestContext), id);
             }
 
             public string Id { get; private set; }
             public string VersionSpec { get; private set; }
+            public string PackageUrl { get; private set; }
         }
     }
 }
