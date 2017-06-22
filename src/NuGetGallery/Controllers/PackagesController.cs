@@ -1365,9 +1365,8 @@ namespace NuGetGallery
                     var readMeChanged = formData.ReadMe.Count > 0;
                     if (readMeChanged)
                     {
-                        
+                        _packageFileService.SavePackageFileAsync();
                     }
-
                     // Add the edit request to a queue where it will be processed in the background.
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, readMeChanged);
                     

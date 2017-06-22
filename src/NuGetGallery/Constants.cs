@@ -34,6 +34,9 @@ namespace NuGetGallery
         public const string DownloadsFolderName = "downloads";
         public const string ContentFolderName = "content";
 
+        public const string PendingReadMeFolderName = "pending-readmes";
+        public const string ReadMeFolderName = "readmes";
+  
         public const string PopularitySortOrder = "package-download-count";
         public const string RecentSortOrder = "package-created";
         public const string RelevanceSortOrder = "relevance";

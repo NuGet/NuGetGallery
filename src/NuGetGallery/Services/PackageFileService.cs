@@ -20,6 +20,7 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService;
         }
 
+
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
         {
             var fileName = BuildFileName(package);
@@ -57,6 +58,22 @@ namespace NuGetGallery
 
             var fileName = BuildFileName(package);
             return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile, overwrite: false);
+        }
+
+
+        /// <summary>
+        /// Saves a ReadMe file asynchronously to the Pending ReadMe file folder.
+        /// </summary>
+        /// <param name="package">The package to which this readme belongs.</param>
+        /// <param name="readMe">The stream representing the readme's data.</param>
+        public Task SaveReadMeFileAsync(Package package, Stream readMe)
+        {
+            if (readMe == null || package == null)
+            {
+                throw new ArgumentNullException(nameof(readMe));
+            }
+            var fileName = BuildFileName(package);
+            return _fileStorageService.SaveFileAsync(Constants.PendingReadMeFolderName, fileName, readMe, overwrite:false);
         }
 
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
@@ -162,5 +179,7 @@ namespace NuGetGallery
                 HttpServerUtility.UrlTokenEncode(hashBytes),
                 Constants.NuGetPackageFileExtension);
         }
+
+
     }
 }
