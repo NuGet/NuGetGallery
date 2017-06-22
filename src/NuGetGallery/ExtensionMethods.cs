@@ -317,6 +317,20 @@ namespace NuGetGallery
             return html.CheckBoxFor(expression, htmlAttributes);
         }
 
+        public static HtmlString ShowSliderFor<TModel>(this HtmlHelper<TModel> html, Expression<Func<TModel, bool>> expression, HtmlString label)
+        {
+            var checkbox = ShowCheckboxFor(html, expression);
+            return new HtmlString(@"
+<label class=""switch"">" +
+    checkbox +
+    @"<div class=""slider""></div>
+</label>" +
+@"<div class=""switch-label-container"">" +
+    label +
+@"</div>
+<div class=""clearfix""></div>");
+        }
+
         public static HtmlString ShowTextAreaFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, int rows, int columns)
         {
             var htmlAttributes = GetHtmlAttributes(html, expression);
