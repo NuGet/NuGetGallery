@@ -4,6 +4,7 @@ using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Packaging;
 using System.Collections.Generic;
+using System.Web;
 
 namespace NuGetGallery
 {
@@ -46,5 +47,6 @@ namespace NuGetGallery
         public string DevelopmentDependency { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IReadOnlyCollection<FrameworkSpecificGroup> FrameworkReferenceGroups { get; set; }
+        public List<HttpPostedFileBase> ReadMe { get; set; }
     }
 }
