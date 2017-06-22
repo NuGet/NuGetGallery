@@ -53,14 +53,14 @@
             @if (PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
             {
                 <li>
-                    <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package" rel="nofollow">
+                    <a href="@Model.ProjectUrl" data-track="outbound-project-url" title="Visit the project site to learn more about this package" rel="nofollow">
                         Project Site
                     </a>
                 </li>
             }
             @if (PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
             {
-                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license" rel="nofollow">License</a></li>
+                <li><a href="@Model.LicenseUrl" data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">License</a></li>
             }
             <li><a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact Owners</a></li>
             @if ((Model.IsOwner(User) || User.IsAdministrator()))
@@ -82,7 +82,7 @@
 
             @if (!Model.Deleted)
             {
-                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
+                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
                 <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a></li>
             }
 
