@@ -1871,6 +1871,49 @@ namespace NuGetGallery
                     fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser, false), Times.Once);
                 }
             }
+           
+            [Fact]
+            public async Task WillNotApplyEditIfThereWereNoChanges()
+            {
+                // Arrange
+                var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "thePackageId" }, Version = "1.0.0", Tags = "abc, cde" };
+
+                // Create the original model that was presented to the user
+                using (var fakeUploadFileStream = TestPackage.CreateTestPackageStream(id: fakePackage.PackageRegistration.Id, version: fakePackage.Version, tags: fakePackage.Tags))
+                {
+                    var model = await TheVerifyPackageActionForGetRequests.CreateVerifyPackageRequestForPackage(fakeUploadFileStream);
+
+                    using (var fakeFileStream = new MemoryStream())
+                    {
+                        var fakeUploadFileService = new Mock<IUploadFileService>();
+                        fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                        fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.CompletedTask);
+
+                        var packageService = new Mock<IPackageService>();
+
+                        packageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                            .Returns(Task.FromResult(fakePackage));
+
+                        var fakeEditPackageService = new Mock<EditPackageService>();
+
+                        using (var fakeUploadFileStream2 = TestPackage.CreateTestPackageStream(id: fakePackage.PackageRegistration.Id, version: fakePackage.Version, tags: fakePackage.Tags))
+                        { 
+                            var controller = CreateController(packageService: packageService,
+                                editPackageService: fakeEditPackageService,
+                                uploadFileService: fakeUploadFileService,
+                                fakeNuGetPackage: fakeUploadFileStream2);
+
+                            controller.SetCurrentUser(TestUtility.FakeUser);
+
+                            // Act
+                            await controller.VerifyPackage(model);
+
+                            // Assert 
+                            fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, model.Edit, TestUtility.FakeUser, true), Times.Never);
+                        }
+                    }
+                }
+            }
         }
 
         public class TheUploadProgressAction
