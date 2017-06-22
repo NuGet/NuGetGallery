@@ -1,0 +1,35 @@
+.page-manage-owners {
+  h2 {
+    .ms-Icon {
+      font-size: 0.6em;
+      position: relative;
+      top: -2px;
+    }
+
+    a {
+      color: #000;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: none;
+    }
+  }
+
+  .current-owner {
+    margin-bottom: @padding-large-vertical;
+
+    .remove-owner a {
+      color: #E81123;
+
+      .ms-Icon {
+        position: relative;
+        top: 3px;
+      }
+    }
+
+    .remove-owner a:hover, .remove-owner a:active {
+      color: darken(#E81123, 10%);
+    }
+  }
+}

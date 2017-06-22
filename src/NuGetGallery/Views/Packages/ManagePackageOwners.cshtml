@@ -1,243 +1,123 @@
 ﻿@model ManagePackageOwnersViewModel
 @{
     ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
+<section role="main" class="container main-container page-manage-owners">
+    <div class="col-md-10 col-md-offset-1">
+        <h1 class="text-center">Manage Owners for Package <a href="@Url.Package(Model.Id)">@Model.Title.Abbreviate(50)</a></h1>
 
-<h1 class="page-heading">Manage Owners for Package "@Model.Title.Abbreviate(50)"</h1>
-
-<div class="error message" style="display: none" data-bind="text: message, visible: message"></div>
-
-<h2>Current Owners</h2>
-<ul id="package-owner-list" data-bind="foreach: owners">
-    <li>
-        <span data-bind="text: name"></span> <em data-bind="visible: current">(that&#8217;s you!)</em>
-        <em data-bind="visible: pending">(pending approval)</em>
-        <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current  || $parent.hasMoreThanOneOwner, click: $root.removeOwner">Remove</a>
-    </li>
-</ul>
-
-<h2>Add Owner</h2>
-<p>
-    Enter an owner's username to add them as a package owner.
-</p>
-<p class="message">
-    NOTE: All package owners have full control over their packages,
-    including the ability to remove other users as owners.
-</p>
-@using (Html.BeginForm())
-{
-    @Html.AntiForgeryToken()
-    <fieldset class="form">
-        <legend>Add Owner</legend>
-        <div id="input-form">
-            <div class="form-field">
-                <label for="newOwnerUserName">Username</label>
-                <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername" />
-            </div>
-            <div class="form-field">
-                <label for="newOwnerUserName">Message</label>
-                <textarea id="newOwnerMessage" name="newOwnerUserName" data-bind="value: newOwnerMessage"></textarea>
-            </div>
-            <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: confirmAddOwner" />
+        <div style="display: none" data-bind="visible: message">
+            @ViewHelpers.AlertDanger(isAlertRole: true, htmlContent:
+                @<text>
+                    <span data-bind="text: message"></span>
+                </text>)
         </div>
-        <div style="display: none" data-bind="visible: confirmation">
-            <h2>Confirm</h2>
 
-            <div data-bind="text: confirmation"></div>
-            <br />
+        <h2>
+            <a href="#" role="button" data-toggle="collapse" data-target="#package-owners"
+                   aria-expanded="true" aria-controls="package-owners" id="show-package-owners">
+                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                <span>Current Owners</span>
+            </a>
+        </h2>
 
-            <div class="warning message" data-bind="visible: policyMessage, html: policyMessage"></div>
-            <br />
-            <input type="submit" value="Confirm" title="Confirm adding the user as an owner to @Model.Title" data-bind="click: addOwner" />
-            <a class="cancel" title="Cancel changes and reload the page." data-bind="click: resetAddOwnerConfirmation">Cancel</a>
+        <div class="package-owners panel-collapse collapse in" aria-expanded="true" id="package-owners">
+            <div data-bind="foreach: owners" role="list">
+                <div class="row current-owner ms-font-xl" role="listitem">
+                    <div class="col-md-1">
+                        <img data-bind="attr:{src: imageUrl} " />
+                    </div>
+                    <div class="col-md-8 ms-font-xl">
+                        <span>
+                            <a data-bind="attr: {href: profileUrl, title: name}, text: name"></a>
+                        </span>
+                        <span style="font-style:italic">
+                            <span data-bind="visible: current">(that's you)</span>
+                            <span data-bind="visible: pending">(pending approval)</span>
+                        </span>
+                    </div>
+                    <div class="col-md-3 remove-owner">
+                        <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current  || $parent.hasMoreThanOneOwner, click: $root.removeOwner">
+                            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                            Remove
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-    </fieldset>
-}
+
+        <h2>
+            <a href="#" role="button" data-toggle="collapse" data-target="#add-owner"
+                aria-expanded="true" aria-controls="add-owner" id="show-add-owner">
+                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                <span>Add Owner</span>
+            </a>
+        </h2>
+
+        <div class="package-owners panel-collapse collapse in" aria-expanded="true" id="add-owner">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <p class="ms-font-xl">Enter a username to add them as a package owner.</p>
+
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        Note: All package owners have full control over their packages,
+                        including the ability to remove other users as owners.
+                    </text>)
+
+                <div class="form-group">
+                    <label for="newOwnerUserName">Username</label>
+                    <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername" aria-required="true" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label for="newOwnerMessage">Message</label>
+                    <textarea id="newOwnerMessage" name="newOwnerMessage" data-bind="value: newOwnerMessage" aria-required="true" class="form-control" cols="50" rows="10"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary form-control" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: confirmAddOwner" />
+                </div>
+
+                <div style="display: none" data-bind="visible: confirmation">
+                    <h2>Confirm</h2>
+
+                    <p data-bind="text: confirmation"></p>
+
+                    <div style="display: none" data-bind="visible: policyMessage">
+                        @ViewHelpers.AlertWarning(
+                            @<text>
+                                <span data-bind="text: policyMessage"></span>
+                            </text>)
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="submit" class="btn btn-primary form-control col-md-6" value="Confirm" title="Confirm adding the user as an owner to @Model.Title" data-bind="click: addOwner" />
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <a class="btn btn-default form-control col-md-6 text-right" title="Cancel changes and reload the page." data-bind="click: resetAddOwnerConfirmation">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
 
 @section bottomScripts {
-    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
     <script>
-        $(function () {
-            //TODO Move this to its own script file when we set up QUnit tests
-            var failHandler = function (jqXHR, textStatus, errorThrown) {
-                alert('An unexpected error occurred! "' + errorThrown + '"');
-            };
-
-            var viewModel = {
-                package: { id: '@Model.Id' },
-                owners: ko.observableArray([]),
-                newOwnerUsername: ko.observable(''),
-                newOwnerMessage: ko.observable(''),
-                confirmation: ko.observable(''),
-                policyMessage: ko.observable(''),
-
-                message: ko.observable(''),
-
-                hasMoreThanOneOwner: function() {
-                    return true;
-                },
-
-                headers: function () {
-                    return { '__RequestVerificationToken': $('input[name=""__RequestVerificationToken""]').val() };
-                },
-
-                resetAddOwnerConfirmation: function () {
-                    viewModel.confirmation('');
-                    viewModel.policyMessage('');
-                    $("#input-form :input").attr("disabled", false);
-                },
-
-                confirmAddOwner: function () {
-                    var newUsername = viewModel.newOwnerUsername();
-                    if (!newUsername) {
-                        viewModel.message("Please enter a valid user name.");
-                        return;
-                    }
-
-                    var existingOwner = ko.utils.arrayFirst(
-                        viewModel.owners(),
-                        function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });
-
-                    if (existingOwner) {
-                        viewModel.message("The user '" + newUsername + "' is already an owner or pending owner of this package.");
-                        return;
-                    }
-
-                    $.ajax({
-                        url: '@Url.Action("GetAddPackageOwnerConfirmation", "JsonApi")?id=' + viewModel.package.id + '&username=' + newUsername,
-                        cache: false,
-                        dataType: 'json',
-                        type: 'GET',
-                        headers: viewModel.headers(),
-                        contentType: 'application/json; charset=utf-8',
-                        success: function (data) {
-                            if (data.success) {
-                                viewModel.confirmation(data.confirmation);
-                                viewModel.policyMessage(data.policyMessage);
-                                $("#input-form :input").attr("disabled", true);
-                            }
-                            else {
-                                viewModel.message(data.message);
-                            }
-                        }
-                    })
-                    .error(failHandler);
-                },
-
-                addOwner: function () {
-                    var newUsername = viewModel.newOwnerUsername();
-                    var message = viewModel.newOwnerMessage();
-
-                    var ownerInputModel =
-                    {
-                        username: newUsername,
-                        id: viewModel.package.id,
-                        message: message
-                    };
-
-                    $.ajax({
-                        url: '@Url.Action("AddPackageOwner", "JsonApi")',
-                        cache: false,
-                        dataType: 'json',
-                        type: 'POST',
-                        headers: viewModel.headers(),
-                        data: window.JSON.stringify(ownerInputModel),
-                        contentType: 'application/json; charset=utf-8',
-                        success: function (data) {
-                            if (data.success) {
-                                var newOwner = new Owner(data.name, /* pending */ true, data.current);
-                                viewModel.owners.push(newOwner);
-
-                                // reset the Username textbox
-                                viewModel.newOwnerUsername('');
-                                viewModel.newOwnerMessage('');
-
-                                // when an operation succeeds, always clear the error message
-                                viewModel.message('');
-                                viewModel.resetAddOwnerConfirmation();
-                            }
-                            else {
-                                viewModel.message(data.message);
-                            }
-                        }
-                    })
-                    .error(failHandler);
-                },
-
-                removeOwner: function (item) {
-                    var package = viewModel.package;
-
-                    if (item.current) {
-                        if (!confirm("Are you sure you want to remove yourself from the owners?")) {
-                            return;
-                        }
-                    }
-
-                    $.ajax({
-                        url: '@Url.Action("RemovePackageOwner", "JsonApi")?id=' + package.id + '&username=' + item.name(),
-                        cache: false,
-                        dataType: 'json',
-                        type: 'POST',
-                        headers: viewModel.headers(),
-                        contentType: 'application/json; charset=utf-8',
-                        success: function (data) {
-                            if (data.success) {
-                                if (item.current) {
-                                    window.location.href = '@Url.Package(Model.Id)';
-                                }
-
-                                viewModel.owners.remove(item);
-
-                                // when an operation succeeds, always clear the error message
-                                viewModel.message('');
-                            } else {
-                                viewModel.message(data.message);
-                            }
-                        }
-                    })
-                    .error(failHandler);
-                }
-            };
-
-            viewModel.hasMoreThanOneOwner = ko.computed(function () {
-
-                if (this.owners().length < 2)
-                    return false;
-
-                var approvedOwner = 0;
-
-                ko.utils.arrayForEach(this.owners(), function (owner) {
-                    if (owner.pending() === false)
-                        approvedOwner++;
-                });
-
-                if (approvedOwner >= 2)
-                    return true;
-
-                return false;
-            }, viewModel);
-
-            ko.applyBindings(viewModel);
-
-            // Load initial owners.
-            $.ajax({
-                url: '@Url.Action("GetPackageOwners", "JsonApi")?id=' + viewModel.package.id,
-                cache: false,
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function (data) {
-                    viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.pending, item.current); }));
-                }
-            })
-            .error(failHandler);
-
-            function Owner(name, pending, current) {
-                this.name = ko.observable(name);
-                this.pending = ko.observable(pending);
-                this.current = current;
-            }
-        });
+        var packageId = "@Model.Id";
+        var packageUrl = "@Url.Package(Model.Id)";
+        var getPackageOwnersUrl = "@Url.Action("GetPackageOwners", "JsonApi")";
+        var getAddPackageOwnerConfirmationUrl = "@Url.Action("GetAddPackageOwnerConfirmation", "JsonApi")";
+        var addPackageOwnerUrl = "@Url.Action("AddPackageOwner", "JsonApi")";
+        var removePackageOwnerUrl = "@Url.Action("RemovePackageOwner", "JsonApi")";
     </script>
+
+    @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")
 }

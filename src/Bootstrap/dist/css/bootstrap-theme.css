@@ -448,6 +448,32 @@ img.package-icon {
   margin-top: 75px;
   margin-bottom: 0;
 }
+.page-manage-owners h2 .ms-Icon {
+  position: relative;
+  top: -2px;
+  font-size: .6em;
+}
+.page-manage-owners h2 a {
+  color: #000;
+  text-decoration: none;
+}
+.page-manage-owners h2 a:hover {
+  text-decoration: none;
+}
+.page-manage-owners .current-owner {
+  margin-bottom: 10px;
+}
+.page-manage-owners .current-owner .remove-owner a {
+  color: #e81123;
+}
+.page-manage-owners .current-owner .remove-owner a .ms-Icon {
+  position: relative;
+  top: 3px;
+}
+.page-manage-owners .current-owner .remove-owner a:hover,
+.page-manage-owners .current-owner .remove-owner a:active {
+  color: #b80e1c;
+}
 .page-profile .profile-title {
   margin-top: 50px;
   margin-bottom: 20px;

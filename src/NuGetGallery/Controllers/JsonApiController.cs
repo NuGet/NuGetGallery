@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
+using NuGetGallery.Helpers;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -55,18 +56,34 @@ namespace NuGetGallery
             }
 
             var owners = from u in package.PackageRegistration.Owners
-                         select new OwnerModel
+                         select new
                              {
-                                 name = u.Username,
-                                 current = u.Username == HttpContext.User.Identity.Name,
-                                 pending = false
+                                 Name = u.Username,
+                                 EmailAddress = u.EmailAddress,
+                                 Current = u.Username == HttpContext.User.Identity.Name,
+                                 Pending = false
                              };
 
             var pending = from u in _packageOwnerRequestRepository.GetAll()
                           where u.PackageRegistrationKey == package.PackageRegistration.Key
-                          select new OwnerModel { name = u.NewOwner.Username, current = false, pending = true };
+                          select new
+                              {
+                                  Name = u.NewOwner.Username,
+                                  EmailAddress = u.NewOwner.EmailAddress,
+                                  Current = false,
+                                  Pending = true
+                              };
 
-            return Json(owners.Union(pending), JsonRequestBehavior.AllowGet);
+            var result = owners.Union(pending).Select(o => new OwnerModel
+            {
+                name = o.Name,
+                profileUrl = Url.User(o.Name),
+                imageUrl = GravatarHelper.Url(o.EmailAddress, size: 32),
+                current = o.Current,
+                pending = o.Pending,
+            });
+
+            return Json(result, JsonRequestBehavior.AllowGet);
         }
 
         [HttpGet]
@@ -109,7 +126,14 @@ namespace NuGetGallery
                 _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
                     confirmationUrl, encodedMessage, policyMessage);
 
-                return Json(new { success = true, name = model.User.Username, pending = true });
+                return Json(new
+                {
+                    success = true,
+                    name = model.User.Username,
+                    profileUrl = Url.User(model.User.Username),
+                    imageUrl = GravatarHelper.Url(model.User.EmailAddress, size: 32),
+                    pending = true
+                });
             }
             else
             {
@@ -277,6 +301,8 @@ namespace NuGetGallery
         public class OwnerModel
         {
             public string name { get; set; }
+            public string profileUrl { get; set; }
+            public string imageUrl { get; set; }
             public bool current { get; set; }
             public bool pending { get; set; }
         }

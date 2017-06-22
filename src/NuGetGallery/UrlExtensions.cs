@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Microsoft.Web.Helpers;
 
 namespace NuGetGallery
 {
@@ -214,34 +215,28 @@ namespace NuGetGallery
 
         public static string User(this UrlHelper url, User user, int page = 1, string scheme = null)
         {
-            string result;
             if (page == 1)
             {
-                result = url.Action(actionName: "Profiles",
+                return url.Action(actionName: "Profiles",
                                     controllerName: "Users",
                                     routeValues: new { username = user.Username.TrimEnd() },
                                     protocol: scheme);
             }
             else
             {
-                result = url.Action(actionName: "Profiles",
+                return url.Action(actionName: "Profiles",
                                     controllerName: "Users",
                                     routeValues: new { username = user.Username.TrimEnd(), page = page },
                                     protocol: scheme);
             }
-
-
-            return result;
         }
 
-        public static string UserShowAllPackages(this UrlHelper url, string username, string scheme = null)
+        public static string User(this UrlHelper url, string username, string scheme = null)
         {
-            string result;
-                result = url.Action(actionName: "Profiles",
+            return url.Action(actionName: "Profiles",
                                     controllerName: "Users",
-                                    routeValues: new { username = username, showAllPackages = true },
+                                    routeValues: new { username = username },
                                     protocol: scheme);
-            return result;
         }
 
         public static string EditPackage(this UrlHelper url, string id, string version)
