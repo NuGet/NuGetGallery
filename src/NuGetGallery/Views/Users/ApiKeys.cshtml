@@ -33,7 +33,13 @@
             </p>
             @if (!CurrentUser.Confirmed)
             {
-                <p>To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a></p>
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        <p>
+                            To get an API Key you will need to
+                            <a href="@Url.ConfirmationRequired()">confirm your account.</a>
+                        </p>
+                    </text>)
             }
             else
             {
@@ -46,32 +52,73 @@
                     "manage",
                     "Manage API Keys",
                     @<text>
-
-                    </text>)
-
-                @Section(
-                    "example",
-                    "Example Usage",
-                    @<text>
-                        <p>
-                            The following snippet demonstrates how you can use the
-                            <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a> command-line
-                            utility to submit a NuGet package to the gallery:
-                        </p>
-                        <div class="example-commands">
-                            nuget.exe setApiKey [your API key] -source @Model.SiteRoot
-                            <br />
-                            nuget.exe push MyPackage.1.0.nupkg -Source @Model.SiteRoot/api/v2/package
+                        <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys, as: 'apiKey' }">
                         </div>
                     </text>)
             }
+
+            @Section(
+                "example",
+                "Example Usage",
+                @<text>
+                    <p>
+                        The following snippet demonstrates how you can use the
+                        <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a> command-line
+                        utility to submit a NuGet package to the gallery:
+                    </p>
+                    <div class="example-commands">
+                        nuget.exe setApiKey [your API key] -source @Model.SiteRoot
+                        <br />
+                        nuget.exe push MyPackage.1.0.nupkg -Source @Model.SiteRoot/api/v2/package
+                    </div>
+                </text>)
         </div>
     </div>
 </section>
 
+<script type="text/html" id="api-key-details">
+    <h3 data-bind="text: Description"></h3>
+    <ul class="list-unstyled">
+        <li>
+            <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
+            <!-- ko if: Expires -->
+                <!-- ko if: HasExpired -->
+                    Expired 
+                <!-- /ko -->
+                <!-- ko ifnot: HasExpired -->
+                    Expires <span data-bind="text: moment(Expires).fromNow()"></span>
+                <!-- /ko -->
+            <!-- /ko -->
+            <!-- ko ifnot: Expires -->
+                Never expires
+            <!-- /ko -->
+        </li>
+        <li>
+            <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
+            <!-- ko if: HasScopes -->
+                
+            <!-- /ko -->
+            <!-- ko ifnot: HasScopes -->
+                Scopes: All
+            <!-- /ko -->
+        </li>
+    </ul>
+</script>
+
 @section bottomScripts {
     <script type="text/javascript">
+        var initialApiKeys = @Html.Raw(Json.Encode(Model.ApiKeys));
+
+        // Set up the data binding.
+        var model = {
+            ApiKeys: ko.observableArray(initialApiKeys)
+        };
+        ko.applyBindings(model, $("#manage-container")[0]);
+    </script>
+    <script type="text/javascript">
         $(function () {
+
+            // Set up the sections.
             function configureSection(prefix) {
                 window.nuget.configureExpanderHeading(prefix + "-container");
             }

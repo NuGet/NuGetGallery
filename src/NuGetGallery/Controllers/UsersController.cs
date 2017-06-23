@@ -133,9 +133,52 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ApiKeys()
         {
+            var user = GetCurrentUser();
+            var credentialGroups = GetCredentialGroups(user);
+            if (!credentialGroups.TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
+            {
+                credentials = new List<CredentialViewModel>();
+            }
+
+            var apiKeys = new List<ApiKeyViewModel>();
+            foreach (var cred in credentials)
+            {
+                var hasScopes = cred.Scopes.Any();
+                var scopes = cred
+                    .Scopes
+                    .Select(s => s.AllowedAction)
+                    .Distinct()
+                    .OrderBy(s => s)
+                    .ToList();
+                var subjects = cred
+                    .Scopes
+                    .Select(s => s.Subject)
+                    .Distinct()
+                    .OrderBy(s => s)
+                    .ToList();
+                var globPattern = subjects
+                    .FirstOrDefault(s => s != null && s.Contains("*"));
+
+                apiKeys.Add(new ApiKeyViewModel
+                {
+                    Key = cred.Key,
+                    Type = cred.Type,
+                    Value = cred.Value,
+                    Description = cred.Description,
+                    Expires = cred.Expires.HasValue ? cred.Expires.Value.ToString("O") : null,
+                    IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey,
+                    HasExpired = cred.HasExpired,
+                    HasScopes = hasScopes,
+                    Scopes = scopes,
+                    Subjects = subjects,
+                    GlobPattern = globPattern,
+                });
+            }
+
             var model = new ApiKeysViewModel
             {
                 SiteRoot = _config.SiteRoot.TrimEnd('/'),
+                ApiKeys = apiKeys,
             };
 
             if (_config.RequireSSL)
@@ -737,13 +780,7 @@ namespace NuGetGallery
                 .GetFeedsForManager(user.Key)
                 .Select(f => f.Name)
                 .ToList();
-
-            model.CredentialGroups = user
-                .Credentials
-                .Where(c => CredentialTypes.IsViewSupportedCredential(c))
-                .Select(c => _authService.DescribeCredential(c))
-                .GroupBy(c => c.Kind)
-                .ToDictionary(g => g.Key, g => g.ToList());
+            model.CredentialGroups = GetCredentialGroups(user);
             model.SignInCredentialCount = model
                 .CredentialGroups
                 .Where(p => p.Key == CredentialKind.Password || p.Key == CredentialKind.External)
@@ -761,8 +798,19 @@ namespace NuGetGallery
             model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
             model.ChangeNotifications.EmailAllowed = user.EmailAllowed;
             model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
-            
+
             return View("Account", model);
+        }
+
+        private Dictionary<CredentialKind, List<CredentialViewModel>> GetCredentialGroups(User user)
+        {
+            return user
+                .Credentials
+                .OrderBy(c => c.Created)
+                .Where(c => CredentialTypes.IsViewSupportedCredential(c))
+                .Select(c => _authService.DescribeCredential(c))
+                .GroupBy(c => c.Kind)
+                .ToDictionary(g => g.Key, g => g.ToList());
         }
 
         private static int CountLoginCredentials(User user)

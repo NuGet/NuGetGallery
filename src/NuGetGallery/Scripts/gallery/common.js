@@ -174,9 +174,12 @@
 })();
 
 $(function () {
-    // Use moment.js to format attributes with the "datetime" attribute to "ago".
+    // Use moment.js to format attributes with the "datetime" attribute to "X time ago".
     $.each($('*[data-datetime]'), function () {
         var datetime = moment($(this).data().datetime);
+        if (!$(this).attr('title')) {
+            $(this).attr('title', datetime.utc().format());
+        }
         $(this).text(datetime.fromNow());
     });
 
