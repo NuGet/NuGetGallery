@@ -1,5 +1,7 @@
 ﻿var AsyncFileUploadManager = new function () {
     var _actionUrl;
+    var _cancelUrl;
+    var _submitVerifyUrl;
     var _isWebkitBrowser = false; // $.browser.webkit is not longer supported on jQuery
     var _iframeId = '__fileUploadFrame';
     var _formId;
@@ -8,10 +10,12 @@
     var _failureCount;
     var _isUploadInProgress;
 
-    this.init = function (pingUrl, formId, jQueryUrl, actionUrl) {
+    this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl) {
         _pingUrl = pingUrl;
         _formId = formId;
         _actionUrl = actionUrl;
+        _cancelUrl = cancelUrl;
+        _submitVerifyUrl = submitVerifyUrl;
 
         // attach the sumbit event to the form
         $('#' + formId).submit(function () {
@@ -21,26 +25,11 @@
             return false;
         });
 
-        $('#' + formId).find(':submit').on('click', function () {
-            $.ajax({
-                url: _actionUrl,
-                type: 'POST',
-
-                data: new FormData($('#' + _formId)[0]),
-
-                cache: false,
-                contentType: false,
-                processData: false,
-                
-                success: function (model, resultCodeString, fullResponse) {
-                    console.log(JSON.stringify(model));
-                    bindData(model);
-                    console.log(JSON.stringify(resultCodeString));
-                    console.log(JSON.stringify(fullResponse));
-                    $('#' + formId).find(':submit').val('Upload');
-                }
-            })
-        });
+        $('#input-select-file').on('change', function () {
+            clearErrors();
+            // Whether the cancel fails or not, we want to upload the next one.
+            cancelUploadAsync(startUploadAsync, startUploadAsync);
+        })
 
         if (InProgressPackage != null) {
             bindData(InProgressPackage);
@@ -51,8 +40,133 @@
         }
     }
 
+    function startUploadAsync(callback, error) {
+        // count the number of file fields which have selected files
+        var totalFile = 0;
+        $('input[type=file]').each(function (index, el) { if (el.value) totalFile++; });
+        if (totalFile < 1) {
+            return;
+        }
+
+        startProgressBar();
+
+        $.ajax({
+            url: _actionUrl,
+            type: 'POST',
+
+            data: new FormData($('#' + _formId)[0]),
+
+            cache: false,
+            contentType: false,
+            processData: false,
+
+            success: function (model, resultCodeString, fullResponse) {
+                console.log(JSON.stringify(model));
+                bindData(model);
+                console.log(JSON.stringify(resultCodeString));
+                console.log(JSON.stringify(fullResponse));
+                endProgressBar();
+                if (callback) {
+                    callback();
+                }
+
+            },
+
+            error: function (model, resultCodeString, fullResponse) {
+                bindData(null);
+                displayErrors(model.responseJSON);
+                endProgressBar();
+                if (error) {
+                    error();
+                }
+            }
+        });
+    }
+
+    function submitVerifyAsync(callback, error) {
+        $.ajax({
+            url: _submitVerifyUrl,
+            type: 'POST',
+
+            data: new FormData($('#verify-metadata-form')[0]),
+
+            cache: false,
+            contentType: false,
+            processData: false,
+
+            success: function (model, resultCodeString, fullResponse) {
+                document.location = model.location;
+            },
+
+            error: function (model, resultCodeString, fullResponse) {
+                bindData(null);
+                displayErrors(model.responseJSON);
+                endProgressBar();
+                if (error) {
+                    error();
+                }
+            }
+
+        });
+    }
+
+    function cancelUploadAsync(callback, error) {
+        $('#warning-container').hide();
+        $.ajax({
+            url: _cancelUrl,
+            type: 'POST',
+
+            data: new FormData($('#cancel-form')[0]),
+
+            cache: false,
+            contentType: false,
+            processData: false,
+
+            success: function (model, resultCodeString, fullResponse) {
+                bindData(model);
+                if (callback) {
+                    callback();
+                }
+            },
+
+            error: function (model, resultCodeString, fullResponse) {
+                bindData(null);
+                displayErrors(model.responseJSON);
+                endProgressBar();
+                if (error) {
+                    error();
+                }
+            }
+
+        });
+    }
+
+    function displayErrors(errors) {
+        if (errors == null || errors.length < 1) {
+            return;
+        }
+
+        var failureContainer = $("#validation-failure-container");
+        var failureListContainer = document.createElement("div");
+        $(failureListContainer).attr("id", "validation-failure-list");
+        $(failureListContainer).attr("data-bind", "template: { name: 'validation-errors', data: data }");
+        failureContainer.append(failureListContainer);
+        ko.applyBindings({ data: errors }, failureListContainer);
+
+        failureContainer.show();
+    }
+
+    function clearErrors() {
+        $("#validation-failure-container").hide();
+        $("#validation-failure-list").remove();
+    }
+
     function bindData(model) {
         $("#verify-package-block").remove();
+        if (model == null) {
+            return;
+        }
+
         var reportContainerElement = document.createElement("div");
         $(reportContainerElement).attr("id", "verify-package-block");
         $(reportContainerElement).attr("class", "collapse in");
@@ -60,6 +174,15 @@
         $(reportContainerElement).attr("data-bind", "template: { name: 'verify-metadata-template', data: data }");
         $("#verify-package-container").append(reportContainerElement);
         ko.applyBindings({ data: model }, reportContainerElement);
+
+        $('#verify-cancel-button').on('click', function () {
+            // Whether the cancel fails or not, we want to upload the next one.
+            cancelUploadAsync();
+        });
+
+        $('#verify-submit-button').on('click', function () {
+            submitVerifyAsync();
+        });
         
         window.nuget.configureExpander(
             "verify-package-form",
@@ -75,7 +198,6 @@
         }
 
         if (!form.action) {
-            //form.submit();
             return;
         }
 
@@ -83,22 +205,30 @@
         var totalFile = 0;
         $('input[type=file]', form).each(function (index, el) { if (el.value) totalFile++; });
 
-        //form.submit();
-
         // only show progress indicator if the form actually uploads some files
         if (totalFile > 0) {
-            _isUploadInProgress = true;
-            _failureCount = 0;
-
-            setProgressIndicator(0, '');
-
-            if (_isWebkitBrowser) {
-                document.getElementById(_iframeId).contentWindow.start(_pingUrl, setProgressIndicator, onGetProgressError);
-            }
-            else {
-                setTimeout(getProgress, 100);
-            }
         }
+    }
+
+    function startProgressBar() {
+        _isUploadInProgress = true;
+        _failureCount = 0;
+
+        setProgressIndicator(0, '');
+        $("#upload-progress-bar-container").show();
+        setTimeout(getProgress, 100);
+
+        //if (_isWebkitBrowser) {
+        //    document.getElementById(_iframeId).contentWindow.start(_pingUrl, setProgressIndicator, onGetProgressError);
+        //}
+        //else {
+        //    setTimeout(getProgress, 100);
+        //}
+    }
+
+    function endProgressBar() {
+        $("#upload-progress-bar-container").hide();
+        _isUploadInProgress = false;
     }
 
     function getProgress() {
@@ -138,20 +268,23 @@
     }
 
     function setProgressIndicator(percentComplete, fileName) {
-        $('#asyncUploadPanel').show();
+        $("#upload-progress-bar").width(percentComplete + "%")
+            .attr("aria-valuenow", percentComplete)
+            .text(percentComplete + "%");
+        //$('#asyncUploadPanel').show();
 
-        percentComplete = Math.min(percentComplete, 100);
-        $('#asyncUploadProgressAdvance').width(percentComplete + '%');
+        //percentComplete = Math.min(percentComplete, 100);
+        //$('#asyncUploadProgressAdvance').width(percentComplete + '%');
 
-        var status;
-        if (percentComplete == 0) {
-            status = 'Start uploading...';
-        }
-        else {
-            status = 'Uploading ' + fileName + '...' + percentComplete + '%';
-        }
+        //var status;
+        //if (percentComplete == 0) {
+        //    status = 'Start uploading...';
+        //}
+        //else {
+        //    status = 'Uploading ' + fileName + '...' + percentComplete + '%';
+        //}
 
-        $('#asyncUploadFileName').html(status);
+        //$('#asyncUploadFileName').html(status);
     }
 
     function constructIframe(jQueryUrl) {

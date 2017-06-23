@@ -6,12 +6,14 @@
 }
 
 <div class="page-upload container main-container">
-    <h1 class="page-heading">Upload Your Package</h1>
-    @if (Model.IsUploadInProgress)
+    <h1 class="page-heading col-xs-10 col-xs-offset-1 text-center">Upload Your Package</h1>
+    @if (Model != null && Model.IsUploadInProgress)
     {
-        @ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>);
+        <div class="col-xs-10 col-xs-offset-1" id="warning-container">
+            @ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
+        </div>
     }
-    <div class="col-xs-12" id="upload-package-container">
+    <div class="col-xs-10 col-xs-offset-1" id="upload-package-container">
         <h2>
             <a href="#" role="button" data-toggle="collapse" data-target="#upload-package-form"
                aria-expanded="false" aria-controls="upload-package-form" id="show-upload-package-form">
@@ -20,6 +22,9 @@
             </a>
         </h2>
         <div class="collapse in" id="upload-package-form" aria-expanded="true">
+            <form id="cancel-form">
+                @Html.AntiForgeryToken()
+            </form>
             <form id="uploadForm" enctype="multipart/form-data">
                 <fieldset class="form">
                     @Html.AntiForgeryToken()
@@ -28,26 +33,24 @@
 
                     @Html.ValidationSummary(true)
 
-                    <div class="form-field col-xs-12">
-                        <label for="PackageFile" id="PackageFileLabel" class="btn btn-default btn-file col-sm-11">
-                            Select Package File<input type="file" name="UploadFile" accept=".nupkg" aria-labelledby="PackageFileLabel" />
+                    <div class="form-field">
+                        <label for="PackageFile" id="PackageFileLabel" class="btn btn-default btn-file" style="width:100%">
+                            Select Package File<input type="file" name="UploadFile" accept=".nupkg" aria-labelledby="PackageFileLabel" id="input-select-file"/>
                         </label>
-
-                        <input class="btn btn-default col-sm-1" type="submit" value="Upload" title="Upload the package." />
                     </div>
 
-                    <div id="asyncUploadPanel" class="async-upload-panel">
-                        <div id="asyncUploadProgressInitial" class="async-upload-progress-initial">
-                            <span id="asyncUploadProgressAdvance" class="async-upload-progress-advance"></span>
-                        </div>
-                        <div id="asyncUploadFileName" class="async-upload-file-name"></div>
+                    <div id="upload-progress-bar-container" class="progress">
+                        <div id="upload-progress-bar" class="progress-bar active" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+
+                    <div id="validation-failure-container">
                     </div>
                 </fieldset>
             </form>
         </div>
     </div>
 
-    <div class="col-sm-12" id="verify-package-container">
+    <div class="col-xs-10 col-xs-offset-1" id="verify-package-container">
     </div>
 
     @Html.Partial("_EditMetadata")
@@ -59,6 +62,8 @@
     <script type="text/javascript" src="@Url.Content("~/Scripts/async-file-upload.js")"></script>
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
+        $("#upload-progress-bar-container").hide();
+        $("#validation-failure-container").hide();
         window.nuget.configureExpander(
             "upload-package-form",
             "ChevronRight",
@@ -70,7 +75,9 @@
                 '@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',
                 'uploadForm',
                 '@Scripts.Url("~/Scripts/jquery")',
-                '@Url.Action(actionName: "UploadPackage", controllerName: "Packages")');
+                '@Url.Action(actionName: "UploadPackage", controllerName: "Packages")',
+                '@Url.Action(actionName: "CancelUpload", controllerName: "Packages")',
+                '@Url.Action(actionName: "VerifyPackage", controllerName: "Packages")');
         });
     </script>
 }

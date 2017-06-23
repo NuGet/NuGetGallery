@@ -252,13 +252,13 @@ namespace NuGetGallery
             if (uploadFile == null)
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                return View();
+                return Json(new List<string>() { Strings.UploadFileIsRequired });
             }
 
             if (!Path.GetExtension(uploadFile.FileName).Equals(Constants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
-                return View();
+                return Json(new List<string>() { Strings.UploadFileMustBeNuGetPackage });
             }
 
             using (var uploadStream = uploadFile.InputStream)
@@ -310,11 +310,16 @@ namespace NuGetGallery
                 var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), out nuspec).ToArray();
                 if (errors.Length > 0)
                 {
+                    var errorStrings = new List<string>();
                     foreach (var error in errors)
                     {
+                        errorStrings.Add(error.ErrorMessage);
                         ModelState.AddModelError(String.Empty, error.ErrorMessage);
                     }
-                    return View();
+
+                    Response.StatusCode = 400;
+                    
+                    return Json(errorStrings);
                 }
 
                 // Check min client version
@@ -1503,11 +1508,19 @@ namespace NuGetGallery
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
 
-            return RedirectToRoute(RouteName.DisplayPackage, new
+            return Json(new
             {
-                id = package.PackageRegistration.Id,
-                version = package.NormalizedVersion
+                location= Url.RouteUrl(RouteName.DisplayPackage, new
+                {
+                    id = package.PackageRegistration.Id,
+                    version = package.NormalizedVersion
+                })
             });
+            //return RedirectToRoute(RouteName.DisplayPackage, new
+            //{
+            //    id = package.PackageRegistration.Id,
+            //    version = package.NormalizedVersion
+            //});
         }
 
         private async Task<PackageArchiveReader> SafeCreatePackage(NuGetGallery.User currentUser, Stream uploadFile)
@@ -1558,7 +1571,8 @@ namespace NuGetGallery
             var currentUser = GetCurrentUser();
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
-            return RedirectToAction("UploadPackage");
+            return Json(null);
+            // return RedirectToAction("UploadPackage");
         }
 
         [Authorize]
