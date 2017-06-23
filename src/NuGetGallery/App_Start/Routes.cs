@@ -265,6 +265,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "Account" });
 
             routes.MapRoute(
+                RouteName.ApiKeys,
+                "account/apikeys",
+                new { controller = "Users", action = "ApiKeys" });
+
+            routes.MapRoute(
                 RouteName.CuratedFeed,
                 "curated-feeds/{name}",
                 new { controller = "CuratedFeeds", action = "CuratedFeed" });

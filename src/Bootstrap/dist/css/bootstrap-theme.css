@@ -287,6 +287,12 @@ img.package-icon {
     text-align: right;
   }
 }
+.page-api-keys .example-commands {
+  padding: 8px 10px;
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  color: #fff;
+  background-color: #002440;
+}
 .page-package-details h4 > span {
   margin-bottom: 3px;
   border-bottom: 1px solid #d8d8d8;

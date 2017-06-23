@@ -129,6 +129,23 @@ namespace NuGetGallery
             return AccountView(new AccountViewModel());
         }
 
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult ApiKeys()
+        {
+            var model = new ApiKeysViewModel
+            {
+                SiteRoot = _config.SiteRoot.TrimEnd('/'),
+            };
+
+            if (_config.RequireSSL)
+            {
+                model.SiteRoot = model.SiteRoot.Replace("http://", "https://");
+            }
+
+            return View("ApiKeys", model);
+        }
+
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
