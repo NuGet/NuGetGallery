@@ -77,32 +77,75 @@
 </section>
 
 <script type="text/html" id="api-key-details">
-    <h3 data-bind="text: Description"></h3>
-    <ul class="list-unstyled">
-        <li>
-            <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
-            <!-- ko if: Expires -->
-                <!-- ko if: HasExpired -->
-                    Expired 
-                <!-- /ko -->
-                <!-- ko ifnot: HasExpired -->
+    <div class="api-key-details row">
+        <div class="col-sm-1">
+            <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                 src="~/Content/gallery/img/default-package-icon.svg"
+                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+        </div>
+        <div class="col-sm-11">
+            <h3 data-bind="text: Description"></h3>
+            <ul class="list-inline icon-details" role="presentation">
+                <li>
+                    <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
+                    <!-- ko if: Expires -->
+                    <!-- ko if: HasExpired -->
+                    Expired
+                    <!-- /ko -->
+                    <!-- ko ifnot: HasExpired -->
                     Expires <span data-bind="text: moment(Expires).fromNow()"></span>
-                <!-- /ko -->
+                    <!-- /ko -->
+                    <!-- /ko -->
+                    <!-- ko ifnot: Expires -->
+                    Never expires
+                    <!-- /ko -->
+                </li>
+                <li>
+                    <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
+                    <!-- ko if: ShortScopeList.length > 0 -->
+                    <span data-bind="text: ShortScopeList.join(', ')"></span>
+                    <!-- /ko -->
+                    <!-- ko ifnot: ShortScopeList.length > 0 -->
+                    Scopes: All
+                    <!-- /ko -->
+                </li>
+            </ul>
+            <!-- ko if: ShortPackageList.length > 0 -->
+            <b>Packages:</b><span data-bind="text: ShortPackageList.join(', ')"></span>
+            <br />
             <!-- /ko -->
-            <!-- ko ifnot: Expires -->
-                Never expires
+            <!-- ko if: GlobPattern -->
+            <b>Glob pattern:</b> <span data-bind="text: GlobPattern"></span>
+            <br />
             <!-- /ko -->
-        </li>
-        <li>
-            <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
-            <!-- ko if: HasScopes -->
-                
-            <!-- /ko -->
-            <!-- ko ifnot: HasScopes -->
-                Scopes: All
-            <!-- /ko -->
-        </li>
-    </ul>
+            <ul class="list-inline icon-buttons" role="presentation">
+                <li>
+                    <a href="#">
+                        <i class="ms-Icon ms-Icon--Copy" aria-hidden="true"></i>
+                        Copy
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                        Edit
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                        Refresh
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                        Delete
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
 </script>
 
 @section bottomScripts {

@@ -17,9 +17,10 @@ namespace NuGetGallery
         public bool IsNonScopedV1ApiKey { get; set; }
         public bool HasExpired { get; set; }
         public string Expires { get; set; }
-        public bool HasScopes { get; set; }
+        public IList<string> ShortScopeList { get; set; }
         public IList<string> Scopes { get; set; }
-        public IList<string> Subjects { get; set; }
+        public IList<string> ShortPackageList { get; set; }
+        public IList<IList<string>> PackageBatches { get; set; }
         public string GlobPattern { get; set; }
         public string Value { get; set; }
         public string Type { get; set; }

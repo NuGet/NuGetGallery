@@ -1,8 +1,59 @@
 .page-api-keys {
-	.example-commands {
+    .example-commands {
         background-color: @panel-footer-bg;
         font-family: @font-family-monospace;
         color: #fff;
         padding: 8px 10px;
-	}
+    }
+
+    .api-key-details {
+        h3 {
+            font-size: 34px;
+            margin-top: 0;
+            margin-bottom: @padding-large-vertical;
+        }
+
+        .ms-Icon {
+            position: relative;
+            top: 2px;
+        }
+
+        .icon-details {
+            color: @gray-light;
+            margin: @padding-large-vertical 0;
+
+            li {
+                padding: 0;
+            }
+
+            li + li {
+                margin-left: @padding-small-horizontal;
+                padding-left: @padding-small-horizontal;
+                border-left: 1px solid @gray-lighter;
+            }
+        }
+
+        .icon-buttons {
+            color: @gray-light;
+            margin: @padding-large-vertical 0;
+            font-size: 1.2em;
+
+            li {
+                padding: 0;
+            }
+
+            li + li {
+                margin-left: @padding-large-horizontal;
+                padding-left: @padding-large-horizontal;
+                border-left: 1px solid @gray-lighter;
+            }
+
+            a:focus, a:hover {
+                text-decoration: none;
+            }
+        }
+
+        border-bottom: 1px solid @gray-lighter;
+        padding: @padding-large-vertical 0;
+    }
 } 

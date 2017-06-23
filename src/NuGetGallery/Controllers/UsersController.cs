@@ -133,6 +133,9 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ApiKeys()
         {
+            const int shortListSize = 3;
+            const int batchSize = 10;
+
             var user = GetCurrentUser();
             var credentialGroups = GetCredentialGroups(user);
             if (!credentialGroups.TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
@@ -143,7 +146,6 @@ namespace NuGetGallery
             var apiKeys = new List<ApiKeyViewModel>();
             foreach (var cred in credentials)
             {
-                var hasScopes = cred.Scopes.Any();
                 var scopes = cred
                     .Scopes
                     .Select(s => s.AllowedAction)
@@ -158,6 +160,16 @@ namespace NuGetGallery
                     .ToList();
                 var globPattern = subjects
                     .FirstOrDefault(s => s != null && s.Contains("*"));
+                var packages = subjects
+                    .Except(new[] { globPattern })
+                    .ToList();
+                var packageBatches = new List<IList<string>>();
+                while (packages.Any())
+                {
+                    var itemsRemaining = Math.Min(batchSize, packages.Count);
+                    packageBatches.Add(packages.GetRange(0, itemsRemaining));
+                    packages.RemoveRange(0, itemsRemaining);
+                }
 
                 apiKeys.Add(new ApiKeyViewModel
                 {
@@ -168,9 +180,10 @@ namespace NuGetGallery
                     Expires = cred.Expires.HasValue ? cred.Expires.Value.ToString("O") : null,
                     IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey,
                     HasExpired = cred.HasExpired,
-                    HasScopes = hasScopes,
+                    ShortScopeList = scopes.Take(shortListSize).ToList(),
                     Scopes = scopes,
-                    Subjects = subjects,
+                    ShortPackageList = packages.Take(shortListSize).ToList(),
+                    PackageBatches = packageBatches,
                     GlobPattern = globPattern,
                 });
             }
