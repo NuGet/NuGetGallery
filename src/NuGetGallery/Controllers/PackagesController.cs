@@ -206,6 +206,7 @@ namespace NuGetGallery
                         Listed = true,
                         Language = packageMetadata.Language,
                         MinClientVersion = packageMetadata.MinClientVersion,
+                        MinClientVersionDisplay = packageMetadata.MinClientVersion.ToFullStringSafe(),
                         FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
                         Dependencies = new DependencySetsViewModel(
                             packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
@@ -252,12 +253,14 @@ namespace NuGetGallery
             if (uploadFile == null)
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
+                Response.StatusCode = 400;
                 return Json(new List<string>() { Strings.UploadFileIsRequired });
             }
 
             if (!Path.GetExtension(uploadFile.FileName).Equals(Constants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
+                Response.StatusCode = 400;
                 return Json(new List<string>() { Strings.UploadFileMustBeNuGetPackage });
             }
 
@@ -299,7 +302,9 @@ namespace NuGetGallery
                     }
 
                     ModelState.AddModelError(String.Empty, message);
-                    return View();
+                    Response.StatusCode = 400;
+
+                    return Json(new List<string>() { message });
                 }
                 finally
                 {
@@ -318,7 +323,6 @@ namespace NuGetGallery
                     }
 
                     Response.StatusCode = 400;
-                    
                     return Json(errorStrings);
                 }
 
@@ -349,29 +353,32 @@ namespace NuGetGallery
                     // Determine if the package versions only differ by metadata, 
                     // and provide the most optimal the user-facing error message.
                     var existingPackageVersion = new NuGetVersion(existingPackage.Version);
-                    if ((existingPackageVersion.HasMetadata || nuspecVersion.HasMetadata) 
+                    String message = string.Empty;
+                    if ((existingPackageVersion.HasMetadata || nuspecVersion.HasMetadata)
                         && !string.Equals(existingPackageVersion.Metadata, nuspecVersion.Metadata))
                     {
-                        ModelState.AddModelError(
-                            string.Empty,
-                            string.Format(
-                                CultureInfo.CurrentCulture, 
-                                Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified, 
-                                existingPackage.PackageRegistration.Id, 
-                                existingPackage.Version));
+                        message = string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified,
+                                existingPackage.PackageRegistration.Id,
+                                existingPackage.Version);
                     }
                     else
                     {
-                        ModelState.AddModelError(
-                            string.Empty,
-                            string.Format(
-                                CultureInfo.CurrentCulture, 
-                                Strings.PackageExistsAndCannotBeModified, 
-                                existingPackage.PackageRegistration.Id, 
-                                existingPackage.Version));
+                        message = string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageExistsAndCannotBeModified,
+                                existingPackage.PackageRegistration.Id,
+                                existingPackage.Version);
                     }
 
-                    return View();
+                    ModelState.AddModelError(
+                        string.Empty,
+                        message);
+
+                    Response.StatusCode = 409;
+                    return Json(new List<string>() { message });
+                    //return View();
                 }
 
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
@@ -445,7 +452,7 @@ namespace NuGetGallery
                 // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
-            
+
             Package package;
             if (version != null && version.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -496,8 +503,8 @@ namespace NuGetGallery
 
                     var searchFilter = SearchAdaptor.GetSearchFilter(
                             q: "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
-                            page: 1, 
-                            sortOrder: null, 
+                            page: 1,
+                            sortOrder: null,
                             context: SearchFilter.ODataSearchContext,
                             semVerLevel: SemVerLevelKey.SemVerLevel2);
 
@@ -578,10 +585,10 @@ namespace NuGetGallery
                 if (cachedResults == null)
                 {
                     var searchFilter = SearchAdaptor.GetSearchFilter(
-                        q, 
-                        page, 
-                        sortOrder: null, 
-                        context: SearchFilter.UISearchContext, 
+                        q,
+                        page,
+                        sortOrder: null,
+                        context: SearchFilter.UISearchContext,
                         semVerLevel: SemVerLevelKey.SemVerLevel2);
 
                     results = await _searchService.Search(searchFilter);
@@ -604,10 +611,10 @@ namespace NuGetGallery
             else
             {
                 var searchFilter = SearchAdaptor.GetSearchFilter(
-                    q, 
-                    page, 
-                    sortOrder: null, 
-                    context: SearchFilter.UISearchContext, 
+                    q,
+                    page,
+                    sortOrder: null,
+                    context: SearchFilter.UISearchContext,
                     semVerLevel: SemVerLevelKey.SemVerLevel2);
 
                 results = await _searchService.Search(searchFilter);
@@ -1166,7 +1173,7 @@ namespace NuGetGallery
             }
 
             var result = await HandleSecurePushPropagation(package, user);
-            
+
             await _packageService.AddPackageOwnerAsync(package, user);
 
             SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
@@ -1377,6 +1384,12 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
+            NuGetVersion parsedMinClientVersion;
+            if (NuGetVersion.TryParse(formData.MinClientVersionDisplay, out parsedMinClientVersion))
+            {
+                formData.MinClientVersion = parsedMinClientVersion;
+            }
+
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -1510,7 +1523,7 @@ namespace NuGetGallery
 
             return Json(new
             {
-                location= Url.RouteUrl(RouteName.DisplayPackage, new
+                location = Url.RouteUrl(RouteName.DisplayPackage, new
                 {
                     id = package.PackageRegistration.Id,
                     version = package.NormalizedVersion

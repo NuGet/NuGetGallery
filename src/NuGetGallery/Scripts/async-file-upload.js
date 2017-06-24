@@ -5,7 +5,7 @@
     var _isWebkitBrowser = false; // $.browser.webkit is not longer supported on jQuery
     var _iframeId = '__fileUploadFrame';
     var _formId;
-    var _pollingInterval = 200;
+    var _pollingInterval = 500;
     var _pingUrl;
     var _failureCount;
     var _isUploadInProgress;
@@ -25,16 +25,27 @@
             return false;
         });
 
+        $('#file-select-feedback').on('click', function () {
+            $('#input-select-file').click();
+        })
+
         $('#input-select-file').on('change', function () {
             clearErrors();
-            // Whether the cancel fails or not, we want to upload the next one.
-            cancelUploadAsync(startUploadAsync, startUploadAsync);
+            var fileName = $('#input-select-file').val().split("\\").pop();
+
+            if (fileName.length > 0) {
+                $('#file-select-feedback').attr('placeholder', fileName);
+                // Whether the cancel fails or not, we want to upload the next one.
+                cancelUploadAsync(startUploadAsync, startUploadAsync);
+            } else {
+                $('#file-select-feedback').attr('placeholder', 'Browse to select a package file...');
+            }
         })
 
         if (InProgressPackage != null) {
             bindData(InProgressPackage);
         }
-        
+
         if (_isWebkitBrowser) {
             constructIframe(jQueryUrl);
         }
@@ -61,10 +72,7 @@
             processData: false,
 
             success: function (model, resultCodeString, fullResponse) {
-                console.log(JSON.stringify(model));
                 bindData(model);
-                console.log(JSON.stringify(resultCodeString));
-                console.log(JSON.stringify(fullResponse));
                 endProgressBar();
                 if (callback) {
                     callback();
@@ -183,7 +191,7 @@
         $('#verify-submit-button').on('click', function () {
             submitVerifyAsync();
         });
-        
+
         window.nuget.configureExpander(
             "verify-package-form",
             "ChevronRight",

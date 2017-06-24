@@ -24,6 +24,7 @@ namespace NuGetGallery
         public bool Listed { get; set; }
         public EditPackageVersionRequest Edit { get; set; }
         public NuGetVersion MinClientVersion { get; set; }
+        public string MinClientVersionDisplay { get; set; }
         public string Language { get; set; }
         public string DevelopmentDependency { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }

@@ -21,18 +21,20 @@
 </script>
 
 <script type="text/html" id="display-dependencysets">
-    <div data-bind="foreach: {data: DependencySets, as: '_data'}">
+    <div data-bind="foreach: {data: DependencySets, as: '_data'}" class="form-control-static">
         <div data-bind="foreach: {data: Object.keys(_data), as: '_propkey'}">
-            <div class="dependency-set-title" data-bind="text: _propkey"></div>
-            <div data-bind="foreach: _data[_propkey]">
-                <div class="dependency-container col-sm-12">
-                    <!-- ko if: $data -->
-                    <a class="dependency-id" data-bind="attr: { href: PackageUrl }, text: Id"></a>
-                    <span class="dependency-versionspec" data-bind="text: VersionSpec"></span>
-                    <!-- /ko -->
-                    <!-- ko ifnot: $data -->
-                    <span class="dependency-none">No Package Dependencies</span>
-                    <!-- /ko -->
+            <div class="input-group">
+                <div class="dependency-set-title" data-bind="text: _propkey"></div>
+                <div data-bind="foreach: _data[_propkey]" class="col-sm-12">
+                    <div class="dependency-container">
+                        <!-- ko if: $data -->
+                        <a class="dependency-id" data-bind="attr: { href: PackageUrl }, text: Id"></a>
+                        <span class="dependency-versionspec" data-bind="text: VersionSpec"></span>
+                        <!-- /ko -->
+                        <!-- ko ifnot: $data -->
+                        <span class="dependency-none">No Package Dependencies</span>
+                        <!-- /ko -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -51,80 +53,141 @@
         <form id="verify-metadata-form">
             @Html.AntiForgeryToken()
 
-            <div class="verify-package-field-heading">Package ID</div>
-            <p data-bind="text: Id"></p>
-            <input data-bind="value: Id" type="hidden" name="Id" />
+            <div class="verify-package-field form-group">
+                <label for="Id" class="verify-package-field-heading">Package ID</label>
+                <p data-bind="text: Id"></p>
+                <input data-bind="value: Id" type="hidden" name="Id" class="form-control" />
+            </div>
 
-            <div class="verify-package-field-heading">Version</div>
-            <p data-bind="text: Version"></p>
-            <input data-bind="value: Version" type="hidden" name="Version" />
+            <div class="verify-package-field form-group">
+                <label for="Version" class="verify-package-field-heading">Version</label>
+                <p data-bind="text: Version"></p>
+                <input data-bind="value: Version" type="hidden" name="Version" class="form-control" />
+            </div>
 
-            <div class="verify-package-field-heading">Minimum NuGet Client Version</div>
-            <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: MinClientVersion }}"></div>
-            <input data-bind="value: MinClientVersion" type="hidden" name="MinClientVersion" />
+            <div class="verify-package-field form-group">
+                <label for="MinClientVersionDisplay" class="verify-package-field-heading">Minimum NuGet Client Version</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: MinClientVersionDisplay }}"></div>
+                <input data-bind="value: MinClientVersionDisplay" type="hidden" name="MinClientVersionDisplay" class="form-control" />
+            </div>
 
-            <div class="verify-package-field-heading">License URL</div>
-            <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: LicenseUrl, Link: true }}"></div>
-            <input data-bind="value: LicenseUrl" type="hidden" name="LicenseUrl" />
+            <div class="verify-package-field form-group">
+                <div class="verify-package-field-heading">License URL</div>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: LicenseUrl, Link: true }}"></div>
+                <input data-bind="value: LicenseUrl" type="hidden" name="LicenseUrl" class="form-control" />
+            </div>
 
-            <div class="verify-package-field-heading">Language</div>
-            <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: Language }}"></div>
-            <input data-bind="value: Language" type="hidden" name="Language" />
+            <div class="verify-package-field form-group">
+                <div class="verify-package-field-heading">Language</div>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: Language }}"></div>
+                <input data-bind="value: Language" type="hidden" name="Language" class="form-control" />
+            </div>
 
-            <div class="verify-package-field-heading">Development Dependency</div>
-            <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: DevelopmentDependency }}"></div>
-            <input data-bind="value: DevelopmentDependency" type="hidden" name="DevelopmentDependency" />
+            <div class="verify-package-field form-group">
+                <div class="verify-package-field-heading">Development Dependency</div>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: DevelopmentDependency }}"></div>
+                <input data-bind="value: DevelopmentDependency" type="hidden" name="DevelopmentDependency" class="form-control" />
+            </div>
 
-            <div class="verify-package-field-heading">Dependencies</div>
-            <!-- ko if: Dependencies -->
-            <div data-bind="template: {name: 'display-dependencysets', data: { DependencySets: Dependencies.DependencySets, OnlyHasAllFrameworks: Dependencies.OnlyHasAllFrameworks }}"></div>
-            <!-- /ko -->
-            <!-- ko ifnot: Dependencies -->
-            <p><i data-bind="text:'(none specified)'"></i></p>
-            <!-- /ko -->
-
-            <!--BEGIN EDITABLE FIELDS-->
-            <div class="verify-package-field-heading">Title</div>
-            <input data-bind="value: Edit.Title" type="text" class="col-xs-12" name="Edit.Title" />
-
-            <div class="verify-package-field-heading">Description</div>
-            <textarea data-bind="value: Edit.Description" class="col-xs-12 tall-text-input" name="Edit.Description" />
-
-            <div class="verify-package-field-heading">Summary (shown on package search page)</div>
-            <textarea data-bind="value: Edit.Summary" class="col-xs-12 tall-text-input" name="Edit.Summary" />
-
-            <div class="verify-package-field-heading">Release Notes (for this version)</div>
-            <textarea data-bind="value: Edit.ReleaseNotes" class="col-xs-12 tall-text-input" name="Edit.ReleaseNotes" />
-
-            <div class="verify-package-field-heading">Project URL</div>
-            <input data-bind="value: Edit.ProjectUrl" type="text" class="col-xs-12" name="Edit.ProjectUrl" />
-
-            <!-- Bind an on change event here to update the preview below-->
-            <div class="verify-package-field-heading">Icon URL</div>
-            <input data-bind="value: Edit.IconUrl" type="text" class="col-xs-12" name="Edit.IconUrl" />
-
-            <div class="verify-package-field-heading">Icon Preview</div>
-            <div id="icon-preview-container">
-                <!-- ko if: Edit.IconUrl -->
-                <img id="icon-preview" data-bind="attr: { src: Edit.IconUrl }" /> <!-- probably need to check this for safety-->
+            <div class="verify-package-field form-group">
+                <div class="verify-package-field-heading">Dependencies</div>
+                <!-- ko if: Dependencies -->
+                <div data-bind="template: {name: 'display-dependencysets', data: { DependencySets: Dependencies.DependencySets, OnlyHasAllFrameworks: Dependencies.OnlyHasAllFrameworks }}"></div>
                 <!-- /ko -->
-                <!-- ko ifnot: Edit.IconUrl -->
+                <!-- ko ifnot: Dependencies -->
                 <p><i data-bind="text:'(none specified)'"></i></p>
                 <!-- /ko -->
             </div>
 
+            <!--BEGIN EDITABLE FIELDS-->
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Title</div>
+                <input data-bind="value: Edit.Title" type="text" class="form-control" name="Edit.Title" />
+            </div>
 
-            <div class="verify-package-field-heading">Authors (comma separated - e.g. 'Anna, Bob, Carl')</div>
-            <input data-bind="value: Edit.Authors" type="text" class="col-xs-12" name="Edit.Authors" />
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Description</div>
+                <textarea data-bind="value: Edit.Description" class="form-control tall-text-input" name="Edit.Description" />
+            </div>
 
-            <div class="verify-package-field-heading">Copyright</div>
-            <input data-bind="value: Edit.Copyright" type="text" class="col-xs-12" name="Edit.Copyright" />
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Summary (shown on package search page)</div>
+                <textarea data-bind="value: Edit.Summary" class="form-control tall-text-input" name="Edit.Summary" />
+            </div>
 
-            <div class="verify-package-field-heading">Tags (space separated - e.g. 'ASP.NET Template MVC')</div>
-            <input data-bind="value: Edit.Tags" type="text" class="col-xs-12" name="Edit.Tags" />
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Release Notes (for this version)</div>
+                <textarea data-bind="value: Edit.ReleaseNotes" class="form-control tall-text-input" name="Edit.ReleaseNotes" />
+            </div>
 
-            <input type="button" class="btn btn-default col-md-2 col-xs-6" value="Submit" id="verify-submit-button" />
-            <input type="button" class="btn btn-default col-md-2 col-xs-6" value="Cancel" id="verify-cancel-button" />
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Project URL</div>
+                <input data-bind="value: Edit.ProjectUrl" type="text" class="form-control" name="Edit.ProjectUrl" />
+            </div>
+
+            <div class="verify-package-field form-group editable">
+                <!-- Bind an on change event here to update the preview below-->
+                <div class="verify-package-field-heading">Icon URL</div>
+                <input data-bind="value: Edit.IconUrl" type="text" class="form-control" name="Edit.IconUrl" />
+            </div>
+
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Icon Preview</div>
+                <div id="icon-preview-container">
+                    <!-- ko if: Edit.IconUrl -->
+                    <img id="icon-preview" data-bind="attr: { src: Edit.IconUrl }" /> <!-- probably need to check this for safety-->
+                    <!-- /ko -->
+                    <!-- ko ifnot: Edit.IconUrl -->
+                    <p><i data-bind="text:'(none specified)'"></i></p>
+                    <!-- /ko -->
+                </div>
+            </div>
+
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Authors (comma separated - e.g. 'Anna, Bob, Carl')</div>
+                <input data-bind="value: Edit.Authors" type="text" class="form-control" name="Edit.Authors" />
+            </div>
+
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Copyright</div>
+                <input data-bind="value: Edit.Copyright" type="text" class="form-control" name="Edit.Copyright" />
+            </div>
+
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Tags (space separated - e.g. 'ASP.NET Template MVC')</div>
+                <input data-bind="value: Edit.Tags" type="text" class="form-control" name="Edit.Tags" />
+            </div>
+
+            <!-- ko if: $data.LicenseUrl -->
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Require License Acceptance?</div>
+                <div class="switch-container">
+                    <label class="switch">
+                        <p class="slider-descriptor">No</p>
+                        <input data-bind="attr: { 'checked' : $data.Edit.RequiresLicenseAcceptance ? $data.Edit.RequiresLicenseAcceptance : null }" type="checkbox" name="Edit.RequiresLicenseAcceptance" id="Edit.RequiresLicenseAcceptance" value="true" />
+                        <div class="slider"></div>
+                        <p class="slider-descriptor">Yes</p>
+                    </label>
+                </div>
+            </div>
+            <!-- /ko -->
+
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Listed in Search Results?</div>
+                <div class="switch-container">
+                    <label class="switch">
+                        <p class="slider-descriptor">No</p>
+                        <input data-bind="attr: { 'checked' : $data.Listed ? $data.Listed : null }" type="checkbox" name="Listed" id="Listed" value="true" />
+                        <div class="slider"></div>
+                        <p class="slider-descriptor">Yes</p>
+                    </label>
+                </div>
+            </div>
+
+            <div class="verify-package-field form-group">
+                <input type="button" class="btn btn-primary btn-lg col-xs-6" value="Submit" id="verify-submit-button" />
+                <input type="button" class="btn btn-lg col-xs-6" value="Cancel" id="verify-cancel-button" />
+            </div>
         </form>
     </div>
 </script>
