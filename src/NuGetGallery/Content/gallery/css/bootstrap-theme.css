@@ -567,12 +567,8 @@ img.package-icon {
 .page-upload h2 a:hover {
   text-decoration: none;
 }
-.page-upload .tall-text-input {
-  height: 4.2em;
-}
 .page-upload .dependency-set-title {
   font-size: 1.2em;
-  border-bottom: 1px grey solid;
 }
 .page-upload .dependency-container .dependency-versionspec {
   font-size: .6em;
@@ -581,8 +577,18 @@ img.package-icon {
 .page-upload .dependency-container .dependency-id {
   font-size: .8em;
 }
-.page-upload .verify-package-field-heading {
+.page-upload .dependency-container .dependency-none {
+  font-size: .8em;
+}
+.page-upload .tall-text-input {
+  height: 6em;
+}
+.page-upload .verify-package-field .verify-package-field-heading {
   font-size: .75em;
   font-weight: 700;
+}
+.page-upload #icon-preview {
+  max-width: 300px;
+  max-height: 300px;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */
