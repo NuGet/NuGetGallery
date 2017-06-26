@@ -116,7 +116,7 @@ namespace NuGetGallery.Auditing
                     throw new InvalidOperationException(String.Format(
                         CultureInfo.CurrentCulture,
                         CoreStrings.CloudAuditingService_DuplicateAuditRecord,
-                        fullPath));
+                        fullPath), ex);
                 }
                 throw;
             }

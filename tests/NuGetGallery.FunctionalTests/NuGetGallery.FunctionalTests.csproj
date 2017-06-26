@@ -70,6 +70,7 @@
     <Compile Include="ODataFeeds\V2FeedExtendedTests.cs" />
     <Compile Include="PackageCreation\ApiPushTests.cs" />
     <Compile Include="PackageCreation\SecurityPolicyTests.cs" />
+    <Compile Include="Security\HttpToHttpsRedirectTests.cs" />
     <Compile Include="Statistics\PackageStatisticsTests.cs" />
     <Compile Include="ODataFeeds\V2FeedTests.cs" />
     <Compile Include="WebPages\FluentLinkChecker.cs" />

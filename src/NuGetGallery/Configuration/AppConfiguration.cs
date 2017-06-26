@@ -29,6 +29,13 @@ namespace NuGetGallery.Configuration
         public int SSLPort { get; set; }
 
         /// <summary>
+        /// A string containing a path exluded from
+        /// forcing the HTTP to HTTPS redirection.
+        /// </summary>
+        [DefaultValue("")]
+        public string ForceSslExclusion { get; set; }
+
+        /// <summary>
         /// Gets the connection string to use when connecting to azure storage
         /// </summary>
         public string AzureStorageConnectionString { get; set; }
