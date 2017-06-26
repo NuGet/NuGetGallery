@@ -24,7 +24,7 @@ namespace NuGetGallery.Services
         /// <returns>A stream with the encoded ReadMe file</returns>
         public Stream GetReadMeStream(VerifyPackageRequest formData, PackageMetadata packageMetadata)
         {
-            if (formData.ReadMe != null)
+            if (formData.ReadMe[0] != null)
             {
                 return formData.ReadMe[0].InputStream;
             }
@@ -59,9 +59,8 @@ namespace NuGetGallery.Services
         private Stream ReadMeUrlToFileStream(string readMeUrl)
         {
             var webRequest = WebRequest.Create(readMeUrl);
-            using (var response = webRequest.GetResponse())
-            using (var content = response.GetResponseStream())
-                return content;
+            var response = webRequest.GetResponse();
+            return response.GetResponseStream();
         }
     }
 }
