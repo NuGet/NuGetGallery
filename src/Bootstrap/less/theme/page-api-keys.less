@@ -1,4 +1,9 @@
 .page-api-keys {
+    @section-indentation: 15px;
+    @section-vertical-padding: (@padding-large-vertical * 2);
+    @section-padding: @section-vertical-padding 0;
+    @section-border: 1px solid @gray-lighter;
+
     .example-commands {
         background-color: @panel-footer-bg;
         font-family: @font-family-monospace;
@@ -6,12 +11,49 @@
         padding: 8px 10px;
     }
 
-    .api-key-details {
+    h3 {
+        font-size: 34px;
+        margin-top: 0;
+        margin-bottom: @padding-large-vertical;
+    }
+
+    .add-api-key {
+        padding: @section-padding;
+        border-top: @section-border;
+        border-bottom: @section-border;
+
         h3 {
-            font-size: 34px;
-            margin-top: 0;
-            margin-bottom: @padding-large-vertical;
+            padding-left: @section-indentation;
         }
+
+        ul {
+            padding-left: 0;
+            list-style: none;
+
+            ul {
+                padding-left: 20px;
+            }
+        }
+
+        .available-packages {
+            .panel-body {
+                overflow: auto;
+                height: 235px;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+        }
+
+        .glob-pattern-hint {
+            .panel-body {
+                height: 314px;
+            }
+        }
+    }
+
+    .api-key-details {
+        padding: @section-padding;
+        border-bottom: @section-border;
 
         .ms-Icon {
             position: relative;
@@ -52,8 +94,5 @@
                 text-decoration: none;
             }
         }
-
-        border-bottom: 1px solid @gray-lighter;
-        padding: @padding-large-vertical 0;
     }
 } 

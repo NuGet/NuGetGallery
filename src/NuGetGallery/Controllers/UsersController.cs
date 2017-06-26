@@ -133,10 +133,11 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ApiKeys()
         {
+            var user = GetCurrentUser();
+
+            // Get API keys
             const int shortListSize = 3;
             const int batchSize = 10;
-
-            var user = GetCurrentUser();
             var credentialGroups = GetCredentialGroups(user);
             if (!credentialGroups.TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
             {
@@ -188,10 +189,19 @@ namespace NuGetGallery
                 });
             }
 
+            // Get package IDs
+            var packageIds = _packageService
+                .FindPackageRegistrationsByOwner(user)
+                .Select(p => p.Id)
+                .OrderBy(i => i)
+                .ToList();
+
             var model = new ApiKeysViewModel
             {
                 SiteRoot = _config.SiteRoot.TrimEnd('/'),
                 ApiKeys = apiKeys,
+                ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
+                PackageIds = packageIds,
             };
 
             if (_config.RequireSSL)

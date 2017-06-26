@@ -1,4 +1,5 @@
 ﻿@model ApiKeysViewModel
+@using NuGetGallery.Authentication
 
 @{
     ViewBag.Title = "API Keys";
@@ -52,6 +53,177 @@
                     "manage",
                     "Manage API Keys",
                     @<text>
+                        <div class="add-api-key">
+                            <h3>
+                                <a href="#" role="button" data-toggle="collapse" data-target="#add-api-key-container"
+                                   aria-expanded="true" aria-controls="add-api-key-container" id="show-add-api-key-container">
+                                    <i class="ms-Icon ms-Icon--Add" aria-hidden="false"></i>
+                                    <span>Create New API Key</span>
+                                </a>
+                            </h3>
+                            <div class="panel panel-default panel-collapse collapse" id="add-api-key-container">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { id = "generateKeyForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <div class="col-sm-7 form-group">
+                                                <label for="KeyName">Key Name</label>
+                                                <input type="text" class="form-control" name="KeyName" id="KeyName"
+                                                       data-value-required="The key name is required." data-val="true" />
+                                            </div>
+                                            if (Model.ExpirationInDaysForApiKeyV1 > 0)
+                                            {
+                                                <div class="col-sm-5 form-group">
+                                                    <label for="ExpiresIn">Expires In</label>
+                                                    <select name="ExpiresIn" id="ExpiresIn" class="form-control">
+                                                        @if (Model.ExpirationInDaysForApiKeyV1 == 365)
+                                                        {
+                                                            <option value="1">1 day</option>
+                                                            <option value="90">90 days</option>
+                                                            <option value="180">180 days</option>
+                                                            <option value="270">270 days</option>
+                                                            <option value="365">365 days</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="1">1 day</option>
+                                                            for (int i = 10; i <= Model.ExpirationInDaysForApiKeyV1; i += 10)
+                                                            {
+                                                                <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12 form-group">
+                                            <b class="ms-fontSize-xl">Select Scopes</b>
+                                            <ul role="presentation">
+                                                <li>
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input id="PushScope" type="checkbox" />
+                                                            Push
+                                                        </label>
+                                                    </div>
+                                                    <ul role="presentation">
+                                                        <li>
+                                                            <div class="radio">
+                                                                <label>
+                                                                    <input name="scopes" type="radio"
+                                                                           value="@NuGetScopes.PackagePush" />
+                                                                    @NuGetScopes.Describe(NuGetScopes.PackagePush)
+                                                                </label>
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div class="radio">
+                                                                <label>
+                                                                    <input name="scopes" type="radio"
+                                                                           value="@NuGetScopes.PackagePushVersion" />
+                                                                    @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
+                                                                </label>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input name="scopes" type="checkbox"
+                                                                   value="@NuGetScopes.PackageUnlist" />
+                                                            @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
+                                                        </label>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <b class="ms-fontSize-xl">Select Packages</b>
+                                            <p>
+                                                To select which pages to associate with a key, use a glob pattern, select
+                                                individual packages, or both.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-7">
+                                            <label for="GlobPattern">Glob Pattern</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-7">
+                                            <div class="form-group">
+                                                <input type="text" name="GlobPattern" id="GlobPattern" class="form-control" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Available Packages</label>
+                                                <div class="panel panel-default available-packages">
+                                                    <div class="panel-body">
+                                                        @foreach (var packageId in Model.PackageIds)
+                                                        {
+                                                            <div class="checkbox">
+                                                                <label>
+                                                                    <input name="subjects" type="checkbox"
+                                                                           value="@packageId" />
+                                                                    @packageId
+                                                                </label>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <div class="panel panel-default glob-pattern-hint">
+                                                <div class="panel-body">
+                                                    <p>A glob pattern allows you to replace any sequence of characters with '*'.</p>
+                                                    <p>Example glob patterns:</p>
+                                                    <table class="table table-condensed borderless">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Pattern</th>
+                                                                <th>Result</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>*</td>
+                                                                <td>Select all packages</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Alpha.*</td>
+                                                                <td>Select any package that has an ID beginning with <i>Alpha</i></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <p>0 of 0 packages selected</p>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6 form-group">
+                                            <input type="submit" value="Create" class="btn btn-primary btn-block" />
+                                        </div>
+                                        <div class="col-sm-6 form-group">
+                                            <a href="#" role="button" class="btn btn-default btn-block">
+                                                Cancel
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys, as: 'apiKey' }">
                         </div>
                     </text>)
@@ -80,7 +252,7 @@
     <div class="api-key-details row">
         <div class="col-sm-1">
             <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                 src="~/Content/gallery/img/default-package-icon.svg"
+                 src="@Url.Absolute("~/Content/gallery/img/default-package-icon.svg")"
                  @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
         </div>
         <div class="col-sm-11">
@@ -89,34 +261,34 @@
                 <li>
                     <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
                     <!-- ko if: Expires -->
-                    <!-- ko if: HasExpired -->
-                    Expired
-                    <!-- /ko -->
-                    <!-- ko ifnot: HasExpired -->
-                    Expires <span data-bind="text: moment(Expires).fromNow()"></span>
-                    <!-- /ko -->
+                        <!-- ko if: HasExpired -->
+                            Expired
+                        <!-- /ko -->
+                        <!-- ko ifnot: HasExpired -->
+                            Expires <span data-bind="text: moment(Expires).fromNow()"></span>
+                        <!-- /ko -->
                     <!-- /ko -->
                     <!-- ko ifnot: Expires -->
-                    Never expires
+                        Never expires
                     <!-- /ko -->
                 </li>
                 <li>
                     <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
                     <!-- ko if: ShortScopeList.length > 0 -->
-                    <span data-bind="text: ShortScopeList.join(', ')"></span>
+                        <span data-bind="text: ShortScopeList.join(', ')"></span>
                     <!-- /ko -->
                     <!-- ko ifnot: ShortScopeList.length > 0 -->
-                    Scopes: All
+                        Scopes: All
                     <!-- /ko -->
                 </li>
             </ul>
             <!-- ko if: ShortPackageList.length > 0 -->
-            <b>Packages:</b><span data-bind="text: ShortPackageList.join(', ')"></span>
-            <br />
+                <b>Packages:</b><span data-bind="text: ShortPackageList.join(', ')"></span>
+                <br />
             <!-- /ko -->
             <!-- ko if: GlobPattern -->
-            <b>Glob pattern:</b> <span data-bind="text: GlobPattern"></span>
-            <br />
+                <b>Glob pattern:</b> <span data-bind="text: GlobPattern"></span>
+                <br />
             <!-- /ko -->
             <ul class="list-inline icon-buttons" role="presentation">
                 <li>
@@ -166,8 +338,14 @@
                 window.nuget.configureExpanderHeading(prefix + "-container");
             }
 
-            configureSection("manage");
-            configureSection("example");
+            window.nuget.configureExpanderHeading("manage-container");
+            window.nuget.configureExpander(
+                "add-api-key-container",
+                "CalculatorAddition",
+                null,
+                "CalculatorSubtract",
+                null);
+            window.nuget.configureExpanderHeading("example-container");
         });
     </script>
 }

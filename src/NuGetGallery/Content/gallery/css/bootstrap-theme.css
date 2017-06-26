@@ -123,15 +123,20 @@ body h3 {
   position: absolute;
   left: -24px;
 }
-h2 .ms-Icon {
+h2 .ms-Icon,
+h3 .ms-Icon {
   position: relative;
   top: -2px;
   font-size: .6em;
 }
 h2 a,
+h3 a {
 h2 a:hover,
+h3 a:hover,
 h2 a:focus,
-h2 a:active {
+h3 a:focus,
+h2 a:active,
+h3 a:active {
   color: #333;
   text-decoration: none;
 }
@@ -293,14 +298,38 @@ img.package-icon {
   color: #fff;
   background-color: #002440;
 }
-.page-api-keys .api-key-details {
-  padding: 10px 0;
-  border-bottom: 1px solid #dbdbdb;
-}
-.page-api-keys .api-key-details h3 {
+.page-api-keys h3 {
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 34px;
+}
+.page-api-keys .add-api-key {
+  padding: 20px 0;
+  border-top: 1px solid #dbdbdb;
+  border-bottom: 1px solid #dbdbdb;
+}
+.page-api-keys .add-api-key h3 {
+  padding-left: 15px;
+}
+.page-api-keys .add-api-key ul {
+  padding-left: 0;
+  list-style: none;
+}
+.page-api-keys .add-api-key ul ul {
+  padding-left: 20px;
+}
+.page-api-keys .add-api-key .available-packages .panel-body {
+  height: 235px;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: auto;
+}
+.page-api-keys .add-api-key .glob-pattern-hint .panel-body {
+  height: 314px;
+}
+.page-api-keys .api-key-details {
+  padding: 20px 0;
+  border-bottom: 1px solid #dbdbdb;
 }
 .page-api-keys .api-key-details .ms-Icon {
   position: relative;

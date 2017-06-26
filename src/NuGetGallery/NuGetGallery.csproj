@@ -1483,6 +1483,7 @@
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeysViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
