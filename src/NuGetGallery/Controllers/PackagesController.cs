@@ -280,7 +280,11 @@ namespace NuGetGallery
                            Strings.PackageEntryFromTheFuture,
                            entryInTheFuture.Name));
 
-                        return View();
+                        Response.StatusCode = 400;
+                        return Json(new List<string>() { string.Format(
+                           CultureInfo.CurrentCulture,
+                           Strings.PackageEntryFromTheFuture,
+                           entryInTheFuture.Name) });
                     }
                 }
 
@@ -335,7 +339,13 @@ namespace NuGetGallery
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
                             nuspec.GetMinClientVersion()));
-                    return View();
+
+                    Response.StatusCode = 400;
+                    return Json(new List<string>() {
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.UploadPackage_MinClientVersionOutOfRange,
+                            nuspec.GetMinClientVersion()) });
                 }
 
                 var packageRegistration = _packageService.FindPackageRegistrationById(nuspec.GetId());
@@ -343,7 +353,10 @@ namespace NuGetGallery
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
-                    return View();
+
+                    // should this be 409?
+                    Response.StatusCode = 400;
+                    return Json(new List<string>() { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -378,26 +391,26 @@ namespace NuGetGallery
 
                     Response.StatusCode = 409;
                     return Json(new List<string>() { message });
-                    //return View();
                 }
 
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
             }
-
-            //return VerifyPackage().Result;
 
             PackageMetadata packageMetadata;
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile == null)
                 {
-                    return RedirectToRoute(RouteName.UploadPackage);
+                    ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
+                    Response.StatusCode = 400;
+                    return Json(new List<string>() { Strings.UploadFileIsRequired });
                 }
 
                 var package = await SafeCreatePackage(currentUser, uploadedFile);
                 if (package == null)
                 {
-                    return Redirect(Url.UploadPackage());
+                    Response.StatusCode = 400;
+                    return Json(new List<string>() { Strings.UploadFileIsRequired });
                 }
 
                 try
@@ -408,7 +421,9 @@ namespace NuGetGallery
                 catch (Exception ex)
                 {
                     TempData["Message"] = ex.GetUserSafeMessage();
-                    return Redirect(Url.UploadPackage());
+
+                    Response.StatusCode = 400;
+                    return Json(new List<string>() { ex.GetUserSafeMessage() });
                 }
             }
 
@@ -1529,11 +1544,6 @@ namespace NuGetGallery
                     version = package.NormalizedVersion
                 })
             });
-            //return RedirectToRoute(RouteName.DisplayPackage, new
-            //{
-            //    id = package.PackageRegistration.Id,
-            //    version = package.NormalizedVersion
-            //});
         }
 
         private async Task<PackageArchiveReader> SafeCreatePackage(NuGetGallery.User currentUser, Stream uploadFile)
@@ -1585,7 +1595,6 @@ namespace NuGetGallery
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             return Json(null);
-            // return RedirectToAction("UploadPackage");
         }
 
         [Authorize]
