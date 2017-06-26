@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -18,6 +19,7 @@ namespace NgTests
 {
     public class Feed2CatalogTests
     {
+        private const string _feedBaseUri = "http://unit.test";
         private const string FeedUrlSuffix = "&$top=20&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
 
         [Fact]
@@ -29,23 +31,23 @@ namespace NgTests
             auditingStorage.Content.Add(
                 new Uri(auditingStorage.BaseAddress, "package/OtherPackage/1.0.0/2015-01-01T00:01:01-deleted.audit.v1.json"),
                 new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
-            
+
             var mockServer = new MockServerHttpClientHandler();
-            
+
             mockServer.SetAction(" / ", GetRootActionAsync);
             mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetCreatedPackages);
             mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetEmptyPackages);
 
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEditedPackages);
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEmptyPackages);
-            
+
             mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
             mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
             mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
             mockServer.SetAction("/package/TestPackage.SemVer2/1.0.0-alpha.1", request => GetStreamContentActionAsync(request, "Packages\\TestPackage.SemVer2.1.0.0-alpha.1.nupkg"));
 
             // Act
-            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
+            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, _feedBaseUri, catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
             await feed2catalogTestJob.RunOnce(CancellationToken.None);
 
             // Assert
@@ -137,7 +139,7 @@ namespace NgTests
             mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
 
             // Act
-            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
+            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, _feedBaseUri, catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
             await feed2catalogTestJob.RunOnce(CancellationToken.None);
 
             // Assert
@@ -217,14 +219,14 @@ namespace NgTests
 
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEditedPackages);
             mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEmptyPackages);
-            
+
             mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
             mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
             mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
             mockServer.SetAction("/package/OtherPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\OtherPackage.1.0.0.zip"));
 
             // Act
-            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, "http://tempuri.org", catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
+            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, _feedBaseUri, catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
             await feed2catalogTestJob.RunOnce(CancellationToken.None);
 
             // Assert
@@ -296,6 +298,42 @@ namespace NgTests
             Assert.Contains("\"version\": \"1.0.0\",", package5.Value.GetContentString());
         }
 
+        [Fact]
+        public async Task RunInternal_CallsCatalogStorageLoadStringExactlyOnce()
+        {
+            var mockServer = new MockServerHttpClientHandler();
+            var auditingStorage = Mock.Of<IStorage>();
+            var catalogStorage = new Mock<IStorage>(MockBehavior.Strict);
+            var datetime = DateTime.MinValue.ToString("O") + "Z";
+            var json = $"{{\"nuget:lastCreated\":\"{datetime}\"," +
+                $"\"nuget:lastDeleted\":\"{datetime}\"," +
+                $"\"nuget:lastEdited\":\"{datetime}\"}}";
+
+            catalogStorage.Setup(x => x.ResolveUri(It.IsNotNull<string>()))
+                .Returns(new Uri(_feedBaseUri));
+            catalogStorage.Setup(x => x.LoadString(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(json);
+
+            mockServer.SetAction("/", GetRootActionAsync);
+            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=Created" + FeedUrlSuffix, GetEmptyPackages);
+            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + FeedUrlSuffix, GetEmptyPackages);
+
+            var feed2catalogTestJob = new TestableFeed2CatalogJob(
+                mockServer,
+                _feedBaseUri,
+                catalogStorage.Object,
+                auditingStorage,
+                startDate: null,
+                timeout: TimeSpan.FromMinutes(5),
+                top: 20,
+                verbose: true);
+
+            await feed2catalogTestJob.RunOnce(CancellationToken.None);
+
+            catalogStorage.Verify(x => x.ResolveUri(It.IsNotNull<string>()), Times.AtLeastOnce());
+            catalogStorage.Verify(x => x.LoadString(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()), Times.Once());
+        }
+
         private Task<HttpResponseMessage> GetRootActionAsync(HttpRequestMessage request)
         {
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
@@ -348,7 +386,7 @@ namespace NgTests
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(
-                    ODataFeedHelper.ToODataFeed(packages, new Uri("http://tempuri.org"), "Packages"))
+                    ODataFeedHelper.ToODataFeed(packages, new Uri(_feedBaseUri), "Packages"))
             });
         }
 
@@ -373,7 +411,7 @@ namespace NgTests
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(
-                    ODataFeedHelper.ToODataFeed(packages, new Uri("http://tempuri.org"), "Packages"))
+                    ODataFeedHelper.ToODataFeed(packages, new Uri(_feedBaseUri), "Packages"))
             });
         }
 
@@ -382,7 +420,7 @@ namespace NgTests
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(
-                    ODataFeedHelper.ToODataFeed(Enumerable.Empty<ODataPackage>(), new Uri("http://tempuri.org"), "Packages"))
+                    ODataFeedHelper.ToODataFeed(Enumerable.Empty<ODataPackage>(), new Uri(_feedBaseUri), "Packages"))
             });
         }
 
@@ -406,7 +444,7 @@ namespace NgTests
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(
-                    ODataFeedHelper.ToODataFeed(packages, new Uri("http://tempuri.org"), "Packages"))
+                    ODataFeedHelper.ToODataFeed(packages, new Uri(_feedBaseUri), "Packages"))
             });
         }
     }

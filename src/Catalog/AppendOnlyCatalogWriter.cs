@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -13,13 +14,19 @@ namespace NuGet.Services.Metadata.Catalog
         bool _append;
         bool _first;
 
-        public AppendOnlyCatalogWriter(Storage storage, int maxPageSize = 1000, bool append = true, ICatalogGraphPersistence catalogGraphPersistence = null, CatalogContext context = null)
+        public AppendOnlyCatalogWriter(
+            IStorage storage,
+            int maxPageSize = 1000,
+            bool append = true,
+            ICatalogGraphPersistence catalogGraphPersistence = null,
+            CatalogContext context = null)
             : base(storage, catalogGraphPersistence, context)
         {
             _append = append;
             _first = true;
             MaxPageSize = maxPageSize;
         }
+
         public int MaxPageSize
         {
             get;
@@ -65,7 +72,7 @@ namespace NuGet.Services.Metadata.Catalog
             return pageEntries;
         }
 
-        Uri GetPageUri(IDictionary<string, CatalogItemSummary> currentPageEntries, int newItemCount, out bool isExistingPage)
+        private Uri GetPageUri(IDictionary<string, CatalogItemSummary> currentPageEntries, int newItemCount, out bool isExistingPage)
         {
             Tuple<int, Uri, int> latest = ExtractLatest(currentPageEntries);
             int nextPageNumber = latest.Item1 + 1;
@@ -89,7 +96,7 @@ namespace NuGet.Services.Metadata.Catalog
             return latestUri;
         }
 
-        static Tuple<int, Uri, int> ExtractLatest(IDictionary<string, CatalogItemSummary> currentPageEntries)
+        private static Tuple<int, Uri, int> ExtractLatest(IDictionary<string, CatalogItemSummary> currentPageEntries)
         {
             int maxPageNumber = -1;
             Uri latestUri = null;

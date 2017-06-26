@@ -1,10 +1,13 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using Ng.Jobs;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NgTests
 {
@@ -13,7 +16,15 @@ namespace NgTests
     {
         private readonly HttpMessageHandler _handler;
 
-        public TestableFeed2CatalogJob(HttpMessageHandler handler, string gallery, Storage catalogStorage, Storage auditingStorage, DateTime? startDate, TimeSpan timeout, int top, bool verbose)
+        public TestableFeed2CatalogJob(
+            HttpMessageHandler handler,
+            string gallery,
+            IStorage catalogStorage,
+            IStorage auditingStorage,
+            DateTime? startDate,
+            TimeSpan timeout,
+            int top,
+            bool verbose)
             : base(new TestLoggerFactory())
         {
             _handler = handler;

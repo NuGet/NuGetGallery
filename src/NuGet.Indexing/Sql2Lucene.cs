@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace NuGet.Indexing
 {
@@ -218,10 +219,13 @@ namespace NuGet.Indexing
             return result;
         }
 
-        public static void Export(string sourceConnectionString, string destinationPath, ILoggerFactory loggerFactory)
+        public static void Export(string sourceConnectionString, Uri catalogIndexUrl, string destinationPath, ILoggerFactory loggerFactory)
         {
             var logger = loggerFactory.CreateLogger<Sql2Lucene>();
             var stopwatch = new Stopwatch();
+
+            // Get the commit timestamp from catalog index page for lucene index
+            var initTime = GetCommitTimestampFromCatalogAsync(catalogIndexUrl, logger).Result;
 
             stopwatch.Start();
 
@@ -263,7 +267,7 @@ namespace NuGet.Indexing
                     NuGetMergePolicyApplyer.ApplyTo(writer);
 
                     var partitions = tasks.Select(t => new SimpleFSDirectory(new DirectoryInfo(t.Result))).ToArray();
-                    
+
                     writer.AddIndexesNoOptimize(partitions);
 
                     foreach (var partition in partitions)
@@ -271,7 +275,7 @@ namespace NuGet.Indexing
                         partition.Dispose();
                     }
 
-                    writer.Commit(DocumentCreator.CreateCommitMetadata(DateTime.UtcNow, "from SQL", writer.NumDocs(), Guid.NewGuid().ToString())
+                    writer.Commit(DocumentCreator.CreateCommitMetadata(initTime, "from SQL", writer.NumDocs(), Guid.NewGuid().ToString())
                         .ToDictionary());
                 }
             }
@@ -280,5 +284,30 @@ namespace NuGet.Indexing
 
             stopwatch.Reset();
         }
+
+        private static async Task<DateTime> GetCommitTimestampFromCatalogAsync(Uri indexUrl, ILogger<Sql2Lucene> logger)
+        {
+            DateTime commitTime = DateTime.UtcNow;
+            try
+            {
+                using (var client = new System.Net.Http.HttpClient())
+                using (var response = await client.GetAsync(indexUrl))
+                {
+                    logger.LogInformation("Fetching catalog index page: {0}", response.StatusCode);
+                    response.EnsureSuccessStatusCode();
+
+                    string json = response.Content.ReadAsStringAsync().Result;
+                    JObject obj = JObject.Parse(json);
+                    commitTime = obj["commitTimeStamp"].ToObject<DateTime>();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Error retrieving timestamp from catalog index({0})! Defaulting to current time! {1}", indexUrl.ToString(), ex);
+            }
+
+            return commitTime;
+        }
+
     }
 }

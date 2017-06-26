@@ -90,6 +90,19 @@ namespace NuGet.Services.BasicSearch
 
             _logger.LogInformation(LogMessages.AppStartup);
 
+            // redirect all HTTP requests to HTTPS
+            if (config.RequireSsl)
+            {
+                if (string.IsNullOrWhiteSpace(config.ForceSslExclusion))
+                {
+                    app.UseForceSsl(config.SslPort);
+                }
+                else
+                {
+                    app.UseForceSsl(config.SslPort, new[] { config.ForceSslExclusion });
+                }
+            }
+
             // Correlate requests
             app.Use(typeof(CorrelationIdMiddleware));
 

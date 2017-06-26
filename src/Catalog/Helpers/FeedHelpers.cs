@@ -30,28 +30,56 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         }
 
         /// <summary>
-        /// Reads and returns <see cref="DateTime"/> metadata from the top level of the catalog index.json.
+        /// Asynchronously reads and returns top-level <see cref="DateTime" /> metadata from the catalog's index.json.
         /// </summary>
-        /// <param name="propertyName">
-        /// Metadata field to return.
-        /// Possible values include "nuget:lastCreated", "nuget:lastDeleted", and "nuget:lastEdited", which are the timestamps of the cursor of the catalog.
-        /// </param>
-        public static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName, CancellationToken cancellationToken)
+        /// <remarks>The metadata values include "nuget:lastCreated", "nuget:lastDeleted", and "nuget:lastEdited",
+        /// which are the timestamps of the catalog cursor.</remarks>
+        /// <param name="storage"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="CatalogProperties" />.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="storage" /> is <c>null</c>.</exception>
+        /// <exception cref="OperationCanceledException">Thrown if <paramref name="cancellationToken" />
+        /// is cancelled.</exception>
+        public static async Task<CatalogProperties> GetCatalogPropertiesAsync(
+            IStorage storage,
+            CancellationToken cancellationToken)
         {
+            if (storage == null)
+            {
+                throw new ArgumentNullException(nameof(storage));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            DateTime? lastCreated = null;
+            DateTime? lastDeleted = null;
+            DateTime? lastEdited = null;
+
             var json = await storage.LoadString(storage.ResolveUri("index.json"), cancellationToken);
 
             if (json != null)
             {
                 var obj = JObject.Parse(json);
-
                 JToken token;
-                if (obj.TryGetValue(propertyName, out token))
+
+                if (obj.TryGetValue("nuget:lastCreated", out token))
                 {
-                    return token.ToObject<DateTime>().ToUniversalTime();
+                    lastCreated = token.ToObject<DateTime>().ToUniversalTime();
+                }
+
+                if (obj.TryGetValue("nuget:lastDeleted", out token))
+                {
+                    lastDeleted = token.ToObject<DateTime>().ToUniversalTime();
+                }
+
+                if (obj.TryGetValue("nuget:lastEdited", out token))
+                {
+                    lastEdited = token.ToObject<DateTime>().ToUniversalTime();
                 }
             }
 
-            return null;
+            return new CatalogProperties(lastCreated, lastDeleted, lastEdited);
         }
 
         /// <summary>
@@ -99,8 +127,13 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         }
 
         /// <summary>
-        /// Returns a <see cref="IList{FeedPackageDetails}"/> from the feed.
+        /// Asynchronously gets a <see cref="IList{FeedPackageDetails}"/> from the feed.
         /// </summary>
+        /// <param name="client">An HTTP client.</param>
+        /// <param name="uri">The feed URI.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns an
+        /// <see cref="IList{FeedPackageDetails}" />.</returns>
         public static async Task<IList<FeedPackageDetails>> GetPackages(HttpClient client, Uri uri)
         {
             const string createdDateProperty = "Created";
@@ -182,10 +215,30 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         }
 
         /// <summary>
-        /// Writes package metadata to the catalog.
+        /// Asynchronously writes package metadata to the catalog.
         /// </summary>
-        /// <returns>The latest <see cref="DateTime"/> that was processed.</returns>
-        public static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<FeedPackageDetails>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, DateTime lastDeleted, bool? createdPackages, CancellationToken cancellationToken, ILogger logger)
+        /// <param name="client">An HTTP client.</param>
+        /// <param name="packages">Packages to download metadata for.</param>
+        /// <param name="storage">Storage.</param>
+        /// <param name="lastCreated">The catalog's last created datetime.</param>
+        /// <param name="lastEdited">The catalog's last edited datetime.</param>
+        /// <param name="lastDeleted">The catalog's last deleted datetime.</param>
+        /// <param name="createdPackages"><c>true</c> to include created packages; otherwise, <c>false</c>.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <param name="logger">A logger.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns the latest
+        /// <see cref="DateTime}" /> that was processed.</returns>
+        public static async Task<DateTime> DownloadMetadata2Catalog(
+            HttpClient client,
+            SortedList<DateTime, IList<FeedPackageDetails>> packages,
+            IStorage storage,
+            DateTime lastCreated,
+            DateTime lastEdited,
+            DateTime lastDeleted,
+            bool? createdPackages,
+            CancellationToken cancellationToken,
+            ILogger logger)
         {
             var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
 

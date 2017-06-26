@@ -41,7 +41,8 @@ namespace Ng.Jobs
                    + $"-{Arguments.CertificateThumbprint} <keyvault-certificate-thumbprint> "
                    + $"[-{Arguments.ValidateCertificate} true|false]]] "
                    + $"[-{Arguments.Verbose} true|false] "
-                   + $"[-{Arguments.Interval} <seconds>]";
+                   + $"[-{Arguments.Interval} <seconds>]"
+                   + $"[-{Arguments.StorageSuffix} <suffix for the targeted storage if different than default>]";
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
