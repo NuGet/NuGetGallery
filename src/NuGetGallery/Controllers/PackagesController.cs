@@ -29,6 +29,7 @@ using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PoliteCaptcha;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -1363,10 +1364,16 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
-                    var readMeChanged = formData.ReadMe != null;
+                    // Checks to see if a ReadMe file has been added and uploads ReadMe
+                    ReadMeService readMeService = new ReadMeService();
+                    bool readMeChanged = formData.Edit.RepositoryUrl != null ||
+                        packageMetadata.RepoUrl.ToEncodedUrlStringOrNull() != null ||
+                        formData.ReadMe != null;
                     if (readMeChanged)
                     {
-                        await _packageFileService.SaveReadMeFileAsync(package, formData.ReadMe[0].InputStream);
+                        // Converts a readme into a file stream
+                        var readMeInputStream = readMeService.GetReadMeStream(formData, packageMetadata);
+                        await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream);
                     }
                     // Add the edit request to a queue where it will be processed in the background.
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, readMeChanged);
