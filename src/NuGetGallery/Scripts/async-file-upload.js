@@ -5,7 +5,7 @@
     var _isWebkitBrowser = false; // $.browser.webkit is not longer supported on jQuery
     var _iframeId = '__fileUploadFrame';
     var _formId;
-    var _pollingInterval = 500;
+    var _pollingInterval = 250;
     var _pingUrl;
     var _failureCount;
     var _isUploadInProgress;
@@ -184,13 +184,25 @@
         ko.applyBindings({ data: model }, reportContainerElement);
 
         $('#verify-cancel-button').on('click', function () {
+            $('#verify-cancel-button').attr('disabled', 'disabled');
+            $('#verify-cancel-button').attr('value', 'Cancelling');
+            $('#verify-cancel-button').addClass('.loading');
+            $('#verify-submit-button').attr('disabled', 'disabled');
             // Whether the cancel fails or not, we want to upload the next one.
             cancelUploadAsync();
         });
 
         $('#verify-submit-button').on('click', function () {
+            $('#verify-cancel-button').attr('disabled', 'disabled');
+            $('#verify-submit-button').attr('disabled', 'disabled');
+            $('#verify-submit-button').attr('value', 'Submitting');
+            $('#verify-submit-button').addClass('.loading');
             submitVerifyAsync();
         });
+
+        $('#iconurl-field').on('change', function () {
+            $('#icon-preview').attr('src', $('#iconurl-field').val());
+        })
 
         window.nuget.configureExpander(
             "verify-package-form",
@@ -225,13 +237,6 @@
         setProgressIndicator(0, '');
         $("#upload-progress-bar-container").show();
         setTimeout(getProgress, 100);
-
-        //if (_isWebkitBrowser) {
-        //    document.getElementById(_iframeId).contentWindow.start(_pingUrl, setProgressIndicator, onGetProgressError);
-        //}
-        //else {
-        //    setTimeout(getProgress, 100);
-        //}
     }
 
     function endProgressBar() {
@@ -279,22 +284,9 @@
         $("#upload-progress-bar").width(percentComplete + "%")
             .attr("aria-valuenow", percentComplete)
             .text(percentComplete + "%");
-        //$('#asyncUploadPanel').show();
-
-        //percentComplete = Math.min(percentComplete, 100);
-        //$('#asyncUploadProgressAdvance').width(percentComplete + '%');
-
-        //var status;
-        //if (percentComplete == 0) {
-        //    status = 'Start uploading...';
-        //}
-        //else {
-        //    status = 'Uploading ' + fileName + '...' + percentComplete + '%';
-        //}
-
-        //$('#asyncUploadFileName').html(status);
     }
 
+    // obsolete
     function constructIframe(jQueryUrl) {
         var iframe = document.getElementById(_iframeId);
         if (iframe) {
