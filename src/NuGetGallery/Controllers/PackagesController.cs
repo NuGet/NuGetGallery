@@ -1326,6 +1326,7 @@ namespace NuGetGallery
             return Redirect(urlFactory(package));
         }
 
+        [Obsolete]
         [Authorize]
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> VerifyPackage()
@@ -1411,14 +1412,18 @@ namespace NuGetGallery
                 if (uploadFile == null)
                 {
                     TempData["Message"] = "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again.";
-                    return new RedirectResult(Url.UploadPackage());
+
+                    Response.StatusCode = 400;
+                    return Json(new List<string>() { "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again." });
                 }
 
                 var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
                 if (nugetPackage == null)
                 {
+
+                    Response.StatusCode = 400;
                     // Send the user back
-                    return new RedirectResult(Url.UploadPackage());
+                    return Json(new List<string>() { "There was an error. Please try again" });
                 }
                 Debug.Assert(nugetPackage != null);
 
@@ -1434,7 +1439,9 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
-                        return new RedirectResult(Url.VerifyPackage());
+
+                        Response.StatusCode = 400;
+                        return Json(new List<string>() { "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again." });
                     }
                 }
 
@@ -1471,7 +1478,9 @@ namespace NuGetGallery
                 catch (InvalidPackageException ex)
                 {
                     TempData["Message"] = ex.Message;
-                    return Redirect(Url.UploadPackage());
+
+                    Response.StatusCode = 400;
+                    return Json(new List<string>() { ex.GetUserSafeMessage() });
                 }
 
                 await _packageService.PublishPackageAsync(package, commitChanges: false);
@@ -1499,7 +1508,9 @@ namespace NuGetGallery
                 {
                     ex.Log();
                     TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                    return new RedirectResult(Url.VerifyPackage());
+
+                    Response.StatusCode = 409;
+                    return Json(new List<string>() { Strings.UploadPackage_IdVersionConflict });
                 }
 
                 try
