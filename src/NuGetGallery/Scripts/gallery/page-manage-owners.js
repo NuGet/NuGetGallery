@@ -74,7 +74,6 @@
                 contentType: 'application/json; charset=utf-8',
                 success: function (data) {
                     if (data.success) {
-                        viewModel.message("");
                         viewModel.confirmation(data.confirmation);
                         viewModel.policyMessage(data.policyMessage);
                     }
