@@ -188,6 +188,8 @@
             $('#verify-cancel-button').attr('value', 'Cancelling');
             $('#verify-cancel-button').addClass('.loading');
             $('#verify-submit-button').attr('disabled', 'disabled');
+            $('#input-select-file').val("");
+            $('#file-select-feedback').attr('placeholder', 'Browse to select a package file...');
             // Whether the cancel fails or not, we want to upload the next one.
             cancelUploadAsync();
         });
