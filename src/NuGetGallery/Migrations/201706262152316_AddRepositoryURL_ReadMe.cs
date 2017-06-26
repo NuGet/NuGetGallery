@@ -10,14 +10,12 @@ namespace NuGetGallery.Migrations
             AddColumn("dbo.Packages", "RepositoryUrl", c => c.String());
             AddColumn("dbo.Packages", "HasReadMe", c => c.Boolean(nullable: false));
             AddColumn("dbo.PackageEdits", "RepositoryUrl", c => c.String());
-            AddColumn("dbo.PackageEdits", "ReadmeModified", c => c.Boolean(nullable: false));
             AddColumn("dbo.PackageHistories", "RepositoryUrl", c => c.String());
         }
         
         public override void Down()
         {
             DropColumn("dbo.PackageHistories", "RepositoryUrl");
-            DropColumn("dbo.PackageEdits", "ReadmeModified");
             DropColumn("dbo.PackageEdits", "RepositoryUrl");
             DropColumn("dbo.Packages", "HasReadMe");
             DropColumn("dbo.Packages", "RepositoryUrl");
