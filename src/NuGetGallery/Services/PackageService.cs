@@ -301,16 +301,18 @@ namespace NuGetGallery
 
             foreach (var latestStablePackagesById in latestStablePackageVersions.ToList().GroupBy(p => p.PackageRegistration.Id))
             {
+                // Use First() instead of Select() to get the latest package, in case there are multiple latest due to concurrency issue
+                // see: https://github.com/NuGet/NuGetGallery/issues/2514
                 Package latestStablePackage;
                 if (includeUnlisted)
                 {
-                    latestStablePackage = latestStablePackagesById.Single();
+                    latestStablePackage = latestStablePackagesById.First();
                 }
                 else
                 {
                     latestStablePackage =
-                        latestStablePackagesById.SingleOrDefault(p => p.IsLatestStableSemVer2)
-                        ?? latestStablePackagesById.SingleOrDefault(p => p.IsLatestStable);
+                        latestStablePackagesById.FirstOrDefault(p => p.IsLatestStableSemVer2)
+                        ?? latestStablePackagesById.FirstOrDefault(p => p.IsLatestStable);
                 }
 
                 mergedResults[latestStablePackage.PackageRegistration.Id] = latestStablePackage;
@@ -339,18 +341,20 @@ namespace NuGetGallery
                     .Include(p => p.PackageRegistration.Owners);
             }
 
+            // Use First() instead of Select() to get the latest package, in case there are multiple latest due to concurrency issue
+            // see: https://github.com/NuGet/NuGetGallery/issues/2514
             foreach (var latestPackagesById in latestPackageVersions.ToList().GroupBy(p => p.PackageRegistration.Id))
             {
                 Package latestPackage;
                 if (includeUnlisted)
                 {
-                    latestPackage = latestPackagesById.Single();
+                    latestPackage = latestPackagesById.First();
                 }
                 else
                 {
                     latestPackage =
-                       latestPackagesById.SingleOrDefault(p => p.IsLatestSemVer2)
-                       ?? latestPackagesById.Single(p => p.IsLatest);
+                       latestPackagesById.FirstOrDefault(p => p.IsLatestSemVer2)
+                       ?? latestPackagesById.First(p => p.IsLatest);
                 }
 
                 if (mergedResults.ContainsKey(latestPackage.PackageRegistration.Id)
