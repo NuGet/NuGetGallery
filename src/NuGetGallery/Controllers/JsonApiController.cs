@@ -74,7 +74,7 @@ namespace NuGetGallery
                                   Pending = true
                               };
 
-            var result = owners.Union(pending).Select(o => new OwnerModel
+            var result = owners.Union(pending).Select(o => new
             {
                 name = o.Name,
                 profileUrl = Url.User(o.Name),
@@ -296,15 +296,6 @@ namespace NuGetGallery
 
             model = new ManagePackageOwnerModel(package, user, currentUser);
             return true;
-        }
-
-        public class OwnerModel
-        {
-            public string name { get; set; }
-            public string profileUrl { get; set; }
-            public string imageUrl { get; set; }
-            public bool current { get; set; }
-            public bool pending { get; set; }
         }
 
         private class ManagePackageOwnerModel

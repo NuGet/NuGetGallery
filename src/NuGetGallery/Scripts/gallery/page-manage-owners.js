@@ -40,10 +40,16 @@
         resetAddOwnerConfirmation: function () {
             viewModel.confirmation('');
             viewModel.policyMessage('');
-            $("#input-form :input").attr("disabled", false);
+        },
+
+        cancelAddOwnerConfirmation: function () {
+            viewModel.resetAddOwnerConfirmation();
+            $("#newOwnerUserName").focus();
         },
 
         confirmAddOwner: function () {
+            viewModel.message("");
+
             var newUsername = viewModel.newOwnerUsername();
             if (!newUsername) {
                 viewModel.message("Please enter a valid user name.");
@@ -71,14 +77,13 @@
                         viewModel.message("");
                         viewModel.confirmation(data.confirmation);
                         viewModel.policyMessage(data.policyMessage);
-                        $("#input-form :input").attr("disabled", true);
                     }
                     else {
                         viewModel.message(data.message);
                     }
                 }
             })
-                .error(failHandler);
+            .error(failHandler);
         },
 
         addOwner: function () {
@@ -118,7 +123,7 @@
                     }
                 }
             })
-                .error(failHandler);
+            .error(failHandler);
         },
 
         removeOwner: function (item) {
