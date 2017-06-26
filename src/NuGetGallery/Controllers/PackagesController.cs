@@ -1367,7 +1367,7 @@ namespace NuGetGallery
                     // Checks to see if a ReadMe file has been added and uploads ReadMe
                     bool readMeChanged = formData.Edit.RepositoryUrl != null ||
                         packageMetadata.RepoUrl.ToEncodedUrlStringOrNull() != null ||
-                        formData.ReadMe != null;
+                        formData.ReadMe[0] != null;
                     if (readMeChanged)
                     {
                         // Converts a readme into a file stream
