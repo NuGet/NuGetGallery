@@ -1,10 +1,7 @@
-﻿using NuGetGallery.Packaging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Net;
-using System.Web;
+using NuGetGallery.Packaging;
+
 
 namespace NuGetGallery.Services
 {
@@ -22,21 +19,23 @@ namespace NuGetGallery.Services
         /// <param name="formData">The current package's form data submitted through the verify page</param>
         /// <param name="packageMetadata">The package metadata from the nuspec file</param>
         /// <returns>A stream with the encoded ReadMe file</returns>
-        public Stream GetReadMeStream(VerifyPackageRequest formData, PackageMetadata packageMetadata)
+        public static Stream GetReadMeStream(VerifyPackageRequest formData, PackageMetadata packageMetadata)
         {
+            // Uploaded ReadMe file
             if (formData.ReadMe[0] != null)
             {
                 return formData.ReadMe[0].InputStream;
             }
+            // ReadMe Ur
             else if (formData.Edit.RepositoryUrl != null)
             {
-                string readMeUrl = ParseRepositoryUrl(formData.Edit.RepositoryUrl);
+                string readMeUrl = GetReadMeUrlFromRepositoryUrl(formData.Edit.RepositoryUrl);
                 return ReadMeUrlToFileStream(readMeUrl);
             }
             else
             {
-                string readMeUrl = ParseRepositoryUrl(packageMetadata.RepoUrl.ToEncodedUrlStringOrNull());
-                return ReadMeUrlToFileStream(packageMetadata.RepoUrl.ToEncodedUrlStringOrNull());
+                string readMeUrl = GetReadMeUrlFromRepositoryUrl(packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull());
+                return ReadMeUrlToFileStream(packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull());
             }
             
         }
@@ -46,7 +45,7 @@ namespace NuGetGallery.Services
         /// </summary>
         /// <param name="repositoryUrl">A link to the repository</param>
         /// <returns>A link to the raw readme.md file</returns>
-        private string ParseRepositoryUrl(string repositoryUrl)
+        private static string GetReadMeUrlFromRepositoryUrl(string repositoryUrl)
         {
             return repositoryUrl;
         }
@@ -56,7 +55,7 @@ namespace NuGetGallery.Services
         /// </summary>
         /// <param name="readMeUrl">A link to the raw ReadMe.md file</param>
         /// <returns>A stream to allow the file to be read</returns>
-        private Stream ReadMeUrlToFileStream(string readMeUrl)
+        private static Stream ReadMeUrlToFileStream(string readMeUrl)
         {
             var webRequest = WebRequest.Create(readMeUrl);
             var response = webRequest.GetResponse();
