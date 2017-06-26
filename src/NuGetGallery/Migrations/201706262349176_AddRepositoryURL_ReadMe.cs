@@ -8,7 +8,7 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             AddColumn("dbo.Packages", "RepositoryUrl", c => c.String());
-            AddColumn("dbo.Packages", "HasReadMe", c => c.Boolean(nullable: false));
+            AddColumn("dbo.Packages", "HasReadMe", c => c.Boolean());
             AddColumn("dbo.PackageEdits", "RepositoryUrl", c => c.String());
             AddColumn("dbo.PackageEdits", "ReadMeState", c => c.String());
             AddColumn("dbo.PackageHistories", "RepositoryUrl", c => c.String());

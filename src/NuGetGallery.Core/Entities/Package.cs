@@ -127,7 +127,7 @@ namespace NuGetGallery
         /// <summary>
         /// Signifies whether or not ReadMe exists (optimization for pulling from blob storage)
         /// </summary>
-        public bool HasReadMe { get; set; }
+        public bool? HasReadMe { get; set; }
 
         public bool RequiresLicenseAcceptance { get; set; }
 
