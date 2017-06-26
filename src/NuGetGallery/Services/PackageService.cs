@@ -301,7 +301,7 @@ namespace NuGetGallery
 
             foreach (var latestStablePackagesById in latestStablePackageVersions.ToList().GroupBy(p => p.PackageRegistration.Id))
             {
-                // Use First() instead of Select() to get the latest package, in case there are multiple latest due to concurrency issue
+                // Use First() instead of Single() to get the latest package, in case there are multiple latest due to concurrency issue
                 // see: https://github.com/NuGet/NuGetGallery/issues/2514
                 Package latestStablePackage;
                 if (includeUnlisted)
@@ -341,7 +341,7 @@ namespace NuGetGallery
                     .Include(p => p.PackageRegistration.Owners);
             }
 
-            // Use First() instead of Select() to get the latest package, in case there are multiple latest due to concurrency issue
+            // Use First() instead of Single() to get the latest package, in case there are multiple latest due to concurrency issue
             // see: https://github.com/NuGet/NuGetGallery/issues/2514
             foreach (var latestPackagesById in latestPackageVersions.ToList().GroupBy(p => p.PackageRegistration.Id))
             {
