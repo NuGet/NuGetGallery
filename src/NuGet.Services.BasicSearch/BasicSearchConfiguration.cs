@@ -24,6 +24,18 @@ namespace NuGet.Services.BasicSearch
         [DefaultValue(300)]
         public int IndexRefreshSec { get; set; }
 
+        [ConfigurationKeyPrefix(SearchPrefix)]
+        [DefaultValue(false)]
+        public bool RequireSsl { get; set; }
+
+        [ConfigurationKeyPrefix(SearchPrefix)]
+        [DefaultValue(443)]
+        public int SslPort { get; set; }
+
+        [ConfigurationKeyPrefix(SearchPrefix)]
+        [DefaultValue("")]
+        public string ForceSslExclusion { get; set; }
+
         #region KeyVault
         private const string KeyVaultPrefix = "keyVault:";
 

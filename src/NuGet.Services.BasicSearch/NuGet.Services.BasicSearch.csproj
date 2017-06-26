@@ -234,6 +234,9 @@
     <Reference Include="NuGet.Services.Logging, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Logging.2.2.3\lib\net452\NuGet.Services.Logging.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Services.Owin">
+      <HintPath>..\..\packages\NuGet.Services.Owin.2.2.3\lib\net452\NuGet.Services.Owin.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.3, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview3-4146\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
