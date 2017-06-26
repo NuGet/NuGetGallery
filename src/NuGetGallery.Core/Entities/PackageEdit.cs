@@ -45,7 +45,10 @@ namespace NuGetGallery
         public string LicenseUrl { get; set; }
         public string ProjectUrl { get; set; }
         public string RepositoryUrl { get; set; }
-        public enum ReadMeState { Edited, Deleted, Unchanged };
+        /// <summary>
+        /// changed, unchanged, deleted
+        /// </summary>
+        public string ReadMeState { get; set; }
         public string ReleaseNotes { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }

@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201706262152316_AddRepositoryURL_ReadMe"; }
+            get { return "201706262253021_AddRepositoryURL_ReadMe"; }
         }
         
         string IMigrationMetadata.Source
