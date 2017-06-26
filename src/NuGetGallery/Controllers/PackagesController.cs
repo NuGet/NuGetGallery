@@ -1368,7 +1368,7 @@ namespace NuGetGallery
                     ReadMeService readMeService = new ReadMeService();
                     bool readMeChanged = formData.Edit.RepositoryUrl != null ||
                         packageMetadata.RepoUrl.ToEncodedUrlStringOrNull() != null ||
-                        formData.ReadMe != null;
+                        formData.ReadMe[0] != null;
                     if (readMeChanged)
                     {
                         // Converts a readme into a file stream
