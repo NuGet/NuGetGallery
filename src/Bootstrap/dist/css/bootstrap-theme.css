@@ -67,6 +67,13 @@ body h3 {
 .btn-search {
   height: 36px;
 }
+.dependency-groups h4 > span {
+  margin-bottom: 3px;
+  border-bottom: 1px solid #d8d8d8;
+}
+.dependency-group li span {
+  color: #666;
+}
 .borderless > tbody > tr > td {
   border: none;
 }
@@ -256,13 +263,6 @@ img.package-icon {
 .page-about .contributors .contributor .avatar {
   width: 75px;
   height: 75px;
-}
-.page-package-details h4 > span {
-  margin-bottom: 3px;
-  border-bottom: 1px solid #d8d8d8;
-}
-.page-package-details .dependency-group li span {
-  color: #666;
 }
 .page-package-details .no-border {
   border: 0;
@@ -635,6 +635,32 @@ img.package-icon {
 }
 .page-upload h2 a:hover {
   text-decoration: none;
+}
+.page-upload .loading:after {
+  display: inline-block;
+  /* ascii code for the ellipsis character */
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  content: "\2026";
+  -webkit-animation: ellipsis steps(4, end) 900ms infinite;
+       -o-animation: ellipsis steps(4, end) 900ms infinite;
+          animation: ellipsis steps(4, end) 900ms infinite;
+}
+@-o-keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+@keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+@-webkit-keyframes ellipsis {
+  to {
+    width: 20px;
+  }
 }
 .page-upload .dependency-set-title {
   font-size: 1.2em;
