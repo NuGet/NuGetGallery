@@ -32,7 +32,7 @@ namespace NuGetGallery
                 .FirstOrDefault();
         }
 
-        public virtual void StartEditPackageRequest(Package p, EditPackageVersionRequest request, User editingUser, bool readMeChanged)
+        public virtual void StartEditPackageRequest(Package p, EditPackageVersionRequest request, User editingUser, bool readMeModified)
         {
             if (PackageNamingConflictValidator.TitleConflictsWithExistingRegistrationId(p.PackageRegistration.Id, request.VersionTitle))
             {
@@ -54,7 +54,7 @@ namespace NuGetGallery
                 Summary = request.Summary,
                 Tags = request.Tags,
                 Title = request.VersionTitle,
-                ReadmeModified = readMeChanged,
+                ReadmeModified = readMeModified,
 
                 // Other
                 Package = p,
@@ -64,7 +64,6 @@ namespace NuGetGallery
 
             EntitiesContext.Set<PackageEdit>().Add(edit);
             // Note: EditPackageRequests are completed asynchronously by the worker role.
-
         }
     }
 }

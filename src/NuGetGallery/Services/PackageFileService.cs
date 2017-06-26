@@ -19,8 +19,7 @@ namespace NuGetGallery
         {
             _fileStorageService = fileStorageService;
         }
-
-
+        
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
         {
             var fileName = BuildFileName(package);
@@ -225,7 +224,5 @@ namespace NuGetGallery
                 HttpServerUtility.UrlTokenEncode(hashBytes),
                 Constants.NuGetPackageFileExtension);
         }
-
-
     }
 }

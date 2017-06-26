@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using NuGetGallery.Packaging;
 using System.Web;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -22,7 +22,7 @@ namespace NuGetGallery
         public const string TagsStr = "Tags (space separated - e.g. 'ASP.NET Templates MVC')";
         public const string ReleaseNotesStr = "Release Notes (for this version)";
         public const string RequiresLicenseAcceptanceStr = "Requires license acceptance";
-        public const string RepoUrlStr = "Repository URL";
+        public const string RepositoryUrlStr = "Repository URL";
         public const string ReadMeFileStr = "ReadMe file";
 
         public EditPackageVersionRequest()
@@ -108,7 +108,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
 
         [StringLength(256)]
-        [Display(Name = RepoUrlStr)]
+        [Display(Name = RepositoryUrlStr)]
         [DataType(DataType.Text)]
         [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
         public string RepositoryUrl { get; set; }
