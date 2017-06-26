@@ -224,7 +224,5 @@ namespace NuGetGallery
                 HttpServerUtility.UrlTokenEncode(hashBytes),
                 Constants.NuGetPackageFileExtension);
         }
-
-
     }
 }

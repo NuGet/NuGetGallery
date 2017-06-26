@@ -31,6 +31,7 @@ using NuGetGallery.Security;
 using NuGetGallery.Services;
 using PoliteCaptcha;
 using NuGetGallery.Services;
+using PoliteCaptcha;
 
 namespace NuGetGallery
 {
@@ -1282,7 +1283,6 @@ namespace NuGetGallery
             var currentUser = GetCurrentUser();
 
             Package package;
-
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
@@ -1325,6 +1325,7 @@ namespace NuGetGallery
                 if (formData.Edit != null)
                 {
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
+
                     pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, packageMetadata.IconUrl.ToEncodedUrlStringOrNull());
                     pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull());
                     pendEdit = pendEdit || IsDifferent(formData.Edit.RepositoryUrl, packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull());
