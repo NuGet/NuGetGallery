@@ -1018,12 +1018,10 @@ namespace NuGetGallery
                     messageService: messageService,
                     httpContext: httpContext);
                 controller.SetCurrentUser(user);
-                var model = new ReportAbuseViewModel
+                var model = new ReportMyPackageViewModel
                 {
-                    Email = "frodo@hobbiton.example.com",
                     Message = "I like the cut of your jib. It's <b>bold</b>.",
-                    Reason = ReportPackageReason.IsFraudulent,
-                    AlreadyContactedOwner = true,
+                    Reason = ReportPackageReason.IsFraudulent
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
