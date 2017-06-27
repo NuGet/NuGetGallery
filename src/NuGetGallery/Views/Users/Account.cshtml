@@ -3,6 +3,20 @@
 @{
     ViewBag.Title = "Account Settings";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+    ViewBag.Sections = new List<string>();
+}
+
+@functions
+{
+    private static List<string> GetSections(dynamic viewBag)
+    {
+        return (List<string>)viewBag.Sections;
+    }
+
+    public static void AddSection(dynamic viewBag, string id)
+    {
+        GetSections(viewBag).Add(id);
+    }
 }
 
 @helper Section(
@@ -12,6 +26,8 @@
     Func<MvcHtmlString, HelperResult> content,
     bool expanded = false)
 {
+    AddSection(ViewBag, id);
+
     <div class="clearfix">
         <div class="form-section-title">
             <h2>
@@ -197,23 +213,33 @@
                         @<text>
                             <p>You can use this @cred.AuthUI.AccountNoun to sign in to @(Config.Current.Brand).</p>
 
-                            @using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }))
+                            @if (Model.SignInCredentialCount > 1)
                             {
-                                @Html.AntiForgeryToken()
+                                using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }))
+                                {
+                                    @Html.AntiForgeryToken()
 
-                                <div class="row form-group">
-                                    <div class="col-sm-6">
-                                        <button class="btn btn-danger btn-block" type="submit"
-                                                data-confirm="Are you sure you want to remove your @cred.AuthUI.AccountNoun?">
-                                            Remove @cred.TypeCaption
-                                        </button>
+                                    <div class="row form-group">
+                                        <div class="col-sm-6">
+                                            <button class="btn btn-danger btn-block" type="submit"
+                                                    data-confirm="Are you sure you want to remove your @cred.AuthUI.AccountNoun?">
+                                                Remove @cred.TypeCaption
+                                            </button>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <a href="#" role="button" class="btn btn-default btn-block" id="cancel-change-credential-@cred.Key">
+                                                Cancel
+                                            </a>
+                                        </div>
                                     </div>
-                                    <div class="col-sm-6">
-                                        <a href="#" role="button" class="btn btn-default btn-block" id="cancel-change-credential-@cred.Key">
-                                            Cancel
-                                        </a>
-                                    </div>
-                                </div>
+                                }
+                            }
+                            else
+                            {
+                                <span>
+                                    To remove this credential, you must enable at least one other form of authentication,
+                                    such as password login.
+                                </span>
                             }
                         </text>)
                 }
@@ -354,20 +380,9 @@
             setPasswordLoginReadonly();
 
             // Set up the section expanders.
-            configureSection("change-email");
-            configureSection("change-notifications");
-            @if (Model.CredentialGroups.ContainsKey(CredentialKind.External))
+            @foreach (var section in GetSections(ViewBag))
             {
-                foreach (var cred in Model.CredentialGroups[CredentialKind.External])
-                {
-                    @:configureSection("change-credential-@cred.Key");
-                }
-            }
-            configureSection("change-password");
-            configureSection("profile-picture");
-            @foreach (var curatedFeed in Model.CuratedFeeds)
-            {
-                @:configureSection("curated-feed-@curatedFeed");
+            @:configureSection("@(section)");
             }
         });
     </script>
