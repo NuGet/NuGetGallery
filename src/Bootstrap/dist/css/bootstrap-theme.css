@@ -300,36 +300,45 @@ img.package-icon {
 }
 .page-api-keys h3 {
   margin-top: 0;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   font-size: 34px;
+}
+.page-api-keys .upsert-api-key h3 {
+  padding-left: 20px;
+}
+.page-api-keys .upsert-api-key ul {
+  padding-left: 0;
+  list-style: none;
+}
+.page-api-keys .upsert-api-key ul ul {
+  padding-left: 20px;
+}
+.page-api-keys .upsert-api-key .panel {
+  margin-bottom: 0;
+}
+.page-api-keys .upsert-api-key .available-packages .panel-body {
+  height: 204px;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: auto;
+}
+.page-api-keys .upsert-api-key .glob-pattern-hint .panel-body {
+  height: 282px;
 }
 .page-api-keys .add-api-key {
   padding: 20px 0;
   border-top: 1px solid #dbdbdb;
   border-bottom: 1px solid #dbdbdb;
 }
-.page-api-keys .add-api-key h3 {
-  padding-left: 15px;
-}
-.page-api-keys .add-api-key ul {
-  padding-left: 0;
-  list-style: none;
-}
-.page-api-keys .add-api-key ul ul {
-  padding-left: 20px;
-}
-.page-api-keys .add-api-key .available-packages .panel-body {
-  height: 235px;
-  padding-top: 0;
-  padding-bottom: 0;
-  overflow: auto;
-}
-.page-api-keys .add-api-key .glob-pattern-hint .panel-body {
-  height: 314px;
+.page-api-keys .add-api-key > .panel {
+  margin-top: 16px;
 }
 .page-api-keys .api-key-details {
   padding: 20px 0;
   border-bottom: 1px solid #dbdbdb;
+}
+.page-api-keys .api-key-details > .row {
+  padding-left: 20px;
 }
 .page-api-keys .api-key-details .ms-Icon {
   position: relative;

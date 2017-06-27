@@ -1,5 +1,5 @@
 .page-api-keys {
-    @section-indentation: 15px;
+    @section-indentation: 20px;
     @section-vertical-padding: (@padding-large-vertical * 2);
     @section-padding: @section-vertical-padding 0;
     @section-border: 1px solid @gray-lighter;
@@ -14,14 +14,10 @@
     h3 {
         font-size: 34px;
         margin-top: 0;
-        margin-bottom: @padding-large-vertical;
+        margin-bottom: 0;
     }
 
-    .add-api-key {
-        padding: @section-padding;
-        border-top: @section-border;
-        border-bottom: @section-border;
-
+    .upsert-api-key {
         h3 {
             padding-left: @section-indentation;
         }
@@ -35,10 +31,14 @@
             }
         }
 
+        .panel {
+            margin-bottom: 0;
+        }
+
         .available-packages {
             .panel-body {
                 overflow: auto;
-                height: 235px;
+                height: 204px;
                 padding-top: 0;
                 padding-bottom: 0;
             }
@@ -46,14 +46,28 @@
 
         .glob-pattern-hint {
             .panel-body {
-                height: 314px;
+                height: 282px;
             }
+        }
+    }
+
+    .add-api-key {
+        padding: @section-padding;
+        border-top: @section-border;
+        border-bottom: @section-border;
+
+        > .panel {
+            margin-top: @padding-large-horizontal;
         }
     }
 
     .api-key-details {
         padding: @section-padding;
         border-bottom: @section-border;
+
+        > .row {
+            padding-left: @section-indentation;
+        }
 
         .ms-Icon {
             position: relative;
