@@ -128,14 +128,11 @@ h2 .ms-Icon {
   top: -2px;
   font-size: .6em;
 }
-h2 a {
-  color: #000;
-  text-decoration: none;
-}
+h2 a,
 h2 a:hover,
 h2 a:focus,
 h2 a:active {
-  color: #000;
+  color: #333;
   text-decoration: none;
 }
 @media screen and (max-width: 768px) {
@@ -204,15 +201,23 @@ img.package-icon {
 }
 .page-account-settings h2 {
   margin-top: 0;
-
-  margin-botton: 0;
+  margin-bottom: 10px;
+}
+.page-account-settings .form-section-title {
+  margin-top: 10px;
+}
+@media (min-width: 768px) {
+  .page-account-settings .form-section-title {
+    float: left;
+    text-align: right;
+  }
 }
 .page-account-settings .form-section-data {
   margin-top: 10px;
-  margin-bottom: 24px;
 }
 @media (min-width: 768px) {
   .page-account-settings .form-section-data {
+    float: right;
     text-align: right;
   }
 }

@@ -41,7 +41,7 @@
             </p>
         </div>
     </div>
-    <div class="row @(Model.External.FoundExistingUser ? "hidden" : string.Empty)" id="choice-container">
+    <div class="row @(Model.External.FoundExistingUser ? "hidden" : string.Empty)" aria-hidden="@(Model.External.FoundExistingUser ? "true" : "false")" id="choice-container">
         <div class="col-sm-offset-4 col-sm-4">
             <div class="form-group">
                 <a class="btn btn-primary btn-block" href="#" role="button" id="show-sign-in">Connect to an existing NuGet.org account</a>
@@ -50,12 +50,12 @@
             </div>
         </div>
     </div>
-    <div class="row @(Model.External.FoundExistingUser ? string.Empty : "hidden")" id="sign-in-container">
+    <div class="row @(Model.External.FoundExistingUser ? string.Empty : "hidden")" aria-hidden="@(Model.External.FoundExistingUser ? "false" : "true")" id="sign-in-container">
         <div class="col-sm-offset-4 col-sm-4">
             @Html.Partial("_SignIn", Model)
         </div>
     </div>
-    <div class="row hidden" id="register-container">
+    <div class="row hidden" aria-hidden="true" id="register-container">
         <div class="col-sm-offset-4 col-sm-4">
             @Html.Partial("_Register", Model)
         </div>

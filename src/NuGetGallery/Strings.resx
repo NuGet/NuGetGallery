@@ -517,7 +517,7 @@ For more information, please contact '{2}'.</value>
 &lt;/ol&gt;</value>
   </data>
   <data name="PasswordDoesNotMatch" xml:space="preserve">
-    <value>The new passwords provided do not match.</value>
+    <value>The new password does not match the verify password field.</value>
   </data>
   <data name="AzureActiveDirectory_RegisterMessage" xml:space="preserve">
     <value>Register with Azure Active Directory</value>

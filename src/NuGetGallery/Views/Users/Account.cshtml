@@ -1,7 +1,7 @@
 ﻿@model AccountViewModel
 
 @{
-    ViewBag.Title = "Edit Profile";
+    ViewBag.Title = "Account Settings";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
@@ -12,21 +12,22 @@
     Func<MvcHtmlString, HelperResult> content,
     bool expanded = false)
 {
-    <div class="row">
-        <div class="col-sm-5">
+    <div class="clearfix">
+        <div class="form-section-title">
             <h2>
                 <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
                    aria-expanded="@expanded" aria-controls="@id-container" id="show-@id-container">
-                    <i class="ms-Icon ms-Icon--@(expanded ? "ChevronDown" : "ChevronRight")" aria-hidden="@(!expanded)"></i>
+                    <i class="ms-Icon ms-Icon--@(expanded ? "ChevronDown" : "ChevronRight")" aria-hidden="true"></i>
                     <span>@title(MvcHtmlString.Empty)</span>
                 </a>
             </h2>
         </div>
-        <div class="col-sm-7 form-section-data">
+        <div class="form-section-data">
             @data(MvcHtmlString.Empty)
         </div>
     </div>
-    <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)" id="@id-container">
+    <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
+         aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
         <div class="panel-body">
             @content(MvcHtmlString.Empty)
         </div>
@@ -82,6 +83,8 @@
                     {
                         using (Html.BeginForm("CancelChangeEmail", "Users"))
                         {
+                            @Html.AntiForgeryToken()
+
                             <div class="row form-group">
                                 <div class="col-sm-6">
                                     <input type="submit" class="btn btn-primary form-control" value="Reset to Confirmed Email Address" />
@@ -133,40 +136,41 @@
                 "change-notifications",
                 @<text>Email Notifications</text>,
                 @<text>
-                    @(CurrentUser.EmailAllowed ? "Users can contact you" : "Users can not contact you") |
-                    @(CurrentUser.NotifyPackagePushed ? "Receiving package push notifications" : "Not receiving package push notifications")
+                    @(Model.ChangeNotifications.EmailAllowed ? "Users can contact you" : "Users can not contact you") |
+                    @(Model.ChangeNotifications.NotifyPackagePushed ? "Receiving package push notifications" : "Not receiving package push notifications")
                 </text>,
                 @<text>
                     @using (Html.BeginRouteForm(RouteName.ChangeEmailSubscription))
                     {
                         @Html.AntiForgeryToken()
-
+                        
                         <div class="checkbox">
-                            <label for="CurrentUser_EmailAllowed">
-                                <input type="checkbox" name="emailAllowed" id="CurrentUser_EmailAllowed"
-                                       checked="@(CurrentUser.EmailAllowed)" value="true">
-                                <b>Users can contact me through the <em>Contact Owners form</em></b>
+                            <label>
+                                @Html.ShowCheckboxFor(x => x.ChangeNotifications.EmailAllowed)
+                                <b>Users can contact me through the @Config.Current.Brand</b>
                                 <br />
-                                This subscription allows other registered users of the site to contact you
+                                This setting allows other registered users of the site to contact you
                                 about packages that you own using the <em>Contact Owners</em> form, or to request
-                                that you become an owner of their package. Unsubscribing means users cannot contact you for these reasons.
+                                that you become an owner of their package. Disabling this setting means users cannot
+                                contact you for these reasons.
                             </label>
                         </div>
 
                         <div class="checkbox">
-                            <label for="CurrentUser_NotifyPackagePushed">
-                                <input type="checkbox" name="notifyPackagePushed" id="CurrentUser_NotifyPackagePushed"
-                                       checked="@(CurrentUser.NotifyPackagePushed)" value="true">
+                            <label>
+                                @Html.ShowCheckboxFor(x => x.ChangeNotifications.NotifyPackagePushed)
                                 <b>Notify me when a package is pushed to @Config.Current.Brand using my account</b>
                                 <br />
-                                This subscription allows other registered users of the site to contact you
-                                about packages that you own using the <em>Contact Owners</em> form, or to request
-                                that you become an owner of their package. Unsubscribing means users cannot contact you for these reasons.
+                                This setting enables notifications whenever a package is pushed using your
+                                account. We recommend to enable this setting so that you can inspect whether a
+                                package was pushed intentionally or not. Unsubscribing means no notification will be
+                                sent on push.
                             </label>
                         </div>
 
                         <p>
-                            <strong>Note:</strong> We will always send important account management and security notices.
+                            <strong>Note:</strong> We will always send important account management and security notices
+                            and never reveal your email address to other users.
                         </p>
 
                         <div class="row form-group">
@@ -196,12 +200,11 @@
                             @using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }))
                             {
                                 @Html.AntiForgeryToken()
-                                @Html.Hidden(cred.Type)
 
                                 <div class="row form-group">
                                     <div class="col-sm-6">
                                         <button class="btn btn-danger btn-block" type="submit"
-                                                data-confirm="Are you sure you want to disassociate your @cred.AuthUI.AccountNoun? This is an irreversable action!">
+                                                data-confirm="Are you sure you want to remove your @cred.AuthUI.AccountNoun?">
                                             Remove @cred.TypeCaption
                                         </button>
                                     </div>

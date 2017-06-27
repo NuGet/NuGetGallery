@@ -132,19 +132,17 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeEmailSubscription(bool? emailAllowed, bool? notifyPackagePushed)
+        public virtual async Task<ActionResult> ChangeEmailSubscription(AccountViewModel model)
         {
             var user = GetCurrentUser();
-            if (user == null)
-            {
-                return HttpNotFound();
-            }
-            
-            await _userService.ChangeEmailSubscriptionAsync(user, 
-                emailAllowed.HasValue && emailAllowed.Value, 
-                notifyPackagePushed.HasValue && notifyPackagePushed.Value);
+
+            await _userService.ChangeEmailSubscriptionAsync(
+                user, 
+                model.ChangeNotifications.EmailAllowed, 
+                model.ChangeNotifications.NotifyPackagePushed);
 
             TempData["Message"] = Strings.EmailPreferencesUpdated;
+
             return RedirectToAction("Account");
         }
 
@@ -423,6 +421,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelChangeEmail(AccountViewModel model)
         {
             var user = GetCurrentUser();
@@ -744,7 +743,11 @@ namespace NuGetGallery
             model.HasUnconfirmedEmailAddress = !string.IsNullOrEmpty(user.UnconfirmedEmailAddress);
 
             model.ChangePassword = model.ChangePassword ?? new ChangePasswordViewModel();
-            model.ChangePassword.EnablePasswordLogin = model.HasPassword;            
+            model.ChangePassword.EnablePasswordLogin = model.HasPassword;
+
+            model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
+            model.ChangeNotifications.EmailAllowed = user.EmailAllowed;
+            model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
             
             return View("Account", model);
         }

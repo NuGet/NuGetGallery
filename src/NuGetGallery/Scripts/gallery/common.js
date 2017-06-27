@@ -176,8 +176,16 @@
 $(function () {
     // Use moment.js to format attributes with the "datetime" attribute to "ago".
     $.each($('*[data-datetime]'), function () {
-        var datetime = moment($(this).attr('data-datetime'));
+        var datetime = moment($(this).data().datetime);
         $(this).text(datetime.fromNow());
+    });
+
+    // Handle confirm pop-ups.
+    $('*[data-confirm]').delegate('', 'click', function (e) {
+        if (!confirm($(this).data().confirm)) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
     });
 
     // Select the first input that has an error.
@@ -190,7 +198,7 @@ $(function () {
     $.each($('a[data-track]'), function () {
         $(this).click(function (e) {
             var href = $(this).attr('href');
-            var category = $(this).attr('data-track');
+            var category = $(this).data().track;
             if (ga && href && category) {
                 e.preventDefault();
                 ga('send', 'event', category, 'click', href, {

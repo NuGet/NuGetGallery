@@ -992,6 +992,7 @@ namespace NuGetGallery
                 // Assert
                 var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
+                Assert.NotEqual(inputModel.ChangePassword.NewPassword, inputModel.ChangePassword.VerifyPassword);
 
                 var errorMessages = controller
                     .ModelState["ChangePassword.VerifyPassword"]
@@ -1042,7 +1043,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GivenDisablePasswordLogin_RemovesCredentialAndSendsNotice()
+            public async Task GivenDisabledPasswordLogin_RemovesCredentialAndSendsNotice()
             {
                 // Arrange
                 var user = new User("foo");

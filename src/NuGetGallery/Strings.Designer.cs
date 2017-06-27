@@ -855,7 +855,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The new passwords provided do not match..
+        ///   Looks up a localized string similar to The new password does not match the verify password field..
         /// </summary>
         public static string PasswordDoesNotMatch {
             get {

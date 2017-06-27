@@ -18,11 +18,13 @@ namespace NuGetGallery
             ChangePassword = new ChangePasswordViewModel();
             ChangeEmail = new ChangeEmailViewModel();
             CredentialGroups = new Dictionary<CredentialKind, List<CredentialViewModel>>();
+            ChangeNotifications = new ChangeNotificationsViewModel();
         }
 
         public IList<string> CuratedFeeds { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
         public ChangeEmailViewModel ChangeEmail { get; set; }
+        public ChangeNotificationsViewModel ChangeNotifications { get; set; }
         public int ExpirationInDaysForApiKeyV1 { get; set; }
         public bool HasPassword { get; set; }
         public string CurrentEmailAddress { get; set; }
@@ -30,6 +32,12 @@ namespace NuGetGallery
         public bool HasConfirmedEmailAddress { get; set; }
         public IDictionary<CredentialKind, List<CredentialViewModel>> CredentialGroups { get; set; }
         public int SignInCredentialCount { get; set; }
+    }
+
+    public class ChangeNotificationsViewModel
+    {
+        public bool EmailAllowed { get; set; }
+        public bool NotifyPackagePushed { get; set; }
     }
 
     public class ChangeEmailViewModel
