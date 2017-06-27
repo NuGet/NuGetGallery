@@ -46,7 +46,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string RepositoryUrl { get; set; }
         /// <summary>
-        /// changed, unchanged, deleted
+        /// changed, null (means unchanged), deleted
         /// </summary>
         public string ReadMeState { get; set; }
         public string ReleaseNotes { get; set; }
