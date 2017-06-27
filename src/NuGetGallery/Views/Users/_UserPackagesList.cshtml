@@ -10,7 +10,7 @@
     <div class="col-md-12">
         <h2>
             <a href="#" role="button" data-toggle="collapse" data-target="#packages-@Model.Name"
-               aria-expanded="true" id="show-packages-@Model.Name">
+               aria-expanded="true" aria-controls="packages-@Model.Name" id="show-packages-@Model.Name">
                 <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
                 <span>My @Model.Name Packages</span>
             </a>
@@ -19,7 +19,7 @@
             <p>You have <b>@Model.Packages.Count() @Model.Name.ToLowerInvariant() @packagesString</b> with a total of <b>@numDownloads @downloadsString</b></p>
             <div class="list-packages" role="list">
                 @foreach (var package in @Model.Packages)
-            {
+                {
                     @Html.Partial("_ListPackage", package)
                 }
             </div>
