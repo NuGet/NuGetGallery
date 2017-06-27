@@ -22,6 +22,13 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
     public class VcsCallbackServerStartup
     {
         private readonly VcsStatusCallbackParser _callbackParser = new VcsStatusCallbackParser();
+        private readonly HashSet<string> SuccessResults = new HashSet<string>
+        {
+            "Pass",
+            "PassWithInfo",
+            "PassManual",
+            "PassWithWarn",
+        };
 
         private readonly PackageValidationTable _packageValidationTable;
         private readonly PackageValidationAuditor _packageValidationAuditor;
@@ -220,7 +227,7 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                     // This denotes scan has completed and we have a pass (or results)
                     if (result.State == State.Complete || result.State == State.Released)
                     {
-                        if (result.Result == "Pass" || result.Result == "PassWithInfo" || result.Result == "PassManual")
+                        if (SuccessResults.Contains(result.Result))
                         {
                             // The result is clean.
                             processedRequest = true;
@@ -287,10 +294,27 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 
                 if (!processedRequest)
                 {
-                    _logger.LogWarning(
-                        "Callback was not handled for State={State}, Result={Result}. " +
-                        "Request body: {RequestBody}",
-                        result?.State, result?.Result, TruncateString(body, ReasonableBodySize));
+                    if (validationEntity == null)
+                    {
+                        _logger.LogWarning(
+                            "Callback was not handled for State={State}, Result={Result}. " +
+                            "Request body: {RequestBody}",
+                            result?.State, result?.Result, TruncateString(body, ReasonableBodySize));
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Callback was not handled for State={State}, Result={Result}," +
+                            $"{{{TraceConstant.ValidationId}}}, " +
+                            $"Package: {{{TraceConstant.PackageId}}} {{{TraceConstant.PackageVersion}}}. " +
+                            "Request body: {RequestBody}",
+                            result?.State,
+                            result?.Result,
+                            validationEntity.ValidationId,
+                            validationEntity.PackageId,
+                            validationEntity.PackageVersion,
+                            TruncateString(body, ReasonableBodySize));
+                    }
                 }
             }
         }

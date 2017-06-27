@@ -117,5 +117,6 @@ namespace NuGet.Jobs
 
         // Arguments for Azure logs
         public const string LogsAzureStorageConnectionString = "LogsAzureStorageConnectionString";
+
     }
 }

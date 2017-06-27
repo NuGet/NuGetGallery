@@ -20,7 +20,7 @@ namespace Stats.RollUpDownloadFacts
         private const string _startTemplateRecordsDeletion = "Package Dimension ID ";
         private const string _endTemplateDimProjectTypeDeletion = " records from [dbo].[Fact_Download_Dimension_ProjectType]";
         private const string _endTemplateFactDownloadDeletion = " records from [dbo].[Fact_Download]";
-        private const int DefaultMinAgeInDays = 90;
+        private const int DefaultMinAgeInDays = 43;
         private static int _minAgeInDays;
         private static SqlConnectionStringBuilder _targetDatabase;
         private ILoggerFactory _loggerFactory;

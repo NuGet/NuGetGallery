@@ -63,6 +63,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             [InlineData("ReSharperPlatformVs11/102.0.20150408.145317 (Microsoft Windows NT 6.2.9200.0; NuGet/2.8.50926.602; Wave/2.0.0; ReSharper/9.1.20150408.155143)", "JetBrains ReSharper Platform VS2012", "102", "0", "20150408")]
             [InlineData("ReSharperPlatformVs12/102.0.20150721.105606 (Microsoft Windows NT 6.3.9600.0; NuGet/2.8.60318.667; Wave/2.0.0; ReSharper/9.1.20150721.141555; dotTrace/6.1.20150721.135729; dotMemory/4.3.20150721.134307)", "JetBrains ReSharper Platform VS2013", "102", "0", "20150721")]
             [InlineData("ReSharperPlatformVs14/102.0.20150408.145317 (Microsoft Windows NT 10.0.10074.0; NuGet/2.8.50926.602; Wave/2.0.0; ReSharper/9.1.20150408.155143)", "JetBrains ReSharper Platform VS2015", "102", "0", "20150408")]
+            [InlineData("NuGet MSBuild Task/4.0.0 (Microsoft Windows 10.0.15063)", "NuGet MSBuild Task", "4", "0", "0")]
             public void RecognizesCustomClients(string userAgent, string expectedClient, string expectedMajor, string expectedMinor, string expectedPatch)
             {
                 var parsed = _parser.ParseUserAgent(userAgent);

@@ -77,8 +77,8 @@
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Logging, Version=2.1.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Logging.2.1.1\lib\net452\NuGet.Services.Logging.dll</HintPath>
+    <Reference Include="NuGet.Services.Logging, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Logging.2.2.3\lib\net452\NuGet.Services.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Serilog.2.0.0\lib\net45\Serilog.dll</HintPath>
@@ -127,8 +127,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Scripts\Functions.ps1" />
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
@@ -143,6 +147,10 @@
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
       <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
       <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.Helper\Validation.Helper.csproj">
+      <Project>{305fb2c1-01fd-413d-b788-7b85bad85a41}</Project>
+      <Name>Validation.Helper</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

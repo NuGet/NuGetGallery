@@ -12,6 +12,8 @@ param (
     [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
 )
 
+$msBuildVersion = 15;
+
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
 trap {
     Write-Host "BUILD FAILED: $_" -ForegroundColor Red
@@ -48,7 +50,7 @@ Function Prepare-Vcs-Callback {
         Remove-Item $ZipPackagePath
     }
     
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "14" "src\Validation.Callback.Vcs\Validation.Callback.Vcs.csproj" -Target "Package" -MSBuildProperties "/P:PackageLocation=obj\Validation.Callback.Vcs.zip" -SkipRestore
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" "src\Validation.Callback.Vcs\Validation.Callback.Vcs.csproj" -Target "Package" -MSBuildProperties "/P:PackageLocation=obj\Validation.Callback.Vcs.zip" -SkipRestore
 }
 
 Write-Host ("`r`n" * 3)
@@ -80,7 +82,8 @@ Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
         $versionMetadata =
-            "$PSScriptRoot\src\Validation.Helper\Properties\AssemblyInfo.g.cs"
+            "$PSScriptRoot\src\Validation.Helper\Properties\AssemblyInfo.g.cs",
+	    "$PSScriptRoot\src\CopyAzureContainer\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -95,7 +98,7 @@ Invoke-BuildStep 'Restoring solution packages' { `
 
 Invoke-BuildStep 'Building solution' { 
     param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore `
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" $SolutionPath -SkipRestore:$SkipRestore `
     } `
     -args $Configuration, $BuildNumber, (Join-Path $PSScriptRoot "NuGet.Jobs.sln"), $SkipRestore `
     -ev +BuildErrors
@@ -117,12 +120,13 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/HandlePackageEdits/HandlePackageEdits.csproj", `
             "src/Stats.RollUpDownloadFacts/Stats.RollUpDownloadFacts.csproj", `
             "src/Validation.Callback.Vcs/Validation.Callback.Vcs.csproj", `
-            "src/Validation.Runner/Validation.Runner.csproj",
-            "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj",
-            "src/Validation.Helper/Validation.Helper.csproj"
+            "src/Validation.Runner/Validation.Runner.csproj", `
+            "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj", `
+            "src/Validation.Helper/Validation.Helper.csproj", `
+	    "src/CopyAzureContainer/CopyAzureContainer.csproj"
         
         Foreach ($Project in $Projects) {
-            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
+            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion"
         }
     } `
     -ev +BuildErrors

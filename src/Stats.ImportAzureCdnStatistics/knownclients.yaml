@@ -1,4 +1,8 @@
 ﻿user_agent_parsers:
+  # NuGet MSBuild Task
+  - regex: '(NuGet MSBuild Task)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet MSBuild Task'
+
   # NuGet Client V3
   - regex: '(NuGet Client V3)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet Client V3'

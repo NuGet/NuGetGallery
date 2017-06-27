@@ -205,3 +205,4 @@ project.lock.json
 Results.*.xml
 
 AssemblyInfo.*.cs
+/tests/Validation.Helper.Tests/Validation.Helper.Tests.nuget.props

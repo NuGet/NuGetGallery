@@ -30,18 +30,17 @@ namespace NuGet.Jobs.Validation.Common
             {
                 var clientId = configurationService.Get(ClientIdKey).Result;
                 var certificateThumbprint = configurationService.Get(CertificateThumbprintKey).Result;
-                var storeLocation = configurationService.Get(StoreLocationKey).Result;
-                var storeName = configurationService.Get(StoreNameKey).Result;
-                var validateCertificate = configurationService.Get(ValidateCertificateKey).Result;
+                var storeLocation = (StoreLocation)Enum.Parse(typeof(StoreLocation), configurationService.Get(StoreLocationKey).Result);
+                var storeName = (StoreName)Enum.Parse(typeof(StoreName), configurationService.Get(StoreNameKey).Result);
+                var validateCertificate = bool.Parse(configurationService.Get(ValidateCertificateKey).Result);
+
+                var certificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, validateCertificate);
 
                 secretReader = new KeyVaultReader(
                     new KeyVaultConfiguration(
                         vaultName,
                         clientId,
-                        certificateThumbprint,
-                        (StoreName)Enum.Parse(typeof(StoreName), storeName),
-                        (StoreLocation)Enum.Parse(typeof(StoreLocation), storeLocation),
-                        bool.Parse(validateCertificate)));
+                        certificate));
             }
 
             return secretReader;
