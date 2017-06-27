@@ -125,9 +125,9 @@ namespace NuGetGallery
         public string RepositoryUrl { get; set; }
 
         /// <summary>
-        /// Detects whether or not ReadMe exists (optimization for pulling from blob storage)
+        /// Signifies whether or not ReadMe exists (optimization for pulling from blob storage)
         /// </summary>
-        public bool HasReadMe { get; set; }
+        public bool? HasReadMe { get; set; }
 
         public bool RequiresLicenseAcceptance { get; set; }
 
