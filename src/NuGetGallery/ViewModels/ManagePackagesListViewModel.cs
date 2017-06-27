@@ -4,8 +4,16 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class ManagePackagesViewModel
+    public class ManagePackagesListViewModel
     {
         public IEnumerable<ListPackageItemViewModel> Packages { get; set; }
+
+        public string Name { get; set; }
+
+        public ManagePackagesListViewModel(IEnumerable<ListPackageItemViewModel> packages, string name)
+        {
+            Packages = packages;
+            Name = name;
+        }
     }
 }
