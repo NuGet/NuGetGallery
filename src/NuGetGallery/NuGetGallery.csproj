@@ -1912,7 +1912,7 @@
     <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\nugetgallery.js" />
     <Content Include="Scripts\gallery\stats-dimensions.js" />
-    <Content Include="Scripts\async-file-upload.js" />
+    <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">

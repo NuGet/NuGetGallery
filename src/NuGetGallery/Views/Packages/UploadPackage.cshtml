@@ -62,7 +62,7 @@
 @section BottomScripts
 {
     @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
-    <script type="text/javascript" src="@Url.Content("~/Scripts/async-file-upload.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/gallery/async-file-upload.js")"></script>
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
         $("#upload-progress-bar-container").hide();
