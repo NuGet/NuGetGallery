@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public class ReportAbuseViewModel : ReportMyPackageViewModel
     {
-        [Display(Name = "Yes! I have already tried to contact the package owner about this problem.")]
+        [Display(Name = "I have already tried to contact the package owner about this problem.")]
         public bool AlreadyContactedOwner { get; set; }
 
         [Required(ErrorMessage = "Please enter your email address.")]
