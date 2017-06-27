@@ -773,6 +773,10 @@
     <Compile Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.Designer.cs">
       <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.cs" />
+    <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.Designer.cs">
+      <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
+    </Compile>
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
@@ -1756,6 +1760,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.resx">
       <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.resx">
+      <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
