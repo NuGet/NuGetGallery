@@ -363,7 +363,7 @@
             }
 
             // Set up the change password form.
-            var $enablePasswordLogin = $("#ChangePassword_EnablePasswordLogin");
+            var $enablePasswordLogin = $("#ChangePassword_EnablePasswordLogin[type=checkbox]");
             function setPasswordLoginReadonly() {
                 var enablePasswordLogin = $enablePasswordLogin[0];
                 if (!enablePasswordLogin) {
