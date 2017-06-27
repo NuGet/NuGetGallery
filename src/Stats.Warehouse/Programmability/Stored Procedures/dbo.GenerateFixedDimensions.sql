@@ -239,16 +239,7 @@ AS
 	INSERT [dbo].[Dimension_Operation] (Operation) VALUES ( 'Restore-Dependency' )
 	INSERT [dbo].[Dimension_Operation] (Operation) VALUES ( 'Reinstall-Dependency' )
 	INSERT [dbo].[Dimension_Operation] (Operation) VALUES ( 'Mirror' )
-
-	-- ====================================================================
-	-- Populates the ProjectType dimension.
-	-- ====================================================================
-
-	DELETE [dbo].[Dimension_ProjectType]
-	SET IDENTITY_INSERT [dbo].[Dimension_ProjectType] ON
-	INSERT [dbo].[Dimension_ProjectType] (Id, ProjectType) VALUES ( 1, '(unknown)' )
-	SET IDENTITY_INSERT [dbo].[Dimension_ProjectType] OFF
-
+	
 	-- ====================================================================
 	-- Populates the Client dimension.
 	-- ====================================================================

@@ -26,7 +26,6 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
         private readonly IDictionary<string, int> _cachedPlatformDimensions = new Dictionary<string, int>();
         private readonly IDictionary<string, int> _cachedOperationDimensions = new Dictionary<string, int>();
-        private readonly IDictionary<string, int> _cachedProjectTypeDimensions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
         private readonly IDictionary<string, int> _cachedIpAddressFacts = new Dictionary<string, int>();
         private IReadOnlyCollection<TimeDimension> _times;
@@ -38,16 +37,11 @@ namespace Stats.ImportAzureCdnStatistics
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            if (targetDatabase == null)
-            {
-                throw new ArgumentNullException(nameof(targetDatabase));
-            }
-
             _logger = loggerFactory.CreateLogger<Warehouse>();
-            _targetDatabase = targetDatabase;
+            _targetDatabase = targetDatabase ?? throw new ArgumentNullException(nameof(targetDatabase));
         }
 
-        public async Task InsertDownloadFactsAsync(List<DataTable> downloadFactsDataTables, string logFileName)
+        public async Task InsertDownloadFactsAsync(DataTable downloadFactsDataTable, string logFileName)
         {
             _logger.LogDebug("Inserting into facts table...");
             var stopwatch = Stopwatch.StartNew();
@@ -57,15 +51,14 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 try
                 {
-                    foreach (var dataTable in downloadFactsDataTables)
+                    var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction)
                     {
-                        var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction);
-                        bulkCopy.BatchSize = 25000;
-                        bulkCopy.DestinationTableName = dataTable.TableName;
-                        bulkCopy.BulkCopyTimeout = _defaultCommandTimeout;
+                        BatchSize = 25000,
+                        DestinationTableName = downloadFactsDataTable.TableName,
+                        BulkCopyTimeout = _defaultCommandTimeout
+                    };
 
-                        await bulkCopy.WriteToServerAsync(dataTable);
-                    }
+                    await bulkCopy.WriteToServerAsync(downloadFactsDataTable);
 
                     transaction.Commit();
 
@@ -91,7 +84,7 @@ namespace Stats.ImportAzureCdnStatistics
             _logger.LogDebug("  DONE");
         }
 
-        public async Task<List<DataTable>> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData, string logFileName)
+        public async Task<DataTable> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData, string logFileName)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -104,7 +97,6 @@ namespace Stats.ImportAzureCdnStatistics
 
             var packagesTask = GetDimension("package", logFileName, connection => RetrievePackageDimensions(sourceData, connection));
             var operationsTask = GetDimension("operation", logFileName, connection => RetrieveOperationDimensions(sourceData, connection));
-            var projectTypesTask = GetDimension("project type", logFileName, connection => RetrieveProjectTypeDimensions(sourceData, connection));
             var clientsTask = GetDimension("client", logFileName, connection => RetrieveClientDimensions(sourceData, connection));
             var platformsTask = GetDimension("platform", logFileName, connection => RetrievePlatformDimensions(sourceData, connection));
             var datesTask = GetDimension("date", logFileName, connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
@@ -112,10 +104,9 @@ namespace Stats.ImportAzureCdnStatistics
             var logFileNamesTask = GetDimension("logfilename", logFileName, connection => RetrieveLogFileNameFacts(logFileName, connection));
             var ipAddressesTask = GetDimension("ipaddress", logFileName, connection => RetrieveIpAddressesFacts(sourceData, connection));
 
-            await Task.WhenAll(operationsTask, projectTypesTask, clientsTask, platformsTask, datesTask, packagesTask, userAgentsTask, logFileNamesTask, ipAddressesTask);
+            await Task.WhenAll(operationsTask, clientsTask, platformsTask, datesTask, packagesTask, userAgentsTask, logFileNamesTask, ipAddressesTask);
 
             var operations = operationsTask.Result;
-            var projectTypes = projectTypesTask.Result;
             var clients = clientsTask.Result;
             var platforms = platformsTask.Result;
             var userAgents = userAgentsTask.Result;
@@ -127,11 +118,9 @@ namespace Stats.ImportAzureCdnStatistics
 
             // create facts data rows by linking source data with dimensions
             var dataImporter = new DataImporter(_targetDatabase);
-            var factsToProjectTypesDataTable = await dataImporter.GetDataTableAsync("Fact_Download_Dimension_ProjectType");
             var factsDataTable = await dataImporter.GetDataTableAsync("Fact_Download");
 
             var knownOperationsAvailable = operations.Any();
-            var knownProjectTypesAvailable = projectTypes.Any();
             var knownClientsAvailable = clients.Any();
             var knownPlatformsAvailable = platforms.Any();
             var knownUserAgentsAvailable = userAgents.Any();
@@ -207,39 +196,19 @@ namespace Stats.ImportAzureCdnStatistics
 
                         // create fact
                         var dataRow = factsDataTable.NewRow();
-                        var factId = FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
+                        FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
                         factsDataTable.Rows.Add(dataRow);
-
-                        // link project types
-                        var elementProjectGuids = element.GetDistinctProjectGuids();
-                        if (knownProjectTypesAvailable && elementProjectGuids.Any())
-                        {
-                            // foreach project type
-                            foreach (var projectGuid in elementProjectGuids)
-                            {
-                                var projectTypeId = projectTypes[projectGuid];
-
-                                var factToProjectTypeRow = factsToProjectTypesDataTable.NewRow();
-                                factToProjectTypeRow["Fact_Download_Id"] = factId;
-                                factToProjectTypeRow["Dimension_ProjectType_Id"] = projectTypeId;
-                                factsToProjectTypesDataTable.Rows.Add(factToProjectTypeRow);
-                            }
-                        }
                     }
                 }
             }
             stopwatch.Stop();
-            _logger.LogDebug("  DONE (" + factsToProjectTypesDataTable.Rows.Count + " facts to project type, " + factsDataTable.Rows.Count + " facts, " + stopwatch.ElapsedMilliseconds + "ms)");
+            _logger.LogDebug("  DONE (" + factsDataTable.Rows.Count + " facts, " + stopwatch.ElapsedMilliseconds + "ms)");
             ApplicationInsightsHelper.TrackMetric("Blob record count", factsDataTable.Rows.Count, logFileName);
 
-            return new List<DataTable>
-            {
-                factsToProjectTypesDataTable,
-                factsDataTable
-            };
+            return factsDataTable;
         }
 
-        public async Task<List<DataTable>> CreateAsync(IReadOnlyCollection<ToolStatistics> sourceData, string logFileName)
+        public async Task<DataTable> CreateAsync(IReadOnlyCollection<ToolStatistics> sourceData, string logFileName)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -358,7 +327,7 @@ namespace Stats.ImportAzureCdnStatistics
             stopwatch.Stop();
             _logger.LogDebug("  DONE (" + dataTable.Rows.Count + " records, " + stopwatch.ElapsedMilliseconds + "ms)");
 
-            return new List<DataTable> { dataTable };
+            return dataTable;
         }
 
         public async Task StoreLogFileAggregatesAsync(LogFileAggregates logFileAggregates)
@@ -628,10 +597,8 @@ namespace Stats.ImportAzureCdnStatistics
             return Enumerable.Empty<T>().ToList();
         }
 
-        private static Guid FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int clientId, int userAgentId, int logFileNameId, int edgeServerIpAddressId)
+        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int clientId, int userAgentId, int logFileNameId, int edgeServerIpAddressId)
         {
-            var id = Guid.NewGuid();
-            dataRow["Id"] = id;
             dataRow["Dimension_Package_Id"] = packageId;
             dataRow["Dimension_Date_Id"] = dateId;
             dataRow["Dimension_Time_Id"] = timeId;
@@ -642,7 +609,6 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["Fact_LogFileName_Id"] = logFileNameId;
             dataRow["Fact_EdgeServer_IpAddress_Id"] = edgeServerIpAddressId;
             dataRow["DownloadCount"] = 1;
-            return id;
         }
 
         private static Guid FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId, int edgeServerIpAddressId)
@@ -695,8 +661,10 @@ namespace Stats.ImportAzureCdnStatistics
                 {
                     while (await dataReader.ReadAsync())
                     {
-                        var tool = new ToolDimension(dataReader.GetString(1), dataReader.GetString(2), dataReader.GetString(3));
-                        tool.Id = dataReader.GetInt32(0);
+                        var tool = new ToolDimension(dataReader.GetString(1), dataReader.GetString(2), dataReader.GetString(3))
+                        {
+                            Id = dataReader.GetInt32(0)
+                        };
 
                         if (!results.Contains(tool))
                         {
@@ -753,8 +721,10 @@ namespace Stats.ImportAzureCdnStatistics
                 {
                     while (await dataReader.ReadAsync())
                     {
-                        var package = new PackageDimension(dataReader.GetString(1), dataReader.GetString(2));
-                        package.Id = dataReader.GetInt32(0);
+                        var package = new PackageDimension(dataReader.GetString(1), dataReader.GetString(2))
+                        {
+                            Id = dataReader.GetInt32(0)
+                        };
 
                         if (!results.Contains(package))
                         {
@@ -785,9 +755,11 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 while (await dataReader.ReadAsync())
                 {
-                    var result = new DateDimension();
-                    result.Id = dataReader.GetInt32(0);
-                    result.Date = dataReader.GetDateTime(1);
+                    var result = new DateDimension
+                    {
+                        Id = dataReader.GetInt32(0),
+                        Date = dataReader.GetDateTime(1)
+                    };
 
                     results.Add(result);
                 }
@@ -809,9 +781,11 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 while (await dataReader.ReadAsync())
                 {
-                    var result = new TimeDimension();
-                    result.Id = dataReader.GetInt32(0);
-                    result.HourOfDay = dataReader.GetInt32(1);
+                    var result = new TimeDimension
+                    {
+                        Id = dataReader.GetInt32(0),
+                        HourOfDay = dataReader.GetInt32(1)
+                    };
 
                     results.Add(result);
                 }
@@ -871,62 +845,6 @@ namespace Stats.ImportAzureCdnStatistics
                         }
 
                         results.Add(operation, operationId);
-                    }
-                }
-            }
-
-            return results;
-        }
-
-        private async Task<IDictionary<string, int>> RetrieveProjectTypeDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
-        {
-            var projectTypes = sourceData
-                .Where(e => !string.IsNullOrEmpty(e.ProjectGuids))
-                .SelectMany(e => e.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            var results = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            if (!projectTypes.Any())
-            {
-                return results;
-            }
-
-            var nonCachedProjectTypes = new List<string>();
-            foreach (var projectType in projectTypes)
-            {
-                if (_cachedProjectTypeDimensions.ContainsKey(projectType))
-                {
-                    var cachedProjectTypeId = _cachedProjectTypeDimensions[projectType];
-                    results.Add(projectType, cachedProjectTypeId);
-                }
-                else
-                {
-                    nonCachedProjectTypes.Add(projectType);
-                }
-            }
-
-            if (nonCachedProjectTypes.Any())
-            {
-                var projectTypesParameter = string.Join(",", nonCachedProjectTypes);
-
-                var command = connection.CreateCommand();
-                command.CommandText = "[dbo].[EnsureProjectTypeDimensionsExist]";
-                command.CommandType = CommandType.StoredProcedure;
-                command.CommandTimeout = _defaultCommandTimeout;
-                command.Parameters.AddWithValue("projectTypes", projectTypesParameter);
-
-                using (var dataReader = await command.ExecuteReaderAsync())
-                {
-                    while (await dataReader.ReadAsync())
-                    {
-                        var projectType = dataReader.GetString(1);
-                        var projectTypeId = dataReader.GetInt32(0);
-                        if (!_cachedProjectTypeDimensions.ContainsKey(projectType))
-                        {
-                            _cachedProjectTypeDimensions.Add(projectType, projectTypeId);
-                        }
-                        results.Add(projectType, projectTypeId);
                     }
                 }
             }
