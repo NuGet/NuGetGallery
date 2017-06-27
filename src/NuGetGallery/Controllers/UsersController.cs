@@ -162,11 +162,7 @@ namespace NuGetGallery
         {
             var user = GetCurrentUser();
             var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
-                .Select(p => new PackageViewModel(p)
-                {
-                    DownloadCount = p.PackageRegistration.DownloadCount,
-                    Version = null
-                }).ToList();
+                .Select(p => new ListPackageItemViewModel(p)).ToList();
 
             var model = new ManagePackagesViewModel
             {
