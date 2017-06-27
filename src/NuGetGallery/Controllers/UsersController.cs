@@ -136,8 +136,6 @@ namespace NuGetGallery
             var user = GetCurrentUser();
 
             // Get API keys
-            const int shortListSize = 3;
-            const int batchSize = 10;
             var credentialGroups = GetCredentialGroups(user);
             if (!credentialGroups.TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
             {
@@ -161,16 +159,9 @@ namespace NuGetGallery
                     .ToList();
                 var globPattern = subjects
                     .FirstOrDefault(s => s != null && s.Contains("*"));
-                var packages = subjects
+                subjects = subjects
                     .Except(new[] { globPattern })
                     .ToList();
-                var packageBatches = new List<IList<string>>();
-                while (packages.Any())
-                {
-                    var itemsRemaining = Math.Min(batchSize, packages.Count);
-                    packageBatches.Add(packages.GetRange(0, itemsRemaining));
-                    packages.RemoveRange(0, itemsRemaining);
-                }
 
                 apiKeys.Add(new ApiKeyViewModel
                 {
@@ -178,13 +169,11 @@ namespace NuGetGallery
                     Type = cred.Type,
                     Value = cred.Value,
                     Description = cred.Description,
-                    Expires = cred.Expires.HasValue ? cred.Expires.Value.ToString("O") : null,
-                    IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey,
+                    Expires = cred.Expires?.ToString("O"),
                     HasExpired = cred.HasExpired,
-                    ShortScopeList = scopes.Take(shortListSize).ToList(),
+                    IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey,
                     Scopes = scopes,
-                    ShortPackageList = packages.Take(shortListSize).ToList(),
-                    PackageBatches = packageBatches,
+                    Subjects = subjects,
                     GlobPattern = globPattern,
                 });
             }
