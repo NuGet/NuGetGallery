@@ -16,7 +16,7 @@
         "Add Owner");
 
     var failHandler = function (jqXHR, textStatus, errorThrown) {
-        alert('An unexpected error occurred! "' + errorThrown + '"');
+        viewModel.message('An unexpected error occurred! "' + errorThrown + '"');
     };
 
     var viewModel = {
@@ -98,7 +98,6 @@
 
             $.ajax({
                 url: addPackageOwnerUrl,
-                cache: false,
                 dataType: 'json',
                 type: 'POST',
                 headers: viewModel.headers(),
@@ -134,7 +133,6 @@
 
             $.ajax({
                 url: removePackageOwnerUrl + '?id=' + viewModel.package.id + '&username=' + item.name(),
-                cache: false,
                 dataType: 'json',
                 type: 'POST',
                 headers: viewModel.headers(),
@@ -159,20 +157,19 @@
     };
 
     viewModel.hasMoreThanOneOwner = ko.computed(function () {
-        if (this.owners().length < 2)
+        if (this.owners().length < 2) {
             return false;
+        }
 
         var approvedOwner = 0;
 
         ko.utils.arrayForEach(this.owners(), function (owner) {
-            if (owner.pending() === false)
+            if (owner.pending() === false) {
                 approvedOwner++;
+            }
         });
 
-        if (approvedOwner >= 2)
-            return true;
-
-        return false;
+        return approvedOwner >= 2;
     }, viewModel);
 
     ko.applyBindings(viewModel);
