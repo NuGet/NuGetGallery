@@ -1,55 +1,59 @@
 ﻿@model ConfirmationViewModel
 @{
-    ViewBag.Title = "Confirm Your Account";
-    var alreadyConfirmed = Model.UnconfirmedEmailAddress == null || Model.AlreadyConfirmed;
+    var titleString = Model.ConfirmingNewAccount ? "Account" : "Email";
+    ViewBag.Title = "Confirm Your " + titleString;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@if (Model.SentEmail)
-{
-    <h2>Confirmation Email Sent!</h2>
-}
-else
-{
-    if (TempData.ContainsKey("ConfirmationRequiredMessage"))
-    {
-        <p class="message">@((string)TempData["ConfirmationRequiredMessage"])</p>
-    }
-
-    if (alreadyConfirmed)
-    {
-
-        <p class="message">
-            Your email address has already been confirmed.
-        </p>
-
-    }
-    else
-    {
-
-        <h2>Confirm Your Account</h2>
-
-
-        using (Html.BeginForm())
-        {
-            <fieldset class="form">
-                <legend>Verify Email Address</legend>
-                @Html.AntiForgeryToken()
-
-                <p>
-                    Click the button to send confirmation email.
+<div class="container main-container">
+    <div class="row">
+        <div class="col-sm-12">
+            @if (Model.SentEmail)
+            {
+                <h1 class="text-center">Confirmation Email Sent</h1>
+            }
+            else
+            {
+                <h1 class="text-center">Confirm Your @(Model.ConfirmingNewAccount ? "Account" : "Email")</h1>
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3">
+            @if (Model.SentEmail)
+            {
+                <p class="text-center">
+                    Please make sure to check your spam folder if you did not receive the confirmation email.
                 </p>
-                <p>
-                    <input type="submit" value="Send Confirmation Email" title="Send Confirmation Email" style="width: auto; margin: 5px;"/>
-                    to @(Model.UnconfirmedEmailAddress) @Html.ActionLink("(change)", "Account", "Users")
-                </p>
+            }
+            else
+            {
+                if (TempData.ContainsKey("ConfirmationRequiredMessage"))
+                {
+                    @ViewHelpers.AlertInfo(@<text>@((string)TempData["ConfirmationRequiredMessage"])</text>)
+                }
 
-            </fieldset>
-        }
-    }
-}
+                if (Model.AlreadyConfirmed)
+                {
+                    <p class="text-center">
+                        Your email address has already been confirmed.
+                    </p>
+                }
+                else
+                {
+                    <p class="text-center">
+                        A confirmation link was sent to you (@Model.UnconfirmedEmailAddress) when you @(Model.ConfirmingNewAccount ? "created your account" : "changed your email"). Please click on that link to verify your email address.
+                    </p>
+                    <p class="text-center">
+                        If you cannot find this email (be sure to check your spam folder), you can resend the confirmation email.
+                    </p>
+                    <p class="text-center">
+                        If you're still having trouble, you can <a class="ms-noWrap" href="mailto:@Config.Current.GalleryOwner.Address">contact support.</a>
+                    </p>
 
-<h3>Problems with your confirmation email?</h3>
-
-<p>
-    Please check your spam folder if you did not receive the confirmation email.
-</p>
+                    @Html.Partial("_ConfirmationResendForm");
+                }
+            }
+        </div>
+    </div>
+</div>

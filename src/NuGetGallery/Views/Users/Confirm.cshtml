@@ -1,61 +1,78 @@
 ﻿@model ConfirmationViewModel
-
-<h1 class="page-heading">Confirm Registration</h1>
-
-@if (Model.SuccessfulConfirmation)
-{
-    <p>
-        Account confirmed! Your email address has been verified.
-    </p>
-    <p>
-        You may now upload packages and make your mark in
-        the community.
-    </p>
+@{
+    ViewBag.Title = "Confirm Your Account";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
-else
-{
-    if (Model.WrongUsername)
-    {
-        <p class="message error">
-            You cannot confirm a different user's email address.
-        </p>
-        <p>
-            Please check that you used the link from the right confirmation email, and are logged in as the right user.
-        </p>
-        <p>
-            <a href="@Url.ConfirmationRequired()" >Resend confirmation email.</a>
-        </p>
-    }
-    else if (Model.DuplicateEmailAddress)
-    {
-        <p class="message error">
-            Your email address is confirmed as belonging to another user account (or your 'old' account).
-        </p>
-        <p>
-            You can change your email address to something else, or perhaps reuse the old account registered with this email address.
-        </p>
-    }
-    else if(Model.AlreadyConfirmed)
-    {
-        <p class="message">
-            Your email address has already been confirmed.
-        </p>
 
-    }
-    else
-    {
-        <p class="message error">
-            We could not confirm your email address. The token was invalid or expired.
-        </p>
-        <p>
-             Please check that you used the link from the confirmation email we sent.
-        </p>
-    }
+<div class="container main-container">
+    <div class="row">
+        <div class="col-xs-12">
+            @if (Model.SuccessfulConfirmation)
+            {
+                <h1 class="text-center">@(Model.ConfirmingNewAccount ? "Account" : "Email") Confirmed</h1>
+            }
+            else
+            {
+                <h1 class="text-center">Email Confirmation Failed</h1>
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 col-xs-offset-4">
+            @if (Model.SuccessfulConfirmation)
+            {
+                <p class="text-center">
+                    Your email address has been verified@(Model.ConfirmingNewAccount ? " and your account is confirmed" : "").
+                </p>
+            }
+            else
+            {
+                @ViewHelpers.AlertDanger(isAlertRole: true, htmlContent:
+                    @<text>
+                        @if (Model.WrongUsername)
+                        {
+                            <p>
+                                You cannot confirm a different user's email address!
+                            </p>
+                            <p>
+                                Please check that you used the link from the right confirmation email, and are logged in as the right user.
+                            </p>
+                        }
+                        else if (Model.DuplicateEmailAddress)
+                        {
+                            <p>
+                                Your email address is confirmed as belonging to another user account (likely another account you own).
+                            </p>
+                            <p>
+                                You can <span class="ms-noWrap">@Html.ActionLink("change your email address", "Account", "Users")</span>, reuse the account registered with this email address, or change the email address of the account registered with this email address.
+                            </p>
+                        }
+                        else if (Model.AlreadyConfirmed)
+                        {
+                            <p>
+                                Your email address has already been confirmed.
+                            </p>
+                            <p>
+                                Is @Model.ConfirmedEmailAddress incorrect? <span class="ms-noWrap">@Html.ActionLink("Change your email", "Account", "Users")</span>
+                            </p>
+                        }
+                        else
+                        {
+                            <p>
+                                We could not confirm your email address. This probably means the confirmation token was invalid or expired.
+                            </p>
+                            <p>
+                                Please check that you used the link from the confirmation email we sent. If you did, try resending your confirmation email.
+                            </p>
+                        }
+                    </text>
+                )
 
-    if (!Model.AlreadyConfirmed)
-     {
-         <p>
-             <a href="@Url.ConfirmationRequired()">Resend confirmation email.</a>
-         </p>
-     }
-}
+                if (!Model.AlreadyConfirmed)
+                {
+                    @Html.Partial("_ConfirmationResendForm");
+                }
+            }
+        </div>
+    </div>
+</div>
