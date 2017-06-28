@@ -153,6 +153,10 @@ img.package-icon {
 .icon-bar {
   border: 1px solid #fff;
 }
+.disabled {
+  pointer-events: none;
+  opacity: .4;
+}
 .list-packages {
   border-top: 1px solid #dbdbdb;
 }
