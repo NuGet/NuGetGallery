@@ -21,7 +21,7 @@
     <!-- /ko -->
     <!-- /ko -->
     <!-- ko ifnot: DisplayText -->
-    <p><i data-bind="text:'(none specified)'"></i></p>
+    <p><i>(none specified)</i></p>
     <!-- /ko -->
 </script>
 
@@ -34,7 +34,6 @@
                 </h4>
                 <ul data-bind="foreach: _data[_propkey]" class="list-unstyled dependency-group">
                     <li>
-                        @*class="dependency-container">*@
                         <!-- ko if: $data -->
                         <a class="dependency-id" data-bind="attr: { href: PackageUrl }, text: Id"></a>
                         <span class="dependency-versionspec" data-bind="text: VersionSpec"></span>
@@ -51,7 +50,7 @@
 
 <script type="text/html" id="verify-metadata-template">
     <div class="collapse in" id="verify-package-form">
-        <div data-bind="if: $data" class="col-sm-12">
+        <div data-bind="if: $data">
             <form id="verify-metadata-form">
                 @Html.AntiForgeryToken()
 
@@ -97,19 +96,14 @@
                     <div data-bind="template: {name: 'display-dependencysets', data: { DependencySets: Dependencies.DependencySets, OnlyHasAllFrameworks: Dependencies.OnlyHasAllFrameworks }}"></div>
                     <!-- /ko -->
                     <!-- ko ifnot: $data.Dependencies -->
-                    <p><i data-bind="text:'(none specified)'"></i></p>
+                    <p><i>(none specified)</i></p>
                     <!-- /ko -->
                 </div>
 
                 <!--BEGIN EDITABLE FIELDS-->
                 <div class="verify-package-field form-group editable">
                     <div class="verify-package-field-heading">Title</div>
-                    <!-- ko if: $data.Edit.hasOwnProperty('Title') -->
-                    <input data-bind="value: Edit.Title" type="text" class="form-control" name="Edit.Title" id="title-field" />
-                    <!-- /ko -->
-                    <!-- ko if: $data.Edit.hasOwnProperty('VersionTitle') -->
                     <input data-bind="value: Edit.VersionTitle" type="text" class="form-control" name="Edit.VersionTitle" id="title-field" />
-                    <!-- /ko -->
                 </div>
 
                 <div class="verify-package-field form-group editable">
@@ -145,7 +139,7 @@
                         <img class="package-icon img-responsive" id="icon-preview" data-bind="attr: { src: Edit.IconUrl }" /> <!-- probably need to check this for safety-->
                         <!-- /ko -->
                         <!-- ko ifnot: Edit.IconUrl -->
-                        <p><i data-bind="text:'(none specified)'"></i></p>
+                        <p><i>(none specified)</i></p>
                         <!-- /ko -->
                     </div>
                 </div>
@@ -184,7 +178,7 @@
                 <input type="button" class="btn btn-primary btn-block" value="Submit" id="verify-submit-button" />
             </div>
             <div class="col-xs-6">
-                <input type="button" class="btn btn-block" value="Cancel" id="verify-cancel-button" />
+                <input type="button" class="btn btn-default btn-block" value="Cancel" id="verify-cancel-button" />
             </div>
         </div>
     </div>

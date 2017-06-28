@@ -19,7 +19,7 @@ namespace NuGetGallery
             LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
             Listed = true;
             Language = packageMetadata.Language;
-            MinClientVersion = packageMetadata.MinClientVersion;
+            MinClientVersionDisplay = packageMetadata.MinClientVersion.ToFullStringSafe();
             FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
             DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
@@ -41,7 +41,6 @@ namespace NuGetGallery
         public string LicenseUrl { get; set; }
         public bool Listed { get; set; }
         public EditPackageVersionRequest Edit { get; set; }
-        public NuGetVersion MinClientVersion { get; set; }
         public string MinClientVersionDisplay { get; set; }
         public string Language { get; set; }
         public string DevelopmentDependency { get; set; }

@@ -5,7 +5,7 @@
     var _isWebkitBrowser = false; // $.browser.webkit is not longer supported on jQuery
     var _iframeId = '__fileUploadFrame';
     var _formId;
-    var _pollingInterval = 250;
+    var _pollingInterval = 250; // in ms
     var _pingUrl;
     var _failureCount;
     var _isUploadInProgress;
@@ -92,7 +92,7 @@
     }
 
     function cancelUploadAsync(callback, error) {
-        $('#warning-container').hide();
+        $('#warning-container').addClass("hidden");
         $.ajax({
             url: _cancelUrl,
             type: 'POST',
@@ -151,17 +151,17 @@
         failureContainer.append(failureListContainer);
         ko.applyBindings({ data: errors }, failureListContainer);
 
-        failureContainer.show();
+        failureContainer.removeClass("hidden");
     }
 
     function clearErrors() {
-        $("#validation-failure-container").hide();
+        $("#validation-failure-container").addClass("hidden");
         $("#validation-failure-list").remove();
     }
 
     function bindData(model) {
         $("#verify-package-block").remove();
-        $("#verify-collapser-container").hide();
+        $("#verify-collapser-container").addClass("hidden");
         if (model == null) {
             return;
         }
@@ -196,7 +196,7 @@
             $('#icon-preview').attr('src', $('#iconurl-field').val());
         });
 
-        $("#verify-collapser-container").show();
+        $("#verify-collapser-container").removeClass("hidden");
 
         window.nuget.configureExpander(
             "verify-package-form",
@@ -215,12 +215,12 @@
         _failureCount = 0;
 
         setProgressIndicator(0, '');
-        $("#upload-progress-bar-container").show();
+        $("#upload-progress-bar-container").removeClass("hidden");
         setTimeout(getProgress, 100);
     }
 
     function endProgressBar() {
-        $("#upload-progress-bar-container").hide();
+        $("#upload-progress-bar-container").addClass("hidden");
         _isUploadInProgress = false;
     }
 
