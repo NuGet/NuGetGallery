@@ -1,6 +1,7 @@
 ﻿@model ConfirmationViewModel
 @{
-    ViewBag.Title = "Confirm Your Account";
+    var titleString = Model.ConfirmingNewAccount ? "Account" : "Email";
+    ViewBag.Title = "Confirm Your " + titleString;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
