@@ -254,14 +254,14 @@ namespace NuGetGallery
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
                 Response.StatusCode = 400;
-                return Json(new List<string>() { Strings.UploadFileIsRequired });
+                return Json(new string [] { Strings.UploadFileIsRequired });
             }
 
             if (!Path.GetExtension(uploadFile.FileName).Equals(Constants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
                 Response.StatusCode = 400;
-                return Json(new List<string>() { Strings.UploadFileMustBeNuGetPackage });
+                return Json(new string [] { Strings.UploadFileMustBeNuGetPackage });
             }
 
             using (var uploadStream = uploadFile.InputStream)
@@ -281,7 +281,7 @@ namespace NuGetGallery
                            entryInTheFuture.Name));
 
                         Response.StatusCode = 400;
-                        return Json(new List<string>() { string.Format(
+                        return Json(new string [] { string.Format(
                            CultureInfo.CurrentCulture,
                            Strings.PackageEntryFromTheFuture,
                            entryInTheFuture.Name) });
@@ -308,7 +308,7 @@ namespace NuGetGallery
                     ModelState.AddModelError(String.Empty, message);
                     Response.StatusCode = 400;
 
-                    return Json(new List<string>() { message });
+                    return Json(new string [] { message });
                 }
                 finally
                 {
@@ -341,7 +341,7 @@ namespace NuGetGallery
                             nuspec.GetMinClientVersion()));
 
                     Response.StatusCode = 400;
-                    return Json(new List<string>() {
+                    return Json(new string [] {
                         string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
@@ -355,8 +355,8 @@ namespace NuGetGallery
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
 
                     // should this be 409?
-                    Response.StatusCode = 400;
-                    return Json(new List<string>() { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                    Response.StatusCode = 409;
+                    return Json(new string [] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -390,7 +390,7 @@ namespace NuGetGallery
                         message);
 
                     Response.StatusCode = 409;
-                    return Json(new List<string>() { message });
+                    return Json(new string [] { message });
                 }
 
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
@@ -403,14 +403,14 @@ namespace NuGetGallery
                 {
                     ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
                     Response.StatusCode = 400;
-                    return Json(new List<string>() { Strings.UploadFileIsRequired });
+                    return Json(new string [] { Strings.UploadFileIsRequired });
                 }
 
                 var package = await SafeCreatePackage(currentUser, uploadedFile);
                 if (package == null)
                 {
                     Response.StatusCode = 400;
-                    return Json(new List<string>() { Strings.UploadFileIsRequired });
+                    return Json(new string [] { Strings.UploadFileIsRequired });
                 }
 
                 try
@@ -423,7 +423,7 @@ namespace NuGetGallery
                     TempData["Message"] = ex.GetUserSafeMessage();
 
                     Response.StatusCode = 400;
-                    return Json(new List<string>() { ex.GetUserSafeMessage() });
+                    return Json(new string [] { ex.GetUserSafeMessage() });
                 }
             }
 
@@ -1326,7 +1326,6 @@ namespace NuGetGallery
             return Redirect(urlFactory(package));
         }
 
-        [Obsolete]
         [Authorize]
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> VerifyPackage()
@@ -1414,7 +1413,7 @@ namespace NuGetGallery
                     TempData["Message"] = "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again.";
 
                     Response.StatusCode = 400;
-                    return Json(new List<string>() { "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again." });
+                    return Json(new string [] { "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again." });
                 }
 
                 var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
@@ -1423,7 +1422,7 @@ namespace NuGetGallery
 
                     Response.StatusCode = 400;
                     // Send the user back
-                    return Json(new List<string>() { "There was an error. Please try again" });
+                    return Json(new string [] { "There was an error. Please try again" });
                 }
                 Debug.Assert(nugetPackage != null);
 
@@ -1441,7 +1440,7 @@ namespace NuGetGallery
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
 
                         Response.StatusCode = 400;
-                        return Json(new List<string>() { "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again." });
+                        return Json(new string [] { "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again." });
                     }
                 }
 
@@ -1480,7 +1479,7 @@ namespace NuGetGallery
                     TempData["Message"] = ex.Message;
 
                     Response.StatusCode = 400;
-                    return Json(new List<string>() { ex.GetUserSafeMessage() });
+                    return Json(new string [] { ex.GetUserSafeMessage() });
                 }
 
                 await _packageService.PublishPackageAsync(package, commitChanges: false);
@@ -1510,7 +1509,7 @@ namespace NuGetGallery
                     TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
 
                     Response.StatusCode = 409;
-                    return Json(new List<string>() { Strings.UploadPackage_IdVersionConflict });
+                    return Json(new string [] { Strings.UploadPackage_IdVersionConflict });
                 }
 
                 try

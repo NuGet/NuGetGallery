@@ -18,7 +18,7 @@
     <!-- /ko-->
     <!-- ko ifnot: $data.Link -->
     <p data-bind="text: DisplayText"></p>
-    <!-- /ko-->
+    <!-- /ko -->
     <!-- /ko -->
     <!-- ko ifnot: DisplayText -->
     <p><i data-bind="text:'(none specified)'"></i></p>
@@ -50,13 +50,6 @@
 </script>
 
 <script type="text/html" id="verify-metadata-template">
-    <h2>
-        <a href="#" role="button" data-toggle="collapse" data-target="#verify-package-form"
-           aria-expanded="true" aria-controls="verify-package-form" id="show-verify-package-form">
-            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-            <span>Verify</span>
-        </a>
-    </h2>
     <div class="collapse in" id="verify-package-form">
         <div data-bind="if: $data" class="col-sm-12">
             <form id="verify-metadata-form">
@@ -175,27 +168,13 @@
                 <!-- ko if: $data.LicenseUrl -->
                 <div class="verify-package-field form-group editable">
                     <div class="verify-package-field-heading">Require License Acceptance?</div>
-                    <div class="switch-container">
-                        <label class="switch">
-                            <p class="slider-descriptor">No</p>
-                            <input data-bind="attr: { 'checked' : $data.Edit.RequiresLicenseAcceptance ? $data.Edit.RequiresLicenseAcceptance : null }" type="checkbox" name="Edit.RequiresLicenseAcceptance" id="Edit.RequiresLicenseAcceptance" value="true" />
-                            <div class="slider"></div>
-                            <p class="slider-descriptor">Yes</p>
-                        </label>
-                    </div>
+                    @Html.ShowSliderFor(new HtmlString("<input data-bind=\"attr: { 'checked' : $data.Edit.RequiresLicenseAcceptance ? $data.Edit.RequiresLicenseAcceptance : null }\" type=\"checkbox\" name=\"Edit.RequiresLicenseAcceptance\" id=\"Edit.RequiresLicenseAcceptance\" value=\"true\" />"))
                 </div>
                 <!-- /ko -->
 
                 <div class="verify-package-field form-group editable">
                     <div class="verify-package-field-heading">Listed in Search Results?</div>
-                    <div class="switch-container">
-                        <label class="switch">
-                            <p class="slider-descriptor">No</p>
-                            <input data-bind="attr: { 'checked' : $data.Listed ? $data.Listed : null }" type="checkbox" name="Listed" id="Listed" value="true" />
-                            <div class="slider"></div>
-                            <p class="slider-descriptor">Yes</p>
-                        </label>
-                    </div>
+                    @Html.ShowSliderFor(new HtmlString("<input data-bind=\"attr: { 'checked' : $data.Listed ? $data.Listed : null }\" type=\"checkbox\" name=\"Listed\" id=\"Listed\" value=\"true\" />"))
                 </div>
             </form>
         </div>

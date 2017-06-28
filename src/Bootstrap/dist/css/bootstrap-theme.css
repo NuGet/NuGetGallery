@@ -624,18 +624,6 @@ img.package-icon {
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
 }
-.page-upload h2 .ms-Icon {
-  position: relative;
-  top: -2px;
-  font-size: .6em;
-}
-.page-upload h2 a {
-  color: #000;
-  text-decoration: none;
-}
-.page-upload h2 a:hover {
-  text-decoration: none;
-}
 .page-upload .loading:after {
   display: inline-block;
   /* ascii code for the ellipsis character */

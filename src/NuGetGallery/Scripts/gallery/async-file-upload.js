@@ -17,14 +17,6 @@
         _cancelUrl = cancelUrl;
         _submitVerifyUrl = submitVerifyUrl;
 
-        // attach the sumbit event to the form
-        $('#' + formId).submit(function () {
-            $('#' + formId).find(':submit').attr('disabled', 'disabled');
-            $('#' + formId).find(':submit').val('Uploading...');
-            submitForm(this);
-            return false;
-        });
-
         $('#file-select-feedback').on('click', function () {
             $('#input-select-file').click();
         })
@@ -35,7 +27,8 @@
 
             if (fileName.length > 0) {
                 $('#file-select-feedback').attr('placeholder', fileName);
-                // Whether the cancel fails or not, we want to upload the next one.
+                // Cancel any ongoing upload, and then start the new upload.
+                // If the cancel fails, still try to upload the new one.
                 cancelUploadAsync(startUploadAsync, startUploadAsync);
             } else {
                 $('#file-select-feedback').attr('placeholder', 'Browse to select a package file...');
@@ -45,17 +38,11 @@
         if (InProgressPackage != null) {
             bindData(InProgressPackage);
         }
-
-        if (_isWebkitBrowser) {
-            constructIframe(jQueryUrl);
-        }
     }
 
     function startUploadAsync(callback, error) {
-        // count the number of file fields which have selected files
-        var totalFile = 0;
-        $('input[type=file]').each(function (index, el) { if (el.value) totalFile++; });
-        if (totalFile < 1) {
+        // Shortcut the upload if the nupkg input doesn't have a value
+        if ($('#input-select-file').val() == null) {
             return;
         }
 
@@ -77,17 +64,9 @@
                 if (callback) {
                     callback();
                 }
-
             },
 
-            error: function (model, resultCodeString, fullResponse) {
-                bindData(null);
-                displayErrors(model.responseJSON);
-                endProgressBar();
-                if (error) {
-                    error();
-                }
-            }
+            error: handleErrors.bind(this, error)
         });
     }
 
@@ -103,18 +82,12 @@
             processData: false,
 
             success: function (model, resultCodeString, fullResponse) {
-                document.location = model.location;
+                if (callback) {
+                    callback(model);
+                }
             },
 
-            error: function (model, resultCodeString, fullResponse) {
-                bindData(null);
-                displayErrors(model.responseJSON);
-                endProgressBar();
-                if (error) {
-                    error();
-                }
-            }
-
+            error: handleErrors.bind(this, error)
         });
     }
 
@@ -137,16 +110,28 @@
                 }
             },
 
-            error: function (model, resultCodeString, fullResponse) {
-                bindData(null);
-                displayErrors(model.responseJSON);
-                endProgressBar();
-                if (error) {
-                    error();
-                }
-            }
-
+            error: handleErrors.bind(this, error)
         });
+    }
+
+    function handleErrors(errorCallback, model, resultCodeString, fullResponse) {
+        bindData(null);
+        switch (resultCodeString) {
+            case "timeout":
+                displayErrors(["The operation timed out. Please try again."])
+                break;
+            case "abort":
+                displayErrors(["The operation was aborted. Please try again."])
+                break;
+            default:
+                displayErrors(model.responseJSON);
+                break;
+        }
+
+        endProgressBar();
+        if (errorCallback) {
+            errorCallback();
+        }
     }
 
     function displayErrors(errors) {
@@ -171,6 +156,7 @@
 
     function bindData(model) {
         $("#verify-package-block").remove();
+        $("#verify-collapser-container").hide();
         if (model == null) {
             return;
         }
@@ -190,7 +176,6 @@
             $('#verify-submit-button').attr('disabled', 'disabled');
             $('#input-select-file').val("");
             $('#file-select-feedback').attr('placeholder', 'Browse to select a package file...');
-            // Whether the cancel fails or not, we want to upload the next one.
             cancelUploadAsync();
         });
 
@@ -199,12 +184,14 @@
             $('#verify-submit-button').attr('disabled', 'disabled');
             $('#verify-submit-button').attr('value', 'Submitting');
             $('#verify-submit-button').addClass('.loading');
-            submitVerifyAsync();
+            submitVerifyAsync(navigateToPage);
         });
 
         $('#iconurl-field').on('change', function () {
             $('#icon-preview').attr('src', $('#iconurl-field').val());
-        })
+        });
+
+        $("#verify-collapser-container").show();
 
         window.nuget.configureExpander(
             "verify-package-form",
@@ -214,22 +201,8 @@
             "Verify");
     }
 
-    function submitForm(form) {
-        if (_isUploadInProgress) {
-            return;
-        }
-
-        if (!form.action) {
-            return;
-        }
-
-        // count the number of file fields which have selected files
-        var totalFile = 0;
-        $('input[type=file]', form).each(function (index, el) { if (el.value) totalFile++; });
-
-        // only show progress indicator if the form actually uploads some files
-        if (totalFile > 0) {
-        }
+    function navigateToPage(verifyResponse) {
+        document.location = verifyResponse.location;
     }
 
     function startProgressBar() {

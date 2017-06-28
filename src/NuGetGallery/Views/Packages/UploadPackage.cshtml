@@ -6,57 +6,70 @@
 }
 
 <div class="page-upload container main-container">
-    <h1 class="page-heading col-xs-10 col-xs-offset-1 text-center">Upload Your Package</h1>
-    <div class="page-subheading col-xs-10 col-xs-offset-1 text-center">
-        <p class="message">Your package file will be uploaded and hosted on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>
-    </div>
-    <div class="col-xs-10 col-xs-offset-1" id="upload-package-container">
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#upload-package-form"
-               aria-expanded="false" aria-controls="upload-package-form" id="show-upload-package-form">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>Upload</span>
-            </a>
-        </h2>
-        <div class="collapse in" id="upload-package-form" aria-expanded="true">
-            <form id="cancel-form">
-                @Html.AntiForgeryToken()
-            </form>
-            <form id="uploadForm" enctype="multipart/form-data">
-                @Html.AntiForgeryToken()
+    <div class="col-xs-10 col-xs-offset-1 row">
+        <h1 class="page-heading col-xs-12 text-center">Upload Your Package</h1>
+        <div class="page-subheading col-xs-12 text-center">
+            <p class="message">Your package file will be uploaded and hosted on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>
+        </div>
+        <div class="col-xs-12" id="upload-package-container">
+            <h2>
+                <a href="#" role="button" data-toggle="collapse" data-target="#upload-package-form"
+                   aria-expanded="false" aria-controls="upload-package-form" id="show-upload-package-form">
+                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                    <span>Upload</span>
+                </a>
+            </h2>
+            <div class="collapse in" id="upload-package-form" aria-expanded="true">
+                <form id="cancel-form">
+                    @Html.AntiForgeryToken()
+                </form>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
 
-                @Html.ValidationSummary(true)
+                    @Html.ValidationSummary(true)
 
-                <div class="input-group">
-                    <input type="text" class="form-control" id="file-select-feedback" placeholder="Browse to select a package file..." readonly />
-                    <label for="input-select-file" id="PackageFileLabel" class="input-group-btn">
-                        <span class="btn btn-primary form-control">
-                            Browse&hellip;<input type="file" name="UploadFile" accept=".nupkg" aria-labelledby="PackageFileLabel" id="input-select-file" style="display:none;" />
-                        </span>
-                    </label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="file-select-feedback" placeholder="Browse to select a package file..." readonly />
+                        <label for="input-select-file" id="PackageFileLabel" class="input-group-btn">
+                            <span class="btn btn-primary form-control">
+                                Browse&hellip;<input type="file" name="UploadFile" accept=".nupkg" aria-labelledby="PackageFileLabel" id="input-select-file" style="display:none;" />
+                            </span>
+                        </label>
+                    </div>
+                </form>
+
+                <div id="upload-progress-bar-container" class="progress">
+                    <div id="upload-progress-bar" class="progress-bar active" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-            </form>
 
-            <div id="upload-progress-bar-container" class="progress">
-                <div id="upload-progress-bar" class="progress-bar active" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-
-            <div id="validation-failure-container">
+                <div id="validation-failure-container">
+                </div>
             </div>
         </div>
-    </div>
 
 
-    @if (Model != null && Model.IsUploadInProgress)
-    {
-        <div class="col-xs-10 col-xs-offset-1" id="warning-container">
-            @ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
+        @if (Model != null && Model.IsUploadInProgress)
+        {
+            <div class="col-xs-12" id="warning-container">
+                @ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
+            </div>
+        }
+
+        <div class="col-xs-12" id="verify-collapser-container">
+            <h2>
+                <a href="#" role="button" data-toggle="collapse" data-target="#verify-package-form"
+                   aria-expanded="true" aria-controls="verify-package-form" id="show-verify-package-form">
+                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                    <span>Verify</span>
+                </a>
+            </h2>
         </div>
-    }
-    <div class="col-xs-10 col-xs-offset-1" id="verify-package-container">
-    </div>
 
-    @Html.Partial("_EditMetadata")
+        <div class="col-xs-12" id="verify-package-container">
+        </div>
+
+        @Html.Partial("_EditMetadata")
+    </div>
 </div>
 
 @section BottomScripts
@@ -67,6 +80,7 @@
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
         $("#upload-progress-bar-container").hide();
         $("#validation-failure-container").hide();
+        $("#verify-collapser-container").hide();
         window.nuget.configureExpander(
             "upload-package-form",
             "ChevronRight",
