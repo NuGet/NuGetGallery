@@ -20,6 +20,13 @@ namespace NuGetGallery
         /// </summary>
         public string OriginalVersion { get; set; }
 
+
+        public bool IsSemVer2 => HasSemVer2Version || HasSemVer2Dependency;
+
+        public bool HasSemVer2Version { get; set; }
+
+        public bool HasSemVer2Dependency { get; set; }
+
         public string LicenseUrl { get; set; }
         public bool Listed { get; set; }
         public EditPackageVersionRequest Edit { get; set; }

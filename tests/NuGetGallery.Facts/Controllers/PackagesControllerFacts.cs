@@ -1346,6 +1346,42 @@ namespace NuGetGallery
                 }
             }
 
+            [Theory]
+            [InlineData("1.0.42+metadata", true)]
+            [InlineData("1.0.42-alpha.1", true)]
+            [InlineData("1.0.42", false)]
+            public async Task WillPassHasSemVer2VersionToTheView(string originalVersion, bool isSemVer2)
+            {
+                using (var fakeUploadFileStream = TestPackage.CreateTestPackageStream("theId", originalVersion))
+                {
+                    var model = await CreateVerifyPackageRequestForPackage(fakeUploadFileStream);
+                    Assert.Equal(isSemVer2, model.IsSemVer2);
+                }
+            }
+
+            [Theory]
+            [InlineData("1.0.42-alpha.1", true)]
+            [InlineData("1.0.42", false)]
+            public async Task WillPassHasSemVer2DependencyToTheView(string minVersion, bool isSemVer2)
+            {
+                var versionRange = new VersionRange(new NuGetVersion(minVersion));
+
+                var packageDependency = new NuGet.Packaging.Core.PackageDependency("theId", versionRange);
+                var packageDependencies = new List<NuGet.Packaging.Core.PackageDependency>
+                {
+                    packageDependency
+                };
+                var packageDependencyGroup = new PackageDependencyGroup(NuGetFramework.AnyFramework, packageDependencies);
+                var packageDependencyGroups = new List<PackageDependencyGroup>();
+                packageDependencyGroups.Add(packageDependencyGroup);
+
+                using (var fakeUploadFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.42", packageDependencyGroups: packageDependencyGroups))
+                {
+                    var model = await CreateVerifyPackageRequestForPackage(fakeUploadFileStream);
+                    Assert.Equal(isSemVer2, model.IsSemVer2);
+                }
+            }
+
             [Fact]
             public async Task WillPassThePackageTitleToTheView()
             {

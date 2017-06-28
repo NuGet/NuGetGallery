@@ -1223,18 +1223,24 @@ namespace NuGetGallery
                 }
             }
 
+            var dependencyGroups = packageMetadata.GetDependencyGroups();
+
             var model = new VerifyPackageRequest
             {
                 Id = packageMetadata.Id,
                 Version = packageMetadata.Version.ToFullStringSafe(),
                 OriginalVersion = packageMetadata.Version.OriginalVersion,
+                HasSemVer2Version = packageMetadata.Version.IsSemVer2,
+                HasSemVer2Dependency = dependencyGroups.Any(d => d.Packages.Any(
+                                p => (p.VersionRange.HasUpperBound && p.VersionRange.MaxVersion.IsSemVer2)
+                                    || (p.VersionRange.HasLowerBound && p.VersionRange.MinVersion.IsSemVer2))),
                 LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
                 Listed = true,
                 Language = packageMetadata.Language,
                 MinClientVersion = packageMetadata.MinClientVersion,
                 FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
                 Dependencies = new DependencySetsViewModel(
-                    packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
+                    dependencyGroups.AsPackageDependencyEnumerable()),
                 DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
                 Edit = new EditPackageVersionRequest
                 {
