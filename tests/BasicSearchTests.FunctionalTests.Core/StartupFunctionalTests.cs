@@ -54,7 +54,12 @@ namespace BasicSearchTests.FunctionalTests.Core
             var lastRegistrationCommitTime = GetLastRegistrationCommitTime().Result;
             var diffTimes = lastRegistrationCommitTime.Subtract(content.CommitUserData.CommitTimeStamp).TotalHours;
             //Last CommitTimeStamp for search service shouldn't be far off from the last registration timestamp.
-            Assert.True(diffTimes >= 0 && diffTimes <= IndexDifferenceLimitInHrs, "Search index is ahead of last registration timestamp");
+            Assert.True(diffTimes >= 0, 
+                $"[{DateTime.UtcNow:O}] Search index is ahead of last registration timestamp " +
+                $"(Registration: {lastRegistrationCommitTime:O}, Search: {content.CommitUserData.CommitTimeStamp:O})");
+            Assert.True(diffTimes <= IndexDifferenceLimitInHrs, 
+                $"[{DateTime.UtcNow:O}] Search index is too much behind the last registration timestamp " +
+                $"(Registration: {lastRegistrationCommitTime:O}, Search: {content.CommitUserData.CommitTimeStamp:O})");
         }
 
         private static string[] PathsToTest => new[]
