@@ -491,6 +491,12 @@ img.package-icon {
 .page-manage-owners .current-owner .remove-owner a:active {
   color: #ac0017;
 }
+.page-delete-package h1 {
+  margin-bottom: 0;
+}
+.page-delete-package #show-delete-package {
+  color: #df001e;
+}
 .page-profile .profile-title {
   margin-top: 50px;
   margin-bottom: 20px;
