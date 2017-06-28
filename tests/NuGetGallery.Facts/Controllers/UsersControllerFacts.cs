@@ -177,7 +177,14 @@ namespace NuGetGallery
                     .Setup(u => u.ChangeEmailSubscriptionAsync(user, false, true))
                     .Returns(Task.CompletedTask);
 
-                var result = await controller.ChangeEmailSubscription(false, true);
+                var result = await controller.ChangeEmailSubscription(new AccountViewModel
+                {
+                    ChangeNotifications =
+                    {
+                        EmailAllowed = false,
+                        NotifyPackagePushed = true
+                    }
+                });
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(user, false, true));

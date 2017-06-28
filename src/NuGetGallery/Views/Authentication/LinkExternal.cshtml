@@ -3,6 +3,18 @@
     ViewBag.Title = "Sign In";
     ViewBag.Tab = "Sign in";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+
+    // Show the sign in container if we found and existing user or if there are sign in errors.
+    var showSignInContainer =
+        Model.External.FoundExistingUser ||
+        ViewData.ModelState.Keys.Any(x => x.StartsWith("SignIn"));
+
+    // Show the register container if there are register errors.
+    var showRegisterContainer =
+        ViewData.ModelState.Keys.Any(x => x.StartsWith("Register"));
+
+    // Show the choice container if both sign in and register containers are hidden.
+    var showChoiceContainer = !showSignInContainer && !showRegisterContainer;
 }
 
 <section role="main" class="container main-container page-sign-in">
@@ -41,7 +53,7 @@
             </p>
         </div>
     </div>
-    <div class="row @(Model.External.FoundExistingUser ? "hidden" : string.Empty)" aria-hidden="@(Model.External.FoundExistingUser ? "true" : "false")" id="choice-container">
+    <div class="row @(showChoiceContainer ? string.Empty : "hidden")" aria-hidden="@(showChoiceContainer ? "false" : "true")" id="choice-container">
         <div class="col-sm-offset-4 col-sm-4">
             <div class="form-group">
                 <a class="btn btn-primary btn-block" href="#" role="button" id="show-sign-in">Connect to an existing NuGet.org account</a>
@@ -50,12 +62,12 @@
             </div>
         </div>
     </div>
-    <div class="row @(Model.External.FoundExistingUser ? string.Empty : "hidden")" aria-hidden="@(Model.External.FoundExistingUser ? "false" : "true")" id="sign-in-container">
+    <div class="row @(showSignInContainer ? string.Empty : "hidden")" aria-hidden="@(showSignInContainer ? "false" : "true")" id="sign-in-container">
         <div class="col-sm-offset-4 col-sm-4">
             @Html.Partial("_SignIn", Model)
         </div>
     </div>
-    <div class="row hidden" aria-hidden="true" id="register-container">
+    <div class="row @(showRegisterContainer ? string.Empty : "hidden")" aria-hidden="@(showRegisterContainer ? "false" : "true")" id="register-container">
         <div class="col-sm-offset-4 col-sm-4">
             @Html.Partial("_Register", Model)
         </div>

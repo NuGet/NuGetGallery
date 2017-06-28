@@ -23,11 +23,14 @@
         @Html.ShowTextBoxFor(m => m.Register.Username)
         @Html.ShowValidationMessagesFor(m => m.Register.Username)
     </div>
-    <div class="form-group @Html.HasErrorFor(m => m.Register.Password)">
-        @Html.ShowLabelFor(m => m.Register.Password)
-        @Html.ShowPasswordFor(m => m.Register.Password)
-        @Html.ShowValidationMessagesFor(m => m.Register.Password)
-    </div>
+    if (Model.External == null)
+    {
+        <div class="form-group @Html.HasErrorFor(m => m.Register.Password)">
+            @Html.ShowLabelFor(m => m.Register.Password)
+            @Html.ShowPasswordFor(m => m.Register.Password)
+            @Html.ShowValidationMessagesFor(m => m.Register.Password)
+        </div>
+    }
     <div class="form-group @Html.HasErrorFor(m => m.Register.EmailAddress)">
         @Html.ShowLabelFor(m => m.Register.EmailAddress)
         @Html.ShowTextBoxFor(m => m.Register.EmailAddress)
