@@ -58,6 +58,12 @@ namespace Stats.ImportAzureCdnStatistics
                         BulkCopyTimeout = _defaultCommandTimeout
                     };
 
+                    // This avoids identity insert issues, as these are db-generated.
+                    foreach (DataColumn column in downloadFactsDataTable.Columns)
+                    {
+                        bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+                    }
+
                     await bulkCopy.WriteToServerAsync(downloadFactsDataTable);
 
                     transaction.Commit();
@@ -611,10 +617,8 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["DownloadCount"] = 1;
         }
 
-        private static Guid FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId, int edgeServerIpAddressId)
+        private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId, int edgeServerIpAddressId)
         {
-            var id = Guid.NewGuid();
-            dataRow["Id"] = id;
             dataRow["Dimension_Tool_Id"] = toolId;
             dataRow["Dimension_Date_Id"] = dateId;
             dataRow["Dimension_Time_Id"] = timeId;
@@ -624,7 +628,6 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["Fact_LogFileName_Id"] = logFileNameId;
             dataRow["Fact_EdgeServer_IpAddress_Id"] = edgeServerIpAddressId;
             dataRow["DownloadCount"] = 1;
-            return id;
         }
 
         private async Task<IReadOnlyCollection<ToolDimension>> RetrieveToolDimensions(IReadOnlyCollection<ToolStatistics> sourceData, SqlConnection connection)

@@ -26,16 +26,28 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 var tableAdapter = new SqlDataAdapter(query, connection)
                 {
-                    MissingSchemaAction = MissingSchemaAction.AddWithKey
+                    MissingSchemaAction = MissingSchemaAction.Add
                 };
                 tableAdapter.Fill(dataTable);
             }
 
             dataTable.Rows.Clear();
+
+            // Remove Id column from in-memory data table.
+            // These are auto-generated on the database upon insert.
+            if (dataTable.Columns.Contains("Id"))
+            {
+                dataTable.PrimaryKey = null;
+                dataTable.Columns.Remove("Id");
+            }
+
+            // Remove Timestamp column from in-memory data table.
+            // These are auto-generated on the database upon insert.
             if (dataTable.Columns.Contains("Timestamp"))
             {
                 dataTable.Columns.Remove("Timestamp");
             }
+
             dataTable.TableName = $"dbo.{tableName}";
             return dataTable;
         }
