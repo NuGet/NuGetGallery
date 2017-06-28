@@ -53,7 +53,9 @@
                     "manage",
                     "Manage API Keys",
                     @<text>
-                        <pre data-bind="text: ko.toJSON($data, null, 2)"></pre>
+                        <!---->
+                        <pre data-bind="text: ko.toJSON($data.NewApiKey, null, 2)"></pre>
+                        <!---->
                         <div class="upsert-api-key add-api-key">
                             <h3>
                                 <a href="#" role="button" data-toggle="collapse" aria-expanded="false"
@@ -70,7 +72,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys, as: 'apiKey' }">
+                        <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys }">
                         </div>
                     </text>)
             }
@@ -183,14 +185,23 @@
 </script>
 
 <script type="text/html" id="upsert-api-key">
-    <form class="upsert-form">
+    <form class="upsert-form" data-bind="submit: Submit, attr: { id: FormId }">
         <!-- ko ifnot: Key -->
         <div class="row">
             <div class="col-sm-7 form-group">
-                <label data-bind="attr: { for: 'description-' + Key() }">Key Name</label>
+                <label data-bind="attr: { for: 'description-' + Key(),
+                                          id: 'description-' + Key() + '-label' }">Key Name</label>
                 <input type="text" class="form-control"
-                       data-bind="attr: { id: 'description-' + Key() }, value: Description"
-                       data-value-required="The key name is required." data-val="true" />
+                       data-bind="attr: { id: 'description-' + Key(),
+                                          name: 'description-' + Key(),
+                                          'aria-labelledby': 'description-' + Key() + '-label description-' + Key() + '-validation-message' },
+                                  value: Description"
+                       data-val-required="The key name is required." data-val="true"
+                       data-val-requiredscopes data-val-requiredsubjects />
+                <span class="field-validation-valid help-block"
+                      data-valmsg-replace="true"
+                      data-bind="attr: { 'data-valmsg-for': 'description-' + Key(),
+                                         id: 'description-' + Key() + '-validation-message' }"></span>
             </div>
             @if (Model.ExpirationInDaysForApiKeyV1 > 0)
             {
@@ -271,6 +282,7 @@
                     To select which pages to associate with a key, use a glob pattern, select
                     individual packages, or both.
                 </p>
+                <span class="field-validation-error help-block" data-bind="attr: { id: SubjectsValidationId }"></span>
             </div>
         </div>
         <div class="row">
@@ -278,27 +290,29 @@
                 <label data-bind="attr: { for: 'glob-pattern-' + Key() }">Glob Pattern</label>
             </div>
         </div>
-        <div class="row">
+        <div class="row" data-bind="css: { disabled: !SelectPackagesEnabled() }">
             <div class="col-sm-7">
                 <div class="form-group">
                     <input type="text" class="form-control" 
                            data-bind="textInput: PendingGlobPattern,
-                                      attr: { id: 'glob-pattern-' + Key() }"  />
+                                      attr: { id: 'glob-pattern-' + Key() },
+                                      enable: SelectPackagesEnabled"  />
                 </div>
                 <div class="form-group">
                     <label>Available Packages</label>
                     <div class="panel panel-default available-packages">
                         <div class="panel-body">
-                            @foreach (var packageId in Model.PackageIds)
-                            {
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" name="Packages" value="@packageId"
-                                               data-bind="checked: PendingPackages" />
-                                        @packageId
-                                    </label>
-                                </div>
-                            }
+                            <!-- ko foreach: PendingPackages -->
+                            <div class="checkbox" data-bind="css: { disabled: Matched }">
+                                <label>
+                                    <input type="checkbox" name="Packages"
+                                           data-bind="checked: Checked,
+                                                      enable: $parent.SelectPackagesEnabled" />
+                                    <!-- ko text: Id -->
+                                    <!-- /ko -->
+                                </label>
+                            </div>
+                            <!-- /ko -->
                         </div>
                     </div>
                 </div>
@@ -330,17 +344,19 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row" data-bind="css: { disabled: !SelectPackagesEnabled() }">
             <div class="col-sm-12">
                 <p>
-                    <span data-bind="text: PendingPackages().length"></span>
+                    <span data-bind="text: SelectedCount"></span>
                     of @Model.PackageIds.Count package@(Model.PackageIds.Count != 1 ? "s" : string.Empty) selected
                 </p>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-6 form-group">
-                <input type="submit" value="Create" class="btn btn-primary btn-block" />
+                <input type="submit" value="Create" class="btn btn-primary btn-block"
+                       data-bind="enable: SelectPackagesEnabled,
+                                  css: { disabled: !SelectPackagesEnabled() }" />
             </div>
             <div class="col-sm-6 form-group">
                 <a href="#" data-bind="attr: { 'data-target': '#' + EditContainerId(),
@@ -353,79 +369,15 @@
             </div>
         </div>
     </form>
+    <!-- ko text: EnableValidation() -->
+    <!-- /ko -->
 </script>
 
 @section bottomScripts {
     <script type="text/javascript">
         var initialApiKeys = @Html.Raw(Json.Encode(Model.ApiKeys));
-
-        function PackageViewModel(id) {
-            this.Id = ko.observable(id);
-            this.Selected = ko.observable(false);
-            this.Matched = ko.observable(false);
-        }
-
-        function ApiKeyViewModel(data) {
-            this.Key = ko.observable(data.Key);
-            this.Type = ko.observable(data.Type);
-            this.Value = ko.observable(data.Value);
-            this.Description = ko.observable(data.Description);
-            this.Expires = ko.observable(data.Expires);
-            this.HasExpired = ko.observable(data.HasExpired);
-            this.IsNonScopedV1ApiKey = ko.observable(data.IsNonScopedV1ApiKey);
-            this.Scopes = ko.observableArray(data.Scopes);
-            this.Packages = ko.observableArray(data.Packages);
-            this.GlobPattern = ko.observable(data.GlobPattern);
-
-            // Properties used for API key create
-            this.ExpiresIn = ko.observable();
-            this.PushEnabled = ko.observable(false);
-            this.PushScope = ko.observable("@NuGetScopes.PackagePush");
-            this.UnlistScope = ko.observableArray();
-
-            // Properties used for API key create and edit
-            this.PendingGlobPattern = ko.observable();
-            this.PendingPackages = ko.observableArray();
-
-            // Computed properties
-            this.ShortPackageList = ko.computed(function () {
-                return this.Packages().slice(0, 3);
-            }, this);
-            this.EditContainerId = ko.pureComputed(function () {
-                return "edit-" + this.Key() + "-container";
-            }, this);
-            this.StartEditId = ko.pureComputed(function () {
-                    return "start-edit-" + this.Key();
-            }, this);
-            this.CancelEditId = ko.pureComputed(function () {
-                return "cancel-edit-" + this.Key();
-            }, this);
-
-            // Methods
-            this.StopPropagation = function (_, e) {
-                e.stopPropagation();
-                return true;
-            };
-        }
-
-        // Set up the data binding.
-        var model = {
-            ApiKeys: ko.observableArray($.map(initialApiKeys, function (x) { return new ApiKeyViewModel(x); })),
-            NewApiKey: new ApiKeyViewModel({ Key: 0, Type: null })
-        };
-
-        ko.applyBindings(model, $("#manage-container")[0]);
+        var packageIds = @Html.Raw(Json.Encode(Model.PackageIds));
+        var packagePushScope = "@NuGetScopes.PackagePush";
     </script>
-    <script type="text/javascript">
-        $(function () {
-            window.nuget.configureExpanderHeading("manage-container");
-            window.nuget.configureExpander(
-                "edit-0-container",
-                "CalculatorAddition",
-                null,
-                "CalculatorSubtract",
-                null);
-            window.nuget.configureExpanderHeading("example-container");
-        });
-    </script>
+    @Scripts.Render("~/Scripts/gallery/page-api-keys.min.js")
 }
