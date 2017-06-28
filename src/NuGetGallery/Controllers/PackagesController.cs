@@ -95,14 +95,15 @@ namespace NuGetGallery
         [HttpGet]
         [Authorize]
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
-        public virtual ActionResult UploadPackageProgress()
+        public virtual JsonResult UploadPackageProgress()
         {
             string username = User.Identity.Name;
 
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
             {
-                return HttpNotFound();
+                Response.StatusCode = 404;
+                return Json(null);
             }
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
@@ -210,7 +211,7 @@ namespace NuGetGallery
         [Authorize]
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("upload a package")]
-        public virtual async Task<ActionResult> UploadPackage(HttpPostedFileBase uploadFile)
+        public virtual async Task<JsonResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
             var currentUser = GetCurrentUser();
 
@@ -218,7 +219,8 @@ namespace NuGetGallery
             {
                 if (existingUploadFile != null)
                 {
-                    return new HttpStatusCodeResult(409, "Cannot upload file because an upload is already in progress.");
+                    Response.StatusCode = 409;
+                    return Json(new string[] { Strings.UploadPackage_UploadInProgress });
                 }
             }
 
@@ -1272,66 +1274,23 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        [RequiresAccountConfirmation("upload a package")]
-        public virtual async Task<ActionResult> VerifyPackage()
-        {
-            var currentUser = GetCurrentUser();
-
-            PackageMetadata packageMetadata;
-            using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
-            {
-                if (uploadFile == null)
-                {
-                    return RedirectToRoute(RouteName.UploadPackage);
-                }
-
-                var package = await SafeCreatePackage(currentUser, uploadFile);
-                if (package == null)
-                {
-                    return Redirect(Url.UploadPackage());
-                }
-
-                try
-                {
-                    packageMetadata = PackageMetadata.FromNuspecReader(
-                        package.GetNuspecReader());
-                }
-                catch (Exception ex)
-                {
-                    TempData["Message"] = ex.GetUserSafeMessage();
-                    return Redirect(Url.UploadPackage());
-                }
-            }
-
-            var model = new VerifyPackageRequest(packageMetadata);
-
-            return View(model);
-        }
-
-        [Authorize]
         [HttpPost]
         [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
-        public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
+        public virtual async Task<JsonResult> VerifyPackage(VerifyPackageRequest formData)
         {
             var currentUser = GetCurrentUser();
-
-            NuGetVersion parsedMinClientVersion;
-            if (NuGetVersion.TryParse(formData.MinClientVersionDisplay, out parsedMinClientVersion))
-            {
-                formData.MinClientVersion = parsedMinClientVersion;
-            }
 
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
                 {
-                    TempData["Message"] = "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again.";
+                    TempData["Message"] = Strings.VerifyPackage_UploadNotFound;
 
                     Response.StatusCode = 400;
-                    return Json(new string [] { "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again." });
+                    return Json(new string [] { Strings.VerifyPackage_UploadNotFound });
                 }
 
                 var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
@@ -1340,7 +1299,7 @@ namespace NuGetGallery
 
                     Response.StatusCode = 400;
                     // Send the user back
-                    return Json(new string [] { "There was an error. Please try again" });
+                    return Json(new string [] { Strings.VerifyPackage_UnexpectedError });
                 }
                 Debug.Assert(nugetPackage != null);
 
@@ -1355,10 +1314,10 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
-                        TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
+                        TempData["Message"] = Strings.VerifyPackage_PackageFileModified;
 
                         Response.StatusCode = 400;
-                        return Json(new string [] { "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again." });
+                        return Json(new string [] { Strings.VerifyPackage_PackageFileModified });
                     }
                 }
 
@@ -1517,7 +1476,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> CancelUpload()
+        public virtual async Task<JsonResult> CancelUpload()
         {
             var currentUser = GetCurrentUser();
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
