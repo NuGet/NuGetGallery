@@ -197,35 +197,7 @@ namespace NuGetGallery
 
                     model.IsUploadInProgress = true;
 
-                    var verifyRequest = new VerifyPackageRequest
-                    {
-                        Id = packageMetadata.Id,
-                        Version = packageMetadata.Version.ToFullStringSafe(),
-                        OriginalVersion = packageMetadata.Version.OriginalVersion,
-                        LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
-                        Listed = true,
-                        Language = packageMetadata.Language,
-                        MinClientVersion = packageMetadata.MinClientVersion,
-                        MinClientVersionDisplay = packageMetadata.MinClientVersion.ToFullStringSafe(),
-                        FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
-                        Dependencies = new DependencySetsViewModel(
-                            packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
-                        DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
-                        Edit = new EditPackageVersionRequest
-                        {
-                            Authors = packageMetadata.Authors.Flatten(),
-                            Copyright = packageMetadata.Copyright,
-                            Description = packageMetadata.Description,
-                            IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull(),
-                            LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
-                            ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull(),
-                            ReleaseNotes = packageMetadata.ReleaseNotes,
-                            RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
-                            Summary = packageMetadata.Summary,
-                            Tags = PackageHelper.ParseTags(packageMetadata.Tags),
-                            VersionTitle = packageMetadata.Title,
-                        }
-                    };
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata);
 
                     model.InProgressUpload = verifyRequest;
                 }
@@ -427,34 +399,7 @@ namespace NuGetGallery
                 }
             }
 
-            var model = new VerifyPackageRequest
-            {
-                Id = packageMetadata.Id,
-                Version = packageMetadata.Version.ToFullStringSafe(),
-                OriginalVersion = packageMetadata.Version.OriginalVersion,
-                LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
-                Listed = true,
-                Language = packageMetadata.Language,
-                MinClientVersion = packageMetadata.MinClientVersion,
-                FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
-                Dependencies = new DependencySetsViewModel(
-                    packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
-                DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
-                Edit = new EditPackageVersionRequest
-                {
-                    Authors = packageMetadata.Authors.Flatten(),
-                    Copyright = packageMetadata.Copyright,
-                    Description = packageMetadata.Description,
-                    IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull(),
-                    LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
-                    ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull(),
-                    ReleaseNotes = packageMetadata.ReleaseNotes,
-                    RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
-                    Summary = packageMetadata.Summary,
-                    Tags = PackageHelper.ParseTags(packageMetadata.Tags),
-                    VersionTitle = packageMetadata.Title,
-                }
-            };
+            var model = new VerifyPackageRequest(packageMetadata);
 
             return Json(model);
         }
@@ -1358,34 +1303,7 @@ namespace NuGetGallery
                 }
             }
 
-            var model = new VerifyPackageRequest
-            {
-                Id = packageMetadata.Id,
-                Version = packageMetadata.Version.ToFullStringSafe(),
-                OriginalVersion = packageMetadata.Version.OriginalVersion,
-                LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
-                Listed = true,
-                Language = packageMetadata.Language,
-                MinClientVersion = packageMetadata.MinClientVersion,
-                FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
-                Dependencies = new DependencySetsViewModel(
-                    packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
-                DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
-                Edit = new EditPackageVersionRequest
-                {
-                    Authors = packageMetadata.Authors.Flatten(),
-                    Copyright = packageMetadata.Copyright,
-                    Description = packageMetadata.Description,
-                    IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull(),
-                    LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
-                    ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull(),
-                    ReleaseNotes = packageMetadata.ReleaseNotes,
-                    RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
-                    Summary = packageMetadata.Summary,
-                    Tags = PackageHelper.ParseTags(packageMetadata.Tags),
-                    VersionTitle = packageMetadata.Title,
-                }
-            };
+            var model = new VerifyPackageRequest(packageMetadata);
 
             return View(model);
         }

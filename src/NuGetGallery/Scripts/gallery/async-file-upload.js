@@ -116,6 +116,7 @@
 
     function handleErrors(errorCallback, model, resultCodeString, fullResponse) {
         bindData(null);
+
         switch (resultCodeString) {
             case "timeout":
                 displayErrors(["The operation timed out. Please try again."])
@@ -126,6 +127,10 @@
             default:
                 displayErrors(model.responseJSON);
                 break;
+        }
+
+        if (fullResponse.status >= 500) {
+            displayErrors(["There was a server error."])
         }
 
         endProgressBar();
