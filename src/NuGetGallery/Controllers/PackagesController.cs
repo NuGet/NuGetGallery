@@ -676,14 +676,13 @@ namespace NuGetGallery
                 return RedirectToAction("ReportAbuse", new { id, version });
             }
 
-            var model = new ReportAbuseViewModel
+            var model = new ReportMyPackageViewModel
             {
                 ReasonChoices = ReportMyPackageReasons,
                 ConfirmedUser = user.Confirmed,
                 PackageId = id,
                 PackageVersion = package.Version,
-                CopySender = true,
-                Signature = user.Username
+                CopySender = true
             };
 
             return View(model);
@@ -756,7 +755,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("contact support about your package")]
         [ValidateAntiForgeryToken]
         [ValidateSpamPrevention]
-        public virtual async Task<ActionResult> ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
+        public virtual async Task<ActionResult> ReportMyPackage(string id, string version, ReportMyPackageViewModel reportForm)
         {
             // Html Encode the message
             reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
@@ -787,10 +786,9 @@ namespace NuGetGallery
             };
 
             var subject = $"Owner Support Request for '{package.PackageRegistration.Id}' version {package.Version}";
-            var requestorEmailAddress = user != null ? user.EmailAddress : reportForm.Email;
             var reason = EnumHelper.GetDescription(reportForm.Reason.Value);
 
-            await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, requestorEmailAddress, reason, user, package);
+            await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, from.Address, reason, user, package);
 
             _messageService.ReportMyPackage(request);
 
