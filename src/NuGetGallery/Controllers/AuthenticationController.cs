@@ -74,7 +74,7 @@ namespace NuGetGallery
                 return SafeRedirect(returnUrl);
             }
 
-            return LogOnView(new LogOnViewModel());
+            return SignInView(new LogOnViewModel());
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return LogOnView(model);
+                return SignInOrExternalLinkView(model, linkingAccount);
             }
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
@@ -138,7 +138,8 @@ namespace NuGetGallery
                 }
 
                 ModelState.AddModelError("SignIn", modelErrorMessage);
-                return LogOnView(model);
+
+                return SignInOrExternalLinkView(model, linkingAccount);
             }
 
             var user = authenticationResult.AuthenticatedUser;
@@ -220,7 +221,7 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return RegisterView(model);
+                return RegisterOrExternalLinkView(model, linkingAccount);
             }
 
             AuthenticatedUser user;
@@ -250,7 +251,8 @@ namespace NuGetGallery
             catch (EntityException ex)
             {
                 ModelState.AddModelError("Register", ex.Message);
-                return RegisterView(model);
+
+                return RegisterOrExternalLinkView(model, linkingAccount);
             }
 
             // Send a new account email
@@ -378,7 +380,7 @@ namespace NuGetGallery
                     }
                 };
 
-                return RegisterView(model);
+                return LinkExternalView(model);
             }
         }
 
@@ -434,20 +436,52 @@ namespace NuGetGallery
             return RedirectToAction("LogOn");
         }
 
-        private ActionResult LogOnView(LogOnViewModel existingModel)
+        private ActionResult SignInOrExternalLinkView(LogOnViewModel model, bool linkingAccount)
         {
-            existingModel.Providers = GetProviders();
-            existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
+            if (linkingAccount)
+            {
+                return LinkExternalView(model);
+            }
+            else
+            {
+                return SignInView(model);
+            }
+        }
 
-            return View("SignIn", existingModel);
+        private ActionResult RegisterOrExternalLinkView(LogOnViewModel model, bool linkingAccount)
+        {
+            if (linkingAccount)
+            {
+                return LinkExternalView(model);
+            }
+            else
+            {
+                return RegisterView(model);
+            }
+        }
+
+        private ActionResult SignInView(LogOnViewModel existingModel)
+        {
+            return AuthenticationView("SignIn", existingModel);
         }
 
         private ActionResult RegisterView(LogOnViewModel existingModel)
         {
+            return AuthenticationView("Register", existingModel);
+        }
+
+        private ActionResult LinkExternalView(LogOnViewModel existingModel)
+        {
+            return AuthenticationView("LinkExternal", existingModel);
+        }
+
+        private ActionResult AuthenticationView(string viewName, LogOnViewModel existingModel)
+        {
             existingModel.Providers = GetProviders();
+            existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
-            return View("Register", existingModel);
+            return View(viewName, existingModel);
         }
     }
 }

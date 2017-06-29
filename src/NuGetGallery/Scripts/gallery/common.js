@@ -109,18 +109,26 @@
         hidden.on('hide.bs.collapse', function (e) {
             showIcon.removeClass('ms-Icon--' + moreIcon);
             showIcon.addClass('ms-Icon--' + lessIcon);
-            showText.text(moreMessage);
+            if (moreMessage !== null) {
+                showText.text(moreMessage);
+            }
             e.stopPropagation();
         });
         hidden.on('show.bs.collapse', function (e) {
             showIcon.removeClass('ms-Icon--' + lessIcon);
             showIcon.addClass('ms-Icon--' + moreIcon);
-            showText.text(lessMessage);
+            if (lessMessage !== null) {
+                showText.text(lessMessage);
+            }
             e.stopPropagation();
         });
         show.on('click', function (e) {
             e.preventDefault();
         });
+    };
+
+    nuget.configureExpanderHeading = function (prefix) {
+        window.nuget.configureExpander(prefix, "ChevronRight", null, "ChevronDown", null);
     };
 
     // Source: https://stackoverflow.com/a/27568129/52749
@@ -168,8 +176,16 @@
 $(function () {
     // Use moment.js to format attributes with the "datetime" attribute to "ago".
     $.each($('*[data-datetime]'), function () {
-        var datetime = moment($(this).attr('data-datetime'));
+        var datetime = moment($(this).data().datetime);
         $(this).text(datetime.fromNow());
+    });
+
+    // Handle confirm pop-ups.
+    $('*[data-confirm]').delegate('', 'click', function (e) {
+        if (!confirm($(this).data().confirm)) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
     });
 
     // Select the first input that has an error.
@@ -182,8 +198,9 @@ $(function () {
     $.each($('a[data-track]'), function () {
         $(this).click(function (e) {
             var href = $(this).attr('href');
-            var category = $(this).attr('data-track');
+            var category = $(this).data().track;
             if (ga && href && category) {
+                e.preventDefault();
                 ga('send', 'event', category, 'click', href, {
                     'transport': 'beacon',
                     'hitCallback': window.nuget.createFunctionWithTimeout(function () {

@@ -132,19 +132,17 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeEmailSubscription(bool? emailAllowed, bool? notifyPackagePushed)
+        public virtual async Task<ActionResult> ChangeEmailSubscription(AccountViewModel model)
         {
             var user = GetCurrentUser();
-            if (user == null)
-            {
-                return HttpNotFound();
-            }
-            
-            await _userService.ChangeEmailSubscriptionAsync(user, 
-                emailAllowed.HasValue && emailAllowed.Value, 
-                notifyPackagePushed.HasValue && notifyPackagePushed.Value);
+
+            await _userService.ChangeEmailSubscriptionAsync(
+                user, 
+                model.ChangeNotifications.EmailAllowed, 
+                model.ChangeNotifications.NotifyPackagePushed);
 
             TempData["Message"] = Strings.EmailPreferencesUpdated;
+
             return RedirectToAction("Account");
         }
 
@@ -419,6 +417,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelChangeEmail(AccountViewModel model)
         {
             var user = GetCurrentUser();
@@ -455,8 +454,19 @@ namespace NuGetGallery
             }
             else
             {
+                if (!model.ChangePassword.EnablePasswordLogin)
+                {
+                    return await RemovePassword();
+                }
+
                 if (!ModelState.IsValidField("ChangePassword"))
                 {
+                    return AccountView(model);
+                }
+
+                if (model.ChangePassword.NewPassword != model.ChangePassword.VerifyPassword)
+                {
+                    ModelState.AddModelError("ChangePassword.VerifyPassword", Strings.PasswordDoesNotMatch);
                     return AccountView(model);
                 }
 
@@ -704,21 +714,36 @@ namespace NuGetGallery
 
         private ActionResult AccountView(AccountViewModel model)
         {
-            // Load user info
             var user = GetCurrentUser();
-            var curatedFeeds = _curatedFeedService.GetFeedsForManager(user.Key);
-            var creds = user.Credentials.Where(c => CredentialTypes.IsViewSupportedCredential(c))
-                                        .Select(c => _authService.DescribeCredential(c)).ToList();
-            var packageNames = _packageService.FindPackageRegistrationsByOwner(user).Select(p => p.Id).ToList();
 
-            packageNames.Sort();
-           
+            model.CuratedFeeds = _curatedFeedService
+                .GetFeedsForManager(user.Key)
+                .Select(f => f.Name)
+                .ToList();
 
-            model.Credentials = creds;
-            model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
-            model.Packages = packageNames;
+            model.CredentialGroups = user
+                .Credentials
+                .Where(c => CredentialTypes.IsViewSupportedCredential(c))
+                .Select(c => _authService.DescribeCredential(c))
+                .GroupBy(c => c.Kind)
+                .ToDictionary(g => g.Key, g => g.ToList());
+            model.SignInCredentialCount = model
+                .CredentialGroups
+                .Where(p => p.Key == CredentialKind.Password || p.Key == CredentialKind.External)
+                .Sum(p => p.Value.Count);
 
             model.ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1;
+            model.HasPassword = model.CredentialGroups.ContainsKey(CredentialKind.Password);
+            model.CurrentEmailAddress = user.UnconfirmedEmailAddress ?? user.EmailAddress;
+            model.HasConfirmedEmailAddress = !string.IsNullOrEmpty(user.EmailAddress);
+            model.HasUnconfirmedEmailAddress = !string.IsNullOrEmpty(user.UnconfirmedEmailAddress);
+
+            model.ChangePassword = model.ChangePassword ?? new ChangePasswordViewModel();
+            model.ChangePassword.EnablePasswordLogin = model.HasPassword;
+
+            model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
+            model.ChangeNotifications.EmailAllowed = user.EmailAllowed;
+            model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
             
             return View("Account", model);
         }

@@ -1336,7 +1336,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.Equal(cred.Type, description.Type);
-                Assert.Equal(msftAuther.GetUI().Caption, description.TypeCaption);
+                Assert.Equal(msftAuther.GetUI().AccountNoun, description.TypeCaption);
                 Assert.Equal(cred.Identity, description.Identity);
                 Assert.Equal(CredentialKind.External, description.Kind);
                 Assert.NotNull(description.AuthUI);

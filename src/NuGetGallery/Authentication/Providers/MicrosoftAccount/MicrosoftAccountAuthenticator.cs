@@ -25,11 +25,11 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
         {
             return new AuthenticatorUI(
                 Strings.MicrosoftAccount_SignInMessage,
-                Strings.MicrosoftAccount_AccountNoun,
-                Strings.MicrosoftAccount_Caption)
+                Strings.MicrosoftAccount_SignInMessage,
+                Strings.MicrosoftAccount_AccountNoun)
             {
-                    IconImagePath = "~/Content/gallery/img/microsoft-account.svg",
-                    IconImageFallbackPath = "~/Content/gallery/img/microsoft-account-24x24.png",
+                IconImagePath = "~/Content/gallery/img/microsoft-account.svg",
+                IconImageFallbackPath = "~/Content/gallery/img/microsoft-account-24x24.png",
             };
         }
 
