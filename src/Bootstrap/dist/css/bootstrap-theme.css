@@ -642,6 +642,26 @@ img.package-icon {
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
 }
+.page-manage-curated-feed .package-owners .owner {
+  margin-bottom: 10px;
+}
+.page-manage-curated-feed .feed-packages-list {
+  margin-bottom: 40px;
+}
+.page-manage-curated-feed .feed-packages-list .package {
+  margin-bottom: 10px;
+}
+.page-manage-curated-feed .feed-packages-list .package .id {
+  float: left;
+}
+.page-manage-curated-feed .feed-packages-list .package .controls {
+  float: right;
+}
+.page-manage-curated-feed .feed-packages-list .package .controls i {
+  position: relative;
+  top: 3px;
+  margin-right: 10px;
+}
 .page-upload .loading:after {
   display: inline-block;
   /* ascii code for the ellipsis character */
