@@ -1,0 +1,58 @@
+﻿@model LogOnViewModel
+@{
+    var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+}
+@using (Html.BeginForm("SignIn", "Authentication"))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("ReturnUrl", returnUrl)
+    @Html.Hidden("LinkingAccount", Model.External != null)
+
+    if (Model.External != null)
+    {
+        @Html.HiddenFor(m => m.External.ProviderAccountNoun)
+        @Html.HiddenFor(m => m.External.AccountName)
+        @Html.HiddenFor(m => m.External.FoundExistingUser)
+    }
+
+    <div class="form-group @Html.HasErrorFor(m => m.SignIn)">
+        @Html.ShowValidationMessagesFor(m => m.SignIn)
+    </div>
+
+    <div class="form-group @Html.HasErrorFor(m => m.SignIn.UserNameOrEmail)">
+        @Html.ShowLabelFor(m => m.SignIn.UserNameOrEmail)
+        @Html.ShowTextBoxFor(m => m.SignIn.UserNameOrEmail)
+        @Html.ShowValidationMessagesFor(m => m.SignIn.UserNameOrEmail)
+    </div>
+    <div class="form-group @Html.HasErrorFor(m => m.SignIn.Password)">
+        @Html.ShowLabelFor(m => m.SignIn.Password)
+        @Html.ShowPasswordFor(m => m.SignIn.Password)
+        @Html.ShowValidationMessagesFor(m => m.SignIn.Password)
+    </div>
+    <p>
+        @Html.ActionLink("Forgot your Password?", "ForgotPassword", "Users")
+    </p>
+    if (Model.External != null && !Model.External.FoundExistingUser)
+    {
+        <div class="form-group row">
+            <div class="col-sm-6">
+                <input type="submit" class="btn btn-primary form-control" value="Sign in" />
+            </div>
+            <div class="col-sm-6">
+                <input type="reset" class="btn btn-default form-control" value="Cancel" id="cancel-sign-in" />
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary form-control" value="Sign in" />
+        </div>
+        if (Model.External == null || !Model.External.FoundExistingUser)
+        {
+            <p class="text-center">
+                Don't have an account? <a href="@Url.SignUp(returnUrl)">Register</a>
+            </p>
+        }
+    }
+}

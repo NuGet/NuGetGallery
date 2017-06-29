@@ -19,20 +19,26 @@
             </span>
         </div>
 
-        <div class="package-statistics">
-            <span>
-                <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
-                @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
-            </span>
-            <span class="package-statistics-middle">
-                <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
-                last updated <span data-datetime="@Model.LastUpdated.ToJavaScriptUTC()"></span>
-            </span>
-            <span>
-                <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
-                Latest version: <span class="text-nowrap">@Model.FullVersion @(Model.Prerelease ? "(prerelease)" : "")</span>
-            </span>
-        </div>
+        <ul class="package-list list-inline">
+            <li>
+                <span>
+                    <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
+                    @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                </span>
+            </li>
+            <li>
+                <span>
+                    <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
+                    last updated <span data-datetime="@Model.LastUpdated.ToJavaScriptUTC()"></span>
+                </span>
+            </li>
+            <li>
+                <span>
+                    <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
+                    Latest version: <span class="text-nowrap">@Model.FullVersion @(Model.Prerelease ? "(prerelease)" : "")</span>
+                </span>
+            </li>
+        </ul>
 
         <div class="package-details">
             @Model.ShortDescription
@@ -50,6 +56,36 @@
                     <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
                 }
             </div>
+        }
+
+        @if (Model.IsOwner(User))
+        {
+            <ul class="package-list list-inline">
+                <li>
+                    <a href="@Url.EditPackage(Model.Id, Model.Version)">
+                        <span>
+                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                            Edit Package
+                        </span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.ManagePackageOwners(Model)">
+                        <span>
+                            <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
+                            Manage Owners
+                        </span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.DeletePackage(Model)">
+                        <span>
+                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                            Delete Package
+                        </span>
+                    </a>
+                </li>
+            </ul>
         }
     </div>
 </article>

@@ -130,9 +130,17 @@ body h3 {
   position: absolute;
   left: -24px;
 }
-.btn-expander .ms-Icon {
+h2 .ms-Icon {
   position: relative;
-  top: 2px;
+  top: -2px;
+  font-size: .6em;
+}
+h2 a,
+h2 a:hover,
+h2 a:focus,
+h2 a:active {
+  color: #333;
+  text-decoration: none;
 }
 @media screen and (max-width: 768px) {
   img.package-icon {
@@ -164,19 +172,16 @@ img.package-icon {
   margin-left: 10px;
   color: #000;
 }
-.list-packages .package .package-statistics {
+.list-packages .package .package-list {
   margin-top: 10px;
   line-height: 20px;
   color: #666;
 }
-.list-packages .package .package-statistics .package-statistics-middle {
-  padding-right: 10px;
+.list-packages .package .package-list li + li {
   padding-left: 10px;
-  margin-right: 10px;
   margin-left: 10px;
   border-color: #dbdbdb;
   border-width: 1px;
-  border-right-style: solid;
   border-left-style: solid;
 }
 .list-packages .package .package-details {
@@ -264,20 +269,33 @@ img.package-icon {
   width: 75px;
   height: 75px;
 }
+.page-account-settings h1 {
+  margin-bottom: 0;
+}
+.page-account-settings h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.page-account-settings .form-section-title {
+  margin-top: 10px;
+}
+@media (min-width: 768px) {
+  .page-account-settings .form-section-title {
+    float: left;
+    text-align: right;
+  }
+}
+.page-account-settings .form-section-data {
+  margin-top: 10px;
+}
+@media (min-width: 768px) {
+  .page-account-settings .form-section-data {
+    float: right;
+    text-align: right;
+  }
+}
 .page-package-details .no-border {
   border: 0;
-}
-.page-package-details h2 .ms-Icon {
-  position: relative;
-  top: -2px;
-  font-size: .6em;
-}
-.page-package-details h2 a {
-  color: #000;
-  text-decoration: none;
-}
-.page-package-details h2 a:hover {
-  text-decoration: none;
 }
 .page-package-details .btn-expander:hover,
 .page-package-details .btn-expander:focus {
@@ -478,14 +496,14 @@ img.package-icon {
   color: #000;
 }
 .page-sign-in .provider-button {
-  margin-top: 70px;
   line-height: 2em;
 }
 .page-sign-in .provider-button img {
+  margin-right: 5px;
   margin-bottom: 1px;
 }
 .page-sign-in .or-row {
-  margin: 30px;
+  margin: 20px;
 }
 .page-statistics-most-downloaded h2 {
   margin-top: 4px;
