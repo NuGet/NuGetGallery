@@ -80,9 +80,6 @@
     <script type="text/javascript" src="@Url.Content("~/Scripts/gallery/async-file-upload.js")"></script>
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
-        //$("#upload-progress-bar-container").hide();
-        //$("#validation-failure-container").hide();
-        //$("#verify-collapser-container").hide();
         window.nuget.configureExpander(
             "upload-package-form",
             "ChevronRight",
