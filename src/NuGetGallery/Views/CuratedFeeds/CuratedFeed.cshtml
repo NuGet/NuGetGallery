@@ -51,8 +51,8 @@
                         </a>
                     </h2>
                     <div class="panel-collapse collapse in" aria-expanded="true" id="included-packages">
-                        <p>This is a list of all packages included in the curated feed, both manually and automatically added. To manually include a new package to the feed, click the "Include Package" link below. To remove a manually-curated package, click the "Remove" link next to it. To exclude an automatically-curated package, click the "Exclude" link next to it.</p>
-                        <p><em>* denotes automatically-curated packages</em></p>
+                        <p>This is a list of all packages included in the curated feed, both manually and automatically added. To manually include a new package to the feed, click the "Include Package" link below. To remove a manually curated package, click the "Remove" link next to it. To exclude an automatically curated package, click the "Exclude" link next to it.</p>
+                        <p><em>* denotes automatically curated packages</em></p>
                         <div class="feed-packages-list" role="list">
                             @foreach (var package in Model.IncludedPackages)
                             {
@@ -61,11 +61,11 @@
                                     <div class="controls">
                                         @if (package.AutomaticallyCurated)
                                         {
-                                            <a href="#" class="exclude-link" data-package-id="@package.Id"><i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>Exclude</a>
+                                            <a href="#" class="exclude-link" data-package-id="@package.Id" role="button"><i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>Exclude</a>
                                         }
                                         else
                                         {
-                                            <a href="#" class="remove-link" data-package-id="@package.Id"><i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>Remove</a>
+                                            <a href="#" class="remove-link" data-package-id="@package.Id" role="button"><i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>Remove</a>
                                         }
                                     </div>
                                     <div class="clearfix"></div>
@@ -93,14 +93,14 @@
                         </a>
                     </h2>
                     <div class="panel-collapse collapse in" aria-expanded="true" id="excluded-packages">
-                        <p>This is a list of all automatically-curated packages that have been subsequently manually excluded. To include the package in the curated feed, click the "Include" link next to the package.</p>
+                        <p>This is a list of all automatically curated packages that have been subsequently manually excluded. To include the package in the curated feed, click the "Include" link next to the package.</p>
                         <div class="feed-packages-list" role="list">
                             @foreach (var package in Model.ExcludedPackages)
                             {
                                 <div class="package" role="listitem">
                                     <a class="id" href="@Url.Package(@package)">@package</a>
                                     <div class="controls">
-                                        <a href="#" class="include-link" data-package-id="@package"><i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>Include</a>
+                                        <a href="#" class="include-link" data-package-id="@package" role="button"><i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>Include</a>
                                     </div>
                                     <div class="clearfix"></div>
                                 </div>
