@@ -328,7 +328,6 @@ namespace NuGetGallery
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
 
-                    // should this be 409?
                     Response.StatusCode = 409;
                     return Json(new string [] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
                 }
