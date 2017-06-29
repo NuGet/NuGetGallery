@@ -7,7 +7,9 @@
 <form id="__AjaxAntiForgeryForm" action="#" method="post">@Html.AntiForgeryToken()</form>
 
 @{
-    var apiKeys = Model.Credentials.Where(c => c.Kind == CredentialKind.Token).ToList();
+    var apiKeys = Model.CredentialGroups.ContainsKey(CredentialKind.Token) ?
+        Model.CredentialGroups[CredentialKind.Token] :
+        new List<CredentialViewModel>();
 
     // Auto-expand when an API key has expired or api key deleted
     var shouldExpandApiKeyAccordion =
@@ -386,17 +388,8 @@
                                     <tr>
                                         <td>
                                             <div class="scrollable-div" id="selectablePackagesList">
-                                                @if (Model.Packages != null && Model.Packages.Count > 0)
-                                                {
-                                                    foreach (var package in Model.Packages)
-                                                    {
-                                                        <label class="checkoboxsmall packagecheckbox" title="@package"><input type="checkbox" name="subjects" value="@package"/> @package</label>
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <span class="nopackageslist">You have no packages</span>
-                                                }
+                                                <!-- TODO: have package list -->
+                                                <span class="nopackageslist">You have no packages</span>
                                             </div>
                                             <div class="selectedpackagescounter"></div>
                                         </td>

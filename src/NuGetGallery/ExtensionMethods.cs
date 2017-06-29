@@ -272,7 +272,8 @@ namespace NuGetGallery
         public static bool IsError<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression)
         {
             var metadata = ModelMetadata.FromLambdaExpression(expression, htmlHelper.ViewData);
-            var modelState = htmlHelper.ViewData.ModelState[metadata.PropertyName];
+            var name = htmlHelper.NameFor(expression).ToString();
+            var modelState = htmlHelper.ViewData.ModelState[name];
             return modelState != null && modelState.Errors != null && modelState.Errors.Count > 0;
         }
 
@@ -328,6 +329,20 @@ namespace NuGetGallery
         <p class=""slider-descriptor"">Yes</p>
     </label>" +
     ShowLabelFor(html, expression) + @"
+</div>");
+        }
+
+        public static HtmlString ShowSliderFor<TModel>(this HtmlHelper<TModel> html, HtmlString rawCheckBox, HtmlString rawLabel = null)
+        {
+            return new HtmlString(@"
+<div class=""switch-container"">
+    <label class=""switch"">
+        <p class=""slider-descriptor"">No</p>" +
+        rawCheckBox + @"
+        <div class=""slider""></div>
+        <p class=""slider-descriptor"">Yes</p>
+    </label>" +
+    (rawLabel == null ? new HtmlString("") : rawLabel)+ @"
 </div>");
         }
 

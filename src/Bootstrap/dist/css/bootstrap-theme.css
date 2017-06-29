@@ -67,6 +67,13 @@ body h3 {
 .btn-search {
   height: 36px;
 }
+.dependency-groups h4 > span {
+  margin-bottom: 3px;
+  border-bottom: 1px solid #d8d8d8;
+}
+.dependency-group li span {
+  color: #666;
+}
 .borderless > tbody > tr > td {
   border: none;
 }
@@ -123,9 +130,17 @@ body h3 {
   position: absolute;
   left: -24px;
 }
-.btn-expander .ms-Icon {
+h2 .ms-Icon {
   position: relative;
-  top: 2px;
+  top: -2px;
+  font-size: .6em;
+}
+h2 a,
+h2 a:hover,
+h2 a:focus,
+h2 a:active {
+  color: #333;
+  text-decoration: none;
 }
 @media screen and (max-width: 768px) {
   img.package-icon {
@@ -254,27 +269,33 @@ img.package-icon {
   width: 75px;
   height: 75px;
 }
-.page-package-details h4 > span {
-  margin-bottom: 3px;
-  border-bottom: 1px solid #d8d8d8;
+.page-account-settings h1 {
+  margin-bottom: 0;
 }
-.page-package-details .dependency-group li span {
-  color: #666;
+.page-account-settings h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.page-account-settings .form-section-title {
+  margin-top: 10px;
+}
+@media (min-width: 768px) {
+  .page-account-settings .form-section-title {
+    float: left;
+    text-align: right;
+  }
+}
+.page-account-settings .form-section-data {
+  margin-top: 10px;
+}
+@media (min-width: 768px) {
+  .page-account-settings .form-section-data {
+    float: right;
+    text-align: right;
+  }
 }
 .page-package-details .no-border {
   border: 0;
-}
-.page-package-details h2 .ms-Icon {
-  position: relative;
-  top: -2px;
-  font-size: .6em;
-}
-.page-package-details h2 a {
-  color: #000;
-  text-decoration: none;
-}
-.page-package-details h2 a:hover {
-  text-decoration: none;
 }
 .page-package-details .btn-expander:hover,
 .page-package-details .btn-expander:focus {
@@ -475,14 +496,14 @@ img.package-icon {
   color: #000;
 }
 .page-sign-in .provider-button {
-  margin-top: 70px;
   line-height: 2em;
 }
 .page-sign-in .provider-button img {
+  margin-right: 5px;
   margin-bottom: 1px;
 }
 .page-sign-in .or-row {
-  margin: 30px;
+  margin: 20px;
 }
 .page-statistics-most-downloaded h2 {
   margin-top: 4px;
@@ -640,5 +661,55 @@ img.package-icon {
   position: relative;
   top: 3px;
   margin-right: 10px;
+}
+.page-upload .loading:after {
+  display: inline-block;
+  /* ascii code for the ellipsis character */
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  content: "\2026";
+  -webkit-animation: ellipsis steps(4, end) 900ms infinite;
+       -o-animation: ellipsis steps(4, end) 900ms infinite;
+          animation: ellipsis steps(4, end) 900ms infinite;
+}
+@-o-keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+@keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+@-webkit-keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+.page-upload .dependency-set-title {
+  font-size: 1.2em;
+}
+.page-upload .dependency-container .dependency-versionspec {
+  font-size: .6em;
+  color: gray;
+}
+.page-upload .dependency-container .dependency-id {
+  font-size: .8em;
+}
+.page-upload .dependency-container .dependency-none {
+  font-size: .8em;
+}
+.page-upload .tall-text-input {
+  height: 6em;
+}
+.page-upload .verify-package-field .verify-package-field-heading {
+  font-size: .75em;
+  font-weight: 700;
+}
+.page-upload #icon-preview {
+  max-width: 300px;
+  max-height: 300px;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */
