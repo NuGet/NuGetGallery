@@ -516,6 +516,18 @@ For more information, please contact '{2}'.</value>
 &lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
 &lt;/ol&gt;</value>
   </data>
+  <data name="UploadPackage_UploadInProgress" xml:space="preserve">
+    <value>Cannot upload file because an upload is already in progress.</value>
+  </data>
+  <data name="VerifyPackage_PackageFileModified" xml:space="preserve">
+    <value>Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.</value>
+  </data>
+  <data name="VerifyPackage_UnexpectedError" xml:space="preserve">
+    <value>There was an unexpected error. Please try uploading the package again.</value>
+  </data>
+  <data name="VerifyPackage_UploadNotFound" xml:space="preserve">
+    <value>Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again.</value>
+  </data>
   <data name="PasswordDoesNotMatch" xml:space="preserve">
     <value>The new password does not match the verify password field.</value>
   </data>

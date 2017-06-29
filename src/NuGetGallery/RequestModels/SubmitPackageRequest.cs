@@ -10,5 +10,9 @@ namespace NuGetGallery
         [Required]
         [Hint("Your package file will be uploaded and hosted on the gallery server.")]
         public HttpPostedFile PackageFile { get; set; }
+
+        public bool IsUploadInProgress { get; set; }
+
+        public VerifyPackageRequest InProgressUpload { get; set; }
     }
 }

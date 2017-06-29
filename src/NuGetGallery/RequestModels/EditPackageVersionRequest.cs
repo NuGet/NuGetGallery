@@ -26,6 +26,22 @@ namespace NuGetGallery
         {
         }
 
+        public EditPackageVersionRequest(PackageMetadata packageMetadata)
+        {
+
+            Authors = packageMetadata.Authors.Flatten();
+            Copyright = packageMetadata.Copyright;
+            Description = packageMetadata.Description;
+            IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull();
+            LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
+            ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull();
+            ReleaseNotes = packageMetadata.ReleaseNotes;
+            RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance;
+            Summary = packageMetadata.Summary;
+            Tags = PackageHelper.ParseTags(packageMetadata.Tags);
+            VersionTitle = packageMetadata.Title;
+        }
+
         public EditPackageVersionRequest(Package package, PackageEdit pendingMetadata)
         {
             var metadata = pendingMetadata ?? new PackageEdit
