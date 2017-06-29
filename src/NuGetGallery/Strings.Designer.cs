@@ -1102,6 +1102,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot upload file because an upload is already in progress..
+        /// </summary>
+        public static string UploadPackage_UploadInProgress {
+            get {
+                return ResourceManager.GetString("UploadPackage_UploadInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your account was locked after too many unsuccessful sign-in attempts. Please try again in {0}..
         /// </summary>
         public static string UserAccountLocked {
@@ -1152,6 +1161,33 @@ namespace NuGetGallery {
         public static string UserNotFound {
             get {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again..
+        /// </summary>
+        public static string VerifyPackage_PackageFileModified {
+            get {
+                return ResourceManager.GetString("VerifyPackage_PackageFileModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an unexpected error. Please try uploading the package again..
+        /// </summary>
+        public static string VerifyPackage_UnexpectedError {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again..
+        /// </summary>
+        public static string VerifyPackage_UploadNotFound {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UploadNotFound", resourceCulture);
             }
         }
         
