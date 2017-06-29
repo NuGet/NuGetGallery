@@ -82,12 +82,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ConfirmationRequired()
         {
-            User user = GetCurrentUser();
-            var model = new ConfirmationViewModel
-            {
-                ConfirmingNewAccount = !(user.Confirmed),
-                UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
-            };
+            var model = new ConfirmationViewModel(GetCurrentUser());
             return View(model);
         }
 
@@ -108,16 +103,14 @@ namespace NuGetGallery
             {
                 _messageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
-                model = new ConfirmationViewModel
+                model = new ConfirmationViewModel(user)
                 {
-                    ConfirmingNewAccount = !(user.Confirmed),
-                    UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
-                    SentEmail = true,
+                    SentEmail = true
                 };
             }
             else
             {
-                model = new ConfirmationViewModel {AlreadyConfirmed = true};
+                model = new ConfirmationViewModel(user);
             }
             return View(model);
         }
@@ -275,40 +268,29 @@ namespace NuGetGallery
         [Authorize]
         public virtual async Task<ActionResult> Confirm(string username, string token)
         {
-            // We don't want Login to have us as a return URL
+            // We don't want Login to go to this page as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
 
-            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
-            {
-                return View(new ConfirmationViewModel
-                    {
-                        WrongUsername = true,
-                        SuccessfulConfirmation = false,
-                    });
-            }
-
             var user = GetCurrentUser();
 
-            var alreadyConfirmed = user.UnconfirmedEmailAddress == null;
+            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return View(new ConfirmationViewModel(user)
+                {
+                    WrongUsername = true,
+                    SuccessfulConfirmation = false,
+                });
+            }
 
             string existingEmail = user.EmailAddress;
-            var model = new ConfirmationViewModel
-            {
-                ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
-                SuccessfulConfirmation = !alreadyConfirmed,
-                AlreadyConfirmed = alreadyConfirmed
-            };
+            var model = new ConfirmationViewModel(user);
 
-            if (!alreadyConfirmed)
+            if (!model.AlreadyConfirmed)
             {
-
                 try
                 {
-                    if (!(await _userService.ConfirmEmailAddress(user, token)))
-                    {
-                        model.SuccessfulConfirmation = false;
-                    }
+                    model.SuccessfulConfirmation = await _userService.ConfirmEmailAddress(user, token);
                 }
                 catch (EntityException)
                 {
