@@ -12,6 +12,11 @@
     }, "Either a glob pattern must be specified or at least one package ID must be selected.");
 
     $(function () {
+        function addAntiForgeryToken(data) {
+            var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
+            data["__RequestVerificationToken"] = $field.val();
+        }
+
         function globToRegex(glob) {
             var specialChars = "\\^$*+?.()|{}[]";
             var regexChars = ["^"];
@@ -48,8 +53,9 @@
             });
         }
 
-        function ApiKeyViewModel(data, packageIds) {
+        function ApiKeyViewModel(parent, data, packageIds) {
             var self = this;
+            this._parent = parent;
 
             // Initial each package ID as a view model. This view model is used to track manual checkbox checks
             // and whether the glob pattern matches the ID.
@@ -80,22 +86,23 @@
             // Properties used for API key create
             this.ExpiresIn = ko.observable();
             this.PushEnabled = ko.observable(false);
-            this.PushScope = ko.observable(packagePushScope);
+            this.PushScope = ko.observable(initialData.PackagePushScope);
             this.UnlistScope = ko.observableArray();
 
             // Properties used for API key create and edit
             this.PendingGlobPattern = ko.observable();
-            this.PendingPackages = ko.observableArray(packageViewModels);
+            this.PendingPackages = ko.observableArray();
+            this.ScopesError = ko.observable();
+            this.SubjectsError = ko.observable();
 
             // Computed properties
             this.ShortPackageList = ko.computed(function () {
                 return this.Packages().slice(0, 3);
             }, this);
             this.SelectPackagesEnabled = ko.pureComputed(function () {
-                return this.PushEnabled() || this.UnlistScope().length > 0;
-            }, this);
-            this.SubjectsValidationId = ko.pureComputed(function () {
-                return "subjects-" + this.Key() + "-validation-message";
+                return this.Scopes().length > 0 ||
+                    this.PushEnabled() ||
+                    this.UnlistScope().length > 0;
             }, this);
             this.FormId = ko.pureComputed(function () {
                 return "form-" + this.Key();
@@ -135,10 +142,10 @@
                 return subjects;
             }, this);
             this.SelectedCount = ko.pureComputed(function () {
-                return ko.utils.arrayFilter(self.PendingPackages(), function (item) {
+                return ko.utils.arrayFilter(this.PendingPackages(), function (item) {
                     return item.Checked();
                 }).length;
-            });
+            }, this);
 
             // Apply the glob pattern to the package IDs
             this.PendingGlobPattern.subscribe(function (newValue) {
@@ -147,6 +154,26 @@
                     var matched = pattern.test(p.Id());
                     p.Matched(matched);
                 });
+            });
+
+            // Initialize the pending data
+            this.PendingPackages(packageViewModels);
+            this.PendingGlobPattern(this.GlobPattern());
+
+            // Apply validation to the scopes and subjects
+            this.PendingScopes.subscribe(function (newValue) {
+                if (newValue.length === 0 && self.Scopes().length === 0) {
+                    self.ScopesError("At least one scope must be selected.");
+                } else {
+                    self.ScopesError(null);
+                }
+            });
+            this.PendingSubjects.subscribe(function (newValue) {
+                if (newValue.length === 0) {
+                    self.SubjectsError("Either a glob pattern must be specified or at least one package ID must be selected.");
+                } else {
+                    self.SubjectsError(null);
+                }
             });
 
             // Methods
@@ -160,25 +187,69 @@
                 $.validator.unobtrusive.parse(form);
             }
 
+            this.Valid = function (form) {
+                // Execute form validation.
+                var formError = !$(form).valid();
+
+                // Execute scopes and subjects validation.
+                this.PendingGlobPattern(this.PendingGlobPattern() || "");
+                this.UnlistScope(this.UnlistScope() || []);
+
+                return !formError &&
+                       !this.ScopesError() &&
+                       !this.SubjectsError();
+            }
+
             this.Submit = function (form) {
-                console.log($(form).valid());
-                console.log(this.PendingScopes());
-                console.log(this.PendingSubjects());
+                if (!this.Valid(form)) {
+                    return;
+                }
+
+                // Build the request.
+                var data, url;
+                if (!this.Key()) {
+                    // Generate a new key.
+                    data = {
+                        description: this.Description(),
+                        scopes: this.PendingScopes(),
+                        subjects: this.PendingSubjects(),
+                        expirationInDays: this.ExpiresIn()
+                    };
+                    url = initialData.GenerateUrl;
+                } else {
+                    // Edit the existing key.
+                    data = {
+                        credentialType: this.Type(),
+                        credentialKey: this.Key(),
+                        subjects: this.PendingSubjects()
+                    };
+                    url = initialData.EditUrl;
+                }
+                addAntiForgeryToken(data);
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data,
+                    success: function () {
+                        console.log(arguments);
+                    }
+                })
             };
         }
 
         // Set up the data binding.
-        var apiKeys = $.map(initialApiKeys, function (x) {
-            return new ApiKeyViewModel(x, packageIds);
+        var viewModel = {};
+        var apiKeys = $.map(initialData.ApiKeys, function (x) {
+            return new ApiKeyViewModel(viewModel, x, initialData.PackageIds);
         });
-        var newApiKey = new ApiKeyViewModel({ Key: 0, Type: null }, packageIds);
+        var newApiKey = new ApiKeyViewModel(viewModel, { Key: 0, Type: null }, initialData.PackageIds);
 
-        var model = {
-            ApiKeys: ko.observableArray(apiKeys),
-            NewApiKey: newApiKey
-        };
+        viewModel.ApiKeys = ko.observableArray(apiKeys);
+        viewModel.NewApiKey = ko.observable(newApiKey);
 
-        ko.applyBindings(model, $("#manage-container")[0]);
+        ko.applyBindings(viewModel, $("#manage-container")[0]);
 
         window.nuget.configureExpanderHeading("manage-container");
         window.nuget.configureExpander(

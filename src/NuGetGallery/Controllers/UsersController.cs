@@ -142,41 +142,9 @@ namespace NuGetGallery
                 credentials = new List<CredentialViewModel>();
             }
 
-            var apiKeys = new List<ApiKeyViewModel>();
-            foreach (var cred in credentials)
-            {
-                var scopes = cred
-                    .Scopes
-                    .Select(s => s.AllowedAction)
-                    .Distinct()
-                    .OrderBy(s => s)
-                    .ToList();
-                var subjects = cred
-                    .Scopes
-                    .Select(s => s.Subject)
-                    .Distinct()
-                    .OrderBy(s => s)
-                    .ToList();
-                var globPattern = subjects
-                    .FirstOrDefault(s => s != null && s.Contains("*"));
-                subjects = subjects
-                    .Except(new[] { globPattern })
-                    .ToList();
-
-                apiKeys.Add(new ApiKeyViewModel
-                {
-                    Key = cred.Key,
-                    Type = cred.Type,
-                    Value = cred.Value,
-                    Description = cred.Description,
-                    Expires = cred.Expires?.ToString("O"),
-                    HasExpired = cred.HasExpired,
-                    IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey,
-                    Scopes = scopes,
-                    Subjects = subjects,
-                    GlobPattern = globPattern,
-                });
-            }
+            var apiKeys = credentials
+                .Select(DescribeApiKey)
+                .ToList();
 
             // Get package IDs
             var packageIds = _packageService
@@ -633,7 +601,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
+        public virtual async Task<JsonResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
         {
             if (string.IsNullOrWhiteSpace(description))
             {
@@ -659,13 +627,13 @@ namespace NuGetGallery
 
             _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredential);
 
-            return Json(credentialViewModel);
+            return Json(DescribeApiKey(credentialViewModel));
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
+        public virtual async Task<JsonResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
         {
             if (credentialType != CredentialTypes.ApiKey.V2)
             {
@@ -691,7 +659,7 @@ namespace NuGetGallery
 
             var credentialViewModel = _authService.DescribeCredential(cred);
 
-            return Json(credentialViewModel);
+            return Json(DescribeApiKey(credentialViewModel));
         }
 
         private async Task<Credential> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
@@ -812,6 +780,43 @@ namespace NuGetGallery
             model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
 
             return View("Account", model);
+        }
+
+        private static ApiKeyViewModel DescribeApiKey(CredentialViewModel cred)
+        {
+            var scopes = cred
+                .Scopes
+                .Select(s => s.AllowedAction)
+                .Distinct()
+                .OrderBy(s => s)
+                .ToList();
+            var subjects = cred
+                .Scopes
+                .Select(s => s.Subject)
+                .Distinct()
+                .OrderBy(s => s)
+                .ToList();
+            var globPattern = subjects
+                .FirstOrDefault(s => s != null && s.Contains("*"));
+            subjects = subjects
+                .Except(new[] { globPattern })
+                .ToList();
+
+            var apiKey = new ApiKeyViewModel
+            {
+                Key = cred.Key,
+                Type = cred.Type,
+                Value = cred.Value,
+                Description = cred.Description,
+                Expires = cred.Expires?.ToString("O"),
+                HasExpired = cred.HasExpired,
+                IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey,
+                Scopes = scopes,
+                Subjects = subjects,
+                GlobPattern = globPattern,
+            };
+
+            return apiKey;
         }
 
         private Dictionary<CredentialKind, List<CredentialViewModel>> GetCredentialGroups(User user)

@@ -24,6 +24,9 @@
 }
 
 <section role="main" class="container main-container page-api-keys">
+    <form id="AntiForgeryForm">
+        @Html.AntiForgeryToken()
+    </form>
     <div class="row">
         <div class="col-md-10 col-md-offset-1">
             <h1 class="text-center">API Keys</h1>
@@ -53,21 +56,21 @@
                     "manage",
                     "Manage API Keys",
                     @<text>
-                        <!---->
+                        <!--
                         <pre data-bind="text: ko.toJSON($data.NewApiKey, null, 2)"></pre>
-                        <!---->
+                        -->
                         <div class="upsert-api-key add-api-key">
                             <h3>
                                 <a href="#" role="button" data-toggle="collapse" aria-expanded="false"
-                                   data-bind="attr: { 'data-target': '#' + NewApiKey.EditContainerId(),
-                                                      'aria-controls': NewApiKey.EditContainerId },
+                                   data-bind="attr: { 'data-target': '#' + NewApiKey().EditContainerId(),
+                                                      'aria-controls': NewApiKey().EditContainerId },
                                               click: function() { return false; }">
                                     <i class="ms-Icon ms-Icon--Add" aria-hidden="false"></i>
                                     <span>Create New API Key</span>
                                 </a>
                             </h3>
                             <div class="panel panel-default panel-collapse collapse" 
-                                 data-bind="attr: { id: NewApiKey.EditContainerId }">
+                                 data-bind="attr: { id: NewApiKey().EditContainerId }">
                                 <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
                                 </div>
                             </div>
@@ -196,8 +199,7 @@
                                           name: 'description-' + Key(),
                                           'aria-labelledby': 'description-' + Key() + '-label description-' + Key() + '-validation-message' },
                                   value: Description"
-                       data-val-required="The key name is required." data-val="true"
-                       data-val-requiredscopes data-val-requiredsubjects />
+                       data-val-required="The key name is required." data-val="true" />
                 <span class="field-validation-valid help-block"
                       data-valmsg-replace="true"
                       data-bind="attr: { 'data-valmsg-for': 'description-' + Key(),
@@ -233,6 +235,10 @@
         <div class="row">
             <div class="col-sm-12 form-group">
                 <b class="ms-fontSize-xl">Select Scopes</b>
+                <br />
+                <span class="has-error">
+                    <span class="help-block" data-bind="text: ScopesError"></span>
+                </span>
                 <ul role="presentation">
                     <li>
                         <div class="checkbox">
@@ -282,20 +288,35 @@
                     To select which pages to associate with a key, use a glob pattern, select
                     individual packages, or both.
                 </p>
-                <span class="field-validation-error help-block" data-bind="attr: { id: SubjectsValidationId }"></span>
+                <div class="has-error">
+                    <span class="help-block" data-bind="text: SubjectsError"></span>
+                </div>                
+                <div class="has-error">
+                    <span class="field-validation-valid help-block"
+                          data-valmsg-replace="true"
+                          data-bind="attr: { 'data-valmsg-for': 'glob-pattern-' + Key(),
+                                             id: 'glob-pattern-' + Key() + '-validation-message' }"></span>
+                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-7">
-                <label data-bind="attr: { for: 'glob-pattern-' + Key() }">Glob Pattern</label>
+                <label data-bind="attr: { for: 'glob-pattern-' + Key(),
+                                          id: 'glob-pattern-' + Key() + '-label' }">
+                    Glob Pattern
+                </label>
             </div>
         </div>
         <div class="row" data-bind="css: { disabled: !SelectPackagesEnabled() }">
             <div class="col-sm-7">
                 <div class="form-group">
-                    <input type="text" class="form-control" 
+                    <input type="text" class="form-control" data-val="true"
+                           data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
+                           data-val-regex-pattern="^[\*\w_.-]*$" 
                            data-bind="textInput: PendingGlobPattern,
-                                      attr: { id: 'glob-pattern-' + Key() },
+                                      attr: { id: 'glob-pattern-' + Key(),
+                                              name: 'glob-pattern-' + Key(),
+                                              'aria-labelledby': 'glob-pattern-' + Key() + '-label glob-pattern-' + Key() + '-validation-message' },
                                       enable: SelectPackagesEnabled"  />
                 </div>
                 <div class="form-group">
@@ -354,9 +375,10 @@
         </div>
         <div class="row">
             <div class="col-sm-6 form-group">
-                <input type="submit" value="Create" class="btn btn-primary btn-block"
+                <input type="submit" class="btn btn-primary btn-block"
                        data-bind="enable: SelectPackagesEnabled,
-                                  css: { disabled: !SelectPackagesEnabled() }" />
+                                  css: { disabled: !SelectPackagesEnabled() },
+                                  attr: { value: Key() ? 'Edit' : 'Create' }" />
             </div>
             <div class="col-sm-6 form-group">
                 <a href="#" data-bind="attr: { 'data-target': '#' + EditContainerId(),
@@ -375,9 +397,16 @@
 
 @section bottomScripts {
     <script type="text/javascript">
-        var initialApiKeys = @Html.Raw(Json.Encode(Model.ApiKeys));
-        var packageIds = @Html.Raw(Json.Encode(Model.PackageIds));
-        var packagePushScope = "@NuGetScopes.PackagePush";
+        var initialData = @Html.Raw(Json.Encode(new
+                     {
+                         ApiKeys = Model.ApiKeys,
+                         PackageIds = Model.PackageIds,
+                         PackagePushScope = NuGetScopes.PackagePush,
+                         RemoveUrl = Url.Action("RemoveCredential", "Users"),
+                         RegenerateUrl = Url.Action("RegenerateCredential", "Users"),
+                         EditUrl = Url.Action("EditCredential", "Users"),
+                         GenerateUrl = Url.Action("GenerateApiKey", "Users"),
+                     }));
     </script>
     @Scripts.Render("~/Scripts/gallery/page-api-keys.min.js")
 }
