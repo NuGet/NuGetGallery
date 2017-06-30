@@ -51,24 +51,21 @@
             }
             else
             {
-                if (string.IsNullOrEmpty(Model.ProjectUrl))
-                {
-                    @ViewHelpers.AlertWarning(
-                        @<text>
-                            Sorry, the owners of this package do not allow contacting them through this form.
-                        </text>
-                    );
-                }
-                else
-                {
-                    @ViewHelpers.AlertWarning(
-                        @<text>
-                            Sorry, the owners of this package do not allow contacting them through this form.
-                            You can try contacting the package owners of "@Model.PackageId" through its <a href="@Model.ProjectUrl">Project Site</a>.
-                        </text>
-                    );
-                }
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        Sorry, the owners of this package do not allow contacting them through this form.
+
+                        @if (string.IsNullOrEmpty(Model.ProjectUrl))
+                        {
+                            @:You can try contacting the package owners of "@Model.PackageId" through its <a href="@Model.ProjectUrl">Project Site</a>
+                        }
+                        else
+                        {
+                            @:You'll have to find some other way to contact them.
+                        }
+                    </text>
+                );
             }
             </div>
-        </div>
-    </section>
+    </div>
+</section>
