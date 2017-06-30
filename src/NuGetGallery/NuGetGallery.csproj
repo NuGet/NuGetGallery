@@ -741,6 +741,7 @@
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
       <DependentUpon>201704191802404_AddIndexPackageRegistrationKeySemVer.cs</DependentUpon>
