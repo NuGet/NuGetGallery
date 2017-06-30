@@ -1806,6 +1806,7 @@
     <Content Include="Views\Pages\_PagesView.cshtml" />
     <Content Include="Views\Shared\_SearchBar.cshtml" />
     <Content Include="Views\Pages\Downloads.cshtml" />
+    <Content Include="Views\Packages\_EditMetadata.cshtml" />
     <Content Include="Views\Authentication\LinkExternal.cshtml" />
     <Content Include="Views\Authentication\_SignIn.cshtml" />
     <Content Include="Views\Authentication\_Register.cshtml" />
@@ -1918,7 +1919,7 @@
     <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\nugetgallery.js" />
     <Content Include="Scripts\gallery\stats-dimensions.js" />
-    <Content Include="Scripts\async-file-upload.js" />
+    <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">

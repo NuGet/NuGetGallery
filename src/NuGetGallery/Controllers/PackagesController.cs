@@ -95,14 +95,15 @@ namespace NuGetGallery
         [HttpGet]
         [Authorize]
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
-        public virtual ActionResult UploadPackageProgress()
+        public virtual JsonResult UploadPackageProgress()
         {
             string username = User.Identity.Name;
 
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
             {
-                return HttpNotFound();
+                Response.StatusCode = 404;
+                return Json(null);
             }
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
@@ -170,23 +171,47 @@ namespace NuGetGallery
         public async virtual Task<ActionResult> UploadPackage()
         {
             var currentUser = GetCurrentUser();
+            var model = new SubmitPackageRequest();
+            PackageMetadata packageMetadata;
 
-            using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
+            using (var uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
-                if (existingUploadFile != null)
+                if (uploadedFile != null)
                 {
-                    return RedirectToRoute(RouteName.VerifyPackage);
+
+                    var package = await SafeCreatePackage(currentUser, uploadedFile);
+                    if (package == null)
+                    {
+                        return View(model);
+                    }
+
+                    try
+                    {
+                        packageMetadata = PackageMetadata.FromNuspecReader(
+                            package.GetNuspecReader());
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["Message"] = ex.GetUserSafeMessage();
+                        return View(model);
+                    }
+
+                    model.IsUploadInProgress = true;
+
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata);
+
+                    model.InProgressUpload = verifyRequest;
                 }
             }
 
-            return View();
+            return View(model);
         }
 
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("upload a package")]
-        public virtual async Task<ActionResult> UploadPackage(HttpPostedFileBase uploadFile)
+        public virtual async Task<JsonResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
             var currentUser = GetCurrentUser();
 
@@ -194,20 +219,23 @@ namespace NuGetGallery
             {
                 if (existingUploadFile != null)
                 {
-                    return new HttpStatusCodeResult(409, "Cannot upload file because an upload is already in progress.");
+                    Response.StatusCode = 409;
+                    return Json(new string[] { Strings.UploadPackage_UploadInProgress });
                 }
             }
 
             if (uploadFile == null)
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                return View();
+                Response.StatusCode = 400;
+                return Json(new string [] { Strings.UploadFileIsRequired });
             }
 
             if (!Path.GetExtension(uploadFile.FileName).Equals(Constants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
-                return View();
+                Response.StatusCode = 400;
+                return Json(new string [] { Strings.UploadFileMustBeNuGetPackage });
             }
 
             using (var uploadStream = uploadFile.InputStream)
@@ -226,7 +254,11 @@ namespace NuGetGallery
                            Strings.PackageEntryFromTheFuture,
                            entryInTheFuture.Name));
 
-                        return View();
+                        Response.StatusCode = 400;
+                        return Json(new string [] { string.Format(
+                           CultureInfo.CurrentCulture,
+                           Strings.PackageEntryFromTheFuture,
+                           entryInTheFuture.Name) });
                     }
                 }
 
@@ -248,7 +280,9 @@ namespace NuGetGallery
                     }
 
                     ModelState.AddModelError(String.Empty, message);
-                    return View();
+                    Response.StatusCode = 400;
+
+                    return Json(new string [] { message });
                 }
                 finally
                 {
@@ -259,11 +293,15 @@ namespace NuGetGallery
                 var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), out nuspec).ToArray();
                 if (errors.Length > 0)
                 {
+                    var errorStrings = new List<string>();
                     foreach (var error in errors)
                     {
+                        errorStrings.Add(error.ErrorMessage);
                         ModelState.AddModelError(String.Empty, error.ErrorMessage);
                     }
-                    return View();
+
+                    Response.StatusCode = 400;
+                    return Json(errorStrings);
                 }
 
                 // Check min client version
@@ -275,7 +313,13 @@ namespace NuGetGallery
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
                             nuspec.GetMinClientVersion()));
-                    return View();
+
+                    Response.StatusCode = 400;
+                    return Json(new string [] {
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.UploadPackage_MinClientVersionOutOfRange,
+                            nuspec.GetMinClientVersion()) });
                 }
 
                 var packageRegistration = _packageService.FindPackageRegistrationById(nuspec.GetId());
@@ -283,7 +327,9 @@ namespace NuGetGallery
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
-                    return View();
+
+                    Response.StatusCode = 409;
+                    return Json(new string [] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -293,35 +339,70 @@ namespace NuGetGallery
                     // Determine if the package versions only differ by metadata, 
                     // and provide the most optimal the user-facing error message.
                     var existingPackageVersion = new NuGetVersion(existingPackage.Version);
-                    if ((existingPackageVersion.HasMetadata || nuspecVersion.HasMetadata) 
+                    String message = string.Empty;
+                    if ((existingPackageVersion.HasMetadata || nuspecVersion.HasMetadata)
                         && !string.Equals(existingPackageVersion.Metadata, nuspecVersion.Metadata))
                     {
-                        ModelState.AddModelError(
-                            string.Empty,
-                            string.Format(
-                                CultureInfo.CurrentCulture, 
-                                Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified, 
-                                existingPackage.PackageRegistration.Id, 
-                                existingPackage.Version));
+                        message = string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified,
+                                existingPackage.PackageRegistration.Id,
+                                existingPackage.Version);
                     }
                     else
                     {
-                        ModelState.AddModelError(
-                            string.Empty,
-                            string.Format(
-                                CultureInfo.CurrentCulture, 
-                                Strings.PackageExistsAndCannotBeModified, 
-                                existingPackage.PackageRegistration.Id, 
-                                existingPackage.Version));
+                        message = string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageExistsAndCannotBeModified,
+                                existingPackage.PackageRegistration.Id,
+                                existingPackage.Version);
                     }
 
-                    return View();
+                    ModelState.AddModelError(
+                        string.Empty,
+                        message);
+
+                    Response.StatusCode = 409;
+                    return Json(new string [] { message });
                 }
 
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
             }
 
-            return RedirectToRoute(RouteName.VerifyPackage);
+            PackageMetadata packageMetadata;
+            using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
+            {
+                if (uploadedFile == null)
+                {
+                    ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
+                    Response.StatusCode = 400;
+                    return Json(new string [] { Strings.UploadFileIsRequired });
+                }
+
+                var package = await SafeCreatePackage(currentUser, uploadedFile);
+                if (package == null)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new string [] { Strings.UploadFileIsRequired });
+                }
+
+                try
+                {
+                    packageMetadata = PackageMetadata.FromNuspecReader(
+                        package.GetNuspecReader());
+                }
+                catch (Exception ex)
+                {
+                    TempData["Message"] = ex.GetUserSafeMessage();
+
+                    Response.StatusCode = 400;
+                    return Json(new string [] { ex.GetUserSafeMessage() });
+                }
+            }
+
+            var model = new VerifyPackageRequest(packageMetadata);
+
+            return Json(model);
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
@@ -332,7 +413,7 @@ namespace NuGetGallery
                 // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
-            
+
             Package package;
             if (version != null && version.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -383,8 +464,8 @@ namespace NuGetGallery
 
                     var searchFilter = SearchAdaptor.GetSearchFilter(
                             q: "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
-                            page: 1, 
-                            sortOrder: null, 
+                            page: 1,
+                            sortOrder: null,
                             context: SearchFilter.ODataSearchContext,
                             semVerLevel: SemVerLevelKey.SemVerLevel2);
 
@@ -465,10 +546,10 @@ namespace NuGetGallery
                 if (cachedResults == null)
                 {
                     var searchFilter = SearchAdaptor.GetSearchFilter(
-                        q, 
-                        page, 
-                        sortOrder: null, 
-                        context: SearchFilter.UISearchContext, 
+                        q,
+                        page,
+                        sortOrder: null,
+                        context: SearchFilter.UISearchContext,
                         semVerLevel: SemVerLevelKey.SemVerLevel2);
 
                     results = await _searchService.Search(searchFilter);
@@ -491,10 +572,10 @@ namespace NuGetGallery
             else
             {
                 var searchFilter = SearchAdaptor.GetSearchFilter(
-                    q, 
-                    page, 
-                    sortOrder: null, 
-                    context: SearchFilter.UISearchContext, 
+                    q,
+                    page,
+                    sortOrder: null,
+                    context: SearchFilter.UISearchContext,
                     semVerLevel: SemVerLevelKey.SemVerLevel2);
 
                 results = await _searchService.Search(searchFilter);
@@ -1053,7 +1134,7 @@ namespace NuGetGallery
             }
 
             var result = await HandleSecurePushPropagation(package, user);
-            
+
             await _packageService.AddPackageOwnerAsync(package, user);
 
             SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
@@ -1192,75 +1273,11 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        [RequiresAccountConfirmation("upload a package")]
-        public virtual async Task<ActionResult> VerifyPackage()
-        {
-            var currentUser = GetCurrentUser();
-
-            PackageMetadata packageMetadata;
-            using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
-            {
-                if (uploadFile == null)
-                {
-                    return RedirectToRoute(RouteName.UploadPackage);
-                }
-
-                var package = await SafeCreatePackage(currentUser, uploadFile);
-                if (package == null)
-                {
-                    return Redirect(Url.UploadPackage());
-                }
-
-                try
-                {
-                    packageMetadata = PackageMetadata.FromNuspecReader(
-                        package.GetNuspecReader());
-                }
-                catch (Exception ex)
-                {
-                    TempData["Message"] = ex.GetUserSafeMessage();
-                    return Redirect(Url.UploadPackage());
-                }
-            }
-
-            var model = new VerifyPackageRequest
-            {
-                Id = packageMetadata.Id,
-                Version = packageMetadata.Version.ToFullStringSafe(),
-                OriginalVersion = packageMetadata.Version.OriginalVersion,
-                LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
-                Listed = true,
-                Language = packageMetadata.Language,
-                MinClientVersion = packageMetadata.MinClientVersion,
-                FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups(),
-                Dependencies = new DependencySetsViewModel(
-                    packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable()),
-                DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency"),
-                Edit = new EditPackageVersionRequest
-                {
-                    Authors = packageMetadata.Authors.Flatten(),
-                    Copyright = packageMetadata.Copyright,
-                    Description = packageMetadata.Description,
-                    IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull(),
-                    LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
-                    ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull(),
-                    ReleaseNotes = packageMetadata.ReleaseNotes,
-                    RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
-                    Summary = packageMetadata.Summary,
-                    Tags = PackageHelper.ParseTags(packageMetadata.Tags),
-                    VersionTitle = packageMetadata.Title,
-                }
-            };
-
-            return View(model);
-        }
-
-        [Authorize]
         [HttpPost]
         [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
-        public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
+        public virtual async Task<JsonResult> VerifyPackage(VerifyPackageRequest formData)
         {
             var currentUser = GetCurrentUser();
 
@@ -1269,15 +1286,19 @@ namespace NuGetGallery
             {
                 if (uploadFile == null)
                 {
-                    TempData["Message"] = "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again.";
-                    return new RedirectResult(Url.UploadPackage());
+                    TempData["Message"] = Strings.VerifyPackage_UploadNotFound;
+
+                    Response.StatusCode = 400;
+                    return Json(new string [] { Strings.VerifyPackage_UploadNotFound });
                 }
 
                 var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
                 if (nugetPackage == null)
                 {
+
+                    Response.StatusCode = 400;
                     // Send the user back
-                    return new RedirectResult(Url.UploadPackage());
+                    return Json(new string [] { Strings.VerifyPackage_UnexpectedError });
                 }
                 Debug.Assert(nugetPackage != null);
 
@@ -1292,8 +1313,10 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
-                        TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
-                        return new RedirectResult(Url.VerifyPackage());
+                        TempData["Message"] = Strings.VerifyPackage_PackageFileModified;
+
+                        Response.StatusCode = 400;
+                        return Json(new string [] { Strings.VerifyPackage_PackageFileModified });
                     }
                 }
 
@@ -1330,7 +1353,9 @@ namespace NuGetGallery
                 catch (InvalidPackageException ex)
                 {
                     TempData["Message"] = ex.Message;
-                    return Redirect(Url.UploadPackage());
+
+                    Response.StatusCode = 400;
+                    return Json(new string [] { ex.GetUserSafeMessage() });
                 }
 
                 await _packageService.PublishPackageAsync(package, commitChanges: false);
@@ -1358,7 +1383,9 @@ namespace NuGetGallery
                 {
                     ex.Log();
                     TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                    return new RedirectResult(Url.VerifyPackage());
+
+                    Response.StatusCode = 409;
+                    return Json(new string [] { Strings.UploadPackage_IdVersionConflict });
                 }
 
                 try
@@ -1395,10 +1422,13 @@ namespace NuGetGallery
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
 
-            return RedirectToRoute(RouteName.DisplayPackage, new
+            return Json(new
             {
-                id = package.PackageRegistration.Id,
-                version = package.NormalizedVersion
+                location = Url.RouteUrl(RouteName.DisplayPackage, new
+                {
+                    id = package.PackageRegistration.Id,
+                    version = package.NormalizedVersion
+                })
             });
         }
 
@@ -1445,12 +1475,12 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> CancelUpload()
+        public virtual async Task<JsonResult> CancelUpload()
         {
             var currentUser = GetCurrentUser();
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
-            return RedirectToAction("UploadPackage");
+            return Json(null);
         }
 
         [Authorize]
