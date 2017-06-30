@@ -1046,8 +1046,9 @@ namespace NuGetGallery
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("edit a package")]
-        public virtual async Task<ActionResult> Edit(string id, string version, EditPackageRequest formData, string returnUrl)
+        public virtual async Task<ActionResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
+
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
@@ -1062,7 +1063,9 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             if (!ModelState.IsValid)
             {
-                return EditFailed(id, formData, package);
+                Response.StatusCode = 400;
+                return Json(new string[] { "Invalid Input" });
+                //return EditFailed(id, formData, package);
             }
 
             // Add the edit request to a queue where it will be processed in the background.
@@ -1081,11 +1084,18 @@ namespace NuGetGallery
                 {
                     ModelState.AddModelError("Edit.VersionTitle", ex.Message);
 
-                    return EditFailed(id, formData, package);
+                    return Json(new string[] { ex.Message });
                 }
             }
 
-            return SafeRedirect(returnUrl ?? Url.Package(id, version));
+            return Json(new
+            {
+                location = returnUrl ?? Url.RouteUrl(RouteName.DisplayPackage, new
+                {
+                    id = package.PackageRegistration.Id,
+                    version = package.NormalizedVersion
+                })
+            });
         }
 
         private ActionResult EditFailed(string id, EditPackageRequest formData, Package package)

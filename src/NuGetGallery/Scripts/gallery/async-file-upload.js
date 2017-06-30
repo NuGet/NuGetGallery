@@ -75,7 +75,7 @@
             url: _submitVerifyUrl,
             type: 'POST',
 
-            data: new FormData($('#verify-metadata-form')[0]),
+            data: new FormData($('#edit-metadata-form')[0]),
 
             cache: false,
             contentType: false,
@@ -199,7 +199,7 @@
         $("#verify-collapser-container").removeClass("hidden");
 
         window.nuget.configureExpander(
-            "verify-package-form",
+            "edit-metadata-form-container",
             "ChevronRight",
             "Verify",
             "ChevronDown",

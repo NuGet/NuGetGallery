@@ -3,8 +3,12 @@
     var _viewModel;
     var _changedState;
     var _resetFunctions;
+    var _submitEditUrl;
+    var _cancelEditUrl;
 
-    this.init = function (model) {
+    this.init = function (model, submitEditUrl, cancelEditUrl) {
+        _submitEditUrl = submitEditUrl;
+        _cancelEditUrl = cancelEditUrl;
         _viewModel = model;
         _changedState = {};
         _resetFunctions = {};
@@ -33,9 +37,78 @@
         });
     }
 
+    function submitEditAsync(callback, error) {
+        $.ajax({
+            url: _submitEditUrl,
+            type: 'POST',
+
+            data: new FormData($('#edit-metadata-form')[0]),
+
+            cache: false,
+            contentType: false,
+            processData: false,
+
+            success: function (model, resultCodeString, fullResponse) {
+                if (callback) {
+                    callback(model);
+                }
+            },
+
+            error: handleErrors.bind(this, error)
+        });
+    }
+
+    function cancelEdit() {
+        navigateToPage({ location: _cancelEditUrl });
+    }
+    
+    function navigateToPage(verifyResponse) {
+        document.location = verifyResponse.location;
+    }
+
+    function displayErrors(errors) {
+        if (errors == null || errors.length < 1) {
+            return;
+        }
+
+        var failureContainer = $("#validation-failure-container");
+        var failureListContainer = document.createElement("div");
+        $(failureListContainer).attr("id", "validation-failure-list");
+        $(failureListContainer).attr("data-bind", "template: { name: 'validation-errors', data: data }");
+        failureContainer.append(failureListContainer);
+        ko.applyBindings({ data: errors }, failureListContainer);
+
+        failureContainer.removeClass("hidden");
+    }
+
+    function handleErrors(errorCallback, model, resultCodeString, fullResponse) {
+        bindData(null);
+
+        switch (resultCodeString) {
+            case "timeout":
+                displayErrors(["The operation timed out. Please try again."])
+                break;
+            case "abort":
+                displayErrors(["The operation was aborted. Please try again."])
+                break;
+            default:
+                displayErrors(model.responseJSON);
+                break;
+        }
+
+        if ((fullResponse && fullResponse.status >= 500) || (model && model.status >= 500)) {
+            displayErrors(["There was a server error."])
+        }
+        
+        if (errorCallback) {
+            errorCallback();
+        }
+    }
+
     function bindData(model) {
         $("#verify-package-block").remove();
-        if (model === null) {
+        $("#verify-collapser-container").addClass("hidden");
+        if (model == null) {
             return;
         }
 
@@ -52,10 +125,7 @@
             $('#verify-cancel-button').attr('value', 'Cancelling');
             $('#verify-cancel-button').addClass('.loading');
             $('#verify-submit-button').attr('disabled', 'disabled');
-            $('#input-select-file').val("");
-            $('#file-select-feedback').attr('placeholder', 'Browse to select a package file...');
-            // Whether the cancel fails or not, we want to upload the next one.
-            cancelUploadAsync();
+            cancelEdit();
         });
 
         $('#verify-submit-button').on('click', function () {
@@ -63,15 +133,17 @@
             $('#verify-submit-button').attr('disabled', 'disabled');
             $('#verify-submit-button').attr('value', 'Submitting');
             $('#verify-submit-button').addClass('.loading');
-            submitVerifyAsync();
+            submitEditAsync(navigateToPage);
         });
 
         $('#iconurl-field').on('change', function () {
             $('#icon-preview').attr('src', $('#iconurl-field').val());
-        })
+        });
+
+        $("#verify-collapser-container").removeClass("hidden");
 
         window.nuget.configureExpander(
-            "verify-package-form",
+            "edit-metadata-form-container",
             "ChevronRight",
             "Verify",
             "ChevronDown",

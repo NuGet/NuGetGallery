@@ -52,8 +52,8 @@
 
         <div class="col-xs-12" id="verify-collapser-container">
             <h2>
-                <a href="#" role="button" data-toggle="collapse" data-target="#verify-package-form"
-                   aria-expanded="true" aria-controls="verify-package-form" id="show-verify-package-form">
+                <a href="#" role="button" data-toggle="collapse" data-target="#edit-metadata-form-container"
+                   aria-expanded="true" aria-controls="edit-metadata-form-container" id="show-edit-metadata-form-container">
                     <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
                     <span>Verify</span>
                 </a>
@@ -74,9 +74,13 @@
         window.modified = {};
         var viewModel = @Html.Raw(Json.Encode(Model.Edit));
         var realModel = {
+            "Id": '@Model.PackageId',
+            "Version": '@Model.Version',
             "Edit": viewModel
         };
-        EditViewManager.init(realModel);
+        EditViewManager.init(realModel,
+            '@Url.EditPackage(Model.PackageId, Model.Version)',
+            '@Url.Package(Model.PackageId, Model.Version)');
         $(function () {
             if (document.referrer.toLocaleLowerCase().endsWith("edit")) {
                 $("#input-select-version").focus();
