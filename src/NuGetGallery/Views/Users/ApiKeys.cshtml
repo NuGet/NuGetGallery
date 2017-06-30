@@ -147,6 +147,18 @@
     <!-- /ko -->
     <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys }">
     </div>
+    <!-- ko if: ApiKeys().length === 0 -->
+    <div class="alert alert-info">
+        <ul class="list-unstyled ms-Icon-ul">
+            <li>
+                <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
+                <span>
+                    You don't have any API keys yet.
+                </span>
+            </li>
+        </ul>
+    </div>
+    <!-- /ko -->
 </script>
 
 <script type="text/html" id="api-key-details">
