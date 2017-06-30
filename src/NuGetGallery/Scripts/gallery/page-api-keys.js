@@ -7,6 +7,18 @@
             data["__RequestVerificationToken"] = $field.val();
         }
 
+        function executeOnInactive(onTimeout, timeoutInMs) {
+            var t;
+            window.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onkeypress = resetTimer;
+
+            function resetTimer() {
+                clearTimeout(t);
+                t = setTimeout(onTimeout, timeoutInMs)
+            }
+        }
+
         function globToRegex(glob) {
             var specialChars = "\\^$*+?.()|{}[]";
             var regexChars = ["^"];
@@ -105,6 +117,9 @@
             this.ShortPackageList = ko.pureComputed(function () {
                 return this.Packages().slice(0, 3);
             }, this);
+            this.RemainingPackageList = ko.pureComputed(function () {
+                return this.Packages().slice(3);
+            }, this);
             this.SelectPackagesEnabled = ko.pureComputed(function () {
                 return this.Scopes().length > 0 ||
                     this.PushEnabled() ||
@@ -112,6 +127,9 @@
             }, this);
             this.FormId = ko.pureComputed(function () {
                 return "form-" + this.Key();
+            }, this);
+            this.RemainingPackagesId = ko.pureComputed(function () {
+                return "remaining-packages" + this.Key();
             }, this);
             this.EditContainerId = ko.pureComputed(function () {
                 return "edit-" + this.Key() + "-container";
@@ -230,6 +248,11 @@
 
             this.CancelEdit = function () {
                 $("#" + self.EditContainerId()).collapse('hide');
+            };
+
+            this.ShowRemainingPackages = function (_, e) {
+                $(e.target).remove();
+                $("#" + self.RemainingPackagesId()).collapse('show');
             };
 
             this.Copy = function () {
@@ -379,6 +402,12 @@
                     }
                 });
             };
+
+            this.Idle = function () {
+                this.Value(null);
+                this.JustCreated(false);
+                this.JustRegenerated(false);
+            };
         }
 
         function ApiKeysViewModel(initialData) {
@@ -411,7 +440,22 @@
                 }
                 return false;
             }, this);
-            
+            this.AnyExpired = ko.pureComputed(function () {
+                var apiKeys = this.ApiKeys();
+                for (var i in apiKeys) {
+                    if (apiKeys[i].HasExpired()) {
+                        return true;
+                    }
+                }
+                return false;
+            }, this);
+
+            this.Idle = function () {
+                var apiKeys = self.ApiKeys();
+                for (var i in apiKeys) {
+                    apiKeys[i].Idle();
+                }
+            };
         }
 
         // Set up the data binding.
@@ -427,6 +471,9 @@
             "CalculatorSubtract",
             null);
         window.nuget.configureExpanderHeading("example-container");
+
+        // Start the idle timer for 10 minutes.
+        executeOnInactive(apiKeysViewModel.Idle, 10 * 60 * 1000);
     });
 
 })();

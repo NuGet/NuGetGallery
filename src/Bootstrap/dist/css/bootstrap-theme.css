@@ -307,8 +307,13 @@ img.package-icon {
   margin-bottom: 0;
   font-size: 34px;
 }
-.page-api-keys .upsert-api-key h3 {
-  padding-left: 20px;
+.page-api-keys .in.in-inline {
+  display: inline;
+}
+@media (min-width: 768px) {
+  .page-api-keys .upsert-api-key h3 {
+    padding-left: 20px;
+  }
 }
 .page-api-keys .upsert-api-key ul {
   padding-left: 0;
@@ -321,13 +326,13 @@ img.package-icon {
   margin-bottom: 0;
 }
 .page-api-keys .upsert-api-key .available-packages .panel-body {
-  height: 204px;
+  min-height: 204px;
   padding-top: 0;
   padding-bottom: 0;
   overflow: auto;
 }
 .page-api-keys .upsert-api-key .glob-pattern-hint .panel-body {
-  height: 282px;
+  min-height: 282px;
 }
 .page-api-keys .add-api-key {
   padding: 20px 0;
@@ -341,8 +346,10 @@ img.package-icon {
   padding: 20px 0;
   border-bottom: 1px solid #dbdbdb;
 }
-.page-api-keys .api-key-details > .row {
-  padding-left: 20px;
+@media (min-width: 768px) {
+  .page-api-keys .api-key-details > .row {
+    padding-left: 20px;
+  }
 }
 .page-api-keys .api-key-details .ms-Icon {
   position: relative;

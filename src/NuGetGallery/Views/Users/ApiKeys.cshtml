@@ -39,10 +39,8 @@
             {
                 @ViewHelpers.AlertWarning(
                     @<text>
-                        <p>
-                            To get an API Key you will need to
-                            <a href="@Url.ConfirmationRequired()">confirm your account.</a>
-                        </p>
+                        To get an API Key you will need to
+                        <a href="@Url.ConfirmationRequired()">confirm your account.</a>
                     </text>)
             }
             else
@@ -109,6 +107,18 @@
             </div>
         </div>
     </div>
+    <!-- ko if: AnyExpired -->
+    <div class="alert alert-warning" role="alert">
+        <ul class="list-unstyled ms-Icon-ul">
+            <li>
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                <span>
+                    One of your API keys has expired.
+                </span>
+            </li>
+        </ul>
+    </div>
+    <!-- /ko -->
     <!-- ko if: AnyJustCreated -->
     <div class="alert alert-warning" role="alert">
         <ul class="list-unstyled ms-Icon-ul">
@@ -174,7 +184,21 @@
                     </li>
                 </ul>
                 <!-- ko if: ShortPackageList().length > 0 -->
-                <b>Packages:</b> <span data-bind="text: ShortPackageList().join(', ')"></span>
+                <b>Packages:</b>
+                <!-- ko if: RemainingPackageList().length > 0 -->
+                <span data-bind="text: ShortPackageList().join(', ') + ','"></span>
+                <a href="#" role="button"
+                   data-bind="attr: { 'aria-controls': RemainingPackagesId },
+                              click: ShowRemainingPackages">
+                    more...
+                </a>
+                <span class="collapse in-inline" aria-expanded="false"
+                      data-bind="attr: { id: RemainingPackagesId },
+                                 text: RemainingPackageList().join(', ')"></span>
+                <!-- /ko -->
+                <!-- ko ifnot: RemainingPackageList().length > 0 -->
+                <span data-bind="text: ShortPackageList().join(', ')"></span>
+                <!-- /ko -->
                 <br />
                 <!-- /ko -->
                 <!-- ko if: GlobPattern -->

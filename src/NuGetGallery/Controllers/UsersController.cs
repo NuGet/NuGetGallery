@@ -824,6 +824,7 @@ namespace NuGetGallery
             return user
                 .Credentials
                 .OrderByDescending(c => c.Created)
+                .ThenBy(c => c.Description)
                 .Where(c => CredentialTypes.IsViewSupportedCredential(c))
                 .Select(c => _authService.DescribeCredential(c))
                 .GroupBy(c => c.Kind)
