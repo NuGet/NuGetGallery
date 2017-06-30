@@ -164,8 +164,8 @@ img.package-icon {
   font-size: 15px;
   border-bottom: 1px solid #dbdbdb;
 }
-.list-packages .package .package-header h2 {
-  display: inline;
+.list-packages .package .package-header .package-title {
+  font-size: 34px;
   font-weight: 300;
 }
 .list-packages .package .package-header .package-by {
