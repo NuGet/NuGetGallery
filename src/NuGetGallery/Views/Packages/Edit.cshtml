@@ -7,28 +7,30 @@
 }
 
 <div class="container main-container page-edit-package">
-    <div class="col-xs-10 col-xs-offset-1 row">
-        <h1 class="page-heading col-xs-12 text-center">Edit Package @Model.PackageId</h1>
-        <div class="col-xs-12" id="select-package-version-container">
-            <h2>
-                <a href="#" role="button" data-toggle="collapse" data-target="#select-package-version-form"
-                   aria-expanded="false" aria-controls="select-package-version-form" id="show-upload-package-form">
-                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                    <span>Select Version</span>
-                </a>
-            </h2>
-            <div class="collapse in" id="select-package-version-form" aria-expanded="true">
-                <form id="cancel-form">
-                    @Html.AntiForgeryToken()
-                </form>
-                <form id="select-version-form" enctype="multipart/form-data">
-                    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-xs-10 col-xs-offset-1">
+            <h1 class="page-heading text-center">Edit Package</h1>
+            <h3 class="page-subheading text-center"><a href="@Url.Package(Model.PackageId)" class="">@Model.PackageId</a></h3>
+            <div id="select-package-version-container">
+                <h2>
+                    <a href="#" role="button" data-toggle="collapse" data-target="#select-package-version-form"
+                       aria-expanded="false" aria-controls="select-package-version-form" id="show-select-package-version-form">
+                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                        <span>Select Version</span>
+                    </a>
+                </h2>
+                <div class="collapse in" id="select-package-version-form" aria-expanded="true">
+                    <form id="cancel-form">
+                        @Html.AntiForgeryToken()
+                    </form>
+                    <form id="select-version-form" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
 
-                    @Html.ValidationSummary(true)
-                    <div class="row">
-                        <label for="input-select-version" id="package-version-label" class="col-xs-12">
-                            <span>Select a package version</span>
-                            @Html.DropDownList("version-selection",
+                        @Html.ValidationSummary(true)
+                        <div class="row">
+                            <label for="input-select-version" id="package-version-label" class="col-xs-12">
+                                <span>Select a package version</span>
+                                @Html.DropDownList("version-selection",
                             new SelectList(Model.PackageVersions.Select(e => new
                             {
                                 text = e.NormalizedVersion + (e.IsLatestSemVer2 ? " (Latest)" : ""),
@@ -40,30 +42,34 @@
                                @title = "Select A Version...",
                                @id = "input-select-version"
                            })
-                        </label>
-                    </div>
-                </form>
+                            </label>
+                        </div>
+                    </form>
 
-                <div id="validation-failure-container">
+                    <div id="validation-failure-container">
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
+    <div class="row">
+        <div class="col-xs-10 col-xs-offset-1">
+            <div id="verify-collapser-container">
+                <h2>
+                    <a href="#" role="button" data-toggle="collapse" data-target="#edit-metadata-form-container"
+                       aria-expanded="true" aria-controls="edit-metadata-form-container" id="show-edit-metadata-form-container">
+                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                        <span>Edit</span>
+                    </a>
+                </h2>
+            </div>
 
-        <div class="col-xs-12" id="verify-collapser-container">
-            <h2>
-                <a href="#" role="button" data-toggle="collapse" data-target="#edit-metadata-form-container"
-                   aria-expanded="true" aria-controls="edit-metadata-form-container" id="show-edit-metadata-form-container">
-                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                    <span>Edit</span>
-                </a>
-            </h2>
+            <div class="col-xs-12" id="verify-package-container">
+            </div>
+
+            @Html.Partial("_EditMetadata")
         </div>
-
-        <div class="col-xs-12" id="verify-package-container">
-        </div>
-
-        @Html.Partial("_EditMetadata")
     </div>
 </div>
 
@@ -84,6 +90,13 @@
             if (document.referrer.toLocaleLowerCase().endsWith("edit")) {
                 $("#input-select-version").focus();
             }
+
+            window.nuget.configureExpander(
+                "select-package-version-form",
+                "ChevronRight",
+                "Select Version",
+                "ChevronDown",
+                "Select Version");
         });
     </script>
 }
