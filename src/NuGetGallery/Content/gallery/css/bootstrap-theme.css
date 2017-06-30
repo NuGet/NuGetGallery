@@ -67,6 +67,13 @@ body h3 {
 .btn-search {
   height: 36px;
 }
+.dependency-groups h4 > span {
+  margin-bottom: 3px;
+  border-bottom: 1px solid #d8d8d8;
+}
+.dependency-group li span {
+  color: #666;
+}
 .borderless > tbody > tr > td {
   border: none;
 }
@@ -383,13 +390,6 @@ img.package-icon {
 .page-api-keys .api-key-details .icon-buttons a:focus,
 .page-api-keys .api-key-details .icon-buttons a:hover {
   text-decoration: none;
-}
-.page-package-details h4 > span {
-  margin-bottom: 3px;
-  border-bottom: 1px solid #d8d8d8;
-}
-.page-package-details .dependency-group li span {
-  color: #666;
 }
 .page-package-details .no-border {
   border: 0;
@@ -738,5 +738,55 @@ img.package-icon {
 }
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
+}
+.page-upload .loading:after {
+  display: inline-block;
+  /* ascii code for the ellipsis character */
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  content: "\2026";
+  -webkit-animation: ellipsis steps(4, end) 900ms infinite;
+       -o-animation: ellipsis steps(4, end) 900ms infinite;
+          animation: ellipsis steps(4, end) 900ms infinite;
+}
+@-o-keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+@keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+@-webkit-keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+.page-upload .dependency-set-title {
+  font-size: 1.2em;
+}
+.page-upload .dependency-container .dependency-versionspec {
+  font-size: .6em;
+  color: gray;
+}
+.page-upload .dependency-container .dependency-id {
+  font-size: .8em;
+}
+.page-upload .dependency-container .dependency-none {
+  font-size: .8em;
+}
+.page-upload .tall-text-input {
+  height: 6em;
+}
+.page-upload .verify-package-field .verify-package-field-heading {
+  font-size: .75em;
+  font-weight: 700;
+}
+.page-upload #icon-preview {
+  max-width: 300px;
+  max-height: 300px;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */
