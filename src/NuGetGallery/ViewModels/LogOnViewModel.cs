@@ -9,10 +9,6 @@ using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
-    // I moved these in to one file because they are so interconnected it didn't
-    // make sense to look at them separately
-    //  - anurse
-
     public class LogOnViewModel
     {
         public AssociateExternalAccountViewModel External { get; set; }

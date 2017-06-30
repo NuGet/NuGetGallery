@@ -6,6 +6,6 @@ namespace NuGetGallery
 {
     public class ManagePackagesViewModel
     {
-        public IEnumerable<PackageViewModel> Packages { get; set; }
+        public IEnumerable<ListPackageItemViewModel> Packages { get; set; }
     }
 }

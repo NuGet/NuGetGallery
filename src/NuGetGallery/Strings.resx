@@ -216,9 +216,6 @@
   <data name="CredentialType_Password" xml:space="preserve">
     <value>Password</value>
   </data>
-  <data name="MicrosoftAccount_Caption" xml:space="preserve">
-    <value>Microsoft account</value>
-  </data>
   <data name="ApiKeyGenerated" xml:space="preserve">
     <value>A new API key has been generated. Check below and make sure to copy the value, as now is the only time it will be visible.</value>
   </data>
@@ -363,10 +360,7 @@ The {1} Team</value>
     <value>Sign in with Azure Active Directory</value>
   </data>
   <data name="AzureActiveDirectory_AccountNoun" xml:space="preserve">
-    <value>Azure Active Directory Account</value>
-  </data>
-  <data name="AzureActiveDirectory_Caption" xml:space="preserve">
-    <value>Azure Active Directory</value>
+    <value>Azure Active Directory account</value>
   </data>
   <data name="ApiKeyCanNotBeDefaultGuid" xml:space="preserve">
     <value>API key can not be the default Guid.</value>
@@ -521,5 +515,23 @@ For more information, please contact '{2}'.</value>
 &lt;li&gt;All co-owners must use client version {0} or higher to push all of their packages.&lt;/li&gt;
 &lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
 &lt;/ol&gt;</value>
+  </data>
+  <data name="UploadPackage_UploadInProgress" xml:space="preserve">
+    <value>Cannot upload file because an upload is already in progress.</value>
+  </data>
+  <data name="VerifyPackage_PackageFileModified" xml:space="preserve">
+    <value>Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.</value>
+  </data>
+  <data name="VerifyPackage_UnexpectedError" xml:space="preserve">
+    <value>There was an unexpected error. Please try uploading the package again.</value>
+  </data>
+  <data name="VerifyPackage_UploadNotFound" xml:space="preserve">
+    <value>Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again.</value>
+  </data>
+  <data name="PasswordDoesNotMatch" xml:space="preserve">
+    <value>The new password does not match the verify password field.</value>
+  </data>
+  <data name="AzureActiveDirectory_RegisterMessage" xml:space="preserve">
+    <value>Register with Azure Active Directory</value>
   </data>
 </root>

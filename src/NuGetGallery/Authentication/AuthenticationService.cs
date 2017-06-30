@@ -679,7 +679,7 @@ namespace NuGetGallery.Authentication
                 return externalType;
             }
             var ui = auther.GetUI();
-            return ui == null ? auther.Name : ui.Caption;
+            return ui == null ? auther.Name : ui.AccountNoun;
         }
 
         private Credential FindMatchingCredential(Credential credential)

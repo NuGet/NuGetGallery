@@ -1,17 +1,39 @@
 ﻿@model CreateCuratedPackageRequest
 @{
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
-@section SideColumn {
-    <p><strong>Note: </strong>Packages might also be automatically included in your curated feed based on pre-defined rules. This form is to manually include a package in the curated feed, which will override any pre-defined rules.</p>
-}
-<h1 class="page-heading">Include Package in <i>@ViewBag.CuratedFeedName</i></h1>
-@using (Html.BeginForm("CuratedPackages", "CuratedPackages", new { curatedFeedName = ViewBag.CuratedFeedName }))
-{
-    <fieldset class="form">
-        @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true)
-        @Html.EditorForModel()
-        <input type="submit" value="Add" title="Add" />
-    </fieldset>
-}
+<section class="main-container container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="text-center">Include Package in <a href="@Url.CuratedPackageList(0, "", (string)ViewBag.CuratedFeedName)" class="ms-noWrap">@ViewBag.CuratedFeedName</a></h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            @ViewHelpers.AlertInfo(@<text>
+                Packages might also be automatically included in your curated feed based on pre-defined rules. This form is to manually include a package in the curated feed, which will override any pre-defined rules.
+            </text>)
+
+            @using (Html.BeginForm("CuratedPackages", "CuratedPackages", new { curatedFeedName = ViewBag.CuratedFeedName }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-group @Html.HasErrorFor(m => m.PackageId)">
+                    @Html.ShowLabelFor(m => m.PackageId)
+                    @Html.ShowTextBoxFor(m => m.PackageId)
+                    @Html.ShowValidationMessagesFor(m => m.PackageId)
+                </div>
+
+                <div class="form-group @Html.HasErrorFor(m => m.Notes)">
+                    @Html.ShowLabelFor(m => m.Notes)
+                    @Html.ShowTextAreaFor(m => m.Notes, 3, 50)
+                    @Html.ShowValidationMessagesFor(m => m.Notes)
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary form-control" value="Include" />
+                </div>
+            }
+        </div>
+    </div>
+</section>

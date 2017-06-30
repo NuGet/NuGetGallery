@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
+using System.Web.Mvc;
 using NuGet.Frameworks;
 using NuGet.Versioning;
 
@@ -58,10 +60,13 @@ namespace NuGetGallery
                 {
                     VersionSpec = VersionRange.Parse(versionSpec).PrettyPrint();
                 }
+
+                PackageUrl = UrlExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), id);
             }
 
             public string Id { get; private set; }
             public string VersionSpec { get; private set; }
+            public string PackageUrl { get; private set; }
         }
     }
 }

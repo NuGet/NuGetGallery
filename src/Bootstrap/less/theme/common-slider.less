@@ -1,0 +1,92 @@
+//** Width of the entire slider
+@slider-full-width: 50px;
+//** Height of the entire slider
+@slider-full-height: 25px;
+//** Distance between the slider and any labels.
+@slider-label-margin: 10px;
+//** Amount of time it takes for the slider to transition between states.
+@slider-transition: .4s;
+//** The border (in px) between the inner radius and the outer radius
+@slider-inner-border: 5px;
+
+//** The color of the slider's background when unchecked
+@slider-color-unchecked: @brand-primary;
+//** The color of the slider's background when checked
+@slider-color-checked: @brand-primary;
+//** The color of the slider's foreground
+@slider-color-toggle: white;
+//** The color of the slider's background when disabled
+@slider-color-disabled: gray;
+
+.switch-container {
+    display: flex;
+    align-items: center;
+    
+    .switch {
+        margin: @slider-label-margin;
+        display: flex;
+        align-items: center;
+        
+        .slider-descriptor {
+            margin: auto;
+        }
+        
+        // The checkbox that controls the slider.
+        input {
+            // Hide it! Because the slider and checkbox are parented by a <label>, they handle click events identically.
+            display: none;
+            
+            // The following selectors change the state of the slider based on the state of the checkbox.
+            &:checked ~ .slider {
+                background-color: @slider-color-checked;
+            
+                &:before {
+                    // Animate the slider's toggle from on state to the other.
+                    @slider-inner-translate-x: (@slider-full-width - @slider-full-height);
+                    
+                    -webkit-transform: translateX(@slider-inner-translate-x);
+                    -ms-transform: translateX(@slider-inner-translate-x);
+                    transform: translateX(@slider-inner-translate-x);
+                }
+            }
+            
+            &:disabled ~ .slider {
+                background-color: @slider-color-disabled;
+            }
+        }
+        
+        // The slider that reacts to the checkbox.
+        .slider {
+            position: relative;
+            height: @slider-full-height;
+            width: @slider-full-width;
+            margin-left: @slider-label-margin;
+            margin-right: @slider-label-margin;
+            background-color: @slider-color-unchecked;
+            -webkit-transition: @slider-transition;
+            transition: @slider-transition;
+            border-radius: @slider-full-height;
+            
+            // The slider's toggle.
+            &:before {
+                @slider-inner-radius: (@slider-full-height - 2 * @slider-inner-border);
+                
+                position: absolute;
+                content: "";
+                height: @slider-inner-radius;
+                width: @slider-inner-radius;
+                left: @slider-inner-border;
+                bottom: @slider-inner-border;
+                background-color: @slider-color-toggle;
+                -webkit-transition: @slider-transition;
+                transition: @slider-transition;
+                border-radius: @slider-inner-radius;
+            }
+        }
+    }
+    
+    // The label describing the checkbox inside the slider.
+    label:not(.switch) {
+        margin: auto;
+    }
+}

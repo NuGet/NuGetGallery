@@ -4,10 +4,6 @@ namespace NuGetGallery
 {
     public class ConfirmationViewModel
     {
-        public string UnconfirmedEmailAddress { get; set; }
-
-        public bool ConfirmingNewAccount { get; set; }
-
         public bool SuccessfulConfirmation { get; set; }
 
         public bool SentEmail { get; set; }
@@ -16,9 +12,20 @@ namespace NuGetGallery
 
         public bool DuplicateEmailAddress { get; set; }
 
-        /// <summary>
-        /// Email is already confirmed
-        /// </summary>
-        public bool AlreadyConfirmed { get; set; }
+        public bool AlreadyConfirmed { get; }
+
+        public bool ConfirmingNewAccount { get; }
+
+        public string ConfirmedEmailAddress { get; }
+
+        public string UnconfirmedEmailAddress { get; }
+
+        public ConfirmationViewModel(User user)
+        {
+            AlreadyConfirmed = user.UnconfirmedEmailAddress == null;
+            ConfirmingNewAccount = !user.Confirmed;
+            ConfirmedEmailAddress = user.EmailAddress;
+            UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
+        }
     }
 }

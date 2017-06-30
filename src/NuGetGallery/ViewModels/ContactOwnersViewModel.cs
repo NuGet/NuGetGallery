@@ -11,6 +11,8 @@ namespace NuGetGallery
     {
         public string PackageId { get; set; }
 
+        public string ProjectUrl { get; set; }
+
         public IEnumerable<User> Owners { get; set; }
 
         [Display(Name = "Send me a copy")]
