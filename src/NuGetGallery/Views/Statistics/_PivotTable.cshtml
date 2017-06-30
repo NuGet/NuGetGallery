@@ -4,16 +4,16 @@
 </div>
 
 <script type="text/html" id="rows-template">
-            <!-- ko if: $data -->
-            <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
-                <!-- ko if: Uri -->
-                <a data-bind="attr: { href: Uri }, text: Data"></a>
-                <!-- /ko -->
-                <!-- ko ifnot: Uri -->
-                <span data-bind="attr: { 'aria-label': Data }, text: Data" tabindex="0"></span>
-                <!-- /ko -->
-            </td>
-            <!-- /ko -->
+    <!-- ko if: $data -->
+    <td data-bind="attr: { class: IsNumeric ? 'statistics-number' : ''  , rowspan: Rowspan >= 1 ? Rowspan : null, }" style="vertical-align:top">
+        <!-- ko if: Uri -->
+        <a data-bind="attr: { href: Uri }, text: Data"></a>
+        <!-- /ko -->
+        <!-- ko ifnot: Uri -->
+        <span data-bind="attr: { 'aria-label': Data }, text: Data" tabindex="0"></span>
+        <!-- /ko -->
+    </td>
+    <!-- /ko -->
 </script>
 
 <script type="text/html" id="report-template">
@@ -25,18 +25,16 @@
         <div data-bind="attr: { id: Id }" class="statistics-pivot">
             <div class="statistics-sidebar col-sm-2">
                 <form id="dimension-form">
-                    <table class="table borderless stats-table-control">
-                        <tbody data-bind="foreach: Dimensions">
-                            <tr>
-                                <td class="text-right">
-                                    <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked, 'aria-labelledby': DisplayName }" class="dimension-checkbox" name="groupby" type="checkbox">
-                                </td>
-                                <td class="text-left">
-                                    <label data-bind="attr: { for: 'checkbox-' + Value }, text: DisplayName" />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table borderless stats-table-control">
+                        <div data-bind="foreach: Dimensions">
+                            <div class="checkbox">
+                                <label>
+                                    <input data-bind="attr: { id: 'checkbox-' + Value, value: Value, checked: IsChecked, 'aria-labelledby': Value + '-label' }" class="dimension-checkbox" name="groupby" type="checkbox">
+                                    <span data-bind="attr: { id: Value + '-label', for: 'checkbox-' + Value, 'aria-label': 'Filter By ' + DisplayName }, text: DisplayName"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="col-sm-10 text-center" id="loading-placeholder">
@@ -96,8 +94,7 @@
                         <tbody data-bind="foreach: ShownRows">
                             <tr data-bind="template: { name: 'rows-template', foreach: $data}"></tr>
                         </tbody>
-                        <tbody data-bind="foreach: HiddenRows" class="collapse" id="hidden-rows">
-                        </tbody>
+                        <tbody data-bind="foreach: HiddenRows" class="collapse" id="hidden-rows"></tbody>
 
                     </table>
                     <button data-bind="if: $data.reportSize > 6, click: $data.SetupHiddenRows" type="button" data-toggle="collapse" class="btn btn-link btn-expander" data-target="#hidden-rows"
