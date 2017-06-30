@@ -5,14 +5,22 @@
     var _resetFunctions;
     var _submitEditUrl;
     var _cancelEditUrl;
+    var _submitting;
+    var _submitted = true;
 
     this.init = function (model, submitEditUrl, cancelEditUrl) {
+        _submitting = false;
+        _submitted = false;
         _submitEditUrl = submitEditUrl;
         _cancelEditUrl = cancelEditUrl;
         _viewModel = model;
         _changedState = {};
         _resetFunctions = {};
         bindData(_viewModel);
+
+        $(window).on('beforeunload', confirmLeave);
+
+        $('#verify-submit-button').attr('disabled', 'disabled');
 
         $('#input-select-version').on('change', function () {
             document.location = $(this).val();
@@ -21,6 +29,7 @@
         $('input[type="text"], textarea').on('change', function () {
             $(this).addClass("edited");
             _changedState[$(this).attr('id')] = true;
+            $('#verify-submit-button').removeAttr('disabled');
         });
 
         $('input[type="text"], textarea').each(function (index) {
@@ -37,31 +46,59 @@
         });
     }
 
+    this.isEdited = function () {
+        return Object.keys(_changedState).reduce(function (previous, key) { return previous || _changedState[key]; }, false);
+    }
+
+    function confirmLeave() {
+        var message = "";
+        if (_submitting) {
+            message = "Your edit is being submitted. Are you sure you want to leave?";
+        } else if (EditViewManager.isEdited() && !_submitted) {
+            message = "You have unsaved changes. Are you sure you want to leave?";
+        }
+
+        if (message !== "") {
+            return message;
+        }
+    }
+
     function submitEditAsync(callback, error) {
-        $.ajax({
-            url: _submitEditUrl,
-            type: 'POST',
+        if (EditViewManager.isEdited()) {
+            if (!_submitting) {
+                _submitting = true;
+                $.ajax({
+                    url: _submitEditUrl,
+                    type: 'POST',
 
-            data: new FormData($('#edit-metadata-form')[0]),
+                    data: new FormData($('#edit-metadata-form')[0]),
 
-            cache: false,
-            contentType: false,
-            processData: false,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
 
-            success: function (model, resultCodeString, fullResponse) {
-                if (callback) {
-                    callback(model);
-                }
-            },
+                    success: function (model, resultCodeString, fullResponse) {
+                        _submitting = false;
+                        _submitted = true;
+                        if (callback) {
+                            callback(model);
+                        }
+                    },
 
-            error: handleErrors.bind(this, error)
-        });
+                    error: handleErrors.bind(this, error)
+                });
+            }
+        } else {
+            if (callback) {
+                callback();
+            }
+        }
     }
 
     function cancelEdit() {
         navigateToPage({ location: _cancelEditUrl });
     }
-    
+
     function navigateToPage(verifyResponse) {
         document.location = verifyResponse.location;
     }
@@ -84,6 +121,7 @@
     function handleErrors(errorCallback, model, resultCodeString, fullResponse) {
         bindData(null);
 
+        _submitting = false;
         switch (resultCodeString) {
             case "timeout":
                 displayErrors(["The operation timed out. Please try again."])
@@ -99,7 +137,7 @@
         if ((fullResponse && fullResponse.status >= 500) || (model && model.status >= 500)) {
             displayErrors(["There was a server error."])
         }
-        
+
         if (errorCallback) {
             errorCallback();
         }
@@ -121,10 +159,6 @@
         ko.applyBindings({ data: model }, reportContainerElement);
 
         $('#verify-cancel-button').on('click', function () {
-            $('#verify-cancel-button').attr('disabled', 'disabled');
-            $('#verify-cancel-button').attr('value', 'Cancelling');
-            $('#verify-cancel-button').addClass('.loading');
-            $('#verify-submit-button').attr('disabled', 'disabled');
             cancelEdit();
         });
 
@@ -145,8 +179,8 @@
         window.nuget.configureExpander(
             "edit-metadata-form-container",
             "ChevronRight",
-            "Verify",
+            "Edit",
             "ChevronDown",
-            "Verify");
+            "Edit");
     }
 }

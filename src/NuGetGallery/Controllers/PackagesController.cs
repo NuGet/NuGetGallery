@@ -1064,8 +1064,19 @@ namespace NuGetGallery
             if (!ModelState.IsValid)
             {
                 Response.StatusCode = 400;
-                return Json(new string[] { "Invalid Input" });
-                //return EditFailed(id, formData, package);
+                var errorMessages = new List<string>();
+                foreach(var modelState in ModelState.Values)
+                {
+                    if (modelState.Errors.Count > 0)
+                    {
+                        foreach(var error in modelState.Errors)
+                        {
+                            errorMessages.Add(error.ErrorMessage);
+                        }
+                    }
+                }
+
+                return Json(errorMessages);
             }
 
             // Add the edit request to a queue where it will be processed in the background.
@@ -1092,8 +1103,8 @@ namespace NuGetGallery
             {
                 location = returnUrl ?? Url.RouteUrl(RouteName.DisplayPackage, new
                 {
-                    id = package.PackageRegistration.Id,
-                    version = package.NormalizedVersion
+                    id = id,
+                    version = version
                 })
             });
         }
