@@ -41,7 +41,7 @@ namespace NuGetGallery
                 new CuratedFeedViewModel
                     {
                         Name = curatedFeed.Name,
-                        Managers = curatedFeed.Managers.Select(user => user.Username),
+                        Managers = curatedFeed.Managers,
                         IncludedPackages = curatedFeed.Packages
                             .Where(cp => cp.Included)
                             .Select(

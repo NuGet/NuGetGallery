@@ -1,7 +1,118 @@
 ﻿@model CuratedFeedViewModel
 @{
     ViewBag.Title = "Curated Feed: " + Model.Name;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
+
+<section class="main-container container page-manage-curated-feed">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="text-center">Curated Feed <a href="@Url.CuratedPackageList(0, "", Model.Name)" class="ms-noWrap">@Model.Name</a></h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#feed-managers"
+                           aria-expanded="true" aria-controls="feed-managers" id="show-feed-managers">
+                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                            <span>Managers</span>
+                        </a>
+                    </h2>
+                    <div class="panel-collapse collapse in" aria-expanded="true" id="feed-managers">
+                        <p>This is a list of all users authorized to manage the curated feed. To add or remove managers, please contact the gallery operators.</p>
+                        <div class="package-owners" role="list">
+                            @foreach (var manager in Model.Managers)
+                            {
+                                <div class="owner" role="listitem">
+                                    <div class="row">
+                                        <div class="col-xs-1">
+                                            @ViewHelpers.GravatarImage(manager.EmailAddress, manager.Username, 32)
+                                        </div>
+                                        <div class="col-xs-11 ms-font-xl">
+                                            <a href="@Url.User(manager)" title="@manager.Username">@manager.Username</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#included-packages"
+                           aria-expanded="true" aria-controls="included-packages" id="show-included-packages">
+                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                            <span>Included Packages</span>
+                        </a>
+                    </h2>
+                    <div class="panel-collapse collapse in" aria-expanded="true" id="included-packages">
+                        <p>This is a list of all packages included in the curated feed, both manually and automatically added. To manually include a new package to the feed, click the "Include Package" link below. To remove a manually curated package, click the "Remove" link next to it. To exclude an automatically curated package, click the "Exclude" link next to it.</p>
+                        <p><em>* denotes automatically curated packages</em></p>
+                        <div class="feed-packages-list" role="list">
+                            @foreach (var package in Model.IncludedPackages)
+                            {
+                                <div class="package" role="listitem">
+                                    <a class="id" href="@Url.Package(package.Id)">@package.Id</a>
+                                    <div class="controls">
+                                        @if (package.AutomaticallyCurated)
+                                        {
+                                            <a href="#" class="exclude-link" data-package-id="@package.Id" role="button"><i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>Exclude</a>
+                                        }
+                                        else
+                                        {
+                                            <a href="#" class="remove-link" data-package-id="@package.Id" role="button"><i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>Remove</a>
+                                        }
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                            }
+                        </div>
+                        @using (Html.BeginForm("CreateCuratedPackageForm", "CuratedPackages", FormMethod.Get))
+                        {
+                            @Html.Hidden("curatedFeedName", Model.Name)
+
+                            <div class="form-group">
+                                <input type="submit" class="btn btn-primary form-control" value="Include Package" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#excluded-packages"
+                           aria-expanded="true" aria-controls="excluded-packages" id="show-excluded-packages">
+                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                            <span>Excluded Packages</span>
+                        </a>
+                    </h2>
+                    <div class="panel-collapse collapse in" aria-expanded="true" id="excluded-packages">
+                        <p>This is a list of all automatically curated packages that have been subsequently manually excluded. To include the package in the curated feed, click the "Include" link next to the package.</p>
+                        <div class="feed-packages-list" role="list">
+                            @foreach (var package in Model.ExcludedPackages)
+                            {
+                                <div class="package" role="listitem">
+                                    <a class="id" href="@Url.Package(@package)">@package</a>
+                                    <div class="controls">
+                                        <a href="#" class="include-link" data-package-id="@package" role="button"><i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>Include</a>
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 @section BottomScripts {
     <script>
         var urlFormat = "@Url.RouteUrl(RouteName.CuratedPackage, new { curatedFeedName = Model.Name, curatedPackageId = "PACKAGE_ID" })";
@@ -34,63 +145,39 @@
                 });
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
+            window.nuget.configureExpander(
+                "feed-managers",
+                "ChevronRight",
+                "Managers",
+                "ChevronDown",
+                "Managers");
+
+            window.nuget.configureExpander(
+                "included-packages",
+                "ChevronRight",
+                "Included Packages",
+                "ChevronDown",
+                "Included Packages");
+
+            window.nuget.configureExpander(
+                "excluded-packages",
+                "ChevronRight",
+                "Excluded Packages",
+                "ChevronDown",
+                "Excluded Packages");
+
             $(".remove-link").click(function() {
                 deleteCuratedPackage($(this).data("package-id"));
             });
-        });
 
-        $(document).ready(function() {
-            $(".exclude-link").click(function() {
+            $(".exclude-link").click(function () {
                 patchCuratedPackage($(this).data("package-id"), false);
             });
-        });
 
-        $(document).ready(function() {
-            $(".include-link").click(function() {
+            $(".include-link").click(function () {
                 patchCuratedPackage($(this).data("package-id"), true);
             });
         });
     </script>
 }
-<h1>Curated Feed: @Model.Name</h1>
-<h2>Managers</h2>
-<p>This is a list of all users authorized to manage the curated feed. To add or remove managers, please contact the gallery operators.</p>
-<ul>
-    @foreach (var manager in Model.Managers)
-    {
-        <li>@manager</li>
-    }
-</ul>
-<h2>Included Packages</h2>
-<p>This is a list of all packages included in the curated feed, both manually and automatically added. To manually include a new package to the feed, click the "Include Package" link below. To remove a manually-curated package, click the "Remove" link next to it. To exclude an automatically-curated package, click the "Exclude" link next to it.</p>
-<p>@Html.RouteLink("Include Package", RouteName.CreateCuratedPackageForm, new { curatedFeedName = Model.Name })</p>
-<ul>
-    @foreach (var package in Model.IncludedPackages)
-    {
-        <li>
-            @package.Id
-            @if (package.AutomaticallyCurated)
-            {
-                <span> *</span>
-                <a href="#" class="exclude-link" data-package-id="@package.Id">Exclude</a>
-            }
-            else
-            {
-                <a href="#" class="remove-link" data-package-id="@package.Id">Remove</a>
-            }
-        </li>
-    }
-</ul>
-<p><em>* denotes automatically-curated packages</em></p>
-<h2>Excluded Packages</h2>
-<p>This is a list of all automatically-curated packages that have been subsequently manually excluded. To include the package in the curated feed, click the "Include" link next to the package.</p>
-<ul>
-    @foreach (var package in Model.ExcludedPackages)
-    {
-        <li>
-            @package
-            <a href="#" class="include-link" data-package-id="@package">Include</a>
-        </li>
-    }
-</ul>
