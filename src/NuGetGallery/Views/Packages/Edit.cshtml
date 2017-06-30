@@ -77,6 +77,7 @@
     @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
     @Scripts.Render("~/Scripts/gallery/page-edit.js")
     <script>
+        $(function () {
         var viewModel = @Html.Raw(Json.Encode(Model.Edit));
         var realModel = {
             "Id": '@Model.PackageId',
@@ -86,20 +87,20 @@
         EditViewManager.init(realModel,
             '@Url.EditPackage(Model.PackageId, Model.Version)',
             '@Url.Package(Model.PackageId, Model.Version)');
-        $(function () {
+
             if (document.referrer != null
                 && document.referrer.toLocaleLowerCase().endsWith("edit")
                 && document.referrer.indexOf('@Model.PackageId') > -1) {
 
-                $("#input-select-version").focus();
-            }
+            $("#input-select-version").focus();
+        }
 
-            window.nuget.configureExpander(
-                "select-package-version-form",
-                "ChevronRight",
-                "Select Version",
-                "ChevronDown",
-                "Select Version");
+        window.nuget.configureExpander(
+            "select-package-version-form",
+            "ChevronRight",
+            "Select Version",
+            "ChevronDown",
+            "Select Version");
         });
     </script>
 }

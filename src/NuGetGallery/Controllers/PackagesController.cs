@@ -1016,12 +1016,14 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return HttpNotFound();
+                Response.StatusCode = 404;
+                return Json(new string[] { String.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
             if (!package.IsOwner(User))
             {
-                return new HttpStatusCodeResult(403, "Forbidden");
+                Response.StatusCode = 403;
+                return Json(new string[] { Strings.Unauthorized });
             }
 
             var packageRegistration = _packageService.FindPackageRegistrationById(id);
@@ -1051,30 +1053,21 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return HttpNotFound();
+                Response.StatusCode = 404;
+                return Json(new string[] { String.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
             if (!package.IsOwner(User))
             {
-                return new HttpStatusCodeResult(403, "Forbidden");
+                Response.StatusCode = 403;
+                return Json(new string[] { Strings.Unauthorized });
             }
 
             var user = GetCurrentUser();
             if (!ModelState.IsValid)
             {
                 Response.StatusCode = 400;
-                var errorMessages = new List<string>();
-                foreach(var modelState in ModelState.Values)
-                {
-                    if (modelState.Errors.Count > 0)
-                    {
-                        foreach(var error in modelState.Errors)
-                        {
-                            errorMessages.Add(error.ErrorMessage);
-                        }
-                    }
-                }
-
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
                 return Json(errorMessages);
             }
 
@@ -1093,7 +1086,7 @@ namespace NuGetGallery
                 catch (EntityException ex)
                 {
                     ModelState.AddModelError("Edit.VersionTitle", ex.Message);
-
+                    Response.StatusCode = 400;
                     return Json(new string[] { ex.Message });
                 }
             }
@@ -1106,20 +1099,6 @@ namespace NuGetGallery
                     version = version
                 })
             });
-        }
-
-        private ActionResult EditFailed(string id, EditPackageRequest formData, Package package)
-        {
-            formData.PackageId = package.PackageRegistration.Id;
-            formData.PackageTitle = package.Title;
-            formData.Version = package.Version;
-
-            var packageRegistration = _packageService.FindPackageRegistrationById(id);
-            formData.PackageVersions = packageRegistration.Packages
-                .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                .ToList();
-
-            return View(formData);
         }
 
         [Authorize]
